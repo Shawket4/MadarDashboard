@@ -296,6 +296,7 @@ import type {
   ListClientVersionsParams,
   ListCodesParams,
   ListConversationsParams,
+  ListCustomerBookingsParams,
   ListCustomersParams,
   ListDecisionsParams,
   ListDeductionsParams,
@@ -512,6 +513,8 @@ import type {
   SetOverrideRequest,
   SetParRequest,
   SetRoutingModeRequest,
+  SetTicketCustomerRequest,
+  SetTicketCustomerResponse,
   SettleOpenTicketRequest,
   Shift,
   ShiftPreFill,
@@ -7107,6 +7110,109 @@ export function useListCustomerAddresses<TData = Awaited<ReturnType<typeof listC
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListCustomerAddressesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary A customer's bookings, newest first. A merged id answers for its survivor,
+and bookings made under any id merged into it are included.
+ */
+export const listCustomerBookings = (
+    id: string,
+    params?: ListCustomerBookingsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BookingView[]>(
+      {url: `/customers/${id}/bookings`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListCustomerBookingsQueryKey = (id: string,
+    params?: ListCustomerBookingsParams,) => {
+    return [
+    `/customers/${id}/bookings`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListCustomerBookingsQueryOptions = <TData = Awaited<ReturnType<typeof listCustomerBookings>>, TError = ErrorBody>(id: string,
+    params?: ListCustomerBookingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCustomerBookings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCustomerBookingsQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCustomerBookings>>> = ({ signal }) => listCustomerBookings(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCustomerBookings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCustomerBookingsQueryResult = NonNullable<Awaited<ReturnType<typeof listCustomerBookings>>>
+export type ListCustomerBookingsQueryError = ErrorBody
+
+
+export function useListCustomerBookings<TData = Awaited<ReturnType<typeof listCustomerBookings>>, TError = ErrorBody>(
+ id: string,
+    params: undefined |  ListCustomerBookingsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCustomerBookings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCustomerBookings>>,
+          TError,
+          Awaited<ReturnType<typeof listCustomerBookings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCustomerBookings<TData = Awaited<ReturnType<typeof listCustomerBookings>>, TError = ErrorBody>(
+ id: string,
+    params?: ListCustomerBookingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCustomerBookings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCustomerBookings>>,
+          TError,
+          Awaited<ReturnType<typeof listCustomerBookings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCustomerBookings<TData = Awaited<ReturnType<typeof listCustomerBookings>>, TError = ErrorBody>(
+ id: string,
+    params?: ListCustomerBookingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCustomerBookings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A customer's bookings, newest first. A merged id answers for its survivor,
+and bookings made under any id merged into it are included.
+ */
+
+export function useListCustomerBookings<TData = Awaited<ReturnType<typeof listCustomerBookings>>, TError = ErrorBody>(
+ id: string,
+    params?: ListCustomerBookingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCustomerBookings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCustomerBookingsQueryOptions(id,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -18910,6 +19016,74 @@ export function useGetOpenTicket<TData = Awaited<ReturnType<typeof getOpenTicket
 
 
 
+
+/**
+ * @summary Set or clear the customer on an open bill (the dashboard / online path; a
+till queues `set_ticket_customer` through `/sync/replay` instead).
+ */
+export const setTicketCustomer = (
+    id: string,
+    setTicketCustomerRequest: SetTicketCustomerRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SetTicketCustomerResponse>(
+      {url: `/open-tickets/${id}/customer`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: setTicketCustomerRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getSetTicketCustomerMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setTicketCustomer>>, TError,{id: string;data: SetTicketCustomerRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof setTicketCustomer>>, TError,{id: string;data: SetTicketCustomerRequest}, TContext> => {
+
+const mutationKey = ['setTicketCustomer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setTicketCustomer>>, {id: string;data: SetTicketCustomerRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setTicketCustomer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetTicketCustomerMutationResult = NonNullable<Awaited<ReturnType<typeof setTicketCustomer>>>
+    export type SetTicketCustomerMutationBody = SetTicketCustomerRequest
+    export type SetTicketCustomerMutationError = ErrorBody
+
+    /**
+ * @summary Set or clear the customer on an open bill (the dashboard / online path; a
+till queues `set_ticket_customer` through `/sync/replay` instead).
+ */
+export const useSetTicketCustomer = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setTicketCustomer>>, TError,{id: string;data: SetTicketCustomerRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setTicketCustomer>>,
+        TError,
+        {id: string;data: SetTicketCustomerRequest},
+        TContext
+      > => {
+      return useMutation(getSetTicketCustomerMutationOptions(options), queryClient);
+    }
 
 export const voidTicketLine = (
     id: string,

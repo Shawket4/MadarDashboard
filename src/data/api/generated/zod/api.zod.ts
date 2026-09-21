@@ -3478,6 +3478,53 @@ export const ListCustomerAddressesResponseItem = zod.object({
 export const ListCustomerAddressesResponse = zod.array(ListCustomerAddressesResponseItem)
 
 
+/**
+ * @summary A customer's bookings, newest first. A merged id answers for its survivor,
+and bookings made under any id merged into it are included.
+ */
+export const ListCustomerBookingsParams = zod.object({
+  "id": zod.uuid().describe('Customer ID (a merged id resolves)')
+})
+
+export const ListCustomerBookingsQueryParams = zod.object({
+  "limit": zod.number().optional().describe('Default 50, at most 200.'),
+  "offset": zod.number().optional()
+})
+
+export const ListCustomerBookingsResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.string().nullish(),
+  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "customer_id": zod.uuid().nullish().describe('The customer who booked (design §2.5); `guest_name` \/ `guest_phone`\nbeside it are the snapshot of what was typed. `None` for a booking\nfrom before customers existed whose phone is not a valid number.'),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('The floor shows the claimed tables as held from here (branch\n`hold_minutes` before the start). Clients compare with their clock.'),
+  "id": zod.uuid(),
+  "locale": zod.string(),
+  "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
+  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The ticket this party is (or was) eating on. DERIVED from\n`open_tickets.booking_id` — the live one if there is one, else the\nlatest — never stored on the booking.'),
+  "party_size": zod.number(),
+  "phone_verified": zod.boolean(),
+  "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "section_id": zod.uuid().nullish(),
+  "source": zod.string().describe('`public` | `host`.'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated` | `completed` | `no_show` | `cancelled`.'),
+  "table_ids": zod.array(zod.uuid()),
+  "table_labels": zod.array(zod.string()),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListCustomerBookingsResponse = zod.array(ListCustomerBookingsResponseItem)
+
+
 export const EraseCustomerParams = zod.object({
   "id": zod.uuid().describe('Customer id')
 })
@@ -4825,6 +4872,7 @@ export const TableHistoryResponse = zod.object({
   "settled_count": zod.number(),
   "sittings": zod.array(zod.object({
   "closed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the bill was settled or voided; `None` while it is still open.'),
+  "customer_id": zod.uuid().nullish().describe('The customer the sitting belongs to, when one is known: the sale\'s once\nsettled (a settle may name one the bill never had), else the bill\'s.\nRead through the merge chain, so it is always a live customer.'),
   "customer_name": zod.string().nullish(),
   "guest_count": zod.number().nullish(),
   "minutes": zod.number().describe('Minutes from `seated_at` to the close, or to now while still open.'),
@@ -9170,6 +9218,26 @@ export const GetOpenTicketResponse = zod.object({
   "void_note": zod.string().nullish(),
   "void_reason": zod.string().nullish().describe('Categorised like an order void, so void-rate reports read dine-in and\ncounter alike.'),
   "voided_at": zod.iso.datetime({"offset":true}).nullish()
+})
+
+
+/**
+ * @summary Set or clear the customer on an open bill (the dashboard / online path; a
+till queues `set_ticket_customer` through `/sync/replay` instead).
+ */
+export const SetTicketCustomerParams = zod.object({
+  "id": zod.uuid().describe('Open ticket ID')
+})
+
+export const SetTicketCustomerBody = zod.object({
+  "customer_id": zod.uuid().nullish().describe('The customer this bill is for; `null` (or absent) takes the customer off.')
+})
+
+export const SetTicketCustomerResponse = zod.object({
+  "applied": zod.boolean().describe('False when nothing was written: unknown customer, unknown or voided bill.'),
+  "customer_id": zod.uuid().nullish().describe('What the bill now says, after the merge chain: the survivor of a merged\nid, `null` when the customer was taken off, and the PREVIOUS value when\nthe id was unknown (the pick is dropped, the bill is untouched).'),
+  "order_id": zod.uuid().nullish().describe('The sale the change landed on instead, when the bill was already\nsettled by the time this arrived.'),
+  "ticket_id": zod.uuid()
 })
 
 
