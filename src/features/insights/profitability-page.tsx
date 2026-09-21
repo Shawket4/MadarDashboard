@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { SegmentedControl } from "@/components/app/segmented-control";
+import { QuadrantView } from "./quadrant-view";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
@@ -38,6 +39,8 @@ import { TargetEditor } from "./target-editor";
 import { invalidateInsights, TINT } from "./util";
 
 type CostBasis = "snapshot" | "current";
+/** How the ledger tab is read: row by row, or as the profit/popularity quadrant. */
+type LedgerView = "table" | "quadrant";
 
 /** The classic menu-engineering quadrants (secondary lens on the ledger). */
 const ALL_CLASSES = "__all__";
@@ -95,6 +98,7 @@ export function ProfitabilityPage() {
 
   const [basis, setBasis] = useState<CostBasis>("snapshot");
   const [tab, setTab] = useState("ledger");
+  const [view, setView] = useState<LedgerView>("table");
   const [classFilter, setClassFilter] = useState<string>(ALL_CLASSES);
   const [flaggedOnly, setFlaggedOnly] = useState(false);
 
@@ -411,7 +415,22 @@ export function ProfitabilityPage() {
           ) : null}
         </div>
 
-        <TabsContent value="ledger">
+        <TabsContent value="ledger" className="space-y-3">
+          <SegmentedControl<LedgerView>
+            value={view}
+            onChange={setView}
+            options={[
+              { value: "table", label: t("insights.profitability.viewTable", "Table") },
+              { value: "quadrant", label: t("insights.profitability.viewQuadrant", "Quadrant") },
+            ]}
+          />
+          {view === "quadrant" ? (
+            rows.length > 0 ? (
+              <QuadrantView rows={rows} />
+            ) : (
+              <EmptyState title={t("insights.profitability.noRows", "No sales in this period")} />
+            )
+          ) : (
           <DataTable
             columns={columns}
             data={rows}
@@ -453,6 +472,7 @@ export function ProfitabilityPage() {
               />
             }
           />
+          )}
         </TabsContent>
 
         <TabsContent value="repricing">
