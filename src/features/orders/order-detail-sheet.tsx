@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ban, Bike, Check, Info, MapPin, Store, X } from "lucide-react";
+import { Ban, Bike, Check, CupSoda, Info, MapPin, Store, X } from "lucide-react";
 
 import {
   Sheet,
@@ -30,6 +30,7 @@ import { canOpenPerson, peopleAccess } from "@/features/customers/access";
 import { CustomerDetailSheet } from "@/features/customers/customer-detail-sheet";
 import { ContactOverrideNote, CustomerLink } from "@/features/customers/customer-link";
 import { orderRewards } from "./reward-lines";
+import { addonNormalTotal, orderStaffComp, staffDrinkLine } from "./staff-drink-lines";
 
 interface Deduction {
   ingredient_name: string;
@@ -102,6 +103,8 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
   const voided = order?.status === "voided";
   const rewards = orderRewards(order);
   const items = order?.items ?? [];
+  // What the staff pool gave free on this sale. Already off every stored total.
+  const staffComp = orderStaffComp(items);
   const isDelivery = order?.order_type === "delivery";
   const delivery = order?.delivery ?? null;
   const channelLabel = (channel: string) =>
@@ -325,6 +328,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                     </p>
                     {items.map((it) => {
                       const deductions = (Array.isArray(it.deductions_snapshot) ? it.deductions_snapshot : []) as Deduction[];
+                      const staff = staffDrinkLine(it);
                       return (
                         <div key={it.id} className="space-y-1 border-b py-2 last:border-0">
                           <div className="flex items-start justify-between gap-2">
@@ -338,6 +342,11 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                                 {rewards.lines.has(it.id) ? (
                                   <StatusPill tone="success" size="sm">
                                     {t("orders.reward", "Reward")}
+                                  </StatusPill>
+                                ) : null}
+                                {staff ? (
+                                  <StatusPill tone="info" size="sm" icon={CupSoda}>
+                                    {t("orders.staffDrink", "Staff drink")}
                                   </StatusPill>
                                 ) : null}
                               </p>
@@ -360,7 +369,19 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                                     <p key={a.id} className="text-xs">
                                       + {getTranslatedName({ name: a.addon_name, name_translations: a.name_translations }, lang)}
                                       {a.quantity > 1 ? ` ×${a.quantity}` : ""}
-                                      {a.line_total > 0 ? (
+                                      {(a.staff_comp_minor ?? 0) > 0 ? (
+                                        // A required pick the pool covered: its normal
+                                        // price, and what came off it. Its stored total is
+                                        // already net, so a fully free pick would otherwise
+                                        // show no price at all.
+                                        <span data-testid="addon-staff-comp" className="ms-1 text-muted-foreground tabular">
+                                          <bdi>({fmtMoney(addonNormalTotal(a))})</bdi>{" "}
+                                          {t("orders.staffCompAddon", {
+                                            defaultValue: "given free {{amount}}",
+                                            amount: fmtMoney(-(a.staff_comp_minor ?? 0)),
+                                          })}
+                                        </span>
+                                      ) : a.line_total > 0 ? (
                                         <span className="ms-1 text-muted-foreground tabular">({fmtMoney(a.line_total)})</span>
                                       ) : null}
                                     </p>
@@ -419,6 +440,30 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                             </div>
                           </div>
 
+                          {staff && staff.comp > 0 ? (
+                            // The comp as a line discount, the way the receipt
+                            // prints it: normal price, minus what was given free,
+                            // equals what the line was charged.
+                            <dl
+                              data-testid="staff-line"
+                              className="mt-1 rounded-lg bg-muted/60 px-3 py-2 text-xs"
+                            >
+                              <StaffLineRow
+                                label={t("orders.staffLineNormal", "Normal price, with extras")}
+                                value={fmtMoney(staff.normal)}
+                              />
+                              <StaffLineRow
+                                label={t("orders.staffLineComp", "Staff drink · given free")}
+                                value={fmtMoney(-staff.comp)}
+                              />
+                              <StaffLineRow
+                                strong
+                                label={t("orders.staffLineCharged", "Charged")}
+                                value={fmtMoney(staff.charged)}
+                              />
+                            </dl>
+                          ) : null}
+
                           {deductions.length > 0 ? (
                             <details className="mt-2 border-t pt-1 text-xs text-muted-foreground">
                               <summary className="cursor-pointer rounded py-0.5 font-medium hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1">
@@ -448,6 +493,20 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
 
               <Card className="py-0 shadow-none">
                 <CardContent className="p-4 pt-2 text-sm">
+                  {staffComp > 0 ? (
+                    // The subtotal is stored net of the comp. Put it back for one
+                    // line so the sheet adds up from the prices shown above.
+                    <>
+                      <SummaryLine
+                        label={t("orders.beforeStaffDrinks", "Items at normal price")}
+                        value={fmtMoney(order.subtotal + staffComp)}
+                      />
+                      <SummaryLine
+                        label={t("orders.staffDrinksGiven", "Staff drinks · given free")}
+                        value={fmtMoney(-staffComp)}
+                      />
+                    </>
+                  ) : null}
                   <SummaryLine label={t("common.subtotal", "Subtotal")} value={fmtMoney(order.subtotal)} />
                   {rewards.totalCovered > 0 || rewards.memberId ? (
                     <SummaryLine
@@ -512,6 +571,17 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
         ) : null}
       </SheetContent>
     </Sheet>
+  );
+}
+
+function StaffLineRow({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className={cn("flex items-center justify-between gap-3 py-0.5", strong && "font-semibold")}>
+      <dt className={cn(!strong && "text-muted-foreground")}>{label}</dt>
+      <dd className="font-mono tabular-nums">
+        <bdi>{value}</bdi>
+      </dd>
+    </div>
   );
 }
 
