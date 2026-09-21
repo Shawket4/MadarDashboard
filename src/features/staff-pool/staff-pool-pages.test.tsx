@@ -5,11 +5,18 @@
  * means the pool is off while the switch still reads "on".
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { StaffDrink, StaffPoolSettings, StaffPoolToday } from "@/data/api/generated/models";
+import type {
+  StaffDrink,
+  StaffDrinksSummary,
+  StaffPoolSettings,
+  StaffPoolToday,
+} from "@/data/api/generated/models";
+import { fmtMoney } from "@/lib/format";
 
 globalThis.IntersectionObserver ??= class {
   observe() {}
@@ -30,6 +37,9 @@ let branchId: string | null = null;
 let settings: StaffPoolSettings | undefined;
 let today: StaffPoolToday | undefined;
 let drinks: StaffDrink[] = [];
+let summary: StaffDrinksSummary | undefined;
+let summaryFails = false;
+const openedOrders: (string | null)[] = [];
 const enabledSeen: Record<string, boolean[]> = {};
 
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
@@ -78,12 +88,25 @@ vi.mock("@/data/api/generated/api", () => ({
   useGetStaffPoolSettings: hook("settings", () => settings),
   useGetStaffPoolToday: hook("today", () => today),
   useListStaffDrinks: hook("drinks", () => drinks),
+  useSummarizeStaffDrinks: (...args: unknown[]) => ({
+    ...hook("summary", () => (summaryFails ? undefined : summary))(...args),
+    isError: summaryFails,
+  }),
   usePutStaffPoolSettings: () => ({ mutateAsync: vi.fn(), isPending: false }),
   deleteStaffPoolSettings: vi.fn(),
   useListMenuItems: hook("menuItems", () => [
     { id: "item-a", name: "Latte", name_translations: null },
     { id: "item-b", name: "Iced tea", name_translations: null },
   ]),
+}));
+
+// The real sheet pulls half the app behind it; what this page owes it is the
+// id of the order to open, and nothing else.
+vi.mock("@/features/orders/order-detail-sheet", () => ({
+  OrderDetailSheet: ({ orderId, open }: { orderId: string | null; open: boolean }) => {
+    if (open) openedOrders.push(orderId);
+    return open ? <div data-testid="order-sheet">{orderId}</div> : null;
+  },
 }));
 
 const i18n = (await import("@/i18n")).default;
@@ -116,6 +139,9 @@ beforeEach(() => {
     eligible_item_ids: ["item-a"],
   };
   drinks = [drink({ id: "d-1" })];
+  summary = undefined;
+  summaryFails = false;
+  openedOrders.length = 0;
 });
 
 const drink = (over: Partial<StaffDrink> = {}): StaffDrink => ({
@@ -215,6 +241,177 @@ describe("the drink-by-drink table", () => {
     wrap(<StaffPoolReportPage />);
     expect(neverAsked("drinks")).toBe(false);
     expect(screen.getByText("No staff drinks in this period")).toBeInTheDocument();
+  });
+});
+
+describe("what each drink gave away, and what it still charged", () => {
+  beforeEach(() => {
+    held = ["orders.staff_drink.record", "orders.read"];
+    branchId = "b-9";
+  });
+
+  it("shows the server's comp and the extras as money", () => {
+    drinks = [drink({ id: "d-1", order_id: "o-1", comp_minor: 7000, extras_minor: 1500 })];
+    wrap(<StaffPoolReportPage />);
+    expect(screen.getByRole("columnheader", { name: "Given free" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Extras charged" })).toBeInTheDocument();
+    expect(screen.getByText(fmtMoney(7000))).toBeInTheDocument();
+    expect(screen.getByText(fmtMoney(1500))).toBeInTheDocument();
+    expect(screen.queryByTestId("comp-unpriced")).not.toBeInTheDocument();
+  });
+
+  it("shows a free drink with nothing extra as 0.00, which is a real figure", () => {
+    drinks = [drink({ id: "d-1", comp_minor: 7000, extras_minor: 0 })];
+    wrap(<StaffPoolReportPage />);
+    expect(screen.getByText(fmtMoney(0))).toBeInTheDocument();
+  });
+
+  it("never shows an old till's drink as 0 — it has no figure, and says why", () => {
+    // POS ≤ v0.7.12 records the drink without a priced line: comp is null,
+    // which is "unknown". A 0 would claim the branch gave nothing away.
+    drinks = [drink({ id: "d-1", comp_minor: null, extras_minor: null, cost_minor: null })];
+    wrap(<StaffPoolReportPage />);
+    const cells = screen.getAllByTestId("comp-unpriced");
+    expect(cells).toHaveLength(2);
+    for (const c of cells) {
+      expect(c).toHaveTextContent("—");
+      expect(c).toHaveTextContent("Rung before staff drinks were priced");
+    }
+    expect(screen.queryByText(fmtMoney(0))).not.toBeInTheDocument();
+    // And the reason is on the page, not only in a tooltip.
+    expect(screen.getByText(/means the drink was rung before staff drinks were priced/)).toBeInTheDocument();
+  });
+
+  it("treats a row the old shape never carried the fields on the same way", () => {
+    drinks = [drink({ id: "d-1" })];
+    wrap(<StaffPoolReportPage />);
+    expect(screen.getAllByTestId("comp-unpriced")).toHaveLength(2);
+  });
+
+  it("marks a row whose till claimed a different comp, and says both figures", () => {
+    drinks = [
+      drink({ id: "d-1", comp_minor: 7000, comp_minor_reported: 9000, extras_minor: 0 }),
+      drink({ id: "d-2", comp_minor: 7000, comp_minor_reported: 7000, extras_minor: 0 }),
+      drink({ id: "d-3", comp_minor: 7000, comp_minor_reported: null, extras_minor: 0 }),
+    ];
+    wrap(<StaffPoolReportPage />);
+    const notes = screen.getAllByTestId("comp-mismatch");
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toHaveTextContent(
+      `The till reported ${fmtMoney(9000)}; the server priced it at ${fmtMoney(7000)}.`,
+    );
+    expect(screen.getAllByText("Till differs")).toHaveLength(1);
+  });
+
+  it("opens the sale a drink was rung on, and offers nothing where there is none", async () => {
+    drinks = [
+      drink({ id: "d-1", order_id: "o-77", comp_minor: 7000, extras_minor: 0 }),
+      drink({ id: "d-2", order_id: null }),
+    ];
+    wrap(<StaffPoolReportPage />);
+    const links = screen.getAllByRole("button", { name: "View order" });
+    expect(links).toHaveLength(1);
+    await userEvent.click(links[0]);
+    expect(screen.getByTestId("order-sheet")).toHaveTextContent("o-77");
+  });
+
+  it("draws no order link for someone who cannot read orders", () => {
+    held = ["orders.staff_drink.record"];
+    drinks = [drink({ id: "d-1", order_id: "o-77", comp_minor: 7000, extras_minor: 0 })];
+    wrap(<StaffPoolReportPage />);
+    expect(screen.queryByRole("button", { name: "View order" })).not.toBeInTheDocument();
+  });
+});
+
+describe("the period's totals", () => {
+  const totals = (over: Partial<StaffDrinksSummary> = {}): StaffDrinksSummary => ({
+    drinks: 4,
+    quantity: 5,
+    overspent: 2,
+    comp_minor: 28000,
+    extras_minor: 3500,
+    cost_minor: 6100,
+    comp_mismatches: 0,
+    unpriced: 0,
+    ...over,
+  });
+  beforeEach(() => {
+    held = ["orders.staff_drink.record"];
+    branchId = "b-9";
+  });
+
+  it("asks nothing without the capability", () => {
+    held = [];
+    wrap(<StaffPoolReportPage />);
+    expect(neverAsked("summary")).toBe(true);
+  });
+
+  it("shows what the endpoint returns: drinks, given free, extras, cost, over allowance", () => {
+    summary = totals();
+    wrap(<StaffPoolReportPage />);
+    const strip = within(screen.getByTestId("staff-summary"));
+    // Drinks is the QUANTITY — what the allowance is measured in — not the rows.
+    expect(strip.getByText("Drinks").nextElementSibling).toHaveTextContent("5");
+    expect(strip.getByText("Given free").nextElementSibling).toHaveTextContent(fmtMoney(28000));
+    expect(strip.getByText("Extras charged").nextElementSibling).toHaveTextContent(fmtMoney(3500));
+    expect(strip.getByText("Cost to make").nextElementSibling).toHaveTextContent(fmtMoney(6100));
+    expect(strip.getByText("Over allowance").nextElementSibling).toHaveTextContent("2");
+    expect(strip.queryByText("Till differs")).not.toBeInTheDocument();
+  });
+
+  it("counts the rows a till disagreed on, and the ones with no figures", () => {
+    summary = totals({ comp_mismatches: 1, unpriced: 3 });
+    wrap(<StaffPoolReportPage />);
+    const strip = within(screen.getByTestId("staff-summary"));
+    expect(strip.getByText("Till differs").nextElementSibling).toHaveTextContent("1");
+    expect(screen.getByText(/3 of these were rung before staff drinks were priced/)).toBeInTheDocument();
+  });
+
+  it("draws no row of zeroes over an empty period", () => {
+    summary = totals({ drinks: 0, quantity: 0, overspent: 0, comp_minor: 0, extras_minor: 0, cost_minor: 0 });
+    drinks = [];
+    wrap(<StaffPoolReportPage />);
+    expect(screen.queryByTestId("staff-summary")).not.toBeInTheDocument();
+  });
+
+  it("says the totals failed without taking the rows down with them", () => {
+    summaryFails = true;
+    wrap(<StaffPoolReportPage />);
+    expect(screen.getByRole("alert")).toHaveTextContent("Couldn't load the totals for this period.");
+    expect(screen.getByText("Mostafa, closing shift")).toBeInTheDocument();
+  });
+});
+
+describe("the new figures in Arabic", () => {
+  beforeEach(async () => {
+    held = ["orders.staff_drink.record", "orders.read"];
+    branchId = "b-9";
+    await i18n.changeLanguage("ar");
+  });
+  afterEach(async () => {
+    await i18n.changeLanguage("en");
+  });
+
+  it("names the columns, the marker and the totals in Arabic, with no English left", () => {
+    drinks = [
+      drink({ id: "d-1", order_id: "o-1", comp_minor: 7000, comp_minor_reported: 9000, extras_minor: 1500 }),
+      drink({ id: "d-2", comp_minor: null }),
+    ];
+    summary = {
+      drinks: 2, quantity: 2, overspent: 0, comp_minor: 7000, extras_minor: 1500,
+      cost_minor: 2500, comp_mismatches: 1, unpriced: 1,
+    };
+    const { container } = wrap(<StaffPoolReportPage />);
+    expect(i18n.dir()).toBe("rtl");
+    expect(screen.getByRole("columnheader", { name: "اتقدّم ببلاش" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "إضافات اتحاسب عليها" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "افتح الطلب" })).toBeInTheDocument();
+    expect(screen.getByTestId("comp-mismatch")).toHaveTextContent(/الكاشير سجّل .*؛ والسيرفر حسبها/);
+    expect(screen.getAllByTestId("comp-unpriced")[0]).toHaveTextContent("اتسجّل قبل ما مشروبات الموظفين تتسعّر");
+    expect(screen.getByText(/مشروب واحد منهم اتسجّل قبل/)).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/Given free|Extras charged|Till differs|View order|The till reported/);
+    // Figures stay isolated so a minus or a currency never reorders in RTL.
+    expect(screen.getByTestId("staff-summary").querySelectorAll("bdi").length).toBeGreaterThan(0);
   });
 });
 

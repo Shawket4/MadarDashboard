@@ -5563,6 +5563,24 @@
     "poolOn": "The pool on {{date}}",
     "drinksRange": "{{from}} to {{to}}",
     "overOnReplay": "· on recount",
-    "overOnReplayHint": "The till didn't count this as over at the time — the server did, once it had the whole day."
+    "overOnReplayHint": "The till didn't count this as over at the time — the server did, once it had the whole day.",
+    "colComp": "Given free",
+    "colExtras": "Extras charged",
+    "colOrder": "Order",
+    "viewOrder": "View order",
+    "compMismatch": "The till reported {{reported}}; the server priced it at {{server}}.",
+    "compMismatchBadge": "Till differs",
+    "unpricedHint": "Rung before staff drinks were priced",
+    "unpricedNote": "— means the drink was rung before staff drinks were priced, so there is no figure for it. It still counted against the allowance.",
+    "summaryLabel": "Totals for this period",
+    "summaryFailed": "Couldn't load the totals for this period.",
+    "sumDrinks": "Drinks",
+    "sumComp": "Given free",
+    "sumExtras": "Extras charged",
+    "sumCost": "Cost to make",
+    "sumOver": "Over allowance",
+    "sumMismatches": "Till differs",
+    "sumUnpriced_one": "{{count}} of these was rung before staff drinks were priced. It counts as a drink, but has no figure in Given free or Extras charged.",
+    "sumUnpriced_other": "{{count}} of these were rung before staff drinks were priced. They count as drinks, but have no figure in Given free or Extras charged."
   }
 }
