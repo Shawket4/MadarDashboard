@@ -432,6 +432,31 @@ describe("the staff drinks settings' capability gate", () => {
   });
 });
 
+describe("the pricing rule, said once under the items", () => {
+  beforeEach(() => {
+    held = ["org.settings.edit"];
+  });
+
+  it("says what is free and what is charged", () => {
+    wrap(<StaffPoolSettingsPage />);
+    const rule = screen.getByText(/What's free is the smallest size and the default of each required choice/);
+    expect(rule).toHaveTextContent(/A bigger size, extras and pricier choices are charged/);
+    // It sits with the control it explains.
+    expect(rule.parentElement).toHaveTextContent("Items that count");
+  });
+
+  it("says it in Arabic", async () => {
+    await i18n.changeLanguage("ar");
+    try {
+      wrap(<StaffPoolSettingsPage />);
+      expect(screen.getByText(/اللي ببلاش هو أصغر حجم والاختيار الأساسي في كل اختيار إجباري/)).toBeInTheDocument();
+      expect(screen.queryByText(/What's free/)).not.toBeInTheDocument();
+    } finally {
+      await i18n.changeLanguage("en");
+    }
+  });
+});
+
 describe("the organisation's settings versus a branch's own", () => {
   beforeEach(() => {
     held = ["org.settings.edit"];
