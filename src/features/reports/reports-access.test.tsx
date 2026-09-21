@@ -8,6 +8,8 @@ import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import type { NavLeaf } from "@/config/nav";
+
 globalThis.IntersectionObserver ??= class {
   observe() {}
   unobserve() {}
@@ -38,7 +40,7 @@ vi.mock("@/data/authz/use-authz", async () => {
 });
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
 vi.mock("@/data/scope/use-scope", () => ({
-  useScope: () => ({ branchId: null, from: "2026-09-01T00:00:00Z", to: "2026-09-30T00:00:00Z", preset: "30d" }),
+  useScope: () => ({ branchId: null, scopeBranchId: "00000000-0000-0000-0000-000000000000", from: "2026-09-01T00:00:00Z", to: "2026-09-30T00:00:00Z", preset: "30d" }),
 }));
 vi.mock("@/data/api/generated/api", () => ({
   useRefundsAudit: hook("refunds", audit),
@@ -49,6 +51,7 @@ vi.mock("@/data/api/generated/api", () => ({
   useOrgTaxReport: hook("tax", undefined),
   useGetLoyaltyBehavior: hook("loyalty", undefined),
   useDisciplineReport: hook("discipline", { rows: [] }),
+  useBranchTillSessions: hook("tillSessions", []),
   useManualDeductionsAudit: hook("manualDeductions", audit),
   useDeductionOverridesAudit: hook("deductionOverrides", audit),
   useLoyaltyAdjustmentsAudit: hook("loyaltyAdjustments", audit),
@@ -80,6 +83,9 @@ await i18n.changeLanguage("en");
 const { LegalReportsPage } = await import("./legal/legal-reports-page");
 const { LoyaltyReportPage } = await import("./loyalty/loyalty-report-page");
 const { StaffDisciplinePage } = await import("./staff/staff-discipline-page");
+const { TillSessionsPage } = await import("./tills/till-sessions-page");
+const { NAV, isParent, leafVisible } = await import("@/config/nav");
+const { authzFrom } = await import("@/data/authz/use-authz");
 const { FinancialReportsPage } = await import("./financial/financial-reports-page");
 const { OperationsReportsPage } = await import("./operations/operations-reports-page");
 const { InventoryReportsPage } = await import("@/features/inventory/inventory-reports-page");
@@ -134,6 +140,32 @@ describe("Reports access", () => {
     held = ["hr.attendance.read"];
     wrap(<StaffDisciplinePage />);
     expect(screen.getAllByText(/Staff discipline/).length).toBeGreaterThan(0);
+  });
+
+  it("Till sessions needs till.read.branch — till.read alone is a teller's own drawer", () => {
+    held = ["till.read"];
+    reset();
+    const { unmount } = wrap(<TillSessionsPage />);
+    expect(denied()).toBeInTheDocument();
+    expect(neverAsked("tillSessions")).toBe(true);
+    unmount();
+
+    held = ["till.read", "till.read.branch"];
+    wrap(<TillSessionsPage />);
+    expect(denied()).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Sessions" })).toBeInTheDocument();
+    expect(enabledSeen.tillSessions?.at(-1)).toBe(true);
+  });
+
+  it("the Tills nav entry follows the same capability as its page", () => {
+    const leaf = NAV.flatMap((g) => g.entries)
+      .flatMap((e) => (isParent(e) ? e.children : [e]))
+      .find((l): l is NavLeaf => l.to === "/reports/tills");
+    const holding = (capabilities: string[]) =>
+      authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: ["teller"], capabilities: capabilities as never, ask_manager: [], limits: {} });
+    expect(leaf).toBeDefined();
+    expect(leafVisible(leaf!, holding(["till.read", "orders.read"]))).toBe(false);
+    expect(leafVisible(leaf!, holding(["till.read.branch"]))).toBe(true);
   });
 
   it("Legal hides the payroll tabs without hr.payroll.read, and attendance without hr.attendance.read", () => {

@@ -8,6 +8,7 @@ import type { Branch } from "@/data/api/generated/models/branch";
 import type { BranchComparison } from "@/data/api/generated/models/branchComparison";
 import type { OrgComparisonReport } from "@/data/api/generated/models/orgComparisonReport";
 import type { TimeseriesPoint } from "@/data/api/generated/models/timeseriesPoint";
+import type { TillSessionRow } from "@/data/api/generated/models/tillSessionRow";
 import type { BranchSalesReport } from "@/data/api/generated/models/branchSalesReport";
 import type { DeliverySalesReport } from "@/data/api/generated/models/deliverySalesReport";
 import type { Order } from "@/data/api/generated/models/order";
@@ -1589,3 +1590,40 @@ export const bookingAvailability = (_branchId: string, date: string, party: numb
 };
 
 export const bookingStats = () => ({ total: 3, covers: 6, seated: 1, completed: 0, no_show: 0, cancelled: 0, public_count: 2, host_count: 1, no_show_rate: 0 });
+
+/**
+ * Till sessions for the Tills report — one closed short, one over, one
+ * force-closed with nobody's count, one still open. Every closed row adds up:
+ * opening + net cash + pay-ins − pay-outs − drops + adjustments = expected.
+ */
+export const MOCK_TILL_SESSIONS: TillSessionRow[] = [
+  {
+    till_id: "till_1", business_date: "2026-09-18", branch_id: "branch_zam", branch_name: "Zamalek", branch_code: "ZAM",
+    teller_id: "user_nour", teller_name: "Nour Adel", opened_at: "2026-09-18T06:05:00Z", status: "closed",
+    opening_cash: 50000, net_cash_payment: 412300, pay_ins: 20000, pay_outs: 7500,
+    cash_drops: 300000, cash_adjustments: 0, closing_cash_declared: 173300, closing_cash_system: 174800,
+    cash_discrepancy: -1500, orders_count: 148, net_sales: 486200, closed_at: "2026-09-18T17:40:00Z",
+  },
+  {
+    till_id: "till_2", business_date: "2026-09-18", branch_id: "branch_mad", branch_name: "Maadi", branch_code: "MAD",
+    teller_id: "user_omar", teller_name: "Omar Fathy", opened_at: "2026-09-18T06:10:00Z", status: "closed",
+    opening_cash: 50000, net_cash_payment: 268900, pay_ins: 0, pay_outs: 12000,
+    cash_drops: 200000, cash_adjustments: -500, closing_cash_declared: 107150, closing_cash_system: 106400,
+    cash_discrepancy: 750, orders_count: 96, net_sales: 312400, closed_at: "2026-09-18T18:02:00Z",
+  },
+  {
+    // Opened late, force-closed by a manager after midnight: no declared count, so no variance.
+    till_id: "till_4", business_date: "2026-09-18", branch_id: "branch_mad", branch_name: "Maadi", branch_code: "MAD",
+    teller_id: "user_sara", teller_name: "Sara Helmy", opened_at: "2026-09-18T15:30:00Z", status: "force_closed",
+    opening_cash: 30000, net_cash_payment: 143200, pay_ins: 0, pay_outs: 0,
+    cash_drops: 100000, cash_adjustments: 0, closing_cash_declared: null, closing_cash_system: 73200,
+    cash_discrepancy: null, orders_count: 52, net_sales: 171900, closed_at: "2026-09-18T22:20:00Z",
+  },
+  {
+    till_id: "till_3", business_date: "2026-09-19", branch_id: "branch_zam", branch_name: "Zamalek", branch_code: "ZAM",
+    teller_id: "user_nour", teller_name: "Nour Adel", opened_at: "2026-09-19T06:00:00Z", status: "open",
+    opening_cash: 50000, net_cash_payment: 98400, pay_ins: 0, pay_outs: 0,
+    cash_drops: 0, cash_adjustments: 0, closing_cash_declared: null, closing_cash_system: null,
+    cash_discrepancy: null, orders_count: 37, net_sales: 104800, closed_at: null,
+  },
+];

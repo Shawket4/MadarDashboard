@@ -270,6 +270,7 @@ import type {
   TillPreFill,
   TillRefunds,
   TillReportResponse,
+  TillSessionRow,
   TillSpotView,
   TimeseriesPoint,
   TopPer,
@@ -1139,6 +1140,8 @@ export const getBranchStockResponseMock = (overrideResponse: Partial<Extract<Bra
 export const getBranchSupplierSpendResponseMock = (): SupplierSpendRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({orders: faker.number.int(), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.string.alpha({length: {min: 10, max: 20}}), total_spend: faker.number.int()})))
 
 export const getBranchTellerStatsResponseMock = (): TellerStats[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({avg_order_value: faker.number.int(), orders: faker.number.int(), revenue: faker.number.int(), shifts: faker.number.int(), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), voided: faker.number.int()})))
+
+export const getBranchTillSessionsResponseMock = (): TillSessionRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_code: faker.string.alpha({length: {min: 10, max: 20}}), branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), business_date: faker.date.past().toISOString().slice(0, 10), cash_adjustments: faker.number.int(), cash_discrepancy: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), cash_drops: faker.number.int(), closed_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), closing_cash_declared: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), closing_cash_system: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), net_cash_payment: faker.number.int(), net_sales: faker.number.int(), opened_at: faker.date.past().toISOString().slice(0, 19) + 'Z', opening_cash: faker.number.int(), orders_count: faker.number.int(), pay_ins: faker.number.int(), pay_outs: faker.number.int(), status: faker.string.alpha({length: {min: 10, max: 20}}), teller_id: faker.string.uuid(), teller_name: faker.string.alpha({length: {min: 10, max: 20}}), till_id: faker.string.uuid()})))
 
 export const getBranchWaiterStatsResponseMock = (overrideResponse: Partial<Extract<WaiterStatsReport, object>> = {}): WaiterStatsReport => ({attributed_orders: faker.number.int(), total_orders: faker.number.int(), waiters: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({avg_items_per_order: faker.number.float({fractionDigits: 2}), avg_order_value: faker.number.int(), line_items: faker.number.int(), orders: faker.number.int(), revenue: faker.number.int(), voided: faker.number.int(), waiter_id: faker.string.uuid(), waiter_name: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
 

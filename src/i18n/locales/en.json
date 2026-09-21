@@ -206,7 +206,8 @@
     "packagingRules": "Packaging rules",
     "reportsFinancial": "Financial",
     "staffPool": "Staff drinks",
-    "reportsStaffPool": "Staff drinks"
+    "reportsStaffPool": "Staff drinks",
+    "reportsTills": "Tills"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -3928,7 +3929,12 @@
       "vsPrev": "vs previous period",
       "noFlags": "Nothing flagged — margins look healthy",
       "noRows": "No sales in this period",
-      "shareOfRevenue": "{{pct}} of revenue"
+      "shareOfRevenue": "{{pct}} of revenue",
+      "viewTable": "Table",
+      "viewQuadrant": "Quadrant",
+      "quantity": "Qty",
+      "margin": "Margin",
+      "popularity": "Popularity"
     },
     "columns": {
       "item": "Item",
@@ -4012,6 +4018,16 @@
       "challenge": "Challenge",
       "dog": "Dog",
       "tooltip": "Popularity {{popularity}}% of units · profit vs menu average"
+    },
+    "quadrant": {
+      "challengesDogs": "Challenges / Dogs",
+      "starsWorkhorses": "Stars / Workhorses",
+      "title": "Popularity against margin per unit",
+      "description": "Dashed lines split high from low: {{popularity}} of units sold, and the average margin per unit of {{margin}}.",
+      "unitMargin": "Margin per unit",
+      "noCosts": "Nothing to plot yet — no item that sold has a known cost",
+      "summary_one": "{{count}} item by popularity and margin per unit: {{stars}} stars, {{workhorses}} workhorses, {{challenges}} challenges, {{dogs}} dogs. Switch to Table for the figures.",
+      "summary_other": "{{count}} items by popularity and margin per unit: {{stars}} stars, {{workhorses}} workhorses, {{challenges}} challenges, {{dogs}} dogs. Switch to Table for the figures."
     }
   },
   "integrations": {
@@ -5313,6 +5329,61 @@
         "supplierSpend": "Supplier spend",
         "materialCostTrend": "Material cost trend"
       }
+    },
+    "tills": {
+      "title": "Till sessions",
+      "businessDate": "Business date",
+      "branch": "Branch",
+      "branchRef": "Branch ref.",
+      "user": "User",
+      "openedAt": "Opened at",
+      "openingAmount": "Opening",
+      "netCash": "Net cash",
+      "payIns": "Pay-ins",
+      "payOuts": "Pay-outs",
+      "cashDrops": "Cash drops",
+      "closingAmount": "Declared",
+      "expectedAmount": "Expected",
+      "variance": "Variance",
+      "closedAt": "Closed at",
+      "stillOpen": "Open",
+      "empty": "No till sessions opened in this period",
+      "subtitle_one": "{{count}} till session — opening float, cash through the drawer, and the close",
+      "subtitle_other": "{{count}} till sessions — opening float, cash through the drawer, and the close",
+      "tabSessions": "Sessions",
+      "tabSales": "Sales",
+      "tabTiming": "Open & close",
+      "orders": "Orders",
+      "sales": "Net sales",
+      "search": "Search branch or user",
+      "totalSales": "Net sales",
+      "totalOrders": "Orders",
+      "avgOrderValue": "Average bill",
+      "avgPerTill": "Average per till",
+      "bySession": "By session",
+      "avgOpen": "Typical open",
+      "avgClose": "Typical close",
+      "avgDuration": "Average length",
+      "longest": "Longest session",
+      "byHour": "Opens and closes by hour",
+      "opened": "Opened",
+      "closed": "Closed",
+      "acrossTills_one": "across {{count}} session",
+      "acrossTills_other": "across {{count}} sessions",
+      "stillOpenCount_one": "{{count}} still open",
+      "stillOpenCount_other": "{{count}} still open",
+      "ordersShare": "{{orders}} orders · {{share}}",
+      "adjustments": "Adjustments",
+      "status": "Status",
+      "statusClosed": "Closed",
+      "forceClosed": "Force-closed",
+      "subtitleIdle": "Opening float, cash through the drawer, and the close",
+      "rangeRefused": "Too many till sessions to list for this period. Choose a shorter date range.",
+      "barLabel": "{{share}} of the best session",
+      "showAll_one": "Show all {{count}} session",
+      "showAll_other": "Show all {{count}} sessions",
+      "showTop": "Show the top {{count}}",
+      "byHourSummary": "Till opens and closes counted by hour of the day. Typical open {{open}}, typical close {{close}}."
     }
   },
   "modeling": {

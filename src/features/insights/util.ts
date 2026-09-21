@@ -10,7 +10,7 @@ export const invalidateInsights = () =>
 
 /** Readable state tints for figures (CLAUDE.md contrast formula) — never raw tokens on text. */
 export const TINT = {
-  success: "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]",
-  warning: "text-[color-mix(in_oklch,var(--color-warning)_50%,var(--color-foreground))]",
-  danger: "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]",
+  success: "text-[color-mix(in_oklab,var(--color-success)_60%,var(--color-foreground))]",
+  warning: "text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]",
+  danger: "text-[color-mix(in_oklab,var(--color-destructive)_60%,var(--color-foreground))]",
 } as const;

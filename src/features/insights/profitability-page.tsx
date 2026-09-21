@@ -9,10 +9,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { SegmentedControl } from "@/components/app/segmented-control";
+import { QuadrantView } from "./quadrant-view";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
@@ -38,6 +39,8 @@ import { TargetEditor } from "./target-editor";
 import { invalidateInsights, TINT } from "./util";
 
 type CostBasis = "snapshot" | "current";
+/** How the ledger tab is read: row by row, or as the profit/popularity quadrant. */
+type LedgerView = "table" | "quadrant";
 
 /** The classic menu-engineering quadrants (secondary lens on the ledger). */
 const ALL_CLASSES = "__all__";
@@ -95,6 +98,7 @@ export function ProfitabilityPage() {
 
   const [basis, setBasis] = useState<CostBasis>("snapshot");
   const [tab, setTab] = useState("ledger");
+  const [view, setView] = useState<LedgerView>("table");
   const [classFilter, setClassFilter] = useState<string>(ALL_CLASSES);
   const [flaggedOnly, setFlaggedOnly] = useState(false);
 
@@ -204,7 +208,11 @@ export function ProfitabilityPage() {
     },
   ];
 
-  const rows = (report?.rows ?? []).filter(
+  const allRows = report?.rows ?? [];
+  // The server classifies only what sold with a known cost; with none of
+  // those the quadrant would be an empty frame.
+  const plottable = allRows.some((r) => r.class != null);
+  const rows = allRows.filter(
     (r) =>
       (!flaggedOnly || r.flags.length > 0) &&
       (classFilter === ALL_CLASSES || r.class === classFilter),
@@ -411,7 +419,36 @@ export function ProfitabilityPage() {
           ) : null}
         </div>
 
-        <TabsContent value="ledger">
+        <TabsContent value="ledger" className="space-y-3">
+          <SegmentedControl<LedgerView>
+            value={view}
+            onChange={setView}
+            options={[
+              { value: "table", label: t("insights.profitability.viewTable", "Table") },
+              { value: "quadrant", label: t("insights.profitability.viewQuadrant", "Quadrant") },
+            ]}
+          />
+          {view === "quadrant" ? (
+            // The quadrant reads the WHOLE ledger, not the table's filtered
+            // rows: its threshold lines belong to the full classified set, and
+            // the class/flag filters live in the table toolbar, which this
+            // view does not show.
+            loading ? (
+              <Skeleton className="h-[420px] w-full" />
+            ) : ledger.error ? (
+              <ErrorState message={getErrorMessage(ledger.error)} onRetry={() => void ledger.refetch()} />
+            ) : plottable ? (
+              <QuadrantView rows={allRows} />
+            ) : (
+              <EmptyState
+                title={
+                  allRows.some((r) => r.quantity_sold > 0)
+                    ? t("insights.quadrant.noCosts", "Nothing to plot yet — no item that sold has a known cost")
+                    : t("insights.profitability.noRows", "No sales in this period")
+                }
+              />
+            )
+          ) : (
           <DataTable
             columns={columns}
             data={rows}
@@ -453,6 +490,7 @@ export function ProfitabilityPage() {
               />
             }
           />
+          )}
         </TabsContent>
 
         <TabsContent value="repricing">
