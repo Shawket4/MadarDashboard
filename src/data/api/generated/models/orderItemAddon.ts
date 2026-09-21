@@ -16,5 +16,10 @@ export interface OrderItemAddon {
   name_translations: OrderItemAddonNameTranslations;
   order_item_id: string;
   quantity: number;
+  /**
+     * The part of a staff drink's comp this pick absorbed (whole line), already
+     * taken off `line_total`. 0 everywhere else.
+     */
+  staff_comp_minor?: number;
   unit_price: number;
 }

@@ -9089,6 +9089,12 @@ export const CreateOpenTicketBody = zod.object({
   "optional_field_ids": zod.array(zod.uuid()).optional(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish(),
+  "staff_drink": zod.union([zod.null(),zod.object({
+  "comp_minor": zod.number().nullish().describe('What the TILL comped on this line (whole line, minor units). Read ONLY\nwhen a queued offline sale is replayed; live, the server prices the comp\nand this is ignored.'),
+  "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
+  "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
+  "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })).describe('Client-priced items (same shape as a POS order line) — recorded verbatim.'),
   "notes": zod.string().nullish(),
@@ -9306,6 +9312,12 @@ export const AddRoundBody = zod.object({
   "optional_field_ids": zod.array(zod.uuid()).optional(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish(),
+  "staff_drink": zod.union([zod.null(),zod.object({
+  "comp_minor": zod.number().nullish().describe('What the TILL comped on this line (whole line, minor units). Read ONLY\nwhen a queued offline sale is replayed; live, the server prices the comp\nand this is ignored.'),
+  "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
+  "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
+  "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 }))
 })
@@ -9764,6 +9776,12 @@ export const CreateOrderBody = zod.object({
   "optional_field_ids": zod.array(zod.uuid()).optional(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish(),
+  "staff_drink": zod.union([zod.null(),zod.object({
+  "comp_minor": zod.number().nullish().describe('What the TILL comped on this line (whole line, minor units). Read ONLY\nwhen a queued offline sale is replayed; live, the server prices the comp\nand this is ignored.'),
+  "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
+  "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
+  "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })),
   "live_approval": zod.union([zod.null(),zod.object({
@@ -9907,6 +9925,8 @@ export const CreateOrderResponse = zod.object({
   "reward_covered": zod.number().optional().describe('Minor units the reward took off this line (0 for a paid line).'),
   "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
+  "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
+  "staff_drink_id": zod.uuid().nullish().describe('The `staff_drinks` row this line is (`GET \/staff-pool\/drinks`).'),
   "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
   "unit_price": zod.number()
 }).and(zod.object({
@@ -9921,6 +9941,7 @@ export const CreateOrderResponse = zod.object({
 }),
   "order_item_id": zod.uuid(),
   "quantity": zod.number(),
+  "staff_comp_minor": zod.number().optional().describe('The part of a staff drink\'s comp this pick absorbed (whole line), already\ntaken off `line_total`. 0 everywhere else.'),
   "unit_price": zod.number()
 })),
   "bundle_components": zod.array(zod.object({
@@ -10082,6 +10103,8 @@ export const ExportOrdersResponse = zod.object({
   "reward_covered": zod.number().optional().describe('Minor units the reward took off this line (0 for a paid line).'),
   "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
+  "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
+  "staff_drink_id": zod.uuid().nullish().describe('The `staff_drinks` row this line is (`GET \/staff-pool\/drinks`).'),
   "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
   "unit_price": zod.number()
 }).and(zod.object({
@@ -10096,6 +10119,7 @@ export const ExportOrdersResponse = zod.object({
 }),
   "order_item_id": zod.uuid(),
   "quantity": zod.number(),
+  "staff_comp_minor": zod.number().optional().describe('The part of a staff drink\'s comp this pick absorbed (whole line), already\ntaken off `line_total`. 0 everywhere else.'),
   "unit_price": zod.number()
 })),
   "bundle_components": zod.array(zod.object({
@@ -10310,6 +10334,8 @@ export const GetOrderResponse = zod.object({
   "reward_covered": zod.number().optional().describe('Minor units the reward took off this line (0 for a paid line).'),
   "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
+  "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
+  "staff_drink_id": zod.uuid().nullish().describe('The `staff_drinks` row this line is (`GET \/staff-pool\/drinks`).'),
   "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
   "unit_price": zod.number()
 }).and(zod.object({
@@ -10324,6 +10350,7 @@ export const GetOrderResponse = zod.object({
 }),
   "order_item_id": zod.uuid(),
   "quantity": zod.number(),
+  "staff_comp_minor": zod.number().optional().describe('The part of a staff drink\'s comp this pick absorbed (whole line), already\ntaken off `line_total`. 0 everywhere else.'),
   "unit_price": zod.number()
 })),
   "bundle_components": zod.array(zod.object({
@@ -12184,6 +12211,12 @@ export const PublicTableOrderBody = zod.object({
   "optional_field_ids": zod.array(zod.uuid()).optional(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish(),
+  "staff_drink": zod.union([zod.null(),zod.object({
+  "comp_minor": zod.number().nullish().describe('What the TILL comped on this line (whole line, minor units). Read ONLY\nwhen a queued offline sale is replayed; live, the server prices the comp\nand this is ignored.'),
+  "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
+  "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
+  "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })).describe('What they want. Named, never priced — see the module docs.'),
   "table_id": zod.uuid()
@@ -15126,7 +15159,10 @@ export const ListStaffDrinksResponseItem = zod.object({
   "allowance_at_record": zod.number(),
   "branch_id": zod.uuid(),
   "business_date": zod.iso.date(),
+  "comp_minor": zod.number().nullish().describe('What the pool comped on the sale\'s line, minor units, as the SERVER\nprices it. `null` on a record-only drink (no priced line behind it).'),
+  "comp_minor_reported": zod.number().nullish().describe('What the TILL said the comp was, on a replayed sale. Differs from\n`comp_minor` exactly when `orders.staff_drink.record:comp_mismatch` was\nflagged.'),
   "cost_minor": zod.number().nullish(),
+  "extras_minor": zod.number().nullish().describe('What that line was still charged: a bigger size, extras, pricier picks.'),
   "id": zod.uuid(),
   "item_name": zod.string(),
   "menu_item_id": zod.uuid().nullish(),
@@ -15165,7 +15201,10 @@ export const RecordStaffDrinkResponse = zod.object({
   "allowance_at_record": zod.number(),
   "branch_id": zod.uuid(),
   "business_date": zod.iso.date(),
+  "comp_minor": zod.number().nullish().describe('What the pool comped on the sale\'s line, minor units, as the SERVER\nprices it. `null` on a record-only drink (no priced line behind it).'),
+  "comp_minor_reported": zod.number().nullish().describe('What the TILL said the comp was, on a replayed sale. Differs from\n`comp_minor` exactly when `orders.staff_drink.record:comp_mismatch` was\nflagged.'),
   "cost_minor": zod.number().nullish(),
+  "extras_minor": zod.number().nullish().describe('What that line was still charged: a bigger size, extras, pricier picks.'),
   "id": zod.uuid(),
   "item_name": zod.string(),
   "menu_item_id": zod.uuid().nullish(),
@@ -15179,6 +15218,28 @@ export const RecordStaffDrinkResponse = zod.object({
   "size_label": zod.string().nullish(),
   "used_before": zod.number()
 }).describe('One recorded staff drink, as every reader sees it.')
+
+
+/**
+ * @summary Totals for the same range and filter as `GET /staff-pool/drinks`.
+ */
+export const SummarizeStaffDrinksQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "from": zod.iso.date().optional().describe('Business days, inclusive. Both default to the branch\'s today.'),
+  "to": zod.iso.date().optional(),
+  "overspent_only": zod.boolean().optional().describe('Only the drinks that went past the allowance.')
+})
+
+export const SummarizeStaffDrinksResponse = zod.object({
+  "comp_minor": zod.number().describe('What the pool comped, minor units (server-priced).'),
+  "comp_mismatches": zod.number().describe('Rows whose till-reported comp differs from the server\'s.'),
+  "cost_minor": zod.number().describe('What the drinks cost to make, where known. Counts in FULL: the drink\nwas made whether or not anyone paid for it.'),
+  "drinks": zod.number().describe('Rows (lines put on the pool).'),
+  "extras_minor": zod.number().describe('What those lines were still charged — the only part that is revenue.'),
+  "overspent": zod.number().describe('Of those rows, how many went past the allowance.'),
+  "quantity": zod.number().describe('Drinks (the sum of their quantities) — what the allowance is measured in.'),
+  "unpriced": zod.number().describe('Record-only rows (no priced sale line behind them; POS ≤ v0.7.12).')
+}).describe('What the staff pool gave away and took in over a range of business days.')
 
 
 export const GetStaffPoolSettingsQueryParams = zod.object({

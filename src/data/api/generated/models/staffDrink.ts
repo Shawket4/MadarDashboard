@@ -8,8 +8,26 @@ export interface StaffDrink {
   allowance_at_record: number;
   branch_id: string;
   business_date: string;
+  /**
+     * What the pool comped on the sale's line, minor units, as the SERVER
+     * prices it. `null` on a record-only drink (no priced line behind it).
+     * @nullable
+     */
+  comp_minor?: number | null;
+  /**
+     * What the TILL said the comp was, on a replayed sale. Differs from
+     * `comp_minor` exactly when `orders.staff_drink.record:comp_mismatch` was
+     * flagged.
+     * @nullable
+     */
+  comp_minor_reported?: number | null;
   /** @nullable */
   cost_minor?: number | null;
+  /**
+     * What that line was still charged: a bigger size, extras, pricier picks.
+     * @nullable
+     */
+  extras_minor?: number | null;
   id: string;
   item_name: string;
   /** @nullable */
