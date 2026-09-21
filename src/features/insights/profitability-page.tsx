@@ -9,7 +9,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { SegmentedControl } from "@/components/app/segmented-control";
@@ -208,7 +208,11 @@ export function ProfitabilityPage() {
     },
   ];
 
-  const rows = (report?.rows ?? []).filter(
+  const allRows = report?.rows ?? [];
+  // The server classifies only what sold with a known cost; with none of
+  // those the quadrant would be an empty frame.
+  const plottable = allRows.some((r) => r.class != null);
+  const rows = allRows.filter(
     (r) =>
       (!flaggedOnly || r.flags.length > 0) &&
       (classFilter === ALL_CLASSES || r.class === classFilter),
@@ -425,10 +429,24 @@ export function ProfitabilityPage() {
             ]}
           />
           {view === "quadrant" ? (
-            rows.length > 0 ? (
-              <QuadrantView rows={rows} />
+            // The quadrant reads the WHOLE ledger, not the table's filtered
+            // rows: its threshold lines belong to the full classified set, and
+            // the class/flag filters live in the table toolbar, which this
+            // view does not show.
+            loading ? (
+              <Skeleton className="h-[420px] w-full" />
+            ) : ledger.error ? (
+              <ErrorState message={getErrorMessage(ledger.error)} onRetry={() => void ledger.refetch()} />
+            ) : plottable ? (
+              <QuadrantView rows={allRows} />
             ) : (
-              <EmptyState title={t("insights.profitability.noRows", "No sales in this period")} />
+              <EmptyState
+                title={
+                  allRows.some((r) => r.quantity_sold > 0)
+                    ? t("insights.quadrant.noCosts", "Nothing to plot yet — no item that sold has a known cost")
+                    : t("insights.profitability.noRows", "No sales in this period")
+                }
+              />
             )
           ) : (
           <DataTable
