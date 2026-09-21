@@ -5588,7 +5588,6 @@
     "overOnReplayHint": "The till didn't count this as over at the time — the server did, once it had the whole day.",
     "colComp": "Given free",
     "colExtras": "Extras charged",
-    "colOrder": "Order",
     "viewOrder": "View order",
     "compMismatch": "The till reported {{reported}}; the server priced it at {{server}}.",
     "compMismatchBadge": "Till differs",

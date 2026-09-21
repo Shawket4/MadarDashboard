@@ -5761,7 +5761,6 @@
     "overOnReplayHint": "الكاشير ما حسبهاش زيادة وقتها — السيرفر هو اللي حسبها كده لما جمع اليوم كله.",
     "colComp": "اتقدّم ببلاش",
     "colExtras": "إضافات اتحاسب عليها",
-    "colOrder": "الطلب",
     "viewOrder": "افتح الطلب",
     "compMismatch": "الكاشير سجّل {{reported}}؛ والسيرفر حسبها {{server}}.",
     "compMismatchBadge": "الكاشير مختلف",

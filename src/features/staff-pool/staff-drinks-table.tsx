@@ -90,7 +90,26 @@ export function StaffDrinksTable({
           const label = d.size_label
             ? `${d.item_name} · ${d.size_label}`
             : d.item_name;
-          return d.quantity > 1 ? `${label} × ${d.quantity}` : label;
+          const text = d.quantity > 1 ? `${label} × ${d.quantity}` : label;
+          const orderId = d.order_id;
+          // A record-only drink has no sale behind it: nothing to open, and a
+          // dead link would be worse than none. The link rides under the item
+          // rather than in a column of its own — the row is already wide, and
+          // a column that is empty for every old till's drink earns no width.
+          if (!onOpenOrder || !orderId) return text;
+          return (
+            <div className="space-y-0.5">
+              <span className="block">{text}</span>
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0 text-xs font-normal text-muted-foreground"
+                onClick={() => onOpenOrder(orderId)}
+              >
+                {t("staffPool.viewOrder", "View order")}
+              </Button>
+            </div>
+          );
         },
         meta: { label: t("staffPool.colItem", "Item"), phone: "title" },
       },
@@ -110,7 +129,7 @@ export function StaffDrinksTable({
               {money.priced && money.tillSaid != null ? (
                 <p
                   data-testid="comp-mismatch"
-                  className="text-xs text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]"
+                  className="whitespace-normal text-xs text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]"
                 >
                   {t("staffPool.compMismatch", {
                     defaultValue:
@@ -123,7 +142,7 @@ export function StaffDrinksTable({
             </div>
           );
         },
-        meta: { label: t("staffPool.colNote", "Note"), className: "min-w-56" },
+        meta: { label: t("staffPool.colNote", "Note"), className: "min-w-56 max-w-96 whitespace-normal" },
       },
       {
         accessorKey: "comp_minor",
@@ -196,31 +215,6 @@ export function StaffDrinksTable({
         },
         meta: { label: t("staffPool.colOver", "Over allowance"), align: "end" },
       },
-      ...(onOpenOrder
-        ? [
-            {
-              id: "order",
-              header: t("staffPool.colOrder", "Order"),
-              cell: ({ row }) => {
-                const orderId = row.original.order_id;
-                // A record-only drink has no sale behind it: nothing to open,
-                // and a dead link would be worse than none.
-                if (!orderId) return null;
-                return (
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="h-auto p-0"
-                    onClick={() => onOpenOrder(orderId)}
-                  >
-                    {t("staffPool.viewOrder", "View order")}
-                  </Button>
-                );
-              },
-              meta: { label: t("staffPool.colOrder", "Order"), align: "end" },
-            } satisfies ColumnDef<StaffDrink>,
-          ]
-        : []),
     ],
     [t, showDate, onOpenOrder, unpricedHint],
   );
