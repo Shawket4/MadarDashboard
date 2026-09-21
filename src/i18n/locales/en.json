@@ -3961,7 +3961,13 @@
     },
     "quadrant": {
       "challengesDogs": "Challenges / Dogs",
-      "starsWorkhorses": "Stars / Workhorses"
+      "starsWorkhorses": "Stars / Workhorses",
+      "title": "Popularity against margin per unit",
+      "description": "Dashed lines split high from low: {{popularity}} of units sold, and the average margin per unit of {{margin}}.",
+      "unitMargin": "Margin per unit",
+      "noCosts": "Nothing to plot yet — no item that sold has a known cost",
+      "summary_one": "{{count}} item by popularity and margin per unit: {{stars}} stars, {{workhorses}} workhorses, {{challenges}} challenges, {{dogs}} dogs. Switch to Table for the figures.",
+      "summary_other": "{{count}} items by popularity and margin per unit: {{stars}} stars, {{workhorses}} workhorses, {{challenges}} challenges, {{dogs}} dogs. Switch to Table for the figures."
     }
   },
   "integrations": {
