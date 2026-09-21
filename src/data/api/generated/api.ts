@@ -151,7 +151,6 @@ import type {
   CreateFloorTransferRequest,
   CreateGroupRequest,
   CreateIngredientCategoryRequest,
-  CreateLinkedCopyRequest,
   CreateMarketingLinkRequest,
   CreateMenuItemRequest,
   CreateOpenTicketRequest,
@@ -276,7 +275,6 @@ import type {
   LegacyListTillEntitiesParams,
   LegacyTill,
   LiabilityTrend,
-  LinkedCopyResult,
   LintIssue,
   ListAddonCatalogParams,
   ListAddonCostsParams,
@@ -16723,66 +16721,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDuplicateItemMutationOptions(options), queryClient);
-    }
-
-export const createLinkedCopy = (
-    id: string,
-    createLinkedCopyRequest: CreateLinkedCopyRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<LinkedCopyResult>(
-      {url: `/menu-items/${id}/linked-copy`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createLinkedCopyRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getCreateLinkedCopyMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLinkedCopy>>, TError,{id: string;data: CreateLinkedCopyRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createLinkedCopy>>, TError,{id: string;data: CreateLinkedCopyRequest}, TContext> => {
-
-const mutationKey = ['createLinkedCopy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createLinkedCopy>>, {id: string;data: CreateLinkedCopyRequest}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  createLinkedCopy(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateLinkedCopyMutationResult = NonNullable<Awaited<ReturnType<typeof createLinkedCopy>>>
-    export type CreateLinkedCopyMutationBody = CreateLinkedCopyRequest
-    export type CreateLinkedCopyMutationError = ErrorBody
-
-    export const useCreateLinkedCopy = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLinkedCopy>>, TError,{id: string;data: CreateLinkedCopyRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createLinkedCopy>>,
-        TError,
-        {id: string;data: CreateLinkedCopyRequest},
-        TContext
-      > => {
-      return useMutation(getCreateLinkedCopyMutationOptions(options), queryClient);
     }
 
 export const putModifierGroups = (

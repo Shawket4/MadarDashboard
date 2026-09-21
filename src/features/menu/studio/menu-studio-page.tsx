@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useQueries } from "@tanstack/react-query";
-import { ArrowRight, Boxes, Copy, UserRound } from "lucide-react";
+import { ArrowRight, Boxes, Copy } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { assetOf } from "@/components/app/asset-image";
@@ -68,7 +68,6 @@ import { SectionItem } from "./section-item";
 import { RecipeGrid } from "../recipe/recipe-grid";
 import { BasePicker } from "../recipe/base-picker";
 import { RecipeLinkBar } from "../recipe/recipe-link-bar";
-import { LinkedCopyDialog } from "../recipe/linked-copy-dialog";
 import { ownPayload, type SwapGroupInfo } from "../recipe/grid-model";
 import { SectionSteps } from "./section-steps";
 import { SectionModifiers } from "./section-modifiers";
@@ -149,9 +148,7 @@ export function MenuStudioPage() {
   const [steps, setSteps] = useState<StepDraft[]>([]);
   const [pristine, setPristine] = useState<PristineSigs>(EMPTY_PRISTINE);
   const [saving, setSaving] = useState(false);
-  const [staffCopyOpen, setStaffCopyOpen] = useState(false);
   const authz = useAuthz();
-  const canCreateItems = authz.can(Cap.menuItemsCreate);
   const canPreview = authz.can(Cap.menuItemsRead);
 
   // ── Modeling (bases · linked copies · swappable families) ───────────────────
@@ -610,11 +607,6 @@ export function MenuStudioPage() {
                 <ArrowRight className="size-3.5 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </Button>
-            {!sourceItemId && canCreateItems ? (
-              <Button type="button" variant="outline" size="sm" onClick={() => setStaffCopyOpen(true)}>
-                <UserRound className="size-4" /> {t("modeling.linked.action", "Create staff copy…")}
-              </Button>
-            ) : null}
             <Button type="button" variant="outline" size="sm" onClick={() => void onDuplicate()}>
               <Copy className="size-4" /> {t("menu.grid.duplicate", "Duplicate")}
             </Button>
@@ -753,18 +745,6 @@ export function MenuStudioPage() {
           </SectionShell>
         ) : null}
       </div>
-
-      <LinkedCopyDialog
-        open={staffCopyOpen}
-        onOpenChange={setStaffCopyOpen}
-        orgId={orgId}
-        item={{ id: studio.id, name: studio.name, category_id: studio.category_id }}
-        onCreated={(newId) => {
-          invalidateStudio(itemId);
-          void invalidateCatalog();
-          void navigate({ to: "/menu/items/$itemId", params: { itemId: newId }, search: {} });
-        }}
-      />
 
       {/* ── Sticky save bar — only while there are unsaved changes ── */}
       {dirtyCount > 0 ? (

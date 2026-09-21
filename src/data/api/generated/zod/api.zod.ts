@@ -7678,29 +7678,6 @@ export const DuplicateItemResponse = zod.object({
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
 
 
-export const CreateLinkedCopyParams = zod.object({
-  "id": zod.uuid().describe('Source menu item ID')
-})
-
-export const CreateLinkedCopyBody = zod.object({
-  "category_id": zod.uuid().nullish().describe('Menu category of the copy; `null` keeps the source\'s category.'),
-  "name": zod.string(),
-  "price": zod.number().describe('Price in piastres for every size of the copy (0 for a staff drink).')
-})
-
-export const CreateLinkedCopyResponse = zod.object({
-  "catalog_revision": zod.number(),
-  "link": zod.object({
-  "in_sync": zod.boolean().nullish().describe('For a copy: `true` when its stored lines equal the source\'s for every size label\nthe copy has (lint F19, twin drift). `null` for an item that is not a copy.'),
-  "linked_copy_ids": zod.array(zod.uuid()).describe('Live items whose recipe follows this one.'),
-  "menu_item_id": zod.uuid(),
-  "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows, or `null`.'),
-  "recipe_source_item_name": zod.string().nullish()
-}).describe('Link state of an item, from either side.'),
-  "menu_item_id": zod.uuid()
-})
-
-
 export const PutModifierGroupsParams = zod.object({
   "id": zod.uuid().describe('Menu item ID')
 })

@@ -5411,7 +5411,6 @@
       "matchItem": "Item"
     },
     "linked": {
-      "action": "Create staff copy…",
       "unlinkTitle": "Unlink this recipe?",
       "unlinkDesc": "The current lines stay as this item's own recipe and stop following {{name}}.",
       "unlink": "Unlink",
@@ -5419,13 +5418,7 @@
       "follows": "Recipe follows",
       "outOfSync": "Out of sync",
       "copies": "Linked copies:",
-      "copyN": "Copy {{n}}",
-      "priceInvalid": "Enter a valid price",
-      "defaultName": "{{name}} staff",
-      "created": "Staff copy created",
-      "title": "Create staff copy",
-      "desc": "Creates a copy with the same sizes whose recipe follows {{name}}. Recipe edits on the original flow to the copy. The copy has no choice groups.",
-      "create": "Create copy"
+      "copyN": "Copy {{n}}"
     },
     "base": {
       "applied": "Base applied to {{count}} sizes",
