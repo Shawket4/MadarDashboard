@@ -120,11 +120,14 @@ That formula measures **5.6–9.2:1 in both themes** (one formula, because `fore
 already flips with the theme where white/black would not). Measure in the browser rather
 than assuming — `--color-warning` in particular is far too light for text on its own.
 
-**Mix in `oklab`, never `oklch`.** `oklch` interpolates the HUE, and
-`--color-foreground` is not hueless (chroma .005 at hue 205). Mixing destructive
-(hue 30) toward it in `oklch` lands on hue 117 — a red that renders **green**. It
-passes a contrast check and still says the opposite of what it means. `oklab`
-interpolates in rectangular coordinates, so the hue holds.
+**Mix in `oklab`, never `oklch`.** `oklch` interpolates the HUE along the shorter arc,
+and `--color-foreground` is not hueless in either theme (dark: chroma .005 at hue 205;
+light: chroma .017 at hue 250). Mixing destructive (hue 30) halfway toward it in `oklch`
+lands near hue 117 in dark mode — a red that renders **green** — and near hue 320
+(magenta) in light. It passes a contrast check and still says the opposite of what it
+means. `oklab` interpolates in rectangular coordinates, so the hue holds.
+Older call sites still mix `in oklch` (grep `in_oklch`); move them to `oklab` when you
+touch them, and never copy them.
 
 ## Permissions (architecture E — PERMISSIONS_ARCHITECTURE.md)
 - **Gate by capability, never by role name.** The UI reads the signed-in person's
