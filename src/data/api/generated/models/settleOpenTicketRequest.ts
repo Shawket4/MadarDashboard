@@ -15,6 +15,14 @@ export interface SettleOpenTicketRequest {
      */
   change_given?: number | null;
   /**
+     * The customer this sale belongs to, when the cashier attached one at
+     * settle. Same rules as `customer_id` on an order (needs
+     * `customers.attach`; merged ids resolve; unknown ids are ignored).
+     * Absent, the sale takes the bill's own customer, if it has one.
+     * @nullable
+     */
+  customer_id?: string | null;
+  /**
      * What the till actually took off this bill, in minor units — the figure
      * the drawer charged. Additive; absent, the server computes it as before.
      * This is also what a replayed bill keeps when its preset has since been

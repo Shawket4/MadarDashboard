@@ -11,13 +11,15 @@
  * shop's NAME is always on it either way.
  *
  * The order of the page is the order of need at a counter: the card (code and
- * balance) first, the wallet second, then what the balance buys, then the two
+ * balance) first, "Order now" where the shop takes online orders, the wallet next, then what the balance buys, then the two
  * things a member can change, then the receipts — the least urgent block and
  * the longest — and where else to find the shop.
  */
 import { useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
-import { CreditCard } from "lucide-react";
+import { ArrowRight, CreditCard } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 import { useLoyaltyCard } from "@/data/api/generated/api";
 import type { CardView } from "@/data/api/generated/models";
@@ -29,6 +31,7 @@ import { CardOrders } from "./card-orders";
 import { CardPreferences } from "./card-preferences";
 import { LoyaltyPage, PageNotice, PageSkeleton, Panel, Section, usePageAccent } from "./page-shell";
 import { RewardsList } from "./rewards-list";
+import { safeHttpUrl } from "./safe-url";
 import { SocialLinks } from "./social-links";
 import { usePassDownload } from "./use-pass-download";
 import { WalletButtons } from "./wallet-buttons";
@@ -82,6 +85,7 @@ function Card({
   // The Apple pass is made on demand and is not instant. The page owns that
   // wait, because it is the CARD that is being made — see `card-press.tsx`.
   const pass = usePassDownload(data.passes.apple_url);
+  const orderNowHref = safeHttpUrl(data.order_now_url);
 
   return (
     <LoyaltyPage
@@ -104,6 +108,17 @@ function Card({
             qrUrl={`/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png`}
           />
         </PressedCard>
+
+        {/* Present only when the shop takes online orders. The ordering page opens
+            knowing who this is — and proves it on that device before showing anything. */}
+        {orderNowHref ? (
+          <Button asChild size="lg" className="h-12 w-full rounded-xl text-base">
+            <a href={orderNowHref}>
+              {t("loyalty.orderNow", "Order now")}
+              <ArrowRight className="rtl:rotate-180" aria-hidden />
+            </a>
+          </Button>
+        ) : null}
 
         {data.passes.any ? (
           <Section

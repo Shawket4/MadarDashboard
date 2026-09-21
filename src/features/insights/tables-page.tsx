@@ -25,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { listFloorTables, runMetricsQuery } from "@/data/api/generated/api";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtWireTime } from "@/lib/format";
+import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
 import { TableHistory } from "@/features/floor/table-history";
 import {
   SPECS,
@@ -46,6 +47,8 @@ export function TablesInsightsPage() {
   const locale = i18n.language?.startsWith("ar") ? "ar" : "en";
   const [section, setSection] = useState<string>(ALL);
   const [open, setOpen] = useState<TableRow | null>(null);
+  // A name in a table's history opens the customer.
+  const customerSheet = useCustomerSheet();
 
   const q = useQuery({
     queryKey: ["metrics", "tables", branchId, from, to, locale],
@@ -211,7 +214,7 @@ export function TablesInsightsPage() {
           ) : floor.isLoading ? (
             <Skeleton className="m-4 h-32" />
           ) : openTableId ? (
-            <TableHistory tableId={openTableId} from={from ?? undefined} to={to ?? undefined} />
+            <TableHistory tableId={openTableId} from={from ?? undefined} to={to ?? undefined} customers={customerSheet} />
           ) : (
             <p className="p-4 text-sm text-muted-foreground">
               {t("tablesInsights.tableGone", "This table is no longer on the floor plan.")}
@@ -219,6 +222,7 @@ export function TablesInsightsPage() {
           )}
         </SheetContent>
       </Sheet>
+      {customerSheet.sheet}
     </Page>
   );
 }

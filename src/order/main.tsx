@@ -9,6 +9,8 @@
 //   /<orgId>/<branchId>    — branch pre-selected (QR deep link), +search: channel, table,
 //                            preview, place_name, floor, unit_number
 //   /track/<id>            — public order tracking
+//   /now/<memberToken>     — "Order now" from a loyalty card: the same flow, opened
+//                            knowing who is ordering (+search: branch, channel)
 //   /order/<orgId>         — back-compat alias (tracking page links here)
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -67,6 +69,7 @@ import { TableOrderingPage } from "@/features/public-ordering/table-ordering-pag
 import { useHostOrg } from "@/features/public-shell/use-brand";
 import { ScanToOrder } from "@/features/public-ordering/scan-to-order";
 import { OrderTrackingPage } from "@/features/order-tracking/tracking-page";
+import { OrderNowPage } from "@/features/public-ordering/order-now/order-now-page";
 
 // LIGHT unless this visitor chose otherwise on this shop — not the device's
 // preference. A storefront should look the same to every customer.
@@ -125,6 +128,19 @@ const trackRoute = createRoute({
     const { id } = trackRoute.useParams();
     const { est } = trackRoute.useSearch();
     return <OrderTrackingPage id={id} estimate={est ?? null} />;
+  },
+});
+
+// "Order now" from a loyalty card. The token is the card's, so the page says
+// nothing a stranger could use until this device has proved the phone.
+const nowRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/now/$token",
+  validateSearch: orderSearchSchema,
+  component: function OrderNow() {
+    const { token } = nowRoute.useParams();
+    const s = nowRoute.useSearch();
+    return <OrderNowPage token={token} branch={s.branch} channel={s.channel} preview={s.preview} />;
   },
 });
 
@@ -201,6 +217,7 @@ const branchRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   trackRoute,
+  nowRoute,
   orderCompatRoute,
   orgRoute,
   branchRoute,

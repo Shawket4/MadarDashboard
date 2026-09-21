@@ -36,6 +36,8 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { useLoyaltyAdjust } from "@/data/api/generated/api";
 import type { MemberView } from "@/data/api/generated/models";
 
+import { isPersonQuery } from "@/features/customers/util";
+
 import { loyaltyServerError } from "../../shared/server-errors";
 import { currencyLabel } from "../../shared/util";
 import { adjustSchema, adjustToWire, REASON_MAX, type AdjustValues } from "./adjust-schema";
@@ -85,10 +87,8 @@ export function AdjustDialog({
     try {
       await adjust.mutateAsync({ data: adjustToWire(v, member.id) });
       toast.success(t("loyalty.adjusted", "Balance adjusted"));
-      // The list, the detail and anything else showing this member.
-      await qc.invalidateQueries({
-        predicate: (q) => String(q.queryKey[0] ?? "").startsWith("/loyalty/members"),
-      });
+      // The lists, the customer's sheet and anything else showing this balance.
+      await qc.invalidateQueries({ predicate: isPersonQuery });
       onOpenChange(false);
     } catch (e) {
       // A refusal the form can point at goes on its field; otherwise the

@@ -20,6 +20,9 @@
  *  - **Staff** — user `name`, `email`, `phone`, `national_id`,
  *    `base_salary_piastres`, `emergency_contact_name` / `_phone`, and the
  *    attendance geofence fixes `check_in_latitude` / `check_in_longitude`.
+ *  - **Order now** — the card's `member_token` (in the body, and as the
+ *    `/now/<token>` path segment), `device_token` / `contact_device_token` /
+ *    `new_phone_device_token`, `new_phone`, and saved addresses as objects.
  *  - **Credentials** — the bearer JWT this app holds in `localStorage` and
  *    sends on every request, delivery OTP codes, and WhatsApp device tokens.
  *
@@ -72,6 +75,11 @@ export const PII_KEY_DENYLIST: readonly string[] = [
   "building",
   "apartment",
   "landmark",
+  // `delivery_orders` / `customer_addresses`: which door, and what the
+  // customer wrote for the driver ("ring twice, the dog bites"). `floor` is
+  // in the exact list — as a substring it would eat `floor_plan`.
+  "unit_number",
+  "delivery_notes",
   "postcode",
   "zipcode",
   "latitude",
@@ -148,6 +156,7 @@ export const PII_KEY_EXACT: readonly string[] = [
   "cvc",
   "gps",
   "pwd",
+  "floor",
 ];
 
 /**
@@ -205,6 +214,14 @@ const LABELLED = /("?([A-Za-z_][A-Za-z0-9_-]*)"?\s*[:=]\s*)("[^"]*"|'[^']*'|\[re
 /** `Bearer <token>` in free text, which the labelled rule cannot see. */
 const AUTH_SCHEME = /\b(bearer|basic|token)\s+[A-Za-z0-9\-._~+/=]{8,}/gi;
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+/**
+ * A loyalty card's member token riding in a PATH: the ordering app's
+ * `/now/<token>` and the API's `/public/order-now/<token>[/…]`. It is a bearer
+ * of identity (it names a customer, and it is the QR on their card), and a
+ * path segment is invisible to every key-based rule and survives
+ * {@link stripUrlQuery}, which only cuts the query.
+ */
+const CARD_TOKEN_PATH = /(\/(?:order-now|now)\/)[^/?#\s"'<>]+/gi;
 /** Loose phone-shaped runs, confirmed by {@link looksLikePhone}. */
 const PHONE = /(?:\+|00)?\d[\d ()-]{6,18}\d/g;
 
@@ -254,6 +271,7 @@ export function sanitizeText(input: string): string {
       value.startsWith(REDACTED) || !isPiiKey(key) ? whole : `${prefix}${REDACTED}`,
     )
     .replace(AUTH_SCHEME, (_whole, scheme: string) => `${scheme} ${REDACTED}`)
+    .replace(CARD_TOKEN_PATH, (_whole, prefix: string) => `${prefix}${REDACTED}`)
     .replace(EMAIL, REDACTED)
     .replace(PHONE, (m) => (looksLikePhone(m) ? REDACTED : m));
 }

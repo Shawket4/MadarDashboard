@@ -25,6 +25,19 @@ describe("loyalty access follows capabilities", () => {
     expect(loyaltyAccess(authzFrom(me)).canListMembers).toBe(true);
   });
 
+  it("reads the program (on or off, points or orders) with loyalty.read — which the customers family never grants", () => {
+    expect(as("teller").canReadProgram).toBe(true);
+    const me = defaultsFor("waiter")!;
+    me.capabilities = ["customers.view", "customers.edit", "customers.merge"];
+    expect(loyaltyAccess(authzFrom(me))).toMatchObject({
+      canReadProgram: false,
+      canListMembers: false,
+      canViewMember: false,
+      canAdjust: false,
+      canForget: false,
+    });
+  });
+
   it("keeps wallet diagnostics for the platform", () => {
     expect(as("org_admin").canInspectWallet).toBe(false);
     expect(loyaltyAccess(authzFrom(null, { platform: true })).canInspectWallet).toBe(true);

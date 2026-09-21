@@ -9,9 +9,10 @@
  * seated or needs clearing is decided by the people standing in the room, and a
  * manager toggling it from a desk would be asserting something they cannot see.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { CustomerLinkControl } from "@/features/customers/customer-link";
 import { TableHistory } from "./table-history";
 import { RotateCcw, RotateCw } from "lucide-react";
 import { toast } from "sonner";
@@ -65,10 +66,14 @@ export interface InspectorProps {
   editable: boolean;
   geoOf: (t: FloorTable) => GeoItem;
   onGeoChange: (updates: GeoItem[]) => void;
+  /** Who is sitting at the one selected table now — a reading, like the history under it. */
+  sittingNow?: ReactNode;
+  /** The floor's customer sheet, so a name in the history opens the customer. */
+  customers?: CustomerLinkControl;
 }
 
 export function InspectorPanel({
-  tables, sections, editable, geoOf, onGeoChange,
+  tables, sections, editable, geoOf, onGeoChange, sittingNow, customers,
 }: InspectorProps) {
   const { t } = useTranslation();
 
@@ -236,12 +241,18 @@ export function InspectorPanel({
       {/* What this table has actually done. The panel authors geometry; this
           is the one thing here that is a READING, and it belongs beside the
           table it is about rather than on a report somebody has to go find. */}
+      {single && sittingNow ? (
+        <div className="-mx-4 flex items-baseline justify-between gap-3 border-t px-4 pt-3 text-sm">
+          <span className="shrink-0 text-muted-foreground">{t("floor.sittingNow", "Sitting now")}</span>
+          <span className="min-w-0 text-end font-medium">{sittingNow}</span>
+        </div>
+      ) : null}
       {single ? (
         <div className="-mx-4 border-t">
           <p className="px-4 pt-3 text-sm font-semibold">
             {t("floor.history.title", "Last 30 days")}
           </p>
-          <TableHistory tableId={single.id} />
+          <TableHistory tableId={single.id} customers={customers} />
         </div>
       ) : null}
     </div>

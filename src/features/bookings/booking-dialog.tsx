@@ -6,6 +6,8 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
@@ -30,7 +32,10 @@ import { getErrorMessage } from "@/data/api/errors";
 import { fmtTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-import { invalidateBookings, localHHMM, localInstant, serviceToday } from "./util";
+import {
+  bookingGuestSchema, guestPhoneToWire, guestValuesOf, invalidateBookings, localHHMM, localInstant, serviceToday,
+  type BookingGuestValues,
+} from "./util";
 
 interface Props {
   branchId: string;
@@ -43,8 +48,6 @@ interface Props {
   tables: FloorTable[];
 }
 
-const PHONE_RE = /^\+?\d[\d\s-]{7,}$/;
-
 export function BookingDialog({ branchId, date, booking, open, onOpenChange, settings, tables }: Props) {
   const { t } = useTranslation();
   const editing = !!booking;
@@ -54,9 +57,6 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
   const [startsAt, setStartsAt] = useState<string | null>(null);
   const [customTime, setCustomTime] = useState("");
   const [duration, setDuration] = useState<number | "">("");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [notes, setNotes] = useState("");
   const [sectionId, setSectionId] = useState<string | null>(null);
   const [manualTables, setManualTables] = useState(false);
   const [tableIds, setTableIds] = useState<string[]>([]);
@@ -65,8 +65,22 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Who the booking is for: typed, so validated — RHF + Zod like every other form.
+  const form = useForm<BookingGuestValues>({
+    resolver: zodResolver(bookingGuestSchema),
+    defaultValues: guestValuesOf(booking),
+  });
+  const errors = form.formState.errors;
+  const fieldError = (key?: string) =>
+    key ? (
+      <p role="alert" className="text-xs text-destructive">
+        {t(key)}
+      </p>
+    ) : null;
+
   useEffect(() => {
     if (!open) return;
+    form.reset(guestValuesOf(booking));
     setError(null);
     setBusy(false);
     if (booking) {
@@ -75,9 +89,6 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
       setStartsAt(booking.starts_at);
       setCustomTime(localHHMM(booking.starts_at));
       setDuration(Math.round((new Date(booking.ends_at).getTime() - new Date(booking.starts_at).getTime()) / 60_000));
-      setName(booking.guest_name);
-      setPhone(booking.guest_phone);
-      setNotes(booking.notes ?? "");
       setSectionId(booking.section_id ?? null);
       setManualTables(booking.needs_table || booking.table_ids.length > 0);
       setTableIds(booking.table_ids);
@@ -88,15 +99,13 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
       setStartsAt(null);
       setCustomTime("");
       setDuration("");
-      setName("");
-      setPhone("");
-      setNotes("");
       setSectionId(null);
       setManualTables(false);
       setTableIds([]);
       setForce(false);
       setSendConfirmation(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, booking, date]);
 
   const sectionsQ = useListSections({ branch_id: branchId }, { query: { enabled: open } });
@@ -122,10 +131,8 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
     setStartsAt(localInstant(day, customTime));
   };
 
-  const submit = async () => {
+  const submit = async (guest: BookingGuestValues) => {
     setError(null);
-    if (!name.trim()) return setError(t("bookings.errName", "Guest name is required"));
-    if (!PHONE_RE.test(phone.trim())) return setError(t("bookings.errPhone", "Enter a valid phone number"));
     if (!startsAt) return setError(t("bookings.errSlot", "Pick a time"));
     if (!(party > 0)) return setError(t("bookings.errParty", "Party size must be at least 1"));
     setBusy(true);
@@ -136,9 +143,9 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
           party_size: party,
           starts_at: startsAt,
           duration_minutes: duration === "" ? null : duration,
-          guest_name: name.trim(),
-          guest_phone: phone.trim(),
-          notes,
+          guest_name: guest.guest_name,
+          guest_phone: guestPhoneToWire(guest.guest_phone),
+          notes: guest.notes,
           section_id: sectionId,
           table_ids,
           force,
@@ -150,9 +157,9 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
           party_size: party,
           starts_at: startsAt,
           duration_minutes: duration === "" ? null : duration,
-          guest_name: name.trim(),
-          guest_phone: phone.trim(),
-          notes: notes || null,
+          guest_name: guest.guest_name,
+          guest_phone: guestPhoneToWire(guest.guest_phone),
+          notes: guest.notes || null,
           section_id: sectionId,
           table_ids,
           force,
@@ -242,11 +249,13 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="bk-name">{t("bookings.guestName", "Guest name")}</Label>
-            <Input id="bk-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" />
+            <Input id="bk-name" autoComplete="off" aria-invalid={errors.guest_name ? true : undefined} {...form.register("guest_name")} />
+            {fieldError(errors.guest_name?.message)}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="bk-phone">{t("bookings.phone", "Phone")}</Label>
-            <Input id="bk-phone" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" dir="ltr" placeholder="01x xxxx xxxx" />
+            <Input id="bk-phone" type="tel" inputMode="tel" dir="ltr" autoComplete="off" placeholder="01x xxxx xxxx" aria-invalid={errors.guest_phone ? true : undefined} {...form.register("guest_phone")} />
+            {fieldError(errors.guest_phone?.message)}
           </div>
         </div>
 
@@ -268,7 +277,7 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
 
         <div className="space-y-1.5">
           <Label htmlFor="bk-notes">{t("bookings.notes", "Notes")}</Label>
-          <Textarea id="bk-notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t("bookings.notesPlaceholder", "Birthday, high chair, window seat…")} />
+          <Textarea id="bk-notes" rows={2} {...form.register("notes")} placeholder={t("bookings.notesPlaceholder", "Birthday, high chair, window seat…")} />
         </div>
 
         <div className="rounded-lg border p-3 space-y-3">
@@ -314,11 +323,11 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
           ) : null}
         </div>
 
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-          <Button type="button" onClick={() => void submit()} loading={busy}>
+          <Button type="button" onClick={() => void form.handleSubmit(submit)()} loading={busy}>
             {editing ? t("common.save", "Save") : t("bookings.confirmBooking", "Confirm booking")}
           </Button>
         </DialogFooter>

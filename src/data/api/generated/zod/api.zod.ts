@@ -1110,6 +1110,7 @@ export const ListBookingsResponseItem = zod.object({
   "completed_at": zod.iso.datetime({"offset":true}).nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "customer_id": zod.uuid().nullish().describe('The customer who booked (design §2.5); `guest_name` \/ `guest_phone`\nbeside it are the snapshot of what was typed. `None` for a booking\nfrom before customers existed whose phone is not a valid number.'),
   "ends_at": zod.iso.datetime({"offset":true}),
   "guest_name": zod.string(),
   "guest_phone": zod.string(),
@@ -1158,6 +1159,7 @@ export const CreateBookingResponse = zod.object({
   "completed_at": zod.iso.datetime({"offset":true}).nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "customer_id": zod.uuid().nullish().describe('The customer who booked (design §2.5); `guest_name` \/ `guest_phone`\nbeside it are the snapshot of what was typed. `None` for a booking\nfrom before customers existed whose phone is not a valid number.'),
   "ends_at": zod.iso.datetime({"offset":true}),
   "guest_name": zod.string(),
   "guest_phone": zod.string(),
@@ -1317,6 +1319,7 @@ export const GetBookingResponse = zod.object({
   "completed_at": zod.iso.datetime({"offset":true}).nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "customer_id": zod.uuid().nullish().describe('The customer who booked (design §2.5); `guest_name` \/ `guest_phone`\nbeside it are the snapshot of what was typed. `None` for a booking\nfrom before customers existed whose phone is not a valid number.'),
   "ends_at": zod.iso.datetime({"offset":true}),
   "guest_name": zod.string(),
   "guest_phone": zod.string(),
@@ -1365,6 +1368,7 @@ export const UpdateBookingResponse = zod.object({
   "completed_at": zod.iso.datetime({"offset":true}).nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "customer_id": zod.uuid().nullish().describe('The customer who booked (design §2.5); `guest_name` \/ `guest_phone`\nbeside it are the snapshot of what was typed. `None` for a booking\nfrom before customers existed whose phone is not a valid number.'),
   "ends_at": zod.iso.datetime({"offset":true}),
   "guest_name": zod.string(),
   "guest_phone": zod.string(),
@@ -1406,6 +1410,7 @@ export const CancelBookingResponse = zod.object({
   "completed_at": zod.iso.datetime({"offset":true}).nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "customer_id": zod.uuid().nullish().describe('The customer who booked (design §2.5); `guest_name` \/ `guest_phone`\nbeside it are the snapshot of what was typed. `None` for a booking\nfrom before customers existed whose phone is not a valid number.'),
   "ends_at": zod.iso.datetime({"offset":true}),
   "guest_name": zod.string(),
   "guest_phone": zod.string(),
@@ -1448,6 +1453,7 @@ export const CompleteBookingResponse = zod.object({
   "completed_at": zod.iso.datetime({"offset":true}).nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "customer_id": zod.uuid().nullish().describe('The customer who booked (design §2.5); `guest_name` \/ `guest_phone`\nbeside it are the snapshot of what was typed. `None` for a booking\nfrom before customers existed whose phone is not a valid number.'),
   "ends_at": zod.iso.datetime({"offset":true}),
   "guest_name": zod.string(),
   "guest_phone": zod.string(),
@@ -1484,6 +1490,7 @@ export const NoShowBookingResponse = zod.object({
   "completed_at": zod.iso.datetime({"offset":true}).nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "customer_id": zod.uuid().nullish().describe('The customer who booked (design §2.5); `guest_name` \/ `guest_phone`\nbeside it are the snapshot of what was typed. `None` for a booking\nfrom before customers existed whose phone is not a valid number.'),
   "ends_at": zod.iso.datetime({"offset":true}),
   "guest_name": zod.string(),
   "guest_phone": zod.string(),
@@ -1524,6 +1531,7 @@ export const SeatBookingResponse = zod.object({
   "completed_at": zod.iso.datetime({"offset":true}).nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "customer_id": zod.uuid().nullish().describe('The customer who booked (design §2.5); `guest_name` \/ `guest_phone`\nbeside it are the snapshot of what was typed. `None` for a booking\nfrom before customers existed whose phone is not a valid number.'),
   "ends_at": zod.iso.datetime({"offset":true}),
   "guest_name": zod.string(),
   "guest_phone": zod.string(),
@@ -3282,21 +3290,31 @@ export const ListSkuCostsResponse = zod.array(ListSkuCostsResponseItem)
 
 export const ListCustomersQueryParams = zod.object({
   "q": zod.string().optional().describe('Matches name (contains) or phone (digits).'),
+  "member": zod.boolean().optional().describe('`true` = loyalty members only, `false` = non-members only.'),
+  "source": zod.string().optional().describe('Only customers that first came from this source (`pos`, `online`,\n`loyalty`, `booking`, `table_qr`, `aggregator`, `dashboard`).'),
   "limit": zod.number().optional().describe('Default 100, at most 500.'),
   "offset": zod.number().optional()
 })
 
 export const ListCustomersResponseItem = zod.object({
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "is_member": zod.boolean().optional().describe('A live loyalty membership exists for this customer (same id).'),
   "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "locale": zod.string().nullish().describe('`en` or `ar`; null when never asked.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED, kept for one release: a loyalty membership now shares the\ncustomer\'s id, so this is `id` when `is_member` and null otherwise.'),
+  "marketing_opt_out": zod.boolean().optional(),
   "name": zod.string(),
   "notes": zod.string().nullish(),
   "orders_count": zod.number(),
   "phone": zod.string().nullish(),
+  "points_balance": zod.number().nullish().describe('Null when not a member.'),
+  "source": zod.string().optional().describe('Where the customer first came from: `pos`, `online`, `loyalty`,\n`booking`, `table_qr`, `aggregator` or `dashboard`.'),
   "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visits_balance": zod.number().nullish().describe('Null when not a member.')
 })
 export const ListCustomersResponse = zod.array(ListCustomersResponseItem)
 
@@ -3304,24 +3322,33 @@ export const ListCustomersResponse = zod.array(ListCustomersResponseItem)
 export const CreateCustomerBody = zod.object({
   "branch_id": zod.uuid().nullish().describe('The branch where the customer was added (a till sends its own).'),
   "id": zod.uuid().nullish().describe('Client-minted id; a repeat with the same id returns the stored customer.'),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED and ignored: a membership shares the customer\'s id, so there\nis nothing to link. Accepted so deployed tills keep working.'),
   "name": zod.string(),
   "notes": zod.string().nullish(),
-  "phone": zod.string().nullish()
+  "phone": zod.string().nullish(),
+  "source": zod.string().nullish().describe('Where the customer came from. Defaults to `pos` when a branch is named\n(a till) and `dashboard` otherwise.')
 })
 
 export const CreateCustomerResponse = zod.object({
   "customer": zod.object({
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "is_member": zod.boolean().optional().describe('A live loyalty membership exists for this customer (same id).'),
   "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "locale": zod.string().nullish().describe('`en` or `ar`; null when never asked.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED, kept for one release: a loyalty membership now shares the\ncustomer\'s id, so this is `id` when `is_member` and null otherwise.'),
+  "marketing_opt_out": zod.boolean().optional(),
   "name": zod.string(),
   "notes": zod.string().nullish(),
   "orders_count": zod.number(),
   "phone": zod.string().nullish(),
+  "points_balance": zod.number().nullish().describe('Null when not a member.'),
+  "source": zod.string().optional().describe('Where the customer first came from: `pos`, `online`, `loyalty`,\n`booking`, `table_qr`, `aggregator` or `dashboard`.'),
   "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visits_balance": zod.number().nullish().describe('Null when not a member.')
 }),
   "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
   "recent_orders": zod.array(zod.object({
@@ -3343,16 +3370,24 @@ export const GetCustomerParams = zod.object({
 
 export const GetCustomerResponse = zod.object({
   "customer": zod.object({
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "is_member": zod.boolean().optional().describe('A live loyalty membership exists for this customer (same id).'),
   "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "locale": zod.string().nullish().describe('`en` or `ar`; null when never asked.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED, kept for one release: a loyalty membership now shares the\ncustomer\'s id, so this is `id` when `is_member` and null otherwise.'),
+  "marketing_opt_out": zod.boolean().optional(),
   "name": zod.string(),
   "notes": zod.string().nullish(),
   "orders_count": zod.number(),
   "phone": zod.string().nullish(),
+  "points_balance": zod.number().nullish().describe('Null when not a member.'),
+  "source": zod.string().optional().describe('Where the customer first came from: `pos`, `online`, `loyalty`,\n`booking`, `table_qr`, `aggregator` or `dashboard`.'),
   "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visits_balance": zod.number().nullish().describe('Null when not a member.')
 }),
   "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
   "recent_orders": zod.array(zod.object({
@@ -3373,25 +3408,35 @@ export const UpdateCustomerParams = zod.object({
 })
 
 export const UpdateCustomerBody = zod.object({
-  "loyalty_customer_id": zod.uuid().nullish().describe('Absent = unchanged.'),
+  "locale": zod.string().nullish().describe('`en` or `ar`. Absent = unchanged.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED and ignored (see `CreateCustomerRequest`).'),
+  "marketing_opt_out": zod.boolean().nullish().describe('Absent = unchanged.'),
   "name": zod.string().nullish(),
   "notes": zod.string().nullish().describe('Absent = unchanged; `\"\"` clears.'),
   "phone": zod.string().nullish().describe('Absent = unchanged; `\"\"` clears.'),
-  "unlink_loyalty": zod.boolean().optional().describe('`true` unlinks the loyalty member.')
+  "unlink_loyalty": zod.boolean().optional().describe('DEPRECATED and ignored: leaving the programme is\n`DELETE \/loyalty\/members\/{id}`.')
 })
 
 export const UpdateCustomerResponse = zod.object({
   "customer": zod.object({
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "is_member": zod.boolean().optional().describe('A live loyalty membership exists for this customer (same id).'),
   "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "locale": zod.string().nullish().describe('`en` or `ar`; null when never asked.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED, kept for one release: a loyalty membership now shares the\ncustomer\'s id, so this is `id` when `is_member` and null otherwise.'),
+  "marketing_opt_out": zod.boolean().optional(),
   "name": zod.string(),
   "notes": zod.string().nullish(),
   "orders_count": zod.number(),
   "phone": zod.string().nullish(),
+  "points_balance": zod.number().nullish().describe('Null when not a member.'),
+  "source": zod.string().optional().describe('Where the customer first came from: `pos`, `online`, `loyalty`,\n`booking`, `table_qr`, `aggregator` or `dashboard`.'),
   "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visits_balance": zod.number().nullish().describe('Null when not a member.')
 }),
   "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
   "recent_orders": zod.array(zod.object({
@@ -3405,6 +3450,79 @@ export const UpdateCustomerResponse = zod.object({
 })),
   "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
 })
+
+
+export const ListCustomerAddressesParams = zod.object({
+  "id": zod.uuid().describe('Customer id (a merged id resolves)')
+})
+
+export const ListCustomerAddressesResponseItem = zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish().describe('The branch it was last ordered from.'),
+  "channel": zod.string().describe('The channel it was last used with: `in_mall`, `outside` or `umbrella`.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid(),
+  "delivery_notes": zod.string().nullish(),
+  "delivery_zone_id": zod.uuid().nullish(),
+  "floor": zod.string().nullish(),
+  "id": zod.uuid(),
+  "label": zod.string().nullish(),
+  "landmark": zod.string().nullish(),
+  "last_used_at": zod.iso.datetime({"offset":true}),
+  "lat": zod.number().nullish(),
+  "lng": zod.number().nullish(),
+  "place_name": zod.string().nullish(),
+  "unit_number": zod.string().nullish(),
+  "use_count": zod.number()
+}).describe('A place a customer has had an order sent to.')
+export const ListCustomerAddressesResponse = zod.array(ListCustomerAddressesResponseItem)
+
+
+/**
+ * @summary A customer's bookings, newest first. A merged id answers for its survivor,
+and bookings made under any id merged into it are included.
+ */
+export const ListCustomerBookingsParams = zod.object({
+  "id": zod.uuid().describe('Customer ID (a merged id resolves)')
+})
+
+export const ListCustomerBookingsQueryParams = zod.object({
+  "limit": zod.number().optional().describe('Default 50, at most 200.'),
+  "offset": zod.number().optional()
+})
+
+export const ListCustomerBookingsResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "cancel_reason": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.string().nullish(),
+  "completed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "customer_id": zod.uuid().nullish().describe('The customer who booked (design §2.5); `guest_name` \/ `guest_phone`\nbeside it are the snapshot of what was typed. `None` for a booking\nfrom before customers existed whose phone is not a valid number.'),
+  "ends_at": zod.iso.datetime({"offset":true}),
+  "guest_name": zod.string(),
+  "guest_phone": zod.string(),
+  "held_from": zod.iso.datetime({"offset":true}).describe('The floor shows the claimed tables as held from here (branch\n`hold_minutes` before the start). Clients compare with their clock.'),
+  "id": zod.uuid(),
+  "locale": zod.string(),
+  "needs_table": zod.boolean().describe('Active but holding no table: the host must assign one.'),
+  "no_show_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notes": zod.string().nullish(),
+  "open_ticket_id": zod.uuid().nullish().describe('The ticket this party is (or was) eating on. DERIVED from\n`open_tickets.booking_id` — the live one if there is one, else the\nlatest — never stored on the booking.'),
+  "party_size": zod.number(),
+  "phone_verified": zod.boolean(),
+  "reminder_sent_at": zod.iso.datetime({"offset":true}).nullish(),
+  "seated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "section_id": zod.uuid().nullish(),
+  "source": zod.string().describe('`public` | `host`.'),
+  "starts_at": zod.iso.datetime({"offset":true}),
+  "status": zod.string().describe('`confirmed` | `seated` | `completed` | `no_show` | `cancelled`.'),
+  "table_ids": zod.array(zod.uuid()),
+  "table_labels": zod.array(zod.string()),
+  "updated_at": zod.iso.datetime({"offset":true})
+})
+export const ListCustomerBookingsResponse = zod.array(ListCustomerBookingsResponseItem)
 
 
 export const EraseCustomerParams = zod.object({
@@ -3424,16 +3542,24 @@ export const MergeCustomerBody = zod.object({
 
 export const MergeCustomerResponse = zod.object({
   "customer": zod.object({
+  "birth_day": zod.number().nullish(),
+  "birth_month": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
+  "is_member": zod.boolean().optional().describe('A live loyalty membership exists for this customer (same id).'),
   "last_order_at": zod.iso.datetime({"offset":true}).nullish(),
-  "loyalty_customer_id": zod.uuid().nullish(),
+  "locale": zod.string().nullish().describe('`en` or `ar`; null when never asked.'),
+  "loyalty_customer_id": zod.uuid().nullish().describe('DEPRECATED, kept for one release: a loyalty membership now shares the\ncustomer\'s id, so this is `id` when `is_member` and null otherwise.'),
+  "marketing_opt_out": zod.boolean().optional(),
   "name": zod.string(),
   "notes": zod.string().nullish(),
   "orders_count": zod.number(),
   "phone": zod.string().nullish(),
+  "points_balance": zod.number().nullish().describe('Null when not a member.'),
+  "source": zod.string().optional().describe('Where the customer first came from: `pos`, `online`, `loyalty`,\n`booking`, `table_qr`, `aggregator` or `dashboard`.'),
   "total_spent": zod.number().describe('Sum of completed sales, minor units.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "visits_balance": zod.number().nullish().describe('Null when not a member.')
 }),
   "merged_from": zod.array(zod.uuid()).describe('Customers merged into this one.'),
   "recent_orders": zod.array(zod.object({
@@ -3456,6 +3582,7 @@ export const ListDeliveryOrdersQueryParams = zod.object({
 })
 
 export const ListDeliveryOrdersResponseItem = zod.object({
+  "address_id": zod.uuid().nullish().describe('The saved address it was sent to, when it was saved.'),
   "address_line": zod.string().nullish(),
   "branch_id": zod.uuid(),
   "cancel_reason": zod.string().nullish(),
@@ -3466,7 +3593,9 @@ export const ListDeliveryOrdersResponseItem = zod.object({
 }).describe('The frozen priced line snapshot the POS renders before finalize.'),
   "channel": zod.string(),
   "confirmed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "contact_override": zod.boolean().optional().describe('\"Ordered by X for Y\": the snapshot phone is not the customer\'s own.'),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this order belongs to (design §2.5). `customer_name` and\n`customer_phone` beside it are the SNAPSHOT — what was typed, what the\ndriver calls — and stay as they were whatever happens to the customer.\n`None` for an order from before customers existed whose phone is not a\nvalid number.'),
   "customer_lat": zod.number().nullish(),
   "customer_lng": zod.number().nullish(),
   "customer_name": zod.string(),
@@ -3517,6 +3646,7 @@ export const GetDeliveryOrderParams = zod.object({
 })
 
 export const GetDeliveryOrderResponse = zod.object({
+  "address_id": zod.uuid().nullish().describe('The saved address it was sent to, when it was saved.'),
   "address_line": zod.string().nullish(),
   "branch_id": zod.uuid(),
   "cancel_reason": zod.string().nullish(),
@@ -3527,7 +3657,9 @@ export const GetDeliveryOrderResponse = zod.object({
 }).describe('The frozen priced line snapshot the POS renders before finalize.'),
   "channel": zod.string(),
   "confirmed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "contact_override": zod.boolean().optional().describe('\"Ordered by X for Y\": the snapshot phone is not the customer\'s own.'),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this order belongs to (design §2.5). `customer_name` and\n`customer_phone` beside it are the SNAPSHOT — what was typed, what the\ndriver calls — and stay as they were whatever happens to the customer.\n`None` for an order from before customers existed whose phone is not a\nvalid number.'),
   "customer_lat": zod.number().nullish(),
   "customer_lng": zod.number().nullish(),
   "customer_name": zod.string(),
@@ -3582,6 +3714,7 @@ export const CancelDeliveryOrderBody = zod.object({
 })
 
 export const CancelDeliveryOrderResponse = zod.object({
+  "address_id": zod.uuid().nullish().describe('The saved address it was sent to, when it was saved.'),
   "address_line": zod.string().nullish(),
   "branch_id": zod.uuid(),
   "cancel_reason": zod.string().nullish(),
@@ -3592,7 +3725,9 @@ export const CancelDeliveryOrderResponse = zod.object({
 }).describe('The frozen priced line snapshot the POS renders before finalize.'),
   "channel": zod.string(),
   "confirmed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "contact_override": zod.boolean().optional().describe('\"Ordered by X for Y\": the snapshot phone is not the customer\'s own.'),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this order belongs to (design §2.5). `customer_name` and\n`customer_phone` beside it are the SNAPSHOT — what was typed, what the\ndriver calls — and stay as they were whatever happens to the customer.\n`None` for an order from before customers existed whose phone is not a\nvalid number.'),
   "customer_lat": zod.number().nullish(),
   "customer_lng": zod.number().nullish(),
   "customer_name": zod.string(),
@@ -3648,6 +3783,7 @@ export const FinalizeDeliveryOrderBody = zod.object({
 
 export const FinalizeDeliveryOrderResponse = zod.object({
   "delivery_order": zod.object({
+  "address_id": zod.uuid().nullish().describe('The saved address it was sent to, when it was saved.'),
   "address_line": zod.string().nullish(),
   "branch_id": zod.uuid(),
   "cancel_reason": zod.string().nullish(),
@@ -3658,7 +3794,9 @@ export const FinalizeDeliveryOrderResponse = zod.object({
 }).describe('The frozen priced line snapshot the POS renders before finalize.'),
   "channel": zod.string(),
   "confirmed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "contact_override": zod.boolean().optional().describe('\"Ordered by X for Y\": the snapshot phone is not the customer\'s own.'),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this order belongs to (design §2.5). `customer_name` and\n`customer_phone` beside it are the SNAPSHOT — what was typed, what the\ndriver calls — and stay as they were whatever happens to the customer.\n`None` for an order from before customers existed whose phone is not a\nvalid number.'),
   "customer_lat": zod.number().nullish(),
   "customer_lng": zod.number().nullish(),
   "customer_name": zod.string(),
@@ -3716,6 +3854,7 @@ export const SetPrepTimeBody = zod.object({
 })
 
 export const SetPrepTimeResponse = zod.object({
+  "address_id": zod.uuid().nullish().describe('The saved address it was sent to, when it was saved.'),
   "address_line": zod.string().nullish(),
   "branch_id": zod.uuid(),
   "cancel_reason": zod.string().nullish(),
@@ -3726,7 +3865,9 @@ export const SetPrepTimeResponse = zod.object({
 }).describe('The frozen priced line snapshot the POS renders before finalize.'),
   "channel": zod.string(),
   "confirmed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "contact_override": zod.boolean().optional().describe('\"Ordered by X for Y\": the snapshot phone is not the customer\'s own.'),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this order belongs to (design §2.5). `customer_name` and\n`customer_phone` beside it are the SNAPSHOT — what was typed, what the\ndriver calls — and stay as they were whatever happens to the customer.\n`None` for an order from before customers existed whose phone is not a\nvalid number.'),
   "customer_lat": zod.number().nullish(),
   "customer_lng": zod.number().nullish(),
   "customer_name": zod.string(),
@@ -3809,6 +3950,7 @@ export const SetStatusBody = zod.object({
 })
 
 export const SetStatusResponse = zod.object({
+  "address_id": zod.uuid().nullish().describe('The saved address it was sent to, when it was saved.'),
   "address_line": zod.string().nullish(),
   "branch_id": zod.uuid(),
   "cancel_reason": zod.string().nullish(),
@@ -3819,7 +3961,9 @@ export const SetStatusResponse = zod.object({
 }).describe('The frozen priced line snapshot the POS renders before finalize.'),
   "channel": zod.string(),
   "confirmed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "contact_override": zod.boolean().optional().describe('\"Ordered by X for Y\": the snapshot phone is not the customer\'s own.'),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this order belongs to (design §2.5). `customer_name` and\n`customer_phone` beside it are the SNAPSHOT — what was typed, what the\ndriver calls — and stay as they were whatever happens to the customer.\n`None` for an order from before customers existed whose phone is not a\nvalid number.'),
   "customer_lat": zod.number().nullish(),
   "customer_lng": zod.number().nullish(),
   "customer_name": zod.string(),
@@ -4728,6 +4872,7 @@ export const TableHistoryResponse = zod.object({
   "settled_count": zod.number(),
   "sittings": zod.array(zod.object({
   "closed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the bill was settled or voided; `None` while it is still open.'),
+  "customer_id": zod.uuid().nullish().describe('The customer the sitting belongs to, when one is known: the sale\'s once\nsettled (a settle may name one the bill never had), else the bill\'s.\nRead through the merge chain, so it is always a live customer.'),
   "customer_name": zod.string().nullish(),
   "guest_count": zod.number().nullish(),
   "minutes": zod.number().describe('Minutes from `seated_at` to the close, or to now while still open.'),
@@ -6446,18 +6591,18 @@ export const GetLoyaltyMemberResponse = zod.object({
 
 
 /**
- * A void corrects a sale; this corrects a membership — someone asked the shop
- * to stop holding their details, or an admin is clearing a test signup. The
- * person is scrubbed and the books are kept: see [`model::forget`] for exactly
- * what goes and what stays, and why the ledger is not the member's data.
+ * This used to FORGET the person — it was written when the loyalty row was the
+ * only record of them. A membership is now a card under the customer's id, so
+ * ending it touches nothing but the card: the customer, their orders, their
+ * addresses and their bookings stay, and they can join again. Erasing a
+ * person's data is `POST /customers/{id}/erase`, which also ends the card.
+ * See [`model::leave`] for exactly what goes.
  *
- * 204 twice in a row: forgetting someone already forgotten is not a failure,
- * and telling the caller "no such member" would confirm that a phone number
- * used to be one.
- * @summary Forget a member. **Admin only.**
+ * 204 twice in a row: a card that is already gone is not a failure.
+ * @summary Leave the programme: the card ends, the customer stays (design §2.8).
  */
 export const DeleteLoyaltyMemberParams = zod.object({
-  "id": zod.uuid().describe('Member ID')
+  "id": zod.uuid().describe('Member ID (= customer id)')
 })
 
 export const DeleteLoyaltyMemberResponse = zod.void()
@@ -8898,6 +9043,7 @@ export const ListOpenTicketsResponseItem = zod.object({
 }).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish().describe('The customer this bill belongs to, when one is known (design §2.5): a\ntable-QR guest who gave a phone, the party\'s booking, or one the waiter\nattached. `customer_name` is the free-text snapshot and may be set\nwithout it. Settling carries it onto the sale.'),
   "customer_name": zod.string().nullish(),
   "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
   "discount_type": zod.string().nullish(),
@@ -8936,6 +9082,7 @@ export const ListOpenTicketsResponse = zod.array(ListOpenTicketsResponseItem)
 export const CreateOpenTicketBody = zod.object({
   "booking_id": zod.uuid().nullish().describe('The booking this party arrived under: the ticket links to it and the\nbooking moves to `seated` in the same transaction.'),
   "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish().describe('The customer this bill is for, when the waiter picked one. Honoured when\nthe actor holds `customers.attach`; a merged id resolves and an unknown\none is ignored — a bill is never refused over its customer. Absent, a\nbill opened for a booking takes the booking\'s customer.'),
   "customer_name": zod.string().nullish(),
   "discount_id": zod.uuid().nullish().describe('Optional discount the waiter applied at order time (overridable at settle).'),
   "discount_type": zod.string().nullish(),
@@ -8986,6 +9133,7 @@ export const CreateOpenTicketResponse = zod.object({
 }).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish().describe('The customer this bill belongs to, when one is known (design §2.5): a\ntable-QR guest who gave a phone, the party\'s booking, or one the waiter\nattached. `customer_name` is the free-text snapshot and may be set\nwithout it. Settling carries it onto the sale.'),
   "customer_name": zod.string().nullish(),
   "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
   "discount_type": zod.string().nullish(),
@@ -9038,6 +9186,7 @@ export const GetOpenTicketResponse = zod.object({
 }).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish().describe('The customer this bill belongs to, when one is known (design §2.5): a\ntable-QR guest who gave a phone, the party\'s booking, or one the waiter\nattached. `customer_name` is the free-text snapshot and may be set\nwithout it. Settling carries it onto the sale.'),
   "customer_name": zod.string().nullish(),
   "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
   "discount_type": zod.string().nullish(),
@@ -9072,6 +9221,26 @@ export const GetOpenTicketResponse = zod.object({
 })
 
 
+/**
+ * @summary Set or clear the customer on an open bill (the dashboard / online path; a
+till queues `set_ticket_customer` through `/sync/replay` instead).
+ */
+export const SetTicketCustomerParams = zod.object({
+  "id": zod.uuid().describe('Open ticket ID')
+})
+
+export const SetTicketCustomerBody = zod.object({
+  "customer_id": zod.uuid().nullish().describe('The customer this bill is for; `null` (or absent) takes the customer off.')
+})
+
+export const SetTicketCustomerResponse = zod.object({
+  "applied": zod.boolean().describe('False when nothing was written: unknown customer, unknown or voided bill.'),
+  "customer_id": zod.uuid().nullish().describe('What the bill now says, after the merge chain: the survivor of a merged\nid, `null` when the customer was taken off, and the PREVIOUS value when\nthe id was unknown (the pick is dropped, the bill is untouched).'),
+  "order_id": zod.uuid().nullish().describe('The sale the change landed on instead, when the bill was already\nsettled by the time this arrived.'),
+  "ticket_id": zod.uuid()
+})
+
+
 export const VoidTicketLineParams = zod.object({
   "id": zod.uuid().describe('Open ticket ID'),
   "item_id": zod.uuid().describe('Bill line ID')
@@ -9096,6 +9265,7 @@ export const VoidTicketLineResponse = zod.object({
 }).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish().describe('The customer this bill belongs to, when one is known (design §2.5): a\ntable-QR guest who gave a phone, the party\'s booking, or one the waiter\nattached. `customer_name` is the free-text snapshot and may be set\nwithout it. Settling carries it onto the sale.'),
   "customer_name": zod.string().nullish(),
   "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
   "discount_type": zod.string().nullish(),
@@ -9177,6 +9347,7 @@ export const AddRoundResponse = zod.object({
 }).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish().describe('The customer this bill belongs to, when one is known (design §2.5): a\ntable-QR guest who gave a phone, the party\'s booking, or one the waiter\nattached. `customer_name` is the free-text snapshot and may be set\nwithout it. Settling carries it onto the sale.'),
   "customer_name": zod.string().nullish(),
   "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
   "discount_type": zod.string().nullish(),
@@ -9222,6 +9393,7 @@ export const settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin = 0;
 export const SettleOpenTicketBody = zod.object({
   "amount_tendered": zod.number().nullish(),
   "change_given": zod.number().nullish().describe('What the till handed back. Recorded as the drawer saw it, like a\ncounter sale\'s; absent, it is derived from `amount_tendered` and the\nserver\'s total.'),
+  "customer_id": zod.uuid().nullish().describe('The customer this sale belongs to, when the cashier attached one at\nsettle. Same rules as `customer_id` on an order (needs\n`customers.attach`; merged ids resolve; unknown ids are ignored).\nAbsent, the sale takes the bill\'s own customer, if it has one.'),
   "discount_amount": zod.number().nullish().describe('What the till actually took off this bill, in minor units — the figure\nthe drawer charged. Additive; absent, the server computes it as before.\nThis is also what a replayed bill keeps when its preset has since been\nswitched off: the money as rung, never recomputed from a dead rule.'),
   "discount_applied_by": zod.uuid().nullish().describe('Who put the discount on the bill. Read on replay (live, it is the\ncashier holding the token). Additive.'),
   "discount_approval_id": zod.uuid().nullish().describe('The manager approval that let the bill\'s discount past the cashier\'s\ncap, verified at replay like a counter sale\'s. Additive.'),
@@ -9263,6 +9435,7 @@ export const SettleOpenTicketResponse = zod.object({
   "branch_id": zod.uuid(),
   "change_given": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this sale belongs to (design §2.5) — the same id the sync\nfeed\'s order row carries. `customer_name` beside it is the snapshot of\nwhat was typed or printed; this is who it was. A soft reference: `None`\nfor a walk-in, and it may name a customer since merged (resolve through\n`GET \/customers\/{id}`) or erased.'),
   "customer_name": zod.string().nullish(),
   "delivery_channel": zod.string().nullish().describe('Delivery channel (\"in_mall\" | \"outside\") of the linked delivery order,\nsurfaced on the list so clients can flag + segment delivery orders\nwithout a per-order detail fetch. `null` for dine-in orders.'),
   "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
@@ -9360,6 +9533,7 @@ export const MoveTicketTableResponse = zod.object({
 }).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish().describe('The customer this bill belongs to, when one is known (design §2.5): a\ntable-QR guest who gave a phone, the party\'s booking, or one the waiter\nattached. `customer_name` is the free-text snapshot and may be set\nwithout it. Settling carries it onto the sale.'),
   "customer_name": zod.string().nullish(),
   "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
   "discount_type": zod.string().nullish(),
@@ -9417,6 +9591,7 @@ export const VoidOpenTicketResponse = zod.object({
 }).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish().describe('The customer this bill belongs to, when one is known (design §2.5): a\ntable-QR guest who gave a phone, the party\'s booking, or one the waiter\nattached. `customer_name` is the free-text snapshot and may be set\nwithout it. Settling carries it onto the sale.'),
   "customer_name": zod.string().nullish(),
   "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
   "discount_type": zod.string().nullish(),
@@ -9475,6 +9650,7 @@ export const ListOrdersResponse = zod.object({
   "branch_id": zod.uuid(),
   "change_given": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this sale belongs to (design §2.5) — the same id the sync\nfeed\'s order row carries. `customer_name` beside it is the snapshot of\nwhat was typed or printed; this is who it was. A soft reference: `None`\nfor a walk-in, and it may name a customer since merged (resolve through\n`GET \/customers\/{id}`) or erased.'),
   "customer_name": zod.string().nullish(),
   "delivery_channel": zod.string().nullish().describe('Delivery channel (\"in_mall\" | \"outside\") of the linked delivery order,\nsurfaced on the list so clients can flag + segment delivery orders\nwithout a per-order detail fetch. `null` for dine-in orders.'),
   "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
@@ -9652,6 +9828,7 @@ export const CreateOrderResponse = zod.object({
   "branch_id": zod.uuid(),
   "change_given": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this sale belongs to (design §2.5) — the same id the sync\nfeed\'s order row carries. `customer_name` beside it is the snapshot of\nwhat was typed or printed; this is who it was. A soft reference: `None`\nfor a walk-in, and it may name a customer since merged (resolve through\n`GET \/customers\/{id}`) or erased.'),
   "customer_name": zod.string().nullish(),
   "delivery_channel": zod.string().nullish().describe('Delivery channel (\"in_mall\" | \"outside\") of the linked delivery order,\nsurfaced on the list so clients can flag + segment delivery orders\nwithout a per-order detail fetch. `null` for dine-in orders.'),
   "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
@@ -9840,6 +10017,7 @@ export const ExportOrdersResponse = zod.object({
   "branch_id": zod.uuid(),
   "change_given": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this sale belongs to (design §2.5) — the same id the sync\nfeed\'s order row carries. `customer_name` beside it is the snapshot of\nwhat was typed or printed; this is who it was. A soft reference: `None`\nfor a walk-in, and it may name a customer since merged (resolve through\n`GET \/customers\/{id}`) or erased.'),
   "customer_name": zod.string().nullish(),
   "delivery_channel": zod.string().nullish().describe('Delivery channel (\"in_mall\" | \"outside\") of the linked delivery order,\nsurfaced on the list so clients can flag + segment delivery orders\nwithout a per-order detail fetch. `null` for dine-in orders.'),
   "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
@@ -10053,6 +10231,7 @@ export const GetOrderResponse = zod.object({
   "branch_id": zod.uuid(),
   "change_given": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this sale belongs to (design §2.5) — the same id the sync\nfeed\'s order row carries. `customer_name` beside it is the snapshot of\nwhat was typed or printed; this is who it was. A soft reference: `None`\nfor a walk-in, and it may name a customer since merged (resolve through\n`GET \/customers\/{id}`) or erased.'),
   "customer_name": zod.string().nullish(),
   "delivery_channel": zod.string().nullish().describe('Delivery channel (\"in_mall\" | \"outside\") of the linked delivery order,\nsurfaced on the list so clients can flag + segment delivery orders\nwithout a per-order detail fetch. `null` for dine-in orders.'),
   "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
@@ -10248,6 +10427,7 @@ export const VoidOrderResponse = zod.object({
   "branch_id": zod.uuid(),
   "change_given": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this sale belongs to (design §2.5) — the same id the sync\nfeed\'s order row carries. `customer_name` beside it is the snapshot of\nwhat was typed or printed; this is who it was. A soft reference: `None`\nfor a walk-in, and it may name a customer since merged (resolve through\n`GET \/customers\/{id}`) or erased.'),
   "customer_name": zod.string().nullish(),
   "delivery_channel": zod.string().nullish().describe('Delivery channel (\"in_mall\" | \"outside\") of the linked delivery order,\nsurfaced on the list so clients can flag + segment delivery orders\nwithout a per-order detail fetch. `null` for dine-in orders.'),
   "delivery_fee": zod.number().describe('Delivery charge in piastres, shown separately from the item subtotal.\nAlways 0 for dine-in orders; for delivery orders\n`total_amount == subtotal + tax_amount + delivery_fee` (minus discount).'),
@@ -11450,13 +11630,15 @@ export const CreateDeliveryOrderBody = zod.object({
   "address_line": zod.string().nullish(),
   "branch_id": zod.uuid(),
   "channel": zod.string(),
+  "contact_device_token": zod.string().nullish().describe('A one-time order to a different phone, at a branch that requires OTP:\nthe device token proving THAT phone.'),
   "customer_lat": zod.number().nullish(),
   "customer_lng": zod.number().nullish(),
   "customer_name": zod.string(),
   "customer_phone": zod.string(),
   "delivery_notes": zod.string().nullish(),
-  "device_token": zod.string().describe('Device-trust token from OTP verify (proves the phone).'),
+  "device_token": zod.string().describe('Device-trust token from OTP verify (proves the phone). With\n`member_token` it must prove the CUSTOMER\'s phone, not the typed one.'),
   "floor": zod.string().nullish(),
+  "identity_change": zod.string().nullish().describe('What a typed name\/phone that differs from the customer\'s MEANS:\n`\"one_time\"` (ordering for someone else: the order\'s snapshot carries\nthe typed contact, the profile is untouched) or `\"update_name\"` (correct\nthe stored name). A different PHONE with no choice is refused with 409\n`IDENTITY_CHOICE_REQUIRED` (`kind: \"phone\"`); a different name alone\ndefaults to one-time. Ignored without `member_token`.'),
   "items": zod.array(zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
@@ -11470,12 +11652,15 @@ export const CreateDeliveryOrderBody = zod.object({
   "size_label": zod.string().nullish()
 }).describe('One line of a public cart. Prices are NOT taken from the client — the server\nresolves them. `addons` reuses [`AddonInput`] but its `unit_price` is ignored.')),
   "landmark": zod.string().nullish(),
+  "member_token": zod.string().nullish().describe('Ordering from a loyalty card (\"order now\"): the order belongs to the\ncard\'s customer whatever name and phone are typed. The server compares\nthe typed contact with the customer\'s and classifies the difference —\nsee `identity_change`.'),
   "payment_method_hint": zod.string().describe('\"cash\" | \"card\" — a hint the teller can change at finalize.'),
   "place_name": zod.string().nullish(),
+  "save_address": zod.boolean().nullish().describe('Keep the address on the customer\'s profile. Defaults to yes for an\nordinary order and to NO for a one-time order for someone else.'),
   "unit_number": zod.string().nullish()
 })
 
 export const CreateDeliveryOrderResponse = zod.object({
+  "address_id": zod.uuid().nullish().describe('The saved address it was sent to, when it was saved.'),
   "address_line": zod.string().nullish(),
   "branch_id": zod.uuid(),
   "cancel_reason": zod.string().nullish(),
@@ -11486,7 +11671,9 @@ export const CreateDeliveryOrderResponse = zod.object({
 }).describe('The frozen priced line snapshot the POS renders before finalize.'),
   "channel": zod.string(),
   "confirmed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "contact_override": zod.boolean().optional().describe('\"Ordered by X for Y\": the snapshot phone is not the customer\'s own.'),
   "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid().nullish().describe('The customer this order belongs to (design §2.5). `customer_name` and\n`customer_phone` beside it are the SNAPSHOT — what was typed, what the\ndriver calls — and stay as they were whatever happens to the customer.\n`None` for an order from before customers existed whose phone is not a\nvalid number.'),
   "customer_lat": zod.number().nullish(),
   "customer_lng": zod.number().nullish(),
   "customer_name": zod.string(),
@@ -11648,6 +11835,7 @@ export const LoyaltyCardResponse = zod.object({
   "mode": zod.string(),
   "name": zod.string(),
   "next_reward_cost": zod.number(),
+  "order_now_url": zod.string().nullish().describe('\"Order now\": the ordering page, opened knowing who this is. Present only\nwhen public ordering is configured and the shop takes online orders —\nrender the primary button when it is there, nothing when it is not.'),
   "passes": zod.object({
   "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
   "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
@@ -11819,6 +12007,99 @@ export const LoyaltyApplePassParams = zod.object({
 export const LoyaltyApplePassResponse = zod.unknown()
 
 
+export const OrderNowContextParams = zod.object({
+  "token": zod.string().describe('Member token (the card\'s QR)')
+})
+
+export const OrderNowContextQueryParams = zod.object({
+  "device_token": zod.string().optional().describe('From `\/public\/otp\/verify`, for the customer\'s current phone. Absent or\nnot valid for that phone → the masked context.')
+})
+
+export const OrderNowContextResponse = zod.object({
+  "first_name": zod.string().describe('First word of the name on file.'),
+  "full": zod.union([zod.null(),zod.object({
+  "addresses": zod.array(zod.object({
+  "address_line": zod.string().nullish(),
+  "branch_id": zod.uuid().nullish().describe('The branch it was last ordered from.'),
+  "channel": zod.string().describe('The channel it was last used with: `in_mall`, `outside` or `umbrella`.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "customer_id": zod.uuid(),
+  "delivery_notes": zod.string().nullish(),
+  "delivery_zone_id": zod.uuid().nullish(),
+  "floor": zod.string().nullish(),
+  "id": zod.uuid(),
+  "label": zod.string().nullish(),
+  "landmark": zod.string().nullish(),
+  "last_used_at": zod.iso.datetime({"offset":true}),
+  "lat": zod.number().nullish(),
+  "lng": zod.number().nullish(),
+  "place_name": zod.string().nullish(),
+  "unit_number": zod.string().nullish(),
+  "use_count": zod.number()
+}).describe('A place a customer has had an order sent to.').and(zod.object({
+  "stale": zod.boolean().describe('True when it can no longer be delivered to from the last branch.'),
+  "stale_reason": zod.string().nullish().describe('`out_of_zone` | `zone_unavailable` | `branch_unavailable`.')
+}))).describe('Most recently used first.'),
+  "customer_id": zod.uuid(),
+  "last_branch": zod.union([zod.null(),zod.object({
+  "channel": zod.string().describe('The channel they last used there.'),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "stale": zod.boolean().describe('True when it cannot be used as-is right now; the client falls back to\nits branch\/channel chooser and keeps the rest of the prefill.'),
+  "stale_reason": zod.string().nullish().describe('`branch_unavailable` | `channel_closed`.')
+}).describe('Derived from the latest order; `None` before the first one.')]).optional(),
+  "last_payment_hint": zod.string().nullish().describe('`cash` | `card`, as they last said.'),
+  "locale": zod.string(),
+  "name": zod.string(),
+  "phone": zod.string().describe('Canonical (`2010…`).')
+}).describe('Everything a verified device gets. Absent from the masked context.')]).optional(),
+  "last_branch_name": zod.string().nullish().describe('NAME only on the masked path; the full context carries the id.'),
+  "logo_url": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "org_name": zod.string(),
+  "phone_hint": zod.string().describe('`•••• 4567`.'),
+  "verify_required": zod.boolean().describe('True → this is the masked context; verify the phone\n(`\/public\/otp\/request|verify`) and ask again with the device token.')
+})
+
+
+export const OrderNowCombineParams = zod.object({
+  "token": zod.string().describe('Member token — this customer survives')
+})
+
+export const OrderNowCombineBody = zod.object({
+  "device_token": zod.string().describe('Proof of the CURRENT phone.'),
+  "name": zod.string().nullish().describe('Also correct the name.'),
+  "new_phone": zod.string(),
+  "new_phone_device_token": zod.string().describe('Proof of the NEW phone (the client runs `\/public\/otp\/request|verify` on it).')
+})
+
+export const OrderNowCombineResponse = zod.object({
+  "combined": zod.boolean().describe('True when two customers were combined into this one.'),
+  "customer_id": zod.uuid(),
+  "first_name": zod.string(),
+  "phone_hint": zod.string().describe('The new number, masked. The client already holds its device token.')
+})
+
+
+export const OrderNowReplaceIdentityParams = zod.object({
+  "token": zod.string().describe('Member token')
+})
+
+export const OrderNowReplaceIdentityBody = zod.object({
+  "device_token": zod.string().describe('Proof of the CURRENT phone.'),
+  "name": zod.string().nullish().describe('Also correct the name.'),
+  "new_phone": zod.string(),
+  "new_phone_device_token": zod.string().describe('Proof of the NEW phone (the client runs `\/public\/otp\/request|verify` on it).')
+})
+
+export const OrderNowReplaceIdentityResponse = zod.object({
+  "combined": zod.boolean().describe('True when two customers were combined into this one.'),
+  "customer_id": zod.uuid(),
+  "first_name": zod.string(),
+  "phone_hint": zod.string().describe('The new number, masked. The client already holds its device token.')
+})
+
+
 /**
  * Public and unauthenticated by necessity: it is the first request a customer's
  * browser makes, before there is any notion of a session. Nothing here is
@@ -11901,6 +12182,7 @@ export const OtpVerifyResponse = zod.object({
  */
 export const PublicTableOrderBody = zod.object({
   "customer_name": zod.string().nullish().describe('Who is at the table, if they offered a name. Shown on the bill so the\nwaiter can find them.'),
+  "customer_phone": zod.string().nullish().describe('Their phone, if they offered one. Optional and never required: with a\nvalid number (and a name) the bill is linked to that customer — created\non first contact, `source = table_qr` — so the visit counts toward them.\nA number that is not valid is ignored; the order is never refused.'),
   "idempotency_key": zod.uuid().nullish().describe('Client-minted, so a phone that resends on a flaky connection does not\norder twice. This is the ONLY protection against a double-send, because\na customer\'s browser has no outbox to dedup against.'),
   "items": zod.array(zod.object({
   "addons": zod.array(zod.object({
@@ -11944,6 +12226,7 @@ export const PublicTableOrderResponse = zod.object({
 }).optional().describe('The bill as the SERVER prices it — see [`TicketBill`]. This is the\nfigure the till shows and the drawer collects, because it is the figure\nthe settle will book; `subtotal` above is only its first line.'),
   "booking_id": zod.uuid().nullish().describe('The booking this ticket seated, if the party had one.'),
   "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().nullish().describe('The customer this bill belongs to, when one is known (design §2.5): a\ntable-QR guest who gave a phone, the party\'s booking, or one the waiter\nattached. `customer_name` is the free-text snapshot and may be set\nwithout it. Settling carries it onto the sale.'),
   "customer_name": zod.string().nullish(),
   "discount_id": zod.uuid().nullish().describe('The discount the waiter put on the bill at fire time, if any. Shown so\nthe cashier can SEE what a settle will inherit — and clear it with an\nexplicit `discount_type: \"none\"` rather than have it applied silently.'),
   "discount_type": zod.string().nullish(),

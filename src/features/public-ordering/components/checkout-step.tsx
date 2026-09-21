@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, Banknote, CreditCard, User, MapPin, ShoppingBag, Umbrella, Wallet, ReceiptText } from "lucide-react";
 
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type { Channel, CartLine } from "../types";
 import { Totals } from "./cart-sheet";
 import { cartSubtotal } from "../utils";
-import { isValidPhone } from "@/features/public-shell/guest";
+import { isValidPhone } from "@/lib/phone";
 import { FIELD_LIMITS } from "../limits";
 
 export interface CheckoutForm {
@@ -48,9 +48,13 @@ interface CheckoutStepProps {
   discountAmount?: number;
   submitting: boolean;
   error: string | null;
+  /** The server's refusal of this phone (a code it would not send) — shown under the field. */
+  phoneError?: string | null;
   onSubmit: () => void;
   /** When true the phone field is read-only (already collected in the phone step). */
   phoneReadOnly?: boolean;
+  /** Under the contact fields: what a changed name means, when ordering from a card. */
+  identitySlot?: ReactNode;
 }
 
 export function CheckoutStep({
@@ -62,8 +66,10 @@ export function CheckoutStep({
   discountAmount = 0,
   submitting,
   error,
+  phoneError,
   onSubmit,
   phoneReadOnly = false,
+  identitySlot,
 }: CheckoutStepProps) {
   const { t } = useTranslation();
   const subtotal = cartSubtotal(lines);
@@ -144,7 +150,7 @@ export function CheckoutStep({
             aria-invalid={!!errors.name}
           />
         </Field>
-        <Field label={t("order.checkout.phone")} htmlFor="po-phone" required error={errors.phone}>
+        <Field label={t("order.checkout.phone")} htmlFor="po-phone" required error={errors.phone ?? phoneError ?? undefined}>
           <div className="relative">
             <span
               aria-hidden
@@ -163,10 +169,11 @@ export function CheckoutStep({
               autoComplete="tel"
               dir="ltr"
               className={cn("ps-12", phoneReadOnly && "cursor-default bg-muted/50 text-muted-foreground")}
-              aria-invalid={!!errors.phone}
+              aria-invalid={!!(errors.phone ?? phoneError)}
             />
           </div>
         </Field>
+        {identitySlot}
       </SectionCard>
 
       {/* Destination — channel specific */}

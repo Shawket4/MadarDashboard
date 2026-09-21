@@ -301,6 +301,68 @@ describe("scrubEvent", () => {
   });
 });
 
+// ── Order now ────────────────────────────────────────────────────────────────
+
+describe("order now", () => {
+  it("denies every identity field the flow sends and receives", () => {
+    for (const key of [
+      "member_token",
+      "device_token",
+      "contact_device_token",
+      "new_phone",
+      "new_phone_device_token",
+      "phone_hint",
+      "first_name",
+    ]) {
+      expect(isPiiKey(key), `${key} must be denied`).toBe(true);
+    }
+  });
+
+  it("denies a saved address field by field, the floor and the flat included", () => {
+    for (const key of ["address_line", "place_name", "landmark", "floor", "unit_number", "delivery_notes", "lat", "lng"]) {
+      expect(isPiiKey(key), `${key} must be denied`).toBe(true);
+    }
+    // …without eating the floor plan, whose keys merely contain the word.
+    for (const key of ["floor_plan", "floor_table_id", "unit", "unit_price"]) {
+      expect(isPiiKey(key), `${key} must stay`).toBe(false);
+    }
+  });
+
+  it("takes the order-now `addresses` whole, and the floor and the flat even under a key that says nothing", () => {
+    const saved = { id: "a-1", use_count: 3, floor: "3", unit_number: "12", delivery_notes: "ring twice", channel: "outside" };
+    expect(redactValue({ full: { addresses: [saved] } })).toEqual({ full: { addresses: REDACTED } });
+    expect(redactValue({ rows: [saved] })).toEqual({
+      rows: [{ id: "a-1", use_count: 3, floor: REDACTED, unit_number: REDACTED, delivery_notes: REDACTED, channel: "outside" }],
+    });
+  });
+
+  it("redacts the card token from the page path and the API path, and keeps the rest of the URL", () => {
+    expect(stripUrlQuery("https://order.example.test/now/AbC123_tok?branch=b-1")).toBe("https://order.example.test/now/[redacted]");
+    expect(stripUrlQuery("https://shop.example.test/order/now/AbC123_tok")).toBe("https://shop.example.test/order/now/[redacted]");
+    expect(sanitizeText("GET /public/order-now/AbC123_tok/replace-identity failed with 409")).toBe(
+      "GET /public/order-now/[redacted]/replace-identity failed with 409",
+    );
+    expect(sanitizeText("POST /public/order-now/AbC123_tok/combine")).toBe("POST /public/order-now/[redacted]/combine");
+  });
+
+  it("is idempotent on a path, and leaves look-alike words alone", () => {
+    const once = sanitizeText("/now/AbC123_tok");
+    expect(sanitizeText(once)).toBe(once);
+    expect(sanitizeText("/snow/report and /nowhere/else")).toBe("/snow/report and /nowhere/else");
+  });
+
+  it("takes the token out of a transaction name and a breadcrumb URL", () => {
+    const event = scrubEvent({
+      transaction: "/now/AbC123_tok",
+      breadcrumbs: [{ category: "xhr", data: { url: "https://api.example.test/public/order-now/AbC123_tok?device_token=dt", status_code: 200 } }],
+    } as never) as { transaction: string; breadcrumbs: { data: { url: string; status_code: number } }[] };
+    expect(event.transaction).toBe("/now/[redacted]");
+    expect(event.breadcrumbs[0].data.url).toBe("https://api.example.test/public/order-now/[redacted]");
+    expect(event.breadcrumbs[0].data.status_code).toBe(200);
+    expect(JSON.stringify(event)).not.toContain("AbC123_tok");
+  });
+});
+
 // ── Parity ───────────────────────────────────────────────────────────────────
 
 describe("cross-surface parity", () => {

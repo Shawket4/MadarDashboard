@@ -9,8 +9,6 @@ import {
   usePublicMenu,
   useDeliveryQuote,
   useCreateDeliveryOrder,
-  useOtpRequest,
-  useOtpVerify,
   useGuestOrderHistory,
   useGuestPastLocations,
   createDeliveryOrder,
@@ -18,15 +16,17 @@ import {
 import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
 import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
 import type { DeliveryOrderInput } from "@/data/api/generated/models/deliveryOrderInput";
-import { ArrowRight, Loader2, Search, ShoppingBag } from "lucide-react";
+import { ArrowRight, Info, Loader2, MapPin, Search, ShoppingBag, Store } from "lucide-react";
 import type { GuestSavedLocation } from "@/data/api/generated/models/guestSavedLocation";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fmtMoney } from "@/lib/format";
 import { fadeIn } from "@/lib/motion";
 
 import { isFlatChannel, type CartLine, type Channel, type Step } from "./types";
 import { asChannel, calcDiscount, cartSubtotal, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
-import { getDeviceToken, isValidPhone, normalizePhone, setDeviceToken } from "@/features/public-shell/guest";
+import { getDeviceToken, setDeviceToken } from "@/features/public-shell/guest";
+import { canonicalPhone, formatPhoneInput, isValidPhone, samePhone } from "@/lib/phone";
 import { FIELD_LIMITS } from "./limits";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
@@ -35,6 +35,7 @@ import { BranchStep } from "./components/branch-step";
 import { BranchSelector } from "./components/branch-selector";
 import { ChannelStep } from "./components/channel-step";
 import { ChannelClosed } from "./components/channel-closed";
+import { otpRefusal, useOtpTransport } from "@/features/public-shell/use-phone-otp";
 import { PhoneStep } from "./components/phone-step";
 import { LocationStep } from "./components/location-step";
 import { MenuStep } from "./components/menu-step";
@@ -45,6 +46,8 @@ import { CheckoutChannelSheet } from "./components/checkout-channel-sheet";
 import { OtpDialog } from "./components/otp-dialog";
 import { OrderHistoryDrawer } from "./components/order-history-drawer";
 import type { LatLng } from "./components/delivery-map";
+import { addressForChannel, identityRefusal, type OrderIdentityFields, type OrderNowSession, type PlaceOutcome } from "./order-now/session";
+import { useOrderIdentity } from "./order-now/use-order-identity";
 
 interface PublicOrderingPageProps {
   orgId: string;
@@ -58,7 +61,17 @@ interface PublicOrderingPageProps {
   prefillPlaceName?: string;
   prefillFloor?: string;
   prefillUnitNumber?: string;
+  /**
+   * "Order now" from a loyalty card: the customer is already known and proved
+   * on this device. The flow opens on the menu with what they last used, the
+   * phone step never runs, and a changed name or phone is asked about at
+   * checkout. Absent, this page is exactly what it was.
+   */
+  orderNow?: OrderNowSession;
 }
+
+/** What goes on the wire: canonical digits. Callers validate first; "" never matches a guest. */
+const wirePhone = (raw: string): string => canonicalPhone(raw) ?? "";
 
 export function PublicOrderingPage({
   orgId,
@@ -69,6 +82,7 @@ export function PublicOrderingPage({
   prefillPlaceName,
   prefillFloor,
   prefillUnitNumber,
+  orderNow,
 }: PublicOrderingPageProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -110,7 +124,16 @@ export function PublicOrderingPage({
 
   // ── Local flow state (beyond what the URL carries) ────────────────────────
   // Credentials resolved by the phone step — does NOT wait for profile queries.
-  const [resolvedPhone, setResolvedPhone] = useState<{ phone: string; deviceToken: string } | null>(null);
+  const [resolvedPhone, setResolvedPhone] = useState<{ phone: string; deviceToken: string } | null>(() =>
+    orderNow ? { phone: orderNow.customer.phone, deviceToken: orderNow.deviceToken } : null,
+  );
+  // From a card, the customer IS the resolved phone — including after they
+  // replace their number mid-order, when both the phone and its token change.
+  const cardPhone = orderNow?.customer.phone;
+  const cardDeviceToken = orderNow?.deviceToken;
+  useEffect(() => {
+    if (cardPhone && cardDeviceToken) setResolvedPhone({ phone: cardPhone, deviceToken: cardDeviceToken });
+  }, [cardPhone, cardDeviceToken]);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   // Profile data loads in the background after phone is resolved (non-blocking).
@@ -120,7 +143,7 @@ export function PublicOrderingPage({
   const hasGuestToken = !!resolvedPhone?.deviceToken;
   const { data: orders = [] } = useGuestOrderHistory(
     {
-      phone: resolvedPhone ? normalizePhone(resolvedPhone.phone) : "",
+      phone: resolvedPhone ? wirePhone(resolvedPhone.phone) : "",
       org_id: orgId,
       device_token: resolvedPhone?.deviceToken || null,
     },
@@ -128,7 +151,7 @@ export function PublicOrderingPage({
   );
   const { data: locations = [] } = useGuestPastLocations(
     {
-      phone: resolvedPhone ? normalizePhone(resolvedPhone.phone) : "",
+      phone: resolvedPhone ? wirePhone(resolvedPhone.phone) : "",
       org_id: orgId,
       device_token: resolvedPhone?.deviceToken || null,
     },
@@ -172,11 +195,19 @@ export function PublicOrderingPage({
 
   const [form, setForm] = useState<CheckoutForm>(() => ({
     ...emptyForm(),
+    ...(orderNow
+      ? {
+          name: orderNow.customer.name,
+          phone: formatPhoneInput(orderNow.customer.phone),
+          payment: orderNow.paymentHint ?? "cash",
+        }
+      : {}),
     place_name: prefillPlaceName ?? "",
     floor: prefillFloor ?? "",
     unit_number: prefillUnitNumber ?? "",
   }));
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // OTP
   const [otpOpen, setOtpOpen] = useState(false);
@@ -289,14 +320,110 @@ export function PublicOrderingPage({
     },
   );
 
+  // ── "Order now": open where they left off ────────────────────────────────
+  // The saved address for the channel they last used. Applied once, when the
+  // branch and channel on screen are the ones it was saved for; the server has
+  // already re-checked it, and `stale` sends the customer to the location step
+  // with the reason instead of silently dropping what they had.
+  const cardAddress = useMemo(
+    () => (orderNow ? addressForChannel(orderNow.addresses, orderNow.lastBranch?.channel) : null),
+    [orderNow],
+  );
+  const onLastBranch =
+    !!orderNow?.lastBranch && branchId === orderNow.lastBranch.id && selectedChannel === orderNow.lastBranch.channel;
+  const addressApplied = useRef(false);
+  useEffect(() => {
+    if (addressApplied.current || !onLastBranch || !branchObj || !cardAddress || cardAddress.stale) return;
+    addressApplied.current = true;
+    setForm((f) => ({
+      ...f,
+      address_line: cardAddress.address_line ?? f.address_line,
+      place_name: cardAddress.place_name ?? f.place_name,
+      floor: cardAddress.floor ?? f.floor,
+      unit_number: cardAddress.unit_number ?? f.unit_number,
+      landmark: cardAddress.landmark ?? f.landmark,
+      delivery_notes: cardAddress.delivery_notes ?? f.delivery_notes,
+    }));
+    const pinned = cardAddress.lat != null && cardAddress.lng != null;
+    if (selectedChannel === "outside" && pinned) {
+      // A delivery pin they have used before: straight to the menu.
+      setPoint({ lat: cardAddress.lat!, lng: cardAddress.lng! });
+      setLocationDone(true);
+    } else if (selectedChannel === "in_mall" && !branchObj.in_mall_require_location) {
+      // In-mall asks for the DEVICE's location (proof of being there), which a
+      // saved address cannot stand in for — skipped only where the branch does not ask.
+      setLocationDone(true);
+    }
+  }, [onLastBranch, branchObj, cardAddress, selectedChannel]);
+
+  // The location step computes the quote; skipped, somebody else has to.
+  const { data: prefillQuote } = useDeliveryQuote(
+    branchId ?? "",
+    { lat: point?.lat ?? 0, lng: point?.lng ?? 0, channel: selectedChannel ?? "in_mall" },
+    {
+      query: {
+        enabled: !!orderNow && !!branchId && !!point && needsLocation && locationDone && !quote && !channelClosed,
+        staleTime: 30_000,
+        retry: false,
+      },
+    },
+  );
+  const mapQuote = quote ?? prefillQuote ?? null;
+  // Re-validated at open time, and again here: a pin that turns out to be out
+  // of range goes back to the location step rather than failing at checkout.
+  const [pinRefused, setPinRefused] = useState(false);
+  const prefillOutOfRange = !quote && prefillQuote?.status === "out_of_range";
+  useEffect(() => {
+    if (!prefillOutOfRange) return;
+    setPinRefused(true);
+    setLocationDone(false);
+  }, [prefillOutOfRange]);
+
+  /** A gentle line above the one step that needs asking again, and why. */
+  const cardNotice: { step: Step; text: string } | null = (() => {
+    if (!orderNow) return null;
+    const last = orderNow.lastBranch;
+    if (last?.stale && last.stale_reason === "channel_closed")
+      return {
+        step: "channel",
+        text: t("order.now.staleChannel", {
+          defaultValue: "{{branch}} isn’t taking that kind of order right now. Pick another way to get it — everything else is as you left it.",
+          branch: last.name,
+        }),
+      };
+    if (last?.stale)
+      return {
+        step: "branch",
+        text: t("order.now.staleBranch", {
+          defaultValue: "{{branch}} isn’t taking online orders right now. Pick another branch — your details are still filled in.",
+          branch: last.name,
+        }),
+      };
+    if (onLastBranch && (cardAddress?.stale || pinRefused)) {
+      const label = cardAddress?.label?.trim() || t("order.now.yourAddress", "your saved address");
+      return {
+        step: "location",
+        text:
+          cardAddress?.stale_reason === "zone_unavailable"
+            ? t("order.now.staleZone", { defaultValue: "Delivery to {{label}} is paused right now. Choose where to send this order.", label })
+            : t("order.now.staleAddress", {
+                defaultValue: "{{label}} is outside {{branch}}’s delivery area now. Choose where to send this order.",
+                label,
+                branch: branchObj?.name ?? "",
+              }),
+      };
+    }
+    return null;
+  })();
+
   // The fee comes from the location-step quote for map channels (outside: zone
   // fee; in-mall: flat fee + haversine distance) or the flat quote above.
-  const activeQuote = flatChannelSelected ? flatQuote : quote;
+  const activeQuote = flatChannelSelected ? flatQuote : mapQuote;
   const deliveryFee: number | null = activeQuote?.status === "ok" ? (activeQuote.fee ?? 0) : null;
 
   // ── Mutations ─────────────────────────────────────────────────────────────
-  const otpRequest = useOtpRequest();
-  const otpVerify = useOtpVerify();
+  // Checkout's OTP talks to the same endpoints as the phone step, through the same transport.
+  const otp = useOtpTransport();
   // Custom mutationFn so the per-attempt Idempotency-Key (a uuid in a ref) is read
   // at call time and merged into the request headers — the server dedupes retries.
   const createOrder = useCreateDeliveryOrder({
@@ -485,7 +612,7 @@ export function PublicOrderingPage({
     branch_id: branchId!,
     channel: selectedChannel!,
     customer_name: form.name.trim(),
-    customer_phone: normalizePhone(form.phone),
+    customer_phone: wirePhone(form.phone),
     place_name: form.place_name.trim() || null,
     floor: form.floor.trim() || null,
     unit_number: form.unit_number.trim() || null,
@@ -501,36 +628,54 @@ export function PublicOrderingPage({
     items: lines.map(toCartLineInput),
   });
 
-  const submitOrder = useCallback(
-    async (deviceToken: string) => {
-      setSubmitError(null);
-      const estimate = subtotal - discountAmount + (deliveryFee ?? 0);
-      try {
-        const order = await createOrder.mutateAsync({ data: buildInput(deviceToken) });
-        setOtpOpen(false);
-        // Order placed — forget the persisted cart so a return visit starts clean.
-        if (branchId) clearCart(orgId, branchId);
-        setLines([]);
-        // Route to the live tracking page (dynamic link with the order UUID). The
-        // estimate is carried so the tracking page can flag a backend reprice.
-        void navigate({ to: "/track/$id", params: { id: order.id }, search: { est: estimate } });
-      } catch (e) {
-        const status = (e as { response?: { status?: number } })?.response?.status;
-        setSubmitError(
-          status === 409
-            ? t("order.checkout.errChannelClosed", {
-                defaultValue: "Sorry — this branch just stopped accepting orders on this channel.",
-              })
-            : t("order.checkout.errSubmit"),
-        );
-        setOtpOpen(false);
-        // Fresh idempotency key for the retry (this attempt failed).
-        idempotencyKey.current = newUid();
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [subtotal, discountAmount, deliveryFee, form, lines, point, branchId, selectedChannel, needsLocation],
-  );
+  // Send the order and say how it went. It never throws and never writes the
+  // error itself: from a card, some refusals are questions to put to the
+  // customer (`useOrderIdentity`), not failures to report.
+  const sendOrder = async (identity: OrderIdentityFields): Promise<PlaceOutcome> => {
+    setSubmitError(null);
+    const estimate = subtotal - discountAmount + (deliveryFee ?? 0);
+    try {
+      const order = await createOrder.mutateAsync({ data: { ...buildInput(identity.device_token), ...identity } });
+      setOtpOpen(false);
+      // Order placed — forget the persisted cart so a return visit starts clean.
+      if (branchId) clearCart(orgId, branchId);
+      setLines([]);
+      // Route to the live tracking page (dynamic link with the order UUID). The
+      // estimate is carried so the tracking page can flag a backend reprice.
+      void navigate({ to: "/track/$id", params: { id: order.id }, search: { est: estimate } });
+      return { ok: true };
+    } catch (e) {
+      setOtpOpen(false);
+      // Fresh idempotency key for the retry (this attempt failed).
+      idempotencyKey.current = newUid();
+      const { status, code } = identityRefusal(e);
+      return { ok: false, status, code };
+    }
+  };
+
+  const reportOutcome = (outcome: PlaceOutcome) => {
+    if (outcome.ok) return;
+    setSubmitError(
+      // A bare 409 is the channel closing under the order; one with a code is its own story.
+      outcome.status === 409 && !outcome.code
+        ? t("order.checkout.errChannelClosed", {
+            defaultValue: "Sorry — this branch just stopped accepting orders on this channel.",
+          })
+        : t("order.checkout.errSubmit"),
+    );
+  };
+
+  const submitOrder = async (deviceToken: string) => reportOutcome(await sendOrder({ device_token: deviceToken }));
+
+  const identity = useOrderIdentity({
+    session: orderNow ?? null,
+    typed: { name: form.name, phone: form.phone },
+    otpRequired: branchObj?.otp_required !== false,
+    hasAddress: selectedChannel !== "pickup",
+    place: sendOrder,
+    report: reportOutcome,
+    onKeepNumber: () => orderNow && setForm((f) => ({ ...f, phone: formatPhoneInput(orderNow.customer.phone) })),
+  });
 
   const validateForm = (): string | null => {
     if (!form.name.trim()) return t("order.checkout.errName");
@@ -560,7 +705,7 @@ export function PublicOrderingPage({
         defaultValue: "Please confirm your location.",
       });
     if (isOutside) {
-      if (quote?.status === "out_of_range") return t("order.checkout.errRange");
+      if (mapQuote?.status === "out_of_range") return t("order.checkout.errRange");
       if (!form.address_line.trim()) return t("order.checkout.errAddress");
     } else if (selectedChannel === "umbrella") {
       // Umbrella # is stored in place_name; section (optional) in landmark.
@@ -588,7 +733,7 @@ export function PublicOrderingPage({
   const handlePlace = async () => {
     // Guard against a double-tap firing a second OTP request / order before the
     // button's disabled state catches up.
-    if (createOrder.isPending || otpRequest.isPending) return;
+    if (createOrder.isPending || otp.sending || identity.busy) return;
     if (channelClosed) {
       setSubmitError(
         t("order.checkout.errChannelClosed", {
@@ -603,6 +748,12 @@ export function PublicOrderingPage({
       return;
     }
     idempotencyKey.current = newUid();
+    // From a card the customer is already proved; what is left to settle is
+    // whether the name or number they typed is theirs.
+    if (orderNow) {
+      await identity.begin();
+      return;
+    }
     // OTP is optional per branch — when the branch has it off, place the order
     // directly with no verification (no request, no dialog).
     if (branchObj && branchObj.otp_required === false) {
@@ -622,11 +773,14 @@ export function PublicOrderingPage({
     }
     // No trusted device → request an OTP, then open the verify dialog.
     setOtpError(null);
+    setPhoneError(null);
     try {
-      await otpRequest.mutateAsync({ data: { phone: normalizePhone(form.phone) } });
+      await otp.requestCode(wirePhone(form.phone));
       setOtpOpen(true);
-    } catch {
-      setSubmitError(t("order.otp.errSend"));
+    } catch (err) {
+      const refused = otpRefusal(err);
+      if (refused) setPhoneError(refused);
+      else setSubmitError(t("order.otp.errSend"));
     }
   };
 
@@ -637,17 +791,15 @@ export function PublicOrderingPage({
     }
     setOtpError(null);
     try {
-      const res = await otpVerify.mutateAsync({
-        data: { phone: normalizePhone(form.phone), code },
-      });
-      setDeviceToken(form.phone, res.device_token);
+      const deviceToken = await otp.verifyCode(wirePhone(form.phone), code);
+      setDeviceToken(form.phone, deviceToken);
       // A token verified at checkout also unlocks this guest's history.
       setResolvedPhone((prev) =>
-        prev && normalizePhone(prev.phone) === normalizePhone(form.phone)
-          ? { ...prev, deviceToken: res.device_token }
+        prev && samePhone(prev.phone, form.phone)
+          ? { ...prev, deviceToken }
           : prev,
       );
-      await submitOrder(res.device_token);
+      await submitOrder(deviceToken);
     } catch {
       setOtpError(t("order.otp.errInvalid"));
     }
@@ -656,9 +808,9 @@ export function PublicOrderingPage({
   const handleResend = async () => {
     setOtpError(null);
     try {
-      await otpRequest.mutateAsync({ data: { phone: normalizePhone(form.phone) } });
-    } catch {
-      setOtpError(t("order.otp.errSend"));
+      await otp.requestCode(wirePhone(form.phone));
+    } catch (err) {
+      setOtpError(otpRefusal(err) ?? t("order.otp.errSend"));
     }
   };
 
@@ -753,6 +905,13 @@ export function PublicOrderingPage({
               </div>
             )}
 
+            {cardNotice && cardNotice.step === step && !branchPending ? (
+              <p role="status" className="mb-4 flex items-start gap-2.5 rounded-2xl border border-border/70 bg-muted/40 p-3.5 text-sm">
+                <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-brand" />
+                <span className="text-pretty">{cardNotice.text}</span>
+              </p>
+            ) : null}
+
             {step === "branch" && (
               <BranchStep
                 orgId={orgId}
@@ -807,6 +966,25 @@ export function PublicOrderingPage({
               />
             )}
 
+            {step === "menu" && orderNow && selectedChannel && branchObj && !channelClosed && !browseOnly ? (
+              <OrderNowSummary
+                channel={selectedChannel}
+                branchName={branchObj.name}
+                firstName={orderNow.customer.name.trim().split(/\s+/)[0] ?? ""}
+                place={
+                  needsLocation
+                    ? (onLastBranch && cardAddress && !cardAddress.stale ? cardAddress.label?.trim() : "") ||
+                      form.place_name.trim() ||
+                      form.address_line.trim()
+                    : ""
+                }
+                onChange={() => {
+                  if (needsLocation) setLocationDone(false);
+                  else setUrl({ branch: branchId ?? undefined, channel: undefined });
+                }}
+              />
+            ) : null}
+
             {step === "menu" && branchId && (selectedChannel ?? browseChannel) && (!channelClosed || browseOnly) && (
               <MenuStep
                 branchId={branchId}
@@ -835,14 +1013,21 @@ export function PublicOrderingPage({
               <CheckoutStep
                 channel={selectedChannel}
                 form={form}
-                onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+                onChange={(patch) => {
+                  if ("phone" in patch) setPhoneError(null);
+                  setForm((f) => ({ ...f, ...patch }));
+                }}
                 lines={lines}
                 deliveryFee={deliveryFee}
                 discountAmount={discountAmount}
-                submitting={createOrder.isPending || otpRequest.isPending}
+                submitting={createOrder.isPending || otp.sending || identity.busy}
                 error={submitError}
+                phoneError={phoneError}
                 onSubmit={handlePlace}
-                phoneReadOnly={!!resolvedPhone}
+                // From a card the number stays editable: an order for someone
+                // else, or a new number, is exactly what the question is for.
+                phoneReadOnly={!!resolvedPhone && !orderNow}
+                identitySlot={identity.inline}
               />
             )}
 
@@ -902,13 +1087,16 @@ export function PublicOrderingPage({
         open={otpOpen}
         onOpenChange={setOtpOpen}
         phone={form.phone}
-        sending={otpRequest.isPending}
-        verifying={otpVerify.isPending || createOrder.isPending}
+        sending={otp.sending}
+        verifying={otp.verifying || createOrder.isPending}
         error={otpError}
         onVerify={handleVerify}
         onResend={handleResend}
         onChangeNumber={handleChangeNumber}
       />
+
+      {/* "Is this your new number?" — and everything that can follow from the answer */}
+      {identity.dialogs}
 
       {/* Order history drawer */}
       <OrderHistoryDrawer
@@ -917,6 +1105,54 @@ export function PublicOrderingPage({
         orders={orders}
       />
     </>
+  );
+}
+
+/**
+ * "Delivering to Home · Branch X · Change" — what the card remembered, in one
+ * line above the menu, with the way to change it. Everything here is also
+ * reachable through the ordinary steps; this only says it out loud.
+ */
+function OrderNowSummary({
+  channel,
+  branchName,
+  firstName,
+  place,
+  onChange,
+}: {
+  channel: Channel;
+  branchName: string;
+  firstName: string;
+  place: string;
+  onChange: () => void;
+}) {
+  const { t } = useTranslation();
+  const lead =
+    channel === "pickup"
+      ? t("order.now.summaryPickup", "Pickup")
+      : channel === "umbrella"
+        ? t("order.now.summaryUmbrella", "To your umbrella")
+        : place
+          ? t("order.now.summaryTo", { defaultValue: "Delivering to {{place}}", place })
+          : t("order.now.summaryDelivery", "Delivery");
+  const Icon = channel === "pickup" ? Store : MapPin;
+  return (
+    <div className="mb-4 flex items-center gap-3 rounded-2xl border border-border/70 bg-card px-4 py-3 shadow-xs">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+        <Icon aria-hidden className="size-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs text-muted-foreground">{t("order.now.welcomeBack", { defaultValue: "Welcome back, {{name}}", name: firstName })}</p>
+        <p className="truncate text-sm font-medium">
+          <span dir="auto">{lead}</span>
+          <span aria-hidden className="mx-1.5 text-muted-foreground/60">·</span>
+          <span dir="auto">{branchName}</span>
+        </p>
+      </div>
+      <Button variant="link" size="sm" className="h-auto shrink-0 p-0 text-brand" onClick={onChange}>
+        {t("order.now.change", "Change")}
+      </Button>
+    </div>
   );
 }
 

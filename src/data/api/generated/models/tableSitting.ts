@@ -10,6 +10,13 @@ export interface TableSitting {
      * @nullable
      */
   closed_at?: string | null;
+  /**
+     * The customer the sitting belongs to, when one is known: the sale's once
+     * settled (a settle may name one the bill never had), else the bill's.
+     * Read through the merge chain, so it is always a live customer.
+     * @nullable
+     */
+  customer_id?: string | null;
   /** @nullable */
   customer_name?: string | null;
   /** @nullable */

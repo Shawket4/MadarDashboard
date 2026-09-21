@@ -17,6 +17,7 @@ import type { TableSitting } from "@/data/api/generated/models";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fmtElapsedMs, fmtMoney, fmtNumber } from "@/lib/format";
 import { StatusPill } from "@/components/app/status-pill";
+import { CustomerLink, type CustomerLinkControl } from "@/features/customers/customer-link";
 
 /** A stay, not a timestamp — the shared elapsed shape (`42m` · `1h 05m`). */
 const stay = (minutes: number): string => (minutes < 1 ? "—" : fmtElapsedMs(minutes * 60_000));
@@ -39,14 +40,20 @@ function Figure({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SittingRow({ s }: { s: TableSitting }) {
+function SittingRow({ s, customers }: { s: TableSitting; customers?: CustomerLinkControl }) {
   const { t } = useTranslation();
-  const who = s.customer_name?.trim() || s.ticket_ref || "—";
+  const name = s.customer_name?.trim();
+  const who = name || s.ticket_ref || "—";
   const covers = s.guest_count ?? 0;
   return (
     <li className="flex items-baseline justify-between gap-3 border-b py-2 last:border-0">
       <div className="min-w-0">
-        <p className="truncate text-sm">{who}</p>
+        {/* The name opens the customer the sitting belongs to, for those who may see customers. */}
+        {name && customers ? (
+          <CustomerLink name={name} customerId={s.customer_id} control={customers} className="block truncate text-sm" />
+        ) : (
+          <p className="truncate text-sm">{who}</p>
+        )}
         <p className="text-xs text-muted-foreground">
           {[
             stay(s.minutes),
@@ -77,7 +84,18 @@ function SittingRow({ s }: { s: TableSitting }) {
 
 /** A table's figures, then what happened — the last 30 days unless a window
  *  is given (the Tables insights page passes the scope's). */
-export function TableHistory({ tableId, from, to }: { tableId: string; from?: string; to?: string }) {
+export function TableHistory({
+  tableId,
+  from,
+  to,
+  customers,
+}: {
+  tableId: string;
+  from?: string;
+  to?: string;
+  /** The surface's customer sheet; without one a name stays plain text. */
+  customers?: CustomerLinkControl;
+}) {
   const { t } = useTranslation();
   const { data, isLoading, isError } = useTableHistory(
     tableId,
@@ -136,7 +154,7 @@ export function TableHistory({ tableId, from, to }: { tableId: string; from?: st
         </p>
         <ul>
           {data.sittings.map((s) => (
-            <SittingRow key={s.open_ticket_id} s={s} />
+            <SittingRow key={s.open_ticket_id} s={s} customers={customers} />
           ))}
         </ul>
       </div>

@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "b8ccbb8bb5315238";
+export const SPEC_HASH = "768db7c58923aebf";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -195,6 +195,8 @@ export type Capability =
   | "reports.legal"
   | "menu.packaging_rules.apply"
   | "orders.staff_drink.record"
+  | "customers.merge"
+  | "customers.addresses.view"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -379,6 +381,8 @@ export const Cap = {
   reportsLegal: "reports.legal" as Capability,
   menuPackagingRulesApply: "menu.packaging_rules.apply" as Capability,
   ordersStaffDrinkRecord: "orders.staff_drink.record" as Capability,
+  customersMerge: "customers.merge" as Capability,
+  customersAddressesView: "customers.addresses.view" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -569,7 +573,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 208, key: "customers.attach", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager", "teller", "waiter"], core: [], approval: false, limits: [], pos: true, protected: false, en: "Attach a customer to an order", ar: "ربط عميل بطلب", hintEn: null, hintAr: null },
   { id: 209, key: "customers.view", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: false, limits: [], pos: true, protected: false, en: "See customers and their phone numbers", ar: "عرض العملاء وأرقام هواتفهم", hintEn: null, hintAr: null },
   { id: 210, key: "customers.create", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager", "teller", "waiter"], core: [], approval: false, limits: [], pos: true, protected: false, en: "Add customers", ar: "إضافة عملاء", hintEn: null, hintAr: null },
-  { id: 211, key: "customers.edit", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Edit and merge customers", ar: "تعديل العملاء ودمجهم", hintEn: null, hintAr: null },
+  { id: 211, key: "customers.edit", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Edit customers", ar: "تعديل العملاء", hintEn: null, hintAr: null },
   { id: 212, key: "staff.roles.manage", legacy: null, group: "staff", tier: "configurable", risk: "admin", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Create and edit roles", ar: "إنشاء الأدوار وتعديلها", hintEn: null, hintAr: null },
   { id: 213, key: "staff.owners.manage", legacy: null, group: "staff", tier: "advanced", risk: "admin", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Add or remove owners", ar: "إضافة ملاك أو إزالتهم", hintEn: null, hintAr: null },
   { id: 214, key: "approvals.review", legacy: null, group: "reports", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Review flagged offline actions and approvals", ar: "مراجعة الإجراءات والموافقات المعلّمة", hintEn: null, hintAr: null },
@@ -581,6 +585,8 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 220, key: "reports.legal", legacy: null, group: "reports", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See legal reports: tax, refunds, voids, discounts, waivers and price overrides", ar: "عرض التقارير القانونية: الضريبة والمرتجعات والإلغاءات والخصومات والإعفاءات وتعديلات الأسعار", hintEn: "They name the staff who gave money back. A manager sees only their own branches.", hintAr: "تُظهر أسماء الموظفين الذين أعادوا المال. يرى المدير فروعه فقط." },
   { id: 221, key: "menu.packaging_rules.apply", legacy: null, group: "menu", tier: "advanced", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Re-apply packaging rules to every menu item", ar: "إعادة تطبيق قواعد التغليف على جميع أصناف القائمة", hintEn: null, hintAr: null },
   { id: 223, key: "orders.staff_drink.record", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Record a staff drink", ar: "تسجيل مشروب موظفين", hintEn: "Off for tellers by default. Turn it on to let the till put a drink on the branch's daily staff pool. A note saying who it is for is always required.", hintAr: "مقفول للكاشير في الأصل. افتحه عشان الكاشير يحسب المشروب على رصيد الموظفين اليومي بتاع الفرع. لازم دايمًا يكتب ملاحظة بالمشروب ده لمين." },
+  { id: 224, key: "customers.merge", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Merge duplicate customers", ar: "دمج العملاء المكررين", hintEn: "Merging cannot be undone. When both are loyalty members, the points move to the customer that stays and the other card stops working.", hintAr: "الدمج لا يمكن التراجع عنه. لو الاتنين أعضاء في برنامج الولاء، النقاط بتتنقل للعميل اللي هيفضل والكارت التاني بيتوقف." },
+  { id: 225, key: "customers.addresses.view", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: false, limits: [], pos: true, protected: false, en: "See customers' saved addresses", ar: "عرض عناوين العملاء المحفوظة", hintEn: "The delivery addresses a customer has ordered to. Needed to dispatch an order; not needed to take one at a table.", hintAr: "عناوين التوصيل اللي العميل طلب عليها قبل كده. مطلوبة لتجهيز طلب توصيل، ومش مطلوبة لأخذ طلب على ترابيزة." },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [

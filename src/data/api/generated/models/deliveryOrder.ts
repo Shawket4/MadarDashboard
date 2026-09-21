@@ -3,6 +3,11 @@
 import type { DeliveryOrderCart } from './deliveryOrderCart';
 
 export interface DeliveryOrder {
+  /**
+     * The saved address it was sent to, when it was saved.
+     * @nullable
+     */
+  address_id?: string | null;
   /** @nullable */
   address_line?: string | null;
   branch_id: string;
@@ -17,7 +22,18 @@ export interface DeliveryOrder {
   channel: string;
   /** @nullable */
   confirmed_at?: string | null;
+  /** "Ordered by X for Y": the snapshot phone is not the customer's own. */
+  contact_override?: boolean;
   created_at: string;
+  /**
+     * The customer this order belongs to (design §2.5). `customer_name` and
+     * `customer_phone` beside it are the SNAPSHOT — what was typed, what the
+     * driver calls — and stay as they were whatever happens to the customer.
+     * `None` for an order from before customers existed whose phone is not a
+     * valid number.
+     * @nullable
+     */
+  customer_id?: string | null;
   /** @nullable */
   customer_lat?: number | null;
   /** @nullable */
