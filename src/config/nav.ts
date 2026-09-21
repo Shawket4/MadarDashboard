@@ -131,8 +131,9 @@ export const NAV: NavGroup[] = [
       // lets a person record one: if you can give a staff drink, you can see
       // what the branch has already given.
       { caps: [Cap.ordersStaffDrinkRecord], to: "/reports/staff-pool", labelKey: "nav.reportsStaffPool", fallback: "Staff drinks", icon: CupSoda },
-      // Drawer reconciliation: the capability the backend route itself checks.
-      { caps: [Cap.tillRead], to: "/reports/tills", labelKey: "nav.reportsTills", fallback: "Tills", icon: Wallet },
+      // Every drawer at the branch, with its variance: till.read.branch. The route
+      // answers plain till.read too, but only with the caller's own sessions.
+      { caps: [Cap.tillReadBranch], to: "/reports/tills", labelKey: "nav.reportsTills", fallback: "Tills", icon: Wallet },
     ],
   },
   {
