@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
-  CalendarOff, Check, Clock3, LogOut, Plane, Plus, Timer, X,
+  Ban, CalendarOff, Check, Clock3, LogOut, Plane, Plus, ShieldCheck, Timer, X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -11,9 +14,10 @@ import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { ListCard, ListRow } from "@/components/app/list-row";
+import { SegmentedControl } from "@/components/app/segmented-control";
 import { StatusPill } from "@/components/app/status-pill";
 import { RowAction } from "@/features/users/row-action";
-import { fmtDate } from "@/lib/format";
+import { fmtDate, fmtTime } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,24 +32,45 @@ import {
 } from "@/components/ui/select";
 import {
   createRequestAdmin, decideRequest,
-  useListEmployees, useListLeaveTypes, useListRequests,
+  useListEmployees, useListRequests,
 } from "@/data/api/generated/api";
 import type { StaffRequest } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { useAuthStore } from "@/data/stores/auth.store";
 import { invalidateRequests, REQUEST_STATUS_TONE, todayIso } from "./util";
 
 const ALL = "__all__";
 
-/** The five kinds, with the icon and copy each one needs. */
-const KINDS: { value: string; icon: LucideIcon; labelKey: string; fallback: string }[] = [
-  { value: "leave", icon: CalendarOff, labelKey: "staff.kindLeave", fallback: "Leave" },
-  { value: "late_arrival", icon: Timer, labelKey: "staff.kindLateArrival", fallback: "Late arrival" },
-  { value: "early_departure", icon: LogOut, labelKey: "staff.kindEarlyDeparture", fallback: "Early departure" },
-  { value: "excuse", icon: Clock3, labelKey: "staff.kindExcuse", fallback: "Permission" },
-  { value: "mission", icon: Plane, labelKey: "staff.kindMission", fallback: "Mission" },
+/** Every kind, with the icon and copy each one needs. A correction is filed
+ *  from the staff app against a record, never from this form. */
+const KINDS: { value: string; icon: LucideIcon; labelKey: string; fallback: string; fileable: boolean }[] = [
+  { value: "leave", icon: CalendarOff, labelKey: "staff.kindLeave", fallback: "Leave", fileable: true },
+  { value: "late_arrival", icon: Timer, labelKey: "staff.kindLateArrival", fallback: "Late arrival", fileable: true },
+  { value: "early_departure", icon: LogOut, labelKey: "staff.kindEarlyDeparture", fallback: "Early departure", fileable: true },
+  { value: "excuse", icon: Clock3, labelKey: "staff.kindExcuse", fallback: "Permission", fileable: true },
+  { value: "mission", icon: Plane, labelKey: "staff.kindMission", fallback: "Mission", fileable: true },
+  { value: "correction", icon: ShieldCheck, labelKey: "dawam.kindCorrection", fallback: "Correction", fileable: false },
 ];
+const FILEABLE = KINDS.filter((k) => k.fileable);
 
 export const kindMeta = (kind: string) => KINDS.find((k) => k.value === kind) ?? KINDS[0];
+
+/** Kinds whose approval carries a paid/unpaid call (RQ-2, RQ-7). */
+export const ASKS_PAY = ["leave", "excuse", "early_departure"];
+
+/**
+ * The employee records linked to the signed-in user. Their own requests are
+ * decided by someone above them (RQ-5): the server refuses a self-decision,
+ * so the queue never offers one.
+ */
+export function useOwnEmployeeIds(enabled = true): Set<string> {
+  const userId = useAuthStore((s) => s.user?.id);
+  const q = useListEmployees({}, { query: { enabled: enabled && !!userId } });
+  return useMemo(
+    () => new Set((q.data ?? []).filter((e) => !!userId && e.user_id === userId).map((e) => e.id)),
+    [q.data, userId],
+  );
+}
 
 /**
  * One queue for every kind of request. Approving here is what stops the penalty
@@ -57,6 +82,8 @@ export function RequestsInboxPage() {
   const [kind, setKind] = useState(ALL);
   const [addOpen, setAddOpen] = useState(false);
   const [deciding, setDeciding] = useState<StaffRequest | null>(null);
+  const [cancelling, setCancelling] = useState<StaffRequest | null>(null);
+  const own = useOwnEmployeeIds();
 
   const requestsQ = useListRequests({
     status: status === ALL ? undefined : status,
@@ -67,7 +94,7 @@ export function RequestsInboxPage() {
   const confirm = useConfirm();
   const quickDecide = async (r: StaffRequest, next: "approved" | "rejected") => {
     // Kinds that carry a pay decision get the dialog; the rest are one click.
-    if (next === "approved" && (r.kind === "excuse" || r.kind === "early_departure")) {
+    if (next === "approved" && ASKS_PAY.includes(r.kind)) {
       setDeciding(r);
       return;
     }
@@ -140,6 +167,7 @@ export function RequestsInboxPage() {
       ) : requestsQ.error ? (
         <ErrorState
           title={t("staff.requestsLoadError", "Couldn't load requests")}
+          message={getErrorMessage(requestsQ.error)}
           onRetry={() => void requestsQ.refetch()}
           retrying={requestsQ.isFetching}
         />
@@ -156,6 +184,8 @@ export function RequestsInboxPage() {
         <ListCard>
           {rows.map((r) => {
             const meta = kindMeta(r.kind);
+            const mine = own.has(r.employee_id);
+            const live = r.status === "pending" || r.status === "approved";
             return (
               <ListRow
                 key={r.id}
@@ -164,9 +194,7 @@ export function RequestsInboxPage() {
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="truncate">{r.employee_name}</span>
                     <Badge variant="secondary">{t(meta.labelKey, meta.fallback)}</Badge>
-                    {r.is_paid === false ? (
-                      <Badge variant="outline">{t("staff.unpaidBadge", "unpaid")}</Badge>
-                    ) : null}
+                    <RequestBadges r={r} mine={mine} />
                   </span>
                 }
                 meta={[describeWindow(r, t), r.reason, r.decision_note].filter(Boolean).join(" · ")}
@@ -175,7 +203,7 @@ export function RequestsInboxPage() {
                     <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
                       {t(`staff.req_${r.status}`, r.status)}
                     </StatusPill>
-                    {r.status === "pending" ? (
+                    {r.status === "pending" && !mine ? (
                       <>
                         <Button size="sm" variant="outline" className="ms-2" onClick={() => void quickDecide(r, "approved")}>
                           <Check className="size-4" />
@@ -186,6 +214,11 @@ export function RequestsInboxPage() {
                         </RowAction>
                       </>
                     ) : null}
+                    {live ? (
+                      <RowAction label={t("staff.cancelRequest", "Cancel request")} onClick={() => setCancelling(r)}>
+                        <Ban className="size-4" />
+                      </RowAction>
+                    ) : null}
                   </>
                 }
               />
@@ -195,12 +228,37 @@ export function RequestsInboxPage() {
       )}
 
       <NewRequestDialog open={addOpen} onOpenChange={setAddOpen} />
-      <ApproveWithPayDialog request={deciding} onOpenChange={(o) => !o && setDeciding(null)} />
+      <ApproveWithPayDialog key={deciding?.id} request={deciding} onOpenChange={(o) => !o && setDeciding(null)} />
+      <CancelRequestDialog
+        key={cancelling?.id}
+        request={cancelling}
+        mine={!!cancelling && own.has(cancelling.employee_id)}
+        onOpenChange={(o) => !o && setCancelling(null)}
+      />
     </Page>
   );
 }
 
-/** "10 Sep → 12 Sep", "arriving by 10:00", "12:00–14:00 on 4 Sep". */
+/** What the server says about a request beyond its kind: unpaid, a half day,
+ *  your own, waiting for the owner (RQ-5). */
+export function RequestBadges({ r, mine }: { r: StaffRequest; mine: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      {r.is_paid === false ? <Badge variant="outline">{t("staff.unpaidBadge", "unpaid")}</Badge> : null}
+      {r.kind === "leave" && r.is_half_day ? (
+        <Badge variant="outline">
+          {r.leave_half === "second" ? t("staff.halfSecond", "½ day · second half") : t("staff.halfFirst", "½ day · first half")}
+        </Badge>
+      ) : null}
+      {mine ? <Badge variant="outline">{t("staff.yourRequest", "Yours — decided above you")}</Badge> : null}
+      {r.to_owner ? <Badge variant="outline">{t("staff.toOwner", "For the owner")}</Badge> : null}
+    </>
+  );
+}
+
+/** "10 Sep → 12 Sep", "arriving by 10:00", "12:00–14:00 on 4 Sep",
+ *  "in 09:12 → 09:00" for a correction against the record's punches. */
 export function describeWindow(r: StaffRequest, t: TFunction): string {
   const time = (s?: string | null) => (s ? s.slice(0, 5) : "");
   switch (r.kind) {
@@ -220,6 +278,24 @@ export function describeWindow(r: StaffRequest, t: TFunction): string {
         from: time(r.from_time),
         to: time(r.to_time),
       });
+    case "correction": {
+      // What changes: the record's punch now → the proposed time (branch-local).
+      const parts = [fmtDate(r.on_date)];
+      if (r.from_time) {
+        parts.push(t("staff.correctionIn", "in {{now}} → {{to}}", { now: fmtTime(r.record_check_in_at), to: time(r.from_time) }));
+      }
+      if (r.to_time) {
+        parts.push(t("staff.correctionOut", "out {{now}} → {{to}}", { now: fmtTime(r.record_check_out_at), to: time(r.to_time) }));
+      }
+      return parts.join(" · ");
+    }
+    case "leave":
+      if (r.is_half_day) {
+        return t("staff.windowHalfDay", "{{date}} · half day", { date: fmtDate(r.on_date) });
+      }
+      return r.end_date && r.end_date !== r.on_date
+        ? `${fmtDate(r.on_date)} → ${fmtDate(r.end_date)}`
+        : fmtDate(r.on_date);
     default:
       return r.end_date && r.end_date !== r.on_date
         ? `${fmtDate(r.on_date)} → ${fmtDate(r.end_date)}`
@@ -227,7 +303,13 @@ export function describeWindow(r: StaffRequest, t: TFunction): string {
   }
 }
 
-/** Approving a window kind asks the one extra question that matters: paid or not. */
+/**
+ * Approving leave, a permission or an early departure asks the one extra
+ * question that matters: paid or not. It starts from the rule the server
+ * sends (`paid_default`, branch then business, RQ-7); leave has no rule and
+ * starts paid. Leave always sends the answer (the server requires it); a
+ * window kind the approver didn't touch sends none, so the rule applies.
+ */
 export function ApproveWithPayDialog({
   request,
   onOpenChange,
@@ -236,28 +318,30 @@ export function ApproveWithPayDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useTranslation();
-  const [paid, setPaid] = useState(true);
-  const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
+  const isLeave = request?.kind === "leave";
+  const schema = z.object({ paid: z.boolean(), touched: z.boolean(), note: z.string().max(500) });
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: { paid: request?.paid_default ?? true, touched: false, note: "" },
+  });
+  const paid = form.watch("paid");
 
-  const approve = async () => {
+  const approve = form.handleSubmit(async (v) => {
     if (!request) return;
-    setBusy(true);
+    const sendPaid = isLeave || v.touched;
     try {
       await decideRequest(request.id, {
         status: "approved",
-        is_paid: paid,
-        note: note || null,
+        ...(sendPaid ? { is_paid: v.paid } : {}),
+        note: v.note.trim() || null,
       });
       toast.success(t("staff.decisionSaved", "Decision saved"));
       void invalidateRequests();
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
-    } finally {
-      setBusy(false);
     }
-  };
+  });
 
   return (
     <Dialog open={!!request} onOpenChange={onOpenChange}>
@@ -268,33 +352,166 @@ export function ApproveWithPayDialog({
             {request ? `${request.employee_name} · ${describeWindow(request, t)}` : ""}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
+        <form id="approve-pay" className="space-y-4" onSubmit={(e) => void approve(e)}>
           <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
             <div>
-              <Label htmlFor="ap-paid">{t("staff.paidTime", "Paid time")}</Label>
+              <Label htmlFor="ap-paid">{isLeave ? t("staff.paidLeaveSwitch", "Paid leave") : t("staff.paidTime", "Paid time")}</Label>
               <p className="text-xs text-muted-foreground">
-                {t(
-                  "staff.paidTimeHint",
-                  "On, the excused hours still count toward the day. Off, they are excused but unpaid.",
-                )}
+                {isLeave
+                  ? t("staff.paidLeaveHint", "Off, the days are docked like an absence.")
+                  : t(
+                      "staff.paidTimeHint",
+                      "On, the excused hours still count toward the day. Off, they are excused but unpaid.",
+                    )}
               </p>
+              {!isLeave && request?.paid_default != null ? (
+                <p className="text-xs text-muted-foreground">
+                  {request.paid_default
+                    ? t("staff.ruleSaysPaid", "The rule says paid.")
+                    : t("staff.ruleSaysUnpaid", "The rule says unpaid.")}
+                </p>
+              ) : null}
             </div>
-            <Switch id="ap-paid" checked={paid} onCheckedChange={setPaid} />
+            <Switch
+              id="ap-paid"
+              checked={paid}
+              onCheckedChange={(v) => {
+                form.setValue("paid", v);
+                form.setValue("touched", true);
+              }}
+            />
           </div>
           <div className="space-y-1">
             <Label htmlFor="ap-note">{t("staff.note", "Note")}</Label>
-            <Input id="ap-note" value={note} onChange={(e) => setNote(e.target.value)} />
+            <Input id="ap-note" {...form.register("note")} />
           </div>
-        </div>
+        </form>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-          <Button onClick={() => void approve()} disabled={busy}>
+          <Button type="submit" form="approve-pay" disabled={form.formState.isSubmitting}>
             {t("common.approve", "Approve")}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
+}
+
+/**
+ * Cancelling a request. Someone else's, or any approved one, needs a note
+ * (AT-7); the server refuses it without one.
+ */
+export function CancelRequestDialog({
+  request,
+  mine,
+  onOpenChange,
+}: {
+  request: StaffRequest | null;
+  mine: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { t } = useTranslation();
+  const noteRequired = !mine || request?.status === "approved";
+  const schema = useMemo(
+    () =>
+      z.object({
+        note: z.string().trim().max(500).refine((s) => !noteRequired || s.length > 0, {
+          message: t("staff.cancelNoteRequired", "Say why it is cancelled"),
+        }),
+      }),
+    [noteRequired, t],
+  );
+  const form = useForm<{ note: string }>({ resolver: zodResolver(schema), defaultValues: { note: "" } });
+  useEffect(() => form.reset({ note: "" }), [request, form]);
+
+  const submit = form.handleSubmit(async (v) => {
+    if (!request) return;
+    try {
+      await decideRequest(request.id, { status: "cancelled", note: v.note.trim() || null });
+      toast.success(t("staff.requestCancelled", "Request cancelled"));
+      void invalidateRequests();
+      onOpenChange(false);
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  });
+
+  return (
+    <Dialog open={!!request} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("staff.cancelRequestTitle", "Cancel this request?")}</DialogTitle>
+          <DialogDescription>
+            {request ? `${request.employee_name} · ${describeWindow(request, t)}` : ""}
+          </DialogDescription>
+        </DialogHeader>
+        <form id="cancel-request" className="space-y-1" onSubmit={(e) => void submit(e)}>
+          <Label htmlFor="cr-note">{t("staff.cancelNote", "Why")}</Label>
+          <Input id="cr-note" aria-invalid={!!form.formState.errors.note} {...form.register("note")} />
+          {form.formState.errors.note ? (
+            <p className="text-xs text-destructive">{form.formState.errors.note.message}</p>
+          ) : null}
+        </form>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("common.back", "Back")}</Button>
+          <Button type="submit" form="cancel-request" variant="destructive" disabled={form.formState.isSubmitting}>
+            {t("staff.cancelRequest", "Cancel request")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const newRequestSchema = (t: TFunction) =>
+  z
+    .object({
+      kind: z.enum(["leave", "late_arrival", "early_departure", "excuse", "mission"]),
+      employee_id: z.string().min(1, t("staff.pickEmployee", "Pick an employee")),
+      on_date: z.string().min(1),
+      end_date: z.string(),
+      from_time: z.string(),
+      to_time: z.string(),
+      half_day: z.boolean(),
+      leave_half: z.enum(["first", "second"]),
+      title: z.string().max(200),
+      reason: z.string().max(500),
+    })
+    .superRefine((v, ctx) => {
+      const span = v.kind === "mission" || (v.kind === "leave" && !v.half_day);
+      if (span && v.end_date && v.end_date < v.on_date) {
+        ctx.addIssue({ code: "custom", path: ["end_date"], message: t("staff.endBeforeStart", "The last day is before the first") });
+      }
+      if ((v.kind === "early_departure" || v.kind === "excuse") && !v.from_time) {
+        ctx.addIssue({ code: "custom", path: ["from_time"], message: t("staff.timeNeeded", "Pick a time") });
+      }
+      if ((v.kind === "late_arrival" || v.kind === "excuse") && !v.to_time) {
+        ctx.addIssue({ code: "custom", path: ["to_time"], message: t("staff.timeNeeded", "Pick a time") });
+      }
+      // The server takes the note as a mission's title; with neither it refuses.
+      if (v.kind === "mission" && !v.title.trim() && !v.reason.trim()) {
+        ctx.addIssue({ code: "custom", path: ["title"], message: t("staff.missionNeedsText", "Give the mission a title or a note") });
+      }
+    });
+
+type NewRequestValues = z.infer<ReturnType<typeof newRequestSchema>>;
+
+/** What the form sends. Leave has no type (RQ-2); a half day is one day. */
+export function newRequestBody(v: NewRequestValues) {
+  const half = v.kind === "leave" && v.half_day;
+  const span = v.kind === "mission" || (v.kind === "leave" && !half);
+  const hhmmss = (s: string) => (s.length === 5 ? `${s}:00` : s);
+  return {
+    employee_id: v.employee_id,
+    kind: v.kind,
+    on_date: v.on_date,
+    end_date: span ? v.end_date || v.on_date : null,
+    from_time: v.kind === "early_departure" || v.kind === "excuse" ? hhmmss(v.from_time) : null,
+    to_time: v.kind === "late_arrival" || v.kind === "excuse" ? hhmmss(v.to_time) : null,
+    ...(v.kind === "leave" ? { is_half_day: half, ...(half ? { leave_half: v.leave_half } : {}) } : {}),
+    title: v.kind === "mission" ? v.title.trim() || null : null,
+    reason: v.reason.trim() || null,
+  };
 }
 
 /** File a request on someone's behalf — the phone-call path. */
@@ -306,47 +523,43 @@ function NewRequestDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useTranslation();
-  const [kind, setKind] = useState("late_arrival");
-  const [userId, setUserId] = useState("");
-  const [onDate, setOnDate] = useState(todayIso());
-  const [endDate, setEndDate] = useState(todayIso());
-  const [fromTime, setFromTime] = useState("12:00");
-  const [toTime, setToTime] = useState("14:00");
-  const [leaveType, setLeaveType] = useState("");
-  const [title, setTitle] = useState("");
-  const [reason, setReason] = useState("");
-  const [busy, setBusy] = useState(false);
+  const schema = useMemo(() => newRequestSchema(t), [t]);
+  const blank: NewRequestValues = {
+    kind: "late_arrival", employee_id: "", on_date: todayIso(), end_date: todayIso(),
+    from_time: "12:00", to_time: "14:00", half_day: false, leave_half: "first", title: "", reason: "",
+  };
+  const form = useForm<NewRequestValues>({ resolver: zodResolver(schema), defaultValues: blank });
+  const errors = form.formState.errors;
+  const v = form.watch();
+  useEffect(() => {
+    if (open) form.reset({ ...blank, on_date: todayIso(), end_date: todayIso() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: open } });
-  const typesQ = useListLeaveTypes({ query: { enabled: open && kind === "leave" } });
 
+  const kind = v.kind;
   const needsFrom = kind === "early_departure" || kind === "excuse";
   const needsTo = kind === "late_arrival" || kind === "excuse";
-  const isSpan = kind === "leave" || kind === "mission";
+  const isSpan = kind === "mission" || (kind === "leave" && !v.half_day);
 
-  const save = async () => {
-    setBusy(true);
+  const save = form.handleSubmit(async (values) => {
     try {
-      await createRequestAdmin({
-        employee_id: userId,
-        kind,
-        on_date: onDate,
-        end_date: isSpan ? endDate : null,
-        from_time: needsFrom ? `${fromTime}:00` : null,
-        to_time: needsTo ? `${toTime}:00` : null,
-        leave_type_id: kind === "leave" ? leaveType : null,
-        title: kind === "mission" ? title : null,
-        reason: reason || null,
-      });
-      toast.success(t("staff.requestFiled", "Request filed"));
+      const row = await createRequestAdmin(newRequestBody(values));
+      // The server decides whether it was approved as it was filed (RQ-5).
+      toast.success(
+        row?.status === "approved"
+          ? t("staff.requestFiledApproved", "Request filed and approved")
+          : t("staff.requestFiled", "Request filed"),
+      );
       void invalidateRequests();
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
-    } finally {
-      setBusy(false);
     }
-  };
+  });
+
+  const err = (m?: string) => (m ? <p className="text-xs text-destructive">{m}</p> : null);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -358,13 +571,13 @@ function NewRequestDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-3">
+        <form id="new-request" className="grid gap-3" onSubmit={(e) => void save(e)}>
           <div className="space-y-1">
             <Label>{t("staff.kind", "Kind")}</Label>
-            <Select value={kind} onValueChange={setKind}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select value={kind} onValueChange={(k) => form.setValue("kind", k as NewRequestValues["kind"])}>
+              <SelectTrigger aria-label={t("staff.kind", "Kind")}><SelectValue /></SelectTrigger>
               <SelectContent>
-                {KINDS.map((k) => (
+                {FILEABLE.map((k) => (
                   <SelectItem key={k.value} value={k.value}>{t(k.labelKey, k.fallback)}</SelectItem>
                 ))}
               </SelectContent>
@@ -372,43 +585,53 @@ function NewRequestDialog({
           </div>
           <div className="space-y-1">
             <Label>{t("staff.employee", "Employee")}</Label>
-            <Select value={userId} onValueChange={setUserId}>
-              <SelectTrigger><SelectValue placeholder={t("staff.pickEmployee", "Pick an employee")} /></SelectTrigger>
+            <Select value={v.employee_id} onValueChange={(id) => form.setValue("employee_id", id, { shouldValidate: true })}>
+              <SelectTrigger aria-label={t("staff.employee", "Employee")}>
+                <SelectValue placeholder={t("staff.pickEmployee", "Pick an employee")} />
+              </SelectTrigger>
               <SelectContent>
                 {(employeesQ.data ?? []).map((e) => (
                   <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {err(errors.employee_id?.message)}
           </div>
           {kind === "leave" ? (
-            <div className="space-y-1">
-              <Label>{t("staff.leaveType", "Leave type")}</Label>
-              <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger><SelectValue placeholder={t("staff.pickLeaveType", "Pick a type")} /></SelectTrigger>
-                <SelectContent>
-                  {(typesQ.data ?? []).filter((x) => x.is_active).map((x) => (
-                    <SelectItem key={x.id} value={x.id}>{x.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-2 rounded-lg border p-3">
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="nr-half">{t("staff.halfDayToggle", "Half a day")}</Label>
+                <Switch id="nr-half" checked={v.half_day} onCheckedChange={(c) => form.setValue("half_day", c)} />
+              </div>
+              {v.half_day ? (
+                <SegmentedControl
+                  value={v.leave_half}
+                  onChange={(h) => form.setValue("leave_half", h)}
+                  options={[
+                    { value: "first", label: t("staff.firstHalf", "First half") },
+                    { value: "second", label: t("staff.secondHalf", "Second half") },
+                  ]}
+                />
+              ) : null}
             </div>
           ) : null}
           {kind === "mission" ? (
             <div className="space-y-1">
-              <Label htmlFor="nr-title">{t("staff.missionTitle", "Title")}</Label>
-              <Input id="nr-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Label htmlFor="nr-title">{t("staff.missionTitleOptional", "Title (optional)")}</Label>
+              <Input id="nr-title" {...form.register("title")} />
+              {err(errors.title?.message)}
             </div>
           ) : null}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="nr-date">{isSpan ? t("staff.from", "From") : t("staff.date", "Date")}</Label>
-              <Input id="nr-date" type="date" value={onDate} onChange={(e) => setOnDate(e.target.value)} />
+              <Input id="nr-date" type="date" {...form.register("on_date")} />
             </div>
             {isSpan ? (
               <div className="space-y-1">
                 <Label htmlFor="nr-end">{t("staff.to", "To")}</Label>
-                <Input id="nr-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                <Input id="nr-end" type="date" {...form.register("end_date")} />
+                {err(errors.end_date?.message)}
               </div>
             ) : null}
             {needsFrom ? (
@@ -418,7 +641,8 @@ function NewRequestDialog({
                     ? t("staff.leavingAt", "Leaving at")
                     : t("staff.windowFrom", "From")}
                 </Label>
-                <Input id="nr-from" type="time" value={fromTime} onChange={(e) => setFromTime(e.target.value)} />
+                <Input id="nr-from" type="time" {...form.register("from_time")} />
+                {err(errors.from_time?.message)}
               </div>
             ) : null}
             {needsTo ? (
@@ -428,22 +652,25 @@ function NewRequestDialog({
                     ? t("staff.arrivingBy", "Arriving by")
                     : t("staff.windowTo", "To")}
                 </Label>
-                <Input id="nr-to" type="time" value={toTime} onChange={(e) => setToTime(e.target.value)} />
+                <Input id="nr-to" type="time" {...form.register("to_time")} />
+                {err(errors.to_time?.message)}
               </div>
             ) : null}
           </div>
+          {kind === "excuse" ? (
+            <p className="text-xs text-muted-foreground">
+              {t("staff.excuseMidnightHint", "An end before the start runs past midnight.")}
+            </p>
+          ) : null}
           <div className="space-y-1">
             <Label htmlFor="nr-reason">{t("staff.reason", "Reason")}</Label>
-            <Input id="nr-reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+            <Input id="nr-reason" {...form.register("reason")} />
           </div>
-        </div>
+        </form>
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-          <Button
-            onClick={() => void save()}
-            disabled={busy || !userId || (kind === "leave" && !leaveType) || (kind === "mission" && !title.trim())}
-          >
+          <Button type="submit" form="new-request" disabled={form.formState.isSubmitting || !v.employee_id}>
             {t("common.save", "Save")}
           </Button>
         </DialogFooter>
