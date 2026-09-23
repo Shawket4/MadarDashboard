@@ -14,6 +14,9 @@ export interface StaffRequest {
   decided_by?: string | null;
   /** @nullable */
   decision_note?: string | null;
+  employee_id: string;
+  /** @nullable */
+  employee_name?: string | null;
   /**
      * Set for `leave` and `mission`; the span's last day.
      * @nullable
@@ -52,7 +55,4 @@ export interface StaffRequest {
      */
   to_time?: string | null;
   updated_at: string;
-  user_id: string;
-  /** @nullable */
-  user_name?: string | null;
 }

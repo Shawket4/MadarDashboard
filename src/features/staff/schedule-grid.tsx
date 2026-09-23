@@ -30,14 +30,14 @@ import { invalidateSchedules, WEEKDAYS } from "./util";
 export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
   const { t } = useTranslation();
   const employeesQ = useListEmployees({ employment_status: "active" });
-  // No user_id = the whole org's roster in one request.
+  // No employee_id = the whole org's roster in one request.
   const assignmentsQ = useListAssignments({});
   const [busyCell, setBusyCell] = useState<string | null>(null);
 
   const activeShifts = useMemo(() => shifts.filter((s) => s.is_active), [shifts]);
   const employees = employeesQ.data ?? [];
 
-  /** `user_id` → { everyDay, byWeekday[0..6] }, newest effective_from winning.
+  /** `employee_id` → { everyDay, byWeekday[0..6] }, newest effective_from winning.
    *  The list arrives ordered `effective_from DESC`, so the FIRST row seen for a
    *  slot is the one in force — later ones are superseded history. */
   const roster = useMemo(() => {
@@ -47,7 +47,7 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
     };
     const map = new Map<string, Row>();
     for (const a of assignmentsQ.data ?? []) {
-      const entry: Row = map.get(a.user_id) ?? {
+      const entry: Row = map.get(a.employee_id) ?? {
         byWeekday: new Array<ScheduleAssignment | undefined>(7).fill(undefined),
       };
       if (a.day_of_week === null || a.day_of_week === undefined) {
@@ -55,7 +55,7 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
       } else if (a.day_of_week >= 0 && a.day_of_week <= 6) {
         entry.byWeekday[a.day_of_week] ??= a;
       }
-      map.set(a.user_id, entry);
+      map.set(a.employee_id, entry);
     }
     return map;
   }, [assignmentsQ.data]);
@@ -75,7 +75,7 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
       if (existing) await deleteAssignment(existing.id);
       if (shiftId) {
         await createAssignment({
-          user_id: userId,
+          employee_id: userId,
           work_shift_id: shiftId,
           day_of_week: dayOfWeek,
         });
@@ -136,29 +136,29 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
               </thead>
               <tbody>
                 {employees.map((e) => {
-                  const entry = roster.get(e.user_id);
+                  const entry = roster.get(e.id);
                   return (
-                    <tr key={e.user_id} className="[&:first-child>td]:border-t-0">
+                    <tr key={e.id} className="[&:first-child>td]:border-t-0">
                       <td className="sticky start-0 z-10 max-w-[12rem] truncate border-t bg-card px-4 py-1.5 font-medium">
                         {e.name}
                       </td>
                       <Cell
-                        busy={busyCell === `${e.user_id}:all`}
+                        busy={busyCell === `${e.id}:all`}
                         assignment={entry?.everyDay}
                         shifts={activeShifts}
                         onPick={(shiftId) =>
-                          void setCell(e.user_id, null, entry?.everyDay, shiftId)
+                          void setCell(e.id, null, entry?.everyDay, shiftId)
                         }
                       />
                       {WEEKDAYS.map((d) => (
                         <Cell
                           key={d.value}
-                          busy={busyCell === `${e.user_id}:${d.value}`}
+                          busy={busyCell === `${e.id}:${d.value}`}
                           assignment={entry?.byWeekday[d.value]}
                           inherited={entry?.everyDay}
                           shifts={activeShifts}
                           onPick={(shiftId) =>
-                            void setCell(e.user_id, d.value, entry?.byWeekday[d.value], shiftId)
+                            void setCell(e.id, d.value, entry?.byWeekday[d.value], shiftId)
                           }
                         />
                       ))}

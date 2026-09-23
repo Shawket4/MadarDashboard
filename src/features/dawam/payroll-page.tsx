@@ -54,7 +54,7 @@ import {
 } from "./money-dialogs";
 
 type Slip = ComputedPayslip | Payslip;
-type Row = Slip & { user_name: string; paid_method: string | null };
+type Row = Slip & { employee_name: string; paid_method: string | null };
 
 /** open · approved · paid, from the server's period status. */
 export const periodPhase = (p: PayrollPeriod | undefined): "open" | "approved" | "paid" =>
@@ -86,7 +86,7 @@ export function PayrollPage() {
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: canRead } });
   const period = currentQ.data?.period;
   const phase = periodPhase(period);
-  const people = useMemo(() => new Map((employeesQ.data ?? []).map((e) => [e.user_id, e])), [employeesQ.data]);
+  const people = useMemo(() => new Map((employeesQ.data ?? []).map((e) => [e.id, e])), [employeesQ.data]);
 
   // After approval the frozen payslips are the truth; before, the live preview.
   const rows: Row[] = useMemo(() => {
@@ -94,7 +94,7 @@ export function PayrollPage() {
     const source: Slip[] = frozen.length ? frozen : (currentQ.data?.preview ?? []);
     return source.map((s) => ({
       ...s,
-      user_name: ("user_name" in s && s.user_name) || ("name" in s && s.name) || people.get(s.user_id)?.name || "—",
+      employee_name: ("employee_name" in s && s.employee_name) || ("name" in s && s.name) || people.get(s.employee_id)?.name || "—",
       paid_method: ("paid_method" in s && s.paid_method) || null,
     }));
   }, [currentQ.data, people]);
@@ -153,10 +153,10 @@ export function PayrollPage() {
   const exportLists = async () => {
     setExporting(true);
     try {
-      const pick = (m: string) => rows.filter((r) => (people.get(r.user_id)?.pay_method ?? "cash") === m);
+      const pick = (m: string) => rows.filter((r) => (people.get(r.employee_id)?.pay_method ?? "cash") === m);
       const cols = (acct: string): ExcelColumn<Row>[] => [
-        { header: t("staff.name", "Name"), accessor: (r) => r.user_name, type: "text", width: 26 },
-        { header: acct, accessor: (r) => people.get(r.user_id)?.pay_account ?? "", type: "text", width: 30 },
+        { header: t("staff.name", "Name"), accessor: (r) => r.employee_name, type: "text", width: 26 },
+        { header: acct, accessor: (r) => people.get(r.employee_id)?.pay_account ?? "", type: "text", width: 30 },
         { header: t("dawam.net", "Net"), accessor: (r) => r.net_piastres, type: "money", width: 16, total: true },
       ];
       await exportToExcel({
@@ -190,10 +190,10 @@ export function PayrollPage() {
 
   const columns: ColumnDef<Row>[] = [
     {
-      accessorKey: "user_name",
+      accessorKey: "employee_name",
       header: t("staff.name", "Name"),
       meta: { label: t("staff.name", "Name"), phone: "title" },
-      cell: ({ row }) => <span className="font-medium">{row.original.user_name}</span>,
+      cell: ({ row }) => <span className="font-medium">{row.original.employee_name}</span>,
     },
     { id: "base", header: t("dawam.salary", "Salary"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(payslipLines(row.original)[0].amount) },
     { id: "ot", header: t("dawam.overtime", "Overtime"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(row.original.overtime_piastres) },
@@ -282,8 +282,8 @@ export function PayrollPage() {
               columns={columns}
               data={rows}
               loading={currentQ.isLoading}
-              getRowId={(r) => r.user_id}
-              onRowClick={(r) => setPersonId(r.user_id)}
+              getRowId={(r) => r.employee_id}
+              onRowClick={(r) => setPersonId(r.employee_id)}
               emptyState={<EmptyState icon={Banknote} title={t("dawam.noPayslips", "Nobody on payroll yet")} description={t("dawam.noPayslipsHint", "Active employees with a salary show here.")} />}
             />
           )}
@@ -304,7 +304,7 @@ export function PayrollPage() {
       </Tabs>
 
       <PayslipSheet
-        row={rows.find((r) => r.user_id === personId) ?? null}
+        row={rows.find((r) => r.employee_id === personId) ?? null}
         onOpenChange={(o) => !o && setPersonId(null)}
         editable={phase === "open" && canAdjust}
         phase={phase}
@@ -312,9 +312,9 @@ export function PayrollPage() {
       />
       {period ? (
         <MarkPaidDialog
-          key={paying?.user_id}
+          key={paying?.employee_id}
           periodId={period.id}
-          person={paying ? { user_id: paying.user_id, name: paying.user_name, pay_method: people.get(paying.user_id)?.pay_method } : null}
+          person={paying ? { employee_id: paying.employee_id, name: paying.employee_name, pay_method: people.get(paying.employee_id)?.pay_method } : null}
           onOpenChange={(o) => !o && setPaying(null)}
         />
       ) : null}
@@ -369,7 +369,7 @@ function PayslipSheet({
     const ok = printPayslip({
       company: org?.name ?? "",
       period,
-      person: row.user_name,
+      person: row.employee_name,
       lines: lines.map((l) => ({ label: lineLabel(l, t), line: l })),
       net: row.net_piastres,
       labels: {
@@ -389,7 +389,7 @@ function PayslipSheet({
     <Sheet open={!!row} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>{row?.user_name}</SheetTitle>
+          <SheetTitle>{row?.employee_name}</SheetTitle>
           <SheetDescription>
             {phase === "open" ? t("dawam.estimateHint", "A live estimate: approving produces exactly this.") : t("dawam.frozenHint", "Frozen when payroll was approved.")}
           </SheetDescription>
@@ -443,7 +443,7 @@ function PayslipSheet({
         </div>
         <WaiveDialog key={waiving?.key} deductionId={waiving?.deductionId ?? null} label={waiving?.label ?? ""} onOpenChange={(o) => !o && setWaiving(null)} />
         {row && adding ? (
-          <AdjustmentDialog open onOpenChange={(o) => !o && setAdding(null)} userId={row.user_id} bonus={adding === "bonus"} />
+          <AdjustmentDialog open onOpenChange={(o) => !o && setAdding(null)} userId={row.employee_id} bonus={adding === "bonus"} />
         ) : null}
       </SheetContent>
     </Sheet>
@@ -482,7 +482,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                 key={`${a.kind}|${a.id}`}
                 title={
                   <span className="flex flex-wrap items-center gap-2">
-                    <span className="truncate">{a.user_name}</span>
+                    <span className="truncate">{a.employee_name}</span>
                     <Badge variant="secondary">{a.kind === "bonus" ? t("dawam.bonus", "Bonus") : t("dawam.deduction", "Deduction")}</Badge>
                     {a.recurring ? <Badge variant="outline">{stopped ? t("dawam.stopped", "stopped") : t("dawam.monthly", "monthly")}</Badge> : null}
                   </span>
@@ -527,7 +527,7 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
           {rows.map((a) => (
             <ListRow
               key={a.id}
-              title={a.user_name ?? "—"}
+              title={a.employee_name ?? "—"}
               meta={[
                 t("dawam.advanceMeta", { amount: fmtMoney(a.amount_piastres), n: a.installments, defaultValue: `${fmtMoney(a.amount_piastres)} over ${a.installments}` }),
                 a.reason,
@@ -567,7 +567,7 @@ function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) 
           {rows.map((x: ExpenseAdvance) => (
             <ListRow
               key={x.id}
-              title={x.user_name}
+              title={x.employee_name}
               meta={[x.purpose, fmtDate(x.given_on), t(`dawam.via_${x.via}`, x.via), x.handed_by_name].filter(Boolean).join(" · ")}
               trailing={<span className="tabular-nums">{fmtMoney(x.amount_piastres)}</span>}
             />
@@ -616,7 +616,7 @@ function HistoryTab({ periods, people }: { periods: PayrollPeriod[]; people: Map
                 {(slipsQ.data ?? []).map((s) => (
                   <ListRow
                     key={s.id}
-                    title={s.user_name ?? people.get(s.user_id)?.name ?? "—"}
+                    title={s.employee_name ?? people.get(s.employee_id)?.name ?? "—"}
                     meta={s.paid_method ? t(`dawam.pay_${s.paid_method}`, PAY_METHOD_FALLBACK[s.paid_method] ?? s.paid_method) : t("dawam.unpaid", "Not paid")}
                     trailing={<span className="tabular-nums">{fmtMoney(s.net_piastres)}</span>}
                   />

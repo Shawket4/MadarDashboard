@@ -73,7 +73,7 @@ export function RequestsInboxPage() {
     }
     if (next === "rejected") {
       const ok = await confirm({
-        title: t("staff.rejectRequestTitle", { name: r.user_name, defaultValue: `Reject ${r.user_name}'s request?` }),
+        title: t("staff.rejectRequestTitle", { name: r.employee_name, defaultValue: `Reject ${r.employee_name}'s request?` }),
         description: t("staff.rejectRequestHint", "The day is treated as if no request was filed, so any lateness or absence penalty applies."),
         confirmLabel: t("common.reject", "Reject"),
         destructive: true,
@@ -162,7 +162,7 @@ export function RequestsInboxPage() {
                 icon={meta.icon}
                 title={
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="truncate">{r.user_name}</span>
+                    <span className="truncate">{r.employee_name}</span>
                     <Badge variant="secondary">{t(meta.labelKey, meta.fallback)}</Badge>
                     {r.is_paid === false ? (
                       <Badge variant="outline">{t("staff.unpaidBadge", "unpaid")}</Badge>
@@ -265,7 +265,7 @@ export function ApproveWithPayDialog({
         <DialogHeader>
           <DialogTitle>{t("staff.approveRequest", "Approve request")}</DialogTitle>
           <DialogDescription>
-            {request ? `${request.user_name} · ${describeWindow(request, t)}` : ""}
+            {request ? `${request.employee_name} · ${describeWindow(request, t)}` : ""}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -328,7 +328,7 @@ function NewRequestDialog({
     setBusy(true);
     try {
       await createRequestAdmin({
-        user_id: userId,
+        employee_id: userId,
         kind,
         on_date: onDate,
         end_date: isSpan ? endDate : null,
@@ -376,7 +376,7 @@ function NewRequestDialog({
               <SelectTrigger><SelectValue placeholder={t("staff.pickEmployee", "Pick an employee")} /></SelectTrigger>
               <SelectContent>
                 {(employeesQ.data ?? []).map((e) => (
-                  <SelectItem key={e.user_id} value={e.user_id}>{e.name}</SelectItem>
+                  <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

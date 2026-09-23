@@ -102,7 +102,7 @@ export function ApprovalsPage() {
         key: `q|${r.id}`,
         section: "requests",
         icon: meta.icon,
-        who: r.user_name ?? "—",
+        who: r.employee_name ?? "—",
         kind: t(meta.labelKey, meta.fallback),
         detail: [describeWindow(r, t), r.reason].filter(Boolean).join(" · "),
         at: r.created_at,
@@ -115,7 +115,7 @@ export function ApprovalsPage() {
         key: `v|${a.id}`,
         section: "money",
         icon: HandCoins,
-        who: a.user_name ?? "—",
+        who: a.employee_name ?? "—",
         kind: t("dawam.salaryAdvance", "Salary advance"),
         detail: [t("dawam.advanceMeta", { amount: fmtMoney(a.amount_piastres), n: a.installments, defaultValue: "" }), a.reason].filter(Boolean).join(" · "),
         at: a.created_at,
@@ -128,7 +128,7 @@ export function ApprovalsPage() {
         key: `a|${a.kind}|${a.id}`,
         section: "money",
         icon: ReceiptText,
-        who: a.user_name,
+        who: a.employee_name,
         kind: a.kind === "bonus" ? t("dawam.bonusOverLimit", "Bonus over the limit") : t("dawam.deductionOverLimit", "Deduction over the limit"),
         detail: [a.percent_of_base != null ? `${a.percent_of_base}%` : fmtMoney(a.amount_piastres ?? 0), a.reason].join(" · "),
         at: a.created_at,
@@ -163,12 +163,12 @@ export function ApprovalsPage() {
       });
     }
     for (const r of attendanceQ.data ?? []) {
-      if (can.covers && r.covered_user_id && r.cover_status === "pending") {
+      if (can.covers && r.covered_employee_id && r.cover_status === "pending") {
         out.push({
           key: `c|${r.id}`,
           section: "shifts",
           icon: UserRoundCheck,
-          who: r.user_name ?? "—",
+          who: r.employee_name ?? "—",
           kind: t("dawam.cover", "Cover"),
           detail: t("dawam.coverDetail", {
             shift: r.work_shift_name ?? "",
@@ -186,7 +186,7 @@ export function ApprovalsPage() {
           key: `t|${r.id}`,
           section: "shifts",
           icon: Timer,
-          who: r.user_name ?? "—",
+          who: r.employee_name ?? "—",
           kind: t("dawam.overtime", "Overtime"),
           detail: `${fmtMinutes(r.overtime_minutes)} · ${fmtDate(r.business_date)}`,
           at: r.check_out_at ?? r.created_at,

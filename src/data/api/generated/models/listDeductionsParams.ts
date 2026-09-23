@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 export type ListDeductionsParams = {
-user_id?: string;
+employee_id?: string;
 from?: string;
 to?: string;
 };

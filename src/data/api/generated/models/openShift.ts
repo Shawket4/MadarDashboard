@@ -3,7 +3,10 @@
 
 export interface OpenShift {
   branch_id: string;
-  /** @nullable */
+  /**
+     * The employee who claimed it.
+     * @nullable
+     */
   claimed_by?: string | null;
   /** @nullable */
   claimed_by_name?: string | null;

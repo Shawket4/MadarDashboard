@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 export type ListBalancesParams = {
-user_id?: string;
+employee_id?: string;
 /**
  * Defaults to the current calendar year.
  */

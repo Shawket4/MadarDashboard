@@ -3,6 +3,7 @@
 
 export interface LeaveBalance {
   carried_over_days: number;
+  employee_id: string;
   entitled_days: number;
   id: string;
   leave_type_id: string;
@@ -12,6 +13,5 @@ export interface LeaveBalance {
   /** `entitled + carried_over − used`. Computed, not stored. */
   remaining_days: number;
   used_days: number;
-  user_id: string;
   year: number;
 }

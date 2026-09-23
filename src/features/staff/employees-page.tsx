@@ -65,7 +65,7 @@ export function EmployeesPage() {
     });
     if (!ok) return;
     try {
-      await deleteEmployee(employee.user_id);
+      await deleteEmployee(employee.id);
       toast.success(t("staff.profileRemoved", "Employee profile removed"));
       void invalidateEmployees();
     } catch (e) {
@@ -179,7 +179,7 @@ export function EmployeesPage() {
             <Trash2 className="size-4" />
           </RowAction>
         )}
-        getRowId={(r) => r.user_id}
+        getRowId={(r) => r.id}
         onRowClick={(r) => setEditing(r)}
         searchPlaceholder={t("staff.searchEmployees", "Search employees…")}
         emptyState={

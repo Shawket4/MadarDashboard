@@ -10,6 +10,8 @@ export interface DisciplineRow {
   department_id?: string | null;
   /** @nullable */
   department_name?: string | null;
+  employee_id: string;
+  employee_name: string;
   late_days: number;
   present_days: number;
   /**
@@ -19,6 +21,4 @@ export interface DisciplineRow {
      */
   rank_in_department: number;
   total_late_minutes: number;
-  user_id: string;
-  user_name: string;
 }

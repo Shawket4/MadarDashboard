@@ -3,6 +3,7 @@
 
 export interface StaffDocument {
   created_at: string;
+  employee_id: string;
   /** @nullable */
   expires_on?: string | null;
   /** @nullable */
@@ -13,5 +14,4 @@ export interface StaffDocument {
   title: string;
   /** @nullable */
   uploaded_by?: string | null;
-  user_id: string;
 }

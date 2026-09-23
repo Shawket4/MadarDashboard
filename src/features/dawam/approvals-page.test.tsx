@@ -47,11 +47,11 @@ vi.mock("@/features/staff/util", async () => {
 });
 vi.mock("@/data/api/generated/api", () => ({
   useListRequests: hook("requests", () => [
-    { id: "q1", user_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", created_at: "2026-09-22T07:00:00Z", reason: "Family wedding" },
+    { id: "q1", employee_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", created_at: "2026-09-22T07:00:00Z", reason: "Family wedding" },
   ]),
   useListAdvances: hook("advances", () => [
-    { id: "v1", user_name: "Sara Ahmed", amount_piastres: 50_000, installments: 2, status: "pending", created_at: "2026-09-22T08:00:00Z", reason: "Rent" },
-    { id: "v0", user_name: "Sara Ahmed", amount_piastres: 90_000, installments: 1, status: "approved", created_at: "2026-09-01T08:00:00Z" },
+    { id: "v1", employee_name: "Sara Ahmed", amount_piastres: 50_000, installments: 2, status: "pending", created_at: "2026-09-22T08:00:00Z", reason: "Rent" },
+    { id: "v0", employee_name: "Sara Ahmed", amount_piastres: 90_000, installments: 1, status: "approved", created_at: "2026-09-01T08:00:00Z" },
   ]),
   useListSwaps: hook("swaps", () => [
     { id: "w1", requester_name: "Sara Ahmed", peer_name: "Youssef Adel", requester_shift_name: "Morning", peer_shift_name: "Evening", requester_date: "2026-09-26", peer_date: "2026-09-26", status: "pending", created_at: "2026-09-22T06:00:00Z" },
@@ -61,11 +61,11 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "o2", shift_name: "Morning", on_date: "2026-09-28", status: "open" },
   ]),
   useListAttendance: hook("attendance", () => [
-    { id: "r5", user_name: "Sara Ahmed", covered_user_id: "e4", cover_status: "pending", work_shift_name: "Evening", business_date: "2026-09-22", check_in_at: "2026-09-22T12:40:00Z", created_at: "2026-09-22T12:40:00Z", overtime_minutes: 0 },
-    { id: "r6", user_name: "Omar Khaled", overtime_status: "pending", overtime_minutes: 45, business_date: "2026-09-21", check_out_at: "2026-09-21T20:45:00Z", created_at: "2026-09-21T08:00:00Z" },
+    { id: "r5", employee_name: "Sara Ahmed", covered_employee_id: "e4", cover_status: "pending", work_shift_name: "Evening", business_date: "2026-09-22", check_in_at: "2026-09-22T12:40:00Z", created_at: "2026-09-22T12:40:00Z", overtime_minutes: 0 },
+    { id: "r6", employee_name: "Omar Khaled", overtime_status: "pending", overtime_minutes: 45, business_date: "2026-09-21", check_out_at: "2026-09-21T20:45:00Z", created_at: "2026-09-21T08:00:00Z" },
   ]),
   useListAdjustments: hook("payLines", () => [
-    { id: "a2", kind: "bonus", user_name: "Sara Ahmed", amount_piastres: 150_000, reason: "Best month", status: "pending", created_at: "2026-09-22T09:00:00Z" },
+    { id: "a2", kind: "bonus", employee_name: "Sara Ahmed", amount_piastres: 150_000, reason: "Best month", status: "pending", created_at: "2026-09-22T09:00:00Z" },
   ]),
   ...calls,
 }));

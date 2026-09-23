@@ -8,6 +8,9 @@ export interface PayrollAdjustment {
   /** @nullable */
   created_by?: string | null;
   effective_date: string;
+  employee_id: string;
+  /** @nullable */
+  employee_name?: string | null;
   id: string;
   org_id: string;
   /**
@@ -26,9 +29,6 @@ export interface PayrollAdjustment {
   source: string;
   status: string;
   updated_at: string;
-  user_id: string;
-  /** @nullable */
-  user_name?: string | null;
   /** @nullable */
   waive_reason?: string | null;
   /**

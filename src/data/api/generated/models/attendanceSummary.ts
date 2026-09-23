@@ -6,6 +6,8 @@
  */
 export interface AttendanceSummary {
   absent_days: number;
+  employee_id: string;
+  employee_name: string;
   half_days: number;
   late_days: number;
   leave_days: number;
@@ -13,6 +15,4 @@ export interface AttendanceSummary {
   total_late_minutes: number;
   total_overtime_minutes: number;
   total_worked_minutes: number;
-  user_id: string;
-  user_name: string;
 }

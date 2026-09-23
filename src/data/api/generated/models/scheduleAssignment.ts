@@ -12,9 +12,9 @@ export interface ScheduleAssignment {
   effective_from: string;
   /** @nullable */
   effective_to?: string | null;
+  employee_id: string;
   id: string;
   org_id: string;
-  user_id: string;
   work_shift_id: string;
   /** @nullable */
   work_shift_name?: string | null;

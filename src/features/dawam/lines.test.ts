@@ -4,7 +4,7 @@ import { linesTotal, payslipLines } from "./lines";
 
 const slip = (over: Partial<ComputedPayslip> = {}): ComputedPayslip =>
   ({
-    user_id: "u", name: "Sara", base_piastres: 900_000, base_salary_piastres: 900_000,
+    employee_id: "u", name: "Sara", base_piastres: 900_000, base_salary_piastres: 900_000,
     net_piastres: 842_000, overtime_piastres: 0, overtime_minutes: 0, bonuses_piastres: 12_000,
     deductions_piastres: 20_000, advance_installment_piastres: 50_000, carry_out_piastres: 0,
     absent_days: 0, leave_days: 0, late_minutes: 0, worked_days: 20,

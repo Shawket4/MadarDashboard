@@ -32,12 +32,12 @@ export interface ComputedPayslip {
      */
   carry_out_piastres: number;
   deductions_piastres: number;
+  employee_id: string;
   late_minutes: number;
   leave_days: number;
   name: string;
   net_piastres: number;
   overtime_minutes: number;
   overtime_piastres: number;
-  user_id: string;
   worked_days: number;
 }

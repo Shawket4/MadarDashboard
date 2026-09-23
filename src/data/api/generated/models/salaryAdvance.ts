@@ -10,6 +10,9 @@ export interface SalaryAdvance {
   decided_by?: string | null;
   /** @nullable */
   decision_note?: string | null;
+  employee_id: string;
+  /** @nullable */
+  employee_name?: string | null;
   id: string;
   installments: number;
   monthly_installment_piastres: number;
@@ -19,7 +22,4 @@ export interface SalaryAdvance {
   remaining_piastres: number;
   status: string;
   updated_at: string;
-  user_id: string;
-  /** @nullable */
-  user_name?: string | null;
 }

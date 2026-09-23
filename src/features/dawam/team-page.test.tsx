@@ -53,14 +53,14 @@ vi.mock("@/data/api/generated/api", () => ({
   useTeamPresence: hook("presence", () => ({
     business_date: "2026-09-22", present: 1, late: 1, absent: 1, on_leave: 0, planned_minutes: 0, worked_minutes: 0,
     rows: [
-      { user_id: "e1", user_name: "Sara Ahmed", state: "in", check_in_at: "2026-09-22T05:00:00Z", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 60, branch_name: "Zamalek" },
-      { user_id: "e4", user_name: "Youssef Adel", state: "absent", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 0, branch_name: "Zamalek" },
+      { employee_id: "e1", employee_name: "Sara Ahmed", state: "in", check_in_at: "2026-09-22T05:00:00Z", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 60, branch_name: "Zamalek" },
+      { employee_id: "e4", employee_name: "Youssef Adel", state: "absent", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 0, branch_name: "Zamalek" },
     ],
   })),
   useListAttendanceFlags: hook("flags", () => [
-    { id: "f1", user_id: "e4", user_name: "Youssef Adel", kind: "left_mid_shift", minutes_away: 35, detected_at: "2026-09-22T14:10:00Z", resolution: null, suggested_deduction_piastres: 5_500 },
-    { id: "f2", user_id: "e5", user_name: "Laila Hassan", kind: "new_phone", minutes_away: 0, detected_at: "2026-09-22T07:00:00Z", resolution: null, suggested_deduction_piastres: 0 },
-    { id: "f3", user_id: "e1", user_name: "Sara Ahmed", kind: "suspicious", minutes_away: 0, detected_at: "2026-09-21T07:00:00Z", resolution: "ignored", suggested_deduction_piastres: 0 },
+    { id: "f1", employee_id: "e4", employee_name: "Youssef Adel", kind: "left_mid_shift", minutes_away: 35, detected_at: "2026-09-22T14:10:00Z", resolution: null, suggested_deduction_piastres: 5_500 },
+    { id: "f2", employee_id: "e5", employee_name: "Laila Hassan", kind: "new_phone", minutes_away: 0, detected_at: "2026-09-22T07:00:00Z", resolution: null, suggested_deduction_piastres: 0 },
+    { id: "f3", employee_id: "e1", employee_name: "Sara Ahmed", kind: "suspicious", minutes_away: 0, detected_at: "2026-09-21T07:00:00Z", resolution: "ignored", suggested_deduction_piastres: 0 },
   ]),
   resolveFlag: (...a: unknown[]) => resolveFlag(...(a as [])),
   punchFor: (...a: unknown[]) => punchFor(...(a as [])),
@@ -124,7 +124,7 @@ describe("TeamPage", () => {
     expect(go).toBeDisabled();
     await user.type(within(dialog).getByLabelText("Reason"), "Phone died");
     await user.click(go);
-    await waitFor(() => expect(punchFor).toHaveBeenCalledWith({ user_id: "e4", reason: "Phone died" }));
+    await waitFor(() => expect(punchFor).toHaveBeenCalledWith({ employee_id: "e4", reason: "Phone died" }));
   });
 
   it("hides punching from someone without the right", () => {

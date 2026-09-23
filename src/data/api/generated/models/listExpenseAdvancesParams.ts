@@ -2,5 +2,5 @@
 // @ts-nocheck
 
 export type ListExpenseAdvancesParams = {
-user_id?: string;
+employee_id?: string;
 };

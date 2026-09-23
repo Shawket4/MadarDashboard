@@ -28,7 +28,7 @@ const { ConfirmProvider } = await import("@/components/app/confirm-dialog");
 const { EmployeeDialog } = await import("@/features/staff/employee-dialog");
 
 const sara = {
-  user_id: "e1", name: "Sara Ahmed", employment_status: "active", pay_method: "bank", pay_account: "EG38 0019",
+  id: "e1", name: "Sara Ahmed", employment_status: "active", pay_method: "bank", pay_account: "EG38 0019",
   gender: "f", base_salary_piastres: 900_000, is_active: true, role: "teller", org_id: "o", created_at: "", updated_at: "",
 } as unknown as Employee;
 

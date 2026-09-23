@@ -85,7 +85,7 @@ export function AttendancePage() {
     try {
       const rows = await listAttendance(params, EXPORT_REQUEST);
       const cols: ExcelColumn<AttendanceRecord>[] = [
-        { header: t("staff.name", "Name"), accessor: (r) => r.user_name ?? "—", type: "text", width: 24 },
+        { header: t("staff.name", "Name"), accessor: (r) => r.employee_name ?? "—", type: "text", width: 24 },
         { header: t("staff.workShift", "Work shift"), accessor: (r) => r.work_shift_name ?? t("staff.unscheduled", "Unscheduled"), type: "text", width: 20 },
         { header: t("staff.date", "Date"), accessor: (r) => r.business_date, type: "date", width: 14 },
         { header: t("staff.attendanceStatus", "Status"), accessor: (r) => t(`staff.att_${r.status}`, r.status), type: "text", width: 14 },
@@ -126,12 +126,12 @@ export function AttendancePage() {
   const columns: ColumnDef<AttendanceRecord>[] = useMemo(
     () => [
       {
-        accessorKey: "user_name",
+        accessorKey: "employee_name",
         header: t("staff.name", "Name"),
         meta: { label: t("staff.name", "Name"), phone: "title" },
         cell: ({ row }) => (
           <div className="min-w-0">
-            <div className="truncate font-medium">{row.original.user_name ?? "—"}</div>
+            <div className="truncate font-medium">{row.original.employee_name ?? "—"}</div>
             <div className="truncate text-xs text-muted-foreground">
               {row.original.work_shift_name ?? t("staff.unscheduled", "Unscheduled")}
             </div>
@@ -332,7 +332,7 @@ function ManualRecordDialog({
     setBusy(true);
     try {
       await createManualRecord({
-        user_id: userId,
+        employee_id: userId,
         branch_id: branchId,
         business_date: date,
         work_shift_id: shiftId === ALL ? null : shiftId,
@@ -373,7 +373,7 @@ function ManualRecordDialog({
               <SelectTrigger><SelectValue placeholder={t("staff.pickEmployee", "Pick an employee")} /></SelectTrigger>
               <SelectContent>
                 {(employeesQ.data ?? []).map((e) => (
-                  <SelectItem key={e.user_id} value={e.user_id}>{e.name}</SelectItem>
+                  <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -505,7 +505,7 @@ function CorrectRecordDialog({
         <DialogHeader>
           <DialogTitle>{t("staff.correctRecord", "Correct record")}</DialogTitle>
           <DialogDescription>
-            {record?.user_name} · {record?.business_date}
+            {record?.employee_name} · {record?.business_date}
           </DialogDescription>
         </DialogHeader>
 

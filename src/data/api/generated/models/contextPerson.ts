@@ -13,6 +13,7 @@ export interface ContextPerson {
   device_model?: string | null;
   /** @nullable */
   device_since?: string | null;
+  employee_id: string;
   /** @nullable */
   gender?: string | null;
   /** @nullable */
@@ -25,7 +26,14 @@ export interface ContextPerson {
   phone?: string | null;
   /** @nullable */
   pref_time?: string | null;
-  /** `owner` · `manager` · `employee` */
+  /**
+     * `owner` · `manager` · `employee` (from the linked account; an employee
+     * with no account is `employee`).
+     */
   role: string;
-  user_id: string;
+  /**
+     * Their Madar account, when they have one.
+     * @nullable
+     */
+  user_id?: string | null;
 }

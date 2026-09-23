@@ -7,6 +7,11 @@ export interface CreateStaffRequest {
      * @nullable
      */
   attendance_record_id?: string | null;
+  /**
+     * Admin-only. Omitted on `/staff/me/*`, where it is always the caller.
+     * @nullable
+     */
+  employee_id?: string | null;
   /** @nullable */
   end_date?: string | null;
   /** @nullable */
@@ -29,9 +34,4 @@ export interface CreateStaffRequest {
   title?: string | null;
   /** @nullable */
   to_time?: string | null;
-  /**
-     * Admin-only. Omitted on `/staff/me/*`, where it is always the caller.
-     * @nullable
-     */
-  user_id?: string | null;
 }

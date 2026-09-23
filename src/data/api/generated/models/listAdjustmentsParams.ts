@@ -2,6 +2,6 @@
 // @ts-nocheck
 
 export type ListAdjustmentsParams = {
-user_id?: string;
+employee_id?: string;
 status?: string;
 };

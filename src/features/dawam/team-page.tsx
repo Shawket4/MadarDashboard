@@ -112,7 +112,7 @@ export function TeamPage() {
                   key={f.id}
                   icon={meta.icon}
                   variant="nav"
-                  title={`${f.user_name} · ${t(meta.labelKey, meta.fallback)}`}
+                  title={`${f.employee_name} · ${t(meta.labelKey, meta.fallback)}`}
                   meta={[fmtDateTime(f.detected_at), f.minutes_away ? t("dawam.minutesAway", { m: f.minutes_away, defaultValue: `${f.minutes_away} min away` }) : null].filter(Boolean).join(" · ")}
                   onClick={canResolve ? () => setFlag(f) : undefined}
                 />
@@ -134,8 +134,8 @@ export function TeamPage() {
           <ListCard>
             {rows.map((r) => (
               <ListRow
-                key={r.user_id}
-                title={r.user_name}
+                key={r.employee_id}
+                title={r.employee_name}
                 meta={[
                   r.branch_name,
                   r.check_in_at ? t("dawam.inAt", { time: fmtTime(r.check_in_at), defaultValue: `in ${fmtTime(r.check_in_at)}` }) : null,
@@ -161,7 +161,7 @@ export function TeamPage() {
       <FlagDialog key={flag?.id} flag={flag} onOpenChange={(o) => !o && setFlag(null)} />
       {adding === "one" ? <AddEmployeeDialog onOpenChange={(o) => !o && setAdding(null)} /> : null}
       {adding === "sheet" ? <ImportPeopleDialog onOpenChange={(o) => !o && setAdding(null)} /> : null}
-      <PunchDialog key={punching?.user_id} person={punching} onOpenChange={(o) => !o && setPunching(null)} />
+      <PunchDialog key={punching?.employee_id} person={punching} onOpenChange={(o) => !o && setPunching(null)} />
     </Page>
   );
 }
@@ -191,7 +191,7 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{`${flag.user_name} · ${t(meta.labelKey, meta.fallback)}`}</DialogTitle>
+          <DialogTitle>{`${flag.employee_name} · ${t(meta.labelKey, meta.fallback)}`}</DialogTitle>
           <DialogDescription>{t(`dawam.flagHint_${flag.kind}`, { m: flag.minutes_away, defaultValue: flagHint(flag) })}</DialogDescription>
         </DialogHeader>
         {flag.kind === "left_mid_shift" ? (
@@ -245,7 +245,7 @@ function PunchDialog({ person, onOpenChange }: { person: PresenceRow | null; onO
   const save = async () => {
     setBusy(true);
     try {
-      await punchFor({ user_id: person.user_id, reason: reason.trim() });
+      await punchFor({ employee_id: person.employee_id, reason: reason.trim() });
       toast.success(out ? t("dawam.punchedOut", "Punched out") : t("dawam.punchedIn", "Punched in"));
       void invalidateStaff();
       onOpenChange(false);
@@ -259,7 +259,7 @@ function PunchDialog({ person, onOpenChange }: { person: PresenceRow | null; onO
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{out ? t("dawam.punchOutFor", { name: person.user_name, defaultValue: `Punch ${person.user_name} out` }) : t("dawam.punchInFor", { name: person.user_name, defaultValue: `Punch ${person.user_name} in` })}</DialogTitle>
+          <DialogTitle>{out ? t("dawam.punchOutFor", { name: person.employee_name, defaultValue: `Punch ${person.employee_name} out` }) : t("dawam.punchInFor", { name: person.employee_name, defaultValue: `Punch ${person.employee_name} in` })}</DialogTitle>
           <DialogDescription>{t("dawam.punchHint", "Recorded now, marked as done by you. They're told, and can ask for a fix.")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-1">

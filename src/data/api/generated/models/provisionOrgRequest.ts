@@ -8,7 +8,8 @@ export interface ProvisionOrgRequest {
   /** @nullable */
   currency_code?: string | null;
   /**
-     * `pos`, `dawam`; default both. A Dawam-only customer is `["dawam"]` (SA-1).
+     * `pos`, `dawam`; default POS only — Dawam is switched on per org. A
+     * Dawam-only customer is `["dawam"]` (SA-1).
      * @nullable
      */
   modules?: string[] | null;

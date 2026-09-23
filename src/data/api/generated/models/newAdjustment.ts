@@ -6,6 +6,7 @@ export interface NewAdjustment {
   amount_piastres?: number | null;
   /** @nullable */
   effective_date?: string | null;
+  employee_id: string;
   /** `bonus` · `deduction` */
   kind: string;
   /**
@@ -16,5 +17,4 @@ export interface NewAdjustment {
   reason: string;
   /** Every month until stopped (AD-3). */
   recurring?: boolean;
-  user_id: string;
 }

@@ -2,17 +2,27 @@
 // @ts-nocheck
 
 /**
- * Full replace of an employee's HR profile. A PUT rather than a POST because
- * the key is the user id: writing a profile for a user who has none promotes
- * them to staff, and writing it again edits them.
+ * Replace an employee's HR profile. Profile fields are a full replace (null
+ * clears them); `name`, `phone`, `app_access` and `branch_ids` are kept when
+ * omitted.
  */
 export interface PutEmployeeRequest {
   /**
-     * Piastres. Ignored unless the caller has `payroll:update` — a branch
-     * manager editing a job title must not be able to award a raise.
+     * Turning it off signs the phone out.
+     * @nullable
+     */
+  app_access?: boolean | null;
+  /**
+     * Piastres. Ignored unless the caller has `hr.payroll.edit` for every
+     * branch — a branch manager editing a job title must not award a raise.
      * @nullable
      */
   base_salary_piastres?: number | null;
+  /**
+     * The whole set of branches.
+     * @nullable
+     */
+  branch_ids?: string[] | null;
   /** @nullable */
   department_id?: string | null;
   /** @nullable */
@@ -22,7 +32,8 @@ export interface PutEmployeeRequest {
   /** @nullable */
   employee_code?: string | null;
   /**
-     * `active` | `suspended` | `terminated`. Defaults to `active`.
+     * `active` | `suspended` | `terminated`. Defaults to `active`. Anything
+     * but `active` signs the phone out (RO-10).
      * @nullable
      */
   employment_status?: string | null;
@@ -36,6 +47,8 @@ export interface PutEmployeeRequest {
   /** @nullable */
   job_title?: string | null;
   /** @nullable */
+  name?: string | null;
+  /** @nullable */
   national_id?: string | null;
   /** @nullable */
   notes?: string | null;
@@ -46,6 +59,11 @@ export interface PutEmployeeRequest {
      * @nullable
      */
   pay_method?: string | null;
+  /**
+     * A new number signs the old phone out (RO-10). Empty clears it.
+     * @nullable
+     */
+  phone?: string | null;
   /** @nullable */
   photo_url?: string | null;
   /** @nullable */

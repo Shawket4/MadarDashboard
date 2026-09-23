@@ -56,8 +56,8 @@ vi.mock("@/data/api/generated/api", () => ({
       { id: "zM", name: "Morning", branch_id: "b1", start_time: "08:00:00", end_time: "16:00:00", crosses_midnight: false, grace_minutes: 10 },
       { id: "zE", name: "Evening", branch_id: "b1", start_time: "15:00:00", end_time: "23:00:00", crosses_midnight: false, grace_minutes: 10 },
     ],
-    staff: [{ user_id: "e1", name: "Sara Ahmed", cant_work_days: [] }],
-    shifts: [{ user_id: "e1", user_name: "Sara Ahmed", date: week, branch_id: "b1", work_shift_id: "zM", shift_name: "Morning", start_at: "", end_at: "", changed: false, on_leave: false }],
+    staff: [{ employee_id: "e1", name: "Sara Ahmed", cant_work_days: [] }],
+    shifts: [{ employee_id: "e1", employee_name: "Sara Ahmed", date: week, branch_id: "b1", work_shift_id: "zM", shift_name: "Morning", start_at: "", end_at: "", changed: false, on_leave: false }],
     open_shifts: [],
     holidays: [{ on_date: addDays(todayIso(), 10), name_en: "Armed Forces Day", name_ar: "عيد القوات المسلحة", decision: null }],
     warnings, limits_unconfirmed: true,
@@ -93,7 +93,7 @@ beforeEach(() => {
   warnings = [];
   coverage = null;
   suggestionsList = [
-    { id: "g1", date: addDays(week, 2), user_id: "e4", user_name: "Youssef Adel", shift_name: "Evening", work_shift_id: "zE", reason_key: "staff.sg_gap", reason_args: { shift: "Evening", short: 1 }, confidence: 72, by_default: true },
+    { id: "g1", date: addDays(week, 2), employee_id: "e4", employee_name: "Youssef Adel", shift_name: "Evening", work_shift_id: "zE", reason_key: "staff.sg_gap", reason_args: { shift: "Evening", short: 1 }, confidence: 72, by_default: true },
   ];
 });
 
@@ -103,7 +103,7 @@ describe("SchedulePage", () => {
     wrap(<SchedulePage />);
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     await user.click(await screen.findByRole("menuitem", { name: "Day off" }));
-    await waitFor(() => expect(calls.putOverride).toHaveBeenCalledWith({ user_id: "e1", on_date: week, work_shift_id: null }));
+    await waitFor(() => expect(calls.putOverride).toHaveBeenCalledWith({ employee_id: "e1", on_date: week, work_shift_id: null }));
   });
 
   it("publishes only after confirming, and then shows it published (SC-3)", async () => {
@@ -149,8 +149,8 @@ describe("SchedulePage", () => {
 
   it("puts the server's labour warnings on the person and day, and blocks nothing (RU-13)", () => {
     warnings = [
-      { user_id: "e1", date: week, kind: "day_hours", minutes: 600, limit_minutes: 480 },
-      { user_id: "e1", date: addDays(week, 1), kind: "rest", minutes: 540, limit_minutes: 720 },
+      { employee_id: "e1", date: week, kind: "day_hours", minutes: 600, limit_minutes: 480 },
+      { employee_id: "e1", date: addDays(week, 1), kind: "rest", minutes: 540, limit_minutes: 720 },
     ];
     wrap(<SchedulePage />);
     expect(screen.getByText(/the limits are unconfirmed until a lawyer confirms them/)).toBeInTheDocument();
@@ -165,8 +165,8 @@ describe("SchedulePage", () => {
   it("says why a coverage or pattern suggestion was made, and confirms before changing the standing pattern", async () => {
     const user = userEvent.setup();
     suggestionsList = [
-      { id: "add|x|zE|e4", date: addDays(week, 2), user_id: "e4", user_name: "Youssef Adel", shift_name: "Evening", work_shift_id: "zE", reason_key: "staff.sg_coverage", reason_args: { shift: "Evening", hour: "19:00", short: 2 }, confidence: 70, by_default: false },
-      { id: `pattern|${week}|zM|e1`, date: week, user_id: "e1", user_name: "Sara Ahmed", shift_name: "Morning", work_shift_id: "zM", reason_key: "staff.sg_pattern", reason_args: { name: "Sara Ahmed", shift: "Morning", weeks: 4 }, confidence: 80, by_default: false },
+      { id: "add|x|zE|e4", date: addDays(week, 2), employee_id: "e4", employee_name: "Youssef Adel", shift_name: "Evening", work_shift_id: "zE", reason_key: "staff.sg_coverage", reason_args: { shift: "Evening", hour: "19:00", short: 2 }, confidence: 70, by_default: false },
+      { id: `pattern|${week}|zM|e1`, date: week, employee_id: "e1", employee_name: "Sara Ahmed", shift_name: "Morning", work_shift_id: "zM", reason_key: "staff.sg_pattern", reason_args: { name: "Sara Ahmed", shift: "Morning", weeks: 4 }, confidence: 80, by_default: false },
     ];
     wrap(<SchedulePage />);
     expect(screen.getByText(/Evening is 2 short at 19:00/)).toBeInTheDocument();

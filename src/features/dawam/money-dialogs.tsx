@@ -89,7 +89,7 @@ function PersonPicker({ value, onChange, enabled }: { value: string; onChange: (
         </SelectTrigger>
         <SelectContent>
           {(employeesQ.data ?? []).map((e) => (
-            <SelectItem key={e.user_id} value={e.user_id}>{e.name}</SelectItem>
+            <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -140,7 +140,7 @@ export function AdjustmentDialog({
       canSave={valid}
       onSave={async () => {
         await createAdjustment({
-          user_id: who,
+          employee_id: who,
           kind,
           reason: reason.trim(),
           recurring,
@@ -204,7 +204,7 @@ export function RecordAdvanceDialog({ open, onOpenChange }: { open: boolean; onO
       description={t("dawam.recordAdvanceHint", "Paid back from the next payslips, oldest first, never below zero.")}
       canSave={!!userId && pounds !== null && n >= 1 && n <= 24}
       onSave={async () => {
-        const a = await createAdvanceAdmin({ user_id: userId, amount_piastres: pounds!, installments: n });
+        const a = await createAdvanceAdmin({ employee_id: userId, amount_piastres: pounds!, installments: n });
         await reviewAdvance(a.id, { approve: true, installments: n });
         toast.success(t("dawam.advanceRecorded", "Advance recorded"));
       }}
@@ -234,7 +234,7 @@ export function ExpenseAdvanceDialog({ open, onOpenChange }: { open: boolean; on
       description={t("dawam.logExpenseHint", "A record of cash handed over for the shop. It never touches a payslip.")}
       canSave={!!userId && pounds !== null && purpose.trim() !== ""}
       onSave={async () => {
-        await logExpenseAdvance({ user_id: userId, amount_piastres: pounds!, purpose: purpose.trim(), via });
+        await logExpenseAdvance({ employee_id: userId, amount_piastres: pounds!, purpose: purpose.trim(), via });
         toast.success(t("dawam.expenseLogged", "Expense advance logged"));
       }}
     >
@@ -262,7 +262,7 @@ export function MarkPaidDialog({
   periodId, person, onOpenChange,
 }: {
   periodId: string;
-  person: { user_id: string; name: string; pay_method?: string } | null;
+  person: { employee_id: string; name: string; pay_method?: string } | null;
   onOpenChange: (o: boolean) => void;
 }) {
   const { t } = useTranslation();
@@ -276,7 +276,7 @@ export function MarkPaidDialog({
       canSave
       saveLabel={t("dawam.markPaid", "Mark paid")}
       onSave={async () => {
-        await markPaid(periodId, person!.user_id, { method });
+        await markPaid(periodId, person!.employee_id, { method });
         toast.success(t("dawam.markedPaid", "Marked paid"));
       }}
     >
@@ -321,7 +321,7 @@ export function WaiveDialog({
 export function ReviewAdvanceDialog({
   advance, onOpenChange,
 }: {
-  advance: { id: string; user_name?: string | null; amount_piastres: number; installments: number } | null;
+  advance: { id: string; employee_name?: string | null; amount_piastres: number; installments: number } | null;
   onOpenChange: (o: boolean) => void;
 }) {
   const { t } = useTranslation();
@@ -334,7 +334,7 @@ export function ReviewAdvanceDialog({
     <FormDialog
       open={!!advance}
       onOpenChange={onOpenChange}
-      title={t("dawam.reviewAdvance", { name: advance?.user_name ?? "", defaultValue: `Approve ${advance?.user_name ?? ""}'s advance` })}
+      title={t("dawam.reviewAdvance", { name: advance?.employee_name ?? "", defaultValue: `Approve ${advance?.employee_name ?? ""}'s advance` })}
       description={t("dawam.reviewAdvanceHint", "Change the amount or the installments if you need to. Above the cap it waits for the owner.")}
       canSave={pounds !== null && n >= 1 && n <= 24}
       saveLabel={t("common.approve", "Approve")}

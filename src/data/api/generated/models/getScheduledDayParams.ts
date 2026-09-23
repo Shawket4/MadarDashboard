@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 export type GetScheduledDayParams = {
-user_id: string;
+employee_id: string;
 date: string;
 /**
  * Which branch's timezone the day is measured in. Defaults to the

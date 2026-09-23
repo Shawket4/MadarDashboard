@@ -142,7 +142,7 @@ function AttendanceTab({ params }: { params: Params }) {
   const rows = q.data ?? [];
   type R = (typeof rows)[number];
   const cols: Col<R>[] = [
-    { id: "name", header: t("staff.name", "Name"), value: (r) => r.user_name },
+    { id: "name", header: t("staff.name", "Name"), value: (r) => r.employee_name },
     { id: "present", header: t("dawam.rPresent", "Present"), value: (r) => r.present_days, numeric: true },
     { id: "late", header: t("dawam.stateLate", "Late"), value: (r) => r.late_days, numeric: true },
     { id: "absent", header: t("dawam.stateAbsent", "Absent"), value: (r) => r.absent_days, numeric: true },
@@ -231,7 +231,7 @@ function AdvancesTab({ params }: { params: Params }) {
   type S = (typeof salary)[number];
   type E = (typeof expense)[number];
   const sCols: Col<S>[] = [
-    { id: "name", header: t("staff.name", "Name"), value: (r) => r.user_name },
+    { id: "name", header: t("staff.name", "Name"), value: (r) => r.employee_name },
     { id: "given", header: t("dawam.rGiven", "Given"), value: (r) => fmtDate(r.given_on) },
     { id: "amount", header: t("dawam.amountEgp", "Amount (EGP)"), value: (r) => r.amount_piastres, money: true },
     { id: "inst", header: t("dawam.installments", "Monthly installments"), value: (r) => r.installments, numeric: true },
@@ -239,7 +239,7 @@ function AdvancesTab({ params }: { params: Params }) {
     { id: "status", header: t("common.status", "Status"), value: (r) => t(`staff.req_${r.status}`, r.status) },
   ];
   const eCols: Col<E>[] = [
-    { id: "name", header: t("staff.name", "Name"), value: (r) => r.user_name },
+    { id: "name", header: t("staff.name", "Name"), value: (r) => r.employee_name },
     { id: "given", header: t("dawam.rGiven", "Given"), value: (r) => fmtDate(r.given_on) },
     { id: "purpose", header: t("dawam.purpose", "What it's for"), value: (r) => r.purpose },
     { id: "via", header: t("dawam.rVia", "From"), value: (r) => t(`dawam.via_${r.via}`, r.via) },

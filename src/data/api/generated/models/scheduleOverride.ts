@@ -5,12 +5,12 @@ export interface ScheduleOverride {
   created_at: string;
   /** @nullable */
   created_by?: string | null;
+  employee_id: string;
   id: string;
   on_date: string;
   org_id: string;
   /** @nullable */
   reason?: string | null;
-  user_id: string;
   /**
      * `None` = an explicit day off.
      * @nullable

@@ -7,6 +7,8 @@ export interface AttendanceFlag {
   /** @nullable */
   branch_id?: string | null;
   detected_at: string;
+  employee_id: string;
+  employee_name: string;
   id: string;
   /**
      * `left_mid_shift` · `suspicious` · `tracking_off` · `time_unverified` ·
@@ -20,6 +22,4 @@ export interface AttendanceFlag {
   resolved_at?: string | null;
   /** Time away × the person's minute rate, rounded to the nearest 5 EGP (CL-7). */
   suggested_deduction_piastres: number;
-  user_id: string;
-  user_name: string;
 }

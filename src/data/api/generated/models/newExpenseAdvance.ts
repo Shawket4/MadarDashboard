@@ -3,8 +3,8 @@
 
 export interface NewExpenseAdvance {
   amount_piastres: number;
+  employee_id: string;
   purpose: string;
-  user_id: string;
   /** `safe` · `bank` · `till` */
   via: string;
 }

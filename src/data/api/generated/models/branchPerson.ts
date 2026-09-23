@@ -2,6 +2,6 @@
 // @ts-nocheck
 
 export interface BranchPerson {
+  employee_id: string;
   name: string;
-  user_id: string;
 }

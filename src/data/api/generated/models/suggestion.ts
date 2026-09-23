@@ -7,21 +7,21 @@ export interface Suggestion {
   /** 0–100. */
   confidence: number;
   date: string;
+  /** Who the suggestion puts on the shift. */
+  employee_id: string;
+  employee_name: string;
   /**
      * Who it takes off it, for a reassignment.
      * @nullable
      */
-  from_user_id?: string | null;
+  from_employee_id?: string | null;
   /** @nullable */
-  from_user_name?: string | null;
+  from_employee_name?: string | null;
   /** Opaque; send it back to accept or reject. */
   id: string;
   reason_args: unknown;
   /** A core i18n key for the one-line reason, and its arguments. */
   reason_key: string;
   shift_name: string;
-  /** Who the suggestion puts on the shift. */
-  user_id: string;
-  user_name: string;
   work_shift_id: string;
 }

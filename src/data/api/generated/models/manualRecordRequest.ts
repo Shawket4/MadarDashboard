@@ -8,6 +8,7 @@ export interface ManualRecordRequest {
   check_in_at?: string | null;
   /** @nullable */
   check_out_at?: string | null;
+  employee_id: string;
   /** @nullable */
   notes?: string | null;
   /** Required: a hand-written attendance row always says why it exists. */
@@ -18,7 +19,6 @@ export interface ManualRecordRequest {
      * @nullable
      */
   status?: string | null;
-  user_id: string;
   /** @nullable */
   work_shift_id?: string | null;
 }

@@ -17,7 +17,7 @@ export const branchPinned = (b: Pick<Branch, "latitude" | "longitude" | "geo_rad
 
 export interface SetupData {
   branches?: Pick<Branch, "id" | "name" | "latitude" | "longitude" | "geo_radius_meters">[];
-  employees?: Pick<Employee, "is_active" | "employment_status">[];
+  employees?: Pick<Employee, "employment_status">[];
   shifts?: Pick<WorkShift, "is_active">[];
   settings?: Pick<AttendanceSettings, "rules_saved_at">;
 }
@@ -34,7 +34,7 @@ export interface SetupProgress {
 export function setupProgress(d: SetupData): SetupProgress {
   const done: Record<SetupStep, boolean> = {
     branches: !!d.branches?.length && d.branches.every(branchPinned),
-    employees: !!d.employees?.some((e) => e.is_active && e.employment_status === "active"),
+    employees: !!d.employees?.some((e) => e.employment_status === "active"),
     shifts: !!d.shifts?.some((s) => s.is_active),
     rules: !!d.settings?.rules_saved_at,
   };

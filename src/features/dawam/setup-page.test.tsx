@@ -74,7 +74,7 @@ describe("setupProgress", () => {
   it("needs every branch pinned, a live employee, and saved rules", () => {
     const p = setupProgress({
       branches: [pinned],
-      employees: [{ is_active: true, employment_status: "terminated" }, { is_active: true, employment_status: "active" }],
+      employees: [{ employment_status: "terminated" }, { employment_status: "active" }],
       shifts: [{ is_active: true }],
       settings: { rules_saved_at: "2026-09-01T00:00:00Z" },
     });
@@ -99,7 +99,7 @@ describe("SetupPage", () => {
   });
 
   it("says so when everything is done", () => {
-    data = { ...data, branches: [pinned], employees: [{ is_active: true, employment_status: "active" }], settings: { rules_saved_at: "x" } };
+    data = { ...data, branches: [pinned], employees: [{ employment_status: "active" }], settings: { rules_saved_at: "x" } };
     wrap();
     expect(screen.getByText("4 of 4 done")).toBeInTheDocument();
     expect(screen.getByText(/All set/)).toBeInTheDocument();

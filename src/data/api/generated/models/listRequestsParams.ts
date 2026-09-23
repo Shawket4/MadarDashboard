@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 export type ListRequestsParams = {
-user_id?: string;
+employee_id?: string;
 kind?: string;
 status?: string;
 from?: string;

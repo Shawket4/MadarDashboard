@@ -77,7 +77,7 @@ export function SchedulePage() {
   const cell = useMemo(() => {
     const m = new Map<string, RosterShift[]>();
     for (const s of view?.shifts ?? []) {
-      const k = `${s.user_id}|${s.date}`;
+      const k = `${s.employee_id}|${s.date}`;
       m.set(k, [...(m.get(k) ?? []), s]);
     }
     return m;
@@ -85,7 +85,7 @@ export function SchedulePage() {
   const warningsAt = useMemo(() => {
     const m = new Map<string, LabourWarning[]>();
     for (const w of view?.warnings ?? []) {
-      const k = `${w.user_id}|${w.date}`;
+      const k = `${w.employee_id}|${w.date}`;
       m.set(k, [...(m.get(k) ?? []), w]);
     }
     return m;
@@ -109,7 +109,7 @@ export function SchedulePage() {
   };
 
   const setDay = (userId: string, date: string, workShiftId: string | null) =>
-    run(`${userId}|${date}`, () => putOverride({ user_id: userId, on_date: date, work_shift_id: workShiftId }), t("dawam.dayChanged", "Day changed"));
+    run(`${userId}|${date}`, () => putOverride({ employee_id: userId, on_date: date, work_shift_id: workShiftId }), t("dawam.dayChanged", "Day changed"));
 
   const doPublish = async () => {
     const ok = await confirm({
@@ -126,7 +126,7 @@ export function SchedulePage() {
   const decide = async (g: Suggestion, accept: boolean) => {
     if (accept && g.id.startsWith("pattern|")) {
       const ok = await confirm({
-        title: t("dawam.patternTitle", { name: g.user_name, defaultValue: `Change ${g.user_name}'s standing pattern?` }),
+        title: t("dawam.patternTitle", { name: g.employee_name, defaultValue: `Change ${g.employee_name}'s standing pattern?` }),
         description: t("dawam.patternHint", "Every week from now on follows it, not just this one. Single days can still be changed here."),
         confirmLabel: t("dawam.accept", "Accept"),
       });
@@ -210,7 +210,7 @@ export function SchedulePage() {
             </thead>
             <tbody>
               {view.staff.map((p) => (
-                <tr key={p.user_id}>
+                <tr key={p.employee_id}>
                   <td className="sticky start-0 z-10 max-w-[12rem] border-t bg-card px-4 py-1.5">
                     <div className="truncate font-medium">{p.name}</div>
                     {p.pref_time || p.cant_work_days.length ? (
@@ -232,12 +232,12 @@ export function SchedulePage() {
                       key={d}
                       name={p.name}
                       date={d}
-                      shifts={cell.get(`${p.user_id}|${d}`) ?? []}
-                      warnings={warningsAt.get(`${p.user_id}|${d}`) ?? []}
+                      shifts={cell.get(`${p.employee_id}|${d}`) ?? []}
+                      warnings={warningsAt.get(`${p.employee_id}|${d}`) ?? []}
                       templates={templates}
                       editable={canEdit}
-                      busy={busy === `${p.user_id}|${d}`}
-                      onSet={(w) => void setDay(p.user_id, d, w)}
+                      busy={busy === `${p.employee_id}|${d}`}
+                      onSet={(w) => void setDay(p.employee_id, d, w)}
                     />
                   ))}
                 </tr>
@@ -295,7 +295,7 @@ export function SchedulePage() {
                   <ListRow
                     key={g.id}
                     icon={Sparkles}
-                    title={g.from_user_name ? `${g.user_name} ↔ ${g.from_user_name}` : `${g.user_name} → ${g.shift_name}`}
+                    title={g.from_employee_name ? `${g.employee_name} ↔ ${g.from_employee_name}` : `${g.employee_name} → ${g.shift_name}`}
                     meta={[fmtDate(g.date), why, g.by_default ? t("dawam.byDefault", "by the default") : null].filter(Boolean).join(" · ")}
                     trailing={
                       <span className="flex items-center gap-1">

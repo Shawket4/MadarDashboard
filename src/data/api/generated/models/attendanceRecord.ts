@@ -33,7 +33,7 @@ export interface AttendanceRecord {
      * A cover: whose shift this person worked (CV-*).
      * @nullable
      */
-  covered_user_id?: string | null;
+  covered_employee_id?: string | null;
   created_at: string;
   /** @nullable */
   created_by?: string | null;
@@ -42,6 +42,9 @@ export interface AttendanceRecord {
   edit_reason?: string | null;
   /** @nullable */
   edited_by?: string | null;
+  employee_id: string;
+  /** @nullable */
+  employee_name?: string | null;
   id: string;
   is_manual: boolean;
   late_minutes: number;
@@ -66,9 +69,6 @@ export interface AttendanceRecord {
   status: string;
   tracking_off: boolean;
   updated_at: string;
-  user_id: string;
-  /** @nullable */
-  user_name?: string | null;
   /** @nullable */
   work_shift_id?: string | null;
   /** @nullable */

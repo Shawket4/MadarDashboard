@@ -3,11 +3,11 @@
 
 export interface ExpenseAdvanceRow {
   amount_piastres: number;
+  employee_id: string;
+  employee_name: string;
   given_on: string;
   id: string;
   purpose: string;
-  user_id: string;
-  user_name: string;
   /** `safe` · `bank` · `till` */
   via: string;
 }

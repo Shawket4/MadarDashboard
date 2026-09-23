@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "6c87e3330823bed8";
+export const SPEC_HASH = "679bc717e26c4288";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -207,6 +207,7 @@ export type Capability =
   | "hr.schedule.publish"
   | "hr.expense_advances.log"
   | "hr.roster.settings"
+  | "hr.rules.edit"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -403,6 +404,7 @@ export const Cap = {
   hrSchedulePublish: "hr.schedule.publish" as Capability,
   hrExpenseAdvancesLog: "hr.expense_advances.log" as Capability,
   hrRosterSettings: "hr.roster.settings" as Capability,
+  hrRulesEdit: "hr.rules.edit" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -561,9 +563,9 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 134, key: "delivery.settings.read", legacy: "delivery_settings:read", group: "delivery", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See delivery settings", ar: "عرض إعدادات التوصيل", hintEn: null, hintAr: null },
   { id: 135, key: "delivery.settings.edit", legacy: "delivery_settings:update", group: "delivery", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Edit delivery zones, fees and hours", ar: "تعديل مناطق التوصيل والرسوم والمواعيد", hintEn: null, hintAr: null },
   { id: 136, key: "delivery.settings.delete", legacy: "delivery_settings:delete", group: "delivery", tier: "advanced", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Remove delivery zones", ar: "حذف مناطق التوصيل", hintEn: null, hintAr: null },
-  { id: 137, key: "hr.staff.create", legacy: "staff:create", group: "hr", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Add HR records", ar: "إضافة ملفات الموظفين", hintEn: null, hintAr: null },
+  { id: 137, key: "hr.staff.create", legacy: "staff:create", group: "hr", tier: "advanced", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Add HR records", ar: "إضافة ملفات الموظفين", hintEn: null, hintAr: null },
   { id: 138, key: "hr.staff.read", legacy: "staff:read", group: "hr", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See HR records", ar: "عرض ملفات الموظفين", hintEn: null, hintAr: null },
-  { id: 139, key: "hr.staff.edit", legacy: "staff:update", group: "hr", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Edit HR records", ar: "تعديل ملفات الموظفين", hintEn: null, hintAr: null },
+  { id: 139, key: "hr.staff.edit", legacy: "staff:update", group: "hr", tier: "advanced", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Edit HR records", ar: "تعديل ملفات الموظفين", hintEn: null, hintAr: null },
   { id: 140, key: "hr.staff.delete", legacy: "staff:delete", group: "hr", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Delete HR records", ar: "حذف ملفات الموظفين", hintEn: null, hintAr: null },
   { id: 141, key: "hr.schedule.create", legacy: "work_shifts:create", group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Add shifts to the roster", ar: "إضافة ورديات للجدول", hintEn: null, hintAr: null },
   { id: 142, key: "hr.schedule.read", legacy: "work_shifts:read", group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See the roster", ar: "عرض جدول الورديات", hintEn: null, hintAr: null },
@@ -617,6 +619,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 233, key: "hr.schedule.publish", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Publish the week's roster", ar: "نشر جدول الأسبوع", hintEn: "Staff see a week only once it is published, and are told.", hintAr: "الموظفين بيشوفوا الأسبوع بس بعد ما يتنشر، وبيتبلغوا." },
   { id: 234, key: "hr.expense_advances.log", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Log expense advances", ar: "تسجيل عُهد المصاريف", hintEn: "Cash handed over for shop purchases. A log only: never deducted from pay.", hintAr: "فلوس متسلمة لمشتريات المحل. سجل بس: عمره ما بيتخصم من المرتب." },
   { id: 235, key: "hr.roster.settings", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Change roster settings", ar: "تغيير إعدادات الجدول", hintEn: "How shift suggestions weigh defaults, including the gender default.", hintAr: "إزاي اقتراحات الورديات بتوزن الافتراضيات، ومنها افتراض النوع." },
+  { id: 236, key: "hr.rules.edit", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Change attendance and pay rules", ar: "تغيير قواعد الحضور والمرتبات", hintEn: "The business-wide rules: lateness and absence costs, working days, overtime, the pay period and the advance cap. Needs every branch.", hintAr: "قواعد النشاط كله: خصم التأخير والغياب، أيام الشغل، الوقت الإضافي، فترة المرتب وحد السلف. محتاج كل الفروع." },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [

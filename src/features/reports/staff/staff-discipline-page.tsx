@@ -105,12 +105,12 @@ export function StaffDisciplinePage() {
               <CardContent className="p-4 pt-0">
                 <ul className="divide-y text-sm">
                   {g.rows.map((r) => (
-                    <li key={r.user_id} className="flex items-center justify-between gap-3 py-2.5">
+                    <li key={r.employee_id} className="flex items-center justify-between gap-3 py-2.5">
                       <div className="flex min-w-0 items-center gap-2.5">
                         <Badge variant="outline" className="shrink-0 font-mono tabular-nums">
                           #{r.rank_in_department}
                         </Badge>
-                        <span className="truncate font-medium">{r.user_name}</span>
+                        <span className="truncate font-medium">{r.employee_name}</span>
                       </div>
                       <span className="shrink-0 text-end text-xs text-muted-foreground">
                         {t("reports.staff.rowSummary", {

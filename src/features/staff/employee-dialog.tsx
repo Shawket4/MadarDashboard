@@ -126,7 +126,7 @@ export function EmployeeDialog({
     });
     if (!ok) return;
     try {
-      await revokeDevice(employee.user_id);
+      await revokeDevice(employee.id);
       toast.success(t("dawam.phoneRevoked", "Phone signed out"));
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -137,7 +137,7 @@ export function EmployeeDialog({
     if (!employee) return;
     setBusy(true);
     try {
-      await putEmployee(employee.user_id, {
+      await putEmployee(employee.id, {
         department_id: v.department_id === NONE ? null : v.department_id,
         employee_code: v.employee_code || null,
         job_title: v.job_title || null,

@@ -11,6 +11,8 @@ export interface PresenceRow {
   check_in_at?: string | null;
   /** @nullable */
   check_out_at?: string | null;
+  employee_id: string;
+  employee_name: string;
   /** @nullable */
   job_title?: string | null;
   late_minutes: number;
@@ -21,7 +23,5 @@ export interface PresenceRow {
   scheduled_minutes: number;
   /** `in` | `late` | `absent` | `on_leave` | `off` | `done`. */
   state: string;
-  user_id: string;
-  user_name: string;
   worked_minutes: number;
 }

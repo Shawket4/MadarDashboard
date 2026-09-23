@@ -49,7 +49,7 @@ vi.mock("@/data/scope/use-scope", () => ({
 vi.mock("@/data/api/generated/api", () => ({
   useListBranches: hook("branches", [{ id: "b1", name: "Zamalek" }]),
   useAttendanceSummary: hook("attendance", [
-    { user_id: "e1", user_name: "Sara Ahmed", present_days: 18, late_days: 2, absent_days: 1, leave_days: 0, half_days: 0, total_late_minutes: 35, total_overtime_minutes: 120, total_worked_minutes: 8_640 },
+    { employee_id: "e1", employee_name: "Sara Ahmed", present_days: 18, late_days: 2, absent_days: 1, leave_days: 0, half_days: 0, total_late_minutes: 35, total_overtime_minutes: 120, total_worked_minutes: 8_640 },
   ]),
   useLabourVsSales: hook("labour", [
     { branch_id: "b1", date: "2026-09-02", sales_piastres: 2_000_000, labour_piastres: 400_000, labour_share_bp: 2000 },
@@ -58,8 +58,8 @@ vi.mock("@/data/api/generated/api", () => ({
     { period_id: "p1", name: "Aug", start_date: "2026-07-26", end_date: "2026-08-25", status: "paid", people: 5, base_piastres: 4_500_000, overtime_minutes: 300, overtime_piastres: 90_000, bonuses_piastres: 0, deductions_piastres: 10_000, advances_piastres: 50_000, net_piastres: 4_530_000 },
   ]),
   useAdvances: hook("advances", {
-    salary: [{ id: "a1", user_id: "e1", user_name: "Sara Ahmed", amount_piastres: 300_000, installments: 3, remaining_piastres: 200_000, status: "approved", given_on: "2026-09-03" }],
-    expense: [{ id: "x1", user_id: "e4", user_name: "Youssef Adel", amount_piastres: 25_000, purpose: "Milk", via: "till", given_on: "2026-09-04" }],
+    salary: [{ id: "a1", employee_id: "e1", employee_name: "Sara Ahmed", amount_piastres: 300_000, installments: 3, remaining_piastres: 200_000, status: "approved", given_on: "2026-09-03" }],
+    expense: [{ id: "x1", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 25_000, purpose: "Milk", via: "till", given_on: "2026-09-04" }],
     salary_given_piastres: 300_000, salary_outstanding_piastres: 200_000, expense_given_piastres: 25_000,
   }),
 }));

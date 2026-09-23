@@ -8,6 +8,8 @@ export interface Adjustment {
   /** @nullable */
   created_by?: string | null;
   effective_date: string;
+  employee_id: string;
+  employee_name: string;
   /** @nullable */
   ends_on?: string | null;
   id: string;
@@ -20,6 +22,4 @@ export interface Adjustment {
   source: string;
   /** `pending` (waits for the owner) · `approved` · `rejected` */
   status: string;
-  user_id: string;
-  user_name: string;
 }

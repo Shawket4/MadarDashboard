@@ -6,6 +6,8 @@ export interface ExpenseAdvance {
   /** @nullable */
   branch_id?: string | null;
   created_at: string;
+  employee_id: string;
+  employee_name: string;
   given_on: string;
   /** @nullable */
   handed_by?: string | null;
@@ -13,8 +15,6 @@ export interface ExpenseAdvance {
   handed_by_name?: string | null;
   id: string;
   purpose: string;
-  user_id: string;
-  user_name: string;
   /** `safe` · `bank` · `till` */
   via: string;
 }

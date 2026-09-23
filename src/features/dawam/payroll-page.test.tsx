@@ -69,8 +69,8 @@ vi.mock("@/hooks/use-org-modules", () => ({ useCurrentOrg: () => ({ name: "Madar
 vi.mock("@/data/api/generated/api", () => ({
   useCurrent: hook("current", () => current),
   useListEmployees: hook("employees", () => [
-    { user_id: "e1", name: "Sara Ahmed", pay_method: "bank", pay_account: "EG38 0019" },
-    { user_id: "e4", name: "Youssef Adel", pay_method: "cash" },
+    { id: "e1", name: "Sara Ahmed", pay_method: "bank", pay_account: "EG38 0019" },
+    { id: "e4", name: "Youssef Adel", pay_method: "cash" },
   ] as Partial<Employee>[]),
   useListAdjustments: hook("adjustments", () => []),
   useListAdvances: hook("advances", () => []),
@@ -99,7 +99,7 @@ const wrap = (node: ReactNode) =>
 
 const slip = (user: string, name: string, over: Partial<ComputedPayslip> = {}): ComputedPayslip =>
   ({
-    user_id: user, name, base_piastres: 900_000, base_salary_piastres: 900_000, net_piastres: 880_000,
+    employee_id: user, name, base_piastres: 900_000, base_salary_piastres: 900_000, net_piastres: 880_000,
     overtime_piastres: 0, overtime_minutes: 0, bonuses_piastres: 0, deductions_piastres: 20_000,
     advance_installment_piastres: 0, carry_out_piastres: 0, absent_days: 0, leave_days: 0,
     late_minutes: 12, worked_days: 20,
@@ -151,7 +151,7 @@ describe("PayrollPage", () => {
   it("marks someone paid with their own pay method, and hides reopen once anyone is paid (PAY-6, PAY-7)", async () => {
     const user = userEvent.setup();
     const frozen = (u: string, n: string, paid: string | null) =>
-      ({ ...slip(u, n), id: `s-${u}`, user_name: n, paid_method: paid, payroll_period_id: "p2" }) as unknown as Payslip;
+      ({ ...slip(u, n), id: `s-${u}`, employee_name: n, paid_method: paid, payroll_period_id: "p2" }) as unknown as Payslip;
     current = { ...current!, period: period("generated"), payslips: [frozen("e1", "Sara Ahmed", null), frozen("e4", "Youssef Adel", null)] };
     const { unmount } = wrap(<PayrollPage />);
     expect(screen.getByRole("button", { name: /Reopen/ })).toBeInTheDocument();
@@ -198,7 +198,7 @@ describe("PayrollPage", () => {
     await user.click(within(form).getByRole("button", { name: "Save" }));
     await waitFor(() =>
       expect(calls.createAdjustment).toHaveBeenCalledWith(
-        expect.objectContaining({ user_id: "e4", kind: "bonus", amount_piastres: 15_050, reason: "Best month", percent_of_base: null }),
+        expect.objectContaining({ employee_id: "e4", kind: "bonus", amount_piastres: 15_050, reason: "Best month", percent_of_base: null }),
       ),
     );
   });

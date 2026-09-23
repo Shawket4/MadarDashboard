@@ -2,16 +2,31 @@
 // @ts-nocheck
 
 export interface Employee {
+  /** May sign in to the staff app with a WhatsApp code. */
+  app_access: boolean;
   /**
-     * `None` when the caller lacks `payroll:read` — see the module docs.
+     * `None` when the caller may not read this person's pay — see the module docs.
      * @nullable
      */
   base_salary_piastres?: number | null;
+  /** Where they work; managers see the people of their branches (RO-6). */
+  branch_ids: string[];
+  /** Days they can't work: 0 = Sunday … 6 = Saturday. */
+  cant_work_days: number[];
   created_at: string;
   /** @nullable */
   department_id?: string | null;
   /** @nullable */
   department_name?: string | null;
+  /** @nullable */
+  device_last_seen?: string | null;
+  /**
+     * The live phone signed in to the staff app, if any.
+     * @nullable
+     */
+  device_model?: string | null;
+  /** @nullable */
+  device_since?: string | null;
   /** @nullable */
   email?: string | null;
   /** @nullable */
@@ -20,6 +35,7 @@ export interface Employee {
   emergency_contact_phone?: string | null;
   /** @nullable */
   employee_code?: string | null;
+  /** `active` · `suspended` · `terminated` */
   employment_status: string;
   /**
      * `m` · `f` · null — only ever a soft default for late shifts (SC-13).
@@ -28,13 +44,14 @@ export interface Employee {
   gender?: string | null;
   /** @nullable */
   hire_date?: string | null;
-  is_active: boolean;
+  id: string;
   /** @nullable */
   job_title?: string | null;
   /**
-     * From `users` — the employee's name IS their user name; there is no
-     * second copy to drift.
+     * `linked` · `app` (signs in to the staff app, no Madar account) ·
+     * `manual` (records only, no app).
      */
+  kind: string;
   name: string;
   /** @nullable */
   national_id?: string | null;
@@ -50,12 +67,22 @@ export interface Employee {
   /** @nullable */
   photo_url?: string | null;
   /**
-     * The POS role. Orthogonal to employment: a cleaner is a `teller`-role user
-     * with the POS permissions revoked.
+     * `morning` · `evening` · null
+     * @nullable
      */
-  role: string;
+  pref_time?: string | null;
+  /**
+     * The linked user's POS role; null for an unlinked employee.
+     * @nullable
+     */
+  role?: string | null;
   /** @nullable */
   termination_date?: string | null;
   updated_at: string;
-  user_id: string;
+  /**
+     * The linked Madar user, when this employee is one (a cashier, a manager,
+     * the owner). Null for someone who is only on payroll.
+     * @nullable
+     */
+  user_id?: string | null;
 }

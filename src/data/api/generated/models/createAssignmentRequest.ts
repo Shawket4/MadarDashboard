@@ -11,6 +11,6 @@ export interface CreateAssignmentRequest {
   effective_from?: string | null;
   /** @nullable */
   effective_to?: string | null;
-  user_id: string;
+  employee_id: string;
   work_shift_id: string;
 }

@@ -10,6 +10,9 @@ export interface Payslip {
   /** What deductions exceeded pay by; carried into the next payslip (PAY-12). */
   carry_out_piastres: number;
   deductions_piastres: number;
+  employee_id: string;
+  /** @nullable */
+  employee_name?: string | null;
   generated_at: string;
   id: string;
   late_minutes: number;
@@ -37,8 +40,5 @@ export interface Payslip {
   period_name?: string | null;
   /** @nullable */
   period_start?: string | null;
-  user_id: string;
-  /** @nullable */
-  user_name?: string | null;
   worked_days: number;
 }

@@ -297,6 +297,7 @@ import type {
   LegacyListTillEntitiesParams,
   LegacyTill,
   LiabilityTrend,
+  LinkableUser,
   LintIssue,
   ListAddonCatalogParams,
   ListAddonCostsParams,
@@ -417,6 +418,7 @@ import type {
   OrgInventorySettings,
   OrgLoyaltyQrParams,
   OrgMaterialCostTrendParams,
+  OrgModules,
   OrgPaymentMethod,
   OrgPoLeadTimeParams,
   OrgQrParams,
@@ -587,6 +589,7 @@ import type {
   StaffPoolToday,
   StaffRequest,
   StaffSession,
+  StaffTokenRefresh,
   StationRoutes,
   StatusInput,
   StockMovement,
@@ -2113,6 +2116,79 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getStaffOtpVerifyMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary A fresh staff token for the phone that sends its device token in
+`X-Staff-Device` (RO-3). The device is the refresh credential: once it is
+revoked (a new phone, a new number, the employee deactivated) this answers
+401 `DEVICE_REVOKED` and the app signs out. The same checks as every
+`/staff/*` call: the employee is active with app access, the business is
+active and has Dawam on.
+ */
+export const staffTokenRefresh = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StaffTokenRefresh>(
+      {url: `/auth/staff/refresh`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getStaffTokenRefreshMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof staffTokenRefresh>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof staffTokenRefresh>>, TError,void, TContext> => {
+
+const mutationKey = ['staffTokenRefresh'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof staffTokenRefresh>>, void> = () => {
+
+
+          return  staffTokenRefresh(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StaffTokenRefreshMutationResult = NonNullable<Awaited<ReturnType<typeof staffTokenRefresh>>>
+
+    export type StaffTokenRefreshMutationError = ErrorBody
+
+    /**
+ * @summary A fresh staff token for the phone that sends its device token in
+`X-Staff-Device` (RO-3). The device is the refresh credential: once it is
+revoked (a new phone, a new number, the employee deactivated) this answers
+401 `DEVICE_REVOKED` and the app signs out. The same checks as every
+`/staff/*` call: the employee is active with app access, the business is
+active and has Dawam on.
+ */
+export const useStaffTokenRefresh = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof staffTokenRefresh>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof staffTokenRefresh>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getStaffTokenRefreshMutationOptions(options), queryClient);
     }
 
 export const explain = (
@@ -20830,6 +20906,105 @@ export function useOrgLoyaltyQr<TData = Awaited<ReturnType<typeof orgLoyaltyQr>>
 
 
 
+/**
+ * @summary The org's modules, for anyone who works there: the dashboard routes by
+the server's answer (PS-3), and a branch manager cannot read the org
+itself (`orgs:read` is the owner's). Switching them is `PATCH /orgs/{id}`,
+a super admin's alone (SA-1).
+ */
+export const getOrgModules = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrgModules>(
+      {url: `/orgs/${id}/modules`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetOrgModulesQueryKey = (id: string,) => {
+    return [
+    `/orgs/${id}/modules`
+    ] as const;
+    }
+
+
+export const getGetOrgModulesQueryOptions = <TData = Awaited<ReturnType<typeof getOrgModules>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrgModules>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrgModulesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrgModules>>> = ({ signal }) => getOrgModules(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrgModules>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrgModulesQueryResult = NonNullable<Awaited<ReturnType<typeof getOrgModules>>>
+export type GetOrgModulesQueryError = ErrorBody
+
+
+export function useGetOrgModules<TData = Awaited<ReturnType<typeof getOrgModules>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrgModules>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrgModules>>,
+          TError,
+          Awaited<ReturnType<typeof getOrgModules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrgModules<TData = Awaited<ReturnType<typeof getOrgModules>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrgModules>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrgModules>>,
+          TError,
+          Awaited<ReturnType<typeof getOrgModules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrgModules<TData = Awaited<ReturnType<typeof getOrgModules>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrgModules>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The org's modules, for anyone who works there: the dashboard routes by
+the server's answer (PS-3), and a branch manager cannot read the org
+itself (`orgs:read` is the owner's). Switching them is `PATCH /orgs/{id}`,
+a super admin's alone (SA-1).
+ */
+
+export function useGetOrgModules<TData = Awaited<ReturnType<typeof getOrgModules>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrgModules>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrgModulesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const offlineAuthBundle = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -34381,9 +34556,9 @@ export const useDecideOvertime = <TError = ErrorBody,
     }
 
 /**
- * @summary Active staff at a branch, names only: what a till shows to tag a pay-out
-as someone's expense advance (AV-8). Anyone who works the branch may read
-it; nothing about pay is in it.
+ * @summary Active employees at a branch, names only: what a till shows to tag a
+pay-out as someone's expense advance (AV-8). Anyone who works the branch
+may read it; nothing about pay is in it.
  */
 export const branchPeople = (
     branchId: string,
@@ -34454,9 +34629,9 @@ export function useBranchPeople<TData = Awaited<ReturnType<typeof branchPeople>>
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Active staff at a branch, names only: what a till shows to tag a pay-out
-as someone's expense advance (AV-8). Anyone who works the branch may read
-it; nothing about pay is in it.
+ * @summary Active employees at a branch, names only: what a till shows to tag a
+pay-out as someone's expense advance (AV-8). Anyone who works the branch
+may read it; nothing about pay is in it.
  */
 
 export function useBranchPeople<TData = Awaited<ReturnType<typeof branchPeople>>, TError = ErrorBody>(
@@ -34974,9 +35149,9 @@ export function useListEmployees<TData = Awaited<ReturnType<typeof listEmployees
 
 
 /**
- * @summary Add a Dawam employee: a user who signs in with a WhatsApp code, so no
-password or till PIN (a manager can give them a PIN later to work a till).
-Used by the Add Employee form and the spreadsheet import (DSH-7).
+ * @summary Add an employee: linked to an existing user, or without one (with or
+without the staff app). Used by the Employees page, the set-up wizard and
+the spreadsheet import (DSH-7). Never creates a login.
  */
 export const createEmployee = (
     createEmployeeRequest: CreateEmployeeRequest,
@@ -35027,9 +35202,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateEmployeeMutationError = ErrorBody
 
     /**
- * @summary Add a Dawam employee: a user who signs in with a WhatsApp code, so no
-password or till PIN (a manager can give them a PIN later to work a till).
-Used by the Add Employee form and the spreadsheet import (DSH-7).
+ * @summary Add an employee: linked to an existing user, or without one (with or
+without the staff app). Used by the Employees page, the set-up wizard and
+the spreadsheet import (DSH-7). Never creates a login.
  */
 export const useCreateEmployee = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployee>>, TError,{data: CreateEmployeeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -35042,14 +35217,18 @@ export const useCreateEmployee = <TError = ErrorBody,
       return useMutation(getCreateEmployeeMutationOptions(options), queryClient);
     }
 
-export const getEmployee = (
-    userId: string,
+/**
+ * @summary The org's users who are not employees yet: the "make this user an
+employee" picker.
+ */
+export const linkableUsers = (
+
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
-      return customInstance<Employee>(
-      {url: `/staff/employees/${userId}`, method: 'GET', signal
+      return customInstance<LinkableUser[]>(
+      {url: `/staff/employees/linkable`, method: 'GET', signal
     },
       options);
     }
@@ -35057,29 +35236,120 @@ export const getEmployee = (
 
 
 
-export const getGetEmployeeQueryKey = (userId: string,) => {
+export const getLinkableUsersQueryKey = () => {
     return [
-    `/staff/employees/${userId}`
+    `/staff/employees/linkable`
     ] as const;
     }
 
 
-export const getGetEmployeeQueryOptions = <TData = Awaited<ReturnType<typeof getEmployee>>, TError = ErrorBody>(userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getLinkableUsersQueryOptions = <TData = Awaited<ReturnType<typeof linkableUsers>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof linkableUsers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeQueryKey(userId);
+  const queryKey =  queryOptions?.queryKey ?? getLinkableUsersQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployee>>> = ({ signal }) => getEmployee(userId, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof linkableUsers>>> = ({ signal }) => linkableUsers(requestOptions, signal);
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: userId !== null && userId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof linkableUsers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LinkableUsersQueryResult = NonNullable<Awaited<ReturnType<typeof linkableUsers>>>
+export type LinkableUsersQueryError = ErrorBody
+
+
+export function useLinkableUsers<TData = Awaited<ReturnType<typeof linkableUsers>>, TError = ErrorBody>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof linkableUsers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof linkableUsers>>,
+          TError,
+          Awaited<ReturnType<typeof linkableUsers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLinkableUsers<TData = Awaited<ReturnType<typeof linkableUsers>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof linkableUsers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof linkableUsers>>,
+          TError,
+          Awaited<ReturnType<typeof linkableUsers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useLinkableUsers<TData = Awaited<ReturnType<typeof linkableUsers>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof linkableUsers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The org's users who are not employees yet: the "make this user an
+employee" picker.
+ */
+
+export function useLinkableUsers<TData = Awaited<ReturnType<typeof linkableUsers>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof linkableUsers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLinkableUsersQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getEmployee = (
+    employeeId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Employee>(
+      {url: `/staff/employees/${employeeId}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetEmployeeQueryKey = (employeeId: string,) => {
+    return [
+    `/staff/employees/${employeeId}`
+    ] as const;
+    }
+
+
+export const getGetEmployeeQueryOptions = <TData = Awaited<ReturnType<typeof getEmployee>>, TError = ErrorBody>(employeeId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmployeeQueryKey(employeeId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmployee>>> = ({ signal }) => getEmployee(employeeId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: employeeId !== null && employeeId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetEmployeeQueryResult = NonNullable<Awaited<ReturnType<typeof getEmployee>>>
@@ -35087,7 +35357,7 @@ export type GetEmployeeQueryError = ErrorBody
 
 
 export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = ErrorBody>(
- userId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>> & Pick<
+ employeeId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getEmployee>>,
           TError,
@@ -35097,7 +35367,7 @@ export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, 
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = ErrorBody>(
- userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>> & Pick<
+ employeeId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getEmployee>>,
           TError,
@@ -35107,16 +35377,16 @@ export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, 
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = ErrorBody>(
- userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ employeeId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, TError = ErrorBody>(
- userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ employeeId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEmployee>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetEmployeeQueryOptions(userId,options)
+  const queryOptions = getGetEmployeeQueryOptions(employeeId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -35130,14 +35400,14 @@ export function useGetEmployee<TData = Awaited<ReturnType<typeof getEmployee>>, 
 
 
 export const putEmployee = (
-    userId: string,
+    employeeId: string,
     putEmployeeRequest: PutEmployeeRequest,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<Employee>(
-      {url: `/staff/employees/${userId}`, method: 'PUT',
+      {url: `/staff/employees/${employeeId}`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: putEmployeeRequest, signal
     },
@@ -35148,8 +35418,8 @@ export const putEmployee = (
 
 
 export const getPutEmployeeMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEmployee>>, TError,{userId: string;data: PutEmployeeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof putEmployee>>, TError,{userId: string;data: PutEmployeeRequest}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEmployee>>, TError,{employeeId: string;data: PutEmployeeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putEmployee>>, TError,{employeeId: string;data: PutEmployeeRequest}, TContext> => {
 
 const mutationKey = ['putEmployee'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -35161,10 +35431,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putEmployee>>, {userId: string;data: PutEmployeeRequest}> = (props) => {
-          const {userId,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putEmployee>>, {employeeId: string;data: PutEmployeeRequest}> = (props) => {
+          const {employeeId,data} = props ?? {};
 
-          return  putEmployee(userId,data,requestOptions)
+          return  putEmployee(employeeId,data,requestOptions)
         }
 
 
@@ -35179,24 +35449,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type PutEmployeeMutationError = ErrorBody
 
     export const usePutEmployee = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEmployee>>, TError,{userId: string;data: PutEmployeeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEmployee>>, TError,{employeeId: string;data: PutEmployeeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof putEmployee>>,
         TError,
-        {userId: string;data: PutEmployeeRequest},
+        {employeeId: string;data: PutEmployeeRequest},
         TContext
       > => {
       return useMutation(getPutEmployeeMutationOptions(options), queryClient);
     }
 
 export const deleteEmployee = (
-    userId: string,
+    employeeId: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<void>(
-      {url: `/staff/employees/${userId}`, method: 'DELETE', signal
+      {url: `/staff/employees/${employeeId}`, method: 'DELETE', signal
     },
       options);
     }
@@ -35205,8 +35475,8 @@ export const deleteEmployee = (
 
 
 export const getDeleteEmployeeMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,{userId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,{userId: string}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,{employeeId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,{employeeId: string}, TContext> => {
 
 const mutationKey = ['deleteEmployee'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -35218,10 +35488,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEmployee>>, {userId: string}> = (props) => {
-          const {userId} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEmployee>>, {employeeId: string}> = (props) => {
+          const {employeeId} = props ?? {};
 
-          return  deleteEmployee(userId,requestOptions)
+          return  deleteEmployee(employeeId,requestOptions)
         }
 
 
@@ -35236,27 +35506,28 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteEmployeeMutationError = ErrorBody
 
     export const useDeleteEmployee = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,{userId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEmployee>>, TError,{employeeId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteEmployee>>,
         TError,
-        {userId: string},
+        {employeeId: string},
         TContext
       > => {
       return useMutation(getDeleteEmployeeMutationOptions(options), queryClient);
     }
 
 /**
- * @summary Sign a person's phone out now (RO-4).
+ * @summary Sign a person's phone out now (RO-4): the device, every staff token minted
+for it, and its pushes.
  */
 export const revokeDevice = (
-    userId: string,
+    employeeId: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<void>(
-      {url: `/staff/employees/${userId}/device`, method: 'DELETE', signal
+      {url: `/staff/employees/${employeeId}/device`, method: 'DELETE', signal
     },
       options);
     }
@@ -35265,8 +35536,8 @@ export const revokeDevice = (
 
 
 export const getRevokeDeviceMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeDevice>>, TError,{userId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof revokeDevice>>, TError,{userId: string}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeDevice>>, TError,{employeeId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeDevice>>, TError,{employeeId: string}, TContext> => {
 
 const mutationKey = ['revokeDevice'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -35278,10 +35549,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeDevice>>, {userId: string}> = (props) => {
-          const {userId} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeDevice>>, {employeeId: string}> = (props) => {
+          const {employeeId} = props ?? {};
 
-          return  revokeDevice(userId,requestOptions)
+          return  revokeDevice(employeeId,requestOptions)
         }
 
 
@@ -35296,27 +35567,28 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type RevokeDeviceMutationError = ErrorBody
 
     /**
- * @summary Sign a person's phone out now (RO-4).
+ * @summary Sign a person's phone out now (RO-4): the device, every staff token minted
+for it, and its pushes.
  */
 export const useRevokeDevice = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeDevice>>, TError,{userId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeDevice>>, TError,{employeeId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof revokeDevice>>,
         TError,
-        {userId: string},
+        {employeeId: string},
         TContext
       > => {
       return useMutation(getRevokeDeviceMutationOptions(options), queryClient);
     }
 
 export const listDocuments = (
-    userId: string,
+    employeeId: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<StaffDocument[]>(
-      {url: `/staff/employees/${userId}/documents`, method: 'GET', signal
+      {url: `/staff/employees/${employeeId}/documents`, method: 'GET', signal
     },
       options);
     }
@@ -35324,29 +35596,29 @@ export const listDocuments = (
 
 
 
-export const getListDocumentsQueryKey = (userId: string,) => {
+export const getListDocumentsQueryKey = (employeeId: string,) => {
     return [
-    `/staff/employees/${userId}/documents`
+    `/staff/employees/${employeeId}/documents`
     ] as const;
     }
 
 
-export const getListDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listDocuments>>, TError = ErrorBody>(userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getListDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listDocuments>>, TError = ErrorBody>(employeeId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListDocumentsQueryKey(userId);
+  const queryKey =  queryOptions?.queryKey ?? getListDocumentsQueryKey(employeeId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDocuments>>> = ({ signal }) => listDocuments(userId, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDocuments>>> = ({ signal }) => listDocuments(employeeId, requestOptions, signal);
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: userId !== null && userId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: employeeId !== null && employeeId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ListDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof listDocuments>>>
@@ -35354,7 +35626,7 @@ export type ListDocumentsQueryError = ErrorBody
 
 
 export function useListDocuments<TData = Awaited<ReturnType<typeof listDocuments>>, TError = ErrorBody>(
- userId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData>> & Pick<
+ employeeId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listDocuments>>,
           TError,
@@ -35364,7 +35636,7 @@ export function useListDocuments<TData = Awaited<ReturnType<typeof listDocuments
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListDocuments<TData = Awaited<ReturnType<typeof listDocuments>>, TError = ErrorBody>(
- userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData>> & Pick<
+ employeeId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listDocuments>>,
           TError,
@@ -35374,16 +35646,16 @@ export function useListDocuments<TData = Awaited<ReturnType<typeof listDocuments
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListDocuments<TData = Awaited<ReturnType<typeof listDocuments>>, TError = ErrorBody>(
- userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ employeeId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListDocuments<TData = Awaited<ReturnType<typeof listDocuments>>, TError = ErrorBody>(
- userId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ employeeId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listDocuments>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListDocumentsQueryOptions(userId,options)
+  const queryOptions = getListDocumentsQueryOptions(employeeId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -35397,14 +35669,14 @@ export function useListDocuments<TData = Awaited<ReturnType<typeof listDocuments
 
 
 export const createDocument = (
-    userId: string,
+    employeeId: string,
     createDocumentRequest: CreateDocumentRequest,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<StaffDocument>(
-      {url: `/staff/employees/${userId}/documents`, method: 'POST',
+      {url: `/staff/employees/${employeeId}/documents`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createDocumentRequest, signal
     },
@@ -35415,8 +35687,8 @@ export const createDocument = (
 
 
 export const getCreateDocumentMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDocument>>, TError,{userId: string;data: CreateDocumentRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createDocument>>, TError,{userId: string;data: CreateDocumentRequest}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDocument>>, TError,{employeeId: string;data: CreateDocumentRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof createDocument>>, TError,{employeeId: string;data: CreateDocumentRequest}, TContext> => {
 
 const mutationKey = ['createDocument'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -35428,10 +35700,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDocument>>, {userId: string;data: CreateDocumentRequest}> = (props) => {
-          const {userId,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDocument>>, {employeeId: string;data: CreateDocumentRequest}> = (props) => {
+          const {employeeId,data} = props ?? {};
 
-          return  createDocument(userId,data,requestOptions)
+          return  createDocument(employeeId,data,requestOptions)
         }
 
 
@@ -35446,11 +35718,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateDocumentMutationError = ErrorBody
 
     export const useCreateDocument = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDocument>>, TError,{userId: string;data: CreateDocumentRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDocument>>, TError,{employeeId: string;data: CreateDocumentRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createDocument>>,
         TError,
-        {userId: string;data: CreateDocumentRequest},
+        {employeeId: string;data: CreateDocumentRequest},
         TContext
       > => {
       return useMutation(getCreateDocumentMutationOptions(options), queryClient);
@@ -37547,8 +37819,9 @@ export const usePutPreferences = <TError = ErrorBody,
     }
 
 /**
- * @summary `PUT /staff/me/push-token` — kept for old app builds; registers through
-the same `push_devices` table as `PUT /push/token` (app = `"dawam"`).
+ * @summary `PUT /staff/me/push-token` — the staff app registers its phone for the
+employee through the same `push_devices` table as `PUT /push/token`
+(app = `"dawam"`).
  */
 export const setStaffPushToken = (
     pushToken: PushToken,
@@ -37599,8 +37872,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type SetStaffPushTokenMutationError = ErrorBody
 
     /**
- * @summary `PUT /staff/me/push-token` — kept for old app builds; registers through
-the same `push_devices` table as `PUT /push/token` (app = `"dawam"`).
+ * @summary `PUT /staff/me/push-token` — the staff app registers its phone for the
+employee through the same `push_devices` table as `PUT /push/token`
+(app = `"dawam"`).
  */
 export const useSetStaffPushToken = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setStaffPushToken>>, TError,{data: PushToken}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -39727,14 +40001,14 @@ export function useListPayslips<TData = Awaited<ReturnType<typeof listPayslips>>
  */
 export const markPaid = (
     id: string,
-    userId: string,
+    employeeId: string,
     markPaid: MarkPaid,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<Payslip>(
-      {url: `/staff/payroll/periods/${id}/payslips/${userId}/paid`, method: 'PATCH',
+      {url: `/staff/payroll/periods/${id}/payslips/${employeeId}/paid`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: markPaid, signal
     },
@@ -39745,8 +40019,8 @@ export const markPaid = (
 
 
 export const getMarkPaidMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPaid>>, TError,{id: string;userId: string;data: MarkPaid}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof markPaid>>, TError,{id: string;userId: string;data: MarkPaid}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPaid>>, TError,{id: string;employeeId: string;data: MarkPaid}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof markPaid>>, TError,{id: string;employeeId: string;data: MarkPaid}, TContext> => {
 
 const mutationKey = ['markPaid'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -39758,10 +40032,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markPaid>>, {id: string;userId: string;data: MarkPaid}> = (props) => {
-          const {id,userId,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markPaid>>, {id: string;employeeId: string;data: MarkPaid}> = (props) => {
+          const {id,employeeId,data} = props ?? {};
 
-          return  markPaid(id,userId,data,requestOptions)
+          return  markPaid(id,employeeId,data,requestOptions)
         }
 
 
@@ -39779,11 +40053,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
  * @summary Mark one payslip paid; the period is paid once everyone is (PAY-7).
  */
 export const useMarkPaid = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPaid>>, TError,{id: string;userId: string;data: MarkPaid}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPaid>>, TError,{id: string;employeeId: string;data: MarkPaid}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof markPaid>>,
         TError,
-        {id: string;userId: string;data: MarkPaid},
+        {id: string;employeeId: string;data: MarkPaid},
         TContext
       > => {
       return useMutation(getMarkPaidMutationOptions(options), queryClient);
