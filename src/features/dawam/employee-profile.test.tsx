@@ -45,6 +45,15 @@ const open = (e: Employee) =>
   );
 
 describe("EmployeeDialog · Dawam", () => {
+  it("keeps numbers left-to-right in Arabic: emergency phone, national ID, account", async () => {
+    // E2E (AR): "+201100000010" showed as "201100000010+" in an RTL input.
+    open(sara);
+    for (const label of ["Emergency phone", "National ID", "Account (IBAN)"]) {
+      expect(await screen.findByLabelText(label)).toHaveAttribute("dir", "ltr");
+    }
+    expect(screen.getByLabelText("Emergency phone")).toHaveAttribute("type", "tel");
+  });
+
   it("saves gender, pay method and account", async () => {
     const user = userEvent.setup();
     open(sara);

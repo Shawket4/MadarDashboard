@@ -440,7 +440,7 @@ export function EmployeeDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{payMethod === "bank" ? t("dawam.iban", "Account (IBAN)") : t("dawam.walletNumber", "Wallet number")}</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
+                    <FormControl><Input dir="ltr" {...field} /></FormControl>
                     <FormDescription>{t("dawam.payAccountHint", "Goes on the bank and wallet lists when payroll is approved.")}</FormDescription>
                   </FormItem>
                 )}
@@ -452,7 +452,7 @@ export function EmployeeDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("staff.nationalId", "National ID")}</FormLabel>
-                  <FormControl><Input {...field} /></FormControl>
+                  <FormControl><Input dir="ltr" inputMode="numeric" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -474,7 +474,7 @@ export function EmployeeDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("staff.emergencyPhone", "Emergency phone")}</FormLabel>
-                  <FormControl><Input {...field} /></FormControl>
+                  <FormControl><Input type="tel" inputMode="tel" dir="ltr" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}
