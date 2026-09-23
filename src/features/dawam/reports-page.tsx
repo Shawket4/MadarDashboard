@@ -30,7 +30,7 @@ import { useOrgModules } from "@/hooks/use-org-modules";
 import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";
 import { cairoParts, fmtDate, fmtMoney } from "@/lib/format";
-import { fmtMinutes } from "@/features/staff/util";
+import { fmtHours } from "@/features/staff/util";
 
 /** A scope instant → the calendar day the backend's date params want, in the active zone. */
 const localDate = (iso: string) => {
@@ -155,9 +155,9 @@ function AttendanceTab({ params }: { params: Params }) {
     { id: "late", header: t("dawam.stateLate", "Late"), value: (r) => r.late_days, numeric: true },
     { id: "absent", header: t("dawam.stateAbsent", "Absent"), value: (r) => r.absent_days, numeric: true },
     { id: "leave", header: t("dawam.state_on_leave", "On leave"), value: (r) => r.leave_days, numeric: true },
-    { id: "worked", header: t("dawam.rWorked", "Worked"), value: (r) => fmtMinutes(r.total_worked_minutes), numeric: true },
-    { id: "lateMin", header: t("dawam.rLateTime", "Late time"), value: (r) => fmtMinutes(r.total_late_minutes), numeric: true },
-    { id: "ot", header: t("dawam.overtime", "Overtime"), value: (r) => fmtMinutes(r.total_overtime_minutes), numeric: true },
+    { id: "worked", header: t("dawam.rWorked", "Worked"), value: (r) => fmtHours(r.total_worked_minutes), numeric: true },
+    { id: "lateMin", header: t("dawam.rLateTime", "Late time"), value: (r) => fmtHours(r.total_late_minutes), numeric: true },
+    { id: "ot", header: t("dawam.overtime", "Overtime"), value: (r) => fmtHours(r.total_overtime_minutes), numeric: true },
   ];
   return (
     <div className="space-y-4">
@@ -165,7 +165,7 @@ function AttendanceTab({ params }: { params: Params }) {
         <StatCard label={t("dawam.people", "People")} value={rows.length} formatType="number" loading={q.isLoading} />
         <StatCard label={t("dawam.stateLate", "Late")} value={sum(rows, (r) => r.late_days)} formatType="number" loading={q.isLoading} />
         <StatCard label={t("dawam.stateAbsent", "Absent")} value={sum(rows, (r) => r.absent_days)} formatType="number" loading={q.isLoading} />
-        <StatCard label={t("dawam.overtime", "Overtime")} value={fmtMinutes(sum(rows, (r) => r.total_overtime_minutes))} loading={q.isLoading} />
+        <StatCard label={t("dawam.overtime", "Overtime")} value={fmtHours(sum(rows, (r) => r.total_overtime_minutes))} loading={q.isLoading} />
       </div>
       <Table name="attendance" cols={cols} rows={rows} loading={q.isLoading} empty={t("dawam.rEmpty", "Nothing in this period")} error={q.error} onRetry={() => void q.refetch()} />
     </div>
@@ -211,7 +211,7 @@ function PayrollTab({ params }: { params: Params }) {
     { id: "period", header: t("dawam.period", "Period"), value: (r) => `${fmtDate(r.start_date)} – ${fmtDate(r.end_date)}` },
     { id: "people", header: t("dawam.people", "People"), value: (r) => r.people, numeric: true },
     { id: "base", header: t("dawam.salary", "Salary"), value: (r) => r.base_piastres, money: true },
-    { id: "otMin", header: t("dawam.rOtTime", "Overtime hours"), value: (r) => fmtMinutes(r.overtime_minutes), numeric: true },
+    { id: "otMin", header: t("dawam.rOtTime", "Overtime hours"), value: (r) => fmtHours(r.overtime_minutes), numeric: true },
     { id: "ot", header: t("dawam.overtime", "Overtime"), value: (r) => r.overtime_piastres, money: true },
     { id: "bonuses", header: t("dawam.bonuses", "Bonuses"), value: (r) => r.bonuses_piastres, money: true },
     { id: "deductions", header: t("dawam.deductions", "Deductions"), value: (r) => r.deductions_piastres, money: true },

@@ -33,7 +33,7 @@ import { EXPORT_REQUEST } from "@/lib/export-all";
 import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
 import { CorrectRecordDialog, ManualRecordDialog } from "./attendance-dialogs";
 import {
-  ATTENDANCE_STATUS_TONE, fmtMinutes, isoDaysFromToday, todayIso,
+  ATTENDANCE_STATUS_TONE, fmtHours, fmtMinutes, isoDaysFromToday, todayIso,
 } from "./util";
 
 const ALL = "__all__";
@@ -279,7 +279,7 @@ export function AttendancePage() {
         <StatCard icon={CalendarCheck} label={t("staff.presentDays", "Present days")} value={totals.present} loading={summaryQ.isLoading} />
         <StatCard icon={AlarmClock} label={t("staff.lateDays", "Late days")} value={totals.late} loading={summaryQ.isLoading} />
         <StatCard icon={CalendarX} label={t("staff.absentDays", "Absent days")} value={totals.absent} loading={summaryQ.isLoading} />
-        <StatCard icon={Timer} label={t("staff.overtime", "Overtime")} value={fmtMinutes(totals.overtime)} loading={summaryQ.isLoading} />
+        <StatCard icon={Timer} label={t("staff.overtime", "Overtime")} value={fmtHours(totals.overtime)} loading={summaryQ.isLoading} />
       </div>
 
       <DataTable

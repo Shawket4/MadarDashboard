@@ -86,6 +86,12 @@ describe("StaffReportsPage", () => {
     expect(seen.attendance[0]).toEqual({ from: expect.stringMatching(/^2026-09-01$/), to: "2026-09-21", branch_id: "b1" });
   });
 
+  it("counts a month's worked time in hours, never days (E2E: 'Worked 7d 00h')", () => {
+    wrap();
+    expect(screen.getAllByText("144h").length).toBeGreaterThan(0);
+    expect(screen.queryByText("6d 00h")).not.toBeInTheDocument();
+  });
+
   it("has no labour-vs-sales tab without POS (DSH-4)", () => {
     modules = ["dawam"];
     wrap();
