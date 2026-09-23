@@ -30,6 +30,12 @@ export interface PutAttendanceSettingsRequest {
   half_day_leave_counts?: string | null;
   /** @nullable */
   holiday_multiplier?: number | null;
+  /**
+     * Branch only: rules to take from the business again (field names, as
+     * in `overridden`).
+     * @nullable
+     */
+  inherit?: string[] | null;
   /** @nullable */
   late_deduction_tiers?: LateTier[] | null;
   /** @nullable */

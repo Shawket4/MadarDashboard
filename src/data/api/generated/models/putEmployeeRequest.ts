@@ -52,6 +52,12 @@ export interface PutEmployeeRequest {
   national_id?: string | null;
   /** @nullable */
   notes?: string | null;
+  /**
+     * Paid through Dawam. Like the salary, ignored unless the caller has
+     * `hr.payroll.edit` for every branch.
+     * @nullable
+     */
+  on_payroll?: boolean | null;
   /** @nullable */
   pay_account?: string | null;
   /**

@@ -33,7 +33,6 @@ import type {
   AddonSlot,
   AdjustRequest,
   Adjustment,
-  AdvanceDecision,
   AdvancesParams,
   AdvancesReport,
   AiChatRequest,
@@ -52,6 +51,7 @@ import type {
   AttendanceSummary,
   AttendanceSummaryParams,
   AuditReport,
+  AuditRow,
   AuthPermissionsResponse,
   AuthzPublicKey,
   AvailabilityResponse,
@@ -85,6 +85,7 @@ import type {
   BranchPoLeadTimeParams,
   BranchPosMetricsParams,
   BranchQrParams,
+  BranchRules,
   BranchSalesParams,
   BranchSalesPeakDaysParams,
   BranchSalesPeakHoursParams,
@@ -141,7 +142,6 @@ import type {
   CreateActivationCodeRequest,
   CreateAddonItemRequest,
   CreateAddonSlotRequest,
-  CreateAdjustmentRequest,
   CreateAdvanceRequest,
   CreateAssignmentRequest,
   CreateBookingRequest,
@@ -191,6 +191,7 @@ import type {
   Customer,
   CustomerAddress,
   CustomerDetail,
+  DayView,
   Decide,
   DecidePay,
   DecideRoster,
@@ -208,6 +209,7 @@ import type {
   DeleteIngredientCategoryParams,
   DeleteItemRouteParams,
   DeleteLoyaltySettingsParams,
+  DeleteRecordParams,
   DeleteStaffPoolSettingsParams,
   DeleteZoneParams,
   DeliveryMenu,
@@ -233,7 +235,9 @@ import type {
   ExplainParams,
   Explanation,
   ExportOrdersParams,
+  ExportPeriodCsvParams,
   ExportResponse,
+  FairnessAudit,
   FairnessParams,
   FairnessView,
   FeedParams,
@@ -293,7 +297,6 @@ import type {
   LabourDay,
   LabourVsSalesParams,
   LeaveBalance,
-  LeaveType,
   LegacyListTillEntitiesParams,
   LegacyTill,
   LiabilityTrend,
@@ -307,7 +310,7 @@ import type {
   ListAssignmentsParams,
   ListAttendanceFlagsParams,
   ListAttendanceParams,
-  ListBalancesParams,
+  ListAuditParams,
   ListBonusesParams,
   ListBookingsParams,
   ListBranchAddonOverridesParams,
@@ -383,7 +386,9 @@ import type {
   MergeCustomerRequest,
   MetricsQueryRequest,
   MetricsQueryResponse,
+  MoveShiftRequest,
   MoveTicketTableRequest,
+  MoveView,
   MyAttendanceParams,
   MyAttendanceToday,
   MyAuthz,
@@ -464,6 +469,7 @@ import type {
   PolicyEntry,
   PosMetricsReport,
   PostOpenShift,
+  PreferenceChange,
   Preferences,
   PrepTimeInput,
   PreviewIngredient,
@@ -473,6 +479,7 @@ import type {
   PriceOverrideOut,
   PriceOverrideRequest,
   PriceOverridesParams,
+  PrivacyAccepted,
   ProvisionOrgRequest,
   ProvisionedOrg,
   PublicBookingBranch,
@@ -498,8 +505,8 @@ import type {
   PushToken,
   PutAllowedAddonsRequest,
   PutAttendanceSettingsRequest,
-  PutBalanceRequest,
   PutCoverage,
+  PutDayRequest,
   PutEarningItems,
   PutEmployeeRequest,
   PutItemOptionsRequest,
@@ -513,6 +520,7 @@ import type {
   PutSizeBaseRequest,
   PutSizesRequest,
   PutTargetRequest,
+  PutTimesRequest,
   QrResponse,
   QuoteResponse,
   ReadNotifications,
@@ -524,6 +532,7 @@ import type {
   RecipeLinkInfo,
   RecipeStep,
   RecipeStepPreset,
+  RecordAdvance,
   RecordStaffDrinkRequest,
   RecordWasteRequest,
   RefundFull,
@@ -542,6 +551,7 @@ import type {
   ReplayFlag,
   RepricingReport,
   RequestDecision,
+  ResetDayParams,
   ResolveBranchRequest,
   ResolveBranchResponse,
   ResolveFlag,
@@ -596,6 +606,7 @@ import type {
   StockTransfer,
   Stocktake,
   StocktakeFull,
+  StopAdjustment,
   StreamParams,
   StudioAggregate,
   SuggestedComponent,
@@ -659,7 +670,6 @@ import type {
   UpsertDepartmentRequest,
   UpsertDrinkRecipeRequest,
   UpsertItemsRequest,
-  UpsertLeaveTypeRequest,
   UpsertPermissionRequest,
   UpsertRolePermissionRequest,
   UpsertSizeRequest,
@@ -33520,7 +33530,7 @@ export function useListAdjustments<TData = Awaited<ReturnType<typeof listAdjustm
 
 /**
  * @summary Add a bonus or deduction. Over the caller's limit it is created pending
-and waits for the owner (AD-5).
+and waits for the owner (AD-5). Bonuses and deductions have separate limits.
  */
 export const createAdjustment = (
     newAdjustment: NewAdjustment,
@@ -33572,7 +33582,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     /**
  * @summary Add a bonus or deduction. Over the caller's limit it is created pending
-and waits for the owner (AD-5).
+and waits for the owner (AD-5). Bonuses and deductions have separate limits.
  */
 export const useCreateAdjustment = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdjustment>>, TError,{data: NewAdjustment}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -33586,7 +33596,8 @@ export const useCreateAdjustment = <TError = ErrorBody,
     }
 
 /**
- * @summary The owner (or anyone whose limit covers it) decides a pending line.
+ * @summary The owner (or anyone whose limit covers it) decides a pending line. A
+percent line is judged at its value in piastres (audit B5).
  */
 export const decideAdjustment = (
     kind: string,
@@ -33639,7 +33650,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DecideAdjustmentMutationError = ErrorBody
 
     /**
- * @summary The owner (or anyone whose limit covers it) decides a pending line.
+ * @summary The owner (or anyone whose limit covers it) decides a pending line. A
+percent line is judged at its value in piastres (audit B5).
  */
 export const useDecideAdjustment = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideAdjustment>>, TError,{kind: string;id: string;data: DecidePay}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -33658,12 +33670,15 @@ export const useDecideAdjustment = <TError = ErrorBody,
 export const stopAdjustment = (
     kind: string,
     id: string,
+    stopAdjustment: StopAdjustment,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<Adjustment>(
-      {url: `/staff/adjustments/${kind}/${id}/stop`, method: 'POST', signal
+      {url: `/staff/adjustments/${kind}/${id}/stop`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: stopAdjustment, signal
     },
       options);
     }
@@ -33672,8 +33687,8 @@ export const stopAdjustment = (
 
 
 export const getStopAdjustmentMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopAdjustment>>, TError,{kind: string;id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof stopAdjustment>>, TError,{kind: string;id: string}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopAdjustment>>, TError,{kind: string;id: string;data: StopAdjustment}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stopAdjustment>>, TError,{kind: string;id: string;data: StopAdjustment}, TContext> => {
 
 const mutationKey = ['stopAdjustment'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -33685,10 +33700,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stopAdjustment>>, {kind: string;id: string}> = (props) => {
-          const {kind,id} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stopAdjustment>>, {kind: string;id: string;data: StopAdjustment}> = (props) => {
+          const {kind,id,data} = props ?? {};
 
-          return  stopAdjustment(kind,id,requestOptions)
+          return  stopAdjustment(kind,id,data,requestOptions)
         }
 
 
@@ -33699,26 +33714,95 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type StopAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof stopAdjustment>>>
-
+    export type StopAdjustmentMutationBody = StopAdjustment
     export type StopAdjustmentMutationError = ErrorBody
 
     /**
  * @summary Stop a monthly line from the next period on; past payslips keep it (AD-3).
  */
 export const useStopAdjustment = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopAdjustment>>, TError,{kind: string;id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopAdjustment>>, TError,{kind: string;id: string;data: StopAdjustment}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof stopAdjustment>>,
         TError,
-        {kind: string;id: string},
+        {kind: string;id: string;data: StopAdjustment},
         TContext
       > => {
       return useMutation(getStopAdjustmentMutationOptions(options), queryClient);
     }
 
 /**
+ * @summary A manager hands an advance over directly (AV-2): recorded and approved in
+ONE call under the same cap and limit as a review, so a refusal never
+leaves a stray pending advance behind (audit B10).
+ */
+export const recordAdvance = (
+    recordAdvance: RecordAdvance,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SalaryAdvance>(
+      {url: `/staff/advances/record`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: recordAdvance, signal
+    },
+      options);
+    }
+
+
+
+
+export const getRecordAdvanceMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordAdvance>>, TError,{data: RecordAdvance}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordAdvance>>, TError,{data: RecordAdvance}, TContext> => {
+
+const mutationKey = ['recordAdvance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordAdvance>>, {data: RecordAdvance}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordAdvance(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordAdvanceMutationResult = NonNullable<Awaited<ReturnType<typeof recordAdvance>>>
+    export type RecordAdvanceMutationBody = RecordAdvance
+    export type RecordAdvanceMutationError = ErrorBody
+
+    /**
+ * @summary A manager hands an advance over directly (AV-2): recorded and approved in
+ONE call under the same cap and limit as a review, so a refusal never
+leaves a stray pending advance behind (audit B10).
+ */
+export const useRecordAdvance = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordAdvance>>, TError,{data: RecordAdvance}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recordAdvance>>,
+        TError,
+        {data: RecordAdvance},
+        TContext
+      > => {
+      return useMutation(getRecordAdvanceMutationOptions(options), queryClient);
+    }
+
+/**
  * @summary Decide an advance within the cap: the approver's limit is a % of the
-employee's salary (AV-4, AV-5).
+employee's salary owed after this one (AV-4, AV-5).
  */
 export const reviewAdvance = (
     id: string,
@@ -33771,7 +33855,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     /**
  * @summary Decide an advance within the cap: the approver's limit is a % of the
-employee's salary (AV-4, AV-5).
+employee's salary owed after this one (AV-4, AV-5).
  */
 export const useReviewAdvance = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdvance>>, TError,{id: string;data: ReviewAdvance}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -33932,8 +34016,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 /**
- * @summary Clock someone in, or out if they are in, now; marked as made by the
-manager with the reason (CL-13, CL-16).
+ * @summary Clock someone in, or out if they are in; marked as made by the manager
+(`manager`) with the reason (CL-13, CL-16). The check-in window, the
+night shift's business date and the shift's own branch apply exactly as
+for the app.
  */
 export const punchFor = (
     punchFor: PunchFor,
@@ -33984,8 +34070,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type PunchForMutationError = ErrorBody
 
     /**
- * @summary Clock someone in, or out if they are in, now; marked as made by the
-manager with the reason (CL-13, CL-16).
+ * @summary Clock someone in, or out if they are in; marked as made by the manager
+(`manager`) with the reason (CL-13, CL-16). The check-in window, the
+night shift's business date and the shift's own branch apply exactly as
+for the app.
  */
 export const usePunchFor = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof punchFor>>, TError,{data: PunchFor}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -34145,6 +34233,150 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getPutAttendanceSettingsMutationOptions(options), queryClient);
     }
 
+export const listBranchRules = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BranchRules[]>(
+      {url: `/staff/attendance/settings/branches`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getListBranchRulesQueryKey = () => {
+    return [
+    `/staff/attendance/settings/branches`
+    ] as const;
+    }
+
+
+export const getListBranchRulesQueryOptions = <TData = Awaited<ReturnType<typeof listBranchRules>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchRules>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBranchRulesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBranchRules>>> = ({ signal }) => listBranchRules(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBranchRules>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListBranchRulesQueryResult = NonNullable<Awaited<ReturnType<typeof listBranchRules>>>
+export type ListBranchRulesQueryError = ErrorBody
+
+
+export function useListBranchRules<TData = Awaited<ReturnType<typeof listBranchRules>>, TError = ErrorBody>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchRules>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBranchRules>>,
+          TError,
+          Awaited<ReturnType<typeof listBranchRules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBranchRules<TData = Awaited<ReturnType<typeof listBranchRules>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchRules>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listBranchRules>>,
+          TError,
+          Awaited<ReturnType<typeof listBranchRules>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListBranchRules<TData = Awaited<ReturnType<typeof listBranchRules>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchRules>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListBranchRules<TData = Awaited<ReturnType<typeof listBranchRules>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchRules>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListBranchRulesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const deleteBranchRules = (
+    branchId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/staff/attendance/settings/branches/${branchId}`, method: 'DELETE', signal
+    },
+      options);
+    }
+
+
+
+
+export const getDeleteBranchRulesMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBranchRules>>, TError,{branchId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteBranchRules>>, TError,{branchId: string}, TContext> => {
+
+const mutationKey = ['deleteBranchRules'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteBranchRules>>, {branchId: string}> = (props) => {
+          const {branchId} = props ?? {};
+
+          return  deleteBranchRules(branchId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteBranchRulesMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBranchRules>>>
+
+    export type DeleteBranchRulesMutationError = ErrorBody
+
+    export const useDeleteBranchRules = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBranchRules>>, TError,{branchId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteBranchRules>>,
+        TError,
+        {branchId: string},
+        TContext
+      > => {
+      return useMutation(getDeleteBranchRulesMutationOptions(options), queryClient);
+    }
+
 export const attendanceSummary = (
     params: AttendanceSummaryParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -34236,8 +34468,12 @@ export function useAttendanceSummary<TData = Awaited<ReturnType<typeof attendanc
 /**
  * @summary A dead or forgotten phone in a Madar org: the person clocks in or out on
 the branch till with their till PIN (CL-13). Marked `till` (CL-16). The
-till is at the branch, so there is no geofence to check. Online only: a
-PIN is never queued.
+till is at the branch, so there is no geofence to check — which is why
+it is accepted ONLY from a real till (audit 03 P0): a POS session (never
+the Dawam app's) on the branch's registered POS device, proven by its
+credential when it has one, with a till session open on that device at
+that branch. Online only: a PIN is never queued. Wrong PINs slow down
+like the till's own sign-in, and the branch's managers are told.
  */
 export const tillPunch = (
     tillPunch: TillPunch,
@@ -34290,8 +34526,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     /**
  * @summary A dead or forgotten phone in a Madar org: the person clocks in or out on
 the branch till with their till PIN (CL-13). Marked `till` (CL-16). The
-till is at the branch, so there is no geofence to check. Online only: a
-PIN is never queued.
+till is at the branch, so there is no geofence to check — which is why
+it is accepted ONLY from a real till (audit 03 P0): a POS session (never
+the Dawam app's) on the branch's registered POS device, proven by its
+credential when it has one, with a till session open on that device at
+that branch. Online only: a PIN is never queued. Wrong PINs slow down
+like the till's own sign-in, and the branch's managers are told.
  */
 export const useTillPunch = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tillPunch>>, TError,{data: TillPunch}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -34306,12 +34546,14 @@ export const useTillPunch = <TError = ErrorBody,
 
 export const deleteRecord = (
     id: string,
+    params?: DeleteRecordParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<void>(
-      {url: `/staff/attendance/${id}`, method: 'DELETE', signal
+      {url: `/staff/attendance/${id}`, method: 'DELETE',
+        params, signal
     },
       options);
     }
@@ -34320,8 +34562,8 @@ export const deleteRecord = (
 
 
 export const getDeleteRecordMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRecord>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteRecord>>, TError,{id: string}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRecord>>, TError,{id: string;params?: DeleteRecordParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteRecord>>, TError,{id: string;params?: DeleteRecordParams}, TContext> => {
 
 const mutationKey = ['deleteRecord'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -34333,10 +34575,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRecord>>, {id: string}> = (props) => {
-          const {id} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRecord>>, {id: string;params?: DeleteRecordParams}> = (props) => {
+          const {id,params} = props ?? {};
 
-          return  deleteRecord(id,requestOptions)
+          return  deleteRecord(id,params,requestOptions)
         }
 
 
@@ -34351,11 +34593,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteRecordMutationError = ErrorBody
 
     export const useDeleteRecord = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRecord>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRecord>>, TError,{id: string;params?: DeleteRecordParams}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteRecord>>,
         TError,
-        {id: string},
+        {id: string;params?: DeleteRecordParams},
         TContext
       > => {
       return useMutation(getDeleteRecordMutationOptions(options), queryClient);
@@ -35728,6 +35970,167 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreateDocumentMutationOptions(options), queryClient);
     }
 
+/**
+ * @summary A manager overrides someone's preferences (SC-12). Logged, and the
+person is told.
+ */
+export const putEmployeePreferences = (
+    id: string,
+    preferences: Preferences,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/staff/employees/${id}/preferences`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: preferences, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutEmployeePreferencesMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEmployeePreferences>>, TError,{id: string;data: Preferences}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putEmployeePreferences>>, TError,{id: string;data: Preferences}, TContext> => {
+
+const mutationKey = ['putEmployeePreferences'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putEmployeePreferences>>, {id: string;data: Preferences}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  putEmployeePreferences(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutEmployeePreferencesMutationResult = NonNullable<Awaited<ReturnType<typeof putEmployeePreferences>>>
+    export type PutEmployeePreferencesMutationBody = Preferences
+    export type PutEmployeePreferencesMutationError = ErrorBody
+
+    /**
+ * @summary A manager overrides someone's preferences (SC-12). Logged, and the
+person is told.
+ */
+export const usePutEmployeePreferences = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putEmployeePreferences>>, TError,{id: string;data: Preferences}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putEmployeePreferences>>,
+        TError,
+        {id: string;data: Preferences},
+        TContext
+      > => {
+      return useMutation(getPutEmployeePreferencesMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Who changed someone's preferences, and when (SC-12, newest first).
+ */
+export const preferenceLog = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PreferenceChange[]>(
+      {url: `/staff/employees/${id}/preferences/log`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getPreferenceLogQueryKey = (id: string,) => {
+    return [
+    `/staff/employees/${id}/preferences/log`
+    ] as const;
+    }
+
+
+export const getPreferenceLogQueryOptions = <TData = Awaited<ReturnType<typeof preferenceLog>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof preferenceLog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreferenceLogQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof preferenceLog>>> = ({ signal }) => preferenceLog(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof preferenceLog>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PreferenceLogQueryResult = NonNullable<Awaited<ReturnType<typeof preferenceLog>>>
+export type PreferenceLogQueryError = ErrorBody
+
+
+export function usePreferenceLog<TData = Awaited<ReturnType<typeof preferenceLog>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof preferenceLog>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof preferenceLog>>,
+          TError,
+          Awaited<ReturnType<typeof preferenceLog>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreferenceLog<TData = Awaited<ReturnType<typeof preferenceLog>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof preferenceLog>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof preferenceLog>>,
+          TError,
+          Awaited<ReturnType<typeof preferenceLog>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePreferenceLog<TData = Awaited<ReturnType<typeof preferenceLog>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof preferenceLog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Who changed someone's preferences, and when (SC-12, newest first).
+ */
+
+export function usePreferenceLog<TData = Awaited<ReturnType<typeof preferenceLog>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof preferenceLog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPreferenceLogQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const listExpenseAdvances = (
     params?: ListExpenseAdvancesParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -36093,416 +36496,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDecideHolidayMutationOptions(options), queryClient);
-    }
-
-export const listBalances = (
-    params?: ListBalancesParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<LeaveBalance[]>(
-      {url: `/staff/leave/balances`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-
-
-
-
-export const getListBalancesQueryKey = (params?: ListBalancesParams,) => {
-    return [
-    `/staff/leave/balances`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListBalancesQueryOptions = <TData = Awaited<ReturnType<typeof listBalances>>, TError = ErrorBody>(params?: ListBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBalances>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListBalancesQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBalances>>> = ({ signal }) => listBalances(params, requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBalances>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListBalancesQueryResult = NonNullable<Awaited<ReturnType<typeof listBalances>>>
-export type ListBalancesQueryError = ErrorBody
-
-
-export function useListBalances<TData = Awaited<ReturnType<typeof listBalances>>, TError = ErrorBody>(
- params: undefined |  ListBalancesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBalances>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listBalances>>,
-          TError,
-          Awaited<ReturnType<typeof listBalances>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListBalances<TData = Awaited<ReturnType<typeof listBalances>>, TError = ErrorBody>(
- params?: ListBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBalances>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listBalances>>,
-          TError,
-          Awaited<ReturnType<typeof listBalances>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListBalances<TData = Awaited<ReturnType<typeof listBalances>>, TError = ErrorBody>(
- params?: ListBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBalances>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListBalances<TData = Awaited<ReturnType<typeof listBalances>>, TError = ErrorBody>(
- params?: ListBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBalances>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListBalancesQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const putBalance = (
-    putBalanceRequest: PutBalanceRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<LeaveBalance>(
-      {url: `/staff/leave/balances`, method: 'PUT',
-      headers: {'Content-Type': 'application/json', },
-      data: putBalanceRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getPutBalanceMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putBalance>>, TError,{data: PutBalanceRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof putBalance>>, TError,{data: PutBalanceRequest}, TContext> => {
-
-const mutationKey = ['putBalance'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putBalance>>, {data: PutBalanceRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  putBalance(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PutBalanceMutationResult = NonNullable<Awaited<ReturnType<typeof putBalance>>>
-    export type PutBalanceMutationBody = PutBalanceRequest
-    export type PutBalanceMutationError = ErrorBody
-
-    export const usePutBalance = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putBalance>>, TError,{data: PutBalanceRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putBalance>>,
-        TError,
-        {data: PutBalanceRequest},
-        TContext
-      > => {
-      return useMutation(getPutBalanceMutationOptions(options), queryClient);
-    }
-
-export const listLeaveTypes = (
-
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<LeaveType[]>(
-      {url: `/staff/leave/types`, method: 'GET', signal
-    },
-      options);
-    }
-
-
-
-
-export const getListLeaveTypesQueryKey = () => {
-    return [
-    `/staff/leave/types`
-    ] as const;
-    }
-
-
-export const getListLeaveTypesQueryOptions = <TData = Awaited<ReturnType<typeof listLeaveTypes>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeaveTypes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListLeaveTypesQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLeaveTypes>>> = ({ signal }) => listLeaveTypes(requestOptions, signal);
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLeaveTypes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListLeaveTypesQueryResult = NonNullable<Awaited<ReturnType<typeof listLeaveTypes>>>
-export type ListLeaveTypesQueryError = ErrorBody
-
-
-export function useListLeaveTypes<TData = Awaited<ReturnType<typeof listLeaveTypes>>, TError = ErrorBody>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeaveTypes>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listLeaveTypes>>,
-          TError,
-          Awaited<ReturnType<typeof listLeaveTypes>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListLeaveTypes<TData = Awaited<ReturnType<typeof listLeaveTypes>>, TError = ErrorBody>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeaveTypes>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listLeaveTypes>>,
-          TError,
-          Awaited<ReturnType<typeof listLeaveTypes>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListLeaveTypes<TData = Awaited<ReturnType<typeof listLeaveTypes>>, TError = ErrorBody>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeaveTypes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useListLeaveTypes<TData = Awaited<ReturnType<typeof listLeaveTypes>>, TError = ErrorBody>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeaveTypes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListLeaveTypesQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
-export const createLeaveType = (
-    upsertLeaveTypeRequest: UpsertLeaveTypeRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<LeaveType>(
-      {url: `/staff/leave/types`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: upsertLeaveTypeRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getCreateLeaveTypeMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLeaveType>>, TError,{data: UpsertLeaveTypeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createLeaveType>>, TError,{data: UpsertLeaveTypeRequest}, TContext> => {
-
-const mutationKey = ['createLeaveType'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createLeaveType>>, {data: UpsertLeaveTypeRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  createLeaveType(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateLeaveTypeMutationResult = NonNullable<Awaited<ReturnType<typeof createLeaveType>>>
-    export type CreateLeaveTypeMutationBody = UpsertLeaveTypeRequest
-    export type CreateLeaveTypeMutationError = ErrorBody
-
-    export const useCreateLeaveType = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLeaveType>>, TError,{data: UpsertLeaveTypeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createLeaveType>>,
-        TError,
-        {data: UpsertLeaveTypeRequest},
-        TContext
-      > => {
-      return useMutation(getCreateLeaveTypeMutationOptions(options), queryClient);
-    }
-
-export const deleteLeaveType = (
-    id: string,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<void>(
-      {url: `/staff/leave/types/${id}`, method: 'DELETE', signal
-    },
-      options);
-    }
-
-
-
-
-export const getDeleteLeaveTypeMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLeaveType>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteLeaveType>>, TError,{id: string}, TContext> => {
-
-const mutationKey = ['deleteLeaveType'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteLeaveType>>, {id: string}> = (props) => {
-          const {id} = props ?? {};
-
-          return  deleteLeaveType(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteLeaveTypeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteLeaveType>>>
-
-    export type DeleteLeaveTypeMutationError = ErrorBody
-
-    export const useDeleteLeaveType = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLeaveType>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteLeaveType>>,
-        TError,
-        {id: string},
-        TContext
-      > => {
-      return useMutation(getDeleteLeaveTypeMutationOptions(options), queryClient);
-    }
-
-export const updateLeaveType = (
-    id: string,
-    upsertLeaveTypeRequest: UpsertLeaveTypeRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<LeaveType>(
-      {url: `/staff/leave/types/${id}`, method: 'PATCH',
-      headers: {'Content-Type': 'application/json', },
-      data: upsertLeaveTypeRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getUpdateLeaveTypeMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLeaveType>>, TError,{id: string;data: UpsertLeaveTypeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof updateLeaveType>>, TError,{id: string;data: UpsertLeaveTypeRequest}, TContext> => {
-
-const mutationKey = ['updateLeaveType'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateLeaveType>>, {id: string;data: UpsertLeaveTypeRequest}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  updateLeaveType(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdateLeaveTypeMutationResult = NonNullable<Awaited<ReturnType<typeof updateLeaveType>>>
-    export type UpdateLeaveTypeMutationBody = UpsertLeaveTypeRequest
-    export type UpdateLeaveTypeMutationError = ErrorBody
-
-    export const useUpdateLeaveType = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLeaveType>>, TError,{id: string;data: UpsertLeaveTypeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateLeaveType>>,
-        TError,
-        {id: string;data: UpsertLeaveTypeRequest},
-        TContext
-      > => {
-      return useMutation(getUpdateLeaveTypeMutationOptions(options), queryClient);
     }
 
 export const myAdjustments = (
@@ -37274,6 +37267,10 @@ export function useMyExpenseAdvances<TData = Awaited<ReturnType<typeof myExpense
 
 
 
+/**
+ * @summary Deprecated (RQ-3): Dawam has no leave balances. This shows what older data
+holds and is never written any more.
+ */
 export const myLeaveBalances = (
     params?: MyLeaveBalancesParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -37343,6 +37340,10 @@ export function useMyLeaveBalances<TData = Awaited<ReturnType<typeof myLeaveBala
  params?: MyLeaveBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myLeaveBalances>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Deprecated (RQ-3): Dawam has no leave balances. This shows what older data
+holds and is never written any more.
+ */
 
 export function useMyLeaveBalances<TData = Awaited<ReturnType<typeof myLeaveBalances>>, TError = ErrorBody>(
  params?: MyLeaveBalancesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myLeaveBalances>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -37754,7 +37755,7 @@ export const usePing = <TError = ErrorBody,
     }
 
 /**
- * @summary Preferred times and days I can't work; managers see them (SC-12).
+ * @summary Preferred times and days I can't work; managers see them (SC-12). Logged.
  */
 export const putPreferences = (
     preferences: Preferences,
@@ -37805,7 +37806,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type PutPreferencesMutationError = ErrorBody
 
     /**
- * @summary Preferred times and days I can't work; managers see them (SC-12).
+ * @summary Preferred times and days I can't work; managers see them (SC-12). Logged.
  */
 export const usePutPreferences = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putPreferences>>, TError,{data: Preferences}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -37816,6 +37817,71 @@ export const usePutPreferences = <TError = ErrorBody,
         TContext
       > => {
       return useMutation(getPutPreferencesMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary The employee accepted the location notice on this phone (AT-5). Kept on
+the device row: a new phone asks again.
+ */
+export const acceptStaffPrivacy = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PrivacyAccepted>(
+      {url: `/staff/me/privacy`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getAcceptStaffPrivacyMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptStaffPrivacy>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptStaffPrivacy>>, TError,void, TContext> => {
+
+const mutationKey = ['acceptStaffPrivacy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptStaffPrivacy>>, void> = () => {
+
+
+          return  acceptStaffPrivacy(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptStaffPrivacyMutationResult = NonNullable<Awaited<ReturnType<typeof acceptStaffPrivacy>>>
+
+    export type AcceptStaffPrivacyMutationError = ErrorBody
+
+    /**
+ * @summary The employee accepted the location notice on this phone (AT-5). Kept on
+the device row: a new phone asks again.
+ */
+export const useAcceptStaffPrivacy = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptStaffPrivacy>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof acceptStaffPrivacy>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getAcceptStaffPrivacyMutationOptions(options), queryClient);
     }
 
 /**
@@ -38130,7 +38196,7 @@ export function useMyRoster<TData = Awaited<ReturnType<typeof myRoster>>, TError
 /**
  * Own-row scoped like the rest of `/staff/me/*`: it needs no permission grant,
  * because seeing when you are expected at work is not an admin capability.
- * @summary The employee's OWN roster for a date range — what the app's Shifts tab shows.
+ * @summary The employee's OWN roster for a date range, published weeks only (SC-3).
  */
 export const mySchedule = (
     params: MyScheduleParams,
@@ -38202,7 +38268,7 @@ export function useMySchedule<TData = Awaited<ReturnType<typeof mySchedule>>, TE
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary The employee's OWN roster for a date range — what the app's Shifts tab shows.
+ * @summary The employee's OWN roster for a date range, published weeks only (SC-3).
  */
 
 export function useMySchedule<TData = Awaited<ReturnType<typeof mySchedule>>, TError = ErrorBody>(
@@ -38224,7 +38290,78 @@ export function useMySchedule<TData = Awaited<ReturnType<typeof mySchedule>>, TE
 
 
 /**
- * @summary Ask a colleague to swap: they agree first, then the manager (SC-8).
+ * @summary `POST /staff/me/sign-out` — the staff app signs out (APP-6, 06 B3): this
+phone's device is revoked, so its token can't be refreshed again, and the
+employee's Dawam pushes stop at once — a signed-out phone never shows the
+next person's names or amounts. Idempotent.
+ */
+export const staffSignOut = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/staff/me/sign-out`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getStaffSignOutMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof staffSignOut>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof staffSignOut>>, TError,void, TContext> => {
+
+const mutationKey = ['staffSignOut'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof staffSignOut>>, void> = () => {
+
+
+          return  staffSignOut(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StaffSignOutMutationResult = NonNullable<Awaited<ReturnType<typeof staffSignOut>>>
+
+    export type StaffSignOutMutationError = ErrorBody
+
+    /**
+ * @summary `POST /staff/me/sign-out` — the staff app signs out (APP-6, 06 B3): this
+phone's device is revoked, so its token can't be refreshed again, and the
+employee's Dawam pushes stop at once — a signed-out phone never shows the
+next person's names or amounts. Idempotent.
+ */
+export const useStaffSignOut = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof staffSignOut>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof staffSignOut>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getStaffSignOutMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Ask a colleague to swap: they agree first, then the manager (SC-8). Both
+shifts must be on the published roster, ahead, at a branch both work at,
+and must fit where they land.
  */
 export const askSwap = (
     askSwap: AskSwap,
@@ -38275,7 +38412,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type AskSwapMutationError = ErrorBody
 
     /**
- * @summary Ask a colleague to swap: they agree first, then the manager (SC-8).
+ * @summary Ask a colleague to swap: they agree first, then the manager (SC-8). Both
+shifts must be on the published roster, ahead, at a branch both work at,
+and must fit where they land.
  */
 export const useAskSwap = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askSwap>>, TError,{data: AskSwap}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -38352,6 +38491,69 @@ export const useAnswerSwap = <TError = ErrorBody,
         TContext
       > => {
       return useMutation(getAnswerSwapMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary The one who asked takes it back before the manager decides.
+ */
+export const cancelSwap = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Swap>(
+      {url: `/staff/me/swaps/${id}/cancel`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getCancelSwapMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSwap>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelSwap>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['cancelSwap'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelSwap>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  cancelSwap(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelSwapMutationResult = NonNullable<Awaited<ReturnType<typeof cancelSwap>>>
+
+    export type CancelSwapMutationError = ErrorBody
+
+    /**
+ * @summary The one who asked takes it back before the manager decides.
+ */
+export const useCancelSwap = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSwap>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelSwap>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getCancelSwapMutationOptions(options), queryClient);
     }
 
 export const myToday = (
@@ -38597,7 +38799,71 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 /**
- * @summary Claim an open shift; the manager approves the claim (SC-9).
+ * @summary Take an open shift back (open or claimed, never filled). A claimer hears.
+ */
+export const cancelOpenShift = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/staff/open-shifts/${id}/cancel`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getCancelOpenShiftMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelOpenShift>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelOpenShift>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['cancelOpenShift'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelOpenShift>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  cancelOpenShift(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelOpenShiftMutationResult = NonNullable<Awaited<ReturnType<typeof cancelOpenShift>>>
+
+    export type CancelOpenShiftMutationError = ErrorBody
+
+    /**
+ * @summary Take an open shift back (open or claimed, never filled). A claimer hears.
+ */
+export const useCancelOpenShift = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelOpenShift>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelOpenShift>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getCancelOpenShiftMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Claim an open shift; the manager approves the claim (SC-9). Only a
+published week's, and only one that fits beside the person's own shifts.
  */
 export const claimOpenShift = (
     id: string,
@@ -38646,7 +38912,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ClaimOpenShiftMutationError = ErrorBody
 
     /**
- * @summary Claim an open shift; the manager approves the claim (SC-9).
+ * @summary Claim an open shift; the manager approves the claim (SC-9). Only a
+published week's, and only one that fits beside the person's own shifts.
  */
 export const useClaimOpenShift = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claimOpenShift>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -38660,7 +38927,8 @@ export const useClaimOpenShift = <TError = ErrorBody,
     }
 
 /**
- * @summary Approve a claim: the shift becomes theirs for that date. Rejecting reopens it.
+ * @summary Approve a claim: the shift becomes theirs for that date, beside the rest
+of their day. Rejecting reopens it. One decision only.
  */
 export const decideClaim = (
     id: string,
@@ -38712,7 +38980,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DecideClaimMutationError = ErrorBody
 
     /**
- * @summary Approve a claim: the shift becomes theirs for that date. Rejecting reopens it.
+ * @summary Approve a claim: the shift becomes theirs for that date, beside the rest
+of their day. Rejecting reopens it. One decision only.
  */
 export const useDecideClaim = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideClaim>>, TError,{id: string;data: DecideRoster}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -38813,6 +39082,11 @@ export function useListAdvances<TData = Awaited<ReturnType<typeof listAdvances>>
 
 
 
+/**
+ * @summary Record an ask on someone's behalf: it still waits for a decision
+(`PATCH /staff/advances/{id}/review`). To hand one over at once, use
+`POST /staff/advances/record`.
+ */
 export const createAdvanceAdmin = (
     createAdvanceRequest: CreateAdvanceRequest,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -38861,7 +39135,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateAdvanceAdminMutationBody = CreateAdvanceRequest
     export type CreateAdvanceAdminMutationError = ErrorBody
 
-    export const useCreateAdvanceAdmin = <TError = ErrorBody,
+    /**
+ * @summary Record an ask on someone's behalf: it still waits for a decision
+(`PATCH /staff/advances/{id}/review`). To hand one over at once, use
+`POST /staff/advances/record`.
+ */
+export const useCreateAdvanceAdmin = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvanceAdmin>>, TError,{data: CreateAdvanceRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createAdvanceAdmin>>,
@@ -38872,17 +39151,19 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreateAdvanceAdminMutationOptions(options), queryClient);
     }
 
-export const decideAdvance = (
-    id: string,
-    advanceDecision: AdvanceDecision,
+/**
+ * @summary The money audit log: every delete, stop, waive, override, reopen and
+payment, with who and why (AD-9, AT-10).
+ */
+export const listAudit = (
+    params?: ListAuditParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
-      return customInstance<SalaryAdvance>(
-      {url: `/staff/payroll/advances/${id}/decision`, method: 'PATCH',
-      headers: {'Content-Type': 'application/json', },
-      data: advanceDecision, signal
+      return customInstance<AuditRow[]>(
+      {url: `/staff/payroll/audit`, method: 'GET',
+        params, signal
     },
       options);
     }
@@ -38890,47 +39171,81 @@ export const decideAdvance = (
 
 
 
-export const getDecideAdvanceMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideAdvance>>, TError,{id: string;data: AdvanceDecision}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof decideAdvance>>, TError,{id: string;data: AdvanceDecision}, TContext> => {
-
-const mutationKey = ['decideAdvance'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideAdvance>>, {id: string;data: AdvanceDecision}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  decideAdvance(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DecideAdvanceMutationResult = NonNullable<Awaited<ReturnType<typeof decideAdvance>>>
-    export type DecideAdvanceMutationBody = AdvanceDecision
-    export type DecideAdvanceMutationError = ErrorBody
-
-    export const useDecideAdvance = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideAdvance>>, TError,{id: string;data: AdvanceDecision}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof decideAdvance>>,
-        TError,
-        {id: string;data: AdvanceDecision},
-        TContext
-      > => {
-      return useMutation(getDecideAdvanceMutationOptions(options), queryClient);
+export const getListAuditQueryKey = (params?: ListAuditParams,) => {
+    return [
+    `/staff/payroll/audit`, ...(params ? [params] : [])
+    ] as const;
     }
+
+
+export const getListAuditQueryOptions = <TData = Awaited<ReturnType<typeof listAudit>>, TError = ErrorBody>(params?: ListAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAuditQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAudit>>> = ({ signal }) => listAudit(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAudit>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAuditQueryResult = NonNullable<Awaited<ReturnType<typeof listAudit>>>
+export type ListAuditQueryError = ErrorBody
+
+
+export function useListAudit<TData = Awaited<ReturnType<typeof listAudit>>, TError = ErrorBody>(
+ params: undefined |  ListAuditParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAudit>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAudit>>,
+          TError,
+          Awaited<ReturnType<typeof listAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAudit<TData = Awaited<ReturnType<typeof listAudit>>, TError = ErrorBody>(
+ params?: ListAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAudit>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAudit>>,
+          TError,
+          Awaited<ReturnType<typeof listAudit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAudit<TData = Awaited<ReturnType<typeof listAudit>>, TError = ErrorBody>(
+ params?: ListAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The money audit log: every delete, stop, waive, override, reopen and
+payment, with who and why (AD-9, AT-10).
+ */
+
+export function useListAudit<TData = Awaited<ReturnType<typeof listAudit>>, TError = ErrorBody>(
+ params?: ListAuditParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAudit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAuditQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const listBonuses = (
     params?: ListBonusesParams,
@@ -39019,65 +39334,6 @@ export function useListBonuses<TData = Awaited<ReturnType<typeof listBonuses>>, 
 
 
 
-
-export const createBonus = (
-    createAdjustmentRequest: CreateAdjustmentRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PayrollAdjustment>(
-      {url: `/staff/payroll/bonuses`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createAdjustmentRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getCreateBonusMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBonus>>, TError,{data: CreateAdjustmentRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createBonus>>, TError,{data: CreateAdjustmentRequest}, TContext> => {
-
-const mutationKey = ['createBonus'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBonus>>, {data: CreateAdjustmentRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  createBonus(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateBonusMutationResult = NonNullable<Awaited<ReturnType<typeof createBonus>>>
-    export type CreateBonusMutationBody = CreateAdjustmentRequest
-    export type CreateBonusMutationError = ErrorBody
-
-    export const useCreateBonus = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBonus>>, TError,{data: CreateAdjustmentRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createBonus>>,
-        TError,
-        {data: CreateAdjustmentRequest},
-        TContext
-      > => {
-      return useMutation(getCreateBonusMutationOptions(options), queryClient);
-    }
 
 export const deleteBonus = (
     id: string,
@@ -39317,65 +39573,6 @@ export function useListDeductions<TData = Awaited<ReturnType<typeof listDeductio
 
 
 
-export const createDeduction = (
-    createAdjustmentRequest: CreateAdjustmentRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PayrollAdjustment>(
-      {url: `/staff/payroll/deductions`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createAdjustmentRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getCreateDeductionMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDeduction>>, TError,{data: CreateAdjustmentRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createDeduction>>, TError,{data: CreateAdjustmentRequest}, TContext> => {
-
-const mutationKey = ['createDeduction'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDeduction>>, {data: CreateAdjustmentRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  createDeduction(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateDeductionMutationResult = NonNullable<Awaited<ReturnType<typeof createDeduction>>>
-    export type CreateDeductionMutationBody = CreateAdjustmentRequest
-    export type CreateDeductionMutationError = ErrorBody
-
-    export const useCreateDeduction = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDeduction>>, TError,{data: CreateAdjustmentRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createDeduction>>,
-        TError,
-        {data: CreateAdjustmentRequest},
-        TContext
-      > => {
-      return useMutation(getCreateDeductionMutationOptions(options), queryClient);
-    }
-
 export const deleteDeduction = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -39491,6 +39688,74 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getOverrideDeductionMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Undo a waiver, with a reason (AT-7): the line counts again at the amount
+it had. Only while the month is open.
+ */
+export const unwaiveDeduction = (
+    id: string,
+    waiveDeductionRequest: WaiveDeductionRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PayrollAdjustment>(
+      {url: `/staff/payroll/deductions/${id}/unwaive`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: waiveDeductionRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getUnwaiveDeductionMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unwaiveDeduction>>, TError,{id: string;data: WaiveDeductionRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof unwaiveDeduction>>, TError,{id: string;data: WaiveDeductionRequest}, TContext> => {
+
+const mutationKey = ['unwaiveDeduction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unwaiveDeduction>>, {id: string;data: WaiveDeductionRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  unwaiveDeduction(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnwaiveDeductionMutationResult = NonNullable<Awaited<ReturnType<typeof unwaiveDeduction>>>
+    export type UnwaiveDeductionMutationBody = WaiveDeductionRequest
+    export type UnwaiveDeductionMutationError = ErrorBody
+
+    /**
+ * @summary Undo a waiver, with a reason (AT-7): the line counts again at the amount
+it had. Only while the month is open.
+ */
+export const useUnwaiveDeduction = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unwaiveDeduction>>, TError,{id: string;data: WaiveDeductionRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unwaiveDeduction>>,
+        TError,
+        {id: string;data: WaiveDeductionRequest},
+        TContext
+      > => {
+      return useMutation(getUnwaiveDeductionMutationOptions(options), queryClient);
     }
 
 export const waiveDeduction = (
@@ -39699,6 +39964,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreatePeriodMutationOptions(options), queryClient);
     }
 
+/**
+ * @summary Delete a DRAFT period. An approved month is reopened first (which is
+refused once anyone is paid), so a paid payslip can never be wiped (B3).
+ */
 export const deletePeriod = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -39745,7 +40014,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeletePeriodMutationError = ErrorBody
 
-    export const useDeletePeriod = <TError = ErrorBody,
+    /**
+ * @summary Delete a DRAFT period. An approved month is reopened first (which is
+refused once anyone is paid), so a paid payslip can never be wiped (B3).
+ */
+export const useDeletePeriod = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePeriod>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deletePeriod>>,
@@ -39760,16 +40033,19 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
  * Deliberately serves the PAYSLIPS, not a fresh computation: the file handed to
  * a bank must be exactly what was approved, even if a deduction has been edited
  * since. A period that has not been generated has nothing to export.
- * @summary The generated period as a bank-ready CSV.
+ * @summary The generated period as a CSV: the bank file, the wallet list, or the
+whole run.
  */
 export const exportPeriodCsv = (
     id: string,
+    params?: ExportPeriodCsvParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<unknown>(
-      {url: `/staff/payroll/periods/${id}/export.csv`, method: 'GET', signal
+      {url: `/staff/payroll/periods/${id}/export.csv`, method: 'GET',
+        params, signal
     },
       options);
     }
@@ -39777,23 +40053,25 @@ export const exportPeriodCsv = (
 
 
 
-export const getExportPeriodCsvQueryKey = (id: string,) => {
+export const getExportPeriodCsvQueryKey = (id: string,
+    params?: ExportPeriodCsvParams,) => {
     return [
-    `/staff/payroll/periods/${id}/export.csv`
+    `/staff/payroll/periods/${id}/export.csv`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getExportPeriodCsvQueryOptions = <TData = Awaited<ReturnType<typeof exportPeriodCsv>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPeriodCsv>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getExportPeriodCsvQueryOptions = <TData = Awaited<ReturnType<typeof exportPeriodCsv>>, TError = ErrorBody>(id: string,
+    params?: ExportPeriodCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPeriodCsv>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getExportPeriodCsvQueryKey(id);
+  const queryKey =  queryOptions?.queryKey ?? getExportPeriodCsvQueryKey(id,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportPeriodCsv>>> = ({ signal }) => exportPeriodCsv(id, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportPeriodCsv>>> = ({ signal }) => exportPeriodCsv(id,params, requestOptions, signal);
 
 
 
@@ -39807,7 +40085,8 @@ export type ExportPeriodCsvQueryError = ErrorBody
 
 
 export function useExportPeriodCsv<TData = Awaited<ReturnType<typeof exportPeriodCsv>>, TError = ErrorBody>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPeriodCsv>>, TError, TData>> & Pick<
+ id: string,
+    params: undefined |  ExportPeriodCsvParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPeriodCsv>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof exportPeriodCsv>>,
           TError,
@@ -39817,7 +40096,8 @@ export function useExportPeriodCsv<TData = Awaited<ReturnType<typeof exportPerio
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useExportPeriodCsv<TData = Awaited<ReturnType<typeof exportPeriodCsv>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPeriodCsv>>, TError, TData>> & Pick<
+ id: string,
+    params?: ExportPeriodCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPeriodCsv>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof exportPeriodCsv>>,
           TError,
@@ -39827,19 +40107,22 @@ export function useExportPeriodCsv<TData = Awaited<ReturnType<typeof exportPerio
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useExportPeriodCsv<TData = Awaited<ReturnType<typeof exportPeriodCsv>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPeriodCsv>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ id: string,
+    params?: ExportPeriodCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPeriodCsv>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary The generated period as a bank-ready CSV.
+ * @summary The generated period as a CSV: the bank file, the wallet list, or the
+whole run.
  */
 
 export function useExportPeriodCsv<TData = Awaited<ReturnType<typeof exportPeriodCsv>>, TError = ErrorBody>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPeriodCsv>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ id: string,
+    params?: ExportPeriodCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportPeriodCsv>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getExportPeriodCsvQueryOptions(id,options)
+  const queryOptions = getExportPeriodCsvQueryOptions(id,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -39852,6 +40135,11 @@ export function useExportPeriodCsv<TData = Awaited<ReturnType<typeof exportPerio
 
 
 
+/**
+ * @summary Approve a DRAFT month: freeze every payslip and collect the advance
+installments in the ledger. An approved month is not regenerated — it is
+reopened (before anyone is paid) and approved again.
+ */
 export const generatePeriod = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -39898,7 +40186,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type GeneratePeriodMutationError = ErrorBody
 
-    export const useGeneratePeriod = <TError = ErrorBody,
+    /**
+ * @summary Approve a DRAFT month: freeze every payslip and collect the advance
+installments in the ledger. An approved month is not regenerated — it is
+reopened (before anyone is paid) and approved again.
+ */
+export const useGeneratePeriod = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generatePeriod>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof generatePeriod>>,
@@ -40150,6 +40443,12 @@ export function usePreviewPeriod<TData = Awaited<ReturnType<typeof previewPeriod
 
 
 
+/**
+ * Reopening DROPS the frozen payslips: their advance collections go with
+ * them (the ledger trigger refunds), so the live preview reads exactly what
+ * re-approving will collect (PAY-2, PAY-6, audit B7).
+ * @summary Reopen an approved month (before anyone is paid) or close a paid one.
+ */
 export const setPeriodStatus = (
     id: string,
     periodStatusRequest: PeriodStatusRequest,
@@ -40199,7 +40498,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type SetPeriodStatusMutationBody = PeriodStatusRequest
     export type SetPeriodStatusMutationError = ErrorBody
 
-    export const useSetPeriodStatus = <TError = ErrorBody,
+    /**
+ * @summary Reopen an approved month (before anyone is paid) or close a paid one.
+ */
+export const useSetPeriodStatus = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setPeriodStatus>>, TError,{id: string;data: PeriodStatusRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof setPeriodStatus>>,
@@ -40942,7 +41244,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 /**
  * @summary Owner only, monthly: who works the nights, by gender, against who said
-they want them.
+they want them — for the business and branch by branch.
  */
 export const fairness = (
     params: FairnessParams,
@@ -41015,7 +41317,7 @@ export function useFairness<TData = Awaited<ReturnType<typeof fairness>>, TError
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Owner only, monthly: who works the nights, by gender, against who said
-they want them.
+they want them — for the business and branch by branch.
  */
 
 export function useFairness<TData = Awaited<ReturnType<typeof fairness>>, TError = ErrorBody>(
@@ -41037,7 +41339,101 @@ export function useFairness<TData = Awaited<ReturnType<typeof fairness>>, TError
 
 
 /**
- * @summary Publish a week: staff see it and are told (SC-3).
+ * @summary The kept monthly audits, newest first (owner).
+ */
+export const fairnessAudits = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<FairnessAudit[]>(
+      {url: `/staff/roster/fairness/audits`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getFairnessAuditsQueryKey = () => {
+    return [
+    `/staff/roster/fairness/audits`
+    ] as const;
+    }
+
+
+export const getFairnessAuditsQueryOptions = <TData = Awaited<ReturnType<typeof fairnessAudits>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof fairnessAudits>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getFairnessAuditsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof fairnessAudits>>> = ({ signal }) => fairnessAudits(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof fairnessAudits>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type FairnessAuditsQueryResult = NonNullable<Awaited<ReturnType<typeof fairnessAudits>>>
+export type FairnessAuditsQueryError = ErrorBody
+
+
+export function useFairnessAudits<TData = Awaited<ReturnType<typeof fairnessAudits>>, TError = ErrorBody>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof fairnessAudits>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof fairnessAudits>>,
+          TError,
+          Awaited<ReturnType<typeof fairnessAudits>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useFairnessAudits<TData = Awaited<ReturnType<typeof fairnessAudits>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof fairnessAudits>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof fairnessAudits>>,
+          TError,
+          Awaited<ReturnType<typeof fairnessAudits>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useFairnessAudits<TData = Awaited<ReturnType<typeof fairnessAudits>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof fairnessAudits>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The kept monthly audits, newest first (owner).
+ */
+
+export function useFairnessAudits<TData = Awaited<ReturnType<typeof fairnessAudits>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof fairnessAudits>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getFairnessAuditsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary Publish a week: staff see it and are told (SC-3), and the week's open
+shifts are announced now that people can see them (SC-9).
  */
 export const publish = (
     publishWeek: PublishWeek,
@@ -41088,7 +41484,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type PublishMutationError = ErrorBody
 
     /**
- * @summary Publish a week: staff see it and are told (SC-3).
+ * @summary Publish a week: staff see it and are told (SC-3), and the week's open
+shifts are announced now that people can see them (SC-9).
  */
 export const usePublish = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publish>>, TError,{data: PublishWeek}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -41191,6 +41588,8 @@ export function useSuggestions<TData = Awaited<ReturnType<typeof suggestions>>, 
 
 /**
  * @summary Accept (changes that date only) or reject; either way it is remembered.
+Only a suggestion the engine actually made for that branch-week is taken
+(a crafted id is refused), and accepting touches only the block it names.
  */
 export const decideSuggestion = (
     decideSuggestion: DecideSuggestion,
@@ -41242,6 +41641,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     /**
  * @summary Accept (changes that date only) or reject; either way it is remembered.
+Only a suggestion the engine actually made for that branch-week is taken
+(a crafted id is refused), and accepting touches only the block it names.
  */
 export const useDecideSuggestion = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideSuggestion>>, TError,{data: DecideSuggestion}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -41489,6 +41890,275 @@ export function useGetScheduledDay<TData = Awaited<ReturnType<typeof getSchedule
 
 
 
+/**
+ * @summary Set every shift a person works on a date: a split day, one shift with its
+own times, or a day off (SC-5, SC-11).
+ */
+export const putDay = (
+    putDayRequest: PutDayRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DayView>(
+      {url: `/staff/schedules/days`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: putDayRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutDayMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putDay>>, TError,{data: PutDayRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putDay>>, TError,{data: PutDayRequest}, TContext> => {
+
+const mutationKey = ['putDay'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putDay>>, {data: PutDayRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  putDay(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutDayMutationResult = NonNullable<Awaited<ReturnType<typeof putDay>>>
+    export type PutDayMutationBody = PutDayRequest
+    export type PutDayMutationError = ErrorBody
+
+    /**
+ * @summary Set every shift a person works on a date: a split day, one shift with its
+own times, or a day off (SC-5, SC-11).
+ */
+export const usePutDay = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putDay>>, TError,{data: PutDayRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putDay>>,
+        TError,
+        {data: PutDayRequest},
+        TContext
+      > => {
+      return useMutation(getPutDayMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Put a date back on the standing pattern.
+ */
+export const resetDay = (
+    params: ResetDayParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DayView>(
+      {url: `/staff/schedules/days`, method: 'DELETE',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getResetDayMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetDay>>, TError,{params: ResetDayParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof resetDay>>, TError,{params: ResetDayParams}, TContext> => {
+
+const mutationKey = ['resetDay'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetDay>>, {params: ResetDayParams}> = (props) => {
+          const {params} = props ?? {};
+
+          return  resetDay(params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResetDayMutationResult = NonNullable<Awaited<ReturnType<typeof resetDay>>>
+
+    export type ResetDayMutationError = ErrorBody
+
+    /**
+ * @summary Put a date back on the standing pattern.
+ */
+export const useResetDay = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetDay>>, TError,{params: ResetDayParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resetDay>>,
+        TError,
+        {params: ResetDayParams},
+        TContext
+      > => {
+      return useMutation(getResetDayMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Give one person's shift on a date to someone else; both keep the rest of
+their day.
+ */
+export const moveShift = (
+    moveShiftRequest: MoveShiftRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MoveView>(
+      {url: `/staff/schedules/days/move`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: moveShiftRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getMoveShiftMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveShift>>, TError,{data: MoveShiftRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof moveShift>>, TError,{data: MoveShiftRequest}, TContext> => {
+
+const mutationKey = ['moveShift'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof moveShift>>, {data: MoveShiftRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  moveShift(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MoveShiftMutationResult = NonNullable<Awaited<ReturnType<typeof moveShift>>>
+    export type MoveShiftMutationBody = MoveShiftRequest
+    export type MoveShiftMutationError = ErrorBody
+
+    /**
+ * @summary Give one person's shift on a date to someone else; both keep the rest of
+their day.
+ */
+export const useMoveShift = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveShift>>, TError,{data: MoveShiftRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof moveShift>>,
+        TError,
+        {data: MoveShiftRequest},
+        TContext
+      > => {
+      return useMutation(getMoveShiftMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary One assignment's own from/to (one person, one date, one block), without
+changing the block. Both null = back to the block's times.
+ */
+export const putTimes = (
+    putTimesRequest: PutTimesRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<DayView>(
+      {url: `/staff/schedules/days/times`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: putTimesRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutTimesMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putTimes>>, TError,{data: PutTimesRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putTimes>>, TError,{data: PutTimesRequest}, TContext> => {
+
+const mutationKey = ['putTimes'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putTimes>>, {data: PutTimesRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  putTimes(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutTimesMutationResult = NonNullable<Awaited<ReturnType<typeof putTimes>>>
+    export type PutTimesMutationBody = PutTimesRequest
+    export type PutTimesMutationError = ErrorBody
+
+    /**
+ * @summary One assignment's own from/to (one person, one date, one block), without
+changing the block. Both null = back to the block's times.
+ */
+export const usePutTimes = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putTimes>>, TError,{data: PutTimesRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putTimes>>,
+        TError,
+        {data: PutTimesRequest},
+        TContext
+      > => {
+      return useMutation(getPutTimesMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Set a date to exactly one shift, or a day off (the older single-shift
+form of `PUT /staff/schedules/days`).
+ */
 export const putOverride = (
     putOverrideRequest: PutOverrideRequest,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -41537,7 +42207,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type PutOverrideMutationBody = PutOverrideRequest
     export type PutOverrideMutationError = ErrorBody
 
-    export const usePutOverride = <TError = ErrorBody,
+    /**
+ * @summary Set a date to exactly one shift, or a day off (the older single-shift
+form of `PUT /staff/schedules/days`).
+ */
+export const usePutOverride = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putOverride>>, TError,{data: PutOverrideRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof putOverride>>,
@@ -41548,6 +42222,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getPutOverrideMutationOptions(options), queryClient);
     }
 
+/**
+ * @summary Remove one row of a date's set: one block of a split day, or the date's
+last change (back to the pattern).
+ */
 export const deleteOverride = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -41594,7 +42272,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteOverrideMutationError = ErrorBody
 
-    export const useDeleteOverride = <TError = ErrorBody,
+    /**
+ * @summary Remove one row of a date's set: one block of a split day, or the date's
+last change (back to the pattern).
+ */
+export const useDeleteOverride = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOverride>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteOverride>>,
@@ -41751,7 +42433,8 @@ export function useListSwaps<TData = Awaited<ReturnType<typeof listSwaps>>, TErr
 
 
 /**
- * @summary The manager approves: both rosters update for those dates (SC-8).
+ * @summary The manager approves: both rosters update for those dates (SC-8), in one
+transaction, once, and only if both shifts are still where they were.
  */
 export const decideSwap = (
     id: string,
@@ -41803,7 +42486,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DecideSwapMutationError = ErrorBody
 
     /**
- * @summary The manager approves: both rosters update for those dates (SC-8).
+ * @summary The manager approves: both rosters update for those dates (SC-8), in one
+transaction, once, and only if both shifts are still where they were.
  */
 export const useDecideSwap = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideSwap>>, TError,{id: string;data: DecideRoster}, TContext>, request?: SecondParameter<typeof customInstance>}

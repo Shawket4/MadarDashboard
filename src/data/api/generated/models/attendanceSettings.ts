@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { LateTier } from './lateTier';
 
 export interface AttendanceSettings {
   absence_deduction_days: number;
@@ -38,6 +39,11 @@ export interface AttendanceSettings {
   /** POS-derived coverage: one person per this many orders an hour. */
   orders_per_staff: number;
   org_id: string;
+  /**
+     * For a branch: the rules it sets itself (every other field is the
+     * business's, RU-2). Empty for the business.
+     */
+  overridden?: string[];
   overtime_day_multiplier: number;
   /** `off` · `automatic` · `approval` (RU-7). */
   overtime_mode: string;
@@ -50,6 +56,8 @@ export interface AttendanceSettings {
      * @nullable
      */
   rules_saved_at?: string | null;
+  /** The ladder the set-up step suggests (RU-1). Never used for pricing. */
+  suggested_tiers?: LateTier[];
   updated_at: string;
   working_days_per_month: number;
 }

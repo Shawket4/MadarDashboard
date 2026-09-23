@@ -11,4 +11,6 @@ export interface RosterPerson {
   name: string;
   /** @nullable */
   pref_time?: string | null;
+  /** Who set the preferences last: `employee` or `manager` (SC-12). */
+  prefs_set_by: string;
 }

@@ -15406,28 +15406,34 @@ export const ListAdjustmentsResponseItem = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
-  "effective_date": zod.iso.date(),
+  "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
   "ends_on": zod.iso.date().nullish(),
   "id": zod.uuid(),
   "kind": zod.string().describe('`bonus` · `deduction`'),
+  "original_amount_piastres": zod.number().nullish(),
+  "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
   "recurring": zod.boolean(),
   "source": zod.string(),
-  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`')
+  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
+  "stop_reason": zod.string().nullish(),
+  "stopped_at": zod.iso.datetime({"offset":true}).nullish(),
+  "value_piastres": zod.number().describe('A percent line valued against the salary, in piastres — the server\'s\nfigure (AT-3); equals `amount_piastres` for a flat line.'),
+  "waived_at": zod.iso.datetime({"offset":true}).nullish().describe('A rule-made deduction the manager forgave: shown, counted for nothing (AD-6\/AD-8).')
 })
 export const ListAdjustmentsResponse = zod.array(ListAdjustmentsResponseItem)
 
 
 /**
  * @summary Add a bonus or deduction. Over the caller's limit it is created pending
-and waits for the owner (AD-5).
+and waits for the owner (AD-5). Bonuses and deductions have separate limits.
  */
 export const CreateAdjustmentBody = zod.object({
   "amount_piastres": zod.number().nullish(),
-  "effective_date": zod.iso.date().nullish(),
+  "effective_date": zod.iso.date().nullish().describe('The month it lands in (AD-1): any day of that month; the first month\nof a recurring line (AD-3). Defaults to today. Must be an open month.'),
   "employee_id": zod.uuid(),
   "kind": zod.string().describe('`bonus` · `deduction`'),
   "percent_of_base": zod.number().nullish().describe('A bonus may be a % of salary.'),
@@ -15439,22 +15445,29 @@ export const CreateAdjustmentResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
-  "effective_date": zod.iso.date(),
+  "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
   "ends_on": zod.iso.date().nullish(),
   "id": zod.uuid(),
   "kind": zod.string().describe('`bonus` · `deduction`'),
+  "original_amount_piastres": zod.number().nullish(),
+  "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
   "recurring": zod.boolean(),
   "source": zod.string(),
-  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`')
+  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
+  "stop_reason": zod.string().nullish(),
+  "stopped_at": zod.iso.datetime({"offset":true}).nullish(),
+  "value_piastres": zod.number().describe('A percent line valued against the salary, in piastres — the server\'s\nfigure (AT-3); equals `amount_piastres` for a flat line.'),
+  "waived_at": zod.iso.datetime({"offset":true}).nullish().describe('A rule-made deduction the manager forgave: shown, counted for nothing (AD-6\/AD-8).')
 })
 
 
 /**
- * @summary The owner (or anyone whose limit covers it) decides a pending line.
+ * @summary The owner (or anyone whose limit covers it) decides a pending line. A
+percent line is judged at its value in piastres (audit B5).
  */
 export const DecideAdjustmentParams = zod.object({
   "kind": zod.string(),
@@ -15469,17 +15482,23 @@ export const DecideAdjustmentResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
-  "effective_date": zod.iso.date(),
+  "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
   "ends_on": zod.iso.date().nullish(),
   "id": zod.uuid(),
   "kind": zod.string().describe('`bonus` · `deduction`'),
+  "original_amount_piastres": zod.number().nullish(),
+  "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
   "recurring": zod.boolean(),
   "source": zod.string(),
-  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`')
+  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
+  "stop_reason": zod.string().nullish(),
+  "stopped_at": zod.iso.datetime({"offset":true}).nullish(),
+  "value_piastres": zod.number().describe('A percent line valued against the salary, in piastres — the server\'s\nfigure (AT-3); equals `amount_piastres` for a flat line.'),
+  "waived_at": zod.iso.datetime({"offset":true}).nullish().describe('A rule-made deduction the manager forgave: shown, counted for nothing (AD-6\/AD-8).')
 })
 
 
@@ -15491,27 +15510,70 @@ export const StopAdjustmentParams = zod.object({
   "id": zod.uuid()
 })
 
+export const StopAdjustmentBody = zod.object({
+  "reason": zod.string().nullish().describe('Why it stops (AD-9).')
+})
+
 export const StopAdjustmentResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
-  "effective_date": zod.iso.date(),
+  "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
   "ends_on": zod.iso.date().nullish(),
   "id": zod.uuid(),
   "kind": zod.string().describe('`bonus` · `deduction`'),
+  "original_amount_piastres": zod.number().nullish(),
+  "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
   "recurring": zod.boolean(),
   "source": zod.string(),
-  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`')
+  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
+  "stop_reason": zod.string().nullish(),
+  "stopped_at": zod.iso.datetime({"offset":true}).nullish(),
+  "value_piastres": zod.number().describe('A percent line valued against the salary, in piastres — the server\'s\nfigure (AT-3); equals `amount_piastres` for a flat line.'),
+  "waived_at": zod.iso.datetime({"offset":true}).nullish().describe('A rule-made deduction the manager forgave: shown, counted for nothing (AD-6\/AD-8).')
+})
+
+
+/**
+ * @summary A manager hands an advance over directly (AV-2): recorded and approved in
+ONE call under the same cap and limit as a review, so a refusal never
+leaves a stray pending advance behind (audit B10).
+ */
+export const RecordAdvanceBody = zod.object({
+  "amount_piastres": zod.number(),
+  "employee_id": zod.uuid(),
+  "installments": zod.number().nullish().describe('1 = in full from the next payslip (AV-3).'),
+  "reason": zod.string().nullish()
+})
+
+export const RecordAdvanceResponse = zod.object({
+  "amount_piastres": zod.number(),
+  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish(),
+  "decision_note": zod.string().nullish(),
+  "employee_id": zod.uuid(),
+  "employee_name": zod.string().nullish(),
+  "id": zod.uuid(),
+  "installments": zod.number(),
+  "monthly_installment_piastres": zod.number(),
+  "org_id": zod.uuid(),
+  "outstanding_piastres": zod.number().describe('What the person owes across their live advances (pending ones count).'),
+  "reason": zod.string().nullish(),
+  "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
+  "status": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true})
 })
 
 
 /**
  * @summary Decide an advance within the cap: the approver's limit is a % of the
-employee's salary (AV-4, AV-5).
+employee's salary owed after this one (AV-4, AV-5).
  */
 export const ReviewAdvanceParams = zod.object({
   "id": zod.uuid()
@@ -15526,6 +15588,7 @@ export const ReviewAdvanceBody = zod.object({
 
 export const ReviewAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
+  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -15536,8 +15599,9 @@ export const ReviewAdvanceResponse = zod.object({
   "installments": zod.number(),
   "monthly_installment_piastres": zod.number(),
   "org_id": zod.uuid(),
+  "outstanding_piastres": zod.number().describe('What the person owes across their live advances (pending ones count).'),
   "reason": zod.string().nullish(),
-  "remaining_piastres": zod.number(),
+  "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -15584,6 +15648,7 @@ export const ListAttendanceResponseItem = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -15638,6 +15703,7 @@ export const CreateManualRecordResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -15647,11 +15713,20 @@ export const CreateManualRecordResponse = zod.object({
 
 
 /**
- * @summary Clock someone in, or out if they are in, now; marked as made by the
-manager with the reason (CL-13, CL-16).
+ * @summary Clock someone in, or out if they are in; marked as made by the manager
+(`manager`) with the reason (CL-13, CL-16). The check-in window, the
+night shift's business date and the shift's own branch apply exactly as
+for the app.
  */
 export const PunchForBody = zod.object({
   "employee_id": zod.uuid(),
+  "offline": zod.union([zod.null(),zod.object({
+  "anchor": zod.string().nullish().describe('The `X-Dawam-Time` value of the last response the phone saw (signed).'),
+  "elapsed_ms": zod.number().describe('Time-since-boot elapsed from `server_time` to the event, in ms.'),
+  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when the platform gives one (Android\'s\nGNSS provider; iOS gives none).'),
+  "rebooted": zod.boolean().optional().describe('The phone restarted after `server_time`, so `elapsed_ms` means nothing.'),
+  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw. Only a guide: a valid `anchor`\nreplaces it, and without one the punch is marked unverified.')
+}).describe('Set when the manager\'s phone queued the punch offline: it is dated at\nits own time, not when the phone got a signal back (audit 03 bug 6).')]).optional(),
   "reason": zod.string().describe('Required (CL-13): a dead phone, a forgotten one.')
 })
 
@@ -15688,6 +15763,7 @@ export const PunchForResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -15722,12 +15798,19 @@ export const GetAttendanceSettingsResponse = zod.object({
   "night_start": zod.string().describe('Night for the night overtime rate and for suggestions (RU-8, RU-9).'),
   "orders_per_staff": zod.number().describe('POS-derived coverage: one person per this many orders an hour.'),
   "org_id": zod.uuid(),
+  "overridden": zod.array(zod.string()).optional().describe('For a branch: the rules it sets itself (every other field is the\nbusiness\'s, RU-2). Empty for the business.'),
   "overtime_day_multiplier": zod.number(),
   "overtime_mode": zod.string().describe('`off` · `automatic` · `approval` (RU-7).'),
   "overtime_night_multiplier": zod.number(),
   "period_start_day": zod.number().describe('Day of the month a pay period opens (PAY-1): 26 = a 26th–25th cycle.'),
   "require_geofence": zod.boolean(),
   "rules_saved_at": zod.iso.datetime({"offset":true}).nullish().describe('When the business saved its rules; nobody clocks in before (RU-1).'),
+  "suggested_tiers": zod.array(zod.object({
+  "from_minutes": zod.number(),
+  "kind": zod.enum(['minutes', 'piastres', 'day_fraction']).describe('What a tier costs the employee.'),
+  "to_minutes": zod.number().nullish(),
+  "value": zod.number()
+}).describe('One rung of the late-penalty ladder. Ranges are inclusive at both ends;\n`to_minutes = None` is the open-ended top rung.')).optional().describe('The ladder the set-up step suggests (RU-1). Never used for pricing.'),
   "updated_at": zod.iso.datetime({"offset":true}),
   "working_days_per_month": zod.number()
 })
@@ -15743,6 +15826,7 @@ export const PutAttendanceSettingsBody = zod.object({
   "gender_mode": zod.string().nullish().describe('`off` · `soft` · `hard`; owner only (`hr.roster.settings`).'),
   "half_day_leave_counts": zod.string().nullish().describe('`half_shift` · `whole_day`.'),
   "holiday_multiplier": zod.number().nullish(),
+  "inherit": zod.array(zod.string()).nullish().describe('Branch only: rules to take from the business again (field names, as\nin `overridden`).'),
   "late_deduction_tiers": zod.array(zod.object({
   "from_minutes": zod.number(),
   "kind": zod.enum(['minutes', 'piastres', 'day_fraction']).describe('What a tier costs the employee.'),
@@ -15787,15 +15871,38 @@ export const PutAttendanceSettingsResponse = zod.object({
   "night_start": zod.string().describe('Night for the night overtime rate and for suggestions (RU-8, RU-9).'),
   "orders_per_staff": zod.number().describe('POS-derived coverage: one person per this many orders an hour.'),
   "org_id": zod.uuid(),
+  "overridden": zod.array(zod.string()).optional().describe('For a branch: the rules it sets itself (every other field is the\nbusiness\'s, RU-2). Empty for the business.'),
   "overtime_day_multiplier": zod.number(),
   "overtime_mode": zod.string().describe('`off` · `automatic` · `approval` (RU-7).'),
   "overtime_night_multiplier": zod.number(),
   "period_start_day": zod.number().describe('Day of the month a pay period opens (PAY-1): 26 = a 26th–25th cycle.'),
   "require_geofence": zod.boolean(),
   "rules_saved_at": zod.iso.datetime({"offset":true}).nullish().describe('When the business saved its rules; nobody clocks in before (RU-1).'),
+  "suggested_tiers": zod.array(zod.object({
+  "from_minutes": zod.number(),
+  "kind": zod.enum(['minutes', 'piastres', 'day_fraction']).describe('What a tier costs the employee.'),
+  "to_minutes": zod.number().nullish(),
+  "value": zod.number()
+}).describe('One rung of the late-penalty ladder. Ranges are inclusive at both ends;\n`to_minutes = None` is the open-ended top rung.')).optional().describe('The ladder the set-up step suggests (RU-1). Never used for pricing.'),
   "updated_at": zod.iso.datetime({"offset":true}),
   "working_days_per_month": zod.number()
 })
+
+
+export const ListBranchRulesResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "overridden": zod.array(zod.string()).describe('The fields this branch sets itself; every other one is the business\'s.'),
+  "updated_at": zod.iso.datetime({"offset":true}).nullish()
+}).describe('A branch and which of its rules it overrides.')
+export const ListBranchRulesResponse = zod.array(ListBranchRulesResponseItem)
+
+
+export const DeleteBranchRulesParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch whose overrides go')
+})
+
+export const DeleteBranchRulesResponse = zod.void()
 
 
 export const AttendanceSummaryQueryParams = zod.object({
@@ -15824,9 +15931,18 @@ export const AttendanceSummaryResponse = zod.array(AttendanceSummaryResponseItem
 /**
  * @summary A dead or forgotten phone in a Madar org: the person clocks in or out on
 the branch till with their till PIN (CL-13). Marked `till` (CL-16). The
-till is at the branch, so there is no geofence to check. Online only: a
-PIN is never queued.
+till is at the branch, so there is no geofence to check — which is why
+it is accepted ONLY from a real till (audit 03 P0): a POS session (never
+the Dawam app's) on the branch's registered POS device, proven by its
+credential when it has one, with a till session open on that device at
+that branch. Online only: a PIN is never queued. Wrong PINs slow down
+like the till's own sign-in, and the branch's managers are told.
  */
+export const TillPunchHeader = zod.object({
+  "X-Madar-Device": zod.string().describe('The till\'s device id'),
+  "X-Madar-Device-Token": zod.string().nullish().describe('The device credential, when it has one')
+})
+
 export const TillPunchBody = zod.object({
   "branch_id": zod.uuid(),
   "pin": zod.string().describe('The person\'s own till PIN.')
@@ -15869,6 +15985,7 @@ export const TillPunchResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -15880,6 +15997,10 @@ export const TillPunchResponse = zod.object({
 
 export const DeleteRecordParams = zod.object({
   "id": zod.uuid().describe('Attendance record ID')
+})
+
+export const DeleteRecordQueryParams = zod.object({
+  "reason": zod.string().optional().describe('Why the day goes (kept with the tombstone the absence sweep honours).')
 })
 
 export const DeleteRecordResponse = zod.void()
@@ -15930,6 +16051,7 @@ export const CorrectRecordResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -15983,6 +16105,7 @@ export const DecideCoverResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -16035,6 +16158,7 @@ export const DecideOvertimeResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -16127,6 +16251,9 @@ export const DisciplineReportResponse = zod.object({
   "from": zod.iso.date(),
   "rows": zod.array(zod.object({
   "absent_days": zod.number(),
+  "covered_by_others": zod.number().optional().describe('Their own shifts a colleague covered (not rejected): the absence stays\ntheirs (CV-6), this says someone stepped in.'),
+  "covers_given": zod.number().optional().describe('Colleagues\' shifts this person covered, confirmed by a manager (CV-7).\nA cover is never a present day of the coverer\'s own.'),
+  "covers_pending": zod.number().optional().describe('Covers still waiting for the manager.'),
   "department_id": zod.uuid().nullish().describe('`None` for a person with no department set — grouped as \"Unassigned\".'),
   "department_name": zod.string().nullish(),
   "employee_id": zod.uuid(),
@@ -16179,6 +16306,7 @@ export const ListEmployeesResponseItem = zod.object({
   "name": zod.string(),
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "on_payroll": zod.boolean().describe('Paid through Dawam (the default). Off for someone who uses the app\nand is rostered but is not paid here (an owner, say): the payroll\nrun, the estimate and the payslips skip them.'),
   "org_id": zod.uuid(),
   "pay_account": zod.string().nullish(),
   "pay_method": zod.string().describe('`cash` · `bank` · `wallet`'),
@@ -16237,6 +16365,7 @@ export const CreateEmployeeResponse = zod.object({
   "name": zod.string(),
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "on_payroll": zod.boolean().describe('Paid through Dawam (the default). Off for someone who uses the app\nand is rostered but is not paid here (an owner, say): the payroll\nrun, the estimate and the payslips skip them.'),
   "org_id": zod.uuid(),
   "pay_account": zod.string().nullish(),
   "pay_method": zod.string().describe('`cash` · `bank` · `wallet`'),
@@ -16292,6 +16421,7 @@ export const GetEmployeeResponse = zod.object({
   "name": zod.string(),
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "on_payroll": zod.boolean().describe('Paid through Dawam (the default). Off for someone who uses the app\nand is rostered but is not paid here (an owner, say): the payroll\nrun, the estimate and the payslips skip them.'),
   "org_id": zod.uuid(),
   "pay_account": zod.string().nullish(),
   "pay_method": zod.string().describe('`cash` · `bank` · `wallet`'),
@@ -16324,6 +16454,7 @@ export const PutEmployeeBody = zod.object({
   "name": zod.string().nullish(),
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "on_payroll": zod.boolean().nullish().describe('Paid through Dawam. Like the salary, ignored unless the caller has\n`hr.payroll.edit` for every branch.'),
   "pay_account": zod.string().nullish(),
   "pay_method": zod.string().nullish().describe('`cash` · `bank` · `wallet`; omitted keeps what is there.'),
   "phone": zod.string().nullish().describe('A new number signs the old phone out (RO-10). Empty clears it.'),
@@ -16355,6 +16486,7 @@ export const PutEmployeeResponse = zod.object({
   "name": zod.string(),
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "on_payroll": zod.boolean().describe('Paid through Dawam (the default). Off for someone who uses the app\nand is rostered but is not paid here (an owner, say): the payroll\nrun, the estimate and the payslips skip them.'),
   "org_id": zod.uuid(),
   "pay_account": zod.string().nullish(),
   "pay_method": zod.string().describe('`cash` · `bank` · `wallet`'),
@@ -16428,6 +16560,41 @@ export const CreateDocumentResponse = zod.object({
 })
 
 
+/**
+ * @summary A manager overrides someone's preferences (SC-12). Logged, and the
+person is told.
+ */
+export const PutEmployeePreferencesParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const PutEmployeePreferencesBody = zod.object({
+  "cant_work_days": zod.array(zod.number()).optional().describe('Days I can\'t work: 0 = Sunday … 6 = Saturday.'),
+  "note": zod.string().nullish().describe('Why (a manager\'s override).'),
+  "pref_time": zod.string().nullish().describe('`morning` · `evening` · null')
+})
+
+export const PutEmployeePreferencesResponse = zod.void()
+
+
+/**
+ * @summary Who changed someone's preferences, and when (SC-12, newest first).
+ */
+export const PreferenceLogParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const PreferenceLogResponseItem = zod.object({
+  "cant_work_days": zod.array(zod.number()),
+  "changed_by_name": zod.string().nullish().describe('The manager\'s name, for a manager\'s change.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "note": zod.string().nullish(),
+  "pref_time": zod.string().nullish(),
+  "source": zod.string().describe('`employee` or `manager`.')
+})
+export const PreferenceLogResponse = zod.array(PreferenceLogResponseItem)
+
+
 export const ListExpenseAdvancesQueryParams = zod.object({
   "employee_id": zod.uuid().optional()
 })
@@ -16450,9 +16617,11 @@ export const ListExpenseAdvancesResponse = zod.array(ListExpenseAdvancesResponse
 
 export const LogExpenseAdvanceBody = zod.object({
   "amount_piastres": zod.number(),
+  "branch_id": zod.uuid().nullish().describe('Where it was handed over; defaults to the person\'s first branch. Must\nbe a branch the caller may log at.'),
   "employee_id": zod.uuid(),
+  "given_on": zod.iso.date().nullish().describe('When the cash changed hands; defaults to today (AV-7).'),
   "purpose": zod.string(),
-  "via": zod.string().describe('`safe` · `bank` · `till`')
+  "via": zod.string().describe('`safe` · `bank`. A till pay-out is tagged on the POS (AV-8), never\nlogged here by hand (AV-10).')
 })
 
 export const LogExpenseAdvanceResponse = zod.object({
@@ -16503,7 +16672,8 @@ export const ResolveFlagParams = zod.object({
 
 export const ResolveFlagBody = zod.object({
   "action": zod.string().describe('`ignore` · `excuse_paid` · `excuse_unpaid` · `deduct` · `revoke` (a new\nphone) · `confirm`'),
-  "amount_piastres": zod.number().nullish().describe('For `deduct`: the amount the manager typed (CL-7).')
+  "amount_piastres": zod.number().nullish().describe('For `deduct`: the amount the manager typed (CL-7).'),
+  "reason": zod.string().nullish().describe('For `deduct`: why, on the pay line the employee sees (AD-9).')
 })
 
 export const ResolveFlagResponse = zod.object({
@@ -16537,136 +16707,34 @@ export const DecideHolidayResponse = zod.object({
 })
 
 
-export const ListBalancesQueryParams = zod.object({
-  "employee_id": zod.uuid().optional(),
-  "year": zod.number().optional().describe('Defaults to the current calendar year.')
-})
-
-export const ListBalancesResponseItem = zod.object({
-  "carried_over_days": zod.number(),
-  "employee_id": zod.uuid(),
-  "entitled_days": zod.number(),
-  "id": zod.uuid(),
-  "leave_type_id": zod.uuid(),
-  "leave_type_name": zod.string().nullish(),
-  "org_id": zod.uuid(),
-  "remaining_days": zod.number().describe('`entitled + carried_over − used`. Computed, not stored.'),
-  "used_days": zod.number(),
-  "year": zod.number()
-})
-export const ListBalancesResponse = zod.array(ListBalancesResponseItem)
-
-
-export const PutBalanceBody = zod.object({
-  "carried_over_days": zod.number().nullish(),
-  "employee_id": zod.uuid(),
-  "entitled_days": zod.number(),
-  "leave_type_id": zod.uuid(),
-  "year": zod.number()
-})
-
-export const PutBalanceResponse = zod.object({
-  "carried_over_days": zod.number(),
-  "employee_id": zod.uuid(),
-  "entitled_days": zod.number(),
-  "id": zod.uuid(),
-  "leave_type_id": zod.uuid(),
-  "leave_type_name": zod.string().nullish(),
-  "org_id": zod.uuid(),
-  "remaining_days": zod.number().describe('`entitled + carried_over − used`. Computed, not stored.'),
-  "used_days": zod.number(),
-  "year": zod.number()
-})
-
-
-export const ListLeaveTypesResponseItem = zod.object({
-  "annual_quota_days": zod.number().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "id": zod.uuid(),
-  "is_active": zod.boolean(),
-  "is_paid": zod.boolean(),
-  "name": zod.string(),
-  "org_id": zod.uuid(),
-  "requires_approval": zod.boolean(),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-export const ListLeaveTypesResponse = zod.array(ListLeaveTypesResponseItem)
-
-
-export const CreateLeaveTypeBody = zod.object({
-  "annual_quota_days": zod.number().nullish(),
-  "is_active": zod.boolean().nullish(),
-  "is_paid": zod.boolean().nullish(),
-  "name": zod.string(),
-  "requires_approval": zod.boolean().nullish()
-})
-
-export const CreateLeaveTypeResponse = zod.object({
-  "annual_quota_days": zod.number().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "id": zod.uuid(),
-  "is_active": zod.boolean(),
-  "is_paid": zod.boolean(),
-  "name": zod.string(),
-  "org_id": zod.uuid(),
-  "requires_approval": zod.boolean(),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
-export const DeleteLeaveTypeParams = zod.object({
-  "id": zod.uuid().describe('Leave type ID')
-})
-
-export const DeleteLeaveTypeResponse = zod.void()
-
-
-export const UpdateLeaveTypeParams = zod.object({
-  "id": zod.uuid().describe('Leave type ID')
-})
-
-export const UpdateLeaveTypeBody = zod.object({
-  "annual_quota_days": zod.number().nullish(),
-  "is_active": zod.boolean().nullish(),
-  "is_paid": zod.boolean().nullish(),
-  "name": zod.string(),
-  "requires_approval": zod.boolean().nullish()
-})
-
-export const UpdateLeaveTypeResponse = zod.object({
-  "annual_quota_days": zod.number().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "id": zod.uuid(),
-  "is_active": zod.boolean(),
-  "is_paid": zod.boolean(),
-  "name": zod.string(),
-  "org_id": zod.uuid(),
-  "requires_approval": zod.boolean(),
-  "updated_at": zod.iso.datetime({"offset":true})
-})
-
-
 export const MyAdjustmentsResponseItem = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
-  "effective_date": zod.iso.date(),
+  "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
   "ends_on": zod.iso.date().nullish(),
   "id": zod.uuid(),
   "kind": zod.string().describe('`bonus` · `deduction`'),
+  "original_amount_piastres": zod.number().nullish(),
+  "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
   "recurring": zod.boolean(),
   "source": zod.string(),
-  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`')
+  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
+  "stop_reason": zod.string().nullish(),
+  "stopped_at": zod.iso.datetime({"offset":true}).nullish(),
+  "value_piastres": zod.number().describe('A percent line valued against the salary, in piastres — the server\'s\nfigure (AT-3); equals `amount_piastres` for a flat line.'),
+  "waived_at": zod.iso.datetime({"offset":true}).nullish().describe('A rule-made deduction the manager forgave: shown, counted for nothing (AD-6\/AD-8).')
 })
 export const MyAdjustmentsResponse = zod.array(MyAdjustmentsResponseItem)
 
 
 export const MyAdvancesResponseItem = zod.object({
   "amount_piastres": zod.number(),
+  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -16677,8 +16745,9 @@ export const MyAdvancesResponseItem = zod.object({
   "installments": zod.number(),
   "monthly_installment_piastres": zod.number(),
   "org_id": zod.uuid(),
+  "outstanding_piastres": zod.number().describe('What the person owes across their live advances (pending ones count).'),
   "reason": zod.string().nullish(),
-  "remaining_piastres": zod.number(),
+  "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -16694,6 +16763,7 @@ export const CreateMyAdvanceBody = zod.object({
 
 export const CreateMyAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
+  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -16704,8 +16774,9 @@ export const CreateMyAdvanceResponse = zod.object({
   "installments": zod.number(),
   "monthly_installment_piastres": zod.number(),
   "org_id": zod.uuid(),
+  "outstanding_piastres": zod.number().describe('What the person owes across their live advances (pending ones count).'),
   "reason": zod.string().nullish(),
-  "remaining_piastres": zod.number(),
+  "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -16749,6 +16820,7 @@ export const MyAttendanceResponseItem = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -16759,14 +16831,17 @@ export const MyAttendanceResponse = zod.array(MyAttendanceResponseItem)
 
 
 export const CheckInBody = zod.object({
+  "accuracy_meters": zod.number().nullish().describe('The fix\'s reported accuracy, metres (CL-9: a perfect one is suspicious).'),
   "branch_id": zod.uuid(),
+  "is_mock": zod.boolean().nullish().describe('The OS\'s mock-location marker for this fix (CL-9).'),
   "latitude": zod.number().nullish().describe('Device coordinates. Required whenever the org enforces the geofence.'),
   "longitude": zod.number().nullish(),
   "offline": zod.union([zod.null(),zod.object({
+  "anchor": zod.string().nullish().describe('The `X-Dawam-Time` value of the last response the phone saw (signed).'),
   "elapsed_ms": zod.number().describe('Time-since-boot elapsed from `server_time` to the event, in ms.'),
-  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when it had one.'),
+  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when the platform gives one (Android\'s\nGNSS provider; iOS gives none).'),
   "rebooted": zod.boolean().optional().describe('The phone restarted after `server_time`, so `elapsed_ms` means nothing.'),
-  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw (a response\'s `Date`).')
+  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw. Only a guide: a valid `anchor`\nreplaces it, and without one the punch is marked unverified.')
 }).describe('Set when the punch was queued offline; the server rebuilds its time (CL-11).')]).optional(),
   "tracking_off": zod.boolean().nullish().describe('\"Always\" location was refused: the shift is marked and the manager told\n(CL-5). Location at the punch is still required.')
 })
@@ -16804,6 +16879,7 @@ export const CheckInResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -16813,13 +16889,16 @@ export const CheckInResponse = zod.object({
 
 
 export const CheckOutBody = zod.object({
+  "accuracy_meters": zod.number().nullish().describe('The fix\'s reported accuracy, metres (CL-9).'),
+  "is_mock": zod.boolean().nullish().describe('The OS\'s mock-location marker for this fix (CL-9).'),
   "latitude": zod.number().nullish(),
   "longitude": zod.number().nullish(),
   "offline": zod.union([zod.null(),zod.object({
+  "anchor": zod.string().nullish().describe('The `X-Dawam-Time` value of the last response the phone saw (signed).'),
   "elapsed_ms": zod.number().describe('Time-since-boot elapsed from `server_time` to the event, in ms.'),
-  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when it had one.'),
+  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when the platform gives one (Android\'s\nGNSS provider; iOS gives none).'),
   "rebooted": zod.boolean().optional().describe('The phone restarted after `server_time`, so `elapsed_ms` means nothing.'),
-  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw (a response\'s `Date`).')
+  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw. Only a guide: a valid `anchor`\nreplaces it, and without one the punch is marked unverified.')
 }).describe('Set when the punch was queued offline; the server rebuilds its time (CL-11).')]).optional()
 })
 
@@ -16856,6 +16935,7 @@ export const CheckOutResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -16865,7 +16945,7 @@ export const CheckOutResponse = zod.object({
 
 
 export const MyContextResponse = zod.object({
-  "adjustment_limit_piastres": zod.number().nullish().describe('My ceiling on a bonus\/deduction before it waits for the owner; null = none.'),
+  "adjustment_limit_piastres": zod.number().nullish().describe('My ceiling on a bonus before it waits for the owner; null = none.'),
   "advance_limit_percent": zod.number().nullish(),
   "branches": zod.array(zod.object({
   "geo_radius_meters": zod.number().nullish(),
@@ -16876,6 +16956,7 @@ export const MyContextResponse = zod.object({
   "timezone": zod.string()
 })),
   "caps": zod.array(zod.string()).describe('The HR capabilities I hold (`hr.\*` keys) — through my Madar account;\nempty for an employee with none. The app gates tabs on these (PM-4).'),
+  "deduction_limit_piastres": zod.number().nullish().describe('My ceiling on a deduction (AD-5: separate from the bonus limit).'),
   "employee_id": zod.uuid().describe('Who is signed in: the employee.'),
   "modules": zod.array(zod.string()).describe('The org\'s modules (`pos`, `dawam`); POS on means till punches (CL-13).'),
   "name": zod.string(),
@@ -16898,6 +16979,7 @@ export const MyContextResponse = zod.object({
   "role": zod.string().describe('`owner` · `manager` · `employee` (from the linked account; an employee\nwith no account is `employee`).'),
   "user_id": zod.uuid().nullish().describe('Their Madar account, when they have one.')
 })),
+  "privacy_accepted_at": zod.iso.datetime({"offset":true}).nullish().describe('When THIS phone accepted the location notice; null = show it before\nany location is taken (AT-5). A new phone, or a restored session on\none that never accepted, starts null.'),
   "role": zod.string().describe('`owner` · `manager` · `employee`'),
   "settings": zod.object({
   "absence_deduction_days": zod.number(),
@@ -16914,11 +16996,17 @@ export const MyContextResponse = zod.object({
   "work_shifts": zod.array(zod.object({
   "branch_id": zod.uuid().nullish(),
   "crosses_midnight": zod.boolean(),
+  "day_times": zod.array(zod.object({
+  "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
+  "end_time": zod.string().describe('At or before the start = ends the next day.'),
+  "start_time": zod.string()
+}).describe('A block\'s own start\/end on one weekday, on top of its default times.')).describe('Its own times on some weekdays; show that day\'s times.'),
   "end_time": zod.string(),
   "grace_minutes": zod.number(),
   "id": zod.uuid(),
   "name": zod.string(),
-  "start_time": zod.string()
+  "start_time": zod.string(),
+  "valid_days": zod.array(zod.number()).describe('Weekdays it may be rostered on (0 = Sunday … 6 = Saturday): offer it\nonly on those.')
 }))
 })
 
@@ -16929,9 +17017,18 @@ checks as a clock-in; flagged for the manager; paid only once confirmed
 (CV-1..CV-5, CV-7).
  */
 export const OpenCoverBody = zod.object({
+  "accuracy_meters": zod.number().nullish().describe('The fix\'s reported accuracy, metres (CL-9).'),
   "employee_id": zod.uuid().describe('Whose shift.'),
+  "is_mock": zod.boolean().nullish().describe('The OS\'s mock-location marker for this fix (CL-9).'),
   "latitude": zod.number().nullish(),
   "longitude": zod.number().nullish(),
+  "offline": zod.union([zod.null(),zod.object({
+  "anchor": zod.string().nullish().describe('The `X-Dawam-Time` value of the last response the phone saw (signed).'),
+  "elapsed_ms": zod.number().describe('Time-since-boot elapsed from `server_time` to the event, in ms.'),
+  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when the platform gives one (Android\'s\nGNSS provider; iOS gives none).'),
+  "rebooted": zod.boolean().optional().describe('The phone restarted after `server_time`, so `elapsed_ms` means nothing.'),
+  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw. Only a guide: a valid `anchor`\nreplaces it, and without one the punch is marked unverified.')
+}).describe('Set when the cover was queued offline: it starts at its own time, not\nwhen the phone got a signal back (CL-11, audit 03 bug 6).')]).optional(),
   "work_shift_id": zod.uuid()
 })
 
@@ -16968,6 +17065,7 @@ export const OpenCoverResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -17005,6 +17103,10 @@ export const MyExpenseAdvancesResponseItem = zod.object({
 export const MyExpenseAdvancesResponse = zod.array(MyExpenseAdvancesResponseItem)
 
 
+/**
+ * @summary Deprecated (RQ-3): Dawam has no leave balances. This shows what older data
+holds and is never written any more.
+ */
 export const MyLeaveBalancesQueryParams = zod.object({
   "employee_id": zod.uuid().optional(),
   "year": zod.number().optional().describe('Defaults to the current calendar year.')
@@ -17046,14 +17148,17 @@ export const ReadNotificationsResponse = zod.void()
  * @summary What I've earned so far this period.
  */
 export const MyEstimateResponse = zod.object({
+  "advance_cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe (AV-5), server-computed.'),
+  "advance_outstanding_piastres": zod.number(),
   "advance_room_piastres": zod.number().describe('How much more can be asked for as an advance (AV-5).'),
+  "on_payroll": zod.boolean(),
   "period_end": zod.iso.date(),
   "period_start": zod.iso.date(),
   "slip": zod.union([zod.null(),zod.object({
   "absent_days": zod.number(),
   "advance_installment_piastres": zod.number().describe('What the advances WANT versus what the payslip can afford differ when net\npay would go negative; this is the affordable figure, the one collected.'),
-  "base_piastres": zod.number().describe('After the attendance proration — what the days actually worked earn.'),
-  "base_salary_piastres": zod.number(),
+  "base_piastres": zod.number().describe('After the calendar-day proration — what the days employed earn, at\neach day\'s salary (PAY-13).'),
+  "base_salary_piastres": zod.number().describe('The monthly salary in force at the end of the window.'),
   "bonuses_piastres": zod.number(),
   "breakdown": zod.unknown().describe('Line-by-line, so a preview can name each deduction rather than showing a\nlump sum nobody can argue with.'),
   "carry_out_piastres": zod.number().describe('Deductions beyond what was earned: the payslip stops at zero and this\ncarries into the next one as a debt (PAY-12).'),
@@ -17066,7 +17171,7 @@ export const MyEstimateResponse = zod.object({
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
   "worked_days": zod.number()
-}).describe('So far this period, from the same engine payroll uses (PAY-11).')]).optional()
+}).describe('So far this period, from the same engine payroll uses (PAY-9). Null\nfor someone not on payroll.')]).optional()
 })
 
 
@@ -17089,7 +17194,10 @@ export const MyPayslipsResponseItem = zod.object({
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
   "paid_at": zod.iso.datetime({"offset":true}).nullish(),
-  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.'),
+  "paid_by": zod.uuid().nullish().describe('Who marked it paid (AT-10).'),
+  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7), or `none` for a payslip\nwith nothing to pay, marked by the run itself; null until marked paid.'),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string().nullish().describe('The person\'s pay method and account at the time of reading, for the\nbank and wallet lists (PAY-8).'),
   "payroll_period_id": zod.uuid(),
   "period_end": zod.iso.date().nullish(),
   "period_name": zod.string().nullish().describe('The period this covers, denormalised. A payslip identified only by its\ngeneration timestamp is unreadable — two months run on the same day would\nbe indistinguishable to the employee looking at them.'),
@@ -17109,10 +17217,11 @@ export const PingBody = zod.object({
   "latitude": zod.number(),
   "longitude": zod.number(),
   "offline": zod.union([zod.null(),zod.object({
+  "anchor": zod.string().nullish().describe('The `X-Dawam-Time` value of the last response the phone saw (signed).'),
   "elapsed_ms": zod.number().describe('Time-since-boot elapsed from `server_time` to the event, in ms.'),
-  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when it had one.'),
+  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when the platform gives one (Android\'s\nGNSS provider; iOS gives none).'),
   "rebooted": zod.boolean().optional().describe('The phone restarted after `server_time`, so `elapsed_ms` means nothing.'),
-  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw (a response\'s `Date`).')
+  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw. Only a guide: a valid `anchor`\nreplaces it, and without one the punch is marked unverified.')
 }).describe('Set when the ping was queued offline; the server rebuilds its time (CL-11).')]).optional()
 })
 
@@ -17125,14 +17234,24 @@ export const PingResponse = zod.object({
 
 
 /**
- * @summary Preferred times and days I can't work; managers see them (SC-12).
+ * @summary Preferred times and days I can't work; managers see them (SC-12). Logged.
  */
 export const PutPreferencesBody = zod.object({
   "cant_work_days": zod.array(zod.number()).optional().describe('Days I can\'t work: 0 = Sunday … 6 = Saturday.'),
+  "note": zod.string().nullish().describe('Why (a manager\'s override).'),
   "pref_time": zod.string().nullish().describe('`morning` · `evening` · null')
 })
 
 export const PutPreferencesResponse = zod.void()
+
+
+/**
+ * @summary The employee accepted the location notice on this phone (AT-5). Kept on
+the device row: a new phone asks again.
+ */
+export const AcceptStaffPrivacyResponse = zod.object({
+  "accepted_at": zod.iso.datetime({"offset":true})
+})
 
 
 /**
@@ -17156,22 +17275,28 @@ export const MyRequestsResponseItem = zod.object({
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
-  "end_date": zod.iso.date().nullish().describe('Set for `leave` and `mission`; the span\'s last day.'),
-  "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.'),
+  "end_date": zod.iso.date().nullish().describe('Set for `leave` and `mission`: the span\'s last day. For an `excuse`\nthat runs past midnight, the next day (its end is then on that day).'),
+  "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.\nFor a `correction`: the proposed check-in, branch-local.'),
   "id": zod.uuid(),
   "is_half_day": zod.boolean(),
   "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. `None` until decided.'),
-  "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission`.'),
-  "leave_type_id": zod.uuid().nullish(),
+  "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`.'),
+  "leave_half": zod.string().nullish().describe('A half-day leave: `first` or `second` half of the day off (RQ-8).'),
+  "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): older rows only; never set on new requests.'),
   "leave_type_name": zod.string().nullish(),
   "location": zod.string().nullish(),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
+  "paid_default": zod.boolean().nullish().describe('For a pending excuse or early departure: the business\'s (or branch\'s)\nrule, which the approve dialog starts from (RQ-7).'),
   "reason": zod.string().nullish(),
+  "record_check_in_at": zod.iso.datetime({"offset":true}).nullish().describe('For a correction: the record\'s current punches, so an approver sees\nwhat the proposal changes.'),
+  "record_check_out_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
   "title": zod.string().nullish(),
-  "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
+  "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
 })
 export const MyRequestsResponse = zod.array(MyRequestsResponseItem)
 
@@ -17180,15 +17305,18 @@ export const CreateMyRequestBody = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('`correction` only — the record whose punch is wrong.'),
   "employee_id": zod.uuid().nullish().describe('Admin-only. Omitted on `\/staff\/me\/\*`, where it is always the caller.'),
   "end_date": zod.iso.date().nullish(),
-  "from_time": zod.string().nullish(),
+  "from_time": zod.string().nullish().describe('Branch-local wall clock.'),
   "is_half_day": zod.boolean().nullish(),
+  "is_paid": zod.boolean().nullish().describe('Only when the request is approved as it is filed (the filer holds\n`hr.requests.self_approve`): leave paid or unpaid, an excuse\'s pay.\nOmitted: leave is paid, an excuse follows the rule.'),
   "kind": zod.string().describe('One of `leave`, `late_arrival`, `early_departure`, `excuse`, `mission`,\n`correction`.'),
-  "leave_type_id": zod.uuid().nullish(),
+  "leave_half": zod.string().nullish().describe('`first` | `second`: which half of the day a half-day leave takes off.\nOmitted on a half day = the first.'),
+  "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): ignored. Leave has no types.'),
   "location": zod.string().nullish(),
   "on_date": zod.iso.date(),
   "reason": zod.string().nullish(),
-  "title": zod.string().nullish(),
-  "to_time": zod.string().nullish()
+  "title": zod.string().nullish().describe('A mission\'s title; when omitted the note is used.'),
+  "to_time": zod.string().nullish().describe('Branch-local wall clock. An excuse ending at or before it starts runs\npast midnight.'),
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for. Omitted =\nthe shift of the day its time falls in.')
 })
 
 export const CreateMyRequestResponse = zod.object({
@@ -17199,22 +17327,28 @@ export const CreateMyRequestResponse = zod.object({
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
-  "end_date": zod.iso.date().nullish().describe('Set for `leave` and `mission`; the span\'s last day.'),
-  "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.'),
+  "end_date": zod.iso.date().nullish().describe('Set for `leave` and `mission`: the span\'s last day. For an `excuse`\nthat runs past midnight, the next day (its end is then on that day).'),
+  "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.\nFor a `correction`: the proposed check-in, branch-local.'),
   "id": zod.uuid(),
   "is_half_day": zod.boolean(),
   "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. `None` until decided.'),
-  "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission`.'),
-  "leave_type_id": zod.uuid().nullish(),
+  "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`.'),
+  "leave_half": zod.string().nullish().describe('A half-day leave: `first` or `second` half of the day off (RQ-8).'),
+  "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): older rows only; never set on new requests.'),
   "leave_type_name": zod.string().nullish(),
   "location": zod.string().nullish(),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
+  "paid_default": zod.boolean().nullish().describe('For a pending excuse or early departure: the business\'s (or branch\'s)\nrule, which the approve dialog starts from (RQ-7).'),
   "reason": zod.string().nullish(),
+  "record_check_in_at": zod.iso.datetime({"offset":true}).nullish().describe('For a correction: the record\'s current punches, so an approver sees\nwhat the proposal changes.'),
+  "record_check_out_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
   "title": zod.string().nullish(),
-  "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
+  "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
 })
 
 
@@ -17242,16 +17376,22 @@ export const MyRosterResponse = zod.object({
   "work_shift_id": zod.uuid()
 })).describe('Open shifts at my branches, in published weeks (SC-9).'),
   "pref_time": zod.string().nullish(),
+  "prefs_set_by": zod.string().describe('`employee` or `manager`: who set my preferences last.'),
   "shifts": zod.array(zod.object({
   "branch_id": zod.uuid(),
   "changed": zod.boolean().describe('Changed after its week was published (SC-4).'),
+  "crosses_midnight": zod.boolean().describe('Ends the next day.'),
   "date": zod.iso.date(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
   "end_at": zod.iso.datetime({"offset":true}),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set, not the standing pattern.'),
   "on_leave": zod.boolean().describe('On approved leave or a mission that day.'),
   "shift_name": zod.string(),
   "start_at": zod.iso.datetime({"offset":true}),
+  "start_time": zod.string().describe('Effective wall-clock times at the branch (the assignment\'s own, else\nthe block\'s for that weekday, else its default).'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (show it as edited).'),
   "work_shift_id": zod.uuid()
 })).describe('Only shifts in published weeks (SC-3).'),
   "swaps": zod.array(zod.object({
@@ -17272,13 +17412,18 @@ export const MyRosterResponse = zod.object({
   "team": zod.array(zod.object({
   "branch_id": zod.uuid(),
   "changed": zod.boolean().describe('Changed after its week was published (SC-4).'),
+  "crosses_midnight": zod.boolean().describe('Ends the next day.'),
   "date": zod.iso.date(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
   "end_at": zod.iso.datetime({"offset":true}),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set, not the standing pattern.'),
   "on_leave": zod.boolean().describe('On approved leave or a mission that day.'),
   "shift_name": zod.string(),
   "start_at": zod.iso.datetime({"offset":true}),
+  "start_time": zod.string().describe('Effective wall-clock times at the branch (the assignment\'s own, else\nthe block\'s for that weekday, else its default).'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (show it as edited).'),
   "work_shift_id": zod.uuid()
 })).describe('Colleagues\' published shifts at my branches — what a swap can be with.'),
   "to": zod.iso.date(),
@@ -17289,7 +17434,7 @@ export const MyRosterResponse = zod.object({
 /**
  * Own-row scoped like the rest of `/staff/me/*`: it needs no permission grant,
  * because seeing when you are expected at work is not an admin capability.
- * @summary The employee's OWN roster for a date range — what the app's Shifts tab shows.
+ * @summary The employee's OWN roster for a date range, published weeks only (SC-3).
  */
 export const MyScheduleQueryParams = zod.object({
   "from": zod.iso.date(),
@@ -17299,32 +17444,52 @@ export const MyScheduleQueryParams = zod.object({
 export const MyScheduleResponseItem = zod.object({
   "branch_name": zod.string().nullish().describe('The branch each shift is worked at, when the employee has one assignment.'),
   "date": zod.iso.date(),
+  "published": zod.boolean().optional().describe('The week is published at the person\'s branch. Unpublished weeks are\ndrafts: they come back empty (SC-3).'),
   "shifts": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch it is worked at (the block\'s, else the person\'s first).'),
   "break_minutes": zod.number(),
   "checkin_window_minutes": zod.number(),
+  "crosses_midnight": zod.boolean().describe('Ends on the following date.'),
+  "employee_id": zod.uuid().describe('Whose assignment this is.'),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set (a date change), not the pattern.'),
   "grace_minutes": zod.number(),
   "half_day_threshold_minutes": zod.number().nullish(),
   "name": zod.string(),
+  "on_date": zod.iso.date().describe('The business date: the day the shift starts on (SC-10).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
   "paid_break": zod.boolean(),
   "scheduled_end_at": zod.iso.datetime({"offset":true}),
-  "scheduled_start_at": zod.iso.datetime({"offset":true}),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).describe('The EFFECTIVE window: the assignment\'s own times, else the block\'s time\nfor that weekday, else its default.'),
+  "start_time": zod.string().describe('Effective wall-clock times in the branch\'s zone.'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (shown as edited).'),
   "work_shift_id": zod.uuid()
-}).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Empty = a rest day.')
+}).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Empty = a rest day, or a week not published yet.')
 }).describe('One day of an employee\'s own upcoming roster.')
 export const MyScheduleResponse = zod.array(MyScheduleResponseItem)
 
 
 /**
- * @summary Ask a colleague to swap: they agree first, then the manager (SC-8).
+ * @summary `POST /staff/me/sign-out` — the staff app signs out (APP-6, 06 B3): this
+phone's device is revoked, so its token can't be refreshed again, and the
+employee's Dawam pushes stop at once — a signed-out phone never shows the
+next person's names or amounts. Idempotent.
+ */
+export const StaffSignOutResponse = zod.void()
+
+
+/**
+ * @summary Ask a colleague to swap: they agree first, then the manager (SC-8). Both
+shifts must be on the published roster, ahead, at a branch both work at,
+and must fit where they land.
  */
 export const AskSwapBody = zod.object({
-  "my_date": zod.iso.date(),
-  "my_shift_id": zod.uuid(),
-  "peer_date": zod.iso.date(),
+  "my_date": zod.iso.date().describe('The date of MY shift I give away.'),
+  "my_shift_id": zod.uuid().describe('MY shift (a block I\'m rostered on that date).'),
+  "peer_date": zod.iso.date().describe('The date of the colleague\'s shift I take.'),
   "peer_id": zod.uuid(),
-  "peer_shift_id": zod.uuid()
+  "peer_shift_id": zod.uuid().describe('The COLLEAGUE\'s shift.')
 })
 
 export const AskSwapResponse = zod.object({
@@ -17356,6 +17521,30 @@ export const AnswerSwapBody = zod.object({
 })
 
 export const AnswerSwapResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "peer_date": zod.iso.date(),
+  "peer_id": zod.uuid(),
+  "peer_name": zod.string(),
+  "peer_shift_id": zod.uuid(),
+  "peer_shift_name": zod.string(),
+  "requester_date": zod.iso.date(),
+  "requester_id": zod.uuid(),
+  "requester_name": zod.string(),
+  "requester_shift_id": zod.uuid(),
+  "requester_shift_name": zod.string(),
+  "status": zod.string().describe('`awaiting_peer` · `pending` · `approved` · `rejected` · `cancelled`')
+})
+
+
+/**
+ * @summary The one who asked takes it back before the manager decides.
+ */
+export const CancelSwapParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const CancelSwapResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
   "peer_date": zod.iso.date(),
@@ -17412,6 +17601,7 @@ export const MyTodayResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -17451,6 +17641,7 @@ export const MyTodayResponse = zod.object({
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "status_overridden": zod.boolean().optional().describe('A manager set this day\'s status by hand; automation keeps it (AT-7).'),
   "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "work_shift_id": zod.uuid().nullish(),
@@ -17458,16 +17649,24 @@ export const MyTodayResponse = zod.object({
   "worked_minutes": zod.number()
 }).describe('The still-open record, when the employee is currently clocked in.')]).optional(),
   "scheduled": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch it is worked at (the block\'s, else the person\'s first).'),
   "break_minutes": zod.number(),
   "checkin_window_minutes": zod.number(),
+  "crosses_midnight": zod.boolean().describe('Ends on the following date.'),
+  "employee_id": zod.uuid().describe('Whose assignment this is.'),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set (a date change), not the pattern.'),
   "grace_minutes": zod.number(),
   "half_day_threshold_minutes": zod.number().nullish(),
   "name": zod.string(),
+  "on_date": zod.iso.date().describe('The business date: the day the shift starts on (SC-10).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
   "paid_break": zod.boolean(),
   "scheduled_end_at": zod.iso.datetime({"offset":true}),
-  "scheduled_start_at": zod.iso.datetime({"offset":true}),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).describe('The EFFECTIVE window: the assignment\'s own times, else the block\'s time\nfor that weekday, else its default.'),
+  "start_time": zod.string().describe('Effective wall-clock times in the branch\'s zone.'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (shown as edited).'),
   "work_shift_id": zod.uuid()
 }).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Shifts rostered for today. Empty = a rest day.'),
   "timezone": zod.string().nullish().describe('The IANA timezone this payload\'s instants are shown in (see `crate::tz`).\nAdditive; older clients ignore it.')
@@ -17519,7 +17718,18 @@ export const PostOpenShiftResponse = zod.object({
 
 
 /**
- * @summary Claim an open shift; the manager approves the claim (SC-9).
+ * @summary Take an open shift back (open or claimed, never filled). A claimer hears.
+ */
+export const CancelOpenShiftParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const CancelOpenShiftResponse = zod.void()
+
+
+/**
+ * @summary Claim an open shift; the manager approves the claim (SC-9). Only a
+published week's, and only one that fits beside the person's own shifts.
  */
 export const ClaimOpenShiftParams = zod.object({
   "id": zod.uuid()
@@ -17540,7 +17750,8 @@ export const ClaimOpenShiftResponse = zod.object({
 
 
 /**
- * @summary Approve a claim: the shift becomes theirs for that date. Rejecting reopens it.
+ * @summary Approve a claim: the shift becomes theirs for that date, beside the rest
+of their day. Rejecting reopens it. One decision only.
  */
 export const DecideClaimParams = zod.object({
   "id": zod.uuid()
@@ -17561,6 +17772,7 @@ export const ListAdvancesQueryParams = zod.object({
 
 export const ListAdvancesResponseItem = zod.object({
   "amount_piastres": zod.number(),
+  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -17571,14 +17783,20 @@ export const ListAdvancesResponseItem = zod.object({
   "installments": zod.number(),
   "monthly_installment_piastres": zod.number(),
   "org_id": zod.uuid(),
+  "outstanding_piastres": zod.number().describe('What the person owes across their live advances (pending ones count).'),
   "reason": zod.string().nullish(),
-  "remaining_piastres": zod.number(),
+  "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
 export const ListAdvancesResponse = zod.array(ListAdvancesResponseItem)
 
 
+/**
+ * @summary Record an ask on someone's behalf: it still waits for a decision
+(`PATCH /staff/advances/{id}/review`). To hand one over at once, use
+`POST /staff/advances/record`.
+ */
 export const CreateAdvanceAdminBody = zod.object({
   "amount_piastres": zod.number(),
   "employee_id": zod.uuid().nullish().describe('Admin-only; omitted on `\/staff\/me\/\*`.'),
@@ -17588,6 +17806,7 @@ export const CreateAdvanceAdminBody = zod.object({
 
 export const CreateAdvanceAdminResponse = zod.object({
   "amount_piastres": zod.number(),
+  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -17598,39 +17817,38 @@ export const CreateAdvanceAdminResponse = zod.object({
   "installments": zod.number(),
   "monthly_installment_piastres": zod.number(),
   "org_id": zod.uuid(),
+  "outstanding_piastres": zod.number().describe('What the person owes across their live advances (pending ones count).'),
   "reason": zod.string().nullish(),
-  "remaining_piastres": zod.number(),
+  "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
 
 
-export const DecideAdvanceParams = zod.object({
-  "id": zod.uuid().describe('Advance ID')
+/**
+ * @summary The money audit log: every delete, stop, waive, override, reopen and
+payment, with who and why (AD-9, AT-10).
+ */
+export const ListAuditQueryParams = zod.object({
+  "employee_id": zod.uuid().optional(),
+  "period_id": zod.uuid().optional()
 })
 
-export const DecideAdvanceBody = zod.object({
-  "note": zod.string().nullish(),
-  "status": zod.string().describe('`approved` | `rejected` | `cancelled`.')
-}).describe('Deciding a SALARY ADVANCE. Deliberately not called `DecisionRequest`: staff\nrequests have their own decision body carrying `is_paid`, and two structs\nsharing a name collapse into one OpenAPI schema — which silently gave every\ngenerated client the wrong shape for one of them.')
-
-export const DecideAdvanceResponse = zod.object({
-  "amount_piastres": zod.number(),
+export const ListAuditResponseItem = zod.object({
+  "action": zod.string(),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
-  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
-  "decision_note": zod.string().nullish(),
-  "employee_id": zod.uuid(),
+  "details": zod.unknown(),
+  "employee_id": zod.uuid().nullish(),
   "employee_name": zod.string().nullish(),
+  "entity": zod.string(),
+  "entity_id": zod.uuid().nullish(),
   "id": zod.uuid(),
-  "installments": zod.number(),
-  "monthly_installment_piastres": zod.number(),
-  "org_id": zod.uuid(),
-  "reason": zod.string().nullish(),
-  "remaining_piastres": zod.number(),
-  "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "period_id": zod.uuid().nullish(),
+  "reason": zod.string().nullish()
 })
+export const ListAuditResponse = zod.array(ListAuditResponseItem)
 
 
 export const ListBonusesQueryParams = zod.object({
@@ -17662,36 +17880,6 @@ export const ListBonusesResponseItem = zod.object({
 export const ListBonusesResponse = zod.array(ListBonusesResponseItem)
 
 
-export const CreateBonusBody = zod.object({
-  "amount_piastres": zod.number().nullish().describe('Exactly one of `amount_piastres` or `percent_of_base`.'),
-  "effective_date": zod.iso.date(),
-  "employee_id": zod.uuid(),
-  "percent_of_base": zod.number().nullish(),
-  "reason": zod.string()
-})
-
-export const CreateBonusResponse = zod.object({
-  "amount_piastres": zod.number().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "effective_date": zod.iso.date(),
-  "employee_id": zod.uuid(),
-  "employee_name": zod.string().nullish(),
-  "id": zod.uuid(),
-  "org_id": zod.uuid(),
-  "original_amount_piastres": zod.number().nullish().describe('What the RULE computed, before any human touched it. `None` on a\nhand-entered row — nothing was overridden, so there is no \"original\".'),
-  "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
-  "override_reason": zod.string().nullish(),
-  "percent_of_base": zod.number().nullish(),
-  "reason": zod.string(),
-  "source": zod.string(),
-  "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true}),
-  "waive_reason": zod.string().nullish(),
-  "waived_at": zod.iso.datetime({"offset":true}).nullish().describe('A waived deduction keeps its amount and stays visible; payroll skips it.')
-})
-
-
 export const DeleteBonusParams = zod.object({
   "id": zod.uuid().describe('Bonus ID')
 })
@@ -17719,6 +17907,7 @@ export const CurrentResponse = zod.object({
   "total_net_piastres": zod.number(),
   "updated_at": zod.iso.datetime({"offset":true})
 })).describe('Earlier periods, newest first.'),
+  "paid_count": zod.number().describe('How many payslips are marked paid (a \'none\' mark counts).'),
   "payslips": zod.array(zod.object({
   "absent_days": zod.number(),
   "advance_installment_piastres": zod.number(),
@@ -17738,7 +17927,10 @@ export const CurrentResponse = zod.object({
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
   "paid_at": zod.iso.datetime({"offset":true}).nullish(),
-  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.'),
+  "paid_by": zod.uuid().nullish().describe('Who marked it paid (AT-10).'),
+  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7), or `none` for a payslip\nwith nothing to pay, marked by the run itself; null until marked paid.'),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string().nullish().describe('The person\'s pay method and account at the time of reading, for the\nbank and wallet lists (PAY-8).'),
   "payroll_period_id": zod.uuid(),
   "period_end": zod.iso.date().nullish(),
   "period_name": zod.string().nullish().describe('The period this covers, denormalised. A payslip identified only by its\ngeneration timestamp is unreadable — two months run on the same day would\nbe indistinguishable to the employee looking at them.'),
@@ -17764,8 +17956,8 @@ export const CurrentResponse = zod.object({
   "preview": zod.array(zod.object({
   "absent_days": zod.number(),
   "advance_installment_piastres": zod.number().describe('What the advances WANT versus what the payslip can afford differ when net\npay would go negative; this is the affordable figure, the one collected.'),
-  "base_piastres": zod.number().describe('After the attendance proration — what the days actually worked earn.'),
-  "base_salary_piastres": zod.number(),
+  "base_piastres": zod.number().describe('After the calendar-day proration — what the days employed earn, at\neach day\'s salary (PAY-13).'),
+  "base_salary_piastres": zod.number().describe('The monthly salary in force at the end of the window.'),
   "bonuses_piastres": zod.number(),
   "breakdown": zod.unknown().describe('Line-by-line, so a preview can name each deduction rather than showing a\nlump sum nobody can argue with.'),
   "carry_out_piastres": zod.number().describe('Deductions beyond what was earned: the payslip stops at zero and this\ncarries into the next one as a debt (PAY-12).'),
@@ -17778,7 +17970,17 @@ export const CurrentResponse = zod.object({
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
   "worked_days": zod.number()
-}).describe('One employee\'s pay for a period, computed but not yet written.\n\nPREVIEW AND GENERATE SHARE THIS. The preview endpoint exists so a manager can\nsee what payroll is about to do — a figure that would be worthless if it came\nfrom a second implementation that could drift from the real one. So the\ngenerator computes these first and then persists them, and the preview\ncomputes exactly the same values and persists nothing.')).describe('A live computation while the period is still a draft.')
+}).describe('One employee\'s pay for a period, computed but not yet written.\n\nPREVIEW AND GENERATE SHARE THIS. The preview endpoint exists so a manager can\nsee what payroll is about to do — a figure that would be worthless if it came\nfrom a second implementation that could drift from the real one. So the\ngenerator computes these first and then persists them, and the preview\ncomputes exactly the same values and persists nothing.')).describe('A live computation while the period is still a draft.'),
+  "totals": zod.object({
+  "advances_piastres": zod.number(),
+  "base_piastres": zod.number(),
+  "bonuses_piastres": zod.number(),
+  "carry_out_piastres": zod.number(),
+  "deductions_piastres": zod.number(),
+  "net_piastres": zod.number(),
+  "overtime_piastres": zod.number(),
+  "people": zod.number()
+}).describe('The run added up by the server (AT-3).')
 })
 
 
@@ -17811,15 +18013,23 @@ export const ListDeductionsResponseItem = zod.object({
 export const ListDeductionsResponse = zod.array(ListDeductionsResponseItem)
 
 
-export const CreateDeductionBody = zod.object({
-  "amount_piastres": zod.number().nullish().describe('Exactly one of `amount_piastres` or `percent_of_base`.'),
-  "effective_date": zod.iso.date(),
-  "employee_id": zod.uuid(),
-  "percent_of_base": zod.number().nullish(),
-  "reason": zod.string()
+export const DeleteDeductionParams = zod.object({
+  "id": zod.uuid().describe('Deduction ID')
 })
 
-export const CreateDeductionResponse = zod.object({
+export const DeleteDeductionResponse = zod.void()
+
+
+export const OverrideDeductionParams = zod.object({
+  "id": zod.uuid().describe('Deduction ID')
+})
+
+export const OverrideDeductionBody = zod.object({
+  "amount_piastres": zod.number().describe('The figure to charge instead of the computed one. Zero is allowed — it\nmeans \"charge nothing\" while keeping the row and its history.'),
+  "reason": zod.string().describe('Required. An override with no stated reason is indistinguishable from a\nmistake six months later.')
+})
+
+export const OverrideDeductionResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
@@ -17841,23 +18051,19 @@ export const CreateDeductionResponse = zod.object({
 })
 
 
-export const DeleteDeductionParams = zod.object({
+/**
+ * @summary Undo a waiver, with a reason (AT-7): the line counts again at the amount
+it had. Only while the month is open.
+ */
+export const UnwaiveDeductionParams = zod.object({
   "id": zod.uuid().describe('Deduction ID')
 })
 
-export const DeleteDeductionResponse = zod.void()
-
-
-export const OverrideDeductionParams = zod.object({
-  "id": zod.uuid().describe('Deduction ID')
+export const UnwaiveDeductionBody = zod.object({
+  "reason": zod.string()
 })
 
-export const OverrideDeductionBody = zod.object({
-  "amount_piastres": zod.number().describe('The figure to charge instead of the computed one. Zero is allowed — it\nmeans \"charge nothing\" while keeping the row and its history.'),
-  "reason": zod.string().describe('Required. An override with no stated reason is indistinguishable from a\nmistake six months later.')
-})
-
-export const OverrideDeductionResponse = zod.object({
+export const UnwaiveDeductionResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
@@ -17952,6 +18158,10 @@ export const CreatePeriodResponse = zod.object({
 })
 
 
+/**
+ * @summary Delete a DRAFT period. An approved month is reopened first (which is
+refused once anyone is paid), so a paid payslip can never be wiped (B3).
+ */
 export const DeletePeriodParams = zod.object({
   "id": zod.uuid().describe('Period ID')
 })
@@ -17963,15 +18173,25 @@ export const DeletePeriodResponse = zod.void()
  * Deliberately serves the PAYSLIPS, not a fresh computation: the file handed to
  * a bank must be exactly what was approved, even if a deduction has been edited
  * since. A period that has not been generated has nothing to export.
- * @summary The generated period as a bank-ready CSV.
+ * @summary The generated period as a CSV: the bank file, the wallet list, or the
+whole run.
  */
 export const ExportPeriodCsvParams = zod.object({
   "id": zod.uuid().describe('Period ID')
 })
 
+export const ExportPeriodCsvQueryParams = zod.object({
+  "method": zod.string().optional().describe('`bank` (a transfer file: name, account, amount) · `wallet` (numbers\nand amounts) · `cash`; omitted = everyone, every figure (PAY-8).')
+})
+
 export const ExportPeriodCsvResponse = zod.unknown()
 
 
+/**
+ * @summary Approve a DRAFT month: freeze every payslip and collect the advance
+installments in the ledger. An approved month is not regenerated — it is
+reopened (before anyone is paid) and approved again.
+ */
 export const GeneratePeriodParams = zod.object({
   "id": zod.uuid().describe('Period ID')
 })
@@ -17995,7 +18215,10 @@ export const GeneratePeriodResponseItem = zod.object({
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
   "paid_at": zod.iso.datetime({"offset":true}).nullish(),
-  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.'),
+  "paid_by": zod.uuid().nullish().describe('Who marked it paid (AT-10).'),
+  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7), or `none` for a payslip\nwith nothing to pay, marked by the run itself; null until marked paid.'),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string().nullish().describe('The person\'s pay method and account at the time of reading, for the\nbank and wallet lists (PAY-8).'),
   "payroll_period_id": zod.uuid(),
   "period_end": zod.iso.date().nullish(),
   "period_name": zod.string().nullish().describe('The period this covers, denormalised. A payslip identified only by its\ngeneration timestamp is unreadable — two months run on the same day would\nbe indistinguishable to the employee looking at them.'),
@@ -18028,7 +18251,10 @@ export const ListPayslipsResponseItem = zod.object({
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
   "paid_at": zod.iso.datetime({"offset":true}).nullish(),
-  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.'),
+  "paid_by": zod.uuid().nullish().describe('Who marked it paid (AT-10).'),
+  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7), or `none` for a payslip\nwith nothing to pay, marked by the run itself; null until marked paid.'),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string().nullish().describe('The person\'s pay method and account at the time of reading, for the\nbank and wallet lists (PAY-8).'),
   "payroll_period_id": zod.uuid(),
   "period_end": zod.iso.date().nullish(),
   "period_name": zod.string().nullish().describe('The period this covers, denormalised. A payslip identified only by its\ngeneration timestamp is unreadable — two months run on the same day would\nbe indistinguishable to the employee looking at them.'),
@@ -18069,7 +18295,10 @@ export const MarkPaidResponse = zod.object({
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
   "paid_at": zod.iso.datetime({"offset":true}).nullish(),
-  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.'),
+  "paid_by": zod.uuid().nullish().describe('Who marked it paid (AT-10).'),
+  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7), or `none` for a payslip\nwith nothing to pay, marked by the run itself; null until marked paid.'),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string().nullish().describe('The person\'s pay method and account at the time of reading, for the\nbank and wallet lists (PAY-8).'),
   "payroll_period_id": zod.uuid(),
   "period_end": zod.iso.date().nullish(),
   "period_name": zod.string().nullish().describe('The period this covers, denormalised. A payslip identified only by its\ngeneration timestamp is unreadable — two months run on the same day would\nbe indistinguishable to the employee looking at them.'),
@@ -18085,8 +18314,8 @@ export const PreviewPeriodParams = zod.object({
 export const PreviewPeriodResponseItem = zod.object({
   "absent_days": zod.number(),
   "advance_installment_piastres": zod.number().describe('What the advances WANT versus what the payslip can afford differ when net\npay would go negative; this is the affordable figure, the one collected.'),
-  "base_piastres": zod.number().describe('After the attendance proration — what the days actually worked earn.'),
-  "base_salary_piastres": zod.number(),
+  "base_piastres": zod.number().describe('After the calendar-day proration — what the days employed earn, at\neach day\'s salary (PAY-13).'),
+  "base_salary_piastres": zod.number().describe('The monthly salary in force at the end of the window.'),
   "bonuses_piastres": zod.number(),
   "breakdown": zod.unknown().describe('Line-by-line, so a preview can name each deduction rather than showing a\nlump sum nobody can argue with.'),
   "carry_out_piastres": zod.number().describe('Deductions beyond what was earned: the payslip stops at zero and this\ncarries into the next one as a debt (PAY-12).'),
@@ -18103,12 +18332,19 @@ export const PreviewPeriodResponseItem = zod.object({
 export const PreviewPeriodResponse = zod.array(PreviewPeriodResponseItem)
 
 
+/**
+ * Reopening DROPS the frozen payslips: their advance collections go with
+ * them (the ledger trigger refunds), so the live preview reads exactly what
+ * re-approving will collect (PAY-2, PAY-6, audit B7).
+ * @summary Reopen an approved month (before anyone is paid) or close a paid one.
+ */
 export const SetPeriodStatusParams = zod.object({
   "id": zod.uuid().describe('Period ID')
 })
 
 export const SetPeriodStatusBody = zod.object({
-  "status": zod.string().describe('`draft` | `generated` | `paid` | `closed`.')
+  "reason": zod.string().nullish().describe('Why (AD-9). Required to reopen.'),
+  "status": zod.string().describe('`draft` (reopen an approved month, before anyone is paid) or `closed`\n(archive a paid month). Approving is `POST …\/generate`; Paid is\nreached by marking everyone paid (PAY-7), never by hand.')
 })
 
 export const SetPeriodStatusResponse = zod.object({
@@ -18226,22 +18462,28 @@ export const ListRequestsResponseItem = zod.object({
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
-  "end_date": zod.iso.date().nullish().describe('Set for `leave` and `mission`; the span\'s last day.'),
-  "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.'),
+  "end_date": zod.iso.date().nullish().describe('Set for `leave` and `mission`: the span\'s last day. For an `excuse`\nthat runs past midnight, the next day (its end is then on that day).'),
+  "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.\nFor a `correction`: the proposed check-in, branch-local.'),
   "id": zod.uuid(),
   "is_half_day": zod.boolean(),
   "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. `None` until decided.'),
-  "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission`.'),
-  "leave_type_id": zod.uuid().nullish(),
+  "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`.'),
+  "leave_half": zod.string().nullish().describe('A half-day leave: `first` or `second` half of the day off (RQ-8).'),
+  "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): older rows only; never set on new requests.'),
   "leave_type_name": zod.string().nullish(),
   "location": zod.string().nullish(),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
+  "paid_default": zod.boolean().nullish().describe('For a pending excuse or early departure: the business\'s (or branch\'s)\nrule, which the approve dialog starts from (RQ-7).'),
   "reason": zod.string().nullish(),
+  "record_check_in_at": zod.iso.datetime({"offset":true}).nullish().describe('For a correction: the record\'s current punches, so an approver sees\nwhat the proposal changes.'),
+  "record_check_out_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
   "title": zod.string().nullish(),
-  "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
+  "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
 })
 export const ListRequestsResponse = zod.array(ListRequestsResponseItem)
 
@@ -18250,15 +18492,18 @@ export const CreateRequestAdminBody = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('`correction` only — the record whose punch is wrong.'),
   "employee_id": zod.uuid().nullish().describe('Admin-only. Omitted on `\/staff\/me\/\*`, where it is always the caller.'),
   "end_date": zod.iso.date().nullish(),
-  "from_time": zod.string().nullish(),
+  "from_time": zod.string().nullish().describe('Branch-local wall clock.'),
   "is_half_day": zod.boolean().nullish(),
+  "is_paid": zod.boolean().nullish().describe('Only when the request is approved as it is filed (the filer holds\n`hr.requests.self_approve`): leave paid or unpaid, an excuse\'s pay.\nOmitted: leave is paid, an excuse follows the rule.'),
   "kind": zod.string().describe('One of `leave`, `late_arrival`, `early_departure`, `excuse`, `mission`,\n`correction`.'),
-  "leave_type_id": zod.uuid().nullish(),
+  "leave_half": zod.string().nullish().describe('`first` | `second`: which half of the day a half-day leave takes off.\nOmitted on a half day = the first.'),
+  "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): ignored. Leave has no types.'),
   "location": zod.string().nullish(),
   "on_date": zod.iso.date(),
   "reason": zod.string().nullish(),
-  "title": zod.string().nullish(),
-  "to_time": zod.string().nullish()
+  "title": zod.string().nullish().describe('A mission\'s title; when omitted the note is used.'),
+  "to_time": zod.string().nullish().describe('Branch-local wall clock. An excuse ending at or before it starts runs\npast midnight.'),
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for. Omitted =\nthe shift of the day its time falls in.')
 })
 
 export const CreateRequestAdminResponse = zod.object({
@@ -18269,22 +18514,28 @@ export const CreateRequestAdminResponse = zod.object({
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
-  "end_date": zod.iso.date().nullish().describe('Set for `leave` and `mission`; the span\'s last day.'),
-  "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.'),
+  "end_date": zod.iso.date().nullish().describe('Set for `leave` and `mission`: the span\'s last day. For an `excuse`\nthat runs past midnight, the next day (its end is then on that day).'),
+  "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.\nFor a `correction`: the proposed check-in, branch-local.'),
   "id": zod.uuid(),
   "is_half_day": zod.boolean(),
   "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. `None` until decided.'),
-  "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission`.'),
-  "leave_type_id": zod.uuid().nullish(),
+  "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`.'),
+  "leave_half": zod.string().nullish().describe('A half-day leave: `first` or `second` half of the day off (RQ-8).'),
+  "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): older rows only; never set on new requests.'),
   "leave_type_name": zod.string().nullish(),
   "location": zod.string().nullish(),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
+  "paid_default": zod.boolean().nullish().describe('For a pending excuse or early departure: the business\'s (or branch\'s)\nrule, which the approve dialog starts from (RQ-7).'),
   "reason": zod.string().nullish(),
+  "record_check_in_at": zod.iso.datetime({"offset":true}).nullish().describe('For a correction: the record\'s current punches, so an approver sees\nwhat the proposal changes.'),
+  "record_check_out_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
   "title": zod.string().nullish(),
-  "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
+  "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
 })
 
 
@@ -18293,8 +18544,8 @@ export const DecideRequestParams = zod.object({
 })
 
 export const DecideRequestBody = zod.object({
-  "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. Applies to `excuse` and\n`early_departure`; omitted falls back to the org\'s\n`excused_time_paid_default`.'),
-  "note": zod.string().nullish(),
+  "is_paid": zod.boolean().nullish().describe('Paid or unpaid. REQUIRED when approving leave (RQ-2). For `excuse` and\n`early_departure`, omitted falls back to the rule\n(`excused_time_paid_default`, branch then business, RQ-7).'),
+  "note": zod.string().nullish().describe('Required when cancelling someone else\'s request, or any approved one\n(AT-7).'),
   "status": zod.string().describe('`approved` | `rejected` | `cancelled`.')
 })
 
@@ -18306,22 +18557,28 @@ export const DecideRequestResponse = zod.object({
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
-  "end_date": zod.iso.date().nullish().describe('Set for `leave` and `mission`; the span\'s last day.'),
-  "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.'),
+  "end_date": zod.iso.date().nullish().describe('Set for `leave` and `mission`: the span\'s last day. For an `excuse`\nthat runs past midnight, the next day (its end is then on that day).'),
+  "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.\nFor a `correction`: the proposed check-in, branch-local.'),
   "id": zod.uuid(),
   "is_half_day": zod.boolean(),
   "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. `None` until decided.'),
-  "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission`.'),
-  "leave_type_id": zod.uuid().nullish(),
+  "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`.'),
+  "leave_half": zod.string().nullish().describe('A half-day leave: `first` or `second` half of the day off (RQ-8).'),
+  "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): older rows only; never set on new requests.'),
   "leave_type_name": zod.string().nullish(),
   "location": zod.string().nullish(),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
+  "paid_default": zod.boolean().nullish().describe('For a pending excuse or early departure: the business\'s (or branch\'s)\nrule, which the approve dialog starts from (RQ-7).'),
   "reason": zod.string().nullish(),
+  "record_check_in_at": zod.iso.datetime({"offset":true}).nullish().describe('For a correction: the record\'s current punches, so an approver sees\nwhat the proposal changes.'),
+  "record_check_out_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
   "title": zod.string().nullish(),
-  "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.'),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
+  "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
 })
 
 
@@ -18360,13 +18617,18 @@ export const RosterResponse = zod.object({
   "shifts": zod.array(zod.object({
   "branch_id": zod.uuid(),
   "changed": zod.boolean().describe('Changed after its week was published (SC-4).'),
+  "crosses_midnight": zod.boolean().describe('Ends the next day.'),
   "date": zod.iso.date(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
   "end_at": zod.iso.datetime({"offset":true}),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set, not the standing pattern.'),
   "on_leave": zod.boolean().describe('On approved leave or a mission that day.'),
   "shift_name": zod.string(),
   "start_at": zod.iso.datetime({"offset":true}),
+  "start_time": zod.string().describe('Effective wall-clock times at the branch (the assignment\'s own, else\nthe block\'s for that weekday, else its default).'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (show it as edited).'),
   "work_shift_id": zod.uuid()
 })),
   "staff": zod.array(zod.object({
@@ -18375,7 +18637,8 @@ export const RosterResponse = zod.object({
   "employee_id": zod.uuid(),
   "gender": zod.string().nullish(),
   "name": zod.string(),
-  "pref_time": zod.string().nullish()
+  "pref_time": zod.string().nullish(),
+  "prefs_set_by": zod.string().describe('Who set the preferences last: `employee` or `manager` (SC-12).')
 })),
   "to": zod.iso.date(),
   "warnings": zod.array(zod.object({
@@ -18388,11 +18651,17 @@ export const RosterResponse = zod.object({
   "work_shifts": zod.array(zod.object({
   "branch_id": zod.uuid().nullish(),
   "crosses_midnight": zod.boolean(),
+  "day_times": zod.array(zod.object({
+  "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
+  "end_time": zod.string().describe('At or before the start = ends the next day.'),
+  "start_time": zod.string()
+}).describe('A block\'s own start\/end on one weekday, on top of its default times.')).describe('Its own times on some weekdays; show that day\'s times.'),
   "end_time": zod.string(),
   "grace_minutes": zod.number(),
   "id": zod.uuid(),
   "name": zod.string(),
-  "start_time": zod.string()
+  "start_time": zod.string(),
+  "valid_days": zod.array(zod.number()).describe('Weekdays it may be rostered on (0 = Sunday … 6 = Saturday): offer it\nonly on those.')
 }))
 })
 
@@ -18437,29 +18706,83 @@ export const PutCoverageResponse = zod.void()
 
 /**
  * @summary Owner only, monthly: who works the nights, by gender, against who said
-they want them.
+they want them — for the business and branch by branch.
  */
 export const FairnessQueryParams = zod.object({
-  "month": zod.iso.date().describe('Any day of the month.')
+  "month": zod.iso.date().describe('Any day of the month.'),
+  "branch_id": zod.uuid().optional().describe('One branch; omit for every branch and the business as a whole.')
 })
 
 export const FairnessResponse = zod.object({
   "accepted_4w": zod.number(),
-  "decided_4w": zod.number().describe('Suggestions managers decided in the last 4 weeks, and how many they accepted.'),
-  "learning_frozen": zod.boolean().describe('Learning is paused: under 40% accepted over 4 weeks.'),
-  "month": zod.iso.date(),
+  "branches": zod.array(zod.object({
+  "accepted": zod.number(),
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "by_default_decided": zod.number().describe('Suggestions the gender default decided, of those decided in the month.'),
+  "decided": zod.number(),
+  "flagged": zod.boolean().describe('Over 20 points (design §4.2).'),
+  "gap_points": zod.number().describe('The widest gap, in percentage points, between a gender\'s share of the\nnight shifts and its share of stated willingness (of headcount when\nnobody stated any).'),
+  "learning_frozen": zod.boolean().describe('Learning is paused at this branch: under 40% accepted over 4 weeks.'),
   "rows": zod.array(zod.object({
+  "accepted": zod.number().optional(),
   "gender": zod.string().nullish().describe('`m` · `f` · null (not set)'),
   "night_shifts": zod.number(),
   "people": zod.number(),
   "shifts": zod.number(),
+  "suggested": zod.number().optional().describe('Suggestions for people of this gender decided in the month, and\naccepted.'),
   "willing": zod.number().describe('Said they prefer evenings.')
-})).describe('Night share by gender against stated willingness.')
+}))
+})).describe('The same, branch by branch, each with its own gap flag.'),
+  "decided_4w": zod.number().describe('Suggestions managers decided in the last 4 weeks, and how many they accepted.'),
+  "learning_frozen": zod.boolean().describe('Learning is paused at some branch.'),
+  "month": zod.iso.date(),
+  "rows": zod.array(zod.object({
+  "accepted": zod.number().optional(),
+  "gender": zod.string().nullish().describe('`m` · `f` · null (not set)'),
+  "night_shifts": zod.number(),
+  "people": zod.number(),
+  "shifts": zod.number(),
+  "suggested": zod.number().optional().describe('Suggestions for people of this gender decided in the month, and\naccepted.'),
+  "willing": zod.number().describe('Said they prefer evenings.')
+})).describe('Night share by gender against stated willingness, the whole business.')
 })
 
 
 /**
- * @summary Publish a week: staff see it and are told (SC-3).
+ * @summary The kept monthly audits, newest first (owner).
+ */
+export const FairnessAuditsResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "computed_at": zod.iso.datetime({"offset":true}),
+  "flagged": zod.boolean(),
+  "month": zod.iso.date(),
+  "report": zod.object({
+  "accepted": zod.number(),
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "by_default_decided": zod.number().describe('Suggestions the gender default decided, of those decided in the month.'),
+  "decided": zod.number(),
+  "flagged": zod.boolean().describe('Over 20 points (design §4.2).'),
+  "gap_points": zod.number().describe('The widest gap, in percentage points, between a gender\'s share of the\nnight shifts and its share of stated willingness (of headcount when\nnobody stated any).'),
+  "learning_frozen": zod.boolean().describe('Learning is paused at this branch: under 40% accepted over 4 weeks.'),
+  "rows": zod.array(zod.object({
+  "accepted": zod.number().optional(),
+  "gender": zod.string().nullish().describe('`m` · `f` · null (not set)'),
+  "night_shifts": zod.number(),
+  "people": zod.number(),
+  "shifts": zod.number(),
+  "suggested": zod.number().optional().describe('Suggestions for people of this gender decided in the month, and\naccepted.'),
+  "willing": zod.number().describe('Said they prefer evenings.')
+}))
+})
+})
+export const FairnessAuditsResponse = zod.array(FairnessAuditsResponseItem)
+
+
+/**
+ * @summary Publish a week: staff see it and are told (SC-3), and the week's open
+shifts are announced now that people can see them (SC-9).
  */
 export const PublishBody = zod.object({
   "branch_id": zod.uuid(),
@@ -18475,17 +18798,19 @@ export const SuggestionsQueryParams = zod.object({
 })
 
 export const SuggestionsResponseItem = zod.object({
-  "by_default": zod.boolean().describe('The gender default decided it (it says so).'),
-  "confidence": zod.number().describe('0–100.'),
+  "by_default": zod.boolean().describe('The gender default decided it: without it someone else would have\nbeen suggested (it says so).'),
+  "confidence": zod.number().describe('0–100. Low (≤ 40) whenever the gender default decided it.'),
   "date": zod.iso.date(),
   "employee_id": zod.uuid().describe('Who the suggestion puts on the shift.'),
   "employee_name": zod.string(),
+  "end_time": zod.string().nullish(),
   "from_employee_id": zod.uuid().nullish().describe('Who it takes off it, for a reassignment.'),
   "from_employee_name": zod.string().nullish(),
   "id": zod.string().describe('Opaque; send it back to accept or reject.'),
   "reason_args": zod.unknown(),
   "reason_key": zod.string().describe('A core i18n key for the one-line reason, and its arguments.'),
   "shift_name": zod.string(),
+  "start_time": zod.string().nullish().describe('The shift\'s times that day (a day-scoped block\'s own, else its default).'),
   "work_shift_id": zod.uuid()
 })
 export const SuggestionsResponse = zod.array(SuggestionsResponseItem)
@@ -18493,6 +18818,8 @@ export const SuggestionsResponse = zod.array(SuggestionsResponseItem)
 
 /**
  * @summary Accept (changes that date only) or reject; either way it is remembered.
+Only a suggestion the engine actually made for that branch-week is taken
+(a crafted id is refused), and accepting touches only the block it names.
  */
 export const DecideSuggestionBody = zod.object({
   "accept": zod.boolean(),
@@ -18549,41 +18876,289 @@ export const GetScheduledDayQueryParams = zod.object({
 })
 
 export const GetScheduledDayResponseItem = zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch it is worked at (the block\'s, else the person\'s first).'),
   "break_minutes": zod.number(),
   "checkin_window_minutes": zod.number(),
+  "crosses_midnight": zod.boolean().describe('Ends on the following date.'),
+  "employee_id": zod.uuid().describe('Whose assignment this is.'),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set (a date change), not the pattern.'),
   "grace_minutes": zod.number(),
   "half_day_threshold_minutes": zod.number().nullish(),
   "name": zod.string(),
+  "on_date": zod.iso.date().describe('The business date: the day the shift starts on (SC-10).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
   "paid_break": zod.boolean(),
   "scheduled_end_at": zod.iso.datetime({"offset":true}),
-  "scheduled_start_at": zod.iso.datetime({"offset":true}),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).describe('The EFFECTIVE window: the assignment\'s own times, else the block\'s time\nfor that weekday, else its default.'),
+  "start_time": zod.string().describe('Effective wall-clock times in the branch\'s zone.'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (shown as edited).'),
   "work_shift_id": zod.uuid()
 }).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')
 export const GetScheduledDayResponse = zod.array(GetScheduledDayResponseItem)
 
 
-export const PutOverrideBody = zod.object({
+/**
+ * @summary Set every shift a person works on a date: a split day, one shift with its
+own times, or a day off (SC-5, SC-11).
+ */
+export const PutDayBody = zod.object({
   "employee_id": zod.uuid(),
   "on_date": zod.iso.date(),
   "reason": zod.string().nullish(),
-  "work_shift_id": zod.uuid().nullish().describe('Omit (or send null) to mark the date an explicit day off.')
+  "shifts": zod.array(zod.object({
+  "end_time": zod.string().nullish(),
+  "start_time": zod.string().nullish(),
+  "work_shift_id": zod.uuid()
+}).describe('One block on a date, with its own from\/to if it has one.')).describe('Every shift the person works that date; empty = a day off.')
+})
+
+export const PutDayResponse = zod.object({
+  "employee_id": zod.uuid(),
+  "follows_pattern": zod.boolean().describe('The date follows the standing pattern (no date change).'),
+  "on_date": zod.iso.date(),
+  "shifts": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch it is worked at (the block\'s, else the person\'s first).'),
+  "break_minutes": zod.number(),
+  "checkin_window_minutes": zod.number(),
+  "crosses_midnight": zod.boolean().describe('Ends on the following date.'),
+  "employee_id": zod.uuid().describe('Whose assignment this is.'),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set (a date change), not the pattern.'),
+  "grace_minutes": zod.number(),
+  "half_day_threshold_minutes": zod.number().nullish(),
+  "name": zod.string(),
+  "on_date": zod.iso.date().describe('The business date: the day the shift starts on (SC-10).'),
+  "overtime_multiplier": zod.number(),
+  "overtime_threshold_minutes": zod.number(),
+  "paid_break": zod.boolean(),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).describe('The EFFECTIVE window: the assignment\'s own times, else the block\'s time\nfor that weekday, else its default.'),
+  "start_time": zod.string().describe('Effective wall-clock times in the branch\'s zone.'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (shown as edited).'),
+  "work_shift_id": zod.uuid()
+}).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Empty = a day off (or nothing rostered).'),
+  "warnings": zod.array(zod.object({
+  "date": zod.iso.date().describe('The day (or, for a week\'s limit, the Saturday it starts).'),
+  "employee_id": zod.uuid(),
+  "kind": zod.string().describe('`day_hours` · `week_hours` · `presence` · `rest` · `weekly_rest` · `overtime_day`'),
+  "limit_minutes": zod.number(),
+  "minutes": zod.number()
+}).describe('A roster past a labour limit. Warns, never blocks (RU-13).')).describe('Labour limits the person\'s week now goes past. Warnings, never blocks.')
+}).describe('One person\'s date after a change.')
+
+
+/**
+ * @summary Put a date back on the standing pattern.
+ */
+export const ResetDayQueryParams = zod.object({
+  "employee_id": zod.uuid(),
+  "on_date": zod.iso.date()
+})
+
+export const ResetDayResponse = zod.object({
+  "employee_id": zod.uuid(),
+  "follows_pattern": zod.boolean().describe('The date follows the standing pattern (no date change).'),
+  "on_date": zod.iso.date(),
+  "shifts": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch it is worked at (the block\'s, else the person\'s first).'),
+  "break_minutes": zod.number(),
+  "checkin_window_minutes": zod.number(),
+  "crosses_midnight": zod.boolean().describe('Ends on the following date.'),
+  "employee_id": zod.uuid().describe('Whose assignment this is.'),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set (a date change), not the pattern.'),
+  "grace_minutes": zod.number(),
+  "half_day_threshold_minutes": zod.number().nullish(),
+  "name": zod.string(),
+  "on_date": zod.iso.date().describe('The business date: the day the shift starts on (SC-10).'),
+  "overtime_multiplier": zod.number(),
+  "overtime_threshold_minutes": zod.number(),
+  "paid_break": zod.boolean(),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).describe('The EFFECTIVE window: the assignment\'s own times, else the block\'s time\nfor that weekday, else its default.'),
+  "start_time": zod.string().describe('Effective wall-clock times in the branch\'s zone.'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (shown as edited).'),
+  "work_shift_id": zod.uuid()
+}).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Empty = a day off (or nothing rostered).'),
+  "warnings": zod.array(zod.object({
+  "date": zod.iso.date().describe('The day (or, for a week\'s limit, the Saturday it starts).'),
+  "employee_id": zod.uuid(),
+  "kind": zod.string().describe('`day_hours` · `week_hours` · `presence` · `rest` · `weekly_rest` · `overtime_day`'),
+  "limit_minutes": zod.number(),
+  "minutes": zod.number()
+}).describe('A roster past a labour limit. Warns, never blocks (RU-13).')).describe('Labour limits the person\'s week now goes past. Warnings, never blocks.')
+}).describe('One person\'s date after a change.')
+
+
+/**
+ * @summary Give one person's shift on a date to someone else; both keep the rest of
+their day.
+ */
+export const MoveShiftBody = zod.object({
+  "employee_id": zod.uuid().describe('Who has the shift now.'),
+  "on_date": zod.iso.date(),
+  "to_employee_id": zod.uuid().describe('Who gets it.'),
+  "work_shift_id": zod.uuid()
+})
+
+export const MoveShiftResponse = zod.object({
+  "from": zod.object({
+  "employee_id": zod.uuid(),
+  "follows_pattern": zod.boolean().describe('The date follows the standing pattern (no date change).'),
+  "on_date": zod.iso.date(),
+  "shifts": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch it is worked at (the block\'s, else the person\'s first).'),
+  "break_minutes": zod.number(),
+  "checkin_window_minutes": zod.number(),
+  "crosses_midnight": zod.boolean().describe('Ends on the following date.'),
+  "employee_id": zod.uuid().describe('Whose assignment this is.'),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set (a date change), not the pattern.'),
+  "grace_minutes": zod.number(),
+  "half_day_threshold_minutes": zod.number().nullish(),
+  "name": zod.string(),
+  "on_date": zod.iso.date().describe('The business date: the day the shift starts on (SC-10).'),
+  "overtime_multiplier": zod.number(),
+  "overtime_threshold_minutes": zod.number(),
+  "paid_break": zod.boolean(),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).describe('The EFFECTIVE window: the assignment\'s own times, else the block\'s time\nfor that weekday, else its default.'),
+  "start_time": zod.string().describe('Effective wall-clock times in the branch\'s zone.'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (shown as edited).'),
+  "work_shift_id": zod.uuid()
+}).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Empty = a day off (or nothing rostered).'),
+  "warnings": zod.array(zod.object({
+  "date": zod.iso.date().describe('The day (or, for a week\'s limit, the Saturday it starts).'),
+  "employee_id": zod.uuid(),
+  "kind": zod.string().describe('`day_hours` · `week_hours` · `presence` · `rest` · `weekly_rest` · `overtime_day`'),
+  "limit_minutes": zod.number(),
+  "minutes": zod.number()
+}).describe('A roster past a labour limit. Warns, never blocks (RU-13).')).describe('Labour limits the person\'s week now goes past. Warnings, never blocks.')
+}).describe('One person\'s date after a change.'),
+  "to": zod.object({
+  "employee_id": zod.uuid(),
+  "follows_pattern": zod.boolean().describe('The date follows the standing pattern (no date change).'),
+  "on_date": zod.iso.date(),
+  "shifts": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch it is worked at (the block\'s, else the person\'s first).'),
+  "break_minutes": zod.number(),
+  "checkin_window_minutes": zod.number(),
+  "crosses_midnight": zod.boolean().describe('Ends on the following date.'),
+  "employee_id": zod.uuid().describe('Whose assignment this is.'),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set (a date change), not the pattern.'),
+  "grace_minutes": zod.number(),
+  "half_day_threshold_minutes": zod.number().nullish(),
+  "name": zod.string(),
+  "on_date": zod.iso.date().describe('The business date: the day the shift starts on (SC-10).'),
+  "overtime_multiplier": zod.number(),
+  "overtime_threshold_minutes": zod.number(),
+  "paid_break": zod.boolean(),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).describe('The EFFECTIVE window: the assignment\'s own times, else the block\'s time\nfor that weekday, else its default.'),
+  "start_time": zod.string().describe('Effective wall-clock times in the branch\'s zone.'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (shown as edited).'),
+  "work_shift_id": zod.uuid()
+}).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Empty = a day off (or nothing rostered).'),
+  "warnings": zod.array(zod.object({
+  "date": zod.iso.date().describe('The day (or, for a week\'s limit, the Saturday it starts).'),
+  "employee_id": zod.uuid(),
+  "kind": zod.string().describe('`day_hours` · `week_hours` · `presence` · `rest` · `weekly_rest` · `overtime_day`'),
+  "limit_minutes": zod.number(),
+  "minutes": zod.number()
+}).describe('A roster past a labour limit. Warns, never blocks (RU-13).')).describe('Labour limits the person\'s week now goes past. Warnings, never blocks.')
+}).describe('One person\'s date after a change.')
+})
+
+
+/**
+ * @summary One assignment's own from/to (one person, one date, one block), without
+changing the block. Both null = back to the block's times.
+ */
+export const PutTimesBody = zod.object({
+  "employee_id": zod.uuid(),
+  "end_time": zod.string().nullish(),
+  "on_date": zod.iso.date(),
+  "start_time": zod.string().nullish().describe('Both, or neither to go back to the block\'s own times.'),
+  "work_shift_id": zod.uuid()
+})
+
+export const PutTimesResponse = zod.object({
+  "employee_id": zod.uuid(),
+  "follows_pattern": zod.boolean().describe('The date follows the standing pattern (no date change).'),
+  "on_date": zod.iso.date(),
+  "shifts": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch it is worked at (the block\'s, else the person\'s first).'),
+  "break_minutes": zod.number(),
+  "checkin_window_minutes": zod.number(),
+  "crosses_midnight": zod.boolean().describe('Ends on the following date.'),
+  "employee_id": zod.uuid().describe('Whose assignment this is.'),
+  "end_time": zod.string(),
+  "from_override": zod.boolean().describe('The date holds its own set (a date change), not the pattern.'),
+  "grace_minutes": zod.number(),
+  "half_day_threshold_minutes": zod.number().nullish(),
+  "name": zod.string(),
+  "on_date": zod.iso.date().describe('The business date: the day the shift starts on (SC-10).'),
+  "overtime_multiplier": zod.number(),
+  "overtime_threshold_minutes": zod.number(),
+  "paid_break": zod.boolean(),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).describe('The EFFECTIVE window: the assignment\'s own times, else the block\'s time\nfor that weekday, else its default.'),
+  "start_time": zod.string().describe('Effective wall-clock times in the branch\'s zone.'),
+  "times_edited": zod.boolean().describe('This assignment has its own from\/to (shown as edited).'),
+  "work_shift_id": zod.uuid()
+}).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Empty = a day off (or nothing rostered).'),
+  "warnings": zod.array(zod.object({
+  "date": zod.iso.date().describe('The day (or, for a week\'s limit, the Saturday it starts).'),
+  "employee_id": zod.uuid(),
+  "kind": zod.string().describe('`day_hours` · `week_hours` · `presence` · `rest` · `weekly_rest` · `overtime_day`'),
+  "limit_minutes": zod.number(),
+  "minutes": zod.number()
+}).describe('A roster past a labour limit. Warns, never blocks (RU-13).')).describe('Labour limits the person\'s week now goes past. Warnings, never blocks.')
+}).describe('One person\'s date after a change.')
+
+
+/**
+ * @summary Set a date to exactly one shift, or a day off (the older single-shift
+form of `PUT /staff/schedules/days`).
+ */
+export const PutOverrideBody = zod.object({
+  "employee_id": zod.uuid(),
+  "end_time": zod.string().nullish(),
+  "on_date": zod.iso.date(),
+  "reason": zod.string().nullish(),
+  "start_time": zod.string().nullish().describe('This assignment\'s own from\/to (both or neither).'),
+  "work_shift_id": zod.uuid().nullish().describe('Omit (or send null) to mark the date an explicit day off. Otherwise the\nwhole date becomes this one shift; `PUT \/staff\/schedules\/days` sets a\nsplit day.')
 })
 
 export const PutOverrideResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "employee_id": zod.uuid(),
+  "end_time": zod.string().nullish(),
   "id": zod.uuid(),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
   "reason": zod.string().nullish(),
+  "start_time": zod.string().nullish().describe('This assignment\'s own from\/to, when it has one (the block is unchanged).'),
+  "warnings": zod.array(zod.object({
+  "date": zod.iso.date().describe('The day (or, for a week\'s limit, the Saturday it starts).'),
+  "employee_id": zod.uuid(),
+  "kind": zod.string().describe('`day_hours` · `week_hours` · `presence` · `rest` · `weekly_rest` · `overtime_day`'),
+  "limit_minutes": zod.number(),
+  "minutes": zod.number()
+}).describe('A roster past a labour limit. Warns, never blocks (RU-13).')).optional().describe('Labour limits the person\'s week now goes past. Warnings, never blocks.'),
   "work_shift_id": zod.uuid().nullish().describe('`None` = an explicit day off.'),
   "work_shift_name": zod.string().nullish()
 })
 
 
+/**
+ * @summary Remove one row of a date's set: one block of a split day, or the date's
+last change (back to the pattern).
+ */
 export const DeleteOverrideParams = zod.object({
   "id": zod.uuid().describe('Override ID')
 })
@@ -18621,7 +19196,8 @@ export const ListSwapsResponse = zod.array(ListSwapsResponseItem)
 
 
 /**
- * @summary The manager approves: both rosters update for those dates (SC-8).
+ * @summary The manager approves: both rosters update for those dates (SC-8), in one
+transaction, once, and only if both shifts are still where they were.
  */
 export const DecideSwapParams = zod.object({
   "id": zod.uuid()
@@ -18675,6 +19251,11 @@ export const ListWorkShiftsResponseItem = zod.object({
   "checkin_window_minutes": zod.number(),
   "created_at": zod.iso.datetime({"offset":true}),
   "crosses_midnight": zod.boolean().describe('Derived by the database from `end_time <= start_time`.'),
+  "day_times": zod.array(zod.object({
+  "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
+  "end_time": zod.string().describe('At or before the start = ends the next day.'),
+  "start_time": zod.string()
+}).describe('A block\'s own start\/end on one weekday, on top of its default times.')).optional().describe('Its own times on some weekdays; other valid days use the default.'),
   "end_time": zod.string(),
   "grace_minutes": zod.number(),
   "half_day_threshold_minutes": zod.number().nullish(),
@@ -18682,11 +19263,15 @@ export const ListWorkShiftsResponseItem = zod.object({
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
+  "ot_day_multiplier": zod.number().nullish().describe('This block\'s own day-overtime rate; `None` = the branch\'s rules (RU-8).'),
+  "ot_night_multiplier": zod.number().nullish().describe('This block\'s own night-overtime rate; `None` = the branch\'s rules.'),
+  "over_presence_cap": zod.boolean().optional().describe('Some version of it (default or a weekday\'s) is longer than the labour\npresence cap. A warning, never a block (RU-13).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
   "paid_break": zod.boolean(),
   "start_time": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "valid_days": zod.array(zod.number()).describe('The weekdays the block may be rostered on (0 = Sunday … 6 = Saturday).')
 })
 export const ListWorkShiftsResponse = zod.array(ListWorkShiftsResponseItem)
 
@@ -18695,15 +19280,23 @@ export const CreateWorkShiftBody = zod.object({
   "branch_id": zod.uuid().nullish(),
   "break_minutes": zod.number().nullish(),
   "checkin_window_minutes": zod.number().nullish(),
+  "day_times": zod.array(zod.object({
+  "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
+  "end_time": zod.string().describe('At or before the start = ends the next day.'),
+  "start_time": zod.string()
+}).describe('A block\'s own start\/end on one weekday, on top of its default times.')).nullish().describe('Its own times on some weekdays (each must be a valid day). Omit to keep\nthem; an empty list clears them.'),
   "end_time": zod.string(),
   "grace_minutes": zod.number().nullish(),
   "half_day_threshold_minutes": zod.number().nullish(),
   "is_active": zod.boolean().nullish(),
   "name": zod.string(),
+  "ot_day_multiplier": zod.number().nullish().describe('The block\'s own day-overtime rate (RU-8). Omit to keep it, null to go\nback to the branch\'s rules.'),
+  "ot_night_multiplier": zod.number().nullish().describe('The block\'s own night-overtime rate. Omit to keep, null to clear.'),
   "overtime_multiplier": zod.number().nullish(),
   "overtime_threshold_minutes": zod.number().nullish(),
   "paid_break": zod.boolean().nullish(),
-  "start_time": zod.string()
+  "start_time": zod.string(),
+  "valid_days": zod.array(zod.number()).nullish().describe('Weekdays it may be rostered on (0 = Sunday … 6 = Saturday). Omit to\nkeep them (all days for a new block).')
 })
 
 export const CreateWorkShiftResponse = zod.object({
@@ -18712,6 +19305,11 @@ export const CreateWorkShiftResponse = zod.object({
   "checkin_window_minutes": zod.number(),
   "created_at": zod.iso.datetime({"offset":true}),
   "crosses_midnight": zod.boolean().describe('Derived by the database from `end_time <= start_time`.'),
+  "day_times": zod.array(zod.object({
+  "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
+  "end_time": zod.string().describe('At or before the start = ends the next day.'),
+  "start_time": zod.string()
+}).describe('A block\'s own start\/end on one weekday, on top of its default times.')).optional().describe('Its own times on some weekdays; other valid days use the default.'),
   "end_time": zod.string(),
   "grace_minutes": zod.number(),
   "half_day_threshold_minutes": zod.number().nullish(),
@@ -18719,11 +19317,15 @@ export const CreateWorkShiftResponse = zod.object({
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
+  "ot_day_multiplier": zod.number().nullish().describe('This block\'s own day-overtime rate; `None` = the branch\'s rules (RU-8).'),
+  "ot_night_multiplier": zod.number().nullish().describe('This block\'s own night-overtime rate; `None` = the branch\'s rules.'),
+  "over_presence_cap": zod.boolean().optional().describe('Some version of it (default or a weekday\'s) is longer than the labour\npresence cap. A warning, never a block (RU-13).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
   "paid_break": zod.boolean(),
   "start_time": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "valid_days": zod.array(zod.number()).describe('The weekdays the block may be rostered on (0 = Sunday … 6 = Saturday).')
 })
 
 
@@ -18742,15 +19344,23 @@ export const UpdateWorkShiftBody = zod.object({
   "branch_id": zod.uuid().nullish(),
   "break_minutes": zod.number().nullish(),
   "checkin_window_minutes": zod.number().nullish(),
+  "day_times": zod.array(zod.object({
+  "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
+  "end_time": zod.string().describe('At or before the start = ends the next day.'),
+  "start_time": zod.string()
+}).describe('A block\'s own start\/end on one weekday, on top of its default times.')).nullish().describe('Its own times on some weekdays (each must be a valid day). Omit to keep\nthem; an empty list clears them.'),
   "end_time": zod.string(),
   "grace_minutes": zod.number().nullish(),
   "half_day_threshold_minutes": zod.number().nullish(),
   "is_active": zod.boolean().nullish(),
   "name": zod.string(),
+  "ot_day_multiplier": zod.number().nullish().describe('The block\'s own day-overtime rate (RU-8). Omit to keep it, null to go\nback to the branch\'s rules.'),
+  "ot_night_multiplier": zod.number().nullish().describe('The block\'s own night-overtime rate. Omit to keep, null to clear.'),
   "overtime_multiplier": zod.number().nullish(),
   "overtime_threshold_minutes": zod.number().nullish(),
   "paid_break": zod.boolean().nullish(),
-  "start_time": zod.string()
+  "start_time": zod.string(),
+  "valid_days": zod.array(zod.number()).nullish().describe('Weekdays it may be rostered on (0 = Sunday … 6 = Saturday). Omit to\nkeep them (all days for a new block).')
 })
 
 export const UpdateWorkShiftResponse = zod.object({
@@ -18759,6 +19369,11 @@ export const UpdateWorkShiftResponse = zod.object({
   "checkin_window_minutes": zod.number(),
   "created_at": zod.iso.datetime({"offset":true}),
   "crosses_midnight": zod.boolean().describe('Derived by the database from `end_time <= start_time`.'),
+  "day_times": zod.array(zod.object({
+  "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
+  "end_time": zod.string().describe('At or before the start = ends the next day.'),
+  "start_time": zod.string()
+}).describe('A block\'s own start\/end on one weekday, on top of its default times.')).optional().describe('Its own times on some weekdays; other valid days use the default.'),
   "end_time": zod.string(),
   "grace_minutes": zod.number(),
   "half_day_threshold_minutes": zod.number().nullish(),
@@ -18766,11 +19381,15 @@ export const UpdateWorkShiftResponse = zod.object({
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
+  "ot_day_multiplier": zod.number().nullish().describe('This block\'s own day-overtime rate; `None` = the branch\'s rules (RU-8).'),
+  "ot_night_multiplier": zod.number().nullish().describe('This block\'s own night-overtime rate; `None` = the branch\'s rules.'),
+  "over_presence_cap": zod.boolean().optional().describe('Some version of it (default or a weekday\'s) is longer than the labour\npresence cap. A warning, never a block (RU-13).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
   "paid_break": zod.boolean(),
   "start_time": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "valid_days": zod.array(zod.number()).describe('The weekdays the block may be rostered on (0 = Sunday … 6 = Saturday).')
 })
 
 

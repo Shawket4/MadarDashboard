@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import {
   createRequestAdmin, decideRequest,
-  useListEmployees, useListLeaveTypes, useListRequests,
+  useListEmployees, useListRequests,
 } from "@/data/api/generated/api";
 import type { StaffRequest } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -312,13 +312,11 @@ function NewRequestDialog({
   const [endDate, setEndDate] = useState(todayIso());
   const [fromTime, setFromTime] = useState("12:00");
   const [toTime, setToTime] = useState("14:00");
-  const [leaveType, setLeaveType] = useState("");
   const [title, setTitle] = useState("");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
 
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: open } });
-  const typesQ = useListLeaveTypes({ query: { enabled: open && kind === "leave" } });
 
   const needsFrom = kind === "early_departure" || kind === "excuse";
   const needsTo = kind === "late_arrival" || kind === "excuse";
@@ -334,7 +332,8 @@ function NewRequestDialog({
         end_date: isSpan ? endDate : null,
         from_time: needsFrom ? `${fromTime}:00` : null,
         to_time: needsTo ? `${toTime}:00` : null,
-        leave_type_id: kind === "leave" ? leaveType : null,
+        // Leave has no types any more (the backend dropped leave types).
+        leave_type_id: null,
         title: kind === "mission" ? title : null,
         reason: reason || null,
       });
@@ -381,19 +380,6 @@ function NewRequestDialog({
               </SelectContent>
             </Select>
           </div>
-          {kind === "leave" ? (
-            <div className="space-y-1">
-              <Label>{t("staff.leaveType", "Leave type")}</Label>
-              <Select value={leaveType} onValueChange={setLeaveType}>
-                <SelectTrigger><SelectValue placeholder={t("staff.pickLeaveType", "Pick a type")} /></SelectTrigger>
-                <SelectContent>
-                  {(typesQ.data ?? []).filter((x) => x.is_active).map((x) => (
-                    <SelectItem key={x.id} value={x.id}>{x.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : null}
           {kind === "mission" ? (
             <div className="space-y-1">
               <Label htmlFor="nr-title">{t("staff.missionTitle", "Title")}</Label>
@@ -442,7 +428,7 @@ function NewRequestDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
           <Button
             onClick={() => void save()}
-            disabled={busy || !userId || (kind === "leave" && !leaveType) || (kind === "mission" && !title.trim())}
+            disabled={busy || !userId || (kind === "mission" && !title.trim())}
           >
             {t("common.save", "Save")}
           </Button>
