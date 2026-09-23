@@ -81,7 +81,8 @@ export function valuesFrom(s: AttendanceSettings, opts: { suggest?: boolean } = 
   const suggested = (s.suggested_tiers ?? []) as Tier[];
   const tiers = opts.suggest && !s.rules_saved_at && stored.length === 0 ? suggested : stored;
   return {
-    tiers: tiers.map((x) => ({ ...x, to_minutes: x.to_minutes ?? null, value: Number(x.value) })),
+    // One key order for every rung (the schema's), whatever the server sent.
+    tiers: tiers.map((x) => ({ from_minutes: x.from_minutes, to_minutes: x.to_minutes ?? null, kind: x.kind, value: Number(x.value) })),
     absenceDays: String(s.absence_deduction_days ?? 1),
     workingDays: String(s.working_days_per_month ?? 30),
     autoBuffer: String(s.auto_checkout_buffer_minutes ?? 120),
@@ -166,7 +167,14 @@ export function fullBody(v: RulesValues, canGender: boolean): PutAttendanceSetti
   } as PutAttendanceSettingsRequest;
 }
 
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+/** Key order never matters: `{a, b}` and `{b, a}` are the same rule. */
+const canonical = (v: unknown): unknown =>
+  Array.isArray(v)
+    ? v.map(canonical)
+    : v && typeof v === "object"
+      ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canonical((v as Record<string, unknown>)[k])]))
+      : v;
+const same = (a: unknown, b: unknown) => JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
 
 /**
  * A branch's save: only the rules that differ from what the branch runs on

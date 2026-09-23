@@ -209,6 +209,28 @@ describe("Rules page for the owner", () => {
     expect(put.mock.calls[0][0]).toEqual({ branch_id: "b1", limit_day_hours: 7 });
   });
 
+  it("never copies an untouched ladder into a branch, whatever order the server's keys come in", async () => {
+    // E2E (2026-09-23): the real backend returns each rung's keys
+    // alphabetically; the form's schema re-orders them, and a key-order
+    // sensitive compare sent the whole ladder as a Maadi override.
+    business = {
+      ...BUSINESS,
+      late_deduction_tiers: [
+        { from_minutes: 1, kind: "minutes", to_minutes: 15, value: 15 },
+        { from_minutes: 16, kind: "day_fraction", to_minutes: null, value: 1 },
+      ],
+    };
+    const user = userEvent.setup();
+    renderPage();
+    await pickBranch(user, /Maadi/);
+    const absence = screen.getByLabelText("Days docked per absence");
+    await user.clear(absence);
+    await user.type(absence, "1.5");
+    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await waitFor(() => expect(put).toHaveBeenCalled());
+    expect(put.mock.calls[0][0]).toEqual({ branch_id: "b2", absence_deduction_days: 1.5 });
+  });
+
   it("hands a branch's rule back to the business with inherit", async () => {
     const user = userEvent.setup();
     renderPage();
