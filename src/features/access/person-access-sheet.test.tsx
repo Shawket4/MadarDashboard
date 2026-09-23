@@ -8,7 +8,7 @@
  * and never invent one.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -33,6 +33,16 @@ const access: UserAccess = {
       from_roles: ["Cashier"],
       overrides: [],
       limits: null,
+      editable: true,
+    },
+    {
+      // A branch manager's deduction limit: 1,000 EGP from the role (AD-5).
+      capability: "hr.deductions.create",
+      effective: true,
+      source: "role",
+      from_roles: ["Branch manager"],
+      overrides: [],
+      limits: { max_amount: 100000, max_percent: null, max_value: null, max_age_minutes: null, own: null },
       editable: true,
     },
   ],
@@ -62,6 +72,9 @@ const { PersonAccessSheet } = await import("./person-access-sheet");
 
 const user: UserPublic = { id: "u-2", name: "Sara", org_id: "o-1" } as UserPublic;
 
+/** The row of one capability, by its label. */
+const rowOf = async (label: string) => within((await screen.findByText(label, { exact: true })).closest("li")!);
+
 const renderSheet = () =>
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
@@ -82,7 +95,7 @@ describe("PersonAccessSheet — the reason is optional", () => {
   it("allows a money capability with no reason typed, sending null", async () => {
     const u = userEvent.setup();
     renderSheet();
-    await u.click(await screen.findByRole("radio", { name: "Allow" }));
+    await u.click((await rowOf("Refund money")).getByRole("radio", { name: "Allow" }));
     await waitFor(() => expect(setOverrideMock).toHaveBeenCalled());
     expect(setOverrideMock).toHaveBeenCalledWith("u-2", expect.objectContaining({
       capability: "refunds.create",
@@ -94,7 +107,7 @@ describe("PersonAccessSheet — the reason is optional", () => {
   it("saves limits on a money capability with no reason — the control that used to 400", async () => {
     const u = userEvent.setup();
     renderSheet();
-    await u.click(await screen.findByRole("button", { name: /^Limit$/ }));
+    await u.click((await rowOf("Refund money")).getByRole("button", { name: /^Limit$/ }));
     await u.type(await screen.findByLabelText(/Most per action \(EGP\)/i), "50");
     await u.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(setOverrideMock).toHaveBeenCalled());
@@ -110,11 +123,38 @@ describe("PersonAccessSheet — the reason is optional", () => {
     const u = userEvent.setup();
     renderSheet();
     await u.type(await screen.findByTestId("access-reason"), "covering the late shift");
-    await u.click(screen.getByRole("radio", { name: "Deny" }));
+    await u.click((await rowOf("Refund money")).getByRole("radio", { name: "Deny" }));
     await waitFor(() => expect(setOverrideMock).toHaveBeenCalled());
     expect(setOverrideMock).toHaveBeenCalledWith("u-2", expect.objectContaining({
       effect: "deny",
       reason: "covering the late shift",
     }));
+  });
+
+  it("closes the limits popover once saved (E2E: Save left it open, no sign it worked)", async () => {
+    const u = userEvent.setup();
+    renderSheet();
+    await u.click((await rowOf("Refund money")).getByRole("button", { name: /^Limit$/ }));
+    await u.type(await screen.findByLabelText(/Most per action \(EGP\)/i), "50");
+    await u.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(setOverrideMock).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByLabelText(/Most per action \(EGP\)/i)).not.toBeInTheDocument());
+  });
+
+  it("a manager's deduction limit shows the role's 1,000 EGP and says what happens above it (no till)", async () => {
+    const u = userEvent.setup();
+    renderSheet();
+    await u.click((await rowOf("Add deductions")).getByRole("button", { name: /^Limited$/ }));
+    expect(await screen.findByLabelText(/Most per action \(EGP\)/i)).toHaveValue("1000");
+    expect(screen.queryByText(/the till asks a manager/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/^Over the limit, it waits for someone with a higher limit/)).toBeInTheDocument();
+    await u.clear(screen.getByLabelText(/Most per action \(EGP\)/i));
+    await u.type(screen.getByLabelText(/Most per action \(EGP\)/i), "300");
+    await u.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(setOverrideMock).toHaveBeenCalledWith("u-2", expect.objectContaining({
+      capability: "hr.deductions.create",
+      effect: "allow",
+      limits: expect.objectContaining({ max_amount: 30000 }),
+    })));
   });
 });

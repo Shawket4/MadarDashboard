@@ -5284,7 +5284,9 @@
     },
     "maxAgeMinutes": "Within minutes of the sale",
     "ownOnly": "Only their own",
-    "overLimitHint": "Over a limit, the till asks a manager."
+    "overLimitHint": "Over a limit, the till asks a manager.",
+    "overLimitWaits": "Over the limit, it waits for someone with a higher limit, usually the owner.",
+    "overLimitRefused": "Over the limit, it is refused."
   },
   "customers": {
     "title": "Customers",

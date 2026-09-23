@@ -7,6 +7,7 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,17 @@ export function hasLimits(v: LimitsView | null | undefined): boolean {
   return !!v && (v.own === true || (["max_amount", "max_percent", "max_value", "max_age_minutes"] as NumKey[]).some((k) => v[k] != null));
 }
 
+/**
+ * What happens above the limit, for this capability: the till asks a manager
+ * (POS), the act waits for someone with a higher limit (a Dawam money act with
+ * remote approval, e.g. a manager's deductions), or it is refused.
+ */
+function overLimitHint(meta: CapabilityMeta, t: TFunction): string {
+  if (meta.pos) return t("access.overLimitHint", "Over a limit, the till asks a manager.");
+  if (meta.approval) return t("access.overLimitWaits", "Over the limit, it waits for someone with a higher limit, usually the owner.");
+  return t("access.overLimitRefused", "Over the limit, it is refused.");
+}
+
 export function LimitsButton({
   meta,
   value,
@@ -48,6 +60,8 @@ export function LimitsButton({
   const { t } = useTranslation();
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [own, setOwn] = useState(false);
+  // Controlled so a save closes it: the label turning "Limited" is the feedback.
+  const [open, setOpen] = useState(false);
   const label: Record<NumKey, string> = {
     max_amount: t("access.maxAmount", "Most per action (EGP)"),
     max_percent: t("access.maxPercent", "Most per action (%)"),
@@ -57,7 +71,9 @@ export function LimitsButton({
   const numeric = meta.limits.filter((k): k is NumKey => k !== "own");
   return (
     <Popover
+      open={open}
       onOpenChange={(o) => {
+        setOpen(o);
         if (!o) return;
         setDraft(Object.fromEntries(numeric.map((k) => [k, toDraft(k, value?.[k])])));
         setOwn(value?.own === true);
@@ -87,16 +103,17 @@ export function LimitsButton({
             />
           </div>
         ))}
-        <p className="text-xs text-muted-foreground">{t("access.overLimitHint", "Over a limit, the till asks a manager.")}</p>
+        <p className="text-xs text-muted-foreground">{overLimitHint(meta, t)}</p>
         <Button
           size="sm"
           className="w-full"
-          onClick={() =>
+          onClick={() => {
             onSave({
               ...Object.fromEntries(numeric.map((k) => [k, fromDraft(k, draft[k] ?? "")])),
               ...(meta.limits.includes("own") ? { own } : {}),
-            } as LimitsView)
-          }
+            } as LimitsView);
+            setOpen(false);
+          }}
         >
           {t("common.save", "Save")}
         </Button>
