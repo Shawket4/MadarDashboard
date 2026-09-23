@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "679bc717e26c4288";
+export const SPEC_HASH = "00201aac7b37785e";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -208,6 +208,7 @@ export type Capability =
   | "hr.expense_advances.log"
   | "hr.roster.settings"
   | "hr.rules.edit"
+  | "hr.deductions.create"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -405,6 +406,7 @@ export const Cap = {
   hrExpenseAdvancesLog: "hr.expense_advances.log" as Capability,
   hrRosterSettings: "hr.roster.settings" as Capability,
   hrRulesEdit: "hr.rules.edit" as Capability,
+  hrDeductionsCreate: "hr.deductions.create" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -610,7 +612,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 224, key: "customers.merge", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Merge duplicate customers", ar: "دمج العملاء المكررين", hintEn: "Merging cannot be undone. When both are loyalty members, the points move to the customer that stays and the other card stops working.", hintAr: "الدمج لا يمكن التراجع عنه. لو الاتنين أعضاء في برنامج الولاء، النقاط بتتنقل للعميل اللي هيفضل والكارت التاني بيتوقف." },
   { id: 225, key: "customers.addresses.view", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: false, limits: [], pos: true, protected: false, en: "See customers' saved addresses", ar: "عرض عناوين العملاء المحفوظة", hintEn: "The delivery addresses a customer has ordered to. Needed to dispatch an order; not needed to take one at a table.", hintAr: "عناوين التوصيل اللي العميل طلب عليها قبل كده. مطلوبة لتجهيز طلب توصيل، ومش مطلوبة لأخذ طلب على ترابيزة." },
   { id: 226, key: "hr.requests.self_approve", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Approve your own requests", ar: "الموافقة على طلباتك بنفسك", hintEn: "Held: your own requests are approved as you send them. Not held: they wait for someone above you, and the owner is told.", hintAr: "لو معاك: طلباتك بتتوافق أول ما تبعتها. لو مش معاك: بتستنى حد أعلى منك، والمالك بيتبلغ." },
-  { id: 227, key: "hr.adjustments.create", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: ["max_amount"], pos: false, protected: false, en: "Add bonuses and deductions", ar: "إضافة مكافآت وخصومات", hintEn: "Up to the amount set here. Above it, the adjustment waits for someone with a higher limit, usually the owner.", hintAr: "لحد المبلغ المحدد هنا. فوقه، التعديل بيستنى حد عنده حد أعلى، غالبًا المالك." },
+  { id: 227, key: "hr.adjustments.create", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: ["max_amount"], pos: false, protected: false, en: "Add bonuses", ar: "إضافة مكافآت", hintEn: "Up to the amount set here. Above it, the bonus waits for someone with a higher limit, usually the owner. Deductions have their own limit.", hintAr: "لحد المبلغ المحدد هنا. فوقه، المكافأة بتستنى حد عنده حد أعلى، غالبًا المالك. الخصومات ليها حد منفصل." },
   { id: 228, key: "hr.advances.decide", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: ["max_percent"], pos: false, protected: false, en: "Approve salary advances", ar: "الموافقة على السلف", hintEn: "The limit is the share of monthly salary a person may owe in advances after this one. Above it, the advance waits for the owner.", hintAr: "الحد هو نسبة المرتب الشهري اللي ممكن يبقى عليه سلف بعد دي. فوقه، السلفة بتستنى المالك." },
   { id: 229, key: "hr.payroll.run", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Run and approve payroll", ar: "تشغيل واعتماد المرتبات", hintEn: "One run for the whole business: approve, reopen and mark people paid. Needs every branch.", hintAr: "تشغيل واحد لكل النشاط: اعتماد وإعادة فتح وتعليم مين اتقبض. محتاج كل الفروع." },
   { id: 230, key: "hr.shift_cover.confirm", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Confirm covered shifts", ar: "تأكيد تغطية الورديات", hintEn: "A cover is paid only once confirmed. You can't confirm a cover you are part of.", hintAr: "التغطية بتتدفع بس بعد التأكيد. متقدرش تأكد تغطية إنت طرف فيها." },
@@ -620,6 +622,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 234, key: "hr.expense_advances.log", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Log expense advances", ar: "تسجيل عُهد المصاريف", hintEn: "Cash handed over for shop purchases. A log only: never deducted from pay.", hintAr: "فلوس متسلمة لمشتريات المحل. سجل بس: عمره ما بيتخصم من المرتب." },
   { id: 235, key: "hr.roster.settings", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Change roster settings", ar: "تغيير إعدادات الجدول", hintEn: "How shift suggestions weigh defaults, including the gender default.", hintAr: "إزاي اقتراحات الورديات بتوزن الافتراضيات، ومنها افتراض النوع." },
   { id: 236, key: "hr.rules.edit", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Change attendance and pay rules", ar: "تغيير قواعد الحضور والمرتبات", hintEn: "The business-wide rules: lateness and absence costs, working days, overtime, the pay period and the advance cap. Needs every branch.", hintAr: "قواعد النشاط كله: خصم التأخير والغياب، أيام الشغل، الوقت الإضافي، فترة المرتب وحد السلف. محتاج كل الفروع." },
+  { id: 245, key: "hr.deductions.create", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: ["max_amount"], pos: false, protected: false, en: "Add deductions", ar: "إضافة خصومات", hintEn: "Up to the amount set here. Above it, the deduction waits for someone with a higher limit, usually the owner. Bonuses have their own limit.", hintAr: "لحد المبلغ المحدد هنا. فوقه، الخصم بيستنى حد عنده حد أعلى، غالبًا المالك. المكافآت ليها حد منفصل." },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [
