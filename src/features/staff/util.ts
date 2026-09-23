@@ -1,4 +1,5 @@
-import { fmtElapsedMs } from "@/lib/format";
+import { fmtElapsedMs, ltr } from "@/lib/format";
+import i18n from "@/i18n";
 import type { StatusTone } from "@/components/app/status-pill";
 import { queryClient } from "@/data/api/query";
 
@@ -88,6 +89,22 @@ export const fmtMinutes = (minutes: number | null | undefined): string => {
   const out = fmtElapsedMs(Math.abs(minutes) * 60_000);
   // fmtElapsedMs isolates Arabic figures; keep the sign inside the isolate.
   return sign ? out.replace(/^(\u2066?)/, `$1${sign}`) : out;
+};
+
+/**
+ * A span of work in hours and minutes, never days: labour limits are hours
+ * (a week is "56h of 48h", not "2d 08h of 2d 00h").
+ */
+export const fmtHours = (minutes: number | null | undefined): string => {
+  if (minutes === null || minutes === undefined) return "—";
+  const ar = (i18n.resolvedLanguage ?? i18n.language ?? "en").startsWith("ar");
+  const [h, m, sep] = ar ? ["س", "د", " "] : ["h", "m", ""];
+  const total = Math.round(Math.abs(minutes));
+  const hours = Math.floor(total / 60);
+  const rest = total % 60;
+  const out = hours === 0 ? `${rest}${sep}${m}` : rest === 0 ? `${hours}${sep}${h}` : `${hours}${sep}${h} ${rest}${sep}${m}`;
+  const signed = minutes < 0 ? `\u2212${out}` : out;
+  return ar ? ltr(signed) : signed;
 };
 
 /** ISO date (yyyy-mm-dd) `n` days from today, for default report ranges. */

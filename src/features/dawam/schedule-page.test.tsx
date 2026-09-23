@@ -352,7 +352,7 @@ describe("SchedulePage", () => {
 
     calls.putDay.mockResolvedValueOnce({ warnings: [{ employee_id: "e1", date: week, kind: "day_hours", minutes: 600, limit_minutes: 480 }] });
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Day off" }));
-    await waitFor(() => expect(toastMock.warning).toHaveBeenCalledWith("Hours a day: 10h 00m of 8h 00m. Only a warning."));
+    await waitFor(() => expect(toastMock.warning).toHaveBeenCalledWith("Hours a day: 10h of 8h. Only a warning."));
   });
 
   it("takes back an open shift after confirming; its claimer is told by the server (SC-9)", async () => {

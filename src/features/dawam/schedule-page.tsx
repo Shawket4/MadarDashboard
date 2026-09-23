@@ -38,7 +38,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { useOrgId } from "@/hooks/use-org-id";
 import { Cap } from "@/generated/capabilities";
 import { fmtDate } from "@/lib/format";
-import { fmtMinutes, invalidateStaff, todayIso, WEEKDAYS } from "@/features/staff/util";
+import { fmtHours, invalidateStaff, todayIso, WEEKDAYS } from "@/features/staff/util";
 import { CoverageEditor } from "./coverage-editor";
 import { blockTimesOn, blocksOn, DayEditor, ShiftTimes } from "./day-editor";
 import { FairnessCard } from "./fairness-card";
@@ -414,7 +414,7 @@ const WARN_FALLBACK: Record<string, string> = {
 function WarningChip({ w }: { w: LabourWarning }) {
   const { t } = useTranslation();
   const label = t(`dawam.warn_${w.kind}`, WARN_FALLBACK[w.kind] ?? w.kind);
-  const detail = `${fmtMinutes(w.minutes)} / ${fmtMinutes(w.limit_minutes)}`;
+  const detail = `${fmtHours(w.minutes)} / ${fmtHours(w.limit_minutes)}`;
   return (
     <span title={`${label}: ${detail}`} className="inline-flex items-center gap-0.5 rounded-full bg-warning/14 px-1.5 text-[10px] font-medium text-warning">
       <TriangleAlert className="size-3" />{label}

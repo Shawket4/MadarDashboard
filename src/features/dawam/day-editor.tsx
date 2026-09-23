@@ -25,7 +25,7 @@ import { moveShift, putDay, putTimes, resetDay } from "@/data/api/generated/api"
 import type { DayBlock, LabourWarning, RosterPerson, RosterShift, WorkShiftBrief } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate } from "@/lib/format";
-import { fmtMinutes, invalidateStaff } from "@/features/staff/util";
+import { fmtHours, invalidateStaff } from "@/features/staff/util";
 import { weekdayOf } from "./week";
 
 const hhmm = (v: string | null | undefined) => (v ?? "").slice(0, 5);
@@ -95,8 +95,8 @@ export function DayEditor({
       toast.warning(
         t("dawam.limitWarning", {
           limit: t(`dawam.warn_${w.kind}`, w.kind),
-          minutes: fmtMinutes(w.minutes),
-          cap: fmtMinutes(w.limit_minutes),
+          minutes: fmtHours(w.minutes),
+          cap: fmtHours(w.limit_minutes),
           defaultValue: "{{limit}}: {{minutes}} of {{cap}}. Only a warning.",
         }),
       );
