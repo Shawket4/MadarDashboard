@@ -16967,6 +16967,7 @@ export const MyContextResponse = zod.object({
   "org_id": zod.uuid(),
   "org_name": zod.string(),
   "people": zod.array(zod.object({
+  "advance_cap_piastres": zod.number().nullish().describe('Their salary-advance cap, decided by the server (AV-5, AT-3); shown\nunder the same visibility as the salary.'),
   "base_salary_piastres": zod.number().nullish().describe('Only for people whose pay the caller may see.'),
   "branch_ids": zod.array(zod.uuid()),
   "cant_work_days": zod.array(zod.number()),
@@ -16999,6 +17000,7 @@ export const MyContextResponse = zod.object({
   "user_id": zod.uuid().nullish().describe('Their Madar account, when they have one; manager acts go through it.'),
   "work_shifts": zod.array(zod.object({
   "branch_id": zod.uuid().nullish(),
+  "checkin_window_minutes": zod.number().describe('How long before its start a check-in opens — the window the server\nenforces (CL-3), so the app says \"opens at\" the same time.'),
   "crosses_midnight": zod.boolean(),
   "day_times": zod.array(zod.object({
   "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
@@ -17291,6 +17293,7 @@ export const MyRequestsResponseItem = zod.object({
   "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): older rows only; never set on new requests.'),
   "leave_type_name": zod.string().nullish(),
   "location": zod.string().nullish(),
+  "month_closed": zod.boolean().optional().describe('A day of it is in an approved or paid month: approving or cancelling\napproved time is refused (PERIOD_CLOSED); rejecting still works.'),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
   "paid_default": zod.boolean().nullish().describe('For a pending excuse or early departure: the business\'s (or branch\'s)\nrule, which the approve dialog starts from (RQ-7).'),
@@ -17345,6 +17348,7 @@ export const CreateMyRequestResponse = zod.object({
   "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): older rows only; never set on new requests.'),
   "leave_type_name": zod.string().nullish(),
   "location": zod.string().nullish(),
+  "month_closed": zod.boolean().optional().describe('A day of it is in an approved or paid month: approving or cancelling\napproved time is refused (PERIOD_CLOSED); rejecting still works.'),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
   "paid_default": zod.boolean().nullish().describe('For a pending excuse or early departure: the business\'s (or branch\'s)\nrule, which the approve dialog starts from (RQ-7).'),
@@ -18482,6 +18486,7 @@ export const ListRequestsResponseItem = zod.object({
   "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): older rows only; never set on new requests.'),
   "leave_type_name": zod.string().nullish(),
   "location": zod.string().nullish(),
+  "month_closed": zod.boolean().optional().describe('A day of it is in an approved or paid month: approving or cancelling\napproved time is refused (PERIOD_CLOSED); rejecting still works.'),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
   "paid_default": zod.boolean().nullish().describe('For a pending excuse or early departure: the business\'s (or branch\'s)\nrule, which the approve dialog starts from (RQ-7).'),
@@ -18536,6 +18541,7 @@ export const CreateRequestAdminResponse = zod.object({
   "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): older rows only; never set on new requests.'),
   "leave_type_name": zod.string().nullish(),
   "location": zod.string().nullish(),
+  "month_closed": zod.boolean().optional().describe('A day of it is in an approved or paid month: approving or cancelling\napproved time is refused (PERIOD_CLOSED); rejecting still works.'),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
   "paid_default": zod.boolean().nullish().describe('For a pending excuse or early departure: the business\'s (or branch\'s)\nrule, which the approve dialog starts from (RQ-7).'),
@@ -18581,6 +18587,7 @@ export const DecideRequestResponse = zod.object({
   "leave_type_id": zod.uuid().nullish().describe('Deprecated (RQ-2): older rows only; never set on new requests.'),
   "leave_type_name": zod.string().nullish(),
   "location": zod.string().nullish(),
+  "month_closed": zod.boolean().optional().describe('A day of it is in an approved or paid month: approving or cancelling\napproved time is refused (PERIOD_CLOSED); rejecting still works.'),
   "on_date": zod.iso.date(),
   "org_id": zod.uuid(),
   "paid_default": zod.boolean().nullish().describe('For a pending excuse or early departure: the business\'s (or branch\'s)\nrule, which the approve dialog starts from (RQ-7).'),
@@ -18669,6 +18676,7 @@ export const RosterResponse = zod.object({
 }).describe('A roster past a labour limit. Warns, never blocks (RU-13).')).describe('Labour limits the roster (or, for `overtime_day`, the clock) goes past.\nWarnings, never blocks (RU-13).'),
   "work_shifts": zod.array(zod.object({
   "branch_id": zod.uuid().nullish(),
+  "checkin_window_minutes": zod.number().describe('How long before its start a check-in opens — the window the server\nenforces (CL-3), so the app says \"opens at\" the same time.'),
   "crosses_midnight": zod.boolean(),
   "day_times": zod.array(zod.object({
   "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),

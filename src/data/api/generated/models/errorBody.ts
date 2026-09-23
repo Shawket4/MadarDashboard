@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { ErrorBodyTill } from './errorBodyTill';
+import type { ErrorBodyVars } from './errorBodyVars';
 
 /**
  * Wire shape of every error JSON. Keep in lockstep with
@@ -29,4 +30,10 @@ export interface ErrorBody {
      * @nullable
      */
   till?: ErrorBodyTill;
+  /**
+     * The figures of a coded refusal (`CodedVars`), for the client's own
+     * wording. Omitted everywhere else.
+     * @nullable
+     */
+  vars?: ErrorBodyVars;
 }

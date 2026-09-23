@@ -5,6 +5,11 @@ import type { DayTime } from './dayTime';
 export interface WorkShiftBrief {
   /** @nullable */
   branch_id?: string | null;
+  /**
+     * How long before its start a check-in opens — the window the server
+     * enforces (CL-3), so the app says "opens at" the same time.
+     */
+  checkin_window_minutes: number;
   crosses_midnight: boolean;
   /** Its own times on some weekdays; show that day's times. */
   day_times: DayTime[];

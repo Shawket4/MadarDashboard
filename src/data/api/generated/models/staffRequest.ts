@@ -60,6 +60,11 @@ export interface StaffRequest {
   leave_type_name?: string | null;
   /** @nullable */
   location?: string | null;
+  /**
+     * A day of it is in an approved or paid month: approving or cancelling
+     * approved time is refused (PERIOD_CLOSED); rejecting still works.
+     */
+  month_closed?: boolean;
   on_date: string;
   org_id: string;
   /**

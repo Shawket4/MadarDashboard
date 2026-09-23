@@ -3,6 +3,12 @@
 
 export interface ContextPerson {
   /**
+     * Their salary-advance cap, decided by the server (AV-5, AT-3); shown
+     * under the same visibility as the salary.
+     * @nullable
+     */
+  advance_cap_piastres?: number | null;
+  /**
      * Only for people whose pay the caller may see.
      * @nullable
      */

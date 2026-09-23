@@ -308,6 +308,7 @@ export * from './earningItemList';
 export * from './employee';
 export * from './errorBody';
 export * from './errorBodyTill';
+export * from './errorBodyVars';
 export * from './expenseAdvance';
 export * from './expenseAdvanceRow';
 export * from './explainParams';
