@@ -7,7 +7,7 @@ import type { WorkShiftBrief } from './workShiftBrief';
 
 export interface StaffContext {
   /**
-     * My ceiling on a bonus/deduction before it waits for the owner; null = none.
+     * My ceiling on a bonus before it waits for the owner; null = none.
      * @nullable
      */
   adjustment_limit_piastres?: number | null;
@@ -19,6 +19,11 @@ export interface StaffContext {
      * empty for an employee with none. The app gates tabs on these (PM-4).
      */
   caps: string[];
+  /**
+     * My ceiling on a deduction (AD-5: separate from the bonus limit).
+     * @nullable
+     */
+  deduction_limit_piastres?: number | null;
   /** Who is signed in: the employee. */
   employee_id: string;
   /** The org's modules (`pos`, `dawam`); POS on means till punches (CL-13). */
@@ -27,6 +32,13 @@ export interface StaffContext {
   org_id: string;
   org_name: string;
   people: ContextPerson[];
+  /**
+     * When THIS phone accepted the location notice; null = show it before
+     * any location is taken (AT-5). A new phone, or a restored session on
+     * one that never accepted, starts null.
+     * @nullable
+     */
+  privacy_accepted_at?: string | null;
   /** `owner` · `manager` · `employee` */
   role: string;
   settings: ContextSettings;

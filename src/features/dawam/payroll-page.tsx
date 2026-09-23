@@ -499,7 +499,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                       </>
                     ) : null}
                     {canAdjust && a.recurring && !stopped && a.status === "approved" ? (
-                      <Button size="sm" variant="ghost" onClick={() => void act(() => stopAdjustment(a.kind, a.id), t("dawam.stoppedToast", "Stopped from next month"))}>{t("dawam.stop", "Stop")}</Button>
+                      <Button size="sm" variant="ghost" onClick={() => void act(() => stopAdjustment(a.kind, a.id, {}), t("dawam.stoppedToast", "Stopped from next month"))}>{t("dawam.stop", "Stop")}</Button>
                     ) : null}
                   </span>
                 }

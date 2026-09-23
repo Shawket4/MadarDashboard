@@ -24,10 +24,24 @@ export interface Payslip {
   /** @nullable */
   paid_at?: string | null;
   /**
-     * Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.
+     * Who marked it paid (AT-10).
+     * @nullable
+     */
+  paid_by?: string | null;
+  /**
+     * Paid by `cash` · `bank` · `wallet` (PAY-7), or `none` for a payslip
+     * with nothing to pay, marked by the run itself; null until marked paid.
      * @nullable
      */
   paid_method?: string | null;
+  /** @nullable */
+  pay_account?: string | null;
+  /**
+     * The person's pay method and account at the time of reading, for the
+     * bank and wallet lists (PAY-8).
+     * @nullable
+     */
+  pay_method?: string | null;
   payroll_period_id: string;
   /** @nullable */
   period_end?: string | null;

@@ -4,7 +4,11 @@
 export interface NewAdjustment {
   /** @nullable */
   amount_piastres?: number | null;
-  /** @nullable */
+  /**
+     * The month it lands in (AD-1): any day of that month; the first month
+     * of a recurring line (AD-3). Defaults to today. Must be an open month.
+     * @nullable
+     */
   effective_date?: string | null;
   employee_id: string;
   /** `bonus` · `deduction` */
