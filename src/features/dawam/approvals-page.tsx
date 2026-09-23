@@ -135,7 +135,7 @@ export function ApprovalsPage() {
         icon: HandCoins,
         who: a.employee_name ?? "—",
         kind: t("dawam.salaryAdvance", "Salary advance"),
-        detail: [t("dawam.advanceMeta", { amount: fmtMoney(a.amount_piastres), n: a.installments, defaultValue: "" }), a.reason].filter(Boolean).join(" · "),
+        detail: [t("dawam.advanceMeta", { amount: fmtMoney(a.amount_piastres), count: a.installments }), a.reason].filter(Boolean).join(" · "),
         at: a.created_at,
         approve: () => setReviewing(a),
         reject: () => reviewAdvance(a.id, { approve: false }),

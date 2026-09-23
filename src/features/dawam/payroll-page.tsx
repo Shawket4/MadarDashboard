@@ -534,7 +534,7 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
               key={a.id}
               title={a.employee_name ?? "—"}
               meta={[
-                t("dawam.advanceMeta", { amount: fmtMoney(a.amount_piastres), n: a.installments, defaultValue: `${fmtMoney(a.amount_piastres)} over ${a.installments}` }),
+                t("dawam.advanceMeta", { amount: fmtMoney(a.amount_piastres), count: a.installments }),
                 a.reason,
               ].filter(Boolean).join(" · ")}
               trailing={
