@@ -17,7 +17,7 @@ import { ListCard, ListRow } from "@/components/app/list-row";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { StatusPill } from "@/components/app/status-pill";
 import { RowAction } from "@/features/users/row-action";
-import { fmtDate, fmtTime } from "@/lib/format";
+import { fmtDate, fmtTime, fmtWireTime } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -274,7 +274,8 @@ export function RequestBadges({ r, mine }: { r: StaffRequest; mine: boolean }) {
 /** "10 Sep → 12 Sep", "arriving by 10:00", "12:00–14:00 on 4 Sep",
  *  "in 09:12 → 09:00" for a correction against the record's punches. */
 export function describeWindow(r: StaffRequest, t: TFunction): string {
-  const time = (s?: string | null) => (s ? s.slice(0, 5) : "");
+  // Wall-clock times from the wire, in the same 12-hour style as fmtTime.
+  const time = (s?: string | null) => (s ? fmtWireTime(s.slice(0, 5)) : "");
   switch (r.kind) {
     case "late_arrival":
       return t("staff.windowLate", "{{date}} · arriving by {{time}}", {

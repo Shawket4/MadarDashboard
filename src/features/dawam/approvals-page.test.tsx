@@ -230,7 +230,8 @@ describe("ApprovalsPage", () => {
     ];
     held = ["hr.leave.edit"];
     wrap(<ApprovalsPage />);
-    expect(screen.getByText(/in .+ → 09:00 · out — → 17:30/)).toBeInTheDocument();
+    // One clock style on both sides of the arrow (E2E: "out 12:01 AM → 23:55").
+    expect(screen.getByText(/in \d\d:\d\d [AP]M → 09:00 AM · out — → 05:30 PM/)).toBeInTheDocument();
     expect(screen.getByText("½ day · second half")).toBeInTheDocument();
     expect(screen.getByText(/half day/)).toBeInTheDocument();
     expect(screen.getByText("For the owner")).toBeInTheDocument();
