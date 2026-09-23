@@ -115,7 +115,9 @@ export function TeamPage() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-muted-foreground">{t("dawam.flags", "Flags")}</h2>
-        {flagsQ.isLoading ? <Skeleton className="h-24 w-full rounded-2xl" /> : flags.length === 0 ? (
+        {flagsQ.error ? (
+          <ErrorState title={t("dawam.flagsLoadError", "Couldn't load the flags")} message={getErrorMessage(flagsQ.error)} onRetry={() => void flagsQ.refetch()} />
+        ) : flagsQ.isLoading ? <Skeleton className="h-24 w-full rounded-2xl" /> : flags.length === 0 ? (
           <EmptyState icon={ShieldAlert} title={t("dawam.noFlags", "No open flags")} description={t("dawam.noFlagsHint", "Leaving mid-shift, spoofed locations and new phones show up here.")} />
         ) : (
           <ListCard>

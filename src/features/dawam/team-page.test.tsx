@@ -26,12 +26,14 @@ const punchFor = vi.fn(async () => ({}));
 const createAdjustment = vi.fn(async () => ({}));
 const logExpenseAdvance = vi.fn(async () => ({}));
 
+const failing: Record<string, Error | null> = {};
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
   const opts = args.find((a) => typeof a === "object" && a !== null && "query" in (a as object)) as
     | { query?: { enabled?: boolean } }
     | undefined;
   (enabledSeen[name] ??= []).push(opts?.query?.enabled ?? true);
-  return { data: data(), isLoading: false, isFetching: false, error: null, refetch: vi.fn() };
+  const error = failing[name] ?? null;
+  return { data: error ? undefined : data(), isLoading: false, isFetching: false, error, refetch: vi.fn() };
 };
 
 vi.mock("@/data/authz/use-authz", async () => {
@@ -82,6 +84,7 @@ const wrap = (node: ReactNode) => render(<QueryClientProvider client={new QueryC
 
 beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
+  for (const k of Object.keys(failing)) delete failing[k];
   resolveFlag.mockClear();
   punchFor.mockClear();
   held = [
@@ -96,6 +99,14 @@ describe("TeamPage", () => {
     wrap(<TeamPage />);
     expect(screen.getByText(/team board needs attendance rights/)).toBeInTheDocument();
     expect(enabledSeen.presence.every((e) => e === false)).toBe(true);
+  });
+
+  it("says the flags couldn't load, never 'No open flags', when their request fails", () => {
+    // E2E: a 403 on /staff/flags drew "No open flags" beside the team's error.
+    failing.flags = new Error("Forbidden: See attendance");
+    wrap(<TeamPage />);
+    expect(screen.queryByText("No open flags")).not.toBeInTheDocument();
+    expect(screen.getByText("Couldn't load the flags")).toBeInTheDocument();
   });
 
   it("lists open flags only", () => {
