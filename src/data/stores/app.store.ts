@@ -7,6 +7,9 @@ import i18n from "@/i18n";
 
 type Language = "en" | "ar";
 
+/** i18next's language as the store's: exactly "en" or "ar". */
+const asLanguage = (l: string | undefined): Language => (l?.startsWith("ar") ? "ar" : "en");
+
 interface AppState {
   selectedOrgId: string | null;
   selectedOrgLogo: string | null;
@@ -39,7 +42,10 @@ export const useAppStore = create<AppState>()(
       selectedOrgLogo: null,
       selectedBranchId: null,
       scopePreset: "30d",
-      language: "en",
+      // What i18next already detected (madar.lang, then the browser), never a
+      // hard-coded "en": the first persisted write would otherwise store "en"
+      // and the next load's rehydration would switch an Arabic browser to English.
+      language: asLanguage(i18n.resolvedLanguage ?? i18n.language),
       sidebarCollapsed: false,
       activeTimezone: APP_TZ,
       setSelectedOrg: (id, logoUrl) =>
@@ -97,3 +103,10 @@ export const useAppStore = create<AppState>()(
     },
   ),
 );
+
+// A language changed straight through i18next (a public page's toggle) is the
+// store's too, so rehydration never switches it back.
+i18n.on("languageChanged", (l) => {
+  const lang = asLanguage(l);
+  if (useAppStore.getState().language !== lang) useAppStore.setState({ language: lang });
+});
