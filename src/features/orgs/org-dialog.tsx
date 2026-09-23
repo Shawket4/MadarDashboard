@@ -19,6 +19,7 @@ import { createOrg, updateOrg, uploadOrgLogo } from "@/data/api/generated/api";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAppStore } from "@/data/stores/app.store";
+import { useAuthStore } from "@/data/stores/auth.store";
 import { MAX_PERCENT, fractionToPercent, percentToFraction } from "./tax-rate";
 import {
   SocialLinksFields,
@@ -39,6 +40,9 @@ interface Props {
 export function OrgDialog({ org, open, onOpenChange }: Props) {
   const { t } = useTranslation();
   const editing = !!org;
+  // Which modules an org has is Madar's call (PS-2): only a super admin sees
+  // or sends them; the server refuses the PATCH from anyone else anyway.
+  const superAdmin = useAuthStore((s) => s.user?.role === "super_admin");
   const [busy, setBusy] = useState(false);
   const selectedOrgId = useAppStore((s) => s.selectedOrgId);
   const setSelectedOrg = useAppStore((s) => s.setSelectedOrg);
@@ -84,7 +88,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, modules: ["pos", "dawam"], tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, require_table_for_orders: false, social: socialLinksToForm(null) },
+    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, modules: ["pos"], tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, require_table_for_orders: false, social: socialLinksToForm(null) },
   });
 
   useEffect(() => {
@@ -101,7 +105,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         timezone: org?.timezone ?? "Africa/Cairo",
         is_active: org?.is_active ?? true,
         custom_branding: org?.custom_branding ?? false,
-        modules: (org?.modules ?? ["pos", "dawam"]).filter((m): m is "pos" | "dawam" => m === "pos" || m === "dawam"),
+        modules: (org?.modules ?? ["pos"]).filter((m): m is "pos" | "dawam" => m === "pos" || m === "dawam"),
         tax_inclusive: org?.tax_inclusive ?? false,
         service_charge_rate: fractionToPercent(org?.service_charge_rate),
         service_charge_taxable: org?.service_charge_taxable ?? true,
@@ -122,7 +126,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
           name: v.name, slug: v.slug, currency_code: v.currency_code,
           tax_rate: percentToFraction(v.tax_rate), receipt_footer: v.receipt_footer || null, timezone: v.timezone, is_active: v.is_active,
           custom_branding: v.custom_branding,
-          modules: v.modules,
+          ...(superAdmin ? { modules: v.modules } : {}),
           tax_inclusive: v.tax_inclusive,
           service_charge_rate: percentToFraction(v.service_charge_rate),
           service_charge_taxable: v.service_charge_taxable,
@@ -135,7 +139,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         // pricing got neither, was told the organisation had been created, and
         // discovered in the edit dialog that half of what it typed had been
         // dropped.
-        await createOrg({
+        const created = await createOrg({
           name: v.name, slug: v.slug, currency_code: v.currency_code,
           tax_rate: percentToFraction(v.tax_rate),
           tax_inclusive: v.tax_inclusive,
@@ -144,6 +148,12 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
           require_table_for_orders: v.require_table_for_orders,
           receipt_footer: v.receipt_footer || null, timezone: v.timezone, logo: pendingLogo ?? undefined,
         });
+        // `POST /orgs` takes no modules and starts every org on POS alone;
+        // anything else is set right after, by the same super admin.
+        const picked = [...v.modules].sort().join(",");
+        if (superAdmin && picked !== "pos") {
+          await updateOrg(created.id, { modules: v.modules });
+        }
       }
       void invalidateOrgs();
       toast.success(editing ? t("orgs.updatedToast", "Organization updated") : t("orgs.createdToast", "Organization created"));
@@ -318,7 +328,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
               </FormItem>
             )} />
 
-            {editing ? (
+            {superAdmin ? (
               <FormField control={form.control} name="modules" render={({ field }) => (
                 <FormItem className="rounded-lg bg-muted p-3">
                   <FormLabel>{t("dawam.modules", "Modules")}</FormLabel>

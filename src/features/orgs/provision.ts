@@ -25,6 +25,8 @@ export function provisionSchemas(t: TFunction) {
       .number<number>()
       .min(0, t("orgs.taxRateRange", "Enter a rate between 0 and 100"))
       .max(MAX_PERCENT, t("orgs.taxRateRange", "Enter a rate between 0 and 100")),
+    // PS-2: which products this business has; POS alone unless Madar says so.
+    modules: z.array(z.enum(["pos", "dawam"])).min(1, t("dawam.modulesAtLeastOne", "Pick at least one module")),
   });
   const branch = z.object({
     name: z.string().trim().min(1, required),
@@ -56,7 +58,7 @@ export const STEP_FIELD: Record<StepIndex, keyof ProvisionFormValues> = {
 };
 
 export const emptyProvisionForm = (): ProvisionFormInput => ({
-  business: { name: "", slug: "", template: "", currency_code: "EGP", timezone: "Africa/Cairo", tax_rate: 0 },
+  business: { name: "", slug: "", template: "", currency_code: "EGP", timezone: "Africa/Cairo", tax_rate: 0, modules: ["pos"] },
   branch: { name: "", address: "", phone: "" },
   owner: { name: "", email: "", password: "", pin: "" },
 });
@@ -75,6 +77,7 @@ export function toProvisionRequest(v: ProvisionFormValues): ProvisionOrgRequest 
     currency_code: v.business.currency_code.trim().toUpperCase(),
     timezone: v.business.timezone,
     tax_rate: percentToFraction(v.business.tax_rate),
+    modules: v.business.modules,
     branch: { name: v.branch.name.trim() },
     owner: { name: v.owner.name.trim(), email: v.owner.email.trim(), password: v.owner.password },
   };

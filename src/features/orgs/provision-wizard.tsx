@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ImageUploader } from "@/components/app/image-uploader";
 import { TimezoneSelect } from "@/components/app/timezone-select";
@@ -208,6 +209,23 @@ export function ProvisionWizard({ open, onOpenChange }: Props) {
                   <FormItem>
                     <FormLabel>{t("orgs.timezone", "Timezone")}</FormLabel>
                     <FormControl><TimezoneSelect value={field.value} onChange={field.onChange} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="business.modules" render={({ field }) => (
+                  <FormItem className="rounded-lg bg-muted p-3">
+                    <FormLabel>{t("dawam.modules", "Modules")}</FormLabel>
+                    <div className="flex flex-wrap gap-4">
+                      {(["pos", "dawam"] as const).map((m) => (
+                        <label key={m} className="flex items-center gap-2 text-sm">
+                          <Checkbox
+                            checked={field.value.includes(m)}
+                            onCheckedChange={(on) => field.onChange(on ? [...field.value, m] : field.value.filter((x) => x !== m))}
+                          />
+                          {m === "pos" ? t("dawam.modulePos", "Madar POS") : t("dawam.moduleDawam", "Dawam (staff)")}
+                        </label>
+                      ))}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )} />

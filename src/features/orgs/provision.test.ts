@@ -14,7 +14,7 @@ const t = ((_k: string, d?: unknown) => (typeof d === "string" ? d : _k)) as unk
 const s = provisionSchemas(t);
 
 const valid: ProvisionFormValues = {
-  business: { name: "Drops", slug: "drops", template: "cafe", currency_code: "egp", timezone: "Africa/Cairo", tax_rate: 14 },
+  business: { name: "Drops", slug: "drops", template: "cafe", currency_code: "egp", timezone: "Africa/Cairo", tax_rate: 14, modules: ["pos"] },
   branch: { name: "Zamalek", address: "", phone: "  " },
   owner: { name: "Mona", email: "mona@example.com", password: "secret123", pin: "" },
 };
@@ -34,6 +34,12 @@ describe("step validation", () => {
 
   it("rejects a tax rate over 100%", () => {
     expect(s.business.safeParse({ ...valid.business, tax_rate: 140 }).success).toBe(false);
+  });
+
+  it("starts on POS alone and needs at least one module", () => {
+    expect(emptyProvisionForm().business.modules).toEqual(["pos"]);
+    expect(s.business.safeParse({ ...valid.business, modules: [] }).success).toBe(false);
+    expect(s.business.safeParse({ ...valid.business, modules: ["dawam"] }).success).toBe(true);
   });
 
   it("blocks step 2 without a branch name", () => {
@@ -59,9 +65,14 @@ describe("toProvisionRequest", () => {
       currency_code: "EGP",
       timezone: "Africa/Cairo",
       tax_rate: 0.14,
+      modules: ["pos"],
       branch: { name: "Zamalek" },
       owner: { name: "Mona", email: "mona@example.com", password: "secret123" },
     });
+  });
+
+  it("sends the modules picked", () => {
+    expect(toProvisionRequest({ ...valid, business: { ...valid.business, modules: ["pos", "dawam"] } }).modules).toEqual(["pos", "dawam"]);
   });
 
   it("includes optionals when set", () => {
