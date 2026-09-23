@@ -35,6 +35,15 @@ vi.mock("@/data/api/generated/api", () => ({
   decideRequest: (id: string, body: unknown) => decideRequest(id, body),
   createRequestAdmin: (body: unknown) => createRequestAdmin(body),
 }));
+let held = ["hr.leave.create", "hr.leave.edit", "hr.attendance.edit"];
+vi.mock("@/data/authz/use-authz", async () => {
+  const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
+  return {
+    ...real,
+    useAuthz: () =>
+      real.authzFrom({ user_id: "u-me", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [], capabilities: held as never, ask_manager: [], limits: {} }),
+  };
+});
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateRequests: vi.fn(), todayIso: () => "2026-09-23" };
@@ -73,9 +82,16 @@ beforeEach(() => {
   toastError.mockClear();
   toastSuccess.mockClear();
   rows = [LEAVE, MINE, APPROVED];
+  held = ["hr.leave.create", "hr.leave.edit", "hr.attendance.edit"];
 });
 
 describe("Requests inbox", () => {
+  it("offers filing for someone only with hr.leave.create (E2E: a branch manager got a 403)", () => {
+    held = ["hr.leave.edit", "hr.attendance.edit"];
+    renderPage();
+    expect(screen.queryByRole("button", { name: /New request/ })).not.toBeInTheDocument();
+  });
+
   it("never offers a manager their own request, and marks it (RQ-5)", () => {
     renderPage();
     const mine = rowOf("Karim Manager");

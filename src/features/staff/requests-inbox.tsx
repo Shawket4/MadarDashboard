@@ -18,6 +18,8 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { StatusPill } from "@/components/app/status-pill";
 import { RowAction } from "@/features/users/row-action";
 import { fmtDate, fmtTime, fmtWireTime } from "@/lib/format";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,6 +98,7 @@ export function RequestsInboxPage() {
   const [deciding, setDeciding] = useState<StaffRequest | null>(null);
   const [cancelling, setCancelling] = useState<StaffRequest | null>(null);
   const own = useOwnEmployeeIds();
+  const canFile = useAuthz().can(Cap.hrLeaveCreate);
 
   const requestsQ = useListRequests({
     status: status === ALL ? undefined : status,
@@ -137,10 +140,13 @@ export function RequestsInboxPage() {
           "Approving a request waives the penalty for that day at its source — there is nothing to correct afterwards.",
         )}
         actions={
-          <Button onClick={() => setAddOpen(true)}>
-            <Plus className="size-4" />
-            {t("staff.newRequest", "New request")}
-          </Button>
+          // Filing for someone is hr.leave.create; the server refuses anyone else (403).
+          canFile ? (
+            <Button onClick={() => setAddOpen(true)}>
+              <Plus className="size-4" />
+              {t("staff.newRequest", "New request")}
+            </Button>
+          ) : undefined
         }
         below={
           <div className="flex flex-wrap gap-2">
