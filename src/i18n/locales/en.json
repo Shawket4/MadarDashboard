@@ -6236,5 +6236,10 @@
     "badAmount": "Type an amount above zero",
     "flagsLoadError": "Couldn't load the flags",
     "payLinePending": "Over your limit: it waits for the owner before it counts."
+  },
+  "legal": {
+    "label": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
   }
 }

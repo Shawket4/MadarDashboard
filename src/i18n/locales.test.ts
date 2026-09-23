@@ -179,6 +179,8 @@ const STRICT = [
   "features/reports/legal/",
   "components/app/",
   "components/layout/",
+  // The footer under every page (E2E: "Terms of Service" in the Arabic dashboard).
+  "components/legal-links.tsx",
   "config/",
   "hooks/",
   "routes/_app/staff",
