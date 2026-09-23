@@ -185,7 +185,9 @@ export function RequestsInboxPage() {
           {rows.map((r) => {
             const meta = kindMeta(r.kind);
             const mine = own.has(r.employee_id);
-            const live = r.status === "pending" || r.status === "approved";
+            // An approved correction already rewrote the punch: the server
+            // refuses to cancel it (409), so it isn't offered.
+            const live = r.status === "pending" || (r.status === "approved" && r.kind !== "correction");
             return (
               <ListRow
                 key={r.id}

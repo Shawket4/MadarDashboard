@@ -129,6 +129,26 @@ describe("Requests inbox", () => {
   });
 });
 
+describe("Requests inbox, server answers", () => {
+  it("never offers to cancel an approved correction, which the server refuses (409)", () => {
+    rows = [{ id: "q5", employee_id: "e1", employee_name: "Youssef Adel", kind: "correction", status: "approved", on_date: "2026-09-20", from_time: "09:00:00", is_half_day: false, created_at: "2026-09-19T08:00:00Z" }];
+    renderPage();
+    expect(screen.queryByRole("button", { name: "Cancel request" })).not.toBeInTheDocument();
+  });
+
+  it("reads a closed month in the user's language (PERIOD_CLOSED)", async () => {
+    const { getErrorMessage } = await import("@/data/api/errors");
+    const { AxiosError } = await import("axios");
+    const e = new AxiosError("409", "ERR_BAD_REQUEST", undefined, undefined, {
+      status: 409, data: { error: "closed", code: "PERIOD_CLOSED" }, statusText: "", headers: {}, config: {} as never,
+    });
+    expect(getErrorMessage(e)).toMatch(/payroll month is closed/);
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(e)).toMatch(/شهر الرواتب هذا مغلق/);
+    await i18n.changeLanguage("en");
+  });
+});
+
 describe("Filing for someone", () => {
   it("files a second-half half-day leave with no leave type (RQ-2, RQ-8)", async () => {
     const user = userEvent.setup();

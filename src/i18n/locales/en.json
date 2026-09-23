@@ -2201,7 +2201,8 @@
       "EMPTY_ALLOW_LIST": "Pick at least one payment method, or allow all.",
       "RECONCILIATION_AMOUNT_REQUIRED": "Enter the counted amount for every method that doesn't match.",
       "RECONCILIATION_NOTE_REQUIRED": "Add a note for every method that doesn't match.",
-      "RULES_NOT_SET": "Your business hasn't set its attendance rules yet — ask the owner to save them on the Rules page."
+      "RULES_NOT_SET": "Your business hasn't set its attendance rules yet — ask the owner to save them on the Rules page.",
+      "PERIOD_CLOSED": "That payroll month is closed. Reopen it first, or pick a day in an open month."
     }
   },
   "theme": {
