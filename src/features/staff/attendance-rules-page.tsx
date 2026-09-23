@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { GripVertical, Plus, Save, Trash2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, GripVertical, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { ErrorState } from "@/components/app/empty-state";
+import { Restricted } from "@/components/app/restricted";
+import { useConfirm } from "@/components/app/confirm-dialog";
 import { RowAction } from "@/features/users/row-action";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,128 +21,154 @@ import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { putAttendanceSettings, useGetAttendanceSettings } from "@/data/api/generated/api";
+import {
+  deleteBranchRules, putAttendanceSettings, useGetAttendanceSettings, useListBranchRules,
+} from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { invalidateAttendance } from "./util";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
-import { DawamRulesCard, DEFAULT_RULES, rulesFrom, rulesRequest, type DawamRules } from "@/features/dawam/rules-card";
+import { DawamRulesCard } from "@/features/dawam/rules-card";
+import {
+  branchBody, EMPTY_VALUES, fullBody, ruleLabel, rulesSchema, valuesFrom,
+  type RulesValues, type Tier,
+} from "./rules-form";
 
-/** One rung of the late-penalty ladder, in the shape the API stores. */
-interface Tier {
-  from_minutes: number;
-  to_minutes: number | null;
-  kind: "minutes" | "piastres" | "day_fraction";
-  value: number;
-}
+/** The business's own rules in the branch selector. */
+const BUSINESS = "__business__";
 
 /**
  * The operating rules: what lateness costs, what an absence costs, and whether
- * approved permissions are paid.
+ * approved permissions are paid — for the business, or one branch's overrides
+ * of it (RU-2).
  *
  * The ladder is the centrepiece. "31–120 minutes late costs half a day" is
  * exactly one row here, and it is what the backend's `select_late_tier` reads at
  * check-out — so what you set is literally what gets charged, with no separate
  * copy of the policy anywhere.
+ *
+ * Who: `hr.rules.edit` changes them; `hr.rules.view` (a branch manager) sees
+ * them read-only, for their own branches. The server enforces both.
  */
 export function AttendanceRulesPage() {
   const { t } = useTranslation();
-  const query = useGetAttendanceSettings({});
-  const [busy, setBusy] = useState(false);
-  const canGender = useAuthz().can(Cap.hrRosterSettings);
+  const authz = useAuthz();
+  const confirm = useConfirm();
+  const canEdit = authz.can(Cap.hrRulesEdit);
+  const canView = canEdit || authz.can(Cap.hrRulesView);
+  const readOnly = !canEdit;
+  const canGender = canEdit && authz.can(Cap.hrRosterSettings);
 
-  const [tiers, setTiers] = useState<Tier[]>([]);
-  const [absenceDays, setAbsenceDays] = useState("1");
-  const [otMultiplier, setOtMultiplier] = useState("1.5");
-  const [workingDays, setWorkingDays] = useState("30");
-  const [autoBuffer, setAutoBuffer] = useState("120");
-  const [requireGeofence, setRequireGeofence] = useState(true);
-  const [excusedPaid, setExcusedPaid] = useState(true);
-  const [dawam, setDawam] = useState<DawamRules>(DEFAULT_RULES);
+  const [scope, setScope] = useState(BUSINESS);
+  const branchId = scope === BUSINESS ? null : scope;
+  const branchesQ = useListBranchRules({ query: { enabled: canView } });
+  const query = useGetAttendanceSettings(branchId ? { branch_id: branchId } : {}, { query: { enabled: canView } });
+  const [busy, setBusy] = useState(false);
+  // Rules this branch hands back to the business on the next save.
+  const [inherit, setInherit] = useState<string[]>([]);
+
+  const schema = useMemo(() => rulesSchema(t), [t]);
+  const form = useForm<RulesValues>({ resolver: zodResolver(schema), defaultValues: EMPTY_VALUES, mode: "onChange" });
+  const [loaded, setLoaded] = useState<RulesValues>(EMPTY_VALUES);
 
   useEffect(() => {
     const s = query.data;
     if (!s) return;
-    setTiers((s.late_deduction_tiers as Tier[] | undefined) ?? []);
-    setAbsenceDays(String(s.absence_deduction_days ?? 1));
-    setOtMultiplier(String(s.default_overtime_multiplier ?? 1.5));
-    setWorkingDays(String(s.working_days_per_month ?? 30));
-    setAutoBuffer(String(s.auto_checkout_buffer_minutes ?? 120));
-    setRequireGeofence(s.require_geofence ?? true);
-    setExcusedPaid(s.excused_time_paid_default ?? true);
-    setDawam(rulesFrom(s));
-  }, [query.data]);
+    // A business that never saved starts from the suggested ladder (RU-1).
+    const v = valuesFrom(s, { suggest: !branchId && canEdit });
+    setLoaded(valuesFrom(s));
+    form.reset(v);
+    setInherit([]);
+  }, [query.data, branchId, canEdit, form]);
 
-  /**
-   * The same non-overlap rule the server enforces in `rules::validate_tiers`.
-   * Checked here too so the operator sees the problem on the row they are
-   * editing rather than as a rejected save.
-   */
-  const tierError = useMemo(() => {
-    const sorted = [...tiers].sort((a, b) => a.from_minutes - b.from_minutes);
-    let previousEnd: number | null = null;
-    for (const tier of sorted) {
-      if (tier.from_minutes < 0) return t("staff.tierNegative", "Minutes cannot be negative");
-      if (tier.to_minutes !== null && tier.to_minutes < tier.from_minutes) {
-        return t("staff.tierInverted", "A rung cannot end before it starts");
-      }
-      if (tier.value < 0) return t("staff.tierNegativeValue", "A penalty cannot be negative");
-      if (previousEnd !== null && tier.from_minutes <= previousEnd) {
-        return t("staff.tierOverlap", "Rungs overlap at {{n}} minutes", { n: tier.from_minutes });
-      }
-      previousEnd = tier.to_minutes ?? Number.MAX_SAFE_INTEGER;
-    }
-    return null;
-  }, [tiers, t]);
+  const values = form.watch();
+  const tiers = values.tiers;
+  const errors = form.formState.errors;
+  const tierError = errors.tiers?.message ?? errors.tiers?.root?.message;
+  const overridden = branchId ? query.data?.overridden ?? [] : [];
 
+  const setTiers = (next: Tier[]) => form.setValue("tiers", next, { shouldDirty: true, shouldValidate: true });
   const addTier = () => {
     const last = tiers[tiers.length - 1];
     const from = last?.to_minutes != null ? last.to_minutes + 1 : 1;
     setTiers([...tiers, { from_minutes: from, to_minutes: from + 14, kind: "minutes", value: 15 }]);
   };
-
   const patchTier = (i: number, patch: Partial<Tier>) =>
     setTiers(tiers.map((tier, index) => (index === i ? { ...tier, ...patch } : tier)));
 
-  const save = async () => {
-    if (tierError) {
-      toast.error(tierError);
-      return;
-    }
-    const dawamReq = rulesRequest(dawam, canGender);
-    if ("error" in dawamReq) {
-      toast.error(t(dawamReq.error));
-      return;
-    }
-    setBusy(true);
+  const save = form.handleSubmit(
+    async (v) => {
+      const body = branchId ? branchBody(branchId, v, loaded, inherit) : fullBody(v, canGender);
+      if (!body) {
+        toast.info(t("staff.rulesNothingChanged", "Nothing changed"));
+        return;
+      }
+      setBusy(true);
+      try {
+        await putAttendanceSettings(body);
+        toast.success(t("staff.rulesSaved", "Rules saved"));
+        void invalidateAttendance();
+      } catch (e) {
+        toast.error(getErrorMessage(e));
+      } finally {
+        setBusy(false);
+      }
+    },
+    (errs) => {
+      const first = Object.values(errs)[0] as { message?: string; root?: { message?: string } } | undefined;
+      toast.error(first?.message ?? first?.root?.message ?? t("staff.rulesInvalid", "Check the highlighted rules"));
+    },
+  );
+
+  const followBusiness = async () => {
+    if (!branchId) return;
+    const name = branchesQ.data?.find((b) => b.branch_id === branchId)?.branch_name ?? "";
+    const ok = await confirm({
+      title: t("staff.rulesFollowBusinessTitle", { name, defaultValue: `${name} follows the business's rules?` }),
+      description: t("staff.rulesFollowBusinessHint", "Every rule this branch sets itself goes back to the business's value."),
+      confirmLabel: t("staff.rulesFollowBusiness", "Follow the business"),
+      destructive: true,
+    });
+    if (!ok) return;
     try {
-      await putAttendanceSettings({
-        ...dawamReq.ok,
-        late_deduction_tiers: tiers,
-        absence_deduction_days: Number(absenceDays),
-        default_overtime_multiplier: Number(otMultiplier),
-        working_days_per_month: Number(workingDays),
-        auto_checkout_buffer_minutes: Number(autoBuffer),
-        require_geofence: requireGeofence,
-        excused_time_paid_default: excusedPaid,
-      });
+      await deleteBranchRules(branchId);
       toast.success(t("staff.rulesSaved", "Rules saved"));
       void invalidateAttendance();
     } catch (e) {
       toast.error(getErrorMessage(e));
-    } finally {
-      setBusy(false);
     }
   };
+
+  const title = t("staff.rules", "Attendance rules");
+  if (authz.ready && !canView) {
+    return <Restricted title={title} who={t("staff.rulesNoAccess", "The owner sets the rules. Ask them for access to see them.")} />;
+  }
+
+  const branchSelect = (
+    <Select value={scope} onValueChange={setScope}>
+      <SelectTrigger className="w-64" aria-label={t("staff.rulesFor", "Rules for")}><SelectValue /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value={BUSINESS}>{t("staff.rulesBusiness", "The business (every branch)")}</SelectItem>
+        {(branchesQ.data ?? []).map((b) => (
+          <SelectItem key={b.branch_id} value={b.branch_id}>
+            {b.overridden.length
+              ? t("staff.rulesBranchOwn", { name: b.branch_name, defaultValue: `${b.branch_name} · own rules` })
+              : b.branch_name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
 
   if (query.isLoading || query.error) {
     return (
       <Page width="reading">
-        <PageHeader title={t("staff.rules", "Attendance rules")} />
+        <PageHeader title={title} below={branchSelect} />
         {query.error ? (
           <ErrorState
             title={t("staff.rulesLoadError", "Couldn't load attendance rules")}
+            message={getErrorMessage(query.error)}
             onRetry={() => void query.refetch()}
             retrying={query.isFetching}
           />
@@ -154,23 +185,88 @@ export function AttendanceRulesPage() {
   return (
     <Page width="reading">
       <PageHeader
-        title={t("staff.rules", "Attendance rules")}
+        title={title}
         description={t(
           "staff.rulesSubtitle",
           "What lateness and absence cost. These are the rules the system charges against — an approved request waives them for that day.",
         )}
         actions={
-          <Button onClick={() => void save()} disabled={busy || !!tierError}>
-            <Save className="size-4" />
-            {t("common.save", "Save")}
-          </Button>
+          readOnly ? null : (
+            <Button onClick={() => void save()} disabled={busy || !!tierError}>
+              <Save className="size-4" />
+              {t("common.save", "Save")}
+            </Button>
+          )
         }
+        below={branchSelect}
       />
 
-      {query.data && !query.data.rules_saved_at ? (
+      {readOnly ? (
+        <p role="status" className="flex items-center gap-2 rounded-2xl border bg-muted/40 p-4 text-sm">
+          <Eye className="size-4 shrink-0" />
+          {t("staff.rulesReadOnly", "You can see the rules. Only the owner changes them.")}
+        </p>
+      ) : null}
+
+      {!branchId && query.data && !query.data.rules_saved_at ? (
         <p role="status" className="rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm font-medium">
           {t("dawam.rulesFirstTitle", "Save the rules before anyone can clock in")}
+          {canEdit ? (
+            <span className="block font-normal text-muted-foreground">
+              {t("staff.rulesSuggested", "A suggested ladder is filled in. Change it to suit you, then save.")}
+            </span>
+          ) : null}
         </p>
+      ) : null}
+
+      {branchId ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("staff.rulesBranchTitle", "This branch's own rules")}</CardTitle>
+            <CardDescription>
+              {t(
+                "staff.rulesBranchHint",
+                "Everything else is the business's. A rule you change here becomes this branch's own; the pay period, the advance cap and gender mode are the business's only.",
+              )}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {overridden.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("staff.rulesBranchNone", "None — this branch follows the business.")}</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {overridden.map((name) => {
+                  const going = inherit.includes(name);
+                  return (
+                    <Badge key={name} variant={going ? "outline" : "secondary"} className={going ? "gap-1 line-through" : "gap-1"}>
+                      {ruleLabel(name, t)}
+                      {readOnly ? null : (
+                        <button
+                          type="button"
+                          className="rounded-full p-0.5 hover:bg-muted"
+                          aria-label={
+                            going
+                              ? t("staff.rulesKeepOwn", { rule: ruleLabel(name, t), defaultValue: `Keep ${ruleLabel(name, t)}` })
+                              : t("staff.rulesInherit", { rule: ruleLabel(name, t), defaultValue: `Use the business's ${ruleLabel(name, t)}` })
+                          }
+                          onClick={() => setInherit(going ? inherit.filter((n) => n !== name) : [...inherit, name])}
+                        >
+                          {going ? <RotateCcw className="size-3" /> : <X className="size-3" />}
+                        </button>
+                      )}
+                    </Badge>
+                  );
+                })}
+              </div>
+            )}
+            {!readOnly && overridden.length ? (
+              <Button variant="outline" size="sm" onClick={() => void followBusiness()}>
+                <RotateCcw className="size-4" />
+                {t("staff.rulesFollowBusiness", "Follow the business")}
+              </Button>
+            ) : null}
+          </CardContent>
+        </Card>
       ) : null}
 
       <Card>
@@ -195,9 +291,11 @@ export function AttendanceRulesPage() {
                 <div className="space-y-1">
                   <Label className="text-xs">{t("staff.fromMinutes", "From (min)")}</Label>
                   <Input
+                    aria-label={t("staff.fromMinutes", "From (min)")}
                     type="number"
                     min="0"
                     className="w-24"
+                    disabled={readOnly}
                     value={tier.from_minutes}
                     onChange={(e) => patchTier(i, { from_minutes: Number(e.target.value) })}
                   />
@@ -205,9 +303,11 @@ export function AttendanceRulesPage() {
                 <div className="space-y-1">
                   <Label className="text-xs">{t("staff.toMinutes", "To (min)")}</Label>
                   <Input
+                    aria-label={t("staff.toMinutes", "To (min)")}
                     type="number"
                     min="0"
                     className="w-24"
+                    disabled={readOnly}
                     placeholder={t("staff.noLimit", "no limit")}
                     value={tier.to_minutes ?? ""}
                     onChange={(e) =>
@@ -221,6 +321,7 @@ export function AttendanceRulesPage() {
                   <Label className="text-xs">{t("staff.deduct", "Deduct")}</Label>
                   <Select
                     value={tier.kind}
+                    disabled={readOnly}
                     onValueChange={(v) => patchTier(i, { kind: v as Tier["kind"] })}
                   >
                     <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
@@ -234,10 +335,12 @@ export function AttendanceRulesPage() {
                 <div className="space-y-1">
                   <Label className="text-xs">{t("staff.amount", "Amount")}</Label>
                   <Input
+                    aria-label={t("staff.amount", "Amount")}
                     type="number"
                     step={tier.kind === "day_fraction" ? "0.25" : "1"}
                     min="0"
                     className="w-28"
+                    disabled={readOnly}
                     value={tier.kind === "piastres" ? piastresToEgp(tier.value) : tier.value}
                     onChange={(e) =>
                       patchTier(i, {
@@ -252,24 +355,28 @@ export function AttendanceRulesPage() {
                 <p className="mb-2 flex-1 text-xs text-muted-foreground">
                   {describeTier(tier, t)}
                 </p>
-                <RowAction
-                  destructive
-                  label={t("staff.removeTier", "Remove rung")}
-                  className="mb-1"
-                  onClick={() => setTiers(tiers.filter((_, index) => index !== i))}
-                >
-                  <Trash2 className="size-4" />
-                </RowAction>
+                {readOnly ? null : (
+                  <RowAction
+                    destructive
+                    label={t("staff.removeTier", "Remove rung")}
+                    className="mb-1"
+                    onClick={() => setTiers(tiers.filter((_, index) => index !== i))}
+                  >
+                    <Trash2 className="size-4" />
+                  </RowAction>
+                )}
               </div>
             ))
           )}
 
           {tierError ? <p className="text-sm text-destructive">{tierError}</p> : null}
 
-          <Button variant="outline" size="sm" onClick={addTier}>
-            <Plus className="size-4" />
-            {t("staff.addTier", "Add a rung")}
-          </Button>
+          {readOnly ? null : (
+            <Button variant="outline" size="sm" onClick={addTier}>
+              <Plus className="size-4" />
+              {t("staff.addTier", "Add a rung")}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
@@ -287,23 +394,18 @@ export function AttendanceRulesPage() {
           <CardContent className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
               <Label htmlFor="ar-days">{t("staff.workingDays", "Working days per month")}</Label>
-              <Input id="ar-days" type="number" min="1" step="0.5" value={workingDays}
-                onChange={(e) => setWorkingDays(e.target.value)} />
+              <Input id="ar-days" type="number" min="1" step="0.5" disabled={readOnly} {...form.register("workingDays")} />
+              {errors.workingDays ? <p className="text-xs text-destructive">{errors.workingDays.message}</p> : null}
             </div>
             <div className="space-y-1">
               <Label htmlFor="ar-absence">{t("staff.absenceDays", "Days docked per absence")}</Label>
-              <Input id="ar-absence" type="number" min="0" step="0.25" value={absenceDays}
-                onChange={(e) => setAbsenceDays(e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="ar-ot">{t("staff.otMultiplier", "Overtime multiplier")}</Label>
-              <Input id="ar-ot" type="number" min="0.05" step="0.05" value={otMultiplier}
-                onChange={(e) => setOtMultiplier(e.target.value)} />
+              <Input id="ar-absence" type="number" min="0" step="0.25" disabled={readOnly} {...form.register("absenceDays")} />
+              {errors.absenceDays ? <p className="text-xs text-destructive">{errors.absenceDays.message}</p> : null}
             </div>
             <div className="space-y-1">
               <Label htmlFor="ar-buffer">{t("staff.autoBuffer", "Auto-close after (min)")}</Label>
-              <Input id="ar-buffer" type="number" min="0" value={autoBuffer}
-                onChange={(e) => setAutoBuffer(e.target.value)} />
+              <Input id="ar-buffer" type="number" min="0" disabled={readOnly} {...form.register("autoBuffer")} />
+              {errors.autoBuffer ? <p className="text-xs text-destructive">{errors.autoBuffer.message}</p> : null}
             </div>
           </CardContent>
         </Card>
@@ -320,7 +422,12 @@ export function AttendanceRulesPage() {
                   {t("staff.requireGeofenceHint", "Punches outside the branch's radius are refused.")}
                 </p>
               </div>
-              <Switch id="ar-geo" checked={requireGeofence} onCheckedChange={setRequireGeofence} />
+              <Switch
+                id="ar-geo"
+                disabled={readOnly}
+                checked={values.requireGeofence}
+                onCheckedChange={(v) => form.setValue("requireGeofence", v, { shouldDirty: true })}
+              />
             </div>
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -332,11 +439,23 @@ export function AttendanceRulesPage() {
                   )}
                 </p>
               </div>
-              <Switch id="ar-excused" checked={excusedPaid} onCheckedChange={setExcusedPaid} />
+              <Switch
+                id="ar-excused"
+                disabled={readOnly}
+                checked={values.excusedPaid}
+                onCheckedChange={(v) => form.setValue("excusedPaid", v, { shouldDirty: true })}
+              />
             </div>
           </CardContent>
         </Card>
-        <DawamRulesCard value={dawam} onChange={setDawam} canGender={canGender} />
+        <DawamRulesCard
+          value={values.dawam}
+          onChange={(v) => form.setValue("dawam", v, { shouldDirty: true, shouldValidate: true })}
+          canGender={canGender}
+          readOnly={readOnly}
+          branch={!!branchId}
+        />
+        {errors.dawam?.message ? <p className="text-sm text-destructive">{errors.dawam.message}</p> : null}
       </div>
     </Page>
   );

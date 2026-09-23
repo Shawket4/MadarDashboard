@@ -21,6 +21,8 @@ const settings = {
 vi.mock("@/data/api/generated/api", () => ({
   useGetAttendanceSettings: () => ({ data: settings, isLoading: false, isFetching: false, error: null, refetch: vi.fn() }),
   putAttendanceSettings: (...a: unknown[]) => put(...(a as [])),
+  useListBranchRules: () => ({ data: [], isLoading: false, error: null }),
+  deleteBranchRules: vi.fn(),
 }));
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
@@ -41,12 +43,14 @@ vi.mock("@/features/staff/util", async () => {
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");
 const { AttendanceRulesPage } = await import("@/features/staff/attendance-rules-page");
+const { ConfirmProvider } = await import("@/components/app/confirm-dialog");
 
-const renderPage = () => render(<QueryClientProvider client={new QueryClient()}><AttendanceRulesPage /></QueryClientProvider>);
+const renderPage = () =>
+  render(<QueryClientProvider client={new QueryClient()}><ConfirmProvider><AttendanceRulesPage /></ConfirmProvider></QueryClientProvider>);
 
 beforeEach(() => {
   put.mockClear();
-  held = ["hr.attendance.edit"];
+  held = ["hr.rules.edit"];
 });
 
 describe("Dawam rules", () => {
@@ -92,6 +96,9 @@ describe("Dawam rules", () => {
     });
     expect(body).not.toHaveProperty("weekend_days");
     expect(body).not.toHaveProperty("gender_mode");
+    // The legacy single overtime multiplier is gone from the page (RU-8).
+    expect(body).not.toHaveProperty("default_overtime_multiplier");
+    expect(screen.queryByLabelText("Overtime multiplier")).not.toBeInTheDocument();
   });
 
   it("let only the owner's capability change the gender mode (SC-12)", async () => {
@@ -99,7 +106,7 @@ describe("Dawam rules", () => {
     renderPage();
     expect(screen.getByRole("radio", { name: "A rule" })).toBeDisabled();
 
-    held = ["hr.attendance.edit", "hr.roster.settings"];
+    held = ["hr.rules.edit", "hr.roster.settings"];
     renderPage();
     const rule = screen.getAllByRole("radio", { name: "A rule" }).find((b) => !(b as HTMLButtonElement).disabled)!;
     await user.click(rule);

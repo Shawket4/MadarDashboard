@@ -11,6 +11,8 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 let held: string[] = [];
+const LEAVE = { id: "q1", employee_id: "e1", employee_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", created_at: "2026-09-22T07:00:00Z", reason: "Family wedding" };
+let requestRows: Record<string, unknown>[] = [LEAVE];
 const enabledSeen: Record<string, boolean[]> = {};
 const calls = {
   decideCover: vi.fn(async () => ({})),
@@ -53,8 +55,10 @@ vi.mock("@/features/staff/util", async () => {
   return { ...real, invalidateStaff: vi.fn(), invalidateRequests: vi.fn() };
 });
 vi.mock("@/data/api/generated/api", () => ({
-  useListRequests: hook("requests", () => [
-    { id: "q1", employee_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", created_at: "2026-09-22T07:00:00Z", reason: "Family wedding" },
+  useListRequests: hook("requests", () => requestRows),
+  useListEmployees: hook("employees", () => [
+    { id: "e-me", name: "Karim Manager", user_id: "u-me" },
+    { id: "e1", name: "Youssef Adel", user_id: null },
   ]),
   useListAdvances: hook("advances", () => [
     { id: "v1", employee_name: "Sara Ahmed", amount_piastres: 50_000, installments: 2, status: "pending", created_at: "2026-09-22T08:00:00Z", reason: "Rent" },
@@ -77,6 +81,8 @@ vi.mock("@/data/api/generated/api", () => ({
   ...calls,
 }));
 
+const { useAuthStore } = await import("@/data/stores/auth.store");
+useAuthStore.setState({ user: { id: "u-me" } as never });
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");
 const { ConfirmProvider } = await import("@/components/app/confirm-dialog");
@@ -98,6 +104,7 @@ const approveIn = (text: string) => {
 beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
+  requestRows = [LEAVE];
   held = [
     "hr.leave.edit", "hr.advances.decide", "hr.schedule.edit", "hr.shift_cover.confirm",
     "hr.overtime.approve", "hr.payroll.run",
@@ -192,5 +199,75 @@ describe("ApprovalsPage", () => {
     );
     await user.click(within(approveIn("Bonus over the limit")).getByRole("button", { name: "Approve" }));
     await waitFor(() => expect(calls.decideAdjustment).toHaveBeenCalledWith("bonus", "a2", { approve: true }));
+  });
+
+  it("never offers a manager their own request, which someone above them decides (RQ-5)", () => {
+    requestRows = [
+      LEAVE,
+      { id: "q9", employee_id: "e-me", employee_name: "Karim Manager", kind: "early_departure", status: "pending", on_date: "2026-09-24", from_time: "15:00:00", created_at: "2026-09-22T09:00:00Z", paid_default: true },
+    ];
+    held = ["hr.leave.edit"];
+    wrap(<ApprovalsPage />);
+    expect(screen.queryByText("Karim Manager")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Approve" })).toHaveLength(1);
+  });
+
+  it("shows a correction's proposed times against the record's punches, a half day and who decides", () => {
+    requestRows = [
+      { id: "q2", employee_id: "e1", employee_name: "Youssef Adel", kind: "correction", status: "pending", on_date: "2026-09-21", from_time: "09:00:00", to_time: "17:30:00", record_check_in_at: "2026-09-21T06:40:00Z", record_check_out_at: null, created_at: "2026-09-22T09:00:00Z" },
+      { id: "q3", employee_id: "e2", employee_name: "Sara Ahmed", kind: "leave", is_half_day: true, leave_half: "second", status: "pending", on_date: "2026-09-26", created_at: "2026-09-22T09:10:00Z", to_owner: true },
+    ];
+    held = ["hr.leave.edit"];
+    wrap(<ApprovalsPage />);
+    expect(screen.getByText(/in .+ → 09:00 · out — → 17:30/)).toBeInTheDocument();
+    expect(screen.getByText("½ day · second half")).toBeInTheDocument();
+    expect(screen.getByText(/half day/)).toBeInTheDocument();
+    expect(screen.getByText("For the owner")).toBeInTheDocument();
+  });
+
+  it("approves a correction in one click with no pay question", async () => {
+    requestRows = [
+      { id: "q2", employee_id: "e1", employee_name: "Youssef Adel", kind: "correction", status: "pending", on_date: "2026-09-21", from_time: "09:00:00", created_at: "2026-09-22T09:00:00Z" },
+    ];
+    const user = userEvent.setup();
+    held = ["hr.leave.edit"];
+    wrap(<ApprovalsPage />);
+    await user.click(screen.getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(calls.decideRequest).toHaveBeenCalledWith("q2", { status: "approved" }));
+  });
+
+  it("starts an excuse's pay from the rule and leaves the answer to the rule unless changed (RQ-7)", async () => {
+    requestRows = [
+      { id: "q4", employee_id: "e1", employee_name: "Youssef Adel", kind: "excuse", status: "pending", on_date: "2026-09-21", from_time: "12:00:00", to_time: "13:00:00", created_at: "2026-09-22T09:00:00Z", paid_default: false },
+    ];
+    const user = userEvent.setup();
+    held = ["hr.leave.edit"];
+    wrap(<ApprovalsPage />);
+    await user.click(screen.getByRole("button", { name: "Approve" }));
+    let dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("switch")).not.toBeChecked();
+    expect(within(dialog).getByText("The rule says unpaid.")).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(calls.decideRequest).toHaveBeenCalledWith("q4", { status: "approved", note: null }));
+
+    calls.decideRequest.mockClear();
+    await user.click(screen.getByRole("button", { name: "Approve" }));
+    dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("switch"));
+    await user.click(within(dialog).getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(calls.decideRequest).toHaveBeenCalledWith("q4", { status: "approved", is_paid: true, note: null }));
+  });
+
+  it("keeps the queue when a decision is refused, and says why", async () => {
+    calls.decideRequest.mockRejectedValueOnce(new Error("A manager's own request is decided by someone above them"));
+    requestRows = [
+      { id: "q2", employee_id: "e1", employee_name: "Youssef Adel", kind: "late_arrival", status: "pending", on_date: "2026-09-21", to_time: "10:00:00", created_at: "2026-09-22T09:00:00Z" },
+    ];
+    const user = userEvent.setup();
+    held = ["hr.leave.edit"];
+    wrap(<ApprovalsPage />);
+    await user.click(screen.getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(calls.decideRequest).toHaveBeenCalled());
+    expect(screen.getByRole("button", { name: "Approve" })).toBeInTheDocument();
   });
 });

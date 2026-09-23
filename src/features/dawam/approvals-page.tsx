@@ -5,10 +5,10 @@
  * manager's limit. Each kind shows only to someone who may decide it; the
  * server checks again.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ArrowLeftRight, CalendarPlus, Check, HandCoins, Inbox, ReceiptText, ShieldCheck, Timer, UserRoundCheck, X,
+  ArrowLeftRight, CalendarPlus, Check, HandCoins, Inbox, ReceiptText, Timer, UserRoundCheck, X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -31,7 +31,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
-import { ApproveWithPayDialog, describeWindow, kindMeta } from "@/features/staff/requests-inbox";
+import { ApproveWithPayDialog, ASKS_PAY, describeWindow, kindMeta, RequestBadges, useOwnEmployeeIds } from "@/features/staff/requests-inbox";
 import { fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
 import { ReviewAdvanceDialog } from "./money-dialogs";
 
@@ -44,6 +44,8 @@ export interface Pending {
   icon: LucideIcon;
   who: string;
   kind: string;
+  /** Extra markers for a request row: half day, unpaid, for the owner. */
+  badges?: ReactNode;
   detail: string;
   at: string;
   approve: () => Promise<unknown> | void;
@@ -71,6 +73,8 @@ export function ApprovalsPage() {
   const to = isoDaysFromToday(35);
 
   const requestsQ = useListRequests({ status: "pending" }, { query: { enabled: can.requests } });
+  // A manager's own requests are decided above them (RQ-5): not in their queue.
+  const own = useOwnEmployeeIds(can.requests);
   const advancesQ = useListAdvances({}, { query: { enabled: can.advances } });
   const swapsQ = useListSwaps({ status: "pending" }, { query: { enabled: can.roster } });
   const claimsQ = useListOpenShifts({ from, to }, { query: { enabled: can.roster } });
@@ -107,14 +111,16 @@ export function ApprovalsPage() {
   const items: Pending[] = useMemo(() => {
     const out: Pending[] = [];
     for (const r of can.requests ? requestsQ.data ?? [] : []) {
-      const meta = r.kind === "correction" ? { icon: ShieldCheck, labelKey: "dawam.kindCorrection", fallback: "Correction" } : kindMeta(r.kind);
-      const asksPay = ["leave", "excuse", "early_departure"].includes(r.kind);
+      if (own.has(r.employee_id)) continue;
+      const meta = kindMeta(r.kind);
+      const asksPay = ASKS_PAY.includes(r.kind);
       out.push({
         key: `q|${r.id}`,
         section: "requests",
         icon: meta.icon,
         who: r.employee_name ?? "—",
         kind: t(meta.labelKey, meta.fallback),
+        badges: <RequestBadges r={r} mine={false} />,
         detail: [describeWindow(r, t), r.reason].filter(Boolean).join(" · "),
         at: r.created_at,
         approve: asksPay ? () => setPaying(r) : () => decideRequest(r.id, { status: "approved" }),
@@ -208,7 +214,7 @@ export function ApprovalsPage() {
     }
     return out.sort((a, b) => b.at.localeCompare(a.at));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestsQ.data, advancesQ.data, payLinesQ.data, swapsQ.data, claimsQ.data, attendanceQ.data, t]);
+  }, [requestsQ.data, own, advancesQ.data, payLinesQ.data, swapsQ.data, claimsQ.data, attendanceQ.data, t]);
 
   if (authz.ready && !any) {
     return <Restricted title={t("dawam.approvals", "Approvals")} who={t("dawam.approvalsNoAccess", "Nothing here is yours to decide. The owner can give you access.")} />;
@@ -268,6 +274,7 @@ export function ApprovalsPage() {
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="truncate">{i.who}</span>
                   <Badge variant="secondary">{i.kind}</Badge>
+                  {i.badges}
                 </span>
               }
               meta={i.detail}
@@ -288,7 +295,7 @@ export function ApprovalsPage() {
           ))}
         </ListCard>
       )}
-      <ApproveWithPayDialog request={paying} onOpenChange={(o) => !o && setPaying(null)} />
+      <ApproveWithPayDialog key={paying?.id} request={paying} onOpenChange={(o) => !o && setPaying(null)} />
       <ReviewAdvanceDialog key={reviewing?.id} advance={reviewing} onOpenChange={(o) => !o && setReviewing(null)} />
     </Page>
   );

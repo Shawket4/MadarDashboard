@@ -103,13 +103,22 @@ export function rulesRequest(r: DawamRules, canGender = false): { ok: PutAttenda
   };
 }
 
-export function DawamRulesCard({ value, onChange, canGender = false }: { value: DawamRules; onChange: (v: DawamRules) => void; canGender?: boolean }) {
+/**
+ * `readOnly`: a manager who may see the rules but not change them
+ * (`hr.rules.view`). `branch`: a branch's rules, which never carry the
+ * business-only settings (the pay period start, the advance cap, gender mode).
+ */
+export function DawamRulesCard({
+  value, onChange, canGender = false, readOnly = false, branch = false,
+}: {
+  value: DawamRules; onChange: (v: DawamRules) => void; canGender?: boolean; readOnly?: boolean; branch?: boolean;
+}) {
   const { t } = useTranslation();
   const set = <K extends keyof DawamRules>(k: K, v: DawamRules[K]) => onChange({ ...value, [k]: v });
   const num = (k: NumKey, label: string, hint?: string) => (
     <div className="space-y-1">
       <Label htmlFor={`rule-${k}`}>{label}</Label>
-      <Input id={`rule-${k}`} type="number" inputMode="decimal" value={value[k]} onChange={(e) => set(k, e.target.value)} />
+      <Input id={`rule-${k}`} type="number" inputMode="decimal" value={value[k]} disabled={readOnly} onChange={(e) => set(k, e.target.value)} />
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
@@ -125,6 +134,7 @@ export function DawamRulesCard({ value, onChange, canGender = false }: { value: 
           <SegmentedControl
             value={value.overtimeMode}
             onChange={(v) => set("overtimeMode", v)}
+            disabled={readOnly}
             options={[
               { value: "off", label: t("dawam.otOff", "Off") },
               { value: "automatic", label: t("dawam.otAutomatic", "Paid automatically") },
@@ -137,15 +147,18 @@ export function DawamRulesCard({ value, onChange, canGender = false }: { value: 
           {num("otNight", t("dawam.otNight", "Night rate ×"), `${value.nightStart}–${value.nightEnd}`)}
           {num("holidayMult", t("dawam.holidayRate", "Holiday rate ×"))}
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {num("advanceCap", t("dawam.advanceCap", "Advance cap (% of salary)"), t("dawam.advanceCapHint", "Outstanding salary advances above this need the owner."))}
-          {num("periodStartDay", t("dawam.periodStartDay", "Pay period starts on day"), t("dawam.periodStartDayHint", "1–28. The 26th means a 26th–25th month."))}
-        </div>
+        {branch ? null : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {num("advanceCap", t("dawam.advanceCap", "Advance cap (% of salary)"), t("dawam.advanceCapHint", "Outstanding salary advances above this need the owner."))}
+            {num("periodStartDay", t("dawam.periodStartDay", "Pay period starts on day"), t("dawam.periodStartDayHint", "1–28. The 26th means a 26th–25th month."))}
+          </div>
+        )}
         <div className="space-y-1">
           <Label>{t("dawam.halfDayLeave", "Half-day leave counts as")}</Label>
           <SegmentedControl
             value={value.halfDay}
             onChange={(v) => set("halfDay", v)}
+            disabled={readOnly}
             options={[
               { value: "half_shift", label: t("dawam.halfShift", "Half the shift") },
               { value: "whole_day", label: t("dawam.wholeDay", "The whole day") },
@@ -156,7 +169,7 @@ export function DawamRulesCard({ value, onChange, canGender = false }: { value: 
           {(["nightStart", "nightEnd"] as const).map((k) => (
             <div key={k} className="space-y-1">
               <Label htmlFor={`rule-${k}`}>{k === "nightStart" ? t("dawam.nightStart", "Night starts") : t("dawam.nightEnd", "Night ends")}</Label>
-              <Input id={`rule-${k}`} type="time" value={value[k]} onChange={(e) => set(k, e.target.value)} />
+              <Input id={`rule-${k}`} type="time" value={value[k]} disabled={readOnly} onChange={(e) => set(k, e.target.value)} />
             </div>
           ))}
         </div>
@@ -176,22 +189,26 @@ export function DawamRulesCard({ value, onChange, canGender = false }: { value: 
           {num("ordersPerStaff", t("dawam.ordersPerStaff", "Orders an hour per person"), t("dawam.ordersPerStaffHint", "Coverage from POS sales: one person for this many orders an hour."))}
         </div>
       </CardContent>
-      <CardHeader>
-        <CardTitle>{t("dawam.genderTitle", "Gender in suggestions")}</CardTitle>
-        <CardDescription>{t("dawam.genderHint", "How much the gender default weighs when the schedule suggests people. Only the owner can change it.")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <SegmentedControl
-          value={value.genderMode}
-          onChange={(v) => set("genderMode", v)}
-          disabled={!canGender}
-          options={[
-            { value: "off", label: t("dawam.genderOff", "Ignore it") },
-            { value: "soft", label: t("dawam.genderSoft", "A preference") },
-            { value: "hard", label: t("dawam.genderHard", "A rule") },
-          ]}
-        />
-      </CardContent>
+      {branch ? null : (
+        <>
+          <CardHeader>
+            <CardTitle>{t("dawam.genderTitle", "Gender in suggestions")}</CardTitle>
+            <CardDescription>{t("dawam.genderHint", "How much the gender default weighs when the schedule suggests people. Only the owner can change it.")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SegmentedControl
+              value={value.genderMode}
+              onChange={(v) => set("genderMode", v)}
+              disabled={readOnly || !canGender}
+              options={[
+                { value: "off", label: t("dawam.genderOff", "Ignore it") },
+                { value: "soft", label: t("dawam.genderSoft", "A preference") },
+                { value: "hard", label: t("dawam.genderHard", "A rule") },
+              ]}
+            />
+          </CardContent>
+        </>
+      )}
     </Card>
   );
 }

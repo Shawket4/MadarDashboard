@@ -46,3 +46,21 @@ describe("route module (the gate reads the same tags)", () => {
     }
   });
 });
+
+describe("Rules in the nav (owner decision 2026-09-23)", () => {
+  const as = (capabilities: string[]) =>
+    authzFrom({
+      user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
+      capabilities: capabilities as never, ask_manager: [], limits: {},
+    });
+  const rules = leaves.find((l) => l.to === "/staff/rules")!;
+
+  it("shows for a manager who may only view the rules, and for the owner who edits them", () => {
+    expect(leafVisible(rules, as(["hr.rules.view"]), ["dawam"])).toBe(true);
+    expect(leafVisible(rules, as(["hr.rules.edit"]), ["dawam"])).toBe(true);
+  });
+
+  it("stays hidden from someone with neither", () => {
+    expect(leafVisible(rules, as(["hr.attendance.read"]), ["dawam"])).toBe(false);
+  });
+});

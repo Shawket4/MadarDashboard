@@ -18593,11 +18593,6 @@ export const RosterQueryParams = zod.object({
 
 export const RosterResponse = zod.object({
   "branch_id": zod.uuid(),
-  "date_sets": zod.array(zod.object({
-  "date": zod.iso.date(),
-  "day_off": zod.boolean().describe('The date is a day off by date change (it holds no shift).'),
-  "employee_id": zod.uuid()
-}).describe('A person\'s date that holds its own set (a date change), not the pattern.')).optional().describe('The dates that hold their own set (a date change), a day off included:\nthe ones \"back to the pattern\" applies to.'),
   "from": zod.iso.date(),
   "holidays": zod.array(zod.object({
   "decision": zod.string().nullish().describe('null = not decided yet: a normal day unless set up (RU-10).'),
@@ -19268,8 +19263,6 @@ export const ListWorkShiftsResponseItem = zod.object({
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
-  "ot_day_multiplier": zod.number().nullish().describe('This block\'s own day-overtime rate; `None` = the branch\'s rules (RU-8).'),
-  "ot_night_multiplier": zod.number().nullish().describe('This block\'s own night-overtime rate; `None` = the branch\'s rules.'),
   "over_presence_cap": zod.boolean().optional().describe('Some version of it (default or a weekday\'s) is longer than the labour\npresence cap. A warning, never a block (RU-13).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
@@ -19295,8 +19288,6 @@ export const CreateWorkShiftBody = zod.object({
   "half_day_threshold_minutes": zod.number().nullish(),
   "is_active": zod.boolean().nullish(),
   "name": zod.string(),
-  "ot_day_multiplier": zod.number().nullish().describe('The block\'s own day-overtime rate (RU-8). Omit to keep it, null to go\nback to the branch\'s rules.'),
-  "ot_night_multiplier": zod.number().nullish().describe('The block\'s own night-overtime rate. Omit to keep, null to clear.'),
   "overtime_multiplier": zod.number().nullish(),
   "overtime_threshold_minutes": zod.number().nullish(),
   "paid_break": zod.boolean().nullish(),
@@ -19322,8 +19313,6 @@ export const CreateWorkShiftResponse = zod.object({
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
-  "ot_day_multiplier": zod.number().nullish().describe('This block\'s own day-overtime rate; `None` = the branch\'s rules (RU-8).'),
-  "ot_night_multiplier": zod.number().nullish().describe('This block\'s own night-overtime rate; `None` = the branch\'s rules.'),
   "over_presence_cap": zod.boolean().optional().describe('Some version of it (default or a weekday\'s) is longer than the labour\npresence cap. A warning, never a block (RU-13).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
@@ -19359,8 +19348,6 @@ export const UpdateWorkShiftBody = zod.object({
   "half_day_threshold_minutes": zod.number().nullish(),
   "is_active": zod.boolean().nullish(),
   "name": zod.string(),
-  "ot_day_multiplier": zod.number().nullish().describe('The block\'s own day-overtime rate (RU-8). Omit to keep it, null to go\nback to the branch\'s rules.'),
-  "ot_night_multiplier": zod.number().nullish().describe('The block\'s own night-overtime rate. Omit to keep, null to clear.'),
   "overtime_multiplier": zod.number().nullish(),
   "overtime_threshold_minutes": zod.number().nullish(),
   "paid_break": zod.boolean().nullish(),
@@ -19386,8 +19373,6 @@ export const UpdateWorkShiftResponse = zod.object({
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
-  "ot_day_multiplier": zod.number().nullish().describe('This block\'s own day-overtime rate; `None` = the branch\'s rules (RU-8).'),
-  "ot_night_multiplier": zod.number().nullish().describe('This block\'s own night-overtime rate; `None` = the branch\'s rules.'),
   "over_presence_cap": zod.boolean().optional().describe('Some version of it (default or a weekday\'s) is longer than the labour\npresence cap. A warning, never a block (RU-13).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
