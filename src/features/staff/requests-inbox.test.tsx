@@ -84,6 +84,15 @@ describe("Requests inbox", () => {
     expect(within(rowOf("Youssef Adel")).getByRole("button", { name: "Approve" })).toBeInTheDocument();
   });
 
+  it("offers a decision only when the server says the caller may make it (can_decide)", () => {
+    // A peer manager's request at a shared branch: not mine, not mine to decide.
+    rows = [LEAVE, { ...LEAVE, id: "q7", employee_id: "e-peer", employee_name: "Hana Peer", is_own: false, can_decide: false, to_owner: true }];
+    renderPage();
+    expect(within(rowOf("Hana Peer")).queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+    expect(within(rowOf("Hana Peer")).queryByRole("button", { name: "Reject" })).not.toBeInTheDocument();
+    expect(within(rowOf("Youssef Adel")).getByRole("button", { name: "Approve" })).toBeInTheDocument();
+  });
+
   it("approves leave only with a paid/unpaid answer (RQ-2, was sent with none)", async () => {
     const user = userEvent.setup();
     renderPage();

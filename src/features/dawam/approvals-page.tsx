@@ -31,7 +31,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
-import { ApproveWithPayDialog, ASKS_PAY, describeWindow, kindMeta, RequestBadges, useOwnEmployeeIds } from "@/features/staff/requests-inbox";
+import { ApproveWithPayDialog, ASKS_PAY, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds } from "@/features/staff/requests-inbox";
 import { fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
 import { ReviewAdvanceDialog } from "./money-dialogs";
 
@@ -111,7 +111,8 @@ export function ApprovalsPage() {
   const items: Pending[] = useMemo(() => {
     const out: Pending[] = [];
     for (const r of can.requests ? requestsQ.data ?? [] : []) {
-      if (own.has(r.employee_id)) continue;
+      // Only what the server says this caller may decide (RQ-5, `can_decide`).
+      if (!mayDecide(r, own)) continue;
       const meta = kindMeta(r.kind);
       const asksPay = ASKS_PAY.includes(r.kind);
       out.push({

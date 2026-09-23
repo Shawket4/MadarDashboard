@@ -64,6 +64,7 @@ export const ASKS_PAY = ["leave", "excuse", "early_departure"];
  * so the queue never offers one.
  */
 export function useOwnEmployeeIds(enabled = true): Set<string> {
+  // Only a fallback for a server that doesn't say (see isMine / mayDecide).
   const userId = useAuthStore((s) => s.user?.id);
   const q = useListEmployees({}, { query: { enabled: enabled && !!userId } });
   return useMemo(
@@ -71,6 +72,17 @@ export function useOwnEmployeeIds(enabled = true): Set<string> {
     [q.data, userId],
   );
 }
+
+/** The caller's own request: the server says so (`is_own`); else guessed. */
+export const isMine = (r: StaffRequest, own: Set<string>) => r.is_own ?? own.has(r.employee_id);
+
+/**
+ * May the caller approve or reject it? The server decides (`can_decide`: pending,
+ * not theirs, at their branch, and they outrank a manager who filed it);
+ * without it, pending and not theirs.
+ */
+export const mayDecide = (r: StaffRequest, own: Set<string>) =>
+  r.status === "pending" && (r.can_decide ?? !isMine(r, own));
 
 /**
  * One queue for every kind of request. Approving here is what stops the penalty
@@ -184,7 +196,7 @@ export function RequestsInboxPage() {
         <ListCard>
           {rows.map((r) => {
             const meta = kindMeta(r.kind);
-            const mine = own.has(r.employee_id);
+            const mine = isMine(r, own);
             // An approved correction already rewrote the punch: the server
             // refuses to cancel it (409), so it isn't offered.
             const live = r.status === "pending" || (r.status === "approved" && r.kind !== "correction");
@@ -205,7 +217,7 @@ export function RequestsInboxPage() {
                     <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
                       {t(`staff.req_${r.status}`, r.status)}
                     </StatusPill>
-                    {r.status === "pending" && !mine ? (
+                    {mayDecide(r, own) ? (
                       <>
                         <Button size="sm" variant="outline" className="ms-2" onClick={() => void quickDecide(r, "approved")}>
                           <Check className="size-4" />
@@ -234,7 +246,7 @@ export function RequestsInboxPage() {
       <CancelRequestDialog
         key={cancelling?.id}
         request={cancelling}
-        mine={!!cancelling && own.has(cancelling.employee_id)}
+        mine={!!cancelling && isMine(cancelling, own)}
         onOpenChange={(o) => !o && setCancelling(null)}
       />
     </Page>
