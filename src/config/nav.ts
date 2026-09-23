@@ -205,8 +205,9 @@ export const NAV: NavGroup[] = [
           { caps: [Cap.hrPayrollRead, Cap.hrPayrollRun], module: "dawam", to: "/staff/payroll", labelKey: "nav.payroll", fallback: "Payroll", icon: Coins },
           // Attendance, labour against sales, payroll history and advances (DSH-3).
           { caps: [Cap.hrAttendanceRead, Cap.hrPayrollRead], module: "dawam", to: "/staff/reports", labelKey: "nav.staffReports", fallback: "Reports", icon: FileBarChart },
-          // Setting the rules is the owner's (hr.rules.edit, every branch).
-          { caps: [Cap.hrRulesEdit], module: "dawam", to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
+          // Setting the rules is the owner's (hr.rules.edit, every branch); a
+          // branch manager sees them read-only (hr.rules.view).
+          { caps: [Cap.hrRulesEdit, Cap.hrRulesView], module: "dawam", to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
         ],
       },
     ],
