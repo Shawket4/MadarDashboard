@@ -139,6 +139,18 @@ describe("EmployeesPage", () => {
     await waitFor(() => expect(deleteEmployee).toHaveBeenCalledWith("e2"));
   });
 
+  it("imports a sheet from the page too, with hr.staff.create only (DSH-7)", async () => {
+    const user = userEvent.setup();
+    const { unmount } = wrap(<EmployeesPage />);
+    await user.click(screen.getByRole("button", { name: "Import from a spreadsheet" }));
+    expect(await screen.findByLabelText("Spreadsheet")).toBeInTheDocument();
+    unmount();
+    held = ["hr.staff.read"];
+    wrap(<EmployeesPage />);
+    expect(screen.queryByRole("button", { name: "Import from a spreadsheet" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Add employee" })).toBeNull();
+  });
+
   it("adds a records-only person from the page (hr.staff.create)", async () => {
     const user = userEvent.setup();
     wrap(<EmployeesPage />);

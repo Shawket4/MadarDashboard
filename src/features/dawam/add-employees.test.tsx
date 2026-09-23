@@ -170,4 +170,26 @@ describe("Import from a spreadsheet", () => {
     await waitFor(() => expect(createEmployee).toHaveBeenCalledTimes(1));
     expect(createEmployee).toHaveBeenCalledWith(expect.objectContaining({ name: "Omar" }));
   });
+
+  it("without hr.payroll.edit: says the salaries won't be saved, shows none and sends none (DSH-7)", async () => {
+    caps = [];
+    const user = userEvent.setup();
+    wrap(<ImportPeopleDialog onOpenChange={vi.fn()} />);
+    const csv = "Name,WhatsApp,Branch,Salary\nSara Ahmed,0100 123 4567,Zamalek,9000\n";
+    await user.upload(screen.getByLabelText("Spreadsheet"), new File([csv], "people.csv", { type: "text/csv" }));
+    expect(await screen.findByRole("status")).toHaveTextContent(/salaries in this sheet won't be saved/);
+    expect(within(screen.getByTestId("import-row-2")).queryByText(/9,000/)).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Add 1" }));
+    await waitFor(() => expect(createEmployee).toHaveBeenCalledTimes(1));
+    expect(createEmployee.mock.calls[0][0]).not.toHaveProperty("base_salary_piastres");
+  });
+
+  it("with it, no notice", async () => {
+    const user = userEvent.setup();
+    wrap(<ImportPeopleDialog onOpenChange={vi.fn()} />);
+    const csv = "Name,WhatsApp,Branch,Salary\nSara Ahmed,0100 123 4567,Zamalek,9000\n";
+    await user.upload(screen.getByLabelText("Spreadsheet"), new File([csv], "people.csv", { type: "text/csv" }));
+    await screen.findByText("Sara Ahmed");
+    expect(screen.queryByRole("status")).toBeNull();
+  });
 });

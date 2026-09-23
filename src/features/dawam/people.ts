@@ -59,7 +59,8 @@ export function parsePeople(
     if (!branchId) return void errors.push({ row, key: "importNoBranch", value: branchName });
     const rawSalary = get("salary").replace(/,/g, "");
     const salary = rawSalary === "" ? null : Number(rawSalary);
-    if (salary !== null && !(Number.isFinite(salary) && salary >= 0)) {
+    // Same rule as the Add dialog: a salary is more than zero, or left out.
+    if (salary !== null && !(Number.isFinite(salary) && salary > 0)) {
       return void errors.push({ row, key: "importBadSalary", value: get("salary") });
     }
     seen.add(phone);
@@ -101,7 +102,23 @@ export async function readSheet(file: File): Promise<unknown[][]> {
   const rows: unknown[][] = [];
   ws?.eachRow({ includeEmpty: false }, (r) => {
     const values = (r.values as unknown[]).slice(1); // exceljs rows are 1-based
-    rows.push(values.map((v) => (v && typeof v === "object" && "text" in (v as object) ? (v as { text: string }).text : v)));
+    rows.push(values.map(cellValue));
   });
   return rows;
+}
+
+/**
+ * An ExcelJS cell as plain text/number: rich text (`{ richText: [{ text }] }`,
+ * what a cell with mixed fonts is), a link (`{ text, hyperlink }`), a formula
+ * (`{ formula, result }`) and a date are all read as what the cell shows.
+ * Anything else stays as it is.
+ */
+export function cellValue(v: unknown): unknown {
+  if (v === null || typeof v !== "object") return v;
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  const o = v as { richText?: { text?: string }[]; text?: unknown; result?: unknown };
+  if (Array.isArray(o.richText)) return o.richText.map((r) => r.text ?? "").join("");
+  if ("text" in o) return cellValue(o.text);
+  if ("result" in o) return cellValue(o.result);
+  return v;
 }

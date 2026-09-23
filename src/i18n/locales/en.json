@@ -6044,6 +6044,7 @@
     "deviceSince": "Signed in on {{model}} since {{since}}",
     "noDevice": "No phone signed in.",
     "genderSuggestHint": "Suggestions lean late and night shifts to men by default; a person's own preferences win.",
-    "modulesLoadError": "Couldn't check what this business has switched on"
+    "modulesLoadError": "Couldn't check what this business has switched on",
+    "importNoSalaryRight": "The salaries in this sheet won't be saved: setting pay needs the owner's permission. The people are added without one."
   }
 }
