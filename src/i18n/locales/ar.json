@@ -6129,7 +6129,7 @@
     "setupEmployees": "ضيف موظفينك",
     "setupEmployeesHint": "واحد واحد، أو شيت فيه الأسامي وأرقام الواتساب والفروع والمرتبات.",
     "setupFinish": "كمّل التجهيز",
-    "setupNoAccess": "التجهيز للمالك بس.",
+    "setupNoAccess": "الإعداد لمين بيحدد القواعد (المالك، إلا لو إدّاها لحد تاني).",
     "setupOpenShifts": "افتح الورديات",
     "setupPin": "حدد مكان {{name}}",
     "setupProgress": "خلصت {{n}} من {{total}}",

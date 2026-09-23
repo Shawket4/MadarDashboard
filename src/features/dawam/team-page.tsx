@@ -169,6 +169,14 @@ export function TeamPage() {
 /** What a manager does with a flag. Nothing is charged automatically (CL-6). */
 function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpenChange: (o: boolean) => void }) {
   const { t } = useTranslation();
+  // Each act on its own right, as the server checks it (PM-4): a deduction
+  // (or an unpaid excuse, which deducts) is hr.deductions.create — or asking
+  // the owner for one; a cover is hr.shift_cover.confirm; a phone sign-out is
+  // hr.staff.edit. Handling the flag at all is hr.attendance.edit.
+  const authz = useAuthz();
+  const canDeduct = authz.can(Cap.hrDeductionsCreate) || authz.canAsk(Cap.hrDeductionsCreate);
+  const canConfirmCover = authz.can(Cap.hrShiftCoverConfirm);
+  const canRevoke = authz.can(Cap.hrStaffEdit);
   const [amount, setAmount] = useState(flag ? String(flag.suggested_deduction_piastres / 100) : "");
   const [busy, setBusy] = useState(false);
   if (!flag) return null;
@@ -198,23 +206,29 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
           <div className="grid gap-3">
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" disabled={busy} onClick={() => void send("excuse_paid")}>{t("dawam.excusePaid", "Excuse, paid")}</Button>
-              <Button variant="outline" disabled={busy} onClick={() => void send("excuse_unpaid")}>{t("dawam.excuseUnpaid", "Excuse, unpaid")}</Button>
+              {canDeduct ? (
+                <Button variant="outline" disabled={busy} onClick={() => void send("excuse_unpaid")}>{t("dawam.excuseUnpaid", "Excuse, unpaid")}</Button>
+              ) : null}
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="flag-amount">{t("dawam.deductAmount", "Deduct (EGP)")}</Label>
-              <Input id="flag-amount" type="number" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
-              <p className="text-xs text-muted-foreground">
-                {t("dawam.suggested", { amount: fmtMoney(flag.suggested_deduction_piastres), defaultValue: `Suggested: ${fmtMoney(flag.suggested_deduction_piastres)}, time away at their minute rate.` })}
-              </p>
-            </div>
-            <Button variant="destructive" disabled={busy || deduct === null} onClick={() => void send("deduct", deduct!)}>{t("dawam.deduct", "Deduct")}</Button>
+            {canDeduct ? (
+              <>
+                <div className="space-y-1">
+                  <Label htmlFor="flag-amount">{t("dawam.deductAmount", "Deduct (EGP)")}</Label>
+                  <Input id="flag-amount" type="number" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">
+                    {t("dawam.suggested", { amount: fmtMoney(flag.suggested_deduction_piastres), defaultValue: `Suggested: ${fmtMoney(flag.suggested_deduction_piastres)}, time away at their minute rate.` })}
+                  </p>
+                </div>
+                <Button variant="destructive" disabled={busy || deduct === null} onClick={() => void send("deduct", deduct!)}>{t("dawam.deduct", "Deduct")}</Button>
+              </>
+            ) : null}
           </div>
         ) : null}
         <DialogFooter className="gap-2">
-          {flag.kind === "new_phone" ? (
+          {flag.kind === "new_phone" && canRevoke ? (
             <Button variant="destructive" disabled={busy} onClick={() => void send("revoke")}>{t("dawam.revokePhone", "Revoke this phone")}</Button>
           ) : null}
-          {flag.kind === "cover" ? (
+          {flag.kind === "cover" && canConfirmCover ? (
             <Button disabled={busy} onClick={() => void send("confirm")}>{t("dawam.confirmCover", "Confirm the cover")}</Button>
           ) : null}
           <Button variant="ghost" disabled={busy} onClick={() => void send("ignore")}>{t("dawam.ignore", "Ignore")}</Button>

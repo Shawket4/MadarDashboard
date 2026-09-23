@@ -51,7 +51,7 @@ export interface NavLeaf {
   caps?: Capability[];
   /** The org module this page belongs to (PS-2). Omitted = every org. */
   module?: OrgModule;
-  /** The owner's set-up checklist (SA-4): shown only while it is incomplete. */
+  /** The set-up checklist (SA-4): shown, to whoever holds `caps`, only while it is incomplete. */
   setup?: boolean;
 }
 
@@ -188,7 +188,8 @@ export const NAV: NavGroup[] = [
         icon: UserRound,
         basePath: "/staff",
         children: [
-          { setup: true, module: "dawam", to: "/staff/setup", labelKey: "nav.staffSetup", fallback: "Set-up", icon: ListChecks },
+          // Set-up is for whoever sets the rules (hr.rules.edit, the owner by default).
+          { setup: true, caps: [Cap.hrRulesEdit], module: "dawam", to: "/staff/setup", labelKey: "nav.staffSetup", fallback: "Set-up", icon: ListChecks },
           { caps: [Cap.hrStaffRead], module: "dawam", to: "/staff/employees", labelKey: "nav.employees", fallback: "Employees", icon: UserRound },
           { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/staff/attendance", labelKey: "nav.attendance", fallback: "Attendance", icon: CalendarClock },
           // "Work shifts" (staff scheduling) — distinct from /tills, the sales sessions.
@@ -229,7 +230,7 @@ export const NAV: NavGroup[] = [
  */
 export const leafVisible = (leaf: NavLeaf, authz: Authz, modules?: readonly string[], setupIncomplete = false): boolean => {
   if (leaf.module && modules && !modules.includes(leaf.module)) return false;
-  if (leaf.setup) return authz.owner && setupIncomplete;
+  if (leaf.setup) return setupIncomplete && authz.canAny(...(leaf.caps ?? []));
   if (leaf.superAdminOnly) return authz.platform;
   if (leaf.caps) return authz.canAny(...leaf.caps);
   return true;

@@ -5952,7 +5952,7 @@
     "setupEmployees": "Add your employees",
     "setupEmployeesHint": "One at a time, or a spreadsheet of names, WhatsApp numbers, branches and salaries.",
     "setupFinish": "Finish set-up",
-    "setupNoAccess": "Set-up is for the owner.",
+    "setupNoAccess": "Set-up is for whoever sets the rules (the owner, unless they gave it to someone).",
     "setupOpenShifts": "Open work shifts",
     "setupPin": "Pin {{name}}",
     "setupProgress": "{{n}} of {{total}} done",

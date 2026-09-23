@@ -76,7 +76,10 @@ beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   resolveFlag.mockClear();
   punchFor.mockClear();
-  held = ["hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others"];
+  held = [
+    "hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others",
+    "hr.deductions.create", "hr.staff.edit", "hr.shift_cover.confirm",
+  ];
 });
 
 describe("TeamPage", () => {
@@ -113,6 +116,25 @@ describe("TeamPage", () => {
     await user.click(screen.getByText("Laila Hassan · New phone"));
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Revoke this phone" }));
     await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f2", { action: "revoke", amount_piastres: null }));
+  });
+
+  it("each flag act needs its own right, as the server checks it (PM-4)", async () => {
+    const user = userEvent.setup();
+    held = ["hr.attendance.read", "hr.attendance.edit"];
+    const { unmount } = wrap(<TeamPage />);
+    await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
+    let dialog = await screen.findByRole("dialog");
+    // No deductions right: no amount, no Deduct, no unpaid excuse (it deducts).
+    expect(within(dialog).queryByLabelText("Deduct (EGP)")).toBeNull();
+    expect(within(dialog).queryByRole("button", { name: "Deduct" })).toBeNull();
+    expect(within(dialog).queryByRole("button", { name: "Excuse, unpaid" })).toBeNull();
+    expect(within(dialog).getByRole("button", { name: "Excuse, paid" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Ignore" })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByText("Laila Hassan · New phone"));
+    dialog = await screen.findByRole("dialog");
+    expect(within(dialog).queryByRole("button", { name: "Revoke this phone" })).toBeNull();
+    unmount();
   });
 
   it("punches someone in only with a reason (CL-13)", async () => {
