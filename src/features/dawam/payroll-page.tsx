@@ -9,7 +9,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
-  BadgeCheck, Banknote, CircleDollarSign, FileDown, HandCoins, History, Plus, ReceiptText, RotateCcw, Trash2, Undo2,
+  BadgeCheck, Banknote, CircleDollarSign, FileDown, HandCoins, History, PencilLine, Plus, ReceiptText, RotateCcw, Trash2, Undo2,
   UsersRound, Wallet, X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -30,7 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
-  decideAdjustment, deleteBonus, deleteDeduction, exportPeriodCsv, generatePeriod, setPeriodStatus,
+  decideAdjustment, deleteBonus, deleteDeduction, exportPeriodCsv, generatePeriod,
   stopAdjustment, useCurrent, useListAdjustments, useListAdvances, useListEmployees,
   useListExpenseAdvances, useListPayslips,
 } from "@/data/api/generated/api";
@@ -50,7 +50,8 @@ import { invalidateStaff, REQUEST_STATUS_TONE } from "@/features/staff/util";
 import { payslipLines, type PayLine } from "./lines";
 import { printPayslip } from "./payslip-print";
 import {
-  AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReviewAdvanceDialog, WaiveDialog,
+  AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
+  ReviewAdvanceDialog, UnwaiveDialog, WaiveDialog,
 } from "./money-dialogs";
 
 type Slip = ComputedPayslip | Payslip;
@@ -68,6 +69,8 @@ export function PayrollPage() {
   const canRead = authz.canAny(Cap.hrPayrollRead, Cap.hrPayrollRun);
   const canRun = authz.can(Cap.hrPayrollRun);
   const canAdjust = authz.can(Cap.hrAdjustmentsCreate);
+  // Bonuses and deductions have their own limits and capabilities (AD-5).
+  const canDeduct = authz.can(Cap.hrDeductionsCreate);
   const canAdvance = authz.can(Cap.hrAdvancesDecide);
   const canExpense = authz.can(Cap.hrExpenseAdvancesLog);
   const [tab, setTab] = useState("payslips");
@@ -78,6 +81,7 @@ export function PayrollPage() {
   const [adding, setAdding] = useState(false);
   const [recording, setRecording] = useState(false);
   const [logging, setLogging] = useState(false);
+  const [reopening, setReopening] = useState(false);
   const [exporting, setExporting] = useState(false);
   const confirm = useConfirm();
   const logoUrl = useExportLogo();
@@ -99,18 +103,14 @@ export function PayrollPage() {
     }));
   }, [currentQ.data, people]);
 
-  const totals = useMemo(
-    () => rows.reduce(
-      (a, r) => ({
-        net: a.net + r.net_piastres,
-        deductions: a.deductions + r.deductions_piastres,
-        advances: a.advances + r.advance_installment_piastres,
-        paid: a.paid + (r.paid_method ? 1 : 0),
-      }),
-      { net: 0, deductions: 0, advances: 0, paid: 0 },
-    ),
-    [rows],
-  );
+  // The server adds the run up (AT-3): its totals and how many are paid.
+  const totals = {
+    net: currentQ.data?.totals?.net_piastres ?? 0,
+    deductions: currentQ.data?.totals?.deductions_piastres ?? 0,
+    advances: currentQ.data?.totals?.advances_piastres ?? 0,
+    people: currentQ.data?.totals?.people ?? rows.length,
+    paid: currentQ.data?.paid_count ?? 0,
+  };
 
   if (authz.ready && !canRead) {
     return <Restricted title={t("dawam.payroll", "Payroll")} who={t("dawam.payrollNoAccess", "Payroll needs payroll rights. The owner can give you access.")} />;
@@ -126,23 +126,6 @@ export function PayrollPage() {
     try {
       await generatePeriod(period.id);
       toast.success(t("dawam.approved", "Payroll approved"));
-      void invalidateStaff();
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-    }
-  };
-
-  const reopen = async () => {
-    const ok = await confirm({
-      title: t("dawam.reopenTitle", "Reopen this month?"),
-      description: t("dawam.reopenHint", "The payslips go back to a live preview. Advance installments are given back, never taken twice."),
-      confirmLabel: t("dawam.reopen", "Reopen"),
-      destructive: true,
-    });
-    if (!ok || !period) return;
-    try {
-      await setPeriodStatus(period.id, { status: "draft" });
-      toast.success(t("dawam.reopened", "Payroll reopened"));
       void invalidateStaff();
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -245,7 +228,7 @@ export function PayrollPage() {
               <Button onClick={() => void approve()}><BadgeCheck className="size-4" />{t("dawam.approve", "Approve payroll")}</Button>
             ) : null}
             {canRun && phase === "approved" && totals.paid === 0 ? (
-              <Button variant="outline" onClick={() => void reopen()}><RotateCcw className="size-4" />{t("dawam.reopen", "Reopen")}</Button>
+              <Button variant="outline" onClick={() => setReopening(true)}><RotateCcw className="size-4" />{t("dawam.reopen", "Reopen")}</Button>
             ) : null}
             {phase !== "open" ? (
               <>
@@ -260,7 +243,7 @@ export function PayrollPage() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("dawam.totalNet", "Net pay")} value={totals.net} formatType="money" icon={CircleDollarSign} loading={currentQ.isLoading} />
-        <StatCard label={t("dawam.people", "People")} value={rows.length} formatType="number" icon={UsersRound} loading={currentQ.isLoading} />
+        <StatCard label={t("dawam.people", "People")} value={totals.people} formatType="number" icon={UsersRound} loading={currentQ.isLoading} hint={phase === "open" ? undefined : t("dawam.paidCount", { paid: totals.paid, people: totals.people, defaultValue: `Paid ${totals.paid} of ${totals.people}` })} />
         <StatCard label={t("dawam.deductions", "Deductions")} value={totals.deductions} formatType="money" icon={ReceiptText} loading={currentQ.isLoading} />
         <StatCard label={t("dawam.advancesCollected", "Advances collected")} value={totals.advances} formatType="money" icon={HandCoins} loading={currentQ.isLoading} />
       </div>
@@ -290,7 +273,7 @@ export function PayrollPage() {
         </TabsContent>
 
         <TabsContent value="lines">
-          <PayLinesTab canAdjust={canAdjust} owner={canRun} onAdd={() => setAdding(true)} />
+          <PayLinesTab canAdjust={canAdjust || canDeduct} owner={canRun} onAdd={() => setAdding(true)} />
         </TabsContent>
         <TabsContent value="advances">
           <AdvancesTab canAdvance={canAdvance} onRecord={() => setRecording(true)} />
@@ -307,9 +290,11 @@ export function PayrollPage() {
         row={rows.find((r) => r.employee_id === personId) ?? null}
         onOpenChange={(o) => !o && setPersonId(null)}
         editable={phase === "open" && canAdjust}
+        canDeduct={phase === "open" && canDeduct}
         phase={phase}
         period={period ?? null}
       />
+      <ReopenDialog key={`reopen-${reopening}`} periodId={reopening && period ? period.id : null} onOpenChange={(o) => !o && setReopening(false)} />
       {period ? (
         <MarkPaidDialog
           key={paying?.employee_id}
@@ -331,11 +316,14 @@ function lineLabel(l: PayLine, t: (k: string, o?: Record<string, unknown>) => st
 
 /** One person's payslip, every line with its reason (AD-6), and what can change on it. */
 function PayslipSheet({
-  row, onOpenChange, editable, phase, period,
+  row, onOpenChange, editable, canDeduct, phase, period,
 }: {
   row: Row | null;
   onOpenChange: (o: boolean) => void;
+  /** May add bonuses and delete manual bonus lines (hr.adjustments.create). */
   editable: boolean;
+  /** May add, waive, override, un-waive and delete deductions (hr.deductions.create). */
+  canDeduct: boolean;
   phase: "open" | "approved" | "paid";
   period: PayrollPeriod | null;
 }) {
@@ -343,8 +331,11 @@ function PayslipSheet({
   const org = useCurrentOrg();
   const confirm = useConfirm();
   const [waiving, setWaiving] = useState<PayLine | null>(null);
+  const [overriding, setOverriding] = useState<PayLine | null>(null);
+  const [unwaiving, setUnwaiving] = useState<PayLine | null>(null);
   const [adding, setAdding] = useState<"bonus" | "deduction" | null>(null);
   const lines = row ? payslipLines(row) : [];
+  const mayTouch = (l: PayLine) => (l.manual?.kind === "deduction" || l.rule || l.waivedId ? canDeduct : editable);
 
   const remove = async (l: PayLine) => {
     if (!l.manual) return;
@@ -372,12 +363,14 @@ function PayslipSheet({
       person: row.employee_name,
       lines: lines.map((l) => ({ label: lineLabel(l, t), line: l })),
       net: row.net_piastres,
+      carryOut: row.carry_out_piastres,
       labels: {
         title: t("dawam.payslip", "Payslip"),
         period: t("dawam.period", "Period"),
         employee: t("staff.employee", "Employee"),
         net: t("dawam.net", "Net"),
         waived: t("dawam.lineWaived", "Waived"),
+        carryOut: t("dawam.lineCarryOut", "Carries to next month"),
       },
       lang: i18n.language,
       dir: i18n.dir(),
@@ -405,12 +398,22 @@ function PayslipSheet({
                 trailing={
                   <span className="flex items-center gap-1">
                     <span className={l.waived ? "text-muted-foreground line-through tabular-nums" : l.amount < 0 ? "text-destructive tabular-nums" : "tabular-nums"}>{fmtMoneySigned(l.amount)}</span>
-                    {editable && l.deductionId ? (
-                      <Button size="sm" variant="ghost" aria-label={t("dawam.waive", "Waive")} onClick={() => setWaiving(l)}>
-                        <Undo2 className="size-4" />
+                    {canDeduct && l.deductionId ? (
+                      <>
+                        <Button size="sm" variant="ghost" aria-label={t("dawam.waive", "Waive")} onClick={() => setWaiving(l)}>
+                          <Undo2 className="size-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" aria-label={t("dawam.override", "Override")} onClick={() => setOverriding(l)}>
+                          <PencilLine className="size-4" />
+                        </Button>
+                      </>
+                    ) : null}
+                    {canDeduct && l.waivedId ? (
+                      <Button size="sm" variant="ghost" aria-label={t("dawam.unwaive", "Undo the waiver")} onClick={() => setUnwaiving(l)}>
+                        <RotateCcw className="size-4" />
                       </Button>
                     ) : null}
-                    {editable && l.manual ? (
+                    {mayTouch(l) && l.manual ? (
                       <Button size="sm" variant="ghost" aria-label={t("common.delete", "Delete")} onClick={() => void remove(l)}>
                         <Trash2 className="size-4" />
                       </Button>
@@ -434,14 +437,16 @@ function PayslipSheet({
           {row ? (
             <Button variant="outline" onClick={pdf}><FileDown className="size-4" />{t("dawam.downloadPdf", "Download PDF")}</Button>
           ) : null}
-          {editable ? (
+          {editable || canDeduct ? (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setAdding("bonus")}><Plus className="size-4" />{t("dawam.bonus", "Bonus")}</Button>
-              <Button variant="outline" onClick={() => setAdding("deduction")}><Plus className="size-4" />{t("dawam.deduction", "Deduction")}</Button>
+              {editable ? <Button variant="outline" onClick={() => setAdding("bonus")}><Plus className="size-4" />{t("dawam.bonus", "Bonus")}</Button> : null}
+              {canDeduct ? <Button variant="outline" onClick={() => setAdding("deduction")}><Plus className="size-4" />{t("dawam.deduction", "Deduction")}</Button> : null}
             </div>
           ) : null}
         </div>
         <WaiveDialog key={waiving?.key} deductionId={waiving?.deductionId ?? null} label={waiving?.label ?? ""} onOpenChange={(o) => !o && setWaiving(null)} />
+        <OverrideDialog key={`o-${overriding?.key}`} deductionId={overriding?.deductionId ?? null} label={overriding?.label ?? ""} current={-(overriding?.amount ?? 0)} onOpenChange={(o) => !o && setOverriding(null)} />
+        <UnwaiveDialog key={`u-${unwaiving?.key}`} deductionId={unwaiving?.waivedId ?? null} label={unwaiving?.label ?? ""} onOpenChange={(o) => !o && setUnwaiving(null)} />
         {row && adding ? (
           <AdjustmentDialog open onOpenChange={(o) => !o && setAdding(null)} userId={row.employee_id} bonus={adding === "bonus"} />
         ) : null}
@@ -499,7 +504,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                       </>
                     ) : null}
                     {canAdjust && a.recurring && !stopped && a.status === "approved" ? (
-                      <Button size="sm" variant="ghost" onClick={() => void act(() => stopAdjustment(a.kind, a.id), t("dawam.stoppedToast", "Stopped from next month"))}>{t("dawam.stop", "Stop")}</Button>
+                      <Button size="sm" variant="ghost" onClick={() => void act(() => stopAdjustment(a.kind, a.id, {}), t("dawam.stoppedToast", "Stopped from next month"))}>{t("dawam.stop", "Stop")}</Button>
                     ) : null}
                   </span>
                 }

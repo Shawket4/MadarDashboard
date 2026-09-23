@@ -13,7 +13,7 @@ import { Banknote, CalendarClock, HandCoins, Scale } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
-import { EmptyState } from "@/components/app/empty-state";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Restricted } from "@/components/app/restricted";
 import { StatCard } from "@/components/app/stat-card";
@@ -27,6 +27,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useOrgModules } from "@/hooks/use-org-modules";
+import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";
 import { cairoParts, fmtDate, fmtMoney } from "@/lib/format";
 import { fmtMinutes } from "@/features/staff/util";
@@ -69,9 +70,16 @@ export function toCsv<R>(cols: Col<R>[], rows: R[]): string {
   return lines.join("\r\n");
 }
 
-function Table<R>({ name, cols, rows, loading, empty }: { name: string; cols: Col<R>[]; rows: R[]; loading: boolean; empty: string }) {
+function Table<R>({ name, cols, rows, loading, empty, error, onRetry }: {
+  name: string; cols: Col<R>[]; rows: R[]; loading: boolean; empty: string; error?: unknown; onRetry?: () => void;
+}) {
   const { t } = useTranslation();
   const columns = useMemo(() => columnsOf(cols), [cols]);
+  // A refused or failed report says so (DSH-3): a 403 is not "nothing in
+  // this period".
+  if (error) {
+    return <ErrorState title={t("dawam.reportLoadError", "Couldn't load this report")} message={getErrorMessage(error)} onRetry={onRetry} />;
+  }
   return (
     <div className="space-y-2">
       <div className="flex justify-end">
@@ -159,7 +167,7 @@ function AttendanceTab({ params }: { params: Params }) {
         <StatCard label={t("dawam.stateAbsent", "Absent")} value={sum(rows, (r) => r.absent_days)} formatType="number" loading={q.isLoading} />
         <StatCard label={t("dawam.overtime", "Overtime")} value={fmtMinutes(sum(rows, (r) => r.total_overtime_minutes))} loading={q.isLoading} />
       </div>
-      <Table name="attendance" cols={cols} rows={rows} loading={q.isLoading} empty={t("dawam.rEmpty", "Nothing in this period")} />
+      <Table name="attendance" cols={cols} rows={rows} loading={q.isLoading} empty={t("dawam.rEmpty", "Nothing in this period")} error={q.error} onRetry={() => void q.refetch()} />
     </div>
   );
 }
@@ -189,7 +197,7 @@ function LabourTab({ params }: { params: Params }) {
         <StatCard label={t("dawam.rLabourCost", "Labour cost")} value={labour} formatType="money" loading={q.isLoading} />
         <StatCard label={t("dawam.rShare", "Labour share")} value={share(labour, sales)} loading={q.isLoading} />
       </div>
-      <Table name="labour-vs-sales" cols={cols} rows={rows} loading={q.isLoading} empty={t("dawam.rEmpty", "Nothing in this period")} />
+      <Table name="labour-vs-sales" cols={cols} rows={rows} loading={q.isLoading} empty={t("dawam.rEmpty", "Nothing in this period")} error={q.error} onRetry={() => void q.refetch()} />
     </div>
   );
 }
@@ -218,7 +226,7 @@ function PayrollTab({ params }: { params: Params }) {
         <StatCard label={t("dawam.overtime", "Overtime")} value={sum(rows, (r) => r.overtime_piastres)} formatType="money" loading={q.isLoading} />
         <StatCard label={t("dawam.deductions", "Deductions")} value={sum(rows, (r) => r.deductions_piastres)} formatType="money" loading={q.isLoading} />
       </div>
-      <Table name="payroll-history" cols={cols} rows={rows} loading={q.isLoading} empty={t("dawam.rEmpty", "Nothing in this period")} />
+      <Table name="payroll-history" cols={cols} rows={rows} loading={q.isLoading} empty={t("dawam.rEmpty", "Nothing in this period")} error={q.error} onRetry={() => void q.refetch()} />
     </div>
   );
 }
@@ -254,11 +262,11 @@ function AdvancesTab({ params }: { params: Params }) {
       </div>
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-muted-foreground">{t("dawam.salaryAdvances", "Salary advances")}</h2>
-        <Table name="salary-advances" cols={sCols} rows={salary} loading={q.isLoading} empty={t("dawam.noAdvances", "No salary advances")} />
+        <Table name="salary-advances" cols={sCols} rows={salary} loading={q.isLoading} empty={t("dawam.noAdvances", "No salary advances")} error={q.error} onRetry={() => void q.refetch()} />
       </section>
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-muted-foreground">{t("dawam.expenseAdvances", "Expense advances")}</h2>
-        <Table name="expense-advances" cols={eCols} rows={expense} loading={q.isLoading} empty={t("dawam.noExpenses", "Nothing logged")} />
+        <Table name="expense-advances" cols={eCols} rows={expense} loading={q.isLoading} empty={t("dawam.noExpenses", "Nothing logged")} error={q.error} onRetry={() => void q.refetch()} />
       </section>
     </div>
   );

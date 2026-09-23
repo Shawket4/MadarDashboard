@@ -15,7 +15,9 @@ export interface PayslipDoc {
   person: string;
   lines: { label: string; line: PayLine }[];
   net: number;
-  labels: { title: string; period: string; employee: string; net: string; waived: string };
+  /** Deductions past what was earned, carried to the next payslip (PAY-12). */
+  carryOut?: number;
+  labels: { title: string; period: string; employee: string; net: string; waived: string; carryOut?: string };
   lang: string;
   dir: "ltr" | "rtl";
 }
@@ -42,7 +44,11 @@ tfoot td{border-top:2px solid #111;border-bottom:0;font-weight:700;font-size:16p
 </style></head><body>
 <h1>${esc(d.company)}</h1><h2>${esc(d.labels.title)}</h2>
 <dl><dt>${esc(d.labels.employee)}</dt><dd>${esc(d.person)}</dd><dt>${esc(d.labels.period)}</dt><dd>${period}</dd></dl>
-<table><tbody>${rows}</tbody><tfoot><tr><td>${esc(d.labels.net)}</td><td class="n">${esc(fmtMoney(d.net))}</td></tr></tfoot></table>
+<table><tbody>${rows}</tbody><tfoot><tr><td>${esc(d.labels.net)}</td><td class="n">${esc(fmtMoney(d.net))}</td></tr>${
+    d.carryOut && d.carryOut > 0
+      ? `<tr><td>${esc(d.labels.carryOut ?? "")}</td><td class="n">${esc(fmtMoneySigned(-d.carryOut))}</td></tr>`
+      : ""
+  }</tfoot></table>
 </body></html>`;
 }
 

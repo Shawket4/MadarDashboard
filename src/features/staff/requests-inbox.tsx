@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import {
   createRequestAdmin, decideRequest,
-  useListEmployees, useListLeaveTypes, useListRequests,
+  useListEmployees, useListRequests,
 } from "@/data/api/generated/api";
 import type { StaffRequest } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -318,7 +318,9 @@ function NewRequestDialog({
   const [busy, setBusy] = useState(false);
 
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: open } });
-  const typesQ = useListLeaveTypes({ query: { enabled: open && kind === "leave" } });
+  // Leave has no types any more (RQ-2): the server dropped the list. The
+  // picker stays empty until the requests rework removes it (rules area).
+  const typesQ = { data: [] as { id: string; name: string; is_active: boolean }[] };
 
   const needsFrom = kind === "early_departure" || kind === "excuse";
   const needsTo = kind === "late_arrival" || kind === "excuse";

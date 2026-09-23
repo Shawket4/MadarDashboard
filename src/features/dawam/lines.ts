@@ -17,8 +17,10 @@ export interface PayLine {
   rule: boolean;
   /** A manual bonus or deduction: deletable until the month is approved. */
   manual?: { kind: "bonus" | "deduction"; id: string };
-  /** The deduction row behind a rule line, for a waiver. */
+  /** The deduction row behind a rule line, for a waiver or an override. */
   deductionId?: string;
+  /** The row behind a WAIVED rule line, for undoing the waiver (AT-7). */
+  waivedId?: string;
   /** Waived (AD-8): shown struck through, and not in the net. */
   waived?: boolean;
 }
@@ -26,6 +28,8 @@ export interface PayLine {
 type Breakdown = {
   paid_days?: number;
   window_days?: number;
+  /** Deductions past what was earned: carried to the next payslip (PAY-12). */
+  capped_piastres?: number;
   bonuses?: { id?: string | null; kind?: string; reason?: string; piastres?: number; source?: string }[];
   deductions?: { id?: string | null; kind?: string; reason?: string; piastres?: number; source?: string; waived?: boolean }[];
   advances?: { id?: string; applied_piastres?: number }[];
@@ -86,7 +90,22 @@ export function payslipLines(p: ComputedPayslip | Payslip): PayLine[] {
       rule: !carry && !manual,
       manual: manual && l.id ? { kind: "deduction", id: l.id } : undefined,
       deductionId: !carry && !manual && !l.waived && l.id ? l.id : undefined,
+      waivedId: !carry && !manual && l.waived && l.id ? l.id : undefined,
       waived: l.waived || undefined,
+    });
+  }
+  // The deductions above are listed in full; what a payslip could not
+  // afford stops here and carries to the next one (PAY-12), so the lines
+  // still add up to the net.
+  const capped = b.capped_piastres ?? p.carry_out_piastres ?? 0;
+  if (capped > 0) {
+    out.push({
+      key: "capped",
+      labelKey: "dawam.lineCapped",
+      label: `Capped at what was earned (${capped / 100} carries)`,
+      vars: { amount: capped },
+      amount: capped,
+      rule: false,
     });
   }
   for (const a of b.advances ?? []) {

@@ -23,6 +23,8 @@ let held: string[] = [];
 const enabledSeen: Record<string, boolean[]> = {};
 const resolveFlag = vi.fn(async () => ({}));
 const punchFor = vi.fn(async () => ({}));
+const createAdjustment = vi.fn(async () => ({}));
+const logExpenseAdvance = vi.fn(async () => ({}));
 
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
   const opts = args.find((a) => typeof a === "object" && a !== null && "query" in (a as object)) as
@@ -44,6 +46,7 @@ vi.mock("@/data/authz/use-authz", async () => {
   };
 });
 vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: "b1" }) }));
+vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateStaff: vi.fn() };
@@ -64,6 +67,10 @@ vi.mock("@/data/api/generated/api", () => ({
   ]),
   resolveFlag: (...a: unknown[]) => resolveFlag(...(a as [])),
   punchFor: (...a: unknown[]) => punchFor(...(a as [])),
+  useListEmployees: hook("employees", () => [{ id: "e4", name: "Youssef Adel" }]),
+  useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
+  createAdjustment: (...a: unknown[]) => createAdjustment(...(a as [])),
+  logExpenseAdvance: (...a: unknown[]) => logExpenseAdvance(...(a as [])),
 }));
 
 const i18n = (await import("@/i18n")).default;
@@ -103,8 +110,9 @@ describe("TeamPage", () => {
     expect(amount).toHaveValue(55);
     await user.clear(amount);
     await user.type(amount, "40");
+    await user.type(within(dialog).getByLabelText("Reason (the employee sees it)"), "Left for two hours");
     await user.click(within(dialog).getByRole("button", { name: "Deduct" }));
-    await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f1", { action: "deduct", amount_piastres: 4_000 }));
+    await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f1", { action: "deduct", amount_piastres: 4_000, reason: "Left for two hours" }));
   });
 
   it("revokes a new phone", async () => {
@@ -112,7 +120,19 @@ describe("TeamPage", () => {
     wrap(<TeamPage />);
     await user.click(screen.getByText("Laila Hassan · New phone"));
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Revoke this phone" }));
-    await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f2", { action: "revoke", amount_piastres: null }));
+    await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f2", { action: "revoke", amount_piastres: null, reason: null }));
+  });
+
+  it("lets a manager add a pay line or log an expense from here (DSH-1)", async () => {
+    const user = userEvent.setup();
+    const { unmount } = wrap(<TeamPage />);
+    expect(screen.queryByRole("button", { name: /Add a bonus or deduction/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Log an expense advance/ })).not.toBeInTheDocument();
+    unmount();
+    held = [...held, "hr.deductions.create", "hr.expense_advances.log"];
+    wrap(<TeamPage />);
+    await user.click(screen.getByRole("button", { name: /Add a bonus or deduction/ }));
+    expect(within(await screen.findByRole("dialog")).getByText("Add a bonus or deduction")).toBeInTheDocument();
   });
 
   it("punches someone in only with a reason (CL-13)", async () => {
