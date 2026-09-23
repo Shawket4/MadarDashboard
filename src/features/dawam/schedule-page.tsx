@@ -11,7 +11,7 @@
  */
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CalendarCheck, CalendarPlus, ChevronLeft, ChevronRight, Grid3x3, Loader2, PartyPopper, Scale, Send, Sparkles, TriangleAlert } from "lucide-react";
+import { CalendarCheck, CalendarPlus, ChevronLeft, ChevronRight, Grid3x3, PartyPopper, Send, SlidersHorizontal, Sparkles, TriangleAlert, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -24,13 +24,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  decideHoliday, decideSuggestion, postOpenShift, publish, putOverride, useFairness, useListBranches, useRoster, useSuggestions,
+  cancelOpenShift, decideHoliday, decideSuggestion, postOpenShift, publish, useListBranches, useRoster, useSuggestions,
 } from "@/data/api/generated/api";
-import type { LabourWarning, RosterShift, Suggestion, WorkShiftBrief } from "@/data/api/generated/models";
+import type { LabourWarning, OpenShift, RosterPerson, RosterShift, Suggestion } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
 import { useAuthz } from "@/data/authz/use-authz";
@@ -39,8 +39,10 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { Cap } from "@/generated/capabilities";
 import { fmtDate } from "@/lib/format";
 import { fmtMinutes, invalidateStaff, todayIso, WEEKDAYS } from "@/features/staff/util";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CoverageEditor } from "./coverage-editor";
+import { blockTimesOn, blocksOn, DayEditor, ShiftTimes } from "./day-editor";
+import { FairnessCard } from "./fairness-card";
+import { PreferencesDialog } from "./preferences-dialog";
 import { weekDays, weekdayOf, weekStartOf, addDays } from "./week";
 
 export function SchedulePage() {
@@ -52,6 +54,9 @@ export function SchedulePage() {
   const canEdit = authz.can(Cap.hrScheduleEdit);
   const canPublish = authz.can(Cap.hrSchedulePublish);
   const canSettings = authz.can(Cap.hrRosterSettings);
+  const canStaffEdit = authz.can(Cap.hrStaffEdit);
+  const [dayOpen, setDayOpen] = useState<{ person: RosterPerson; date: string } | null>(null);
+  const [prefsOf, setPrefsOf] = useState<RosterPerson | null>(null);
   const [showCoverage, setShowCoverage] = useState(false);
   const [week, setWeek] = useState(() => weekStartOf(todayIso()));
   const [picked, setPicked] = useState<string | null>(null);
@@ -108,8 +113,17 @@ export function SchedulePage() {
     }
   };
 
-  const setDay = (userId: string, date: string, workShiftId: string | null) =>
-    run(`${userId}|${date}`, () => putOverride({ employee_id: userId, on_date: date, work_shift_id: workShiftId }), t("dawam.dayChanged", "Day changed"));
+  const cancelOpen = async (o: OpenShift) => {
+    const ok = await confirm({
+      title: t("dawam.cancelOpenTitle", { shift: o.shift_name, date: fmtDate(o.on_date), defaultValue: `Take back the open ${o.shift_name} on ${fmtDate(o.on_date)}?` }),
+      description: o.claimed_by_name
+        ? t("dawam.cancelOpenClaimed", { name: o.claimed_by_name, defaultValue: `${o.claimed_by_name} claimed it and will be told.` })
+        : t("dawam.cancelOpenHint", "Nobody can claim it any more."),
+      confirmLabel: t("dawam.cancelOpen", "Take it back"),
+      destructive: true,
+    });
+    if (ok) await run(`open|${o.id}`, () => cancelOpenShift(o.id), t("dawam.openCancelled", "Open shift taken back"));
+  };
 
   const doPublish = async () => {
     const ok = await confirm({
@@ -212,7 +226,18 @@ export function SchedulePage() {
               {view.staff.map((p) => (
                 <tr key={p.employee_id}>
                   <td className="sticky start-0 z-10 max-w-[12rem] border-t bg-card px-4 py-1.5">
-                    <div className="truncate font-medium">{p.name}</div>
+                    <div className="flex items-center gap-1">
+                      <span className="truncate font-medium">{p.name}</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-6 shrink-0"
+                        aria-label={t("dawam.prefsOf", { name: p.name, defaultValue: `${p.name}'s preferences` })}
+                        onClick={() => setPrefsOf(p)}
+                      >
+                        <SlidersHorizontal className="size-3.5" />
+                      </Button>
+                    </div>
                     {p.pref_time || p.cant_work_days.length ? (
                       <div className="truncate text-xs text-muted-foreground">
                         {[
@@ -223,6 +248,7 @@ export function SchedulePage() {
                                 defaultValue: "Can't work: {{days}}",
                               })
                             : null,
+                          p.prefs_set_by === "manager" ? t("dawam.setByManager", "set by a manager") : null,
                         ].filter(Boolean).join(" · ")}
                       </div>
                     ) : null}
@@ -234,10 +260,8 @@ export function SchedulePage() {
                       date={d}
                       shifts={cell.get(`${p.employee_id}|${d}`) ?? []}
                       warnings={warningsAt.get(`${p.employee_id}|${d}`) ?? []}
-                      templates={templates}
                       editable={canEdit}
-                      busy={busy === `${p.employee_id}|${d}`}
-                      onSet={(w) => void setDay(p.employee_id, d, w)}
+                      onOpen={() => setDayOpen({ person: p, date: d })}
                     />
                   ))}
                 </tr>
@@ -250,8 +274,19 @@ export function SchedulePage() {
                     <td key={d} className="border-t px-1 py-1 align-top">
                       <div className="flex flex-col items-center gap-1">
                         {open.map((o) => (
-                          <Badge key={o.id} variant={o.status === "claimed" ? "secondary" : "outline"}>
+                          <Badge key={o.id} variant={o.status === "claimed" ? "secondary" : "outline"} className="gap-0.5">
                             {o.shift_name}{o.claimed_by_name ? ` · ${o.claimed_by_name}` : ""}
+                            {canEdit ? (
+                              <button
+                                type="button"
+                                className="ms-0.5 rounded-full p-0.5 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                                disabled={busy === `open|${o.id}`}
+                                aria-label={t("dawam.cancelOpenOf", { shift: o.shift_name, date: fmtDate(o.on_date), defaultValue: `Take back the open ${o.shift_name} on ${fmtDate(o.on_date)}` })}
+                                onClick={() => void cancelOpen(o)}
+                              >
+                                <X className="size-3" />
+                              </button>
+                            ) : null}
                           </Badge>
                         ))}
                         {canEdit ? (
@@ -263,11 +298,15 @@ export function SchedulePage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuLabel>{t("dawam.postOpen", "Post an open shift")}</DropdownMenuLabel>
-                              {templates.map((w) => (
-                                <DropdownMenuItem key={w.id} onSelect={() => void run(`open|${d}`, () => postOpenShift({ branch_id: branchId, on_date: d, work_shift_id: w.id }), t("dawam.openPosted", "Open shift posted"))}>
-                                  {w.name}
-                                </DropdownMenuItem>
-                              ))}
+                              {blocksOn(templates, weekdayOf(d)).map((w) => {
+                                const at = blockTimesOn(w, weekdayOf(d));
+                                return (
+                                  <DropdownMenuItem key={w.id} onSelect={() => void run(`open|${d}`, () => postOpenShift({ branch_id: branchId, on_date: d, work_shift_id: w.id }), t("dawam.openPosted", "Open shift posted"))}>
+                                    <span className="flex-1">{w.name}</span>
+                                    <bdi className="font-mono text-xs text-muted-foreground tabular-nums">{at.start}–{at.end}</bdi>
+                                  </DropdownMenuItem>
+                                );
+                              })}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         ) : null}
@@ -334,6 +373,26 @@ export function SchedulePage() {
         </section>
       ) : null}
       {canSettings ? <FairnessCard month={`${week.slice(0, 8)}01`} /> : null}
+
+      {dayOpen && view ? (
+        <DayEditor
+          open
+          onOpenChange={(o) => { if (!o) setDayOpen(null); }}
+          person={dayOpen.person}
+          date={dayOpen.date}
+          shifts={cell.get(`${dayOpen.person.employee_id}|${dayOpen.date}`) ?? []}
+          templates={templates}
+          staff={view.staff}
+        />
+      ) : null}
+      {prefsOf ? (
+        <PreferencesDialog
+          open
+          person={prefsOf}
+          canEdit={canStaffEdit}
+          onOpenChange={(o) => { if (!o) setPrefsOf(null); }}
+        />
+      ) : null}
     </Page>
   );
 }
@@ -355,76 +414,32 @@ function WarningChip({ w }: { w: LabourWarning }) {
   );
 }
 
-/** Owner only: nights by gender against who said they want them, and whether suggestions still learn (SC-12). */
-function FairnessCard({ month }: { month: string }) {
-  const { t } = useTranslation();
-  const q = useFairness({ month });
-  const v = q.data;
-  const gender = (g: string | null | undefined) =>
-    g === "m" ? t("dawam.gender_m", "Male") : g === "f" ? t("dawam.gender_f", "Female") : t("dawam.notSet", "Not set");
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2"><Scale className="size-4" />{t("dawam.fairnessTitle", "Night shifts, fairly")}</CardTitle>
-        <CardDescription>{t("dawam.fairnessHint", "This month's nights by gender, against who said they prefer evenings. Only you see this.")}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {!v ? <Skeleton className="h-24 w-full" /> : (
-          <>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-muted-foreground">
-                  <th className="py-1 text-start font-semibold">{t("dawam.gender", "Gender")}</th>
-                  <th className="py-1 text-end font-semibold">{t("dawam.people", "People")}</th>
-                  <th className="py-1 text-end font-semibold">{t("dawam.willing", "Prefer evenings")}</th>
-                  <th className="py-1 text-end font-semibold">{t("dawam.shifts", "Shifts")}</th>
-                  <th className="py-1 text-end font-semibold">{t("dawam.nightShifts", "Night shifts")}</th>
-                </tr>
-              </thead>
-              <tbody className="tabular-nums">
-                {v.rows.map((r) => (
-                  <tr key={r.gender ?? "none"} className="border-t">
-                    <td className="py-1.5">{gender(r.gender)}</td>
-                    <td className="py-1.5 text-end">{r.people}</td>
-                    <td className="py-1.5 text-end">{r.willing}</td>
-                    <td className="py-1.5 text-end">{r.shifts}</td>
-                    <td className="py-1.5 text-end">{r.night_shifts}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p className="text-sm text-muted-foreground">
-              {t("dawam.fairnessDecided", { accepted: v.accepted_4w, decided: v.decided_4w, defaultValue: `Managers accepted ${v.accepted_4w} of ${v.decided_4w} suggestions in the last 4 weeks.` })}
-              {v.learning_frozen ? ` ${t("dawam.learningFrozen", "Under 40% accepted, so suggestions stopped learning from decisions until that changes.")}` : ""}
-            </p>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
 function DayCell({
-  name, date, shifts, warnings, templates, editable, busy, onSet,
+  name, date, shifts, warnings, editable, onOpen,
 }: {
   name: string;
   date: string;
   shifts: RosterShift[];
   warnings: LabourWarning[];
-  templates: WorkShiftBrief[];
   editable: boolean;
-  busy: boolean;
-  onSet: (workShiftId: string | null) => void;
+  onOpen: () => void;
 }) {
   const { t } = useTranslation();
   const body = (
     <div className="flex min-h-9 flex-col items-center justify-center gap-0.5">
-      {busy ? <Loader2 className="size-4 animate-spin" /> : shifts.length === 0 ? (
+      {shifts.length === 0 ? (
         <span className="text-xs text-muted-foreground">{t("dawam.off", "Off")}</span>
       ) : (
         shifts.map((s) => (
-          <span key={s.work_shift_id} className={s.on_leave ? "text-xs text-muted-foreground line-through" : "text-xs font-medium"}>
-            {s.shift_name}{s.changed ? " •" : ""}
+          <span key={s.work_shift_id} className="flex flex-col items-center leading-tight">
+            <span className={s.on_leave ? "text-xs text-muted-foreground line-through" : "text-xs font-medium"}>
+              {s.shift_name}
+              {s.changed ? <span title={t("dawam.changedAfterPublish", "Changed after publishing")}> •</span> : null}
+            </span>
+            <span className="flex items-center gap-1">
+              <ShiftTimes s={s} />
+              {s.times_edited ? <span className="text-[10px] font-medium text-primary">{t("dawam.edited", "Edited")}</span> : null}
+            </span>
           </span>
         ))
       )}
@@ -434,21 +449,14 @@ function DayCell({
   if (!editable) return <td className="border-t px-1 py-1 text-center">{body}</td>;
   return (
     <td className="border-t px-1 py-1 text-center">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button type="button" className="w-full rounded-md hover:bg-accent" aria-label={t("dawam.editDay", { name, date: fmtDate(date), defaultValue: `${name}, ${fmtDate(date)}` })}>
-            {body}
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuLabel>{t("dawam.thisDayOnly", "This day only")}</DropdownMenuLabel>
-          {templates.map((w) => (
-            <DropdownMenuItem key={w.id} onSelect={() => onSet(w.id)}>{w.name}</DropdownMenuItem>
-          ))}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => onSet(null)}>{t("dawam.dayOff", "Day off")}</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <button
+        type="button"
+        className="w-full rounded-md hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        aria-label={t("dawam.editDay", { name, date: fmtDate(date), defaultValue: `${name}, ${fmtDate(date)}` })}
+        onClick={onOpen}
+      >
+        {body}
+      </button>
     </td>
   );
 }
