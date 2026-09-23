@@ -153,6 +153,7 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
                       {WEEKDAYS.map((d) => (
                         <Cell
                           key={d.value}
+                          weekday={d.value}
                           busy={busyCell === `${e.id}:${d.value}`}
                           assignment={entry?.byWeekday[d.value]}
                           inherited={entry?.everyDay}
@@ -178,9 +179,14 @@ function Cell({
   assignment,
   inherited,
   shifts,
+  weekday,
   busy,
   onPick,
 }: {
+  /** A weekday cell offers only the blocks that run that day, at that day's
+   *  times; the every-day cell offers them all (the server rosters a block
+   *  only on its own days). */
+  weekday?: number;
   assignment: ScheduleAssignment | undefined;
   /** The every-day row this cell falls back to when it has none of its own. */
   inherited?: ScheduleAssignment;
@@ -190,6 +196,11 @@ function Cell({
 }) {
   const { t } = useTranslation();
   const effective = assignment ?? inherited;
+  const offered = weekday === undefined ? shifts : shifts.filter((s) => (s.valid_days ?? []).includes(weekday));
+  const timesOf = (s: WorkShift) => {
+    const own = weekday === undefined ? undefined : (s.day_times ?? []).find((d) => d.day_of_week === weekday);
+    return `${(own?.start_time ?? s.start_time).slice(0, 5)}–${(own?.end_time ?? s.end_time).slice(0, 5)}`;
+  };
 
   return (
     <td className="border-t px-1 py-1.5 text-center last:pe-3">
@@ -217,11 +228,11 @@ function Cell({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center">
           <DropdownMenuLabel>{t("staff.assignShift", "Assign shift")}</DropdownMenuLabel>
-          {shifts.map((s) => (
+          {offered.map((s) => (
             <DropdownMenuItem key={s.id} onSelect={() => onPick(s.id)}>
               <span className="flex-1">{s.name}</span>
               <span dir="ltr" className="font-mono text-xs text-muted-foreground tabular-nums">
-                {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
+                {timesOf(s)}
               </span>
             </DropdownMenuItem>
           ))}
