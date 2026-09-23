@@ -415,20 +415,10 @@ export function AttendanceRulesPage() {
             <CardTitle className="text-base">{t("staff.policies", "Policies")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <Label htmlFor="ar-geo">{t("staff.requireGeofence", "Require location to clock in")}</Label>
-                <p className="text-xs text-muted-foreground">
-                  {t("staff.requireGeofenceHint", "Punches outside the branch's radius are refused.")}
-                </p>
-              </div>
-              <Switch
-                id="ar-geo"
-                disabled={readOnly}
-                checked={values.requireGeofence}
-                onCheckedChange={(v) => form.setValue("requireGeofence", v, { shouldDirty: true })}
-              />
-            </div>
+            {/* No location switch: app punches are always fenced (CL-2). */}
+            <p className="text-xs text-muted-foreground">
+              {t("staff.fenceAlwaysOn", "Clocking in from the app always checks the phone is inside the branch's radius.")}
+            </p>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <Label htmlFor="ar-excused">{t("staff.excusedPaid", "Approved permissions are paid")}</Label>

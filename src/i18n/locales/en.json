@@ -4463,7 +4463,18 @@
     "missionTitleOptional": "Title (optional)",
     "excuseMidnightHint": "An end before the start runs past midnight.",
     "halfDayToggle": "Half a day",
-    "paidLeaveSwitch": "Paid leave"
+    "paidLeaveSwitch": "Paid leave",
+    "fenceAlwaysOn": "Clocking in from the app always checks the phone is inside the branch's radius.",
+    "method_manager": "by a manager",
+    "method_manual": "entered by hand",
+    "method_till": "till PIN",
+    "method_correction": "corrected",
+    "method_offline": "queued offline",
+    "method_cover": "cover",
+    "method_kiosk": "kiosk",
+    "method_auto": "auto-closed",
+    "inMethodColumn": "In by",
+    "outMethodColumn": "Out by"
   },
   "basira": {
     "title": "Basira",
@@ -6108,6 +6119,9 @@
     "paidCount": "Paid {{paid}} of {{people}}",
     "installmentsHint": "1 to 24 monthly installments",
     "deductReason": "Reason (the employee sees it)",
-    "addPayLineHere": "Add a bonus or deduction"
+    "addPayLineHere": "Add a bonus or deduction",
+    "flag_phone_died": "Phone likely died",
+    "flagHint_phone_died": "The pings stopped with the battery low: the phone likely died on shift.",
+    "deductNeedsRight": "Deducting for it needs the right to add deductions. The owner can give it to you."
   }
 }

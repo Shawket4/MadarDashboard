@@ -4596,7 +4596,18 @@
     "missionTitleOptional": "العنوان (اختياري)",
     "excuseMidnightHint": "لو النهاية قبل البداية، يمتد الإذن بعد منتصف الليل.",
     "halfDayToggle": "نصف يوم",
-    "paidLeaveSwitch": "إجازة مدفوعة"
+    "paidLeaveSwitch": "إجازة مدفوعة",
+    "fenceAlwaysOn": "تسجيل الحضور من التطبيق بيتأكد دايمًا إن الموبايل جوه نطاق الفرع.",
+    "method_manager": "من المدير",
+    "method_manual": "متسجّل يدويًا",
+    "method_till": "رقم سري على الكاشير",
+    "method_correction": "متصحّح",
+    "method_offline": "متسجّل من غير نت",
+    "method_cover": "تغطية",
+    "method_kiosk": "كشك",
+    "method_auto": "اتقفل تلقائيًا",
+    "inMethodColumn": "الحضور عن طريق",
+    "outMethodColumn": "الانصراف عن طريق"
   },
   "basira": {
     "title": "بصيرة",
@@ -6285,6 +6296,9 @@
     "paidCount": "تم دفع {{paid}} من {{people}}",
     "installmentsHint": "من 1 إلى 24 قسطًا شهريًا",
     "deductReason": "السبب (يراه الموظف)",
-    "addPayLineHere": "إضافة مكافأة أو خصم"
+    "addPayLineHere": "إضافة مكافأة أو خصم",
+    "flag_phone_died": "الموبايل غالبًا فصل",
+    "flagHint_phone_died": "الإشارات وقفت والبطارية واطية: الموبايل غالبًا فصل وهو في الوردية.",
+    "deductNeedsRight": "الخصم عليه محتاج صلاحية إضافة خصومات. صاحب الشغل يقدر يديهالك."
   }
 }

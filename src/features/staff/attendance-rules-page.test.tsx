@@ -115,7 +115,7 @@ describe("Rules page, read-only for a manager (hr.rules.view)", () => {
     expect(screen.queryByRole("button", { name: "Remove rung" })).not.toBeInTheDocument();
     expect(screen.getByLabelText("Working days per month")).toBeDisabled();
     expect(screen.getByLabelText("Hours a day")).toBeDisabled();
-    expect(screen.getByRole("switch", { name: /Require location/ })).toBeDisabled();
+    expect(screen.queryByRole("switch", { name: /Require location/ })).toBeNull();
     expect(screen.getByRole("radio", { name: "Paid automatically" })).toBeDisabled();
 
     // Their branch's overrides: visible, not editable.
