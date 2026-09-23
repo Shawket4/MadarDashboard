@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppFooter } from "@/components/layout/app-footer";
 import { DemoBanner } from "@/components/app/demo-banner";
+import { ModuleGate } from "@/components/app/module-gate";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { requireAuth } from "@/lib/auth-guard";
 import { useAppStore } from "@/data/stores/app.store";
@@ -105,7 +106,9 @@ function AppLayout() {
       <SidebarInset>
         <DemoBanner />
         <AppHeader />
-        <Outlet />
+        <ModuleGate>
+          <Outlet />
+        </ModuleGate>
         <AppFooter />
       </SidebarInset>
     </SidebarProvider>

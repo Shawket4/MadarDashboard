@@ -131,9 +131,9 @@ export const NAV: NavGroup[] = [
       { caps: [Cap.ordersRead, Cap.inventoryRead, Cap.purchasingOrdersRead], module: "pos", to: "/reports/financial", labelKey: "nav.reportsFinancial", fallback: "Financial", icon: Coins },
       { caps: [Cap.inventoryRead], module: "pos", to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
       // Tax and the audit trail: reports.legal, owner and manager by default, a manager's own branches.
-      { caps: [Cap.reportsLegal], module: "pos", to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
+      { caps: [Cap.reportsLegal], to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
       { caps: [Cap.loyaltyMembersList], module: "pos", to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
-      { caps: [Cap.hrAttendanceRead], to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
+      { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
       // The day's staff drinks pool, per branch. Gated on the capability that
       // lets a person record one: if you can give a staff drink, you can see
       // what the branch has already given.
@@ -189,23 +189,24 @@ export const NAV: NavGroup[] = [
         basePath: "/staff",
         children: [
           { setup: true, module: "dawam", to: "/staff/setup", labelKey: "nav.staffSetup", fallback: "Set-up", icon: ListChecks },
-          { caps: [Cap.hrStaffRead], to: "/staff/employees", labelKey: "nav.employees", fallback: "Employees", icon: UserRound },
-          { caps: [Cap.hrAttendanceRead], to: "/staff/attendance", labelKey: "nav.attendance", fallback: "Attendance", icon: CalendarClock },
+          { caps: [Cap.hrStaffRead], module: "dawam", to: "/staff/employees", labelKey: "nav.employees", fallback: "Employees", icon: UserRound },
+          { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/staff/attendance", labelKey: "nav.attendance", fallback: "Attendance", icon: CalendarClock },
           // "Work shifts" (staff scheduling) — distinct from /tills, the sales sessions.
-          { caps: [Cap.hrScheduleRead], to: "/staff/shifts", labelKey: "nav.workShifts", fallback: "Work shifts", icon: CalendarRange },
+          { caps: [Cap.hrScheduleRead], module: "dawam", to: "/staff/shifts", labelKey: "nav.workShifts", fallback: "Work shifts", icon: CalendarRange },
           { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/staff/team", labelKey: "nav.team", fallback: "Team", icon: Users },
           {
             caps: [Cap.hrLeaveEdit, Cap.hrAdvancesDecide, Cap.hrScheduleEdit, Cap.hrShiftCoverConfirm, Cap.hrOvertimeApprove, Cap.hrPayrollRun],
             module: "dawam", to: "/staff/approvals", labelKey: "nav.approvals", fallback: "Approvals", icon: ListChecks,
           },
           { caps: [Cap.hrScheduleRead], module: "dawam", to: "/staff/schedule", labelKey: "nav.schedule", fallback: "Schedule", icon: CalendarClock },
-          { caps: [Cap.hrLeaveRead], to: "/staff/requests", labelKey: "nav.requests", fallback: "Requests", icon: Inbox },
+          { caps: [Cap.hrLeaveRead], module: "dawam", to: "/staff/requests", labelKey: "nav.requests", fallback: "Requests", icon: Inbox },
           // The same run as the staff app's Payroll tab (Dawam PAY-4): one
           // server-side state, so approving in either place is the same act.
           { caps: [Cap.hrPayrollRead, Cap.hrPayrollRun], module: "dawam", to: "/staff/payroll", labelKey: "nav.payroll", fallback: "Payroll", icon: Coins },
           // Attendance, labour against sales, payroll history and advances (DSH-3).
           { caps: [Cap.hrAttendanceRead, Cap.hrPayrollRead], module: "dawam", to: "/staff/reports", labelKey: "nav.staffReports", fallback: "Reports", icon: FileBarChart },
-          { caps: [Cap.hrAttendanceEdit], to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
+          // Setting the rules is the owner's (hr.rules.edit, every branch).
+          { caps: [Cap.hrRulesEdit], module: "dawam", to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
         ],
       },
     ],
@@ -233,3 +234,51 @@ export const leafVisible = (leaf: NavLeaf, authz: Authz, modules?: readonly stri
   if (leaf.caps) return authz.canAny(...leaf.caps);
   return true;
 };
+
+/**
+ * Pages that belong to a module but have no nav leaf of their own (old
+ * aliases, settings sub-pages, detail routes). Matched like the leaves.
+ */
+const EXTRA_MODULE_ROUTES: Array<[string, OrgModule]> = [
+  ["/staff", "dawam"],
+  ["/analytics", "pos"],
+  ["/insights", "pos"],
+  ["/inventory", "pos"],
+  ["/menu", "pos"],
+  ["/delivery", "pos"],
+  ["/kitchen", "pos"],
+  ["/qr", "pos"],
+  ["/shifts", "pos"],
+  ["/reports/sales", "pos"],
+  ["/settings/bookings", "pos"],
+  ["/settings/delivery", "pos"],
+  ["/settings/delivery-zones", "pos"],
+  ["/settings/kitchen-routing", "pos"],
+  ["/settings/kitchen-stations", "pos"],
+  ["/settings/payment-methods", "pos"],
+  ["/settings/qr", "pos"],
+];
+
+const MODULE_ROUTES: Array<[string, OrgModule]> = [
+  ...NAV.flatMap((g) => g.entries.flatMap((e) => (isParent(e) ? e.children : [e])))
+    // "/" is the home redirect, which routes a Dawam-only org itself.
+    .filter((l): l is NavLeaf & { module: OrgModule } => !!l.module && l.to !== "/")
+    .map((l): [string, OrgModule] => [l.to, l.module]),
+  ...EXTRA_MODULE_ROUTES,
+];
+
+/**
+ * The module a URL path belongs to (PS-2), for route gating: the longest
+ * tagged prefix on a segment boundary, so `/reports/staff-pool` is POS while
+ * `/reports/staff` is Dawam. Undefined = every org.
+ */
+export function moduleOfPath(pathname: string): OrgModule | undefined {
+  const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  let best: [string, OrgModule] | undefined;
+  for (const r of MODULE_ROUTES) {
+    if (path === r[0] || path.startsWith(`${r[0]}/`)) {
+      if (!best || r[0].length > best[0].length) best = r;
+    }
+  }
+  return best?.[1];
+}
