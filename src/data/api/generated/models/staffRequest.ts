@@ -7,6 +7,12 @@ export interface StaffRequest {
      * @nullable
      */
   attendance_record_id?: string | null;
+  /**
+     * The caller may approve or reject it now: it is pending, not their own,
+     * at one of their branches, and — a manager's request — they outrank
+     * the requester (RQ-5). The same checks the decision makes.
+     */
+  can_decide?: boolean;
   created_at: string;
   /** @nullable */
   decided_at?: string | null;
@@ -31,6 +37,8 @@ export interface StaffRequest {
   from_time?: string | null;
   id: string;
   is_half_day: boolean;
+  /** The request is the CALLER's own (worked out for whoever asks). */
+  is_own?: boolean;
   /**
      * Whether the excused time is paid. `None` until decided.
      * @nullable

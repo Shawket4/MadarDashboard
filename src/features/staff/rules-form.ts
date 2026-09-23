@@ -27,7 +27,6 @@ export interface RulesValues {
   absenceDays: string;
   workingDays: string;
   autoBuffer: string;
-  requireGeofence: boolean;
   excusedPaid: boolean;
   dawam: DawamRules;
 }
@@ -42,7 +41,6 @@ export const RULE_LABELS: Record<string, [string, string]> = {
   default_overtime_multiplier: ["staff.otMultiplierLegacy", "Old overtime multiplier"],
   auto_checkout_buffer_minutes: ["staff.autoBuffer", "Auto-close after (min)"],
   working_days_per_month: ["staff.workingDays", "Working days per month"],
-  require_geofence: ["staff.requireGeofence", "Require location to clock in"],
   excused_time_paid_default: ["staff.excusedPaid", "Approved permissions are paid"],
   overtime_mode: ["dawam.overtime", "Overtime"],
   overtime_day_multiplier: ["dawam.otDay", "Day rate ×"],
@@ -69,7 +67,6 @@ export const EMPTY_VALUES: RulesValues = {
   absenceDays: "1",
   workingDays: "30",
   autoBuffer: "120",
-  requireGeofence: true,
   excusedPaid: true,
   dawam: DEFAULT_RULES,
 };
@@ -88,7 +85,6 @@ export function valuesFrom(s: AttendanceSettings, opts: { suggest?: boolean } = 
     absenceDays: String(s.absence_deduction_days ?? 1),
     workingDays: String(s.working_days_per_month ?? 30),
     autoBuffer: String(s.auto_checkout_buffer_minutes ?? 120),
-    requireGeofence: s.require_geofence ?? true,
     excusedPaid: s.excused_time_paid_default ?? true,
     dawam: rulesFrom(s),
   };
@@ -134,7 +130,6 @@ export function rulesSchema(t: TFunction) {
       absenceDays: z.string(),
       workingDays: z.string(),
       autoBuffer: z.string(),
-      requireGeofence: z.boolean(),
       excusedPaid: z.boolean(),
       dawam: z.custom<DawamRules>(),
     })
@@ -167,7 +162,6 @@ export function fullBody(v: RulesValues, canGender: boolean): PutAttendanceSetti
     absence_deduction_days: Number(v.absenceDays),
     working_days_per_month: Number(v.workingDays),
     auto_checkout_buffer_minutes: Number(v.autoBuffer),
-    require_geofence: v.requireGeofence,
     excused_time_paid_default: v.excusedPaid,
   } as PutAttendanceSettingsRequest;
 }

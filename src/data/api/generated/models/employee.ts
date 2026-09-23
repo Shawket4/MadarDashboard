@@ -2,6 +2,13 @@
 // @ts-nocheck
 
 export interface Employee {
+  /**
+     * The owner's cap on what this person may owe in salary advances, in
+     * piastres (AV-5): the server's figure, so no client recomputes it.
+     * Hidden with the salary.
+     * @nullable
+     */
+  advance_cap_piastres?: number | null;
   /** May sign in to the staff app with a WhatsApp code. */
   app_access: boolean;
   /**

@@ -24,6 +24,16 @@ export interface WorkShift {
   name: string;
   org_id: string;
   /**
+     * This block's own day-overtime rate; `None` = the branch's rules (RU-8).
+     * @nullable
+     */
+  ot_day_multiplier?: number | null;
+  /**
+     * This block's own night-overtime rate; `None` = the branch's rules.
+     * @nullable
+     */
+  ot_night_multiplier?: number | null;
+  /**
      * Some version of it (default or a weekday's) is longer than the labour
      * presence cap. A warning, never a block (RU-13).
      */

@@ -122,7 +122,7 @@ describe("TeamPage", () => {
     expect(within(dialog).queryByRole("button", { name: "Excuse, unpaid" })).not.toBeInTheDocument();
     expect(within(dialog).getByText(/needs the right to add deductions/)).toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Excuse, paid" }));
-    await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f1", { action: "excuse_paid", amount_piastres: null }));
+    await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f1", { action: "excuse_paid", amount_piastres: null, reason: null }));
   });
 
   it("deducts the amount the manager types, suggested from the server (CL-7)", async () => {
@@ -162,6 +162,8 @@ describe("TeamPage", () => {
 
   it("lets a manager add a pay line or log an expense from here (DSH-1)", async () => {
     const user = userEvent.setup();
+    // Without the money rights, no money buttons.
+    held = ["hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others"];
     const { unmount } = wrap(<TeamPage />);
     expect(screen.queryByRole("button", { name: /Add a bonus or deduction/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Log an expense advance/ })).not.toBeInTheDocument();

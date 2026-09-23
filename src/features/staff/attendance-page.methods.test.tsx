@@ -37,12 +37,25 @@ vi.mock("@/data/api/generated/api", () => ({
   useAttendanceSummary: q([]),
   useListEmployees: q([]),
   useListWorkShifts: q([]),
+  useListBranches: q([{ id: "b1", name: "Zamalek", timezone: "Africa/Cairo" }]),
   listAttendance: vi.fn(async () => rows),
   correctRecord: vi.fn(),
   createManualRecord: vi.fn(),
 }));
 vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: "b1" }) }));
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
+vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o1" }));
+vi.mock("@/data/authz/use-authz", async () => {
+  const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
+  return {
+    ...real,
+    useAuthz: () =>
+      real.authzFrom({
+        user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
+        capabilities: ["hr.attendance.read", "hr.attendance.edit"] as never, ask_manager: [], limits: {},
+      }),
+  };
+});
 
 const i18n = (await import("@/i18n")).default;
 const { AttendancePage } = await import("./attendance-page");

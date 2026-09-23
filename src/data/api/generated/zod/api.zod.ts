@@ -16283,6 +16283,7 @@ export const ListEmployeesQueryParams = zod.object({
 })
 
 export const ListEmployeesResponseItem = zod.object({
+  "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
   "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
@@ -16342,6 +16343,7 @@ export const CreateEmployeeBody = zod.object({
 }).describe('Add an employee of any kind (see the module docs).')
 
 export const CreateEmployeeResponse = zod.object({
+  "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
   "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
@@ -16398,6 +16400,7 @@ export const GetEmployeeParams = zod.object({
 })
 
 export const GetEmployeeResponse = zod.object({
+  "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
   "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
@@ -16463,6 +16466,7 @@ export const PutEmployeeBody = zod.object({
 }).describe('Replace an employee\'s HR profile. Profile fields are a full replace (null\nclears them); `name`, `phone`, `app_access` and `branch_ids` are kept when\nomitted.')
 
 export const PutEmployeeResponse = zod.object({
+  "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
   "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
@@ -17269,6 +17273,7 @@ export const SetStaffPushTokenResponse = zod.void()
 
 export const MyRequestsResponseItem = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
+  "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -17279,6 +17284,7 @@ export const MyRequestsResponseItem = zod.object({
   "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.\nFor a `correction`: the proposed check-in, branch-local.'),
   "id": zod.uuid(),
   "is_half_day": zod.boolean(),
+  "is_own": zod.boolean().optional().describe('The request is the CALLER\'s own (worked out for whoever asks).'),
   "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. `None` until decided.'),
   "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`.'),
   "leave_half": zod.string().nullish().describe('A half-day leave: `first` or `second` half of the day off (RQ-8).'),
@@ -17321,6 +17327,7 @@ export const CreateMyRequestBody = zod.object({
 
 export const CreateMyRequestResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
+  "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -17331,6 +17338,7 @@ export const CreateMyRequestResponse = zod.object({
   "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.\nFor a `correction`: the proposed check-in, branch-local.'),
   "id": zod.uuid(),
   "is_half_day": zod.boolean(),
+  "is_own": zod.boolean().optional().describe('The request is the CALLER\'s own (worked out for whoever asks).'),
   "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. `None` until decided.'),
   "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`.'),
   "leave_half": zod.string().nullish().describe('A half-day leave: `first` or `second` half of the day off (RQ-8).'),
@@ -18456,6 +18464,7 @@ export const ListRequestsQueryParams = zod.object({
 
 export const ListRequestsResponseItem = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
+  "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -18466,6 +18475,7 @@ export const ListRequestsResponseItem = zod.object({
   "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.\nFor a `correction`: the proposed check-in, branch-local.'),
   "id": zod.uuid(),
   "is_half_day": zod.boolean(),
+  "is_own": zod.boolean().optional().describe('The request is the CALLER\'s own (worked out for whoever asks).'),
   "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. `None` until decided.'),
   "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`.'),
   "leave_half": zod.string().nullish().describe('A half-day leave: `first` or `second` half of the day off (RQ-8).'),
@@ -18508,6 +18518,7 @@ export const CreateRequestAdminBody = zod.object({
 
 export const CreateRequestAdminResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
+  "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -18518,6 +18529,7 @@ export const CreateRequestAdminResponse = zod.object({
   "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.\nFor a `correction`: the proposed check-in, branch-local.'),
   "id": zod.uuid(),
   "is_half_day": zod.boolean(),
+  "is_own": zod.boolean().optional().describe('The request is the CALLER\'s own (worked out for whoever asks).'),
   "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. `None` until decided.'),
   "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`.'),
   "leave_half": zod.string().nullish().describe('A half-day leave: `first` or `second` half of the day off (RQ-8).'),
@@ -18551,6 +18563,7 @@ export const DecideRequestBody = zod.object({
 
 export const DecideRequestResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
+  "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -18561,6 +18574,7 @@ export const DecideRequestResponse = zod.object({
   "from_time": zod.string().nullish().describe('Start of the excused window. `None` = open to the shift\'s start.\nFor a `correction`: the proposed check-in, branch-local.'),
   "id": zod.uuid(),
   "is_half_day": zod.boolean(),
+  "is_own": zod.boolean().optional().describe('The request is the CALLER\'s own (worked out for whoever asks).'),
   "is_paid": zod.boolean().nullish().describe('Whether the excused time is paid. `None` until decided.'),
   "kind": zod.string().describe('`leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`.'),
   "leave_half": zod.string().nullish().describe('A half-day leave: `first` or `second` half of the day off (RQ-8).'),
@@ -18593,6 +18607,11 @@ export const RosterQueryParams = zod.object({
 
 export const RosterResponse = zod.object({
   "branch_id": zod.uuid(),
+  "date_sets": zod.array(zod.object({
+  "date": zod.iso.date(),
+  "day_off": zod.boolean().describe('The date is a day off by date change (it holds no shift).'),
+  "employee_id": zod.uuid()
+}).describe('A person\'s date that holds its own set (a date change), not the pattern.')).optional().describe('The dates that hold their own set (a date change), a day off included:\nthe ones \"back to the pattern\" applies to.'),
   "from": zod.iso.date(),
   "holidays": zod.array(zod.object({
   "decision": zod.string().nullish().describe('null = not decided yet: a normal day unless set up (RU-10).'),
@@ -19263,6 +19282,8 @@ export const ListWorkShiftsResponseItem = zod.object({
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
+  "ot_day_multiplier": zod.number().nullish().describe('This block\'s own day-overtime rate; `None` = the branch\'s rules (RU-8).'),
+  "ot_night_multiplier": zod.number().nullish().describe('This block\'s own night-overtime rate; `None` = the branch\'s rules.'),
   "over_presence_cap": zod.boolean().optional().describe('Some version of it (default or a weekday\'s) is longer than the labour\npresence cap. A warning, never a block (RU-13).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
@@ -19288,6 +19309,8 @@ export const CreateWorkShiftBody = zod.object({
   "half_day_threshold_minutes": zod.number().nullish(),
   "is_active": zod.boolean().nullish(),
   "name": zod.string(),
+  "ot_day_multiplier": zod.number().nullish().describe('The block\'s own day-overtime rate (RU-8). Omit to keep it, null to go\nback to the branch\'s rules.'),
+  "ot_night_multiplier": zod.number().nullish().describe('The block\'s own night-overtime rate. Omit to keep, null to clear.'),
   "overtime_multiplier": zod.number().nullish(),
   "overtime_threshold_minutes": zod.number().nullish(),
   "paid_break": zod.boolean().nullish(),
@@ -19313,6 +19336,8 @@ export const CreateWorkShiftResponse = zod.object({
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
+  "ot_day_multiplier": zod.number().nullish().describe('This block\'s own day-overtime rate; `None` = the branch\'s rules (RU-8).'),
+  "ot_night_multiplier": zod.number().nullish().describe('This block\'s own night-overtime rate; `None` = the branch\'s rules.'),
   "over_presence_cap": zod.boolean().optional().describe('Some version of it (default or a weekday\'s) is longer than the labour\npresence cap. A warning, never a block (RU-13).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
@@ -19348,6 +19373,8 @@ export const UpdateWorkShiftBody = zod.object({
   "half_day_threshold_minutes": zod.number().nullish(),
   "is_active": zod.boolean().nullish(),
   "name": zod.string(),
+  "ot_day_multiplier": zod.number().nullish().describe('The block\'s own day-overtime rate (RU-8). Omit to keep it, null to go\nback to the branch\'s rules.'),
+  "ot_night_multiplier": zod.number().nullish().describe('The block\'s own night-overtime rate. Omit to keep, null to clear.'),
   "overtime_multiplier": zod.number().nullish(),
   "overtime_threshold_minutes": zod.number().nullish(),
   "paid_break": zod.boolean().nullish(),
@@ -19373,6 +19400,8 @@ export const UpdateWorkShiftResponse = zod.object({
   "is_active": zod.boolean(),
   "name": zod.string(),
   "org_id": zod.uuid(),
+  "ot_day_multiplier": zod.number().nullish().describe('This block\'s own day-overtime rate; `None` = the branch\'s rules (RU-8).'),
+  "ot_night_multiplier": zod.number().nullish().describe('This block\'s own night-overtime rate; `None` = the branch\'s rules.'),
   "over_presence_cap": zod.boolean().optional().describe('Some version of it (default or a weekday\'s) is longer than the labour\npresence cap. A warning, never a block (RU-13).'),
   "overtime_multiplier": zod.number(),
   "overtime_threshold_minutes": zod.number(),
