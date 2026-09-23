@@ -80,6 +80,11 @@ vi.mock("@/data/api/generated/api", () => ({
     open_shifts: openShifts,
     holidays: [{ on_date: addDays(todayIso(), 10), name_en: "Armed Forces Day", name_ar: "عيد القوات المسلحة", decision: null }],
     warnings, limits_unconfirmed: true,
+    // Sara's first day holds its own set; Omar's second is a day off by date.
+    date_sets: [
+      { employee_id: "e1", date: week, day_off: false },
+      { employee_id: "e2", date: addDays(week, 1), day_off: true },
+    ],
   })),
   useSuggestions: hook(() => suggestionsList),
   useGetCoverage: hook(() => coverage),
@@ -417,6 +422,23 @@ describe("SchedulePage", () => {
     expect(within(maadi).queryByText("Over 20 points")).not.toBeInTheDocument();
     const list = screen.getByRole("list", { name: "Monthly audits" });
     expect(within(list).getByText("gap 34 points")).toBeInTheDocument();
+  });
+
+  it("offers back-to-pattern only for a date that holds its own set", async () => {
+    const user = userEvent.setup();
+    wrap(<SchedulePage />);
+    // Omar's second day is a day off set by date: shown as such.
+    const omar = screen.getAllByRole("button", { name: /^Omar Nabil, / });
+    expect(within(omar[1]).getByText("Day off")).toBeInTheDocument();
+    await user.click(omar[1]);
+    const d1 = await screen.findByRole("dialog");
+    expect(within(d1).getByRole("button", { name: "Back to pattern" })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    // Sara's second day follows the pattern: nothing to go back to.
+    await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[1]);
+    const d2 = await screen.findByRole("dialog");
+    expect(within(d2).queryByRole("button", { name: "Back to pattern" })).not.toBeInTheDocument();
+    expect(within(d2).getByText("Follows the standing pattern")).toBeInTheDocument();
   });
 
   it("reads in Arabic", async () => {

@@ -18593,6 +18593,11 @@ export const RosterQueryParams = zod.object({
 
 export const RosterResponse = zod.object({
   "branch_id": zod.uuid(),
+  "date_sets": zod.array(zod.object({
+  "date": zod.iso.date(),
+  "day_off": zod.boolean().describe('The date is a day off by date change (it holds no shift).'),
+  "employee_id": zod.uuid()
+}).describe('A person\'s date that holds its own set (a date change), not the pattern.')).optional().describe('The dates that hold their own set (a date change), a day off included:\nthe ones \"back to the pattern\" applies to.'),
   "from": zod.iso.date(),
   "holidays": zod.array(zod.object({
   "decision": zod.string().nullish().describe('null = not decided yet: a normal day unless set up (RU-10).'),

@@ -6301,6 +6301,8 @@
     "openCancelled": "سُحبت الوردية المفتوحة",
     "prefsOf": "تفضيلات {{name}}",
     "setByManager": "حدّدها مدير",
-    "cancelOpenOf": "سحب وردية {{shift}} المفتوحة يوم {{date}}"
+    "cancelOpenOf": "سحب وردية {{shift}} المفتوحة يوم {{date}}",
+    "dayOffSet": "إجازة",
+    "followsPattern": "يتبع الجدول الثابت"
   }
 }

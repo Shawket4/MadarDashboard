@@ -66,6 +66,7 @@ export function DayEditor({
   shifts,
   templates,
   staff,
+  ownSet,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -74,6 +75,9 @@ export function DayEditor({
   shifts: RosterShift[];
   templates: WorkShiftBrief[];
   staff: RosterPerson[];
+  /** The date holds its own set (GET /staff/roster date_sets): only then can
+   *  it go back to the pattern. */
+  ownSet: boolean;
 }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
@@ -304,6 +308,7 @@ export function DayEditor({
         </p>
 
         <DialogFooter className="flex-wrap gap-2 sm:justify-between">
+          {ownSet ? (
           <Button
             variant="outline"
             disabled={busy}
@@ -316,6 +321,9 @@ export function DayEditor({
           >
             <RotateCcw className="size-4" />{t("dawam.backToPattern", "Back to pattern")}
           </Button>
+          ) : (
+            <span className="text-xs text-muted-foreground">{t("dawam.followsPattern", "Follows the standing pattern")}</span>
+          )}
           <Button variant="outline" disabled={busy} onClick={() => void setShifts([], t("dawam.dayChanged", "Day changed"))}>
             {t("dawam.dayOff", "Day off")}
           </Button>

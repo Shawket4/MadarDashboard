@@ -6124,6 +6124,8 @@
     "openCancelled": "Open shift taken back",
     "prefsOf": "{{name}}'s preferences",
     "setByManager": "set by a manager",
-    "cancelOpenOf": "Take back the open {{shift}} on {{date}}"
+    "cancelOpenOf": "Take back the open {{shift}} on {{date}}",
+    "dayOffSet": "Day off",
+    "followsPattern": "Follows the standing pattern"
   }
 }

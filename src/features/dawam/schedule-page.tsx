@@ -87,6 +87,12 @@ export function SchedulePage() {
     }
     return m;
   }, [view]);
+  /** (employee|date) → the date holds its own set; `true` = a day off by date change. */
+  const dateSets = useMemo(() => {
+    const m = new Map<string, boolean>();
+    for (const d of view?.date_sets ?? []) m.set(`${d.employee_id}|${d.date}`, d.day_off);
+    return m;
+  }, [view]);
   const warningsAt = useMemo(() => {
     const m = new Map<string, LabourWarning[]>();
     for (const w of view?.warnings ?? []) {
@@ -260,6 +266,7 @@ export function SchedulePage() {
                       date={d}
                       shifts={cell.get(`${p.employee_id}|${d}`) ?? []}
                       warnings={warningsAt.get(`${p.employee_id}|${d}`) ?? []}
+                      dayOff={dateSets.get(`${p.employee_id}|${d}`) === true}
                       editable={canEdit}
                       onOpen={() => setDayOpen({ person: p, date: d })}
                     />
@@ -383,6 +390,7 @@ export function SchedulePage() {
           shifts={cell.get(`${dayOpen.person.employee_id}|${dayOpen.date}`) ?? []}
           templates={templates}
           staff={view.staff}
+          ownSet={dateSets.has(`${dayOpen.person.employee_id}|${dayOpen.date}`)}
         />
       ) : null}
       {prefsOf ? (
@@ -415,9 +423,11 @@ function WarningChip({ w }: { w: LabourWarning }) {
 }
 
 function DayCell({
-  name, date, shifts, warnings, editable, onOpen,
+  name, date, shifts, warnings, dayOff, editable, onOpen,
 }: {
   name: string;
+  /** A day off set by a date change (not a rest day in the pattern). */
+  dayOff: boolean;
   date: string;
   shifts: RosterShift[];
   warnings: LabourWarning[];
@@ -428,7 +438,11 @@ function DayCell({
   const body = (
     <div className="flex min-h-9 flex-col items-center justify-center gap-0.5">
       {shifts.length === 0 ? (
-        <span className="text-xs text-muted-foreground">{t("dawam.off", "Off")}</span>
+        dayOff ? (
+          <span className="text-xs font-medium">{t("dawam.dayOffSet", "Day off")}</span>
+        ) : (
+          <span className="text-xs text-muted-foreground">{t("dawam.off", "Off")}</span>
+        )
       ) : (
         shifts.map((s) => (
           <span key={s.work_shift_id} className="flex flex-col items-center leading-tight">

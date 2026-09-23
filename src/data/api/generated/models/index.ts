@@ -236,6 +236,7 @@ export * from './customerAddress';
 export * from './customerDetail';
 export * from './customerOrder';
 export * from './datasetInfo';
+export * from './dateSet';
 export * from './dayBlock';
 export * from './dayTime';
 export * from './dayView';
