@@ -345,6 +345,9 @@ const ERROR_FALLBACK: Record<RowError["key"], string> = {
 export function ImportPeopleDialog({ onOpenChange }: { onOpenChange: (o: boolean) => void }) {
   const { t } = useTranslation();
   const branches = useBranches();
+  // The server keeps a salary only from someone who may set pay
+  // (hr.payroll.edit); anyone else is told, and the salaries aren't sent.
+  const canSetSalary = useAuthz().can(Cap.hrPayrollEdit);
   const [parsed, setParsed] = useState<{ people: NewPerson[]; errors: RowError[] } | null>(null);
   const [outcomes, setOutcomes] = useState<Record<number, Outcome>>({});
   const [busy, setBusy] = useState(false);
@@ -370,7 +373,10 @@ export function ImportPeopleDialog({ onOpenChange }: { onOpenChange: (o: boolean
       if (done[p.row]?.ok) continue;
       try {
         // A sheet row is a staff-app person: a name, a WhatsApp number, a branch.
-        await createEmployee({ name: p.name, phone: p.phone, app_access: true, branch_ids: [p.branchId], base_salary_piastres: p.salaryPiastres });
+        await createEmployee({
+          name: p.name, phone: p.phone, app_access: true, branch_ids: [p.branchId],
+          ...(canSetSalary && p.salaryPiastres !== null ? { base_salary_piastres: p.salaryPiastres } : {}),
+        });
         done[p.row] = { ok: true };
       } catch (e) {
         done[p.row] = { ok: false, message: getErrorMessage(e) };
@@ -390,6 +396,7 @@ export function ImportPeopleDialog({ onOpenChange }: { onOpenChange: (o: boolean
       ].sort((a, b) => a.row - b.row)
     : [];
   const pending = parsed ? parsed.people.filter((p) => !outcomes[p.row]?.ok).length : 0;
+  const salariesDropped = !canSetSalary && !!parsed?.people.some((p) => p.salaryPiastres !== null);
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
@@ -402,6 +409,11 @@ export function ImportPeopleDialog({ onOpenChange }: { onOpenChange: (o: boolean
           <Label htmlFor="import-file">{t("dawam.importFile", "Spreadsheet")}</Label>
           <Input id="import-file" type="file" accept=".xlsx,.csv" onChange={(e) => void pick(e.target.files?.[0])} />
         </div>
+        {salariesDropped ? (
+          <p role="status" className="rounded-md border px-3 py-2 text-sm text-muted-foreground">
+            {t("dawam.importNoSalaryRight", "The salaries in this sheet won't be saved: setting pay needs the owner's permission. The people are added without one.")}
+          </p>
+        ) : null}
         {parsed ? (
           <Table>
             <TableHeader>
@@ -425,7 +437,7 @@ export function ImportPeopleDialog({ onOpenChange }: { onOpenChange: (o: boolean
                         <TableCell>{person.name}</TableCell>
                         <TableCell className="tabular-nums" dir="ltr">+{person.phone}</TableCell>
                         <TableCell>{branchName.get(person.branchId)}</TableCell>
-                        <TableCell className="text-end tabular-nums">{person.salaryPiastres === null ? "—" : fmtMoney(person.salaryPiastres)}</TableCell>
+                        <TableCell className="text-end tabular-nums">{!canSetSalary || person.salaryPiastres === null ? "—" : fmtMoney(person.salaryPiastres)}</TableCell>
                       </>
                     ) : (
                       <TableCell colSpan={4} className="text-destructive">

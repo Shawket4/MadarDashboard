@@ -113,7 +113,11 @@
     "errors": {
       "phoneRequired": "Enter a phone number.",
       "phoneInvalid": "Enter a valid phone number."
-    }
+    },
+    "restrictedTitle": "Not available on this account",
+    "restrictedBody": "This is managed by Madar. Get in touch if you need a change here.",
+    "searchTimezone": "Search timezones…",
+    "selectTimezone": "Select timezone…"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -4488,7 +4492,6 @@
     "method_auto": "auto-closed",
     "inMethodColumn": "In by",
     "outMethodColumn": "Out by",
-    "weekendDays": "Weekend",
     "errShiftName": "Give the shift a name",
     "errTime": "Pick a time",
     "errNonNegative": "Can't be negative",
@@ -4511,7 +4514,17 @@
     "branchRate": "Branch rules",
     "otRateHint": "Empty = the branch's rules.",
     "ownTimesOn": "own times on {{n}} days",
-    "overCapShort": "Over the presence limit"
+    "overCapShort": "Over the presence limit",
+    "checkInDistance": "In distance (m)",
+    "autoClosedColumn": "Auto-closed",
+    "workedMinutes": "Worked (minutes)",
+    "lateMinutes": "Late (minutes)",
+    "overtimeMinutes": "Overtime (minutes)",
+    "outBeforeIn": "Out must be after in",
+    "pickDate": "Pick a date",
+    "reasonRequired": "Say why",
+    "statusFromTimes": "From the times",
+    "timesInZone": "Times are the branch's clock ({{tz}})."
   },
   "basira": {
     "title": "Basira",
@@ -6218,6 +6231,10 @@
     "setByManager": "set by a manager",
     "cancelOpenOf": "Take back the open {{shift}} on {{date}}",
     "dayOffSet": "Day off",
-    "followsPattern": "Follows the standing pattern"
+    "followsPattern": "Follows the standing pattern",
+    "genderSuggestHint": "Suggestions lean late and night shifts to men by default; a person's own preferences win.",
+    "modulesLoadError": "Couldn't check what this business has switched on",
+    "importNoSalaryRight": "The salaries in this sheet won't be saved: setting pay needs the owner's permission. The people are added without one.",
+    "badAmount": "Type an amount above zero"
   }
 }

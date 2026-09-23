@@ -113,7 +113,11 @@
     "errors": {
       "phoneRequired": "أدخل رقم الهاتف.",
       "phoneInvalid": "أدخل رقم هاتف صحيحًا."
-    }
+    },
+    "restrictedTitle": "مش متاحة على الحساب ده",
+    "restrictedBody": "دي بتديرها مدار. كلّمنا لو محتاج تغيير هنا.",
+    "searchTimezone": "دوّر على منطقة زمنية…",
+    "selectTimezone": "اختار المنطقة الزمنية…"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -4621,7 +4625,6 @@
     "method_auto": "اتقفل تلقائيًا",
     "inMethodColumn": "الحضور عن طريق",
     "outMethodColumn": "الانصراف عن طريق",
-    "weekendDays": "عطلة نهاية الأسبوع",
     "errShiftName": "أعطِ الوردية اسمًا",
     "errTime": "اختر وقتًا",
     "errNonNegative": "لا يمكن أن تكون سالبة",
@@ -4644,7 +4647,17 @@
     "branchRate": "قواعد الفرع",
     "otRateHint": "فارغ = قواعد الفرع.",
     "ownTimesOn": "أوقات خاصة في {{n}} أيام",
-    "overCapShort": "أطول من حد التواجد"
+    "overCapShort": "أطول من حد التواجد",
+    "checkInDistance": "مسافة الحضور (م)",
+    "autoClosedColumn": "اتقفل تلقائيًا",
+    "workedMinutes": "مدة الشغل (دقايق)",
+    "lateMinutes": "التأخير (دقايق)",
+    "overtimeMinutes": "الأوفر تايم (دقايق)",
+    "outBeforeIn": "الانصراف لازم يكون بعد الحضور",
+    "pickDate": "اختار تاريخ",
+    "reasonRequired": "قول السبب",
+    "statusFromTimes": "من المواعيد",
+    "timesInZone": "المواعيد بتوقيت الفرع ({{tz}})."
   },
   "basira": {
     "title": "بصيرة",
@@ -6395,6 +6408,10 @@
     "setByManager": "حدّدها مدير",
     "cancelOpenOf": "سحب وردية {{shift}} المفتوحة يوم {{date}}",
     "dayOffSet": "إجازة",
-    "followsPattern": "يتبع الجدول الثابت"
+    "followsPattern": "يتبع الجدول الثابت",
+    "genderSuggestHint": "الاقتراحات بتميل تدّي الورديات المتأخرة والليلية للرجالة افتراضيًا، وتفضيلات الشخص نفسه بتكسب.",
+    "modulesLoadError": "معرفناش نتأكد إيه اللي متفعّل للنشاط ده",
+    "importNoSalaryRight": "المرتبات اللي في الملف مش هتتحفظ: تحديد المرتب محتاج إذن المالك. الناس هتتضاف من غير مرتب.",
+    "badAmount": "اكتب مبلغ أكبر من صفر"
   }
 }

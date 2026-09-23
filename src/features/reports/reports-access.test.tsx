@@ -39,6 +39,8 @@ vi.mock("@/data/authz/use-authz", async () => {
   };
 });
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
+let modules: string[] = ["pos", "dawam"];
+vi.mock("@/hooks/use-org-modules", () => ({ useOrgModules: () => modules }));
 vi.mock("@/data/scope/use-scope", () => ({
   useScope: () => ({ branchId: null, scopeBranchId: "00000000-0000-0000-0000-000000000000", from: "2026-09-01T00:00:00Z", to: "2026-09-30T00:00:00Z", preset: "30d" }),
 }));
@@ -183,6 +185,30 @@ describe("Reports access", () => {
     wrap(<LegalReportsPage />);
     expect(screen.getByRole("tab", { name: "Manual deductions" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Attendance corrections" })).toBeInTheDocument();
+  });
+
+  it("a Dawam-only business sees Legal's pay and attendance tabs only, and asks nothing of the till's", () => {
+    modules = ["dawam"];
+    held = ["reports.legal", "hr.payroll.read", "hr.attendance.read"];
+    reset();
+    const { unmount } = wrap(<LegalReportsPage />);
+    expect(screen.queryByRole("tab", { name: "Tax" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Refunds" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Loyalty adjustments" })).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Manual deductions" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Attendance corrections" })).toBeInTheDocument();
+    expect(neverAsked("tax", "refunds", "voids", "discounts", "waivers", "overrides", "loyaltyAdjustments")).toBe(true);
+    unmount();
+
+    // With Dawam off, the pay and attendance tabs go instead.
+    modules = ["pos"];
+    reset();
+    wrap(<LegalReportsPage />);
+    expect(screen.getByRole("tab", { name: "Tax" })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Manual deductions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Attendance corrections" })).not.toBeInTheDocument();
+    expect(neverAsked("manualDeductions", "deductionOverrides", "attendanceCorrections")).toBe(true);
+    modules = ["pos", "dawam"];
   });
 
   it("Financial shows only the tabs the person can read", () => {

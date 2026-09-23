@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 
 import { useGetOrg, useListBranches } from "@/data/api/generated/api";
+import { useAuthz } from "@/data/authz/use-authz";
 import { APP_TZ } from "@/data/config/constants";
+import { Cap } from "@/generated/capabilities";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 
@@ -27,26 +29,43 @@ export function useSyncTimezone(): void {
   useAppStore((s) => s.activeTimezone);
 
   const orgId = user?.role === "super_admin" ? selectedOrgId : (user?.org_id ?? null);
+  // Reading the org is `org.settings.read` (the owner's). A branch manager
+  // never asks: that was a 403 on every page (the audit's stray
+  // `GET /orgs/{id}`); his roll-up zone comes from his branches instead.
+  const canReadOrg = useAuthz().can(Cap.orgSettingsRead);
 
   // The org tz is only needed for the "all branches" roll-up; when a branch is
-  // selected its effective `timezone` already folds in the org default. Gating
-  // the org fetch this way also avoids needless 403s for branch-bound roles.
+  // selected its effective `timezone` already folds in the org default.
   const { data: org } = useGetOrg(orgId ?? "", {
-    query: { enabled: Boolean(orgId) && !selectedBranchId },
+    query: { enabled: Boolean(orgId) && !selectedBranchId && canReadOrg },
   });
   const { data: branches } = useListBranches(
     { org_id: orgId ?? "" },
     { query: { enabled: Boolean(orgId) } },
   );
 
-  const branchTz = selectedBranchId
-    ? branches?.find((b) => b.id === selectedBranchId)?.timezone
-    : undefined;
-  const resolved = branchTz || org?.timezone || APP_TZ;
+  const resolved = resolveTimezone({
+    branchTz: selectedBranchId ? branches?.find((b) => b.id === selectedBranchId)?.timezone : undefined,
+    orgTz: org?.timezone,
+    branchZones: canReadOrg ? [] : (branches ?? []).map((b) => b.timezone),
+  });
 
   useEffect(() => {
     if (resolved && resolved !== useAppStore.getState().activeTimezone) {
       setActiveTimezone(resolved);
     }
   }, [resolved, setActiveTimezone]);
+}
+
+/**
+ * branch → org → (for someone who can't read the org) the zone of the
+ * branches they see → APP_TZ. Each branch's zone already folds in the org
+ * default, so the first one is the org's zone unless a branch overrides it.
+ */
+export function resolveTimezone(z: {
+  branchTz?: string | null;
+  orgTz?: string | null;
+  branchZones: ReadonlyArray<string | null | undefined>;
+}): string {
+  return z.branchTz || z.orgTz || z.branchZones.find((t) => !!t) || APP_TZ;
 }

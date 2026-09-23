@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { cn } from "@/lib/utils";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
 import { branchPinned, setupProgress, SETUP_STEPS, useSetupData, type SetupStep } from "./setup";
@@ -22,13 +23,14 @@ import { branchPinned, setupProgress, SETUP_STEPS, useSetupData, type SetupStep 
 export function SetupPage() {
   const { t } = useTranslation();
   const authz = useAuthz();
-  const owner = authz.owner;
-  const data = useSetupData(owner);
+  // A capability, not the owner role (DSH-6, PM-4): whoever sets the rules.
+  const canSetUp = authz.can(Cap.hrRulesEdit);
+  const data = useSetupData(canSetUp);
   const p = setupProgress(data);
   const [adding, setAdding] = useState<"one" | "sheet" | null>(null);
 
-  if (authz.ready && !owner) {
-    return <Restricted title={t("dawam.setup", "Set-up")} who={t("dawam.setupNoAccess", "Set-up is for the owner.")} />;
+  if (authz.ready && !canSetUp) {
+    return <Restricted title={t("dawam.setup", "Set-up")} who={t("dawam.setupNoAccess", "Set-up is for whoever sets the rules (the owner, unless they gave it to someone).")} />;
   }
 
   const unpinned = (data.branches ?? []).filter((b) => !branchPinned(b));

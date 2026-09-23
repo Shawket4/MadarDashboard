@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus, Smartphone, Trash2, UserRound, UserX, Users } from "lucide-react";
+import { FileSpreadsheet, Plus, Smartphone, Trash2, UserRound, UserX, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -27,7 +27,7 @@ import {
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
-import { AddEmployeeDialog } from "@/features/dawam/add-employees";
+import { AddEmployeeDialog, ImportPeopleDialog } from "@/features/dawam/add-employees";
 import type { Department, Employee } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate, fmtMoney } from "@/lib/format";
@@ -49,6 +49,7 @@ export function EmployeesPage() {
   const [editing, setEditing] = useState<Employee | null>(null);
   const [deptOpen, setDeptOpen] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [importing, setImporting] = useState(false);
   const confirm = useConfirm();
   const authz = useAuthz();
   const canCreate = authz.can(Cap.hrStaffCreate);
@@ -221,10 +222,17 @@ export function EmployeesPage() {
               {t("staff.departments", "Departments")}
             </Button>
             {canCreate ? (
-              <Button onClick={() => setAdding(true)}>
-                <Plus className="size-4" />
-                {t("dawam.addEmployee", "Add employee")}
-              </Button>
+              <>
+                {/* The sheet import lives here too, not only on Team and Set-up (DSH-7). */}
+                <Button variant="outline" onClick={() => setImporting(true)}>
+                  <FileSpreadsheet className="size-4" />
+                  {t("dawam.importTitle", "Import from a spreadsheet")}
+                </Button>
+                <Button onClick={() => setAdding(true)}>
+                  <Plus className="size-4" />
+                  {t("dawam.addEmployee", "Add employee")}
+                </Button>
+              </>
             ) : null}
           </>
         }
@@ -294,6 +302,7 @@ export function EmployeesPage() {
       />
 
       {adding ? <AddEmployeeDialog onOpenChange={(o) => !o && setAdding(false)} /> : null}
+      {importing ? <ImportPeopleDialog onOpenChange={(o) => !o && setImporting(false)} /> : null}
 
       <EmployeeDialog employee={editing} open={!!editing} onOpenChange={(o) => !o && setEditing(null)} />
 

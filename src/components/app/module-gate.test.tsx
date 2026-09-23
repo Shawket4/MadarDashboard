@@ -5,12 +5,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 let pathname = "/";
 let orgId: string | null = "org1";
 let answer: { modules: string[] } | undefined;
+let failure: Error | null = null;
+const refetch = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({ useLocation: () => ({ pathname }) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => orgId }));
 vi.mock("@/data/api/generated/api", () => ({
   useGetOrg: () => ({ data: undefined }),
-  useGetOrgModules: (id: string) => ({ data: answer ? { org_id: id, modules: answer.modules } : undefined }),
+  useGetOrgModules: (id: string) => ({
+    data: answer ? { org_id: id, modules: answer.modules } : undefined,
+    error: failure,
+    refetch,
+  }),
 }));
 await import("@/i18n");
 const { ModuleGate } = await import("./module-gate");
@@ -21,6 +27,7 @@ beforeEach(() => {
   pathname = "/";
   orgId = "org1";
   answer = undefined;
+  failure = null;
 });
 
 describe("ModuleGate", () => {
@@ -49,6 +56,16 @@ describe("ModuleGate", () => {
     pathname = "/orders";
     page();
     expect(screen.queryByText("the page")).toBeNull();
+  });
+
+  it("when the modules can't be read it says so, with a retry, and still shows no module page", async () => {
+    failure = new Error("Network Error");
+    pathname = "/orders";
+    page();
+    expect(screen.queryByText("the page")).toBeNull();
+    expect(screen.getByText(/Couldn't check what this business has switched on/)).toBeInTheDocument();
+    screen.getByRole("button", { name: /retry/i }).click();
+    expect(refetch).toHaveBeenCalled();
   });
 
   it("shared pages and switched-on modules render", () => {

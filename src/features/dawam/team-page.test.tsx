@@ -84,7 +84,10 @@ beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   resolveFlag.mockClear();
   punchFor.mockClear();
-  held = ["hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others", "hr.deductions.create"];
+  held = [
+    "hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others",
+    "hr.deductions.create", "hr.staff.edit", "hr.shift_cover.confirm",
+  ];
 });
 
 describe("TeamPage", () => {
@@ -136,6 +139,19 @@ describe("TeamPage", () => {
     await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f1", { action: "deduct", amount_piastres: 4_000, reason: "Left for two hours" }));
   });
 
+  it("refuses a deduction of nothing, and sends nothing", async () => {
+    const user = userEvent.setup();
+    wrap(<TeamPage />);
+    await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
+    const dialog = await screen.findByRole("dialog");
+    const amount = within(dialog).getByLabelText("Deduct (EGP)");
+    await user.clear(amount);
+    await user.type(amount, "0");
+    await user.click(within(dialog).getByRole("button", { name: "Deduct" }));
+    expect(await within(dialog).findByText("Type an amount above zero")).toBeInTheDocument();
+    expect(resolveFlag).not.toHaveBeenCalled();
+  });
+
   it("revokes a new phone", async () => {
     const user = userEvent.setup();
     wrap(<TeamPage />);
@@ -154,6 +170,25 @@ describe("TeamPage", () => {
     wrap(<TeamPage />);
     await user.click(screen.getByRole("button", { name: /Add a bonus or deduction/ }));
     expect(within(await screen.findByRole("dialog")).getByText("Add a bonus or deduction")).toBeInTheDocument();
+  });
+
+  it("each flag act needs its own right, as the server checks it (PM-4)", async () => {
+    const user = userEvent.setup();
+    held = ["hr.attendance.read", "hr.attendance.edit"];
+    const { unmount } = wrap(<TeamPage />);
+    await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
+    let dialog = await screen.findByRole("dialog");
+    // No deductions right: no amount, no Deduct, no unpaid excuse (it deducts).
+    expect(within(dialog).queryByLabelText("Deduct (EGP)")).toBeNull();
+    expect(within(dialog).queryByRole("button", { name: "Deduct" })).toBeNull();
+    expect(within(dialog).queryByRole("button", { name: "Excuse, unpaid" })).toBeNull();
+    expect(within(dialog).getByRole("button", { name: "Excuse, paid" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Ignore" })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByText("Laila Hassan · New phone"));
+    dialog = await screen.findByRole("dialog");
+    expect(within(dialog).queryByRole("button", { name: "Revoke this phone" })).toBeNull();
+    unmount();
   });
 
   it("punches someone in only with a reason (CL-13)", async () => {

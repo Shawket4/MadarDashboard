@@ -64,7 +64,7 @@ describe("OrgDialog modules", () => {
     wrap(<OrgDialog org={ORG} open onOpenChange={vi.fn()} />);
     expect(screen.getByText("Modules")).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "Madar POS" })).toBeChecked();
-    await user.click(screen.getByRole("checkbox", { name: "Dawam (staff)" }));
+    await user.click(screen.getByRole("checkbox", { name: "Dawam by Madar" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(updateOrg).toHaveBeenCalledWith("o1", expect.objectContaining({ modules: ["pos", "dawam"] })));
   });
@@ -84,9 +84,9 @@ describe("OrgDialog modules", () => {
     const user = userEvent.setup();
     wrap(<OrgDialog org={null} open onOpenChange={vi.fn()} />);
     expect(screen.getByRole("checkbox", { name: "Madar POS" })).toBeChecked();
-    expect(screen.getByRole("checkbox", { name: "Dawam (staff)" })).not.toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Dawam by Madar" })).not.toBeChecked();
     await user.type(screen.getByLabelText(/Organization Name|Name/), "Drops");
-    await user.click(screen.getByRole("checkbox", { name: "Dawam (staff)" }));
+    await user.click(screen.getByRole("checkbox", { name: "Dawam by Madar" }));
     await user.click(screen.getByRole("button", { name: "Create" }));
     await waitFor(() => expect(createOrg).toHaveBeenCalled());
     await waitFor(() => expect(updateOrg).toHaveBeenCalledWith("new-org", { modules: ["pos", "dawam"] }));

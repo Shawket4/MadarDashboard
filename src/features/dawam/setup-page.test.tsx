@@ -20,6 +20,7 @@ globalThis.ResizeObserver ??= class {
 const pinned = { id: "b1", name: "Zamalek", latitude: 30.06, longitude: 31.22, geo_radius_meters: 80 };
 const unpinned = { id: "b2", name: "Maadi", latitude: 29.96, longitude: 31.25, geo_radius_meters: null };
 let owner = true;
+let held: string[] = ["hr.rules.edit"];
 let data: Record<string, unknown> = {};
 
 vi.mock("@tanstack/react-router", () => ({
@@ -34,7 +35,7 @@ vi.mock("@/data/authz/use-authz", async () => {
     useAuthz: () =>
       real.authzFrom({
         user_id: "u", epoch: 0, spec_version: 0, owner, platform: false, role_kinds: [],
-        capabilities: [], ask_manager: [], limits: {},
+        capabilities: held as never, ask_manager: [], limits: {},
       }),
   };
 });
@@ -58,6 +59,7 @@ const wrap = () => render(<QueryClientProvider client={new QueryClient()}><Setup
 
 beforeEach(() => {
   owner = true;
+  held = ["hr.rules.edit"];
   data = {
     branches: [pinned, unpinned],
     employees: [],
@@ -106,18 +108,27 @@ describe("SetupPage", () => {
     expect(screen.getByText(/All set/)).toBeInTheDocument();
   });
 
-  it("is the owner's alone", () => {
+  it("is for whoever holds hr.rules.edit, not a role (DSH-6)", () => {
+    // An owner who gave the rules away no longer runs set-up...
+    held = [];
+    const { unmount } = wrap();
+    expect(screen.getByText(/Set-up is for whoever sets the rules/)).toBeInTheDocument();
+    unmount();
+    // ...and a non-owner who was given them does.
     owner = false;
+    held = ["hr.rules.edit"];
     wrap();
-    expect(screen.getByText("Set-up is for the owner.")).toBeInTheDocument();
+    expect(screen.queryByText(/Set-up is for whoever sets the rules/)).toBeNull();
+    expect(screen.getByTestId("step-branches")).toBeInTheDocument();
   });
 
-  it("puts the nav entry up for the owner only while set-up is incomplete", () => {
+  it("puts the nav entry up for hr.rules.edit only while set-up is incomplete", () => {
     const leaf = NAV.flatMap((g) => g.entries).flatMap((e) => (isParent(e) ? e.children : [e])).find((l) => l.to === "/staff/setup")!;
-    const me = (o: boolean) => authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: o, platform: false, role_kinds: [], capabilities: [], ask_manager: [], limits: {} });
-    expect(leafVisible(leaf, me(true), ["dawam"], true)).toBe(true);
-    expect(leafVisible(leaf, me(true), ["dawam"], false)).toBe(false);
-    expect(leafVisible(leaf, me(false), ["dawam"], true)).toBe(false);
-    expect(leafVisible(leaf, me(true), ["pos"], true)).toBe(false);
+    const me = (o: boolean, caps: string[]) => authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: o, platform: false, role_kinds: [], capabilities: caps as never, ask_manager: [], limits: {} });
+    expect(leafVisible(leaf, me(true, ["hr.rules.edit"]), ["dawam"], true)).toBe(true);
+    expect(leafVisible(leaf, me(true, ["hr.rules.edit"]), ["dawam"], false)).toBe(false);
+    expect(leafVisible(leaf, me(false, ["hr.rules.edit"]), ["dawam"], true)).toBe(true);
+    expect(leafVisible(leaf, me(true, []), ["dawam"], true)).toBe(false);
+    expect(leafVisible(leaf, me(true, ["hr.rules.edit"]), ["pos"], true)).toBe(false);
   });
 });

@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuthz } from "@/data/authz/use-authz";
+import { useOrgModules } from "@/hooks/use-org-modules";
 import { cn } from "@/lib/utils";
 
 import { visibleSettings, type SettingsLeaf } from "./settings-nav";
@@ -31,7 +32,7 @@ const isActive = (item: SettingsLeaf, pathname: string, onIndex: boolean) =>
 
 export function SettingsShell() {
   const { t } = useTranslation();
-  const groups = visibleSettings(useAuthz());
+  const groups = visibleSettings(useAuthz(), useOrgModules());
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const onIndex = pathname === "/settings" || pathname === "/settings/";

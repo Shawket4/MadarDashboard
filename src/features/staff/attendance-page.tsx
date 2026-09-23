@@ -17,24 +17,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  correctRecord, createManualRecord, listAttendance,
-  useAttendanceSummary, useListAttendance, useListEmployees, useListWorkShifts,
+  listAttendance, useAttendanceSummary, useListAttendance,
 } from "@/data/api/generated/api";
 import type { AttendanceRecord } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
+import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
+import { CorrectRecordDialog, ManualRecordDialog } from "./attendance-dialogs";
 import {
-  ATTENDANCE_STATUS_TONE, fmtMinutes, invalidateAttendance, isoDaysFromToday, todayIso,
+  ATTENDANCE_STATUS_TONE, fmtMinutes, isoDaysFromToday, todayIso,
 } from "./util";
 
 const ALL = "__all__";
@@ -49,6 +48,11 @@ export function AttendancePage() {
   const [correcting, setCorrecting] = useState<AttendanceRecord | null>(null);
   const [exporting, setExporting] = useState(false);
   const logoUrl = useExportLogo();
+  // The server checks each at the record's branch (hr.attendance.create /
+  // .edit); a person without them is never offered the button.
+  const authz = useAuthz();
+  const canAdd = authz.can(Cap.hrAttendanceCreate);
+  const canCorrect = authz.can(Cap.hrAttendanceEdit);
 
   const params = {
     from,
@@ -238,10 +242,12 @@ export function AttendancePage() {
         actions={
           <>
             <ExportButton onExport={handleExport} loading={exporting} disabled={!records.length} />
-            <Button onClick={() => setManualOpen(true)}>
-              <Plus className="size-4" />
-              {t("staff.addRecord", "Add record")}
-            </Button>
+            {canAdd ? (
+              <Button onClick={() => setManualOpen(true)}>
+                <Plus className="size-4" />
+                {t("staff.addRecord", "Add record")}
+              </Button>
+            ) : null}
           </>
         }
         below={
@@ -282,11 +288,15 @@ export function AttendancePage() {
         loading={recordsQ.isLoading}
         error={recordsQ.error}
         onRetry={() => void recordsQ.refetch()}
-        rowActions={(r) => (
-          <RowAction label={t("staff.correct", "Correct")} onClick={() => setCorrecting(r)}>
-            <PencilLine className="size-4" />
-          </RowAction>
-        )}
+        rowActions={
+          canCorrect
+            ? (r) => (
+                <RowAction label={t("staff.correct", "Correct")} onClick={() => setCorrecting(r)}>
+                  <PencilLine className="size-4" />
+                </RowAction>
+              )
+            : undefined
+        }
         getRowId={(r) => r.id}
         searchPlaceholder={t("staff.searchEmployees", "Search employees…")}
         emptyState={
@@ -304,270 +314,6 @@ export function AttendancePage() {
       <ManualRecordDialog open={manualOpen} onOpenChange={setManualOpen} branchId={branchId} />
       <CorrectRecordDialog record={correcting} onOpenChange={(o) => !o && setCorrecting(null)} />
     </Page>
-  );
-}
-
-/** Hand-entered attendance — the escape hatch for a day the app never saw. */
-function ManualRecordDialog({
-  open,
-  onOpenChange,
-  branchId,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  branchId: string | null;
-}) {
-  const { t } = useTranslation();
-  const [busy, setBusy] = useState(false);
-  const [userId, setUserId] = useState("");
-  const [shiftId, setShiftId] = useState(ALL);
-  const [date, setDate] = useState(todayIso());
-  const [status, setStatus] = useState("present");
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [reason, setReason] = useState("");
-
-  const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: open } });
-  const shiftsQ = useListWorkShifts({ query: { enabled: open } });
-
-  const save = async () => {
-    if (!branchId) {
-      toast.error(t("staff.pickBranchFirst", "Pick a single branch first"));
-      return;
-    }
-    setBusy(true);
-    try {
-      await createManualRecord({
-        employee_id: userId,
-        branch_id: branchId,
-        business_date: date,
-        work_shift_id: shiftId === ALL ? null : shiftId,
-        // datetime-local has no zone; the browser's own offset is applied so the
-        // instant matches what the operator typed on their screen.
-        check_in_at: checkIn ? new Date(checkIn).toISOString() : null,
-        check_out_at: checkOut ? new Date(checkOut).toISOString() : null,
-        status,
-        reason,
-      });
-      toast.success(t("staff.recordAdded", "Record added"));
-      void invalidateAttendance();
-      onOpenChange(false);
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t("staff.addRecord", "Add record")}</DialogTitle>
-          <DialogDescription>
-            {t(
-              "staff.addRecordHint",
-              "Marked as manual and stamped with your name. Use this to record an absence, approved leave, or a day the app missed.",
-            )}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid gap-3">
-          <div className="space-y-1">
-            <Label>{t("staff.employee", "Employee")}</Label>
-            <Select value={userId} onValueChange={setUserId}>
-              <SelectTrigger><SelectValue placeholder={t("staff.pickEmployee", "Pick an employee")} /></SelectTrigger>
-              <SelectContent>
-                {(employeesQ.data ?? []).map((e) => (
-                  <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="mr-date">{t("staff.date", "Date")}</Label>
-              <Input id="mr-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label>{t("staff.attendanceStatus", "Status")}</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="present">{t("staff.att_present", "Present")}</SelectItem>
-                  <SelectItem value="late">{t("staff.att_late", "Late")}</SelectItem>
-                  <SelectItem value="half_day">{t("staff.att_half_day", "Half day")}</SelectItem>
-                  <SelectItem value="absent">{t("staff.att_absent", "Absent")}</SelectItem>
-                  <SelectItem value="on_leave">{t("staff.att_on_leave", "On leave")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label>{t("staff.workShift", "Work shift")}</Label>
-            <Select value={shiftId} onValueChange={setShiftId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>{t("staff.unscheduled", "Unscheduled")}</SelectItem>
-                {(shiftsQ.data ?? []).map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="mr-in">{t("staff.checkIn", "In")}</Label>
-              <Input id="mr-in" type="datetime-local" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="mr-out">{t("staff.checkOut", "Out")}</Label>
-              <Input id="mr-out" type="datetime-local" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="mr-reason">{t("staff.reason", "Reason")}</Label>
-            <Input
-              id="mr-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder={t("staff.reasonPlaceholder", "Why this record exists")}
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-          <Button onClick={() => void save()} disabled={busy || !userId || !reason.trim()}>
-            {t("common.save", "Save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/** Correct an existing record. The server recomputes late/overtime/status from
- *  the new stamps, so a corrected row is indistinguishable from a clocked one. */
-function CorrectRecordDialog({
-  record,
-  onOpenChange,
-}: {
-  record: AttendanceRecord | null;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const { t } = useTranslation();
-  const [busy, setBusy] = useState(false);
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [status, setStatus] = useState("");
-  const [reason, setReason] = useState("");
-
-  // `datetime-local` wants a local yyyy-MM-ddTHH:mm with no zone suffix.
-  const toLocalInput = (iso: string | null | undefined) => {
-    if (!iso) return "";
-    const d = new Date(iso);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
-
-  const open = !!record;
-  const key = record?.id ?? "";
-
-  const save = async () => {
-    if (!record) return;
-    setBusy(true);
-    try {
-      await correctRecord(record.id, {
-        check_in_at: checkIn ? new Date(checkIn).toISOString() : null,
-        check_out_at: checkOut ? new Date(checkOut).toISOString() : null,
-        status: status || null,
-        reason,
-      });
-      toast.success(t("staff.recordCorrected", "Record corrected"));
-      void invalidateAttendance();
-      onOpenChange(false);
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        if (o && record) {
-          setCheckIn(toLocalInput(record.check_in_at));
-          setCheckOut(toLocalInput(record.check_out_at));
-          setStatus(record.status);
-          setReason("");
-        }
-        onOpenChange(o);
-      }}
-    >
-      <DialogContent key={key} className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t("staff.correctRecord", "Correct record")}</DialogTitle>
-          <DialogDescription>
-            {record?.employee_name} · {record?.business_date}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="cr-in">{t("staff.checkIn", "In")}</Label>
-              <Input
-                id="cr-in"
-                type="datetime-local"
-                defaultValue={toLocalInput(record?.check_in_at)}
-                onChange={(e) => setCheckIn(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="cr-out">{t("staff.checkOut", "Out")}</Label>
-              <Input
-                id="cr-out"
-                type="datetime-local"
-                defaultValue={toLocalInput(record?.check_out_at)}
-                onChange={(e) => setCheckOut(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label>{t("staff.attendanceStatus", "Status")}</Label>
-            <Select value={status || record?.status || "present"} onValueChange={setStatus}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="present">{t("staff.att_present", "Present")}</SelectItem>
-                <SelectItem value="late">{t("staff.att_late", "Late")}</SelectItem>
-                <SelectItem value="half_day">{t("staff.att_half_day", "Half day")}</SelectItem>
-                <SelectItem value="absent">{t("staff.att_absent", "Absent")}</SelectItem>
-                <SelectItem value="on_leave">{t("staff.att_on_leave", "On leave")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="cr-reason">{t("staff.reason", "Reason")}</Label>
-            <Input
-              id="cr-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder={t("staff.correctionReason", "Why this is being changed")}
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-          <Button onClick={() => void save()} disabled={busy || !reason.trim()}>
-            {t("common.save", "Save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }
 
