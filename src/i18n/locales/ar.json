@@ -4560,7 +4560,12 @@
     "autoClosedColumn": "اتقفل تلقائيًا",
     "workedMinutes": "مدة الشغل (دقايق)",
     "lateMinutes": "التأخير (دقايق)",
-    "overtimeMinutes": "الأوفر تايم (دقايق)"
+    "overtimeMinutes": "الأوفر تايم (دقايق)",
+    "outBeforeIn": "الانصراف لازم يكون بعد الحضور",
+    "pickDate": "اختار تاريخ",
+    "reasonRequired": "قول السبب",
+    "statusFromTimes": "من المواعيد",
+    "timesInZone": "المواعيد بتوقيت الفرع ({{tz}})."
   },
   "basira": {
     "title": "بصيرة",

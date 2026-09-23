@@ -4427,7 +4427,12 @@
     "autoClosedColumn": "Auto-closed",
     "workedMinutes": "Worked (minutes)",
     "lateMinutes": "Late (minutes)",
-    "overtimeMinutes": "Overtime (minutes)"
+    "overtimeMinutes": "Overtime (minutes)",
+    "outBeforeIn": "Out must be after in",
+    "pickDate": "Pick a date",
+    "reasonRequired": "Say why",
+    "statusFromTimes": "From the times",
+    "timesInZone": "Times are the branch's clock ({{tz}})."
   },
   "basira": {
     "title": "Basira",
