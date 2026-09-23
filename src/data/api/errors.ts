@@ -1,5 +1,21 @@
 import { AxiosError } from "axios";
 import i18n from "@/i18n";
+import { fmtDate, fmtTime } from "@/lib/format";
+
+/**
+ * A coded refusal's figures (`ErrorBody.vars`) ready for its sentence: a
+ * date reads as a date, an instant as a time; everything else as sent.
+ */
+function codedVars(raw: unknown): Record<string, unknown> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (k === "date" && typeof v === "string") out[k] = fmtDate(v);
+    else if (k.endsWith("_at") && typeof v === "string") out[k] = fmtTime(v);
+    else out[k] = v;
+  }
+  return out;
+}
 
 /** Extract a human-readable message from any API / JS error. */
 export const getErrorMessage = (err: unknown): string => {
@@ -12,7 +28,10 @@ export const getErrorMessage = (err: unknown): string => {
     // A stable `code` the UI knows reads in the user's language; anything else
     // falls back to the server's own message.
     const code = typeof data?.code === "string" ? data.code : undefined;
-    if (code && i18n.exists(`errors.codes.${code}`)) return t(`errors.codes.${code}`);
+    const vars = codedVars(data?.vars);
+    // A paid month can't be reopened, so it gets its own wording (PERIOD_CLOSED {paid}).
+    const key = code === "PERIOD_CLOSED" && vars.paid === true ? "PERIOD_CLOSED_paid" : code;
+    if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
 
     // Backend convention: { error: "..." } or { message: "..." }
     if (typeof data?.error === "string") return data.error;

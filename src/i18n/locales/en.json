@@ -2219,7 +2219,18 @@
       "ALREADY_ROSTERED": "They're already on that shift.",
       "SWAP_STALE": "Those shifts aren't on the roster any more.",
       "SWAP_STARTED": "A shift that already started can't be swapped.",
-      "SWAP_OTHER_BRANCH": "Swaps are only with a colleague at the same branch."
+      "SWAP_OTHER_BRANCH": "Swaps are only with a colleague at the same branch.",
+      "PERIOD_CLOSED_paid": "That month is paid, so it can't change. Pick a day in an open month.",
+      "OUTSIDE_FENCE": "The phone is {{distance_m}} m from the branch; clocking in needs it within {{radius_m}} m.",
+      "CHECKIN_TOO_EARLY": "{{shift}} opens for clocking in {{minutes}} minutes before it starts, at {{opens_at}}.",
+      "SHIFT_ENDED": "{{shift}} has already ended.",
+      "ALREADY_CHECKED_IN": "Already clocked in: clock out first.",
+      "EMPLOYMENT_NOT_ACTIVE": "This person isn't active, so they can't clock in.",
+      "NOT_AN_EMPLOYEE": "This person isn't set up as an employee in Dawam.",
+      "NOT_YOUR_BRANCH": "That branch isn't one of theirs.",
+      "BRANCH_NO_LOCATION": "This branch has no pin on the map yet. Pin it in Set-up first.",
+      "LOCATION_REQUIRED": "Clocking in needs the phone's location.",
+      "BRANCH_OTHER_ORG": "That branch belongs to another business."
     }
   },
   "theme": {
