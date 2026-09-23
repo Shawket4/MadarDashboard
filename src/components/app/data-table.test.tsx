@@ -102,6 +102,25 @@ describe("DataTable states", () => {
     vi.mocked(useIsMobile).mockReturnValue(false);
   });
 
+  it("on a phone never nests a cell's button inside the row's button, and both still work", () => {
+    // E2E: Payroll's phone cards wrapped each row's "Mark paid" cell button.
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    const onRowClick = vi.fn();
+    const pay = vi.fn();
+    const withButton: ColumnDef<Row, unknown>[] = [
+      ...columns,
+      { id: "pay", header: "Paid", cell: ({ row }) => <button type="button" onClick={pay}>pay {row.original.name}</button> },
+    ];
+    const { container } = render(<DataTable columns={withButton} data={rows} getRowId={(r) => r.id} onRowClick={onRowClick} />);
+    expect(container.querySelector("button button")).toBeNull();
+    fireEvent.click(screen.getByText("pay Latte"));
+    expect(pay).toHaveBeenCalledOnce();
+    expect(onRowClick).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Latte" }));
+    expect(onRowClick).toHaveBeenCalledWith(rows[0]);
+    vi.mocked(useIsMobile).mockReturnValue(false);
+  });
+
   it("offers Load more only while there is more", () => {
     const onLoadMore = vi.fn();
     const { rerender } = render(

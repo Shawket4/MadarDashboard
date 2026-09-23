@@ -228,7 +228,7 @@ export function DataTable<TData, TValue>({
       ? (emptyState ?? <EmptyState icon={Search} title={t("common.noResults", "No results found")} />)
       : null;
 
-  const renderPhoneCard = (row: Row<TData>) => {
+  const renderPhoneCard = (row: Row<TData>, stretched = false) => {
     if (renderMobileCard) return renderMobileCard(row.original);
     const cells = row.getVisibleCells().filter((c) => metaOf(c.column).phone !== "hidden");
     const titleCell = cells.find((c) => metaOf(c.column).phone === "title") ?? cells[0];
@@ -238,6 +238,10 @@ export function DataTable<TData, TValue>({
         className={cn(
           "rounded-2xl border bg-card p-4",
           selectedRowId && row.id === selectedRowId && "border-foreground/30 bg-accent",
+          // Under a stretched row button: taps on text reach it, while the
+          // card's own controls (a cell's button, a link) stay on top.
+          stretched &&
+            "pointer-events-none relative z-[2] [&_a]:pointer-events-auto [&_button]:pointer-events-auto [&_input]:pointer-events-auto [&_[role=checkbox]]:pointer-events-auto",
         )}
       >
         <div className="flex items-start justify-between gap-3">
@@ -384,11 +388,11 @@ export function DataTable<TData, TValue>({
           {loading
             ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)
             : rows.map((row) =>
-                onRowClick && rowActions && !renderMobileCard ? (
-                  // A card with its own action buttons can't be one <button>
-                  // (a button inside a button is invalid HTML). The row's
-                  // button is stretched over the card instead, named by the
-                  // card's title, with the actions layered above it.
+                onRowClick && !renderMobileCard ? (
+                  // A card can hold buttons (row actions, a cell's own button),
+                  // so it can't be one <button> (a button inside a button is
+                  // invalid HTML). The row's button is stretched over the card
+                  // instead, named by the card's title, controls above it.
                   <div
                     key={row.id}
                     className="relative rounded-2xl transition-transform duration-200 has-[>button:active]:scale-[0.99] motion-reduce:transition-none"
@@ -401,7 +405,7 @@ export function DataTable<TData, TValue>({
                       onFocus={() => onRowPrefetch?.(row.original)}
                       className="absolute inset-0 z-[1] rounded-2xl focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
                     />
-                    {renderPhoneCard(row)}
+                    {renderPhoneCard(row, true)}
                   </div>
                 ) : onRowClick ? (
                   <button
