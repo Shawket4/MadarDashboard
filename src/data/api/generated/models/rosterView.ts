@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { DateSet } from './dateSet';
 import type { HolidayView } from './holidayView';
 import type { LabourWarning } from './labourWarning';
 import type { OpenShift } from './openShift';
@@ -9,6 +10,11 @@ import type { WorkShiftBrief } from './workShiftBrief';
 
 export interface RosterView {
   branch_id: string;
+  /**
+     * The dates that hold their own set (a date change), a day off included:
+     * the ones "back to the pattern" applies to.
+     */
+  date_sets?: DateSet[];
   from: string;
   holidays: HolidayView[];
   /** The limits are not yet confirmed by a lawyer; say so beside them. */

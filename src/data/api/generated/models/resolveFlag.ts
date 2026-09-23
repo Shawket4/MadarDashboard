@@ -12,4 +12,9 @@ export interface ResolveFlag {
      * @nullable
      */
   amount_piastres?: number | null;
+  /**
+     * For `deduct`: why, on the pay line the employee sees (AD-9).
+     * @nullable
+     */
+  reason?: string | null;
 }

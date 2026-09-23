@@ -3,7 +3,17 @@
 import type { OfflineStamp } from './offlineStamp';
 
 export interface CheckInRequest {
+  /**
+     * The fix's reported accuracy, metres (CL-9: a perfect one is suspicious).
+     * @nullable
+     */
+  accuracy_meters?: number | null;
   branch_id: string;
+  /**
+     * The OS's mock-location marker for this fix (CL-9).
+     * @nullable
+     */
+  is_mock?: boolean | null;
   /**
      * Device coordinates. Required whenever the org enforces the geofence.
      * @nullable

@@ -11,6 +11,8 @@ export interface MyRosterView {
   open_shifts: OpenShift[];
   /** @nullable */
   pref_time?: string | null;
+  /** `employee` or `manager`: who set my preferences last. */
+  prefs_set_by: string;
   /** Only shifts in published weeks (SC-3). */
   shifts: RosterShift[];
   swaps: Swap[];

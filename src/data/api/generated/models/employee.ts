@@ -57,6 +57,12 @@ export interface Employee {
   national_id?: string | null;
   /** @nullable */
   notes?: string | null;
+  /**
+     * Paid through Dawam (the default). Off for someone who uses the app
+     * and is rostered but is not paid here (an owner, say): the payroll
+     * run, the estimate and the payslips skip them.
+     */
+  on_payroll: boolean;
   org_id: string;
   /** @nullable */
   pay_account?: string | null;

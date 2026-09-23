@@ -12,6 +12,11 @@ export interface ScheduledDay {
      */
   branch_name?: string | null;
   date: string;
-  /** Empty = a rest day. */
+  /**
+     * The week is published at the person's branch. Unpublished weeks are
+     * drafts: they come back empty (SC-3).
+     */
+  published?: boolean;
+  /** Empty = a rest day, or a week not published yet. */
   shifts: ResolvedShift[];
 }
