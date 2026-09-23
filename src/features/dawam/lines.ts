@@ -32,8 +32,28 @@ type Breakdown = {
   /** Deductions past what was earned: carried to the next payslip (PAY-12). */
   capped_piastres?: number;
   bonuses?: { id?: string | null; kind?: string; reason?: string; piastres?: number; source?: string }[];
-  deductions?: { id?: string | null; kind?: string; reason?: string; piastres?: number; source?: string; waived?: boolean }[];
+  deductions?: {
+    id?: string | null; kind?: string; reason?: string; piastres?: number; source?: string; waived?: boolean;
+    /** The server's own wording as a code (D-B2); null for a person's own words. */
+    reason_code?: string | null;
+    reason_vars?: Record<string, string | number> | null;
+  }[];
   advances?: { id?: string; applied_piastres?: number }[];
+};
+
+/**
+ * Server-written reasons, by code, in the reader's language (AT-13). A code
+ * this build doesn't know, a person's own words (null), or a payslip frozen
+ * before codes existed falls back to the server's `reason` text.
+ */
+const REASON_KEYS: Record<string, string> = {
+  late: "dawam.reason_late",
+  absent_no_punch: "dawam.reason_absent_no_punch",
+  unpaid_leave: "dawam.reason_unpaid_leave",
+  absent_half_unpaid_leave: "dawam.reason_absent_half_unpaid_leave",
+  unpaid_excused_minutes: "dawam.reason_unpaid_excused_minutes",
+  unpaid_excuse: "dawam.reason_unpaid_excuse",
+  left_mid_shift: "dawam.reason_left_mid_shift",
 };
 
 /** Base pay before overtime, bonuses, deductions and the advance installment. */
@@ -83,9 +103,11 @@ export function payslipLines(p: ComputedPayslip | Payslip): PayLine[] {
   for (const l of b.deductions ?? []) {
     const carry = l.kind === "carry";
     const manual = l.source === "manual";
+    const coded = !carry && l.reason_code ? REASON_KEYS[l.reason_code] : undefined;
     out.push({
       key: carry ? "carry" : `d|${l.id}`,
-      labelKey: carry ? "dawam.lineCarry" : undefined,
+      labelKey: carry ? "dawam.lineCarry" : coded,
+      vars: coded ? { ...(l.reason_vars ?? {}) } : undefined,
       label: carry ? "Carried from the last payslip" : (l.reason ?? ""),
       amount: -(l.piastres ?? 0),
       rule: !carry && !manual,

@@ -6235,7 +6235,14 @@
     "importNoSalaryRight": "The salaries in this sheet won't be saved: setting pay needs the owner's permission. The people are added without one.",
     "badAmount": "Type an amount above zero",
     "flagsLoadError": "Couldn't load the flags",
-    "payLinePending": "Over your limit: it waits for the owner before it counts."
+    "payLinePending": "Over your limit: it waits for the owner before it counts.",
+    "reason_late": "Late by {{minutes}} minutes",
+    "reason_absent_no_punch": "Absent — no check-in recorded",
+    "reason_unpaid_leave": "Unpaid leave",
+    "reason_absent_half_unpaid_leave": "Absent from the worked half · unpaid half-day leave",
+    "reason_unpaid_excused_minutes": "Unpaid excused time: {{minutes}} minutes",
+    "reason_unpaid_excuse": "Unpaid excuse",
+    "reason_left_mid_shift": "Left mid-shift"
   },
   "legal": {
     "label": "Legal",

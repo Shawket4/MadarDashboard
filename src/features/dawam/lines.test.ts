@@ -102,3 +102,32 @@ describe("payslipLines", () => {
     expect(linesTotal(lines)).toBe(0);
   });
 });
+
+describe("the server's own wording in the reader's language (D-B2)", () => {
+  const withLines = (deductions: Record<string, unknown>[]) =>
+    payslipLines(slip({ breakdown: { paid_days: 30, window_days: 30, bonuses: [], advances: [], deductions } as never }));
+
+  it("maps each reason code to a key with its figures, and keeps a person's words", async () => {
+    const i18n = (await import("@/i18n")).default;
+    const lines = withLines([
+      { id: "a", piastres: 100, reason: "Late by 24 minutes", reason_code: "late", reason_vars: { minutes: 24 }, source: "late_penalty" },
+      { id: "b", piastres: 100, reason: "Absent — no check-in recorded", reason_code: "absent_no_punch", reason_vars: null, source: "absence" },
+      { id: "c", piastres: 100, reason: "Unpaid excused time: 40 minutes", reason_code: "unpaid_excused_minutes", reason_vars: { minutes: 40 }, source: "excused_unpaid" },
+      { id: "d", piastres: 100, reason: "غادرت الفرع بدون إذن", reason_code: null, source: "left_mid_shift" },
+      { id: "e", piastres: 100, reason: "Something new", reason_code: "not_known_yet", source: "absence" },
+      // A payslip frozen before the codes existed: no code at all.
+      { id: "f", piastres: 100, reason: "Unpaid leave", source: "absence" },
+    ]);
+    const ar = i18n.getFixedT("ar");
+    const label = (id: string) => {
+      const l = lines.find((x) => x.key === `d|${id}`)!;
+      return l.labelKey ? ar(l.labelKey, { ...l.vars, defaultValue: l.label }) : l.label;
+    };
+    expect(label("a")).toBe("تأخير 24 دقيقة");
+    expect(label("b")).toBe("غياب — لم يُسجَّل حضور");
+    expect(label("c")).toBe("وقت إذن غير مدفوع: 40 دقيقة");
+    expect(label("d")).toBe("غادرت الفرع بدون إذن");
+    expect(label("e")).toBe("Something new");
+    expect(label("f")).toBe("Unpaid leave");
+  });
+});
