@@ -6,7 +6,10 @@
  * someone whose phone died (CL-13).
  */
 import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
+import { z } from "zod";
 import {
   CircleAlert, Clock3, FileSpreadsheet, LogIn, MapPinOff, ShieldAlert, Smartphone, TimerOff, UserRoundCheck, UserRoundPlus, UsersRound,
 } from "lucide-react";
@@ -21,8 +24,10 @@ import { StatCard } from "@/components/app/stat-card";
 import { StatusPill, type StatusTone } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
+} from "@/components/ui/form";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -177,8 +182,16 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
   const canDeduct = authz.can(Cap.hrDeductionsCreate) || authz.canAsk(Cap.hrDeductionsCreate);
   const canConfirmCover = authz.can(Cap.hrShiftCoverConfirm);
   const canRevoke = authz.can(Cap.hrStaffEdit);
-  const [amount, setAmount] = useState(flag ? String(flag.suggested_deduction_piastres / 100) : "");
   const [busy, setBusy] = useState(false);
+  // The typed deduction (CL-7), prefilled with the server's suggestion.
+  const schema = useMemo(
+    () => z.object({ amount: z.string().refine((v) => readPounds(v) !== null, t("dawam.badAmount", "Type an amount above zero")) }),
+    [t],
+  );
+  const form = useForm<{ amount: string }>({
+    resolver: zodResolver(schema),
+    defaultValues: { amount: flag ? String(flag.suggested_deduction_piastres / 100) : "" },
+  });
   if (!flag) return null;
   const meta = FLAG_META[flag.kind] ?? FLAG_META.suspicious;
   const send = async (action: string, amountPiastres?: number) => {
@@ -194,7 +207,7 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
       setBusy(false);
     }
   };
-  const deduct = readPounds(amount);
+  const onDeduct = form.handleSubmit((v) => send("deduct", readPounds(v.amount)!));
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -211,16 +224,25 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
               ) : null}
             </div>
             {canDeduct ? (
-              <>
-                <div className="space-y-1">
-                  <Label htmlFor="flag-amount">{t("dawam.deductAmount", "Deduct (EGP)")}</Label>
-                  <Input id="flag-amount" type="number" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
-                  <p className="text-xs text-muted-foreground">
-                    {t("dawam.suggested", { amount: fmtMoney(flag.suggested_deduction_piastres), defaultValue: `Suggested: ${fmtMoney(flag.suggested_deduction_piastres)}, time away at their minute rate.` })}
-                  </p>
-                </div>
-                <Button variant="destructive" disabled={busy || deduct === null} onClick={() => void send("deduct", deduct!)}>{t("dawam.deduct", "Deduct")}</Button>
-              </>
+              <Form {...form}>
+                <form onSubmit={(e) => void onDeduct(e)} className="grid gap-3" noValidate>
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("dawam.deductAmount", "Deduct (EGP)")}</FormLabel>
+                        <FormControl><Input type="number" inputMode="decimal" {...field} /></FormControl>
+                        <FormDescription>
+                          {t("dawam.suggested", { amount: fmtMoney(flag.suggested_deduction_piastres), defaultValue: `Suggested: ${fmtMoney(flag.suggested_deduction_piastres)}, time away at their minute rate.` })}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" variant="destructive" disabled={busy}>{t("dawam.deduct", "Deduct")}</Button>
+                </form>
+              </Form>
             ) : null}
           </div>
         ) : null}
@@ -252,14 +274,19 @@ function flagHint(f: AttendanceFlag): string {
 /** A punch for someone whose phone died (CL-13); a reason is required. */
 function PunchDialog({ person, onOpenChange }: { person: PresenceRow | null; onOpenChange: (o: boolean) => void }) {
   const { t } = useTranslation();
-  const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
+  const schema = useMemo(
+    () => z.object({ reason: z.string().trim().min(1, t("staff.reasonRequired", "Say why")) }),
+    [t],
+  );
+  const form = useForm<{ reason: string }>({ resolver: zodResolver(schema), defaultValues: { reason: "" } });
+  const reason = form.watch("reason");
   if (!person) return null;
   const out = !!person.check_in_at && !person.check_out_at;
-  const save = async () => {
+  const save = form.handleSubmit(async (v) => {
     setBusy(true);
     try {
-      await punchFor({ employee_id: person.employee_id, reason: reason.trim() });
+      await punchFor({ employee_id: person.employee_id, reason: v.reason.trim() });
       toast.success(out ? t("dawam.punchedOut", "Punched out") : t("dawam.punchedIn", "Punched in"));
       void invalidateStaff();
       onOpenChange(false);
@@ -268,7 +295,7 @@ function PunchDialog({ person, onOpenChange }: { person: PresenceRow | null; onO
     } finally {
       setBusy(false);
     }
-  };
+  });
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -276,14 +303,25 @@ function PunchDialog({ person, onOpenChange }: { person: PresenceRow | null; onO
           <DialogTitle>{out ? t("dawam.punchOutFor", { name: person.employee_name, defaultValue: `Punch ${person.employee_name} out` }) : t("dawam.punchInFor", { name: person.employee_name, defaultValue: `Punch ${person.employee_name} in` })}</DialogTitle>
           <DialogDescription>{t("dawam.punchHint", "Recorded now, marked as done by you. They're told, and can ask for a fix.")}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-1">
-          <Label htmlFor="punch-reason">{t("staff.reason", "Reason")}</Label>
-          <Input id="punch-reason" placeholder={t("dawam.punchReasonPlaceholder", "Phone died")} value={reason} onChange={(e) => setReason(e.target.value)} />
-        </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-          <Button disabled={busy || !reason.trim()} onClick={() => void save()}>{out ? t("dawam.punchOut", "Punch out") : t("dawam.punchIn", "Punch in")}</Button>
-        </DialogFooter>
+        <Form {...form}>
+          <form onSubmit={(e) => void save(e)} className="grid gap-3" noValidate>
+            <FormField
+              control={form.control}
+              name="reason"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("staff.reason", "Reason")}</FormLabel>
+                  <FormControl><Input placeholder={t("dawam.punchReasonPlaceholder", "Phone died")} {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
+              <Button type="submit" disabled={busy || !reason.trim()}>{out ? t("dawam.punchOut", "Punch out") : t("dawam.punchIn", "Punch in")}</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

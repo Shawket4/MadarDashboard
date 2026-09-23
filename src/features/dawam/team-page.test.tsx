@@ -110,6 +110,19 @@ describe("TeamPage", () => {
     await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f1", { action: "deduct", amount_piastres: 4_000 }));
   });
 
+  it("refuses a deduction of nothing, and sends nothing", async () => {
+    const user = userEvent.setup();
+    wrap(<TeamPage />);
+    await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
+    const dialog = await screen.findByRole("dialog");
+    const amount = within(dialog).getByLabelText("Deduct (EGP)");
+    await user.clear(amount);
+    await user.type(amount, "0");
+    await user.click(within(dialog).getByRole("button", { name: "Deduct" }));
+    expect(await within(dialog).findByText("Type an amount above zero")).toBeInTheDocument();
+    expect(resolveFlag).not.toHaveBeenCalled();
+  });
+
   it("revokes a new phone", async () => {
     const user = userEvent.setup();
     wrap(<TeamPage />);
