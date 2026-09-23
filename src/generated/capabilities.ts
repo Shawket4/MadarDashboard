@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "679bc717e26c4288";
+export const SPEC_HASH = "ac991e9eac60602f";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -208,6 +208,7 @@ export type Capability =
   | "hr.expense_advances.log"
   | "hr.roster.settings"
   | "hr.rules.edit"
+  | "hr.rules.view"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -405,6 +406,7 @@ export const Cap = {
   hrExpenseAdvancesLog: "hr.expense_advances.log" as Capability,
   hrRosterSettings: "hr.roster.settings" as Capability,
   hrRulesEdit: "hr.rules.edit" as Capability,
+  hrRulesView: "hr.rules.view" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -620,6 +622,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 234, key: "hr.expense_advances.log", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Log expense advances", ar: "تسجيل عُهد المصاريف", hintEn: "Cash handed over for shop purchases. A log only: never deducted from pay.", hintAr: "فلوس متسلمة لمشتريات المحل. سجل بس: عمره ما بيتخصم من المرتب." },
   { id: 235, key: "hr.roster.settings", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Change roster settings", ar: "تغيير إعدادات الجدول", hintEn: "How shift suggestions weigh defaults, including the gender default.", hintAr: "إزاي اقتراحات الورديات بتوزن الافتراضيات، ومنها افتراض النوع." },
   { id: 236, key: "hr.rules.edit", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Change attendance and pay rules", ar: "تغيير قواعد الحضور والمرتبات", hintEn: "The business-wide rules: lateness and absence costs, working days, overtime, the pay period and the advance cap. Needs every branch.", hintAr: "قواعد النشاط كله: خصم التأخير والغياب، أيام الشغل، الوقت الإضافي، فترة المرتب وحد السلف. محتاج كل الفروع." },
+  { id: 241, key: "hr.rules.view", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See attendance and pay rules", ar: "عرض قواعد الحضور والمرتبات", hintEn: "Read-only: the business's rules and the overrides of your branches. Changing them needs the owner.", hintAr: "للعرض بس: قواعد النشاط وتعديلات فروعك. تغييرها محتاج المالك." },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [
