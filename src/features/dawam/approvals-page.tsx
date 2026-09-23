@@ -49,6 +49,8 @@ export interface Pending {
   detail: string;
   at: string;
   approve: () => Promise<unknown> | void;
+  /** Its month is approved or paid: only a rejection goes through (month_closed). */
+  rejectOnly?: boolean;
   reject: () => Promise<unknown>;
 }
 
@@ -125,6 +127,7 @@ export function ApprovalsPage() {
         detail: [describeWindow(r, t), r.reason].filter(Boolean).join(" · "),
         at: r.created_at,
         approve: asksPay ? () => setPaying(r) : () => decideRequest(r.id, { status: "approved" }),
+        rejectOnly: !!r.month_closed,
         reject: () => decideRequest(r.id, { status: "rejected" }),
       });
     }
@@ -281,12 +284,14 @@ export function ApprovalsPage() {
               meta={i.detail}
               trailing={
                 <span className="flex items-center gap-1">
-                  <Button size="sm" variant="outline" onClick={() => {
-                    const r = i.approve();
-                    if (r instanceof Promise) void run(() => r);
-                  }}>
-                    <Check className="size-4" />{t("common.approve", "Approve")}
-                  </Button>
+                  {i.rejectOnly ? null : (
+                    <Button size="sm" variant="outline" onClick={() => {
+                      const r = i.approve();
+                      if (r instanceof Promise) void run(() => r);
+                    }}>
+                      <Check className="size-4" />{t("common.approve", "Approve")}
+                    </Button>
+                  )}
                   <Button size="sm" variant="ghost" aria-label={t("common.reject", "Reject")} onClick={() => void reject(i)}>
                     <X className="size-4" />
                   </Button>

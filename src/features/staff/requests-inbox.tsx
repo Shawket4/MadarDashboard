@@ -205,7 +205,8 @@ export function RequestsInboxPage() {
             const mine = isMine(r, own);
             // An approved correction already rewrote the punch: the server
             // refuses to cancel it (409), so it isn't offered.
-            const live = r.status === "pending" || (r.status === "approved" && r.kind !== "correction");
+            // Approved time in a closed month can't be cancelled either (month_closed).
+            const live = r.status === "pending" || (r.status === "approved" && r.kind !== "correction" && !r.month_closed);
             return (
               <ListRow
                 key={r.id}
@@ -225,10 +226,12 @@ export function RequestsInboxPage() {
                     </StatusPill>
                     {mayDecide(r, own) ? (
                       <>
-                        <Button size="sm" variant="outline" className="ms-2" onClick={() => void quickDecide(r, "approved")}>
-                          <Check className="size-4" />
-                          {t("common.approve", "Approve")}
-                        </Button>
+                        {r.month_closed ? null : (
+                          <Button size="sm" variant="outline" className="ms-2" onClick={() => void quickDecide(r, "approved")}>
+                            <Check className="size-4" />
+                            {t("common.approve", "Approve")}
+                          </Button>
+                        )}
                         <RowAction destructive label={t("common.reject", "Reject")} onClick={() => void quickDecide(r, "rejected")}>
                           <X className="size-4" />
                         </RowAction>
@@ -273,6 +276,10 @@ export function RequestBadges({ r, mine }: { r: StaffRequest; mine: boolean }) {
       ) : null}
       {mine ? <Badge variant="outline">{t("staff.yourRequest", "Yours — decided above you")}</Badge> : null}
       {r.to_owner ? <Badge variant="outline">{t("staff.toOwner", "For the owner")}</Badge> : null}
+      {/* A day of it is in an approved or paid month: approving is refused, rejecting isn't. */}
+      {r.month_closed && r.status === "pending" ? (
+        <Badge variant="outline">{t("staff.monthClosedRejectOnly", "Month closed: reject only")}</Badge>
+      ) : null}
     </>
   );
 }

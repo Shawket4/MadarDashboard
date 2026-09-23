@@ -109,6 +109,23 @@ describe("Requests inbox", () => {
     expect(within(rowOf("Youssef Adel")).getByRole("button", { name: "Approve" })).toBeInTheDocument();
   });
 
+  it("a request in a closed month offers Reject only, and says why (month_closed)", async () => {
+    rows = [
+      { ...LEAVE, id: "q5", employee_name: "Ziad Closed", month_closed: true, can_decide: true },
+      { ...APPROVED, id: "q6", employee_name: "Omar Closed", month_closed: true },
+    ];
+    const user = userEvent.setup();
+    renderPage();
+    const pending = rowOf("Ziad Closed");
+    expect(within(pending).queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+    expect(within(pending).getByText("Month closed: reject only")).toBeInTheDocument();
+    await user.click(within(pending).getByRole("button", { name: "Reject" }));
+    // Approved time in a closed month can't be cancelled.
+    expect(screen.getAllByText("Omar Closed").length).toBeGreaterThan(0);
+    const approvedRow = screen.getAllByText("Omar Closed")[0].closest("[data-slot], div")!.parentElement!;
+    expect(within(approvedRow.parentElement!).queryByRole("button", { name: /Cancel request/ })).not.toBeInTheDocument();
+  });
+
   it("approves leave only with a paid/unpaid answer (RQ-2, was sent with none)", async () => {
     const user = userEvent.setup();
     renderPage();

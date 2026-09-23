@@ -223,6 +223,15 @@ describe("ApprovalsPage", () => {
     expect(screen.getAllByRole("button", { name: "Approve" })).toHaveLength(1);
   });
 
+  it("a request in a closed month offers Reject only, with a note (month_closed)", async () => {
+    requestRows = [{ ...LEAVE, month_closed: true, can_decide: true }];
+    held = ["hr.leave.edit"];
+    wrap(<ApprovalsPage />);
+    expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reject" })).toBeInTheDocument();
+    expect(screen.getByText("Month closed: reject only")).toBeInTheDocument();
+  });
+
   it("shows a correction's proposed times against the record's punches, a half day and who decides", () => {
     requestRows = [
       { id: "q2", employee_id: "e1", employee_name: "Youssef Adel", kind: "correction", status: "pending", on_date: "2026-09-21", from_time: "09:00:00", to_time: "17:30:00", record_check_in_at: "2026-09-21T06:40:00Z", record_check_out_at: null, created_at: "2026-09-22T09:00:00Z" },

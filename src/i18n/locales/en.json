@@ -4533,7 +4533,8 @@
     "pickDate": "Pick a date",
     "reasonRequired": "Say why",
     "statusFromTimes": "From the times",
-    "timesInZone": "Times are the branch's clock ({{tz}})."
+    "timesInZone": "Times are the branch's clock ({{tz}}).",
+    "monthClosedRejectOnly": "Month closed: reject only"
   },
   "basira": {
     "title": "Basira",
