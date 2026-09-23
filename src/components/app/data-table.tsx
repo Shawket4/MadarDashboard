@@ -1,4 +1,4 @@
-import { Fragment, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
   type Column,
   type ColumnDef,
@@ -140,6 +140,8 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const uid = useId();
+  const titleId = (rowId: string) => `${uid}-title-${rowId}`;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -239,11 +241,12 @@ export function DataTable<TData, TValue>({
         )}
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 text-base font-semibold">
+          <div id={titleId(row.id)} className="min-w-0 text-base font-semibold">
             {titleCell ? flexRender(titleCell.column.columnDef.cell, titleCell.getContext()) : null}
           </div>
           {rowActions ? (
-            <div className="-me-2 -mt-1 flex shrink-0 items-center" onClick={(e) => e.stopPropagation()}>
+            // Above the row's stretched button (below), so the actions stay clickable.
+            <div className="relative z-10 -me-2 -mt-1 flex shrink-0 items-center" onClick={(e) => e.stopPropagation()}>
               {rowActions(row.original)}
             </div>
           ) : null}
@@ -381,7 +384,26 @@ export function DataTable<TData, TValue>({
           {loading
             ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)
             : rows.map((row) =>
-                onRowClick ? (
+                onRowClick && rowActions && !renderMobileCard ? (
+                  // A card with its own action buttons can't be one <button>
+                  // (a button inside a button is invalid HTML). The row's
+                  // button is stretched over the card instead, named by the
+                  // card's title, with the actions layered above it.
+                  <div
+                    key={row.id}
+                    className="relative rounded-2xl transition-transform duration-200 has-[>button:active]:scale-[0.99] motion-reduce:transition-none"
+                    onMouseEnter={() => onRowPrefetch?.(row.original)}
+                  >
+                    <button
+                      type="button"
+                      aria-labelledby={titleId(row.id)}
+                      onClick={() => onRowClick(row.original)}
+                      onFocus={() => onRowPrefetch?.(row.original)}
+                      className="absolute inset-0 z-[1] rounded-2xl focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                    />
+                    {renderPhoneCard(row)}
+                  </div>
+                ) : onRowClick ? (
                   <button
                     key={row.id}
                     type="button"

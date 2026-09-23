@@ -4,6 +4,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import "@/i18n";
 import { DataTable } from "./data-table";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: vi.fn(() => false) }));
 
 beforeAll(() => {
   // jsdom has no ResizeObserver
@@ -73,6 +76,30 @@ describe("DataTable states", () => {
     fireEvent.click(screen.getAllByRole("button", { name: /details/i })[0]);
     expect(screen.getByText("detail of Latte")).toBeInTheDocument();
     expect(onRowClick).not.toHaveBeenCalled();
+  });
+
+  it("on a phone never nests the row actions' buttons inside the row's button", () => {
+    // Phone cards: the row used to be a <button> wrapping every row action,
+    // invalid HTML React warns about (E2E: Employees' "End employment").
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    const onRowClick = vi.fn();
+    const act = vi.fn();
+    const { container } = render(
+      <DataTable
+        columns={columns}
+        data={rows}
+        getRowId={(r) => r.id}
+        onRowClick={onRowClick}
+        rowActions={(r) => <button type="button" onClick={act}>act {r.name}</button>}
+      />,
+    );
+    expect(container.querySelector("button button")).toBeNull();
+    fireEvent.click(screen.getByText("act Latte"));
+    expect(act).toHaveBeenCalledOnce();
+    expect(onRowClick).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Latte" }));
+    expect(onRowClick).toHaveBeenCalledWith(rows[0]);
+    vi.mocked(useIsMobile).mockReturnValue(false);
   });
 
   it("offers Load more only while there is more", () => {
