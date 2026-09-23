@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { GitBranch, Pencil, Plus, Shield, Trash2, Users as UsersIcon } from "lucide-react";
+import { BriefcaseBusiness, GitBranch, Pencil, Plus, Shield, Trash2, Users as UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -21,7 +21,9 @@ import { PersonAccessSheet } from "@/features/access/person-access-sheet";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { invalidateUsers } from "./util";
-import { deleteUser, useListUsers } from "@/data/api/generated/api";
+import { deleteUser, useLinkableUsers, useListUsers } from "@/data/api/generated/api";
+import { AddEmployeeDialog } from "@/features/dawam/add-employees";
+import { useOrgModules } from "@/hooks/use-org-modules";
 import type { UserPublic, UserRole } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { initials } from "@/lib/format";
@@ -50,6 +52,15 @@ export function UsersPage() {
   const editing = editId && editId !== "new" ? (users.find((u) => u.id === editId) ?? null) : null;
   const dlgOpen = editId === "new" || !!editing;
   const branchUser = s.branches ? (users.find((u) => u.id === s.branches) ?? null) : null;
+
+  // "Make employee" (Phase A): a POS user is not an employee until someone
+  // says so. Offered only where Dawam is on, to someone who may add staff,
+  // for users who aren't employees yet (the server's linkable list).
+  const dawamOn = useOrgModules().includes("dawam");
+  const canMakeEmployee = dawamOn && authz.can(Cap.hrStaffCreate);
+  const linkable = useLinkableUsers({ query: { enabled: canMakeEmployee } }).data;
+  const linkableIds = useMemo(() => new Set((linkable ?? []).map((l) => l.user_id)), [linkable]);
+  const [makeEmployee, setMakeEmployee] = useState<string | null>(null);
 
   const remove = async (u: UserPublic) => {
     if (await confirm({ title: t("users.deleteTitle", { name: u.name, defaultValue: `Delete ${u.name}'s account?` }), description: t("users.deleteDescription", "They can no longer sign in to the dashboard or the POS. Their past orders and shifts stay on record."), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
@@ -112,6 +123,9 @@ export function UsersPage() {
           <RowAction label={t("users.permissions", "Manage permissions")} onClick={() => update({ access: u.id })}><Shield className="size-4" /></RowAction>
         ) : null}
         {assignable ? <RowAction label={t("users.assignBranches", "Assign branches")} onClick={() => update({ branches: u.id })}><GitBranch className="size-4" /></RowAction> : null}
+        {canMakeEmployee && linkableIds.has(u.id) ? (
+          <RowAction label={t("dawam.makeEmployee", "Make employee")} onClick={() => setMakeEmployee(u.id)}><BriefcaseBusiness className="size-4" /></RowAction>
+        ) : null}
         {authz.can(Cap.staffUsersEdit) ? <RowAction label={t("common.edit", "Edit")} onClick={() => update({ edit: u.id })}><Pencil className="size-4" /></RowAction> : null}
         {authz.can(Cap.staffUsersDelete) ? <RowAction destructive label={t("common.delete", "Delete")} onClick={() => void remove(u)}><Trash2 className="size-4" /></RowAction> : null}
       </>
@@ -145,6 +159,7 @@ export function UsersPage() {
       />
       {dlgOpen ? <UserDialog orgId={orgId} user={editing} open={dlgOpen} onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}
       {accessUser ? <PersonAccessSheet user={accessUser} open onOpenChange={(o) => { if (!o) update({ access: undefined }); }} /> : null}
+      {makeEmployee ? <AddEmployeeDialog userId={makeEmployee} onOpenChange={(o) => { if (!o) setMakeEmployee(null); }} /> : null}
       {branchUser ? <BranchAssignDialog user={branchUser} open onOpenChange={(o) => { if (!o) update({ branches: undefined }); }} /> : null}
     </Page>
   );

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus, Trash2, UserRound, Users } from "lucide-react";
+import { Plus, Smartphone, Trash2, UserRound, UserX, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -21,9 +21,13 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  createDepartment, deleteDepartment, deleteEmployee,
-  useListDepartments, useListEmployees,
+  createDepartment, deleteDepartment, deleteEmployee, revokeDevice,
+  useListBranches, useListDepartments, useListEmployees,
 } from "@/data/api/generated/api";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+import { useOrgId } from "@/hooks/use-org-id";
+import { AddEmployeeDialog } from "@/features/dawam/add-employees";
 import type { Department, Employee } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate, fmtMoney } from "@/lib/format";
@@ -32,13 +36,27 @@ import { EMPLOYMENT_STATUS_TONE, invalidateDepartments, invalidateEmployees } fr
 
 const ALL = "__all__";
 
+const KIND_FALLBACK: Record<string, string> = {
+  linked: "Madar user",
+  app: "Staff app",
+  manual: "Records only",
+};
+
 export function EmployeesPage() {
   const { t } = useTranslation();
   const [status, setStatus] = useState<string>(ALL);
   const [department, setDepartment] = useState<string>(ALL);
   const [editing, setEditing] = useState<Employee | null>(null);
   const [deptOpen, setDeptOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
   const confirm = useConfirm();
+  const authz = useAuthz();
+  const canCreate = authz.can(Cap.hrStaffCreate);
+  const canEdit = authz.can(Cap.hrStaffEdit);
+  const canDelete = authz.can(Cap.hrStaffDelete);
+  const orgId = useOrgId();
+  const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
+  const branchName = useMemo(() => new Map((branchesQ.data ?? []).map((b) => [b.id, b.name])), [branchesQ.data]);
 
   const employeesQ = useListEmployees({
     employment_status: status === ALL ? undefined : status,
@@ -53,20 +71,39 @@ export function EmployeesPage() {
     (e) => e.base_salary_piastres !== null && e.base_salary_piastres !== undefined,
   );
 
+  // An employee with history is never deleted (AT-6): removing one ends
+  // their employment, signs their phone out and keeps every record.
   const remove = async (employee: Employee) => {
     const ok = await confirm({
-      title: t("staff.removeProfile", "Remove employee profile"),
+      title: t("staff.endEmploymentTitle", { name: employee.name, defaultValue: `End ${employee.name}'s employment?` }),
       description: t(
-        "staff.removeProfileHint",
-        "This removes their employment details only. The user account, their attendance history, and any generated payslips are kept.",
+        "staff.endEmploymentHint",
+        "They are marked terminated today and their phone is signed out. Attendance, payslips and any Madar login are kept.",
       ),
-      confirmLabel: t("common.remove", "Remove"),
+      confirmLabel: t("staff.endEmployment", "End employment"),
       destructive: true,
     });
     if (!ok) return;
     try {
       await deleteEmployee(employee.id);
-      toast.success(t("staff.profileRemoved", "Employee profile removed"));
+      toast.success(t("staff.employmentEnded", "Employment ended"));
+      void invalidateEmployees();
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
+  const revoke = async (employee: Employee) => {
+    const ok = await confirm({
+      title: t("dawam.revokeTitle", { name: employee.name, defaultValue: `Sign ${employee.name}'s phone out?` }),
+      description: t("dawam.revokeHint", "The phone is refused on its next request. They sign in again with a WhatsApp code."),
+      confirmLabel: t("dawam.revokePhoneShort", "Sign the phone out"),
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      await revokeDevice(employee.id);
+      toast.success(t("dawam.phoneRevoked", "Phone signed out"));
       void invalidateEmployees();
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -89,22 +126,61 @@ export function EmployeesPage() {
         ),
       },
       {
-        accessorKey: "employee_code",
-        header: t("staff.employeeCode", "Employee number"),
-        meta: { label: t("staff.employeeCode", "Employee number"), numeric: true, align: "start" },
-        cell: ({ row }) => row.original.employee_code ?? "—",
+        accessorKey: "kind",
+        header: t("staff.kind", "Kind"),
+        meta: { label: t("staff.kind", "Kind") },
+        cell: ({ row }) => (
+          <Badge variant="secondary" data-testid="employee-kind">
+            {t(`staff.kind_${row.original.kind}`, KIND_FALLBACK[row.original.kind] ?? row.original.kind)}
+          </Badge>
+        ),
+      },
+      {
+        id: "branches",
+        header: t("dawam.branches", "Branches"),
+        meta: { label: t("dawam.branches", "Branches") },
+        cell: ({ row }) =>
+          row.original.branch_ids.map((id) => branchName.get(id)).filter(Boolean).join("، ") || "—",
+      },
+      {
+        accessorKey: "phone",
+        header: t("dawam.whatsapp", "WhatsApp number"),
+        meta: { label: t("dawam.whatsapp", "WhatsApp number"), numeric: true, align: "start" },
+        cell: ({ row }) =>
+          row.original.phone ? <span dir="ltr" className="tabular-nums">+{row.original.phone.replace(/^\+/, "")}</span> : "—",
+      },
+      {
+        accessorKey: "app_access",
+        header: t("staff.appAccess", "Staff app"),
+        meta: { label: t("staff.appAccess", "Staff app") },
+        cell: ({ row }) =>
+          row.original.app_access ? t("staff.appAccessYes", "Yes") : t("staff.appAccessNo", "No"),
+      },
+      {
+        accessorKey: "role",
+        header: t("staff.madarRole", "Madar role"),
+        meta: { label: t("staff.madarRole", "Madar role") },
+        cell: ({ row }) => (row.original.role ? t(`roles.${row.original.role}`, row.original.role) : "—"),
+      },
+      {
+        id: "device",
+        header: t("staff.device", "Phone"),
+        meta: { label: t("staff.device", "Phone") },
+        cell: ({ row }) =>
+          row.original.device_model ? (
+            <div className="min-w-0">
+              <div className="truncate">{row.original.device_model}</div>
+              <div className="truncate text-xs text-muted-foreground">
+                {t("staff.deviceSince", { date: fmtDate(row.original.device_since), defaultValue: `since ${fmtDate(row.original.device_since)}` })}
+              </div>
+            </div>
+          ) : "—",
       },
       {
         accessorKey: "department_name",
         header: t("staff.department", "Department"),
         meta: { label: t("staff.department", "Department") },
         cell: ({ row }) => row.original.department_name ?? "—",
-      },
-      {
-        accessorKey: "hire_date",
-        header: t("staff.hireDate", "Hire date"),
-        meta: { label: t("staff.hireDate", "Hire date"), numeric: true },
-        cell: ({ row }) => fmtDate(row.original.hire_date),
       },
       {
         accessorKey: "employment_status",
@@ -128,21 +204,29 @@ export function EmployeesPage() {
     return base;
     // `remove` is stable enough for a row action; re-creating the columns on
     // every render would reset the table's internal state.
-  }, [t, showSalary]);
+  }, [t, showSalary, branchName]);
 
   return (
     <Page>
       <PageHeader
         title={t("staff.employees", "Employees")}
         description={t(
-          "staff.employeesSubtitle",
-          "Everyone on the payroll. An employee is a user account with an employment profile attached.",
+          "staff.employeesSubtitle2",
+          "Everyone who works here. Someone can be on the staff app, on the records only, or a Madar user who is also an employee.",
         )}
         actions={
-          <Button variant="outline" onClick={() => setDeptOpen(true)}>
-            <Users className="size-4" />
-            {t("staff.departments", "Departments")}
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setDeptOpen(true)}>
+              <Users className="size-4" />
+              {t("staff.departments", "Departments")}
+            </Button>
+            {canCreate ? (
+              <Button onClick={() => setAdding(true)}>
+                <Plus className="size-4" />
+                {t("dawam.addEmployee", "Add employee")}
+              </Button>
+            ) : null}
+          </>
         }
         below={
           <div className="flex flex-wrap gap-2">
@@ -174,11 +258,20 @@ export function EmployeesPage() {
         loading={employeesQ.isLoading}
         error={employeesQ.error}
         onRetry={() => void employeesQ.refetch()}
-        rowActions={(r) => (
-          <RowAction destructive label={t("staff.removeProfile", "Remove employee profile")} onClick={() => void remove(r)}>
-            <Trash2 className="size-4" />
-          </RowAction>
-        )}
+        rowActions={canEdit || canDelete ? (r) => (
+          <>
+            {canEdit && r.device_model ? (
+              <RowAction label={t("dawam.revokePhoneShort", "Sign the phone out")} onClick={() => void revoke(r)}>
+                <Smartphone className="size-4" />
+              </RowAction>
+            ) : null}
+            {canDelete && r.employment_status !== "terminated" ? (
+              <RowAction destructive label={t("staff.endEmployment", "End employment")} onClick={() => void remove(r)}>
+                <UserX className="size-4" />
+              </RowAction>
+            ) : null}
+          </>
+        ) : undefined}
         getRowId={(r) => r.id}
         onRowClick={(r) => setEditing(r)}
         searchPlaceholder={t("staff.searchEmployees", "Search employees…")}
@@ -187,12 +280,20 @@ export function EmployeesPage() {
             icon={UserRound}
             title={t("staff.noEmployees", "No employees yet")}
             description={t(
-              "staff.noEmployeesHint",
-              "Create user accounts under Users & Permissions, then open one here to add its employment details.",
+              "staff.noEmployeesHint2",
+              "Add someone who signs in to the staff app, someone on the records only, or make an existing Madar user an employee.",
             )}
+            action={canCreate ? (
+              <Button onClick={() => setAdding(true)}>
+                <Plus className="size-4" />
+                {t("dawam.addEmployee", "Add employee")}
+              </Button>
+            ) : undefined}
           />
         }
       />
+
+      {adding ? <AddEmployeeDialog onOpenChange={(o) => !o && setAdding(false)} /> : null}
 
       <EmployeeDialog employee={editing} open={!!editing} onOpenChange={(o) => !o && setEditing(null)} />
 

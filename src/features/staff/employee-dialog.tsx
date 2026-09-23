@@ -16,21 +16,27 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { putEmployee, revokeDevice, useListDepartments } from "@/data/api/generated/api";
+import { Checkbox } from "@/components/ui/checkbox";
+import { putEmployee, revokeDevice, useListBranches, useListDepartments } from "@/data/api/generated/api";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+import { useOrgId } from "@/hooks/use-org-id";
+import { PHONE_RAW_MAX, canonicalPhone, isValidPhone } from "@/lib/phone";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import type { Employee } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { egpToPiastres, piastresToEgp } from "@/lib/format";
+import { egpToPiastres, fmtDate, piastresToEgp } from "@/lib/format";
+import { BranchChecklist } from "./branch-checklist";
 import { invalidateEmployees } from "./util";
 
 const NONE = "__none__";
 
 /**
- * Edit one employee's HR profile.
- *
- * Name, email, phone, and role are NOT here — an employee IS a user, and those
- * live on the user account (Users & Permissions). This dialog only writes the
- * `staff_profiles` side, which is also what promotes a plain login to staff.
+ * Edit one employee (Phase A: an employee is their own record, optionally
+ * linked to a Madar user). Name, WhatsApp number, staff-app access and
+ * branches are the employee's; a linked person's login and role stay on their
+ * user account (Users & Permissions). A new number, app access off, or any
+ * status but active signs their phone out (RO-10).
  *
  * Salary is entered in EGP and sent in piastres. When the caller lacks
  * `payroll:read` the API returns `base_salary_piastres: null`; the field is
@@ -49,14 +55,26 @@ export function EmployeeDialog({
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const confirm = useConfirm();
+  const authz = useAuthz();
+  const canRevoke = authz.can(Cap.hrStaffEdit);
+  const orgId = useOrgId();
   const departmentsQ = useListDepartments({ query: { enabled: open } });
-  const canSeeSalary = employee?.base_salary_piastres !== null
+  const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: open && !!orgId } }).data ?? [];
+  // Shown and sent only to someone who may set it (hr.payroll.edit): the
+  // server ignores it from anyone else, and an ignored box is a lie.
+  const canEditSalary = authz.can(Cap.hrPayrollEdit);
+  const canSeeSalary = canEditSalary
+    && employee?.base_salary_piastres !== null
     && employee?.base_salary_piastres !== undefined;
 
   const schema = useMemo(
     () =>
       z
         .object({
+          name: z.string().trim().min(1, t("dawam.nameRequired", "A name is needed")).max(120),
+          phone: z.string().max(PHONE_RAW_MAX),
+          app_access: z.boolean(),
+          branch_ids: z.array(z.string()).min(1, t("dawam.pickBranchError", "Pick at least one branch")),
           department_id: z.string(),
           employee_code: z.string().max(64),
           job_title: z.string().max(120),
@@ -77,6 +95,14 @@ export function EmployeeDialog({
         .refine((v) => v.employment_status !== "terminated" || v.termination_date !== "", {
           path: ["termination_date"],
           message: t("staff.terminationDateRequired", "A terminated employee needs a termination date"),
+        })
+        .refine((v) => !v.phone.trim() || isValidPhone(v.phone), {
+          path: ["phone"],
+          message: t("dawam.badPhone", "Not a phone number"),
+        })
+        .refine((v) => !v.app_access || !!v.phone.trim(), {
+          path: ["phone"],
+          message: t("dawam.phoneForApp", "The staff app needs their WhatsApp number"),
         }),
     [t],
   );
@@ -85,6 +111,7 @@ export function EmployeeDialog({
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: {
+      name: "", phone: "", app_access: false, branch_ids: [],
       department_id: NONE, employee_code: "", job_title: "", hire_date: "",
       employment_status: "active", termination_date: "", base_salary_egp: 0,
       national_id: "", emergency_contact_name: "", emergency_contact_phone: "", notes: "",
@@ -97,6 +124,10 @@ export function EmployeeDialog({
   useEffect(() => {
     if (!employee || !open) return;
     form.reset({
+      name: employee.name,
+      phone: employee.phone ?? "",
+      app_access: employee.app_access,
+      branch_ids: employee.branch_ids,
       department_id: employee.department_id ?? NONE,
       employee_code: employee.employee_code ?? "",
       job_title: employee.job_title ?? "",
@@ -128,6 +159,7 @@ export function EmployeeDialog({
     try {
       await revokeDevice(employee.id);
       toast.success(t("dawam.phoneRevoked", "Phone signed out"));
+      void invalidateEmployees();
     } catch (e) {
       toast.error(getErrorMessage(e));
     }
@@ -138,6 +170,11 @@ export function EmployeeDialog({
     setBusy(true);
     try {
       await putEmployee(employee.id, {
+        name: v.name.trim(),
+        // Empty clears it; the server signs the old phone out on a change.
+        phone: v.phone.trim() ? canonicalPhone(v.phone) : "",
+        app_access: v.app_access,
+        branch_ids: v.branch_ids,
         department_id: v.department_id === NONE ? null : v.department_id,
         employee_code: v.employee_code || null,
         job_title: v.job_title || null,
@@ -171,15 +208,71 @@ export function EmployeeDialog({
         <DialogHeader>
           <DialogTitle>{employee?.name ?? t("staff.employee", "Employee")}</DialogTitle>
           <DialogDescription>
-            {t(
-              "staff.employeeDialogSubtitle",
-              "Employment details. Name, login, and role are managed under Users & Permissions.",
-            )}
+            {employee?.user_id
+              ? t("staff.employeeDialogLinked", "Also a Madar user: their login and role are managed under Users & Permissions.")
+              : t("staff.employeeDialogUnlinked", "On the staff records only; no Madar login.")}
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(submit)} className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("staff.name", "Name")}</FormLabel>
+                  <FormControl><Input {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("dawam.whatsapp", "WhatsApp number")}</FormLabel>
+                  <FormControl><Input type="tel" inputMode="tel" dir="ltr" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="app_access"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-2">
+                  <div className="flex items-center gap-2">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={(c) => field.onChange(c === true)} />
+                    </FormControl>
+                    <FormLabel className="font-normal">{t("dawam.appAccessLabel", "May sign in to the staff app")}</FormLabel>
+                  </div>
+                  <FormDescription>
+                    {employee?.device_model
+                      ? t("dawam.deviceSince", {
+                          model: employee.device_model,
+                          since: fmtDate(employee.device_since),
+                          defaultValue: `Signed in on ${employee.device_model} since ${fmtDate(employee.device_since)}`,
+                        })
+                      : t("dawam.noDevice", "No phone signed in.")}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="branch_ids"
+              render={({ field, fieldState }) => (
+                <FormItem className="sm:col-span-2">
+                  <FormLabel>{t("dawam.branches", "Branches")}</FormLabel>
+                  <BranchChecklist branches={branches} value={field.value} onChange={field.onChange} invalid={!!fieldState.error} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="job_title"
@@ -377,9 +470,11 @@ export function EmployeeDialog({
             />
 
             <DialogFooter className="sm:col-span-2">
-              <Button type="button" variant="outline" className="me-auto" onClick={() => void revokePhone()}>
-                {t("dawam.revokePhoneShort", "Sign the phone out")}
-              </Button>
+              {canRevoke && employee?.device_model ? (
+                <Button type="button" variant="outline" className="me-auto" onClick={() => void revokePhone()}>
+                  {t("dawam.revokePhoneShort", "Sign the phone out")}
+                </Button>
+              ) : null}
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 {t("common.cancel", "Cancel")}
               </Button>

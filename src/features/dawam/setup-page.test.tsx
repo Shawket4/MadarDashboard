@@ -44,6 +44,7 @@ vi.mock("@/data/api/generated/api", () => ({
   useListEmployees: () => ({ data: data.employees }),
   useListWorkShifts: () => ({ data: data.shifts }),
   useGetAttendanceSettings: () => ({ data: data.settings }),
+  useLinkableUsers: () => ({ data: [] }),
   createEmployee: vi.fn(),
 }));
 

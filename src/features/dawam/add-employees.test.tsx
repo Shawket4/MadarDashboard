@@ -26,8 +26,11 @@ vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateStaff: vi.fn() };
 });
+let caps: string[] = ["hr.payroll.edit"];
+vi.mock("@/data/authz/use-authz", () => ({ useAuthz: () => ({ can: (c: string) => caps.includes(c) }) }));
 vi.mock("@/data/api/generated/api", () => ({
   useListBranches: () => ({ data: [{ id: "b1", name: "Zamalek" }, { id: "b2", name: "Maadi" }] }),
+  useLinkableUsers: () => ({ data: [{ user_id: "u9", name: "Karim", role: "teller", phone: "201009998887" }] }),
   createEmployee: (b: unknown) => createEmployee(b),
 }));
 
@@ -41,24 +44,28 @@ const conflict = (msg: string) =>
     status: 409, statusText: "Conflict", headers: {}, config: { headers: new AxiosHeaders() }, data: { error: msg },
   });
 
-beforeEach(() => createEmployee.mockReset().mockResolvedValue({}));
+beforeEach(() => {
+  createEmployee.mockReset().mockResolvedValue({});
+  caps = ["hr.payroll.edit"];
+});
 
 describe("Add employee", () => {
-  it("sends name, canonical WhatsApp number, branch and salary in piastres", async () => {
+  it("a staff-app person: name, canonical WhatsApp number, branches and salary in piastres", async () => {
     const user = userEvent.setup();
     const close = vi.fn();
     wrap(<AddEmployeeDialog onOpenChange={close} />);
     const add = screen.getByRole("button", { name: "Add employee" });
     await user.type(screen.getByLabelText("Name"), "Sara Ahmed");
     await user.type(screen.getByLabelText("WhatsApp number"), "0100 123 4567");
-    expect(add).toBeDisabled(); // no branch yet
-    await user.click(screen.getByRole("combobox", { name: "Branch" }));
-    await user.click(await screen.findByRole("option", { name: "Maadi" }));
+    await waitFor(() => expect(add).toBeDisabled()); // no branch yet
+    await user.click(screen.getByRole("checkbox", { name: "Maadi" }));
     await user.type(screen.getByLabelText("Monthly salary (EGP)"), "9000.5");
+    await waitFor(() => expect(add).toBeEnabled());
     await user.click(add);
     await waitFor(() =>
       expect(createEmployee).toHaveBeenCalledWith({
-        name: "Sara Ahmed", phone: "201001234567", branch_id: "b2", base_salary_piastres: 900_050, job_title: null, gender: null,
+        name: "Sara Ahmed", phone: "201001234567", app_access: true, branch_ids: ["b2"],
+        base_salary_piastres: 900_050, job_title: null, hire_date: null, gender: null,
       }),
     );
     expect(close).toHaveBeenCalledWith(false);
@@ -69,8 +76,68 @@ describe("Add employee", () => {
     wrap(<AddEmployeeDialog onOpenChange={vi.fn()} />);
     await user.type(screen.getByLabelText("Name"), "Omar");
     await user.type(screen.getByLabelText("WhatsApp number"), "12");
-    expect(screen.getByText(/isn't a phone number/)).toBeInTheDocument();
+    expect(await screen.findByText(/isn't a phone number/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Add employee" })).toBeDisabled();
+  });
+
+  it("a records-only person needs no number and gets no app access", async () => {
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog onOpenChange={vi.fn()} />);
+    await user.click(screen.getByRole("radio", { name: "Records only" }));
+    await user.type(screen.getByLabelText("Name"), "Hassan");
+    await user.click(screen.getByRole("checkbox", { name: "Zamalek" }));
+    await user.click(screen.getByRole("checkbox", { name: "Maadi" }));
+    await user.type(screen.getByLabelText("Hire date"), "2026-09-01");
+    const add = screen.getByRole("button", { name: "Add employee" });
+    await waitFor(() => expect(add).toBeEnabled());
+    await user.click(add);
+    await waitFor(() =>
+      expect(createEmployee).toHaveBeenCalledWith({
+        name: "Hassan", phone: null, app_access: false, branch_ids: ["b1", "b2"],
+        job_title: null, hire_date: "2026-09-01", gender: null,
+      }),
+    );
+  });
+
+  it("a staff-app person without a number is refused", async () => {
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog onOpenChange={vi.fn()} />);
+    await user.type(screen.getByLabelText("Name"), "Omar");
+    await user.click(screen.getByRole("checkbox", { name: "Zamalek" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Add employee" })).toBeDisabled());
+  });
+
+  it("no salary field without hr.payroll.edit, and none sent", async () => {
+    caps = [];
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog onOpenChange={vi.fn()} />);
+    expect(screen.queryByLabelText("Monthly salary (EGP)")).toBeNull();
+    await user.type(screen.getByLabelText("Name"), "Sara");
+    await user.type(screen.getByLabelText("WhatsApp number"), "01001234567");
+    await user.click(screen.getByRole("checkbox", { name: "Zamalek" }));
+    await user.click(screen.getByRole("button", { name: "Add employee" }));
+    await waitFor(() => expect(createEmployee).toHaveBeenCalled());
+    expect(createEmployee.mock.calls[0][0]).not.toHaveProperty("base_salary_piastres");
+  });
+
+  it("makes an existing user an employee (linked): sends user_id, not a name", async () => {
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog userId="u9" onOpenChange={vi.fn()} />);
+    expect(screen.getByRole("heading", { name: "Make employee" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Name")).toBeNull();
+    // Their account's number is the default.
+    await waitFor(() => expect(screen.getByLabelText("WhatsApp number")).toHaveValue("201009998887"));
+    await user.click(screen.getByRole("checkbox", { name: "May sign in to the staff app" }));
+    await user.click(screen.getByRole("checkbox", { name: "Maadi" }));
+    const make = screen.getByRole("button", { name: "Make employee" });
+    await waitFor(() => expect(make).toBeEnabled());
+    await user.click(make);
+    await waitFor(() =>
+      expect(createEmployee).toHaveBeenCalledWith({
+        user_id: "u9", phone: "201009998887", app_access: true, branch_ids: ["b2"],
+        job_title: null, hire_date: null, gender: null,
+      }),
+    );
   });
 });
 
@@ -92,7 +159,7 @@ describe("Import from a spreadsheet", () => {
 
     await user.click(screen.getByRole("button", { name: "Add 2" }));
     await waitFor(() => expect(createEmployee).toHaveBeenCalledTimes(2));
-    expect(createEmployee).toHaveBeenCalledWith({ name: "Sara Ahmed", phone: "201001234567", branch_id: "b1", base_salary_piastres: 900_000 });
+    expect(createEmployee).toHaveBeenCalledWith({ name: "Sara Ahmed", phone: "201001234567", app_access: true, branch_ids: ["b1"], base_salary_piastres: 900_000 });
     expect(await within(screen.getByTestId("import-row-2")).findByText("Added")).toBeInTheDocument();
     expect(within(screen.getByTestId("import-row-3")).getByText(/already has the number/)).toBeInTheDocument();
     expect(within(screen.getByTestId("import-row-4")).getByText("Skipped")).toBeInTheDocument();
