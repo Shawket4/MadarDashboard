@@ -45,7 +45,7 @@ const KINDS: { value: string; icon: LucideIcon; labelKey: string; fallback: stri
   { value: "mission", icon: Plane, labelKey: "staff.kindMission", fallback: "Mission" },
 ];
 
-const kindMeta = (kind: string) => KINDS.find((k) => k.value === kind) ?? KINDS[0];
+export const kindMeta = (kind: string) => KINDS.find((k) => k.value === kind) ?? KINDS[0];
 
 /**
  * One queue for every kind of request. Approving here is what stops the penalty
@@ -201,7 +201,7 @@ export function RequestsInboxPage() {
 }
 
 /** "10 Sep → 12 Sep", "arriving by 10:00", "12:00–14:00 on 4 Sep". */
-function describeWindow(r: StaffRequest, t: TFunction): string {
+export function describeWindow(r: StaffRequest, t: TFunction): string {
   const time = (s?: string | null) => (s ? s.slice(0, 5) : "");
   switch (r.kind) {
     case "late_arrival":
@@ -228,7 +228,7 @@ function describeWindow(r: StaffRequest, t: TFunction): string {
 }
 
 /** Approving a window kind asks the one extra question that matters: paid or not. */
-function ApproveWithPayDialog({
+export function ApproveWithPayDialog({
   request,
   onOpenChange,
 }: {

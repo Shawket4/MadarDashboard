@@ -12,11 +12,13 @@ export function SegmentedControl<V extends string>({
   onChange,
   options,
   className,
+  disabled,
 }: {
   value: V;
   onChange: (value: V) => void;
   options: SegmentedOption<V>[];
   className?: string;
+  disabled?: boolean;
 }) {
   return (
     <div role="radiogroup" className={cn("flex w-fit max-w-full overflow-x-auto rounded-[10px] bg-secondary p-[3px] no-scrollbar", className)}>
@@ -26,9 +28,10 @@ export function SegmentedControl<V extends string>({
           type="button"
           role="radio"
           aria-checked={value === opt.value}
+          disabled={disabled}
           onClick={() => onChange(opt.value)}
           className={cn(
-            "h-8 whitespace-nowrap rounded-[8px] px-3 text-sm font-medium transition-colors duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+            "h-8 whitespace-nowrap rounded-[8px] px-3 text-sm font-medium transition-colors duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-60",
             value === opt.value
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:bg-accent hover:text-foreground",

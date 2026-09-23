@@ -22,6 +22,12 @@ export interface UpdateOrgRequest {
      * @nullable
      */
   logo_url?: string | null;
+  /**
+     * `pos`, `dawam`: at least one (PS-2, SA-5). Super admin only, like the
+     * rest of this endpoint.
+     * @nullable
+     */
+  modules?: string[] | null;
   /** @nullable */
   name?: string | null;
   /** @nullable */

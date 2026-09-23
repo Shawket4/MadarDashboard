@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ImageUploader } from "@/components/app/image-uploader";
 import { TimezoneSelect } from "@/components/app/timezone-select";
@@ -65,6 +66,8 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         timezone: z.string().min(1, t("common.requiredField", "This field is required")),
         is_active: z.boolean(),
         custom_branding: z.boolean(),
+        // PS-2 / SA-5: at least one; switching one off hides it, keeps every record.
+        modules: z.array(z.enum(["pos", "dawam"])).min(1, t("dawam.modulesAtLeastOne", "Pick at least one module")),
         tax_inclusive: z.boolean(),
         // A percent here too, for the same reason the tax rate is.
         service_charge_rate: z.coerce
@@ -81,7 +84,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, require_table_for_orders: false, social: socialLinksToForm(null) },
+    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, modules: ["pos", "dawam"], tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, require_table_for_orders: false, social: socialLinksToForm(null) },
   });
 
   useEffect(() => {
@@ -98,6 +101,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         timezone: org?.timezone ?? "Africa/Cairo",
         is_active: org?.is_active ?? true,
         custom_branding: org?.custom_branding ?? false,
+        modules: (org?.modules ?? ["pos", "dawam"]).filter((m): m is "pos" | "dawam" => m === "pos" || m === "dawam"),
         tax_inclusive: org?.tax_inclusive ?? false,
         service_charge_rate: fractionToPercent(org?.service_charge_rate),
         service_charge_taxable: org?.service_charge_taxable ?? true,
@@ -118,6 +122,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
           name: v.name, slug: v.slug, currency_code: v.currency_code,
           tax_rate: percentToFraction(v.tax_rate), receipt_footer: v.receipt_footer || null, timezone: v.timezone, is_active: v.is_active,
           custom_branding: v.custom_branding,
+          modules: v.modules,
           tax_inclusive: v.tax_inclusive,
           service_charge_rate: percentToFraction(v.service_charge_rate),
           service_charge_taxable: v.service_charge_taxable,
@@ -312,6 +317,29 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
                 </p>
               </FormItem>
             )} />
+
+            {editing ? (
+              <FormField control={form.control} name="modules" render={({ field }) => (
+                <FormItem className="rounded-lg bg-muted p-3">
+                  <FormLabel>{t("dawam.modules", "Modules")}</FormLabel>
+                  <div className="flex flex-wrap gap-4">
+                    {(["pos", "dawam"] as const).map((m) => (
+                      <label key={m} className="flex items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={field.value.includes(m)}
+                          onCheckedChange={(on) => field.onChange(on ? [...field.value, m] : field.value.filter((x) => x !== m))}
+                        />
+                        {m === "pos" ? t("dawam.modulePos", "Madar POS") : t("dawam.moduleDawam", "Dawam (staff)")}
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("dawam.modulesHint", "Switching a module off hides its pages and keeps every record.")}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            ) : null}
 
             {/* Editable here as well as in the shop's own brand settings: an
                 org manager owns their links, and support has to be able to fix

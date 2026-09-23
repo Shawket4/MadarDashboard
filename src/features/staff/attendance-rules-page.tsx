@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { Page, PageHeader } from "@/components/app/page";
 import { ErrorState } from "@/components/app/empty-state";
 import { RowAction } from "@/features/users/row-action";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,7 +19,10 @@ import {
 import { putAttendanceSettings, useGetAttendanceSettings } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
-import { invalidateAttendance, WEEKDAYS } from "./util";
+import { invalidateAttendance } from "./util";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+import { DawamRulesCard, DEFAULT_RULES, rulesFrom, rulesRequest, type DawamRules } from "@/features/dawam/rules-card";
 
 /** One rung of the late-penalty ladder, in the shape the API stores. */
 interface Tier {
@@ -43,6 +45,7 @@ export function AttendanceRulesPage() {
   const { t } = useTranslation();
   const query = useGetAttendanceSettings({});
   const [busy, setBusy] = useState(false);
+  const canGender = useAuthz().can(Cap.hrRosterSettings);
 
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [absenceDays, setAbsenceDays] = useState("1");
@@ -51,7 +54,7 @@ export function AttendanceRulesPage() {
   const [autoBuffer, setAutoBuffer] = useState("120");
   const [requireGeofence, setRequireGeofence] = useState(true);
   const [excusedPaid, setExcusedPaid] = useState(true);
-  const [weekend, setWeekend] = useState<number[]>([5, 6]);
+  const [dawam, setDawam] = useState<DawamRules>(DEFAULT_RULES);
 
   useEffect(() => {
     const s = query.data;
@@ -63,7 +66,7 @@ export function AttendanceRulesPage() {
     setAutoBuffer(String(s.auto_checkout_buffer_minutes ?? 120));
     setRequireGeofence(s.require_geofence ?? true);
     setExcusedPaid(s.excused_time_paid_default ?? true);
-    setWeekend(s.weekend_days ?? [5, 6]);
+    setDawam(rulesFrom(s));
   }, [query.data]);
 
   /**
@@ -102,9 +105,15 @@ export function AttendanceRulesPage() {
       toast.error(tierError);
       return;
     }
+    const dawamReq = rulesRequest(dawam, canGender);
+    if ("error" in dawamReq) {
+      toast.error(t(dawamReq.error));
+      return;
+    }
     setBusy(true);
     try {
       await putAttendanceSettings({
+        ...dawamReq.ok,
         late_deduction_tiers: tiers,
         absence_deduction_days: Number(absenceDays),
         default_overtime_multiplier: Number(otMultiplier),
@@ -112,7 +121,6 @@ export function AttendanceRulesPage() {
         auto_checkout_buffer_minutes: Number(autoBuffer),
         require_geofence: requireGeofence,
         excused_time_paid_default: excusedPaid,
-        weekend_days: weekend,
       });
       toast.success(t("staff.rulesSaved", "Rules saved"));
       void invalidateAttendance();
@@ -158,6 +166,12 @@ export function AttendanceRulesPage() {
           </Button>
         }
       />
+
+      {query.data && !query.data.rules_saved_at ? (
+        <p role="status" className="rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm font-medium">
+          {t("dawam.rulesFirstTitle", "Save the rules before anyone can clock in")}
+        </p>
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -320,35 +334,9 @@ export function AttendanceRulesPage() {
               </div>
               <Switch id="ar-excused" checked={excusedPaid} onCheckedChange={setExcusedPaid} />
             </div>
-            <div className="space-y-2">
-              <Label>{t("staff.weekendDays", "Weekend")}</Label>
-              <div className="flex flex-wrap gap-1.5">
-                {WEEKDAYS.map((d) => {
-                  const on = weekend.includes(d.value);
-                  return (
-                    <button
-                      type="button"
-                      key={d.value}
-                      aria-pressed={on}
-                      className={cn(
-                        "h-8 min-w-12 rounded-full border px-3 text-xs font-medium transition-colors duration-150 select-none motion-reduce:transition-none",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-                        on ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
-                      )}
-                      onClick={() =>
-                        setWeekend(
-                          on ? weekend.filter((w) => w !== d.value) : [...weekend, d.value].sort(),
-                        )
-                      }
-                    >
-                      {t(d.labelKey, d.fallback)}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </CardContent>
         </Card>
+        <DawamRulesCard value={dawam} onChange={setDawam} canGender={canGender} />
       </div>
     </Page>
   );

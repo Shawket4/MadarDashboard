@@ -24,6 +24,16 @@ export interface AttendanceRecord {
   check_out_longitude?: number | null;
   /** @nullable */
   check_out_method?: string | null;
+  /**
+     * `pending` · `confirmed` · `rejected` for a cover.
+     * @nullable
+     */
+  cover_status?: string | null;
+  /**
+     * A cover: whose shift this person worked (CV-*).
+     * @nullable
+     */
+  covered_user_id?: string | null;
   created_at: string;
   /** @nullable */
   created_by?: string | null;
@@ -39,11 +49,22 @@ export interface AttendanceRecord {
   notes?: string | null;
   org_id: string;
   overtime_minutes: number;
+  /**
+     * `pending` · `approved` · `rejected` when overtime needs a decision.
+     * @nullable
+     */
+  overtime_status?: string | null;
+  /**
+     * Why someone else punched for this person.
+     * @nullable
+     */
+  punch_reason?: string | null;
   /** @nullable */
   scheduled_end_at?: string | null;
   /** @nullable */
   scheduled_start_at?: string | null;
   status: string;
+  tracking_off: boolean;
   updated_at: string;
   user_id: string;
   /** @nullable */

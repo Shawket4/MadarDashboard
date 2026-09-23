@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/command";
 import { NAV, isParent, leafVisible, type NavLeaf } from "@/config/nav";
 import { useAuthz } from "@/data/authz/use-authz";
+import { useOrgModules } from "@/hooks/use-org-modules";
+import { useSetupProgress } from "@/features/dawam/setup";
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
 
 export function CommandPalette() {
@@ -22,7 +24,9 @@ export function CommandPalette() {
   const prefetch = useRoutePrefetch();
   const [open, setOpen] = useState(false);
   const authz = useAuthz();
-  const visible = (leaf: NavLeaf) => leafVisible(leaf, authz);
+  const modules = useOrgModules();
+  const setup = useSetupProgress(authz.owner && modules.includes("dawam"));
+  const visible = (leaf: NavLeaf) => leafVisible(leaf, authz, modules, setup.ready && !setup.complete);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

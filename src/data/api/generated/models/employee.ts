@@ -21,6 +21,11 @@ export interface Employee {
   /** @nullable */
   employee_code?: string | null;
   employment_status: string;
+  /**
+     * `m` · `f` · null — only ever a soft default for late shifts (SC-13).
+     * @nullable
+     */
+  gender?: string | null;
   /** @nullable */
   hire_date?: string | null;
   is_active: boolean;
@@ -36,6 +41,10 @@ export interface Employee {
   /** @nullable */
   notes?: string | null;
   org_id: string;
+  /** @nullable */
+  pay_account?: string | null;
+  /** `cash` · `bank` · `wallet` */
+  pay_method: string;
   /** @nullable */
   phone?: string | null;
   /** @nullable */

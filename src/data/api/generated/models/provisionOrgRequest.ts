@@ -7,6 +7,11 @@ export interface ProvisionOrgRequest {
   branch: ProvisionBranch;
   /** @nullable */
   currency_code?: string | null;
+  /**
+     * `pos`, `dawam`; default both. A Dawam-only customer is `["dawam"]` (SA-1).
+     * @nullable
+     */
+  modules?: string[] | null;
   name: string;
   owner: ProvisionOwner;
   slug: string;

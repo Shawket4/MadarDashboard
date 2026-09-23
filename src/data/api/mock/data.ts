@@ -76,6 +76,7 @@ export const MOCK_ORG: Org = {
   receipt_footer: "Thank you — see you again soon.",
   is_active: true,
   custom_branding: true,
+  modules: ["pos", "dawam"],
   social_links: {
     instagram: "https://instagram.com/madarcoffee",
     whatsapp: "https://wa.me/201000000000",

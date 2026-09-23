@@ -7,6 +7,8 @@ export interface Payslip {
   base_salary_piastres: number;
   bonuses_piastres: number;
   breakdown: unknown;
+  /** What deductions exceeded pay by; carried into the next payslip (PAY-12). */
+  carry_out_piastres: number;
   deductions_piastres: number;
   generated_at: string;
   id: string;
@@ -16,6 +18,13 @@ export interface Payslip {
   org_id: string;
   overtime_minutes: number;
   overtime_piastres: number;
+  /** @nullable */
+  paid_at?: string | null;
+  /**
+     * Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.
+     * @nullable
+     */
+  paid_method?: string | null;
   payroll_period_id: string;
   /** @nullable */
   period_end?: string | null;

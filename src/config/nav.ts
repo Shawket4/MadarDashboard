@@ -49,7 +49,14 @@ export interface NavLeaf {
   /** Visible when the person holds ANY of these capabilities (sidebar +
    *  command palette). Omitted = visible to everyone signed in. Never a role. */
   caps?: Capability[];
+  /** The org module this page belongs to (PS-2). Omitted = every org. */
+  module?: OrgModule;
+  /** The owner's set-up checklist (SA-4): shown only while it is incomplete. */
+  setup?: boolean;
 }
+
+/** `pos` = selling, catalog, stock and their reports; `dawam` = attendance, roster, payroll. */
+export type OrgModule = "pos" | "dawam";
 
 export interface NavParent {
   labelKey: string;
@@ -74,17 +81,17 @@ export const NAV: NavGroup[] = [
   {
     labelKey: "nav.overview",
     fallback: "Overview",
-    entries: [{ to: "/", labelKey: "nav.dashboard", fallback: "Dashboard", icon: LayoutDashboard }],
+    entries: [{ module: "pos", to: "/", labelKey: "nav.dashboard", fallback: "Dashboard", icon: LayoutDashboard }],
   },
   {
     labelKey: "nav.sell",
     fallback: "Sell",
     entries: [
-      { caps: [Cap.ordersRead], to: "/orders", labelKey: "nav.orders", fallback: "Orders", icon: Receipt },
-      { caps: [Cap.floorLayoutRead], to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
-      { caps: [Cap.bookingsRead], to: "/bookings", labelKey: "nav.bookings", fallback: "Bookings", icon: CalendarClock },
-      { caps: [Cap.tillRead], to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
-      { caps: [Cap.customersView], to: "/customers", labelKey: "nav.customers", fallback: "Customers", icon: Contact },
+      { caps: [Cap.ordersRead], module: "pos", to: "/orders", labelKey: "nav.orders", fallback: "Orders", icon: Receipt },
+      { caps: [Cap.floorLayoutRead], module: "pos", to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
+      { caps: [Cap.bookingsRead], module: "pos", to: "/bookings", labelKey: "nav.bookings", fallback: "Bookings", icon: CalendarClock },
+      { caps: [Cap.tillRead], module: "pos", to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
+      { caps: [Cap.customersView], module: "pos", to: "/customers", labelKey: "nav.customers", fallback: "Customers", icon: Contact },
     ],
   },
   {
@@ -97,22 +104,22 @@ export const NAV: NavGroup[] = [
         icon: UtensilsCrossed,
         basePath: "/menu",
         children: [
-          { caps: [Cap.menuItemsRead], to: "/menu/items", labelKey: "nav.items", fallback: "Items", icon: CupSoda },
-          { caps: [Cap.menuItemsRead], to: "/menu/groups", labelKey: "nav.choiceGroups", fallback: "Choice groups", icon: ListChecks },
-          { caps: [Cap.menuItemsEdit], to: "/menu/pricing", labelKey: "nav.pricingAvailability", fallback: "Pricing & Availability", icon: SlidersHorizontal },
-          { caps: [Cap.menuItemsRead], to: "/menu/bases", labelKey: "nav.recipeBases", fallback: "Recipe bases", icon: Layers },
-          { caps: [Cap.menuItemsRead], to: "/menu/packaging", labelKey: "nav.packagingRules", fallback: "Packaging rules", icon: Package },
+          { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/items", labelKey: "nav.items", fallback: "Items", icon: CupSoda },
+          { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/groups", labelKey: "nav.choiceGroups", fallback: "Choice groups", icon: ListChecks },
+          { caps: [Cap.menuItemsEdit], module: "pos", to: "/menu/pricing", labelKey: "nav.pricingAvailability", fallback: "Pricing & Availability", icon: SlidersHorizontal },
+          { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/bases", labelKey: "nav.recipeBases", fallback: "Recipe bases", icon: Layers },
+          { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/packaging", labelKey: "nav.packagingRules", fallback: "Packaging rules", icon: Package },
         ],
       },
-      { caps: [Cap.menuItemsRead], to: "/menu/bundles", labelKey: "nav.bundles", fallback: "Bundles", icon: Layers },
-      { caps: [Cap.discountsRead], to: "/discounts", labelKey: "nav.discounts", fallback: "Discounts", icon: BadgePercent },
+      { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/bundles", labelKey: "nav.bundles", fallback: "Bundles", icon: Layers },
+      { caps: [Cap.discountsRead], module: "pos", to: "/discounts", labelKey: "nav.discounts", fallback: "Discounts", icon: BadgePercent },
     ],
   },
   {
     labelKey: "nav.basira",
     fallback: "Basira",
     entries: [
-      { caps: [Cap.reportsRead], to: "/basira", labelKey: "nav.basiraAsk", fallback: "Ask", icon: Telescope },
+      { caps: [Cap.reportsRead], module: "pos", to: "/basira", labelKey: "nav.basiraAsk", fallback: "Ask", icon: Telescope },
     ],
   },
   {
@@ -120,20 +127,20 @@ export const NAV: NavGroup[] = [
     fallback: "Reports",
     entries: [
       // Every entry on a capability; a page hides the tabs its person can't read.
-      { caps: [Cap.ordersRead], to: "/reports/operations", labelKey: "nav.reportsOperations", fallback: "Operations", icon: TrendingUp },
-      { caps: [Cap.ordersRead, Cap.inventoryRead, Cap.purchasingOrdersRead], to: "/reports/financial", labelKey: "nav.reportsFinancial", fallback: "Financial", icon: Coins },
-      { caps: [Cap.inventoryRead], to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
+      { caps: [Cap.ordersRead], module: "pos", to: "/reports/operations", labelKey: "nav.reportsOperations", fallback: "Operations", icon: TrendingUp },
+      { caps: [Cap.ordersRead, Cap.inventoryRead, Cap.purchasingOrdersRead], module: "pos", to: "/reports/financial", labelKey: "nav.reportsFinancial", fallback: "Financial", icon: Coins },
+      { caps: [Cap.inventoryRead], module: "pos", to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
       // Tax and the audit trail: reports.legal, owner and manager by default, a manager's own branches.
-      { caps: [Cap.reportsLegal], to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
-      { caps: [Cap.loyaltyMembersList], to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
+      { caps: [Cap.reportsLegal], module: "pos", to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
+      { caps: [Cap.loyaltyMembersList], module: "pos", to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
       { caps: [Cap.hrAttendanceRead], to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
       // The day's staff drinks pool, per branch. Gated on the capability that
       // lets a person record one: if you can give a staff drink, you can see
       // what the branch has already given.
-      { caps: [Cap.ordersStaffDrinkRecord], to: "/reports/staff-pool", labelKey: "nav.reportsStaffPool", fallback: "Staff drinks", icon: CupSoda },
+      { caps: [Cap.ordersStaffDrinkRecord], module: "pos", to: "/reports/staff-pool", labelKey: "nav.reportsStaffPool", fallback: "Staff drinks", icon: CupSoda },
       // Every drawer at the branch, with its variance: till.read.branch. The route
       // answers plain till.read too, but only with the caller's own sessions.
-      { caps: [Cap.tillReadBranch], to: "/reports/tills", labelKey: "nav.reportsTills", fallback: "Tills", icon: Wallet },
+      { caps: [Cap.tillReadBranch], module: "pos", to: "/reports/tills", labelKey: "nav.reportsTills", fallback: "Tills", icon: Wallet },
     ],
   },
   {
@@ -146,13 +153,13 @@ export const NAV: NavGroup[] = [
         icon: Boxes,
         basePath: "/inventory",
         children: [
-          { caps: [Cap.inventoryRead], to: "/inventory/today", labelKey: "nav.invToday", fallback: "Today", icon: Home },
-          { caps: [Cap.inventoryCountsRead], to: "/inventory/counts", labelKey: "nav.invCounts", fallback: "Stock counts", icon: ClipboardList },
-          { caps: [Cap.inventoryRead], to: "/inventory/ingredients", labelKey: "nav.ingredients", fallback: "Ingredients", icon: Package },
-          { caps: [Cap.purchasingOrdersRead, Cap.purchasingSuppliersRead], to: "/inventory/purchasing", labelKey: "nav.invPurchasing", fallback: "Purchasing", icon: ShoppingCart },
-          { caps: [Cap.inventoryWasteRead], to: "/inventory/waste", labelKey: "nav.invWaste", fallback: "Waste", icon: Trash2 },
-          { caps: [Cap.inventoryTransfersRead], to: "/inventory/transfers", labelKey: "nav.invTransfers", fallback: "Transfers", icon: ArrowLeftRight },
-          { caps: [Cap.inventoryAdjust], to: "/inventory/settings", labelKey: "nav.invSettings", fallback: "Settings", icon: Settings2 },
+          { caps: [Cap.inventoryRead], module: "pos", to: "/inventory/today", labelKey: "nav.invToday", fallback: "Today", icon: Home },
+          { caps: [Cap.inventoryCountsRead], module: "pos", to: "/inventory/counts", labelKey: "nav.invCounts", fallback: "Stock counts", icon: ClipboardList },
+          { caps: [Cap.inventoryRead], module: "pos", to: "/inventory/ingredients", labelKey: "nav.ingredients", fallback: "Ingredients", icon: Package },
+          { caps: [Cap.purchasingOrdersRead, Cap.purchasingSuppliersRead], module: "pos", to: "/inventory/purchasing", labelKey: "nav.invPurchasing", fallback: "Purchasing", icon: ShoppingCart },
+          { caps: [Cap.inventoryWasteRead], module: "pos", to: "/inventory/waste", labelKey: "nav.invWaste", fallback: "Waste", icon: Trash2 },
+          { caps: [Cap.inventoryTransfersRead], module: "pos", to: "/inventory/transfers", labelKey: "nav.invTransfers", fallback: "Transfers", icon: ArrowLeftRight },
+          { caps: [Cap.inventoryAdjust], module: "pos", to: "/inventory/settings", labelKey: "nav.invSettings", fallback: "Settings", icon: Settings2 },
         ],
       },
     ],
@@ -167,8 +174,8 @@ export const NAV: NavGroup[] = [
     fallback: "Setup",
     entries: [
       { to: "/settings", labelKey: "nav.settings", fallback: "Settings", icon: Settings },
-      { caps: [Cap.loyaltyUse, Cap.loyaltyMembersList], to: "/settings/loyalty", labelKey: "nav.loyalty", fallback: "Loyalty", icon: Star },
-      { caps: [Cap.orgSettingsRead, Cap.orgSettingsEdit], to: "/settings/staff-pool", labelKey: "nav.staffPool", fallback: "Staff drinks", icon: CupSoda },
+      { caps: [Cap.loyaltyUse, Cap.loyaltyMembersList], module: "pos", to: "/settings/loyalty", labelKey: "nav.loyalty", fallback: "Loyalty", icon: Star },
+      { caps: [Cap.orgSettingsRead, Cap.orgSettingsEdit], module: "pos", to: "/settings/staff-pool", labelKey: "nav.staffPool", fallback: "Staff drinks", icon: CupSoda },
     ],
   },
   {
@@ -181,15 +188,24 @@ export const NAV: NavGroup[] = [
         icon: UserRound,
         basePath: "/staff",
         children: [
+          { setup: true, module: "dawam", to: "/staff/setup", labelKey: "nav.staffSetup", fallback: "Set-up", icon: ListChecks },
           { caps: [Cap.hrStaffRead], to: "/staff/employees", labelKey: "nav.employees", fallback: "Employees", icon: UserRound },
           { caps: [Cap.hrAttendanceRead], to: "/staff/attendance", labelKey: "nav.attendance", fallback: "Attendance", icon: CalendarClock },
           // "Work shifts" (staff scheduling) — distinct from /tills, the sales sessions.
           { caps: [Cap.hrScheduleRead], to: "/staff/shifts", labelKey: "nav.workShifts", fallback: "Work shifts", icon: CalendarRange },
+          { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/staff/team", labelKey: "nav.team", fallback: "Team", icon: Users },
+          {
+            caps: [Cap.hrLeaveEdit, Cap.hrAdvancesDecide, Cap.hrScheduleEdit, Cap.hrShiftCoverConfirm, Cap.hrOvertimeApprove, Cap.hrPayrollRun],
+            module: "dawam", to: "/staff/approvals", labelKey: "nav.approvals", fallback: "Approvals", icon: ListChecks,
+          },
+          { caps: [Cap.hrScheduleRead], module: "dawam", to: "/staff/schedule", labelKey: "nav.schedule", fallback: "Schedule", icon: CalendarClock },
           { caps: [Cap.hrLeaveRead], to: "/staff/requests", labelKey: "nav.requests", fallback: "Requests", icon: Inbox },
+          // The same run as the staff app's Payroll tab (Dawam PAY-4): one
+          // server-side state, so approving in either place is the same act.
+          { caps: [Cap.hrPayrollRead, Cap.hrPayrollRun], module: "dawam", to: "/staff/payroll", labelKey: "nav.payroll", fallback: "Payroll", icon: Coins },
+          // Attendance, labour against sales, payroll history and advances (DSH-3).
+          { caps: [Cap.hrAttendanceRead, Cap.hrPayrollRead], module: "dawam", to: "/staff/reports", labelKey: "nav.staffReports", fallback: "Reports", icon: FileBarChart },
           { caps: [Cap.hrAttendanceEdit], to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
-          // Payroll deliberately absent: the RUN lives in the staff app, where a
-          // manager approves it with the team in front of them. Splitting it
-          // across two surfaces would mean two places to approve the same money.
         ],
       },
     ],
@@ -200,14 +216,19 @@ export const NAV: NavGroup[] = [
     entries: [
       { to: "/orgs", labelKey: "nav.orgs", fallback: "Organizations", icon: Building2, superAdminOnly: true },
       { caps: [Cap.branchesRead], to: "/branches", labelKey: "nav.branches", fallback: "Branches", icon: Store },
-      { caps: [Cap.branchesEdit, Cap.tillOpen], to: "/devices", labelKey: "nav.devices", fallback: "Devices", icon: Tablet },
+      { caps: [Cap.branchesEdit, Cap.tillOpen], module: "pos", to: "/devices", labelKey: "nav.devices", fallback: "Devices", icon: Tablet },
       { caps: [Cap.staffUsersRead, Cap.staffPermissionsRead], to: "/access/users", labelKey: "nav.usersPermissions", fallback: "Users & Permissions", icon: Users },
     ],
   },
 ];
 
-/** Whether a nav leaf shows for this person. */
-export const leafVisible = (leaf: NavLeaf, authz: Authz): boolean => {
+/**
+ * Whether a nav leaf shows for this person, in an org with these modules on.
+ * `setupIncomplete` is true only once the set-up checklist is known unfinished.
+ */
+export const leafVisible = (leaf: NavLeaf, authz: Authz, modules?: readonly string[], setupIncomplete = false): boolean => {
+  if (leaf.module && modules && !modules.includes(leaf.module)) return false;
+  if (leaf.setup) return authz.owner && setupIncomplete;
   if (leaf.superAdminOnly) return authz.platform;
   if (leaf.caps) return authz.canAny(...leaf.caps);
   return true;

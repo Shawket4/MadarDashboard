@@ -26,6 +26,11 @@ export interface PutEmployeeRequest {
      * @nullable
      */
   employment_status?: string | null;
+  /**
+     * `m` · `f`; omitted keeps what is there.
+     * @nullable
+     */
+  gender?: string | null;
   /** @nullable */
   hire_date?: string | null;
   /** @nullable */
@@ -34,6 +39,13 @@ export interface PutEmployeeRequest {
   national_id?: string | null;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  pay_account?: string | null;
+  /**
+     * `cash` · `bank` · `wallet`; omitted keeps what is there.
+     * @nullable
+     */
+  pay_method?: string | null;
   /** @nullable */
   photo_url?: string | null;
   /** @nullable */

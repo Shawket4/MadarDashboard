@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "768db7c58923aebf";
+export const SPEC_HASH = "6c87e3330823bed8";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -197,6 +197,16 @@ export type Capability =
   | "orders.staff_drink.record"
   | "customers.merge"
   | "customers.addresses.view"
+  | "hr.requests.self_approve"
+  | "hr.adjustments.create"
+  | "hr.advances.decide"
+  | "hr.payroll.run"
+  | "hr.shift_cover.confirm"
+  | "hr.overtime.approve"
+  | "hr.attendance.punch_others"
+  | "hr.schedule.publish"
+  | "hr.expense_advances.log"
+  | "hr.roster.settings"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -383,6 +393,16 @@ export const Cap = {
   ordersStaffDrinkRecord: "orders.staff_drink.record" as Capability,
   customersMerge: "customers.merge" as Capability,
   customersAddressesView: "customers.addresses.view" as Capability,
+  hrRequestsSelfApprove: "hr.requests.self_approve" as Capability,
+  hrAdjustmentsCreate: "hr.adjustments.create" as Capability,
+  hrAdvancesDecide: "hr.advances.decide" as Capability,
+  hrPayrollRun: "hr.payroll.run" as Capability,
+  hrShiftCoverConfirm: "hr.shift_cover.confirm" as Capability,
+  hrOvertimeApprove: "hr.overtime.approve" as Capability,
+  hrAttendancePunchOthers: "hr.attendance.punch_others" as Capability,
+  hrSchedulePublish: "hr.schedule.publish" as Capability,
+  hrExpenseAdvancesLog: "hr.expense_advances.log" as Capability,
+  hrRosterSettings: "hr.roster.settings" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -587,6 +607,16 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 223, key: "orders.staff_drink.record", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Record a staff drink", ar: "تسجيل مشروب موظفين", hintEn: "Off for tellers by default. Turn it on to let the till put a drink on the branch's daily staff pool. A note saying who it is for is always required.", hintAr: "مقفول للكاشير في الأصل. افتحه عشان الكاشير يحسب المشروب على رصيد الموظفين اليومي بتاع الفرع. لازم دايمًا يكتب ملاحظة بالمشروب ده لمين." },
   { id: 224, key: "customers.merge", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Merge duplicate customers", ar: "دمج العملاء المكررين", hintEn: "Merging cannot be undone. When both are loyalty members, the points move to the customer that stays and the other card stops working.", hintAr: "الدمج لا يمكن التراجع عنه. لو الاتنين أعضاء في برنامج الولاء، النقاط بتتنقل للعميل اللي هيفضل والكارت التاني بيتوقف." },
   { id: 225, key: "customers.addresses.view", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: false, limits: [], pos: true, protected: false, en: "See customers' saved addresses", ar: "عرض عناوين العملاء المحفوظة", hintEn: "The delivery addresses a customer has ordered to. Needed to dispatch an order; not needed to take one at a table.", hintAr: "عناوين التوصيل اللي العميل طلب عليها قبل كده. مطلوبة لتجهيز طلب توصيل، ومش مطلوبة لأخذ طلب على ترابيزة." },
+  { id: 226, key: "hr.requests.self_approve", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Approve your own requests", ar: "الموافقة على طلباتك بنفسك", hintEn: "Held: your own requests are approved as you send them. Not held: they wait for someone above you, and the owner is told.", hintAr: "لو معاك: طلباتك بتتوافق أول ما تبعتها. لو مش معاك: بتستنى حد أعلى منك، والمالك بيتبلغ." },
+  { id: 227, key: "hr.adjustments.create", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: ["max_amount"], pos: false, protected: false, en: "Add bonuses and deductions", ar: "إضافة مكافآت وخصومات", hintEn: "Up to the amount set here. Above it, the adjustment waits for someone with a higher limit, usually the owner.", hintAr: "لحد المبلغ المحدد هنا. فوقه، التعديل بيستنى حد عنده حد أعلى، غالبًا المالك." },
+  { id: 228, key: "hr.advances.decide", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: ["max_percent"], pos: false, protected: false, en: "Approve salary advances", ar: "الموافقة على السلف", hintEn: "The limit is the share of monthly salary a person may owe in advances after this one. Above it, the advance waits for the owner.", hintAr: "الحد هو نسبة المرتب الشهري اللي ممكن يبقى عليه سلف بعد دي. فوقه، السلفة بتستنى المالك." },
+  { id: 229, key: "hr.payroll.run", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Run and approve payroll", ar: "تشغيل واعتماد المرتبات", hintEn: "One run for the whole business: approve, reopen and mark people paid. Needs every branch.", hintAr: "تشغيل واحد لكل النشاط: اعتماد وإعادة فتح وتعليم مين اتقبض. محتاج كل الفروع." },
+  { id: 230, key: "hr.shift_cover.confirm", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Confirm covered shifts", ar: "تأكيد تغطية الورديات", hintEn: "A cover is paid only once confirmed. You can't confirm a cover you are part of.", hintAr: "التغطية بتتدفع بس بعد التأكيد. متقدرش تأكد تغطية إنت طرف فيها." },
+  { id: 231, key: "hr.overtime.approve", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: ["max_amount"], pos: false, protected: false, en: "Approve overtime", ar: "الموافقة على الوقت الإضافي", hintEn: "When overtime needs approval: up to the amount set here.", hintAr: "لما الوقت الإضافي محتاج موافقة: لحد المبلغ المحدد هنا." },
+  { id: 232, key: "hr.attendance.punch_others", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Clock someone in or out", ar: "تسجيل حضور أو انصراف لحد تاني", hintEn: "For a dead or forgotten phone. A reason is always required and the punch is marked as made by you.", hintAr: "للموبايل اللي فاصل أو المنسي. لازم دايمًا سبب والتسجيل بيتعلّم إنه منك." },
+  { id: 233, key: "hr.schedule.publish", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Publish the week's roster", ar: "نشر جدول الأسبوع", hintEn: "Staff see a week only once it is published, and are told.", hintAr: "الموظفين بيشوفوا الأسبوع بس بعد ما يتنشر، وبيتبلغوا." },
+  { id: 234, key: "hr.expense_advances.log", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Log expense advances", ar: "تسجيل عُهد المصاريف", hintEn: "Cash handed over for shop purchases. A log only: never deducted from pay.", hintAr: "فلوس متسلمة لمشتريات المحل. سجل بس: عمره ما بيتخصم من المرتب." },
+  { id: 235, key: "hr.roster.settings", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Change roster settings", ar: "تغيير إعدادات الجدول", hintEn: "How shift suggestions weigh defaults, including the gender default.", hintAr: "إزاي اقتراحات الورديات بتوزن الافتراضيات، ومنها افتراض النوع." },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [

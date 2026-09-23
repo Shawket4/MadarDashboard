@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/sidebar";
 import { NAV, isParent, leafVisible, type NavEntry, type NavGroup, type NavLeaf } from "@/config/nav";
 import { useAuthz } from "@/data/authz/use-authz";
+import { useOrgModules } from "@/hooks/use-org-modules";
+import { useSetupProgress } from "@/features/dawam/setup";
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
@@ -184,7 +186,9 @@ export function AppSidebar() {
   const { pathname } = useLocation();
 
   const authz = useAuthz();
-  const visible = (leaf: NavLeaf) => leafVisible(leaf, authz);
+  const modules = useOrgModules();
+  const setup = useSetupProgress(authz.owner && modules.includes("dawam"));
+  const visible = (leaf: NavLeaf) => leafVisible(leaf, authz, modules, setup.ready && !setup.complete);
   const close = () => setOpenMobile(false);
 
   // Predictive preloading on hover/focus: route code chunk + the page's queries.
@@ -233,7 +237,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         {NAV.map((group) => {
-          const entries = group.entries.filter((e) => (isParent(e) ? true : visible(e)));
+          const entries = group.entries.filter((e) => (isParent(e) ? e.children.some(visible) : visible(e)));
           if (entries.length === 0) return null;
           return (
             <NavGroupSection

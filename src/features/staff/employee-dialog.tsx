@@ -16,7 +16,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { putEmployee, useListDepartments } from "@/data/api/generated/api";
+import { putEmployee, revokeDevice, useListDepartments } from "@/data/api/generated/api";
+import { useConfirm } from "@/components/app/confirm-dialog";
 import type { Employee } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, piastresToEgp } from "@/lib/format";
@@ -47,6 +48,7 @@ export function EmployeeDialog({
 }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
+  const confirm = useConfirm();
   const departmentsQ = useListDepartments({ query: { enabled: open } });
   const canSeeSalary = employee?.base_salary_piastres !== null
     && employee?.base_salary_piastres !== undefined;
@@ -66,6 +68,9 @@ export function EmployeeDialog({
           emergency_contact_name: z.string().max(120),
           emergency_contact_phone: z.string().max(40),
           notes: z.string().max(2000),
+          gender: z.enum([NONE, "m", "f"]),
+          pay_method: z.enum(["cash", "bank", "wallet"]),
+          pay_account: z.string().max(64),
         })
         // Mirrors the database CHECK: a terminated profile must say when, and a
         // live one must not carry a termination date.
@@ -83,9 +88,11 @@ export function EmployeeDialog({
       department_id: NONE, employee_code: "", job_title: "", hire_date: "",
       employment_status: "active", termination_date: "", base_salary_egp: 0,
       national_id: "", emergency_contact_name: "", emergency_contact_phone: "", notes: "",
+      gender: NONE, pay_method: "cash", pay_account: "",
     },
   });
   const status = form.watch("employment_status");
+  const payMethod = form.watch("pay_method");
 
   useEffect(() => {
     if (!employee || !open) return;
@@ -101,8 +108,30 @@ export function EmployeeDialog({
       emergency_contact_name: employee.emergency_contact_name ?? "",
       emergency_contact_phone: employee.emergency_contact_phone ?? "",
       notes: employee.notes ?? "",
+      gender: employee.gender === "m" || employee.gender === "f" ? employee.gender : NONE,
+      pay_method: (["cash", "bank", "wallet"].includes(employee.pay_method) ? employee.pay_method : "cash") as Values["pay_method"],
+      pay_account: employee.pay_account ?? "",
     });
   }, [employee, open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // One live phone per person (RO-4): signing it out makes them sign in again
+  // with a WhatsApp code; their records stay.
+  const revokePhone = async () => {
+    if (!employee) return;
+    const ok = await confirm({
+      title: t("dawam.revokeTitle", { name: employee.name, defaultValue: `Sign ${employee.name}'s phone out?` }),
+      description: t("dawam.revokeHint", "The phone is refused on its next request. They sign in again with a WhatsApp code."),
+      confirmLabel: t("dawam.revokePhoneShort", "Sign the phone out"),
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      await revokeDevice(employee.user_id);
+      toast.success(t("dawam.phoneRevoked", "Phone signed out"));
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
 
   const submit = async (v: Values) => {
     if (!employee) return;
@@ -122,6 +151,9 @@ export function EmployeeDialog({
         emergency_contact_name: v.emergency_contact_name || null,
         emergency_contact_phone: v.emergency_contact_phone || null,
         notes: v.notes || null,
+        gender: v.gender === NONE ? null : v.gender,
+        pay_method: v.pay_method,
+        pay_account: v.pay_method === "cash" ? null : v.pay_account || null,
       });
       toast.success(t("staff.employeeSaved", "Employee saved"));
       void invalidateEmployees();
@@ -253,6 +285,54 @@ export function EmployeeDialog({
             ) : null}
             <FormField
               control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("dawam.gender", "Gender")}</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value={NONE}>{t("dawam.genderUnset", "Not set")}</SelectItem>
+                      <SelectItem value="f">{t("dawam.genderF", "Female")}</SelectItem>
+                      <SelectItem value="m">{t("dawam.genderM", "Male")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>{t("dawam.genderHint", "Suggestions lean late and night shifts to men by default; a person's own preferences win.")}</FormDescription>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="pay_method"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("dawam.payMethod", "Paid by")}</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="cash">{t("dawam.pay_cash", "Cash")}</SelectItem>
+                      <SelectItem value="bank">{t("dawam.pay_bank", "Bank transfer")}</SelectItem>
+                      <SelectItem value="wallet">{t("dawam.pay_wallet", "Mobile wallet")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            {payMethod !== "cash" ? (
+              <FormField
+                control={form.control}
+                name="pay_account"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{payMethod === "bank" ? t("dawam.iban", "Account (IBAN)") : t("dawam.walletNumber", "Wallet number")}</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormDescription>{t("dawam.payAccountHint", "Goes on the bank and wallet lists when payroll is approved.")}</FormDescription>
+                  </FormItem>
+                )}
+              />
+            ) : null}
+            <FormField
+              control={form.control}
               name="national_id"
               render={({ field }) => (
                 <FormItem>
@@ -297,6 +377,9 @@ export function EmployeeDialog({
             />
 
             <DialogFooter className="sm:col-span-2">
+              <Button type="button" variant="outline" className="me-auto" onClick={() => void revokePhone()}>
+                {t("dawam.revokePhoneShort", "Sign the phone out")}
+              </Button>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 {t("common.cancel", "Cancel")}
               </Button>

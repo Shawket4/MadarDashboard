@@ -26,6 +26,11 @@ export interface ComputedPayslip {
      * lump sum nobody can argue with.
      */
   breakdown: unknown;
+  /**
+     * Deductions beyond what was earned: the payslip stops at zero and this
+     * carries into the next one as a debt (PAY-12).
+     */
+  carry_out_piastres: number;
   deductions_piastres: number;
   late_minutes: number;
   leave_days: number;

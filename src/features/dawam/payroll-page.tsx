@@ -1,0 +1,631 @@
+/**
+ * Payroll (Dawam PAY-*): the period that opened itself on the business's start
+ * day, its live preview (the same calculation approving produces, PAY-2), the
+ * pay lines, advances and expense log behind it, approve and reopen, and
+ * marking each person paid. The same run the staff app's Payroll tab does
+ * (PAY-4). Every figure is the server's.
+ */
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+  BadgeCheck, Banknote, CircleDollarSign, FileDown, HandCoins, History, Plus, ReceiptText, RotateCcw, Trash2, Undo2,
+  UsersRound, Wallet, X,
+} from "lucide-react";
+import { toast } from "sonner";
+
+import { Page, PageHeader } from "@/components/app/page";
+import { DataTable } from "@/components/app/data-table";
+import { EmptyState, ErrorState } from "@/components/app/empty-state";
+import { ExportButton } from "@/components/app/export-button";
+import { ListCard, ListRow } from "@/components/app/list-row";
+import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
+import { Restricted } from "@/components/app/restricted";
+import { StatCard } from "@/components/app/stat-card";
+import { StatusPill } from "@/components/app/status-pill";
+import { useConfirm } from "@/components/app/confirm-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  decideAdjustment, deleteBonus, deleteDeduction, exportPeriodCsv, generatePeriod, setPeriodStatus,
+  stopAdjustment, useCurrent, useListAdjustments, useListAdvances, useListEmployees,
+  useListExpenseAdvances, useListPayslips,
+} from "@/data/api/generated/api";
+import type {
+  Adjustment, ComputedPayslip, Employee, ExpenseAdvance, PayrollPeriod, Payslip, SalaryAdvance,
+} from "@/data/api/generated/models";
+import { getErrorMessage } from "@/data/api/errors";
+import { RulesFirstBanner } from "./rules-banner";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+import { useExportLogo } from "@/hooks/use-export-logo";
+import { useCurrentOrg } from "@/hooks/use-org-modules";
+import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { fmtDate, fmtMoney, fmtMoneySigned } from "@/lib/format";
+import { invalidateStaff, REQUEST_STATUS_TONE } from "@/features/staff/util";
+
+import { payslipLines, type PayLine } from "./lines";
+import { printPayslip } from "./payslip-print";
+import {
+  AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReviewAdvanceDialog, WaiveDialog,
+} from "./money-dialogs";
+
+type Slip = ComputedPayslip | Payslip;
+type Row = Slip & { user_name: string; paid_method: string | null };
+
+/** open · approved · paid, from the server's period status. */
+export const periodPhase = (p: PayrollPeriod | undefined): "open" | "approved" | "paid" =>
+  p?.status === "generated" ? "approved" : p?.status === "paid" || p?.status === "closed" ? "paid" : "open";
+
+const PHASE_TONE = { open: "neutral", approved: "info", paid: "success" } as const;
+
+export function PayrollPage() {
+  const { t } = useTranslation();
+  const authz = useAuthz();
+  const canRead = authz.canAny(Cap.hrPayrollRead, Cap.hrPayrollRun);
+  const canRun = authz.can(Cap.hrPayrollRun);
+  const canAdjust = authz.can(Cap.hrAdjustmentsCreate);
+  const canAdvance = authz.can(Cap.hrAdvancesDecide);
+  const canExpense = authz.can(Cap.hrExpenseAdvancesLog);
+  const [tab, setTab] = useState("payslips");
+  // An id, not the row: the sheet must show the payslip as it is after a
+  // waiver or a new line, not as it was when it was opened.
+  const [personId, setPersonId] = useState<string | null>(null);
+  const [paying, setPaying] = useState<Row | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [logging, setLogging] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const confirm = useConfirm();
+  const logoUrl = useExportLogo();
+
+  const currentQ = useCurrent({ query: { enabled: canRead } });
+  const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: canRead } });
+  const period = currentQ.data?.period;
+  const phase = periodPhase(period);
+  const people = useMemo(() => new Map((employeesQ.data ?? []).map((e) => [e.user_id, e])), [employeesQ.data]);
+
+  // After approval the frozen payslips are the truth; before, the live preview.
+  const rows: Row[] = useMemo(() => {
+    const frozen = currentQ.data?.payslips ?? [];
+    const source: Slip[] = frozen.length ? frozen : (currentQ.data?.preview ?? []);
+    return source.map((s) => ({
+      ...s,
+      user_name: ("user_name" in s && s.user_name) || ("name" in s && s.name) || people.get(s.user_id)?.name || "—",
+      paid_method: ("paid_method" in s && s.paid_method) || null,
+    }));
+  }, [currentQ.data, people]);
+
+  const totals = useMemo(
+    () => rows.reduce(
+      (a, r) => ({
+        net: a.net + r.net_piastres,
+        deductions: a.deductions + r.deductions_piastres,
+        advances: a.advances + r.advance_installment_piastres,
+        paid: a.paid + (r.paid_method ? 1 : 0),
+      }),
+      { net: 0, deductions: 0, advances: 0, paid: 0 },
+    ),
+    [rows],
+  );
+
+  if (authz.ready && !canRead) {
+    return <Restricted title={t("dawam.payroll", "Payroll")} who={t("dawam.payrollNoAccess", "Payroll needs payroll rights. The owner can give you access.")} />;
+  }
+
+  const approve = async () => {
+    const ok = await confirm({
+      title: t("dawam.approveTitle", "Approve this month's payroll?"),
+      description: t("dawam.approveHint", "Every payslip is frozen with the lines behind it, and people can see theirs. You can reopen until anyone is marked paid."),
+      confirmLabel: t("dawam.approve", "Approve payroll"),
+    });
+    if (!ok || !period) return;
+    try {
+      await generatePeriod(period.id);
+      toast.success(t("dawam.approved", "Payroll approved"));
+      void invalidateStaff();
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
+  const reopen = async () => {
+    const ok = await confirm({
+      title: t("dawam.reopenTitle", "Reopen this month?"),
+      description: t("dawam.reopenHint", "The payslips go back to a live preview. Advance installments are given back, never taken twice."),
+      confirmLabel: t("dawam.reopen", "Reopen"),
+      destructive: true,
+    });
+    if (!ok || !period) return;
+    try {
+      await setPeriodStatus(period.id, { status: "draft" });
+      toast.success(t("dawam.reopened", "Payroll reopened"));
+      void invalidateStaff();
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
+  // Bank-transfer people as a bank file, wallet people as numbers and amounts (PAY-8).
+  const exportLists = async () => {
+    setExporting(true);
+    try {
+      const pick = (m: string) => rows.filter((r) => (people.get(r.user_id)?.pay_method ?? "cash") === m);
+      const cols = (acct: string): ExcelColumn<Row>[] => [
+        { header: t("staff.name", "Name"), accessor: (r) => r.user_name, type: "text", width: 26 },
+        { header: acct, accessor: (r) => people.get(r.user_id)?.pay_account ?? "", type: "text", width: 30 },
+        { header: t("dawam.net", "Net"), accessor: (r) => r.net_piastres, type: "money", width: 16, total: true },
+      ];
+      await exportToExcel({
+        filename: "Madar-Payroll-Transfers",
+        logoUrl,
+        meta: period ? `${fmtDate(period.start_date)} → ${fmtDate(period.end_date)}` : "",
+        sheets: [
+          { name: t("dawam.pay_bank", "Bank transfer"), title: t("dawam.bankList", "Bank transfers"), rows: pick("bank") as never, columns: cols(t("dawam.iban", "Account (IBAN)")) as never, totals: true },
+          { name: t("dawam.pay_wallet", "Mobile wallet"), title: t("dawam.walletList", "Mobile wallets"), rows: pick("wallet") as never, columns: cols(t("dawam.walletNumber", "Wallet number")) as never, totals: true },
+        ],
+      });
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportCsv = async () => {
+    if (!period) return;
+    try {
+      const csv = await exportPeriodCsv(period.id);
+      const url = URL.createObjectURL(new Blob([csv as unknown as string], { type: "text/csv" }));
+      const a = Object.assign(document.createElement("a"), { href: url, download: `payroll-${period.start_date}.csv` });
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
+  const columns: ColumnDef<Row>[] = [
+    {
+      accessorKey: "user_name",
+      header: t("staff.name", "Name"),
+      meta: { label: t("staff.name", "Name"), phone: "title" },
+      cell: ({ row }) => <span className="font-medium">{row.original.user_name}</span>,
+    },
+    { id: "base", header: t("dawam.salary", "Salary"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(payslipLines(row.original)[0].amount) },
+    { id: "ot", header: t("dawam.overtime", "Overtime"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(row.original.overtime_piastres) },
+    { id: "bonuses", header: t("dawam.bonuses", "Bonuses"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(row.original.bonuses_piastres) },
+    { id: "deductions", header: t("dawam.deductions", "Deductions"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(-row.original.deductions_piastres) },
+    { id: "advance", header: t("dawam.advance", "Advance"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(-row.original.advance_installment_piastres) },
+    {
+      id: "net",
+      header: t("dawam.net", "Net"),
+      meta: { numeric: true, align: "end" },
+      cell: ({ row }) => (
+        <span className="font-semibold">
+          {fmtMoney(row.original.net_piastres)}
+          {row.original.carry_out_piastres > 0 ? (
+            <Badge variant="outline" className="ms-2">{t("dawam.carries", { amount: fmtMoney(row.original.carry_out_piastres), defaultValue: `carries ${fmtMoney(row.original.carry_out_piastres)}` })}</Badge>
+          ) : null}
+        </span>
+      ),
+    },
+    {
+      id: "paid",
+      header: t("dawam.paid", "Paid"),
+      cell: ({ row }) =>
+        row.original.paid_method ? (
+          <StatusPill tone="success">{t(`dawam.pay_${row.original.paid_method}`, PAY_METHOD_FALLBACK[row.original.paid_method] ?? row.original.paid_method)}</StatusPill>
+        ) : phase === "approved" && canRun ? (
+          <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setPaying(row.original); }}>
+            {t("dawam.markPaid", "Mark paid")}
+          </Button>
+        ) : (
+          <span className="text-xs text-muted-foreground">{phase === "open" ? t("dawam.estimate", "Estimate") : "—"}</span>
+        ),
+    },
+  ];
+
+  return (
+    <Page>
+      <PageHeader
+        title={t("dawam.payroll", "Payroll")}
+        description={
+          period
+            ? t("dawam.periodLine", { from: fmtDate(period.start_date), to: fmtDate(period.end_date), defaultValue: `${fmtDate(period.start_date)} → ${fmtDate(period.end_date)}` })
+            : t("dawam.payrollSubtitle", "One run for the whole business, from the preview to paid.")
+        }
+        actions={
+          <div className="flex flex-wrap gap-2">
+            {period ? <StatusPill tone={PHASE_TONE[phase]}>{t(`dawam.phase_${phase}`, phase)}</StatusPill> : null}
+            {canRun && phase === "open" && period ? (
+              <Button onClick={() => void approve()}><BadgeCheck className="size-4" />{t("dawam.approve", "Approve payroll")}</Button>
+            ) : null}
+            {canRun && phase === "approved" && totals.paid === 0 ? (
+              <Button variant="outline" onClick={() => void reopen()}><RotateCcw className="size-4" />{t("dawam.reopen", "Reopen")}</Button>
+            ) : null}
+            {phase !== "open" ? (
+              <>
+                <ExportButton onExport={() => void exportLists()} loading={exporting} label={t("dawam.transferLists", "Bank & wallet lists")} />
+                <Button variant="ghost" onClick={() => void exportCsv()}>{t("dawam.csv", "CSV")}</Button>
+              </>
+            ) : null}
+          </div>
+        }
+      />
+      <RulesFirstBanner />
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard label={t("dawam.totalNet", "Net pay")} value={totals.net} formatType="money" icon={CircleDollarSign} loading={currentQ.isLoading} />
+        <StatCard label={t("dawam.people", "People")} value={rows.length} formatType="number" icon={UsersRound} loading={currentQ.isLoading} />
+        <StatCard label={t("dawam.deductions", "Deductions")} value={totals.deductions} formatType="money" icon={ReceiptText} loading={currentQ.isLoading} />
+        <StatCard label={t("dawam.advancesCollected", "Advances collected")} value={totals.advances} formatType="money" icon={HandCoins} loading={currentQ.isLoading} />
+      </div>
+
+      <Tabs value={tab} onValueChange={setTab} className="gap-6">
+        <PageTabsList>
+          <PageTabsTrigger value="payslips"><Banknote className="size-4" />{t("dawam.payslips", "Payslips")}</PageTabsTrigger>
+          <PageTabsTrigger value="lines"><ReceiptText className="size-4" />{t("dawam.payLines", "Bonuses & deductions")}</PageTabsTrigger>
+          <PageTabsTrigger value="advances"><HandCoins className="size-4" />{t("dawam.salaryAdvances", "Salary advances")}</PageTabsTrigger>
+          <PageTabsTrigger value="expenses"><Wallet className="size-4" />{t("dawam.expenseAdvances", "Expense advances")}</PageTabsTrigger>
+          <PageTabsTrigger value="history"><History className="size-4" />{t("dawam.history", "History")}</PageTabsTrigger>
+        </PageTabsList>
+
+        <TabsContent value="payslips">
+          {currentQ.error ? (
+            <ErrorState title={t("dawam.payrollLoadError", "Couldn't load payroll")} message={getErrorMessage(currentQ.error)} onRetry={() => void currentQ.refetch()} />
+          ) : (
+            <DataTable
+              columns={columns}
+              data={rows}
+              loading={currentQ.isLoading}
+              getRowId={(r) => r.user_id}
+              onRowClick={(r) => setPersonId(r.user_id)}
+              emptyState={<EmptyState icon={Banknote} title={t("dawam.noPayslips", "Nobody on payroll yet")} description={t("dawam.noPayslipsHint", "Active employees with a salary show here.")} />}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="lines">
+          <PayLinesTab canAdjust={canAdjust} owner={canRun} onAdd={() => setAdding(true)} />
+        </TabsContent>
+        <TabsContent value="advances">
+          <AdvancesTab canAdvance={canAdvance} onRecord={() => setRecording(true)} />
+        </TabsContent>
+        <TabsContent value="expenses">
+          <ExpensesTab canLog={canExpense} onLog={() => setLogging(true)} />
+        </TabsContent>
+        <TabsContent value="history">
+          <HistoryTab periods={currentQ.data?.history ?? []} people={people} />
+        </TabsContent>
+      </Tabs>
+
+      <PayslipSheet
+        row={rows.find((r) => r.user_id === personId) ?? null}
+        onOpenChange={(o) => !o && setPersonId(null)}
+        editable={phase === "open" && canAdjust}
+        phase={phase}
+        period={period ?? null}
+      />
+      {period ? (
+        <MarkPaidDialog
+          key={paying?.user_id}
+          periodId={period.id}
+          person={paying ? { user_id: paying.user_id, name: paying.user_name, pay_method: people.get(paying.user_id)?.pay_method } : null}
+          onOpenChange={(o) => !o && setPaying(null)}
+        />
+      ) : null}
+      <AdjustmentDialog key={`add-${adding}`} open={adding} onOpenChange={setAdding} />
+      <RecordAdvanceDialog key={`adv-${recording}`} open={recording} onOpenChange={setRecording} />
+      <ExpenseAdvanceDialog key={`exp-${logging}`} open={logging} onOpenChange={setLogging} />
+    </Page>
+  );
+}
+
+function lineLabel(l: PayLine, t: (k: string, o?: Record<string, unknown>) => string) {
+  return l.labelKey ? t(l.labelKey, { ...l.vars, defaultValue: l.label }) : l.label;
+}
+
+/** One person's payslip, every line with its reason (AD-6), and what can change on it. */
+function PayslipSheet({
+  row, onOpenChange, editable, phase, period,
+}: {
+  row: Row | null;
+  onOpenChange: (o: boolean) => void;
+  editable: boolean;
+  phase: "open" | "approved" | "paid";
+  period: PayrollPeriod | null;
+}) {
+  const { t, i18n } = useTranslation();
+  const org = useCurrentOrg();
+  const confirm = useConfirm();
+  const [waiving, setWaiving] = useState<PayLine | null>(null);
+  const [adding, setAdding] = useState<"bonus" | "deduction" | null>(null);
+  const lines = row ? payslipLines(row) : [];
+
+  const remove = async (l: PayLine) => {
+    if (!l.manual) return;
+    const ok = await confirm({
+      title: t("dawam.deleteLineTitle", { line: l.label, defaultValue: `Delete "${l.label}"?` }),
+      description: t("dawam.deleteLineHint", "Manual lines can be deleted until the month is approved."),
+      confirmLabel: t("common.delete", "Delete"),
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      await (l.manual.kind === "bonus" ? deleteBonus(l.manual.id) : deleteDeduction(l.manual.id));
+      toast.success(t("dawam.lineDeleted", "Line deleted"));
+      void invalidateStaff();
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
+  const pdf = () => {
+    if (!row) return;
+    const ok = printPayslip({
+      company: org?.name ?? "",
+      period,
+      person: row.user_name,
+      lines: lines.map((l) => ({ label: lineLabel(l, t), line: l })),
+      net: row.net_piastres,
+      labels: {
+        title: t("dawam.payslip", "Payslip"),
+        period: t("dawam.period", "Period"),
+        employee: t("staff.employee", "Employee"),
+        net: t("dawam.net", "Net"),
+        waived: t("dawam.lineWaived", "Waived"),
+      },
+      lang: i18n.language,
+      dir: i18n.dir(),
+    });
+    if (!ok) toast.error(t("dawam.popupBlocked", "Allow pop-ups for this site to download the payslip."));
+  };
+
+  return (
+    <Sheet open={!!row} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle>{row?.user_name}</SheetTitle>
+          <SheetDescription>
+            {phase === "open" ? t("dawam.estimateHint", "A live estimate: approving produces exactly this.") : t("dawam.frozenHint", "Frozen when payroll was approved.")}
+          </SheetDescription>
+        </SheetHeader>
+        <div className="space-y-4 px-4 pb-6">
+          <ListCard>
+            {lines.map((l) => (
+              <ListRow
+                key={l.key}
+                variant="ledger"
+                title={<span className={l.waived ? "text-muted-foreground line-through" : undefined}>{lineLabel(l, t)}</span>}
+                meta={l.waived ? t("dawam.lineWaived", "Waived") : l.rule ? t("dawam.ruleLine", "From the rules") : l.manual ? t("dawam.manualLine", "Added by hand") : undefined}
+                trailing={
+                  <span className="flex items-center gap-1">
+                    <span className={l.waived ? "text-muted-foreground line-through tabular-nums" : l.amount < 0 ? "text-destructive tabular-nums" : "tabular-nums"}>{fmtMoneySigned(l.amount)}</span>
+                    {editable && l.deductionId ? (
+                      <Button size="sm" variant="ghost" aria-label={t("dawam.waive", "Waive")} onClick={() => setWaiving(l)}>
+                        <Undo2 className="size-4" />
+                      </Button>
+                    ) : null}
+                    {editable && l.manual ? (
+                      <Button size="sm" variant="ghost" aria-label={t("common.delete", "Delete")} onClick={() => void remove(l)}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    ) : null}
+                  </span>
+                }
+              />
+            ))}
+          </ListCard>
+          {row ? (
+            <div className="flex items-center justify-between rounded-xl border p-4 font-semibold">
+              <span>{t("dawam.net", "Net")}</span>
+              <span className="tabular-nums">{fmtMoney(row.net_piastres)}</span>
+            </div>
+          ) : null}
+          {row && row.carry_out_piastres > 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t("dawam.carryHint", { amount: fmtMoney(row.carry_out_piastres), defaultValue: `Deductions went past what was earned: ${fmtMoney(row.carry_out_piastres)} carries to next month.` })}
+            </p>
+          ) : null}
+          {row ? (
+            <Button variant="outline" onClick={pdf}><FileDown className="size-4" />{t("dawam.downloadPdf", "Download PDF")}</Button>
+          ) : null}
+          {editable ? (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setAdding("bonus")}><Plus className="size-4" />{t("dawam.bonus", "Bonus")}</Button>
+              <Button variant="outline" onClick={() => setAdding("deduction")}><Plus className="size-4" />{t("dawam.deduction", "Deduction")}</Button>
+            </div>
+          ) : null}
+        </div>
+        <WaiveDialog key={waiving?.key} deductionId={waiving?.deductionId ?? null} label={waiving?.label ?? ""} onOpenChange={(o) => !o && setWaiving(null)} />
+        {row && adding ? (
+          <AdjustmentDialog open onOpenChange={(o) => !o && setAdding(null)} userId={row.user_id} bonus={adding === "bonus"} />
+        ) : null}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+const ADJ_TONE: Record<string, "warning" | "success" | "danger" | "neutral"> = {
+  pending: "warning", approved: "success", rejected: "danger",
+};
+
+function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: boolean; onAdd: () => void }) {
+  const { t } = useTranslation();
+  const q = useListAdjustments({});
+  const act = async (fn: () => Promise<unknown>, ok: string) => {
+    try {
+      await fn();
+      toast.success(ok);
+      void invalidateStaff();
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+  const rows = q.data ?? [];
+  return (
+    <div className="space-y-3">
+      {canAdjust ? <Button onClick={onAdd}><Plus className="size-4" />{t("dawam.addPayLine", "Add a bonus or deduction")}</Button> : null}
+      {q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
+        <EmptyState icon={ReceiptText} title={t("dawam.noPayLines", "No bonuses or deductions")} description={t("dawam.noPayLinesHint", "Lines added by hand show here, with who added them and why.")} />
+      ) : (
+        <ListCard>
+          {rows.map((a: Adjustment) => {
+            const stopped = !!a.ends_on;
+            const value = a.percent_of_base != null ? `${a.percent_of_base}%` : fmtMoney(a.kind === "bonus" ? (a.amount_piastres ?? 0) : -(a.amount_piastres ?? 0));
+            return (
+              <ListRow
+                key={`${a.kind}|${a.id}`}
+                title={
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="truncate">{a.user_name}</span>
+                    <Badge variant="secondary">{a.kind === "bonus" ? t("dawam.bonus", "Bonus") : t("dawam.deduction", "Deduction")}</Badge>
+                    {a.recurring ? <Badge variant="outline">{stopped ? t("dawam.stopped", "stopped") : t("dawam.monthly", "monthly")}</Badge> : null}
+                  </span>
+                }
+                meta={[a.reason, fmtDate(a.effective_date)].join(" · ")}
+                trailing={
+                  <span className="flex items-center gap-2">
+                    <span className="tabular-nums">{value}</span>
+                    <StatusPill tone={ADJ_TONE[a.status] ?? "neutral"}>{t(`dawam.adj_${a.status}`, a.status)}</StatusPill>
+                    {owner && a.status === "pending" ? (
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => void act(() => decideAdjustment(a.kind, a.id, { approve: true }), t("staff.decisionSaved", "Decision saved"))}>{t("common.approve", "Approve")}</Button>
+                        <Button size="sm" variant="ghost" aria-label={t("common.reject", "Reject")} onClick={() => void act(() => decideAdjustment(a.kind, a.id, { approve: false }), t("staff.decisionSaved", "Decision saved"))}><X className="size-4" /></Button>
+                      </>
+                    ) : null}
+                    {canAdjust && a.recurring && !stopped && a.status === "approved" ? (
+                      <Button size="sm" variant="ghost" onClick={() => void act(() => stopAdjustment(a.kind, a.id), t("dawam.stoppedToast", "Stopped from next month"))}>{t("dawam.stop", "Stop")}</Button>
+                    ) : null}
+                  </span>
+                }
+              />
+            );
+          })}
+        </ListCard>
+      )}
+    </div>
+  );
+}
+
+function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: () => void }) {
+  const { t } = useTranslation();
+  const q = useListAdvances({});
+  const [reviewing, setReviewing] = useState<SalaryAdvance | null>(null);
+  const rows = q.data ?? [];
+  return (
+    <div className="space-y-3">
+      {canAdvance ? <Button onClick={onRecord}><Plus className="size-4" />{t("dawam.recordAdvance", "Record a salary advance")}</Button> : null}
+      {q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
+        <EmptyState icon={HandCoins} title={t("dawam.noAdvances", "No salary advances")} description={t("dawam.noAdvancesHint", "Advances asked for in the app, or recorded here, and what is left to pay back.")} />
+      ) : (
+        <ListCard>
+          {rows.map((a) => (
+            <ListRow
+              key={a.id}
+              title={a.user_name ?? "—"}
+              meta={[
+                t("dawam.advanceMeta", { amount: fmtMoney(a.amount_piastres), n: a.installments, defaultValue: `${fmtMoney(a.amount_piastres)} over ${a.installments}` }),
+                a.reason,
+              ].filter(Boolean).join(" · ")}
+              trailing={
+                <span className="flex items-center gap-2">
+                  {a.status === "approved" ? (
+                    <span className="text-sm tabular-nums text-muted-foreground">{t("dawam.remaining", { amount: fmtMoney(a.remaining_piastres), defaultValue: `${fmtMoney(a.remaining_piastres)} left` })}</span>
+                  ) : null}
+                  <StatusPill tone={REQUEST_STATUS_TONE[a.status] ?? "neutral"}>{t(`staff.req_${a.status}`, a.status)}</StatusPill>
+                  {canAdvance && a.status === "pending" ? (
+                    <Button size="sm" variant="outline" onClick={() => setReviewing(a)}>{t("dawam.review", "Review")}</Button>
+                  ) : null}
+                </span>
+              }
+            />
+          ))}
+        </ListCard>
+      )}
+      <ReviewAdvanceDialog key={reviewing?.id} advance={reviewing} onOpenChange={(o) => !o && setReviewing(null)} />
+    </div>
+  );
+}
+
+function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) {
+  const { t } = useTranslation();
+  const q = useListExpenseAdvances({});
+  const rows = q.data ?? [];
+  return (
+    <div className="space-y-3">
+      {canLog ? <Button onClick={onLog}><Plus className="size-4" />{t("dawam.logExpense", "Log an expense advance")}</Button> : null}
+      <p className="text-sm text-muted-foreground">{t("dawam.expenseNever", "Expense advances are a log: never deducted, never settled, never on a payslip.")}</p>
+      {q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
+        <EmptyState icon={Wallet} title={t("dawam.noExpenses", "Nothing logged")} description={t("dawam.noExpensesHint", "Cash handed over for the shop shows here, per person and branch.")} />
+      ) : (
+        <ListCard>
+          {rows.map((x: ExpenseAdvance) => (
+            <ListRow
+              key={x.id}
+              title={x.user_name}
+              meta={[x.purpose, fmtDate(x.given_on), t(`dawam.via_${x.via}`, x.via), x.handed_by_name].filter(Boolean).join(" · ")}
+              trailing={<span className="tabular-nums">{fmtMoney(x.amount_piastres)}</span>}
+            />
+          ))}
+        </ListCard>
+      )}
+    </div>
+  );
+}
+
+function HistoryTab({ periods, people }: { periods: PayrollPeriod[]; people: Map<string, Employee> }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState<PayrollPeriod | null>(null);
+  const slipsQ = useListPayslips(open?.id ?? "", { query: { enabled: !!open } });
+  if (periods.length === 0) {
+    return <EmptyState icon={History} title={t("dawam.noHistory", "No earlier months yet")} description={t("dawam.noHistoryHint", "Approved months stay here with their frozen payslips.")} />;
+  }
+  return (
+    <>
+      <ListCard>
+        {periods.map((p) => (
+          <ListRow
+            key={p.id}
+            variant="nav"
+            title={p.name}
+            meta={`${fmtDate(p.start_date)} → ${fmtDate(p.end_date)}`}
+            onClick={() => setOpen(p)}
+            trailing={
+              <span className="flex items-center gap-2">
+                <span className="tabular-nums">{fmtMoney(p.total_net_piastres)}</span>
+                <StatusPill tone={PHASE_TONE[periodPhase(p)]}>{t(`dawam.phase_${periodPhase(p)}`, periodPhase(p))}</StatusPill>
+              </span>
+            }
+          />
+        ))}
+      </ListCard>
+      <Sheet open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
+          <SheetHeader>
+            <SheetTitle>{open?.name}</SheetTitle>
+            <SheetDescription>{t("dawam.frozenHint", "Frozen when payroll was approved.")}</SheetDescription>
+          </SheetHeader>
+          <div className="px-4 pb-6">
+            {slipsQ.isLoading ? <Skeleton className="h-40 w-full" /> : (
+              <ListCard>
+                {(slipsQ.data ?? []).map((s) => (
+                  <ListRow
+                    key={s.id}
+                    title={s.user_name ?? people.get(s.user_id)?.name ?? "—"}
+                    meta={s.paid_method ? t(`dawam.pay_${s.paid_method}`, PAY_METHOD_FALLBACK[s.paid_method] ?? s.paid_method) : t("dawam.unpaid", "Not paid")}
+                    trailing={<span className="tabular-nums">{fmtMoney(s.net_piastres)}</span>}
+                  />
+                ))}
+              </ListCard>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}

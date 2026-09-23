@@ -1,0 +1,294 @@
+/**
+ * The payroll page against the moments money goes wrong: someone without
+ * payroll rights (no page, no request), the live preview vs the frozen slips,
+ * approve → mark paid → no reopen, and the two line actions a manager has —
+ * waive a rule-made deduction (never delete it) and delete a manual one.
+ * The server decides every figure; these check what the page sends it.
+ */
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { ComputedPayslip, CurrentPayroll, Employee, Payslip } from "@/data/api/generated/models";
+
+globalThis.IntersectionObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+} as unknown as typeof IntersectionObserver;
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+} as unknown as typeof ResizeObserver;
+
+let held: string[] = [];
+let current: CurrentPayroll | undefined;
+const enabledSeen: Record<string, boolean[]> = {};
+const calls = {
+  generatePeriod: vi.fn(async () => ({})),
+  setPeriodStatus: vi.fn(async () => ({})),
+  markPaid: vi.fn(async () => ({})),
+  waiveDeduction: vi.fn(async () => ({})),
+  deleteDeduction: vi.fn(async () => ({})),
+  deleteBonus: vi.fn(async () => ({})),
+  createAdjustment: vi.fn(async () => ({})),
+};
+
+const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
+  const opts = args.find((a) => typeof a === "object" && a !== null && "query" in (a as object)) as
+    | { query?: { enabled?: boolean } }
+    | undefined;
+  (enabledSeen[name] ??= []).push(opts?.query?.enabled ?? true);
+  return { data: data(), isLoading: false, isFetching: false, error: null, refetch: vi.fn() };
+};
+
+vi.mock("@/data/authz/use-authz", async () => {
+  const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
+  return {
+    ...real,
+    useAuthz: () =>
+      real.authzFrom({
+        user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
+        capabilities: held as never, ask_manager: [], limits: {},
+      }),
+  };
+});
+vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
+vi.mock("@/features/staff/util", async () => {
+  const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
+  return { ...real, invalidateStaff: vi.fn() };
+});
+vi.mock("./rules-banner", () => ({ RulesFirstBanner: () => null }));
+vi.mock("@/hooks/use-org-modules", () => ({ useCurrentOrg: () => ({ name: "Madar Coffee" }), useOrgModules: () => ["pos", "dawam"] }));
+vi.mock("@/data/api/generated/api", () => ({
+  useCurrent: hook("current", () => current),
+  useListEmployees: hook("employees", () => [
+    { user_id: "e1", name: "Sara Ahmed", pay_method: "bank", pay_account: "EG38 0019" },
+    { user_id: "e4", name: "Youssef Adel", pay_method: "cash" },
+  ] as Partial<Employee>[]),
+  useListAdjustments: hook("adjustments", () => []),
+  useListAdvances: hook("advances", () => []),
+  useListExpenseAdvances: hook("expenses", () => []),
+  useListPayslips: hook("payslips", () => []),
+  exportPeriodCsv: vi.fn(),
+  decideAdjustment: vi.fn(),
+  stopAdjustment: vi.fn(),
+  createAdvanceAdmin: vi.fn(),
+  reviewAdvance: vi.fn(),
+  logExpenseAdvance: vi.fn(),
+  ...calls,
+}));
+
+const i18n = (await import("@/i18n")).default;
+await i18n.changeLanguage("en");
+const { ConfirmProvider } = await import("@/components/app/confirm-dialog");
+const { PayrollPage, periodPhase } = await import("./payroll-page");
+
+const wrap = (node: ReactNode) =>
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <ConfirmProvider>{node}</ConfirmProvider>
+    </QueryClientProvider>,
+  );
+
+const slip = (user: string, name: string, over: Partial<ComputedPayslip> = {}): ComputedPayslip =>
+  ({
+    user_id: user, name, base_piastres: 900_000, base_salary_piastres: 900_000, net_piastres: 880_000,
+    overtime_piastres: 0, overtime_minutes: 0, bonuses_piastres: 0, deductions_piastres: 20_000,
+    advance_installment_piastres: 0, carry_out_piastres: 0, absent_days: 0, leave_days: 0,
+    late_minutes: 12, worked_days: 20,
+    breakdown: {
+      paid_days: 31, window_days: 31, bonuses: [], advances: [],
+      deductions: [
+        { id: "d1", reason: "Late arrival", piastres: 5_000, source: "late_penalty" },
+        { id: "d2", reason: "Broke a glass", piastres: 15_000, source: "manual" },
+      ],
+    },
+    ...over,
+  }) as ComputedPayslip;
+
+const period = (status: string) => ({
+  id: "p2", name: "26 Aug – 25 Sep 2026", start_date: "2026-08-26", end_date: "2026-09-25", status,
+  org_id: "o", created_at: "", updated_at: "", employee_count: 2, total_net_piastres: 0,
+});
+
+beforeEach(() => {
+  for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
+  for (const f of Object.values(calls)) f.mockClear();
+  held = ["hr.payroll.read", "hr.payroll.run", "hr.adjustments.create"];
+  current = {
+    period: period("draft"),
+    preview: [slip("e1", "Sara Ahmed"), slip("e4", "Youssef Adel", { net_piastres: 745_000 })],
+    payslips: [],
+    history: [],
+  } as unknown as CurrentPayroll;
+});
+
+describe("PayrollPage", () => {
+  it("is closed to someone without payroll rights, and asks the server nothing", () => {
+    held = [];
+    wrap(<PayrollPage />);
+    expect(screen.getByText(/Payroll needs payroll rights/)).toBeInTheDocument();
+    expect(enabledSeen.current.every((e) => e === false)).toBe(true);
+  });
+
+  it("shows the live preview and approves the period (PAY-2, PAY-5)", async () => {
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    expect(screen.getAllByText("Sara Ahmed").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Estimate").length).toBe(2);
+    await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Approve payroll" }));
+    await waitFor(() => expect(calls.generatePeriod).toHaveBeenCalledWith("p2"));
+  });
+
+  it("marks someone paid with their own pay method, and hides reopen once anyone is paid (PAY-6, PAY-7)", async () => {
+    const user = userEvent.setup();
+    const frozen = (u: string, n: string, paid: string | null) =>
+      ({ ...slip(u, n), id: `s-${u}`, user_name: n, paid_method: paid, payroll_period_id: "p2" }) as unknown as Payslip;
+    current = { ...current!, period: period("generated"), payslips: [frozen("e1", "Sara Ahmed", null), frozen("e4", "Youssef Adel", null)] };
+    const { unmount } = wrap(<PayrollPage />);
+    expect(screen.getByRole("button", { name: /Reopen/ })).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: "Mark paid" })[0]);
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("radio", { name: "Bank transfer" })).toHaveAttribute("aria-checked", "true");
+    await user.click(within(dialog).getByRole("button", { name: "Mark paid" }));
+    await waitFor(() => expect(calls.markPaid).toHaveBeenCalledWith("p2", "e1", { method: "bank" }));
+    unmount();
+
+    current = { ...current!, payslips: [frozen("e1", "Sara Ahmed", "bank"), frozen("e4", "Youssef Adel", null)] };
+    wrap(<PayrollPage />);
+    expect(screen.queryByRole("button", { name: /Reopen/ })).not.toBeInTheDocument();
+  });
+
+  it("waives a rule-made line and deletes only a manual one (AD-7)", async () => {
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getAllByText("Sara Ahmed")[0]);
+    const sheet = await screen.findByRole("dialog");
+    // The rule line can be waived, not deleted; the manual one the other way round.
+    expect(within(sheet).getAllByRole("button", { name: "Waive" })).toHaveLength(1);
+    expect(within(sheet).getAllByRole("button", { name: "Delete" })).toHaveLength(1);
+    await user.click(within(sheet).getByRole("button", { name: "Waive" }));
+    const waive = (await screen.findAllByRole("dialog")).at(-1)!;
+    await user.type(within(waive).getByLabelText("Reason"), "First week");
+    await user.click(within(waive).getByRole("button", { name: "Waive" }));
+    await waitFor(() => expect(calls.waiveDeduction).toHaveBeenCalledWith("d1", { reason: "First week" }));
+
+    await user.click(within(sheet).getByRole("button", { name: "Delete" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Delete" }));
+    await waitFor(() => expect(calls.deleteDeduction).toHaveBeenCalledWith("d2"));
+    expect(calls.deleteBonus).not.toHaveBeenCalled();
+  });
+
+  it("adds a bonus from a payslip in piastres", async () => {
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getAllByText("Youssef Adel")[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Bonus" }));
+    const form = (await screen.findAllByRole("dialog")).at(-1)!;
+    await user.type(within(form).getByLabelText("Amount (EGP)"), "150.5");
+    await user.type(within(form).getByLabelText("Reason"), "Best month");
+    await user.click(within(form).getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(calls.createAdjustment).toHaveBeenCalledWith(
+        expect.objectContaining({ user_id: "e4", kind: "bonus", amount_piastres: 15_050, reason: "Best month", percent_of_base: null }),
+      ),
+    );
+  });
+
+  it("never sends a percentage for a deduction (AD-2)", async () => {
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getAllByText("Youssef Adel")[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Bonus" }));
+    const form = (await screen.findAllByRole("dialog")).at(-1)!;
+    await user.click(within(form).getByRole("radio", { name: "% of salary" }));
+    await user.click(within(form).getByRole("radio", { name: "Deduction" }));
+    expect(within(form).queryByRole("radio", { name: "% of salary" })).not.toBeInTheDocument();
+    await user.type(within(form).getByLabelText("Amount (EGP)"), "10");
+    await user.type(within(form).getByLabelText("Reason"), "Broken cup");
+    await user.click(within(form).getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(calls.createAdjustment).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "deduction", amount_piastres: 1_000, percent_of_base: null }),
+      ),
+    );
+  });
+
+  it("keeps an open payslip current when the server's figures change", async () => {
+    const user = userEvent.setup();
+    const ui = () => (
+      <QueryClientProvider client={new QueryClient()}>
+        <ConfirmProvider><PayrollPage /></ConfirmProvider>
+      </QueryClientProvider>
+    );
+    const { rerender } = render(ui());
+    await user.click(screen.getAllByText("Sara Ahmed")[0]);
+    const sheet = await screen.findByRole("dialog");
+    expect(within(sheet).getByText("EGP 8,800.00")).toBeInTheDocument();
+    // The waiver landed: the server now answers without that line.
+    current = {
+      ...current!,
+      preview: [slip("e1", "Sara Ahmed", {
+        net_piastres: 885_000, deductions_piastres: 15_000,
+        breakdown: { paid_days: 31, window_days: 31, bonuses: [], advances: [], deductions: [{ id: "d2", reason: "Broke a glass", piastres: 15_000, source: "manual" }] },
+      })],
+    };
+    rerender(ui());
+    const again = await screen.findByRole("dialog");
+    expect(within(again).getByText("EGP 8,850.00")).toBeInTheDocument();
+    expect(within(again).queryByText("Late arrival")).not.toBeInTheDocument();
+  });
+
+  it("reads the server's period status as a phase", () => {
+    expect(periodPhase(period("draft") as never)).toBe("open");
+    expect(periodPhase(period("generated") as never)).toBe("approved");
+    expect(periodPhase(period("paid") as never)).toBe("paid");
+  });
+
+  it("strikes a waived line through, offers no second waiver, and prints a payslip (AD-8, PAY-10)", async () => {
+    const user = userEvent.setup();
+    current = {
+      ...current!,
+      preview: [
+        slip("e1", "Sara Ahmed", {
+          net_piastres: 885_000, deductions_piastres: 15_000,
+          breakdown: {
+            paid_days: 31, window_days: 31, bonuses: [], advances: [],
+            deductions: [
+              { id: "d1", reason: "Late arrival", piastres: 5_000, source: "late_penalty", waived: true },
+              { id: "d2", reason: "Broke <b>a</b> glass", piastres: 15_000, source: "manual" },
+            ],
+          },
+        }),
+      ],
+    } as unknown as CurrentPayroll;
+    const doc = { open: vi.fn(), write: vi.fn(), close: vi.fn(), fonts: { ready: Promise.resolve() } };
+    const win = { document: doc, focus: vi.fn(), print: vi.fn() };
+    const open = vi.spyOn(window, "open").mockReturnValue(win as unknown as Window);
+    wrap(<PayrollPage />);
+    await user.click(screen.getAllByText("Sara Ahmed")[0]);
+    const sheet = await screen.findByRole("dialog");
+    expect(within(sheet).getByText("Late arrival")).toHaveClass("line-through");
+    expect(within(sheet).getByText("Waived")).toBeInTheDocument();
+    expect(within(sheet).queryByRole("button", { name: "Waive" })).not.toBeInTheDocument();
+
+    await user.click(within(sheet).getByRole("button", { name: /Download PDF/ }));
+    expect(open).toHaveBeenCalled();
+    const html = doc.write.mock.calls[0][0] as string;
+    expect(html).toContain("Madar Coffee");
+    expect(html).toContain('dir="ltr"');
+    expect(html).toContain("line-through");
+    // A reason someone typed is text, never markup.
+    expect(html).toContain("Broke &lt;b&gt;a&lt;/b&gt; glass");
+    await waitFor(() => expect(win.print).toHaveBeenCalled());
+    open.mockRestore();
+  });
+});

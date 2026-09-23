@@ -33,6 +33,11 @@ export interface Org {
   is_active: boolean;
   /** @nullable */
   logo_url?: string | null;
+  /**
+     * Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it
+     * and keeps every record.
+     */
+  modules: string[];
   name: string;
   /** @nullable */
   receipt_footer?: string | null;

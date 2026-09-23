@@ -639,6 +639,41 @@ export const ResolveBranchResponse = zod.object({
 })
 
 
+export const StaffOtpRequestBody = zod.object({
+  "phone": zod.string()
+})
+
+export const StaffOtpRequestResponse = zod.object({
+  "dev_code": zod.string().nullish().describe('The code itself — only from a debug build with `MADAR_DEV_OTP_ECHO=1`,\nso a developer can sign in without WhatsApp. Never in release.'),
+  "sent": zod.boolean()
+})
+
+
+export const StaffOtpVerifyBody = zod.object({
+  "code": zod.string(),
+  "model": zod.string().nullish(),
+  "org_id": zod.uuid().nullish().describe('The business to sign in to, when the number works at more than one (RO-5).'),
+  "phone": zod.string(),
+  "platform": zod.string().nullish()
+})
+
+export const StaffOtpVerifyResponse = zod.object({
+  "device_token": zod.string().nullish().describe('Kept in the phone\'s secure storage and sent as `X-Staff-Device` on every\npunch and ping (RO-3).'),
+  "name": zod.string().nullish(),
+  "needs_org": zod.boolean().describe('Set when the number works at more than one business and none was\npicked: ask, then verify again with `org_id`. The code stays valid.'),
+  "new_phone": zod.boolean().describe('True when this sign-in moved the account from another phone.'),
+  "org_id": zod.uuid().nullish(),
+  "orgs": zod.array(zod.object({
+  "active": zod.boolean().describe('False when the business is suspended: sign-in is stopped (SA-3).'),
+  "org_id": zod.uuid(),
+  "org_name": zod.string()
+}).describe('A business the number works at.')),
+  "role": zod.union([zod.null(),zod.enum(['super_admin', 'org_admin', 'branch_manager', 'teller', 'waiter', 'kitchen'])]).optional(),
+  "token": zod.string().nullish().describe('`Authorization: Bearer` for every other call.'),
+  "user_id": zod.uuid().nullish()
+})
+
+
 export const ExplainQueryParams = zod.object({
   "user_id": zod.uuid(),
   "capability": zod.string(),
@@ -10508,6 +10543,7 @@ export const ListOrgsResponseItem = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
@@ -10550,6 +10586,7 @@ export const CreateOrgResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
@@ -10572,6 +10609,7 @@ export const ProvisionOrgBody = zod.object({
   "phone": zod.string().nullish()
 }),
   "currency_code": zod.string().nullish(),
+  "modules": zod.array(zod.string()).nullish().describe('`pos`, `dawam`; default both. A Dawam-only customer is `[\"dawam\"]` (SA-1).'),
   "name": zod.string(),
   "owner": zod.object({
   "email": zod.string(),
@@ -10598,6 +10636,7 @@ export const ProvisionOrgResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
@@ -10645,6 +10684,7 @@ export const GetOrgResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
@@ -10676,6 +10716,7 @@ export const UpdateOrgBody = zod.object({
   "custom_branding": zod.boolean().nullish().describe('May this organisation wear its own mark and colours on the customer\'s\ncard and signup page? A paid tier, and this endpoint is already\nsuper-admin only — which is the whole reason it lives here rather than\nwith the other branding controls an org manager can reach.'),
   "is_active": zod.boolean().nullish(),
   "logo_url": zod.string().nullish().describe('`null` clears the logo; absent leaves it unchanged. To set a new\nlogo, use `PUT \/orgs\/{id}\/logo` (multipart) instead — JSON updates\nonly accept the clear-to-null case here.'),
+  "modules": zod.array(zod.string()).nullish().describe('`pos`, `dawam`: at least one (PS-2, SA-5). Super admin only, like the\nrest of this endpoint.'),
   "name": zod.string().nullish(),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().nullish(),
@@ -10701,6 +10742,7 @@ export const UpdateOrgResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
@@ -10776,6 +10818,7 @@ export const UploadOrgCardImageResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
@@ -10810,6 +10853,7 @@ export const UploadOrgLogoResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
@@ -12793,6 +12837,24 @@ export const UpdateSupplierResponse = zod.object({
   "phone": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
+
+
+export const SetPushTokenBody = zod.object({
+  "app": zod.string().describe('Which app this device belongs to, e.g. `\"dawam\"`.'),
+  "locale": zod.string().nullish().describe('`ar` or `en`; defaults to `ar`.'),
+  "platform": zod.string().nullish().describe('Free-form platform hint (`\"ios\"`, `\"android\"`, ...); optional.'),
+  "token": zod.string().describe('The FCM registration token.')
+})
+
+export const SetPushTokenResponse = zod.void()
+
+
+export const DeletePushTokenBody = zod.object({
+  "app": zod.string(),
+  "token": zod.string()
+})
+
+export const DeletePushTokenResponse = zod.void()
 
 
 export const ListMarketingLinksResponseItem = zod.object({
@@ -14893,6 +14955,7 @@ export const LegacyAddShiftCashMovementBody = zod.object({
   "corrects_id": zod.uuid().nullish(),
   "created_at": zod.iso.datetime({"offset":true}).nullish(),
   "device_id": zod.uuid().nullish(),
+  "expense_advance_to": zod.uuid().nullish().describe('A pay-out handed to an employee for shop purchases: logged in Dawam as\ntheir expense advance, never deducted (AV-8).'),
   "kind": zod.union([zod.null(),zod.enum(['pay_in', 'pay_out', 'safe_drop', 'correction']).describe('What a cash movement IS, which fixes its sign.')]).optional(),
   "note": zod.string()
 })
@@ -15258,6 +15321,152 @@ export const GetStaffPoolTodayResponse = zod.object({
 })
 
 
+export const ListAdjustmentsQueryParams = zod.object({
+  "user_id": zod.uuid().optional(),
+  "status": zod.string().optional()
+})
+
+export const ListAdjustmentsResponseItem = zod.object({
+  "amount_piastres": zod.number().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "effective_date": zod.iso.date(),
+  "ends_on": zod.iso.date().nullish(),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`bonus` · `deduction`'),
+  "percent_of_base": zod.number().nullish(),
+  "reason": zod.string(),
+  "recurring": zod.boolean(),
+  "source": zod.string(),
+  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+})
+export const ListAdjustmentsResponse = zod.array(ListAdjustmentsResponseItem)
+
+
+/**
+ * @summary Add a bonus or deduction. Over the caller's limit it is created pending
+and waits for the owner (AD-5).
+ */
+export const CreateAdjustmentBody = zod.object({
+  "amount_piastres": zod.number().nullish(),
+  "effective_date": zod.iso.date().nullish(),
+  "kind": zod.string().describe('`bonus` · `deduction`'),
+  "percent_of_base": zod.number().nullish().describe('A bonus may be a % of salary.'),
+  "reason": zod.string(),
+  "recurring": zod.boolean().optional().describe('Every month until stopped (AD-3).'),
+  "user_id": zod.uuid()
+})
+
+export const CreateAdjustmentResponse = zod.object({
+  "amount_piastres": zod.number().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "effective_date": zod.iso.date(),
+  "ends_on": zod.iso.date().nullish(),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`bonus` · `deduction`'),
+  "percent_of_base": zod.number().nullish(),
+  "reason": zod.string(),
+  "recurring": zod.boolean(),
+  "source": zod.string(),
+  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+})
+
+
+/**
+ * @summary The owner (or anyone whose limit covers it) decides a pending line.
+ */
+export const DecideAdjustmentParams = zod.object({
+  "kind": zod.string(),
+  "id": zod.uuid()
+})
+
+export const DecideAdjustmentBody = zod.object({
+  "approve": zod.boolean()
+})
+
+export const DecideAdjustmentResponse = zod.object({
+  "amount_piastres": zod.number().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "effective_date": zod.iso.date(),
+  "ends_on": zod.iso.date().nullish(),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`bonus` · `deduction`'),
+  "percent_of_base": zod.number().nullish(),
+  "reason": zod.string(),
+  "recurring": zod.boolean(),
+  "source": zod.string(),
+  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+})
+
+
+/**
+ * @summary Stop a monthly line from the next period on; past payslips keep it (AD-3).
+ */
+export const StopAdjustmentParams = zod.object({
+  "kind": zod.string(),
+  "id": zod.uuid()
+})
+
+export const StopAdjustmentResponse = zod.object({
+  "amount_piastres": zod.number().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "effective_date": zod.iso.date(),
+  "ends_on": zod.iso.date().nullish(),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`bonus` · `deduction`'),
+  "percent_of_base": zod.number().nullish(),
+  "reason": zod.string(),
+  "recurring": zod.boolean(),
+  "source": zod.string(),
+  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+})
+
+
+/**
+ * @summary Decide an advance within the cap: the approver's limit is a % of the
+employee's salary (AV-4, AV-5).
+ */
+export const ReviewAdvanceParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ReviewAdvanceBody = zod.object({
+  "amount_piastres": zod.number().nullish().describe('Approve a different amount than asked.'),
+  "approve": zod.boolean(),
+  "installments": zod.number().nullish(),
+  "note": zod.string().nullish()
+})
+
+export const ReviewAdvanceResponse = zod.object({
+  "amount_piastres": zod.number(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish(),
+  "decision_note": zod.string().nullish(),
+  "id": zod.uuid(),
+  "installments": zod.number(),
+  "monthly_installment_piastres": zod.number(),
+  "org_id": zod.uuid(),
+  "reason": zod.string().nullish(),
+  "remaining_piastres": zod.number(),
+  "status": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid(),
+  "user_name": zod.string().nullish()
+})
+
+
 export const ListAttendanceQueryParams = zod.object({
   "from": zod.iso.date(),
   "to": zod.iso.date(),
@@ -15279,6 +15488,8 @@ export const ListAttendanceResponseItem = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "early_leave_minutes": zod.number(),
@@ -15290,9 +15501,12 @@ export const ListAttendanceResponseItem = zod.object({
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid(),
   "user_name": zod.string().nullish(),
@@ -15328,6 +15542,8 @@ export const CreateManualRecordResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "early_leave_minutes": zod.number(),
@@ -15339,9 +15555,62 @@ export const CreateManualRecordResponse = zod.object({
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "tracking_off": zod.boolean(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid(),
+  "user_name": zod.string().nullish(),
+  "work_shift_id": zod.uuid().nullish(),
+  "work_shift_name": zod.string().nullish(),
+  "worked_minutes": zod.number()
+})
+
+
+/**
+ * @summary Clock someone in, or out if they are in, now; marked as made by the
+manager with the reason (CL-13, CL-16).
+ */
+export const PunchForBody = zod.object({
+  "reason": zod.string().describe('Required (CL-13): a dead phone, a forgotten one.'),
+  "user_id": zod.uuid()
+})
+
+export const PunchForResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "business_date": zod.iso.date(),
+  "check_in_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_in_distance_meters": zod.number().nullish(),
+  "check_in_latitude": zod.number().nullish(),
+  "check_in_longitude": zod.number().nullish(),
+  "check_in_method": zod.string().nullish(),
+  "check_out_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_out_distance_meters": zod.number().nullish(),
+  "check_out_latitude": zod.number().nullish(),
+  "check_out_longitude": zod.number().nullish(),
+  "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "early_leave_minutes": zod.number(),
+  "edit_reason": zod.string().nullish(),
+  "edited_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "is_manual": zod.boolean(),
+  "late_minutes": zod.number(),
+  "notes": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string(),
+  "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid(),
   "user_name": zod.string().nullish(),
@@ -15357,51 +15626,98 @@ export const GetAttendanceSettingsQueryParams = zod.object({
 
 export const GetAttendanceSettingsResponse = zod.object({
   "absence_deduction_days": zod.number(),
+  "advance_cap_percent": zod.number().describe('Salary advances owed may reach this share of monthly salary (AV-5).'),
   "auto_checkout_buffer_minutes": zod.number(),
   "branch_id": zod.uuid().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "default_overtime_multiplier": zod.number(),
   "excused_time_paid_default": zod.boolean().describe('Whether an approved mid-shift permission or early departure is PAID by\ndefault. The approver may override it on any individual request.'),
+  "gender_mode": zod.string().describe('`off` · `soft` · `hard`: how the gender default weighs in suggestions (SC-12).'),
+  "half_day_leave_counts": zod.string().describe('`half_shift` · `whole_day`: what a half-day leave counts as (RQ-8).'),
+  "holiday_multiplier": zod.number().describe('What working a set-up holiday pays (RU-10).'),
   "id": zod.uuid(),
   "late_deduction_tiers": zod.unknown(),
+  "limit_day_hours": zod.number().describe('Labour limits, hours (RU-13). They warn, never block, and stay\nunconfirmed until a lawyer signs them off.'),
+  "limit_overtime_day_hours": zod.number(),
+  "limit_presence_hours": zod.number(),
+  "limit_rest_hours": zod.number(),
+  "limit_week_hours": zod.number(),
+  "night_end": zod.string(),
+  "night_start": zod.string().describe('Night for the night overtime rate and for suggestions (RU-8, RU-9).'),
+  "orders_per_staff": zod.number().describe('POS-derived coverage: one person per this many orders an hour.'),
   "org_id": zod.uuid(),
+  "overtime_day_multiplier": zod.number(),
+  "overtime_mode": zod.string().describe('`off` · `automatic` · `approval` (RU-7).'),
+  "overtime_night_multiplier": zod.number(),
+  "period_start_day": zod.number().describe('Day of the month a pay period opens (PAY-1): 26 = a 26th–25th cycle.'),
   "require_geofence": zod.boolean(),
+  "rules_saved_at": zod.iso.datetime({"offset":true}).nullish().describe('When the business saved its rules; nobody clocks in before (RU-1).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "weekend_days": zod.array(zod.number()),
   "working_days_per_month": zod.number()
 })
 
 
 export const PutAttendanceSettingsBody = zod.object({
   "absence_deduction_days": zod.number().nullish(),
+  "advance_cap_percent": zod.number().nullish(),
   "auto_checkout_buffer_minutes": zod.number().nullish(),
   "branch_id": zod.uuid().nullish().describe('`None` = the org-wide default row.'),
   "default_overtime_multiplier": zod.number().nullish(),
   "excused_time_paid_default": zod.boolean().nullish(),
+  "gender_mode": zod.string().nullish().describe('`off` · `soft` · `hard`; owner only (`hr.roster.settings`).'),
+  "half_day_leave_counts": zod.string().nullish().describe('`half_shift` · `whole_day`.'),
+  "holiday_multiplier": zod.number().nullish(),
   "late_deduction_tiers": zod.array(zod.object({
   "from_minutes": zod.number(),
   "kind": zod.enum(['minutes', 'piastres', 'day_fraction']).describe('What a tier costs the employee.'),
   "to_minutes": zod.number().nullish(),
   "value": zod.number()
 }).describe('One rung of the late-penalty ladder. Ranges are inclusive at both ends;\n`to_minutes = None` is the open-ended top rung.')).nullish(),
+  "limit_day_hours": zod.number().nullish(),
+  "limit_overtime_day_hours": zod.number().nullish(),
+  "limit_presence_hours": zod.number().nullish(),
+  "limit_rest_hours": zod.number().nullish(),
+  "limit_week_hours": zod.number().nullish(),
+  "night_end": zod.string().nullish(),
+  "night_start": zod.string().nullish(),
+  "orders_per_staff": zod.number().nullish(),
+  "overtime_day_multiplier": zod.number().nullish(),
+  "overtime_mode": zod.string().nullish().describe('`off` · `automatic` · `approval`.'),
+  "overtime_night_multiplier": zod.number().nullish(),
+  "period_start_day": zod.number().nullish(),
   "require_geofence": zod.boolean().nullish(),
-  "weekend_days": zod.array(zod.number()).nullish(),
   "working_days_per_month": zod.number().nullish()
 })
 
 export const PutAttendanceSettingsResponse = zod.object({
   "absence_deduction_days": zod.number(),
+  "advance_cap_percent": zod.number().describe('Salary advances owed may reach this share of monthly salary (AV-5).'),
   "auto_checkout_buffer_minutes": zod.number(),
   "branch_id": zod.uuid().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "default_overtime_multiplier": zod.number(),
   "excused_time_paid_default": zod.boolean().describe('Whether an approved mid-shift permission or early departure is PAID by\ndefault. The approver may override it on any individual request.'),
+  "gender_mode": zod.string().describe('`off` · `soft` · `hard`: how the gender default weighs in suggestions (SC-12).'),
+  "half_day_leave_counts": zod.string().describe('`half_shift` · `whole_day`: what a half-day leave counts as (RQ-8).'),
+  "holiday_multiplier": zod.number().describe('What working a set-up holiday pays (RU-10).'),
   "id": zod.uuid(),
   "late_deduction_tiers": zod.unknown(),
+  "limit_day_hours": zod.number().describe('Labour limits, hours (RU-13). They warn, never block, and stay\nunconfirmed until a lawyer signs them off.'),
+  "limit_overtime_day_hours": zod.number(),
+  "limit_presence_hours": zod.number(),
+  "limit_rest_hours": zod.number(),
+  "limit_week_hours": zod.number(),
+  "night_end": zod.string(),
+  "night_start": zod.string().describe('Night for the night overtime rate and for suggestions (RU-8, RU-9).'),
+  "orders_per_staff": zod.number().describe('POS-derived coverage: one person per this many orders an hour.'),
   "org_id": zod.uuid(),
+  "overtime_day_multiplier": zod.number(),
+  "overtime_mode": zod.string().describe('`off` · `automatic` · `approval` (RU-7).'),
+  "overtime_night_multiplier": zod.number(),
+  "period_start_day": zod.number().describe('Day of the month a pay period opens (PAY-1): 26 = a 26th–25th cycle.'),
   "require_geofence": zod.boolean(),
+  "rules_saved_at": zod.iso.datetime({"offset":true}).nullish().describe('When the business saved its rules; nobody clocks in before (RU-1).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "weekend_days": zod.array(zod.number()),
   "working_days_per_month": zod.number()
 })
 
@@ -15427,6 +15743,63 @@ export const AttendanceSummaryResponseItem = zod.object({
   "user_name": zod.string()
 }).describe('One employee\'s totals over a reporting window.')
 export const AttendanceSummaryResponse = zod.array(AttendanceSummaryResponseItem)
+
+
+/**
+ * @summary A dead or forgotten phone in a Madar org: the person clocks in or out on
+the branch till with their till PIN (CL-13). Marked `till` (CL-16). The
+till is at the branch, so there is no geofence to check. Online only: a
+PIN is never queued.
+ */
+export const TillPunchBody = zod.object({
+  "branch_id": zod.uuid(),
+  "pin": zod.string().describe('The person\'s own till PIN.')
+})
+
+export const TillPunchResponse = zod.object({
+  "name": zod.string(),
+  "punched": zod.string().describe('`in` · `out`'),
+  "record": zod.object({
+  "branch_id": zod.uuid(),
+  "business_date": zod.iso.date(),
+  "check_in_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_in_distance_meters": zod.number().nullish(),
+  "check_in_latitude": zod.number().nullish(),
+  "check_in_longitude": zod.number().nullish(),
+  "check_in_method": zod.string().nullish(),
+  "check_out_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_out_distance_meters": zod.number().nullish(),
+  "check_out_latitude": zod.number().nullish(),
+  "check_out_longitude": zod.number().nullish(),
+  "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "early_leave_minutes": zod.number(),
+  "edit_reason": zod.string().nullish(),
+  "edited_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "is_manual": zod.boolean(),
+  "late_minutes": zod.number(),
+  "notes": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string(),
+  "tracking_off": zod.boolean(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid(),
+  "user_name": zod.string().nullish(),
+  "work_shift_id": zod.uuid().nullish(),
+  "work_shift_name": zod.string().nullish(),
+  "worked_minutes": zod.number()
+}),
+  "user_id": zod.uuid()
+})
 
 
 export const DeleteRecordParams = zod.object({
@@ -15461,6 +15834,8 @@ export const CorrectRecordResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "early_leave_minutes": zod.number(),
@@ -15472,9 +15847,12 @@ export const CorrectRecordResponse = zod.object({
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid(),
   "user_name": zod.string().nullish(),
@@ -15482,6 +15860,127 @@ export const CorrectRecordResponse = zod.object({
   "work_shift_name": zod.string().nullish(),
   "worked_minutes": zod.number()
 })
+
+
+/**
+ * @summary Confirm or reject a cover. Rejecting pays nothing (CV-5); the confirmer is
+neither person involved.
+ */
+export const DecideCoverParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const DecideCoverBody = zod.object({
+  "approve": zod.boolean()
+})
+
+export const DecideCoverResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "business_date": zod.iso.date(),
+  "check_in_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_in_distance_meters": zod.number().nullish(),
+  "check_in_latitude": zod.number().nullish(),
+  "check_in_longitude": zod.number().nullish(),
+  "check_in_method": zod.string().nullish(),
+  "check_out_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_out_distance_meters": zod.number().nullish(),
+  "check_out_latitude": zod.number().nullish(),
+  "check_out_longitude": zod.number().nullish(),
+  "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "early_leave_minutes": zod.number(),
+  "edit_reason": zod.string().nullish(),
+  "edited_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "is_manual": zod.boolean(),
+  "late_minutes": zod.number(),
+  "notes": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string(),
+  "tracking_off": zod.boolean(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid(),
+  "user_name": zod.string().nullish(),
+  "work_shift_id": zod.uuid().nullish(),
+  "work_shift_name": zod.string().nullish(),
+  "worked_minutes": zod.number()
+})
+
+
+/**
+ * @summary Approve or reject a shift's overtime, within the approver's money limit.
+ */
+export const DecideOvertimeParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const DecideOvertimeBody = zod.object({
+  "approve": zod.boolean()
+})
+
+export const DecideOvertimeResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "business_date": zod.iso.date(),
+  "check_in_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_in_distance_meters": zod.number().nullish(),
+  "check_in_latitude": zod.number().nullish(),
+  "check_in_longitude": zod.number().nullish(),
+  "check_in_method": zod.string().nullish(),
+  "check_out_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_out_distance_meters": zod.number().nullish(),
+  "check_out_latitude": zod.number().nullish(),
+  "check_out_longitude": zod.number().nullish(),
+  "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "early_leave_minutes": zod.number(),
+  "edit_reason": zod.string().nullish(),
+  "edited_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "is_manual": zod.boolean(),
+  "late_minutes": zod.number(),
+  "notes": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string(),
+  "tracking_off": zod.boolean(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid(),
+  "user_name": zod.string().nullish(),
+  "work_shift_id": zod.uuid().nullish(),
+  "work_shift_name": zod.string().nullish(),
+  "worked_minutes": zod.number()
+})
+
+
+/**
+ * @summary Active staff at a branch, names only: what a till shows to tag a pay-out
+as someone's expense advance (AV-8). Anyone who works the branch may read
+it; nothing about pay is in it.
+ */
+export const BranchPeopleParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const BranchPeopleResponseItem = zod.object({
+  "name": zod.string(),
+  "user_id": zod.uuid()
+})
+export const BranchPeopleResponse = zod.array(BranchPeopleResponseItem)
 
 
 export const ListDepartmentsResponseItem = zod.object({
@@ -15588,6 +16087,7 @@ export const ListEmployeesResponseItem = zod.object({
   "emergency_contact_phone": zod.string().nullish(),
   "employee_code": zod.string().nullish(),
   "employment_status": zod.string(),
+  "gender": zod.string().nullish().describe('`m` · `f` · null — only ever a soft default for late shifts (SC-13).'),
   "hire_date": zod.iso.date().nullish(),
   "is_active": zod.boolean(),
   "job_title": zod.string().nullish(),
@@ -15595,6 +16095,8 @@ export const ListEmployeesResponseItem = zod.object({
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string().describe('`cash` · `bank` · `wallet`'),
   "phone": zod.string().nullish(),
   "photo_url": zod.string().nullish(),
   "role": zod.string().describe('The POS role. Orthogonal to employment: a cleaner is a `teller`-role user\nwith the POS permissions revoked.'),
@@ -15603,6 +16105,49 @@ export const ListEmployeesResponseItem = zod.object({
   "user_id": zod.uuid()
 })
 export const ListEmployeesResponse = zod.array(ListEmployeesResponseItem)
+
+
+/**
+ * @summary Add a Dawam employee: a user who signs in with a WhatsApp code, so no
+password or till PIN (a manager can give them a PIN later to work a till).
+Used by the Add Employee form and the spreadsheet import (DSH-7).
+ */
+export const CreateEmployeeBody = zod.object({
+  "base_salary_piastres": zod.number().nullish().describe('Piastres. Ignored without `payroll:update`, as on the profile.'),
+  "branch_id": zod.uuid(),
+  "gender": zod.string().nullish().describe('`m` · `f`'),
+  "job_title": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().describe('Their WhatsApp number: how they sign in to Dawam.')
+})
+
+export const CreateEmployeeResponse = zod.object({
+  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller lacks `payroll:read` — see the module docs.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "department_id": zod.uuid().nullish(),
+  "department_name": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "emergency_contact_name": zod.string().nullish(),
+  "emergency_contact_phone": zod.string().nullish(),
+  "employee_code": zod.string().nullish(),
+  "employment_status": zod.string(),
+  "gender": zod.string().nullish().describe('`m` · `f` · null — only ever a soft default for late shifts (SC-13).'),
+  "hire_date": zod.iso.date().nullish(),
+  "is_active": zod.boolean(),
+  "job_title": zod.string().nullish(),
+  "name": zod.string().describe('From `users` — the employee\'s name IS their user name; there is no\nsecond copy to drift.'),
+  "national_id": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string().describe('`cash` · `bank` · `wallet`'),
+  "phone": zod.string().nullish(),
+  "photo_url": zod.string().nullish(),
+  "role": zod.string().describe('The POS role. Orthogonal to employment: a cleaner is a `teller`-role user\nwith the POS permissions revoked.'),
+  "termination_date": zod.iso.date().nullish(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid()
+})
 
 
 export const GetEmployeeParams = zod.object({
@@ -15619,6 +16164,7 @@ export const GetEmployeeResponse = zod.object({
   "emergency_contact_phone": zod.string().nullish(),
   "employee_code": zod.string().nullish(),
   "employment_status": zod.string(),
+  "gender": zod.string().nullish().describe('`m` · `f` · null — only ever a soft default for late shifts (SC-13).'),
   "hire_date": zod.iso.date().nullish(),
   "is_active": zod.boolean(),
   "job_title": zod.string().nullish(),
@@ -15626,6 +16172,8 @@ export const GetEmployeeResponse = zod.object({
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string().describe('`cash` · `bank` · `wallet`'),
   "phone": zod.string().nullish(),
   "photo_url": zod.string().nullish(),
   "role": zod.string().describe('The POS role. Orthogonal to employment: a cleaner is a `teller`-role user\nwith the POS permissions revoked.'),
@@ -15646,10 +16194,13 @@ export const PutEmployeeBody = zod.object({
   "emergency_contact_phone": zod.string().nullish(),
   "employee_code": zod.string().nullish(),
   "employment_status": zod.string().nullish().describe('`active` | `suspended` | `terminated`. Defaults to `active`.'),
+  "gender": zod.string().nullish().describe('`m` · `f`; omitted keeps what is there.'),
   "hire_date": zod.iso.date().nullish(),
   "job_title": zod.string().nullish(),
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string().nullish().describe('`cash` · `bank` · `wallet`; omitted keeps what is there.'),
   "photo_url": zod.string().nullish(),
   "termination_date": zod.iso.date().nullish()
 }).describe('Full replace of an employee\'s HR profile. A PUT rather than a POST because\nthe key is the user id: writing a profile for a user who has none promotes\nthem to staff, and writing it again edits them.')
@@ -15664,6 +16215,7 @@ export const PutEmployeeResponse = zod.object({
   "emergency_contact_phone": zod.string().nullish(),
   "employee_code": zod.string().nullish(),
   "employment_status": zod.string(),
+  "gender": zod.string().nullish().describe('`m` · `f` · null — only ever a soft default for late shifts (SC-13).'),
   "hire_date": zod.iso.date().nullish(),
   "is_active": zod.boolean(),
   "job_title": zod.string().nullish(),
@@ -15671,6 +16223,8 @@ export const PutEmployeeResponse = zod.object({
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string().describe('`cash` · `bank` · `wallet`'),
   "phone": zod.string().nullish(),
   "photo_url": zod.string().nullish(),
   "role": zod.string().describe('The POS role. Orthogonal to employment: a cleaner is a `teller`-role user\nwith the POS permissions revoked.'),
@@ -15685,6 +16239,16 @@ export const DeleteEmployeeParams = zod.object({
 })
 
 export const DeleteEmployeeResponse = zod.void()
+
+
+/**
+ * @summary Sign a person's phone out now (RO-4).
+ */
+export const RevokeDeviceParams = zod.object({
+  "user_id": zod.uuid()
+})
+
+export const RevokeDeviceResponse = zod.void()
 
 
 export const ListDocumentsParams = zod.object({
@@ -15726,6 +16290,115 @@ export const CreateDocumentResponse = zod.object({
   "title": zod.string(),
   "uploaded_by": zod.uuid().nullish(),
   "user_id": zod.uuid()
+})
+
+
+export const ListExpenseAdvancesQueryParams = zod.object({
+  "user_id": zod.uuid().optional()
+})
+
+export const ListExpenseAdvancesResponseItem = zod.object({
+  "amount_piastres": zod.number(),
+  "branch_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "given_on": zod.iso.date(),
+  "handed_by": zod.uuid().nullish(),
+  "handed_by_name": zod.string().nullish(),
+  "id": zod.uuid(),
+  "purpose": zod.string(),
+  "user_id": zod.uuid(),
+  "user_name": zod.string(),
+  "via": zod.string().describe('`safe` · `bank` · `till`')
+})
+export const ListExpenseAdvancesResponse = zod.array(ListExpenseAdvancesResponseItem)
+
+
+export const LogExpenseAdvanceBody = zod.object({
+  "amount_piastres": zod.number(),
+  "purpose": zod.string(),
+  "user_id": zod.uuid(),
+  "via": zod.string().describe('`safe` · `bank` · `till`')
+})
+
+export const LogExpenseAdvanceResponse = zod.object({
+  "amount_piastres": zod.number(),
+  "branch_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "given_on": zod.iso.date(),
+  "handed_by": zod.uuid().nullish(),
+  "handed_by_name": zod.string().nullish(),
+  "id": zod.uuid(),
+  "purpose": zod.string(),
+  "user_id": zod.uuid(),
+  "user_name": zod.string(),
+  "via": zod.string().describe('`safe` · `bank` · `till`')
+})
+
+
+/**
+ * @summary The flags a manager should look at, for their branches (RO-6).
+ */
+export const ListAttendanceFlagsQueryParams = zod.object({
+  "branch_id": zod.uuid().optional(),
+  "all": zod.boolean().optional().describe('Include handled flags.')
+})
+
+export const ListAttendanceFlagsResponseItem = zod.object({
+  "attendance_record_id": zod.uuid().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "detected_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`left_mid_shift` · `suspicious` · `tracking_off` · `time_unverified` ·\n`new_phone` · `cover`'),
+  "minutes_away": zod.number(),
+  "resolution": zod.string().nullish(),
+  "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
+  "suggested_deduction_piastres": zod.number().describe('Time away × the person\'s minute rate, rounded to the nearest 5 EGP (CL-7).'),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+})
+export const ListAttendanceFlagsResponse = zod.array(ListAttendanceFlagsResponseItem)
+
+
+/**
+ * @summary Handle a flag. Nothing is ever charged automatically (CL-6).
+ */
+export const ResolveFlagParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ResolveFlagBody = zod.object({
+  "action": zod.string().describe('`ignore` · `excuse_paid` · `excuse_unpaid` · `deduct` · `revoke` (a new\nphone) · `confirm`'),
+  "amount_piastres": zod.number().nullish().describe('For `deduct`: the amount the manager typed (CL-7).')
+})
+
+export const ResolveFlagResponse = zod.object({
+  "attendance_record_id": zod.uuid().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "detected_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`left_mid_shift` · `suspicious` · `tracking_off` · `time_unverified` ·\n`new_phone` · `cover`'),
+  "minutes_away": zod.number(),
+  "resolution": zod.string().nullish(),
+  "resolved_at": zod.iso.datetime({"offset":true}).nullish(),
+  "suggested_deduction_piastres": zod.number().describe('Time away × the person\'s minute rate, rounded to the nearest 5 EGP (CL-7).'),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+})
+
+
+export const DecideHolidayParams = zod.object({
+  "date": zod.iso.date()
+})
+
+export const DecideHolidayBody = zod.object({
+  "decision": zod.string().describe('`holiday` (nobody marked absent; working it pays the multiplier) or\n`dismissed` (a normal day).')
+})
+
+export const DecideHolidayResponse = zod.object({
+  "decision": zod.string().nullish().describe('null = not decided yet: a normal day unless set up (RU-10).'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "on_date": zod.iso.date()
 })
 
 
@@ -15838,6 +16511,25 @@ export const UpdateLeaveTypeResponse = zod.object({
 })
 
 
+export const MyAdjustmentsResponseItem = zod.object({
+  "amount_piastres": zod.number().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "effective_date": zod.iso.date(),
+  "ends_on": zod.iso.date().nullish(),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`bonus` · `deduction`'),
+  "percent_of_base": zod.number().nullish(),
+  "reason": zod.string(),
+  "recurring": zod.boolean(),
+  "source": zod.string(),
+  "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+})
+export const MyAdjustmentsResponse = zod.array(MyAdjustmentsResponseItem)
+
+
 export const MyAdvancesResponseItem = zod.object({
   "amount_piastres": zod.number(),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -15902,6 +16594,8 @@ export const MyAttendanceResponseItem = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "early_leave_minutes": zod.number(),
@@ -15913,9 +16607,12 @@ export const MyAttendanceResponseItem = zod.object({
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid(),
   "user_name": zod.string().nullish(),
@@ -15929,7 +16626,14 @@ export const MyAttendanceResponse = zod.array(MyAttendanceResponseItem)
 export const CheckInBody = zod.object({
   "branch_id": zod.uuid(),
   "latitude": zod.number().nullish().describe('Device coordinates. Required whenever the org enforces the geofence.'),
-  "longitude": zod.number().nullish()
+  "longitude": zod.number().nullish(),
+  "offline": zod.union([zod.null(),zod.object({
+  "elapsed_ms": zod.number().describe('Time-since-boot elapsed from `server_time` to the event, in ms.'),
+  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when it had one.'),
+  "rebooted": zod.boolean().optional().describe('The phone restarted after `server_time`, so `elapsed_ms` means nothing.'),
+  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw (a response\'s `Date`).')
+}).describe('Set when the punch was queued offline; the server rebuilds its time (CL-11).')]).optional(),
+  "tracking_off": zod.boolean().nullish().describe('\"Always\" location was refused: the shift is marked and the manager told\n(CL-5). Location at the punch is still required.')
 })
 
 export const CheckInResponse = zod.object({
@@ -15945,6 +16649,8 @@ export const CheckInResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "early_leave_minutes": zod.number(),
@@ -15956,9 +16662,12 @@ export const CheckInResponse = zod.object({
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid(),
   "user_name": zod.string().nullish(),
@@ -15970,7 +16679,13 @@ export const CheckInResponse = zod.object({
 
 export const CheckOutBody = zod.object({
   "latitude": zod.number().nullish(),
-  "longitude": zod.number().nullish()
+  "longitude": zod.number().nullish(),
+  "offline": zod.union([zod.null(),zod.object({
+  "elapsed_ms": zod.number().describe('Time-since-boot elapsed from `server_time` to the event, in ms.'),
+  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when it had one.'),
+  "rebooted": zod.boolean().optional().describe('The phone restarted after `server_time`, so `elapsed_ms` means nothing.'),
+  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw (a response\'s `Date`).')
+}).describe('Set when the punch was queued offline; the server rebuilds its time (CL-11).')]).optional()
 })
 
 export const CheckOutResponse = zod.object({
@@ -15986,6 +16701,8 @@ export const CheckOutResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "early_leave_minutes": zod.number(),
@@ -15997,9 +16714,12 @@ export const CheckOutResponse = zod.object({
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid(),
   "user_name": zod.string().nullish(),
@@ -16007,6 +16727,144 @@ export const CheckOutResponse = zod.object({
   "work_shift_name": zod.string().nullish(),
   "worked_minutes": zod.number()
 })
+
+
+export const MyContextResponse = zod.object({
+  "adjustment_limit_piastres": zod.number().nullish().describe('My ceiling on a bonus\/deduction before it waits for the owner; null = none.'),
+  "advance_limit_percent": zod.number().nullish(),
+  "branches": zod.array(zod.object({
+  "geo_radius_meters": zod.number().nullish(),
+  "id": zod.uuid(),
+  "latitude": zod.number().nullish().describe('The fence centre, so the phone can say inside\/outside offline.'),
+  "longitude": zod.number().nullish(),
+  "name": zod.string(),
+  "timezone": zod.string()
+})),
+  "caps": zod.array(zod.string()).describe('The HR capabilities I hold (`hr.\*` keys).'),
+  "modules": zod.array(zod.string()).describe('The org\'s modules (`pos`, `dawam`); POS on means till punches (CL-13).'),
+  "org_id": zod.uuid(),
+  "org_name": zod.string(),
+  "people": zod.array(zod.object({
+  "base_salary_piastres": zod.number().nullish().describe('Only for people whose pay the caller may see.'),
+  "branch_ids": zod.array(zod.uuid()),
+  "cant_work_days": zod.array(zod.number()),
+  "device_model": zod.string().nullish(),
+  "device_since": zod.iso.datetime({"offset":true}).nullish(),
+  "gender": zod.string().nullish(),
+  "hire_date": zod.iso.date().nullish(),
+  "name": zod.string(),
+  "pay_account": zod.string().nullish(),
+  "pay_method": zod.string(),
+  "phone": zod.string().nullish(),
+  "pref_time": zod.string().nullish(),
+  "role": zod.string().describe('`owner` · `manager` · `employee`'),
+  "user_id": zod.uuid()
+})),
+  "role": zod.string().describe('`owner` · `manager` · `employee`'),
+  "settings": zod.object({
+  "absence_deduction_days": zod.number(),
+  "advance_cap_percent": zod.number(),
+  "holiday_multiplier": zod.number(),
+  "late_deduction_tiers": zod.unknown(),
+  "overtime_day_multiplier": zod.number(),
+  "overtime_mode": zod.string(),
+  "overtime_night_multiplier": zod.number(),
+  "period_start_day": zod.number(),
+  "rules_saved": zod.boolean().describe('The business saved its rules; nobody clocks in before (RU-1, DSH-6).')
+}),
+  "user_id": zod.uuid(),
+  "work_shifts": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "crosses_midnight": zod.boolean(),
+  "end_time": zod.string(),
+  "grace_minutes": zod.number(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "start_time": zod.string()
+}))
+})
+
+
+/**
+ * @summary Open a colleague's missed shift as a cover: the same phone and geofence
+checks as a clock-in; flagged for the manager; paid only once confirmed
+(CV-1..CV-5, CV-7).
+ */
+export const OpenCoverBody = zod.object({
+  "latitude": zod.number().nullish(),
+  "longitude": zod.number().nullish(),
+  "user_id": zod.uuid().describe('Whose shift.'),
+  "work_shift_id": zod.uuid()
+})
+
+export const OpenCoverResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "business_date": zod.iso.date(),
+  "check_in_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_in_distance_meters": zod.number().nullish(),
+  "check_in_latitude": zod.number().nullish(),
+  "check_in_longitude": zod.number().nullish(),
+  "check_in_method": zod.string().nullish(),
+  "check_out_at": zod.iso.datetime({"offset":true}).nullish(),
+  "check_out_distance_meters": zod.number().nullish(),
+  "check_out_latitude": zod.number().nullish(),
+  "check_out_longitude": zod.number().nullish(),
+  "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by": zod.uuid().nullish(),
+  "early_leave_minutes": zod.number(),
+  "edit_reason": zod.string().nullish(),
+  "edited_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "is_manual": zod.boolean(),
+  "late_minutes": zod.number(),
+  "notes": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string(),
+  "tracking_off": zod.boolean(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid(),
+  "user_name": zod.string().nullish(),
+  "work_shift_id": zod.uuid().nullish(),
+  "work_shift_name": zod.string().nullish(),
+  "worked_minutes": zod.number()
+})
+
+
+export const MyCoverableResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "business_date": zod.iso.date(),
+  "scheduled_end_at": zod.iso.datetime({"offset":true}),
+  "scheduled_start_at": zod.iso.datetime({"offset":true}),
+  "shift_name": zod.string(),
+  "user_id": zod.uuid(),
+  "user_name": zod.string(),
+  "work_shift_id": zod.uuid()
+})
+export const MyCoverableResponse = zod.array(MyCoverableResponseItem)
+
+
+export const MyExpenseAdvancesResponseItem = zod.object({
+  "amount_piastres": zod.number(),
+  "branch_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "given_on": zod.iso.date(),
+  "handed_by": zod.uuid().nullish(),
+  "handed_by_name": zod.string().nullish(),
+  "id": zod.uuid(),
+  "purpose": zod.string(),
+  "user_id": zod.uuid(),
+  "user_name": zod.string(),
+  "via": zod.string().describe('`safe` · `bank` · `till`')
+})
+export const MyExpenseAdvancesResponse = zod.array(MyExpenseAdvancesResponseItem)
 
 
 export const MyLeaveBalancesQueryParams = zod.object({
@@ -16029,12 +16887,58 @@ export const MyLeaveBalancesResponseItem = zod.object({
 export const MyLeaveBalancesResponse = zod.array(MyLeaveBalancesResponseItem)
 
 
+export const MyNotificationsResponseItem = zod.object({
+  "args": zod.unknown(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "key": zod.string().describe('A core i18n key (`staff.n_\*`); the app renders it with `args`.'),
+  "read_at": zod.iso.datetime({"offset":true}).nullish()
+})
+export const MyNotificationsResponse = zod.array(MyNotificationsResponseItem)
+
+
+export const ReadNotificationsBody = zod.object({
+  "ids": zod.array(zod.uuid()).optional().describe('Empty = all of them.')
+})
+
+export const ReadNotificationsResponse = zod.void()
+
+
+/**
+ * @summary What I've earned so far this period.
+ */
+export const MyEstimateResponse = zod.object({
+  "advance_room_piastres": zod.number().describe('How much more can be asked for as an advance (AV-5).'),
+  "period_end": zod.iso.date(),
+  "period_start": zod.iso.date(),
+  "slip": zod.union([zod.null(),zod.object({
+  "absent_days": zod.number(),
+  "advance_installment_piastres": zod.number().describe('What the advances WANT versus what the payslip can afford differ when net\npay would go negative; this is the affordable figure, the one collected.'),
+  "base_piastres": zod.number().describe('After the attendance proration — what the days actually worked earn.'),
+  "base_salary_piastres": zod.number(),
+  "bonuses_piastres": zod.number(),
+  "breakdown": zod.unknown().describe('Line-by-line, so a preview can name each deduction rather than showing a\nlump sum nobody can argue with.'),
+  "carry_out_piastres": zod.number().describe('Deductions beyond what was earned: the payslip stops at zero and this\ncarries into the next one as a debt (PAY-12).'),
+  "deductions_piastres": zod.number(),
+  "late_minutes": zod.number(),
+  "leave_days": zod.number(),
+  "name": zod.string(),
+  "net_piastres": zod.number(),
+  "overtime_minutes": zod.number(),
+  "overtime_piastres": zod.number(),
+  "user_id": zod.uuid(),
+  "worked_days": zod.number()
+}).describe('So far this period, from the same engine payroll uses (PAY-11).')]).optional()
+})
+
+
 export const MyPayslipsResponseItem = zod.object({
   "absent_days": zod.number(),
   "advance_installment_piastres": zod.number(),
   "base_salary_piastres": zod.number(),
   "bonuses_piastres": zod.number(),
   "breakdown": zod.unknown(),
+  "carry_out_piastres": zod.number().describe('What deductions exceeded pay by; carried into the next payslip (PAY-12).'),
   "deductions_piastres": zod.number(),
   "generated_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
@@ -16044,6 +16948,8 @@ export const MyPayslipsResponseItem = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
+  "paid_at": zod.iso.datetime({"offset":true}).nullish(),
+  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.'),
   "payroll_period_id": zod.uuid(),
   "period_end": zod.iso.date().nullish(),
   "period_name": zod.string().nullish().describe('The period this covers, denormalised. A payslip identified only by its\ngeneration timestamp is unreadable — two months run on the same day would\nbe indistinguishable to the employee looking at them.'),
@@ -16053,6 +16959,54 @@ export const MyPayslipsResponseItem = zod.object({
   "worked_days": zod.number()
 })
 export const MyPayslipsResponse = zod.array(MyPayslipsResponseItem)
+
+
+/**
+ * @summary A location every 15 minutes between clock-in and clock-out (CL-4, CL-17).
+ */
+export const PingBody = zod.object({
+  "accuracy_meters": zod.number().nullish(),
+  "battery_percent": zod.number().nullish(),
+  "is_mock": zod.boolean().nullish().describe('The OS\'s own mock-location marker (Android `isMock`, iOS\n`isSimulatedBySoftware`) (CL-9).'),
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "offline": zod.union([zod.null(),zod.object({
+  "elapsed_ms": zod.number().describe('Time-since-boot elapsed from `server_time` to the event, in ms.'),
+  "gps_time": zod.iso.datetime({"offset":true}).nullish().describe('The GPS fix\'s own satellite time, when it had one.'),
+  "rebooted": zod.boolean().optional().describe('The phone restarted after `server_time`, so `elapsed_ms` means nothing.'),
+  "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw (a response\'s `Date`).')
+}).describe('Set when the ping was queued offline; the server rebuilds its time (CL-11).')]).optional()
+})
+
+export const PingResponse = zod.object({
+  "charge_phone": zod.boolean().describe('At 15% or less during a shift: tell them to charge (CL-12).'),
+  "distance_meters": zod.number(),
+  "flags": zod.array(zod.string()).describe('Flags this ping raised: `left_mid_shift`, `suspicious`.'),
+  "inside": zod.boolean()
+})
+
+
+/**
+ * @summary Preferred times and days I can't work; managers see them (SC-12).
+ */
+export const PutPreferencesBody = zod.object({
+  "cant_work_days": zod.array(zod.number()).optional().describe('Days I can\'t work: 0 = Sunday … 6 = Saturday.'),
+  "pref_time": zod.string().nullish().describe('`morning` · `evening` · null')
+})
+
+export const PutPreferencesResponse = zod.void()
+
+
+/**
+ * @summary `PUT /staff/me/push-token` — kept for old app builds; registers through
+the same `push_devices` table as `PUT /push/token` (app = `"dawam"`).
+ */
+export const SetStaffPushTokenBody = zod.object({
+  "locale": zod.string().nullish().describe('`ar` or `en`.'),
+  "token": zod.string().describe('The FCM registration token; empty turns pushes off for this phone.')
+})
+
+export const SetStaffPushTokenResponse = zod.void()
 
 
 export const MyRequestsResponseItem = zod.object({
@@ -16126,6 +17080,74 @@ export const CreateMyRequestResponse = zod.object({
 
 
 /**
+ * @summary My published shifts, open shifts to claim, and my swaps.
+ */
+export const MyRosterQueryParams = zod.object({
+  "from": zod.iso.date(),
+  "to": zod.iso.date()
+})
+
+export const MyRosterResponse = zod.object({
+  "cant_work_days": zod.array(zod.number()),
+  "from": zod.iso.date(),
+  "open_shifts": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "claimed_by": zod.uuid().nullish(),
+  "claimed_by_name": zod.string().nullish(),
+  "end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "id": zod.uuid(),
+  "on_date": zod.iso.date(),
+  "shift_name": zod.string(),
+  "start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`open` · `claimed` · `filled` · `cancelled`'),
+  "work_shift_id": zod.uuid()
+})).describe('Open shifts at my branches, in published weeks (SC-9).'),
+  "pref_time": zod.string().nullish(),
+  "shifts": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "changed": zod.boolean().describe('Changed after its week was published (SC-4).'),
+  "date": zod.iso.date(),
+  "end_at": zod.iso.datetime({"offset":true}),
+  "on_leave": zod.boolean().describe('On approved leave or a mission that day.'),
+  "shift_name": zod.string(),
+  "start_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid(),
+  "user_name": zod.string(),
+  "work_shift_id": zod.uuid()
+})).describe('Only shifts in published weeks (SC-3).'),
+  "swaps": zod.array(zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "peer_date": zod.iso.date(),
+  "peer_id": zod.uuid(),
+  "peer_name": zod.string(),
+  "peer_shift_id": zod.uuid(),
+  "peer_shift_name": zod.string(),
+  "requester_date": zod.iso.date(),
+  "requester_id": zod.uuid(),
+  "requester_name": zod.string(),
+  "requester_shift_id": zod.uuid(),
+  "requester_shift_name": zod.string(),
+  "status": zod.string().describe('`awaiting_peer` · `pending` · `approved` · `rejected` · `cancelled`')
+})),
+  "team": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "changed": zod.boolean().describe('Changed after its week was published (SC-4).'),
+  "date": zod.iso.date(),
+  "end_at": zod.iso.datetime({"offset":true}),
+  "on_leave": zod.boolean().describe('On approved leave or a mission that day.'),
+  "shift_name": zod.string(),
+  "start_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid(),
+  "user_name": zod.string(),
+  "work_shift_id": zod.uuid()
+})).describe('Colleagues\' published shifts at my branches — what a swap can be with.'),
+  "to": zod.iso.date(),
+  "unpublished_weeks": zod.array(zod.iso.date()).describe('Weeks in range that are not published yet at my branch.')
+})
+
+
+/**
  * Own-row scoped like the rest of `/staff/me/*`: it needs no permission grant,
  * because seeing when you are expected at work is not an admin capability.
  * @summary The employee's OWN roster for a date range — what the app's Shifts tab shows.
@@ -16155,6 +17177,62 @@ export const MyScheduleResponseItem = zod.object({
 export const MyScheduleResponse = zod.array(MyScheduleResponseItem)
 
 
+/**
+ * @summary Ask a colleague to swap: they agree first, then the manager (SC-8).
+ */
+export const AskSwapBody = zod.object({
+  "my_date": zod.iso.date(),
+  "my_shift_id": zod.uuid(),
+  "peer_date": zod.iso.date(),
+  "peer_id": zod.uuid(),
+  "peer_shift_id": zod.uuid()
+})
+
+export const AskSwapResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "peer_date": zod.iso.date(),
+  "peer_id": zod.uuid(),
+  "peer_name": zod.string(),
+  "peer_shift_id": zod.uuid(),
+  "peer_shift_name": zod.string(),
+  "requester_date": zod.iso.date(),
+  "requester_id": zod.uuid(),
+  "requester_name": zod.string(),
+  "requester_shift_id": zod.uuid(),
+  "requester_shift_name": zod.string(),
+  "status": zod.string().describe('`awaiting_peer` · `pending` · `approved` · `rejected` · `cancelled`')
+})
+
+
+/**
+ * @summary The colleague agrees or declines.
+ */
+export const AnswerSwapParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const AnswerSwapBody = zod.object({
+  "approve": zod.boolean()
+})
+
+export const AnswerSwapResponse = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "peer_date": zod.iso.date(),
+  "peer_id": zod.uuid(),
+  "peer_name": zod.string(),
+  "peer_shift_id": zod.uuid(),
+  "peer_shift_name": zod.string(),
+  "requester_date": zod.iso.date(),
+  "requester_id": zod.uuid(),
+  "requester_name": zod.string(),
+  "requester_shift_id": zod.uuid(),
+  "requester_shift_name": zod.string(),
+  "status": zod.string().describe('`awaiting_peer` · `pending` · `approved` · `rejected` · `cancelled`')
+})
+
+
 export const MyTodayResponse = zod.object({
   "blocked_reason": zod.string().nullish().describe('Why `can_check_in` is false, in words the app can show verbatim.'),
   "branch_id": zod.uuid().nullish().describe('WHERE to clock in today. Resolved server-side — from the open record, the\nrostered shift\'s branch, or the employee\'s single branch assignment — so\nthe app never has to ask. A branch picker would make the geofence\nanswerable to a dropdown, which defeats the point of having one.\n`None` means we cannot tell, and the app should say so rather than guess.'),
@@ -16175,6 +17253,8 @@ export const MyTodayResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "early_leave_minutes": zod.number(),
@@ -16186,9 +17266,12 @@ export const MyTodayResponse = zod.object({
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid(),
   "user_name": zod.string().nullish(),
@@ -16209,6 +17292,8 @@ export const MyTodayResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
+  "covered_user_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
   "early_leave_minutes": zod.number(),
@@ -16220,9 +17305,12 @@ export const MyTodayResponse = zod.object({
   "notes": zod.string().nullish(),
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
+  "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
+  "tracking_off": zod.boolean(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid(),
   "user_name": zod.string().nullish(),
@@ -16245,6 +17333,85 @@ export const MyTodayResponse = zod.object({
 }).describe('A work shift resolved onto a concrete calendar date, with its window already\nconverted to UTC instants.')).describe('Shifts rostered for today. Empty = a rest day.'),
   "timezone": zod.string().nullish().describe('The IANA timezone this payload\'s instants are shown in (see `crate::tz`).\nAdditive; older clients ignore it.')
 }).describe('What the mobile app shows on its home screen.')
+
+
+/**
+ * @summary Open shifts and their claims at the branches I run (SC-9) — the
+dashboard's approvals queue and schedule.
+ */
+export const ListOpenShiftsQueryParams = zod.object({
+  "from": zod.iso.date(),
+  "to": zod.iso.date()
+})
+
+export const ListOpenShiftsResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "claimed_by": zod.uuid().nullish(),
+  "claimed_by_name": zod.string().nullish(),
+  "end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "id": zod.uuid(),
+  "on_date": zod.iso.date(),
+  "shift_name": zod.string(),
+  "start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`open` · `claimed` · `filled` · `cancelled`'),
+  "work_shift_id": zod.uuid()
+})
+export const ListOpenShiftsResponse = zod.array(ListOpenShiftsResponseItem)
+
+
+export const PostOpenShiftBody = zod.object({
+  "branch_id": zod.uuid(),
+  "on_date": zod.iso.date(),
+  "work_shift_id": zod.uuid()
+})
+
+export const PostOpenShiftResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "claimed_by": zod.uuid().nullish(),
+  "claimed_by_name": zod.string().nullish(),
+  "end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "id": zod.uuid(),
+  "on_date": zod.iso.date(),
+  "shift_name": zod.string(),
+  "start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`open` · `claimed` · `filled` · `cancelled`'),
+  "work_shift_id": zod.uuid()
+})
+
+
+/**
+ * @summary Claim an open shift; the manager approves the claim (SC-9).
+ */
+export const ClaimOpenShiftParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ClaimOpenShiftResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "claimed_by": zod.uuid().nullish(),
+  "claimed_by_name": zod.string().nullish(),
+  "end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "id": zod.uuid(),
+  "on_date": zod.iso.date(),
+  "shift_name": zod.string(),
+  "start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`open` · `claimed` · `filled` · `cancelled`'),
+  "work_shift_id": zod.uuid()
+})
+
+
+/**
+ * @summary Approve a claim: the shift becomes theirs for that date. Rejecting reopens it.
+ */
+export const DecideClaimParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const DecideClaimBody = zod.object({
+  "approve": zod.boolean()
+})
+
+export const DecideClaimResponse = zod.void()
 
 
 export const ListAdvancesQueryParams = zod.object({
@@ -16391,6 +17558,89 @@ export const DeleteBonusParams = zod.object({
 })
 
 export const DeleteBonusResponse = zod.void()
+
+
+/**
+ * @summary The running period with everyone's pay (PAY-1..PAY-5).
+ */
+export const CurrentResponse = zod.object({
+  "history": zod.array(zod.object({
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "employee_count": zod.number(),
+  "end_date": zod.iso.date(),
+  "generated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "generated_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "paid_at": zod.iso.datetime({"offset":true}).nullish(),
+  "start_date": zod.iso.date(),
+  "status": zod.string(),
+  "total_net_piastres": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true})
+})).describe('Earlier periods, newest first.'),
+  "payslips": zod.array(zod.object({
+  "absent_days": zod.number(),
+  "advance_installment_piastres": zod.number(),
+  "base_salary_piastres": zod.number(),
+  "bonuses_piastres": zod.number(),
+  "breakdown": zod.unknown(),
+  "carry_out_piastres": zod.number().describe('What deductions exceeded pay by; carried into the next payslip (PAY-12).'),
+  "deductions_piastres": zod.number(),
+  "generated_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "late_minutes": zod.number(),
+  "leave_days": zod.number(),
+  "net_piastres": zod.number(),
+  "org_id": zod.uuid(),
+  "overtime_minutes": zod.number(),
+  "overtime_piastres": zod.number(),
+  "paid_at": zod.iso.datetime({"offset":true}).nullish(),
+  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.'),
+  "payroll_period_id": zod.uuid(),
+  "period_end": zod.iso.date().nullish(),
+  "period_name": zod.string().nullish().describe('The period this covers, denormalised. A payslip identified only by its\ngeneration timestamp is unreadable — two months run on the same day would\nbe indistinguishable to the employee looking at them.'),
+  "period_start": zod.iso.date().nullish(),
+  "user_id": zod.uuid(),
+  "user_name": zod.string().nullish(),
+  "worked_days": zod.number()
+})).describe('The frozen payslips once it has been generated.'),
+  "period": zod.object({
+  "closed_at": zod.iso.datetime({"offset":true}).nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "employee_count": zod.number(),
+  "end_date": zod.iso.date(),
+  "generated_at": zod.iso.datetime({"offset":true}).nullish(),
+  "generated_by": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "paid_at": zod.iso.datetime({"offset":true}).nullish(),
+  "start_date": zod.iso.date(),
+  "status": zod.string(),
+  "total_net_piastres": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true})
+}),
+  "preview": zod.array(zod.object({
+  "absent_days": zod.number(),
+  "advance_installment_piastres": zod.number().describe('What the advances WANT versus what the payslip can afford differ when net\npay would go negative; this is the affordable figure, the one collected.'),
+  "base_piastres": zod.number().describe('After the attendance proration — what the days actually worked earn.'),
+  "base_salary_piastres": zod.number(),
+  "bonuses_piastres": zod.number(),
+  "breakdown": zod.unknown().describe('Line-by-line, so a preview can name each deduction rather than showing a\nlump sum nobody can argue with.'),
+  "carry_out_piastres": zod.number().describe('Deductions beyond what was earned: the payslip stops at zero and this\ncarries into the next one as a debt (PAY-12).'),
+  "deductions_piastres": zod.number(),
+  "late_minutes": zod.number(),
+  "leave_days": zod.number(),
+  "name": zod.string(),
+  "net_piastres": zod.number(),
+  "overtime_minutes": zod.number(),
+  "overtime_piastres": zod.number(),
+  "user_id": zod.uuid(),
+  "worked_days": zod.number()
+}).describe('One employee\'s pay for a period, computed but not yet written.\n\nPREVIEW AND GENERATE SHARE THIS. The preview endpoint exists so a manager can\nsee what payroll is about to do — a figure that would be worthless if it came\nfrom a second implementation that could drift from the real one. So the\ngenerator computes these first and then persists them, and the preview\ncomputes exactly the same values and persists nothing.')).describe('A live computation while the period is still a draft.')
+})
 
 
 export const ListDeductionsQueryParams = zod.object({
@@ -16593,6 +17843,7 @@ export const GeneratePeriodResponseItem = zod.object({
   "base_salary_piastres": zod.number(),
   "bonuses_piastres": zod.number(),
   "breakdown": zod.unknown(),
+  "carry_out_piastres": zod.number().describe('What deductions exceeded pay by; carried into the next payslip (PAY-12).'),
   "deductions_piastres": zod.number(),
   "generated_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
@@ -16602,6 +17853,8 @@ export const GeneratePeriodResponseItem = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
+  "paid_at": zod.iso.datetime({"offset":true}).nullish(),
+  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.'),
   "payroll_period_id": zod.uuid(),
   "period_end": zod.iso.date().nullish(),
   "period_name": zod.string().nullish().describe('The period this covers, denormalised. A payslip identified only by its\ngeneration timestamp is unreadable — two months run on the same day would\nbe indistinguishable to the employee looking at them.'),
@@ -16623,6 +17876,7 @@ export const ListPayslipsResponseItem = zod.object({
   "base_salary_piastres": zod.number(),
   "bonuses_piastres": zod.number(),
   "breakdown": zod.unknown(),
+  "carry_out_piastres": zod.number().describe('What deductions exceeded pay by; carried into the next payslip (PAY-12).'),
   "deductions_piastres": zod.number(),
   "generated_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
@@ -16632,6 +17886,8 @@ export const ListPayslipsResponseItem = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
+  "paid_at": zod.iso.datetime({"offset":true}).nullish(),
+  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.'),
   "payroll_period_id": zod.uuid(),
   "period_end": zod.iso.date().nullish(),
   "period_name": zod.string().nullish().describe('The period this covers, denormalised. A payslip identified only by its\ngeneration timestamp is unreadable — two months run on the same day would\nbe indistinguishable to the employee looking at them.'),
@@ -16641,6 +17897,46 @@ export const ListPayslipsResponseItem = zod.object({
   "worked_days": zod.number()
 })
 export const ListPayslipsResponse = zod.array(ListPayslipsResponseItem)
+
+
+/**
+ * @summary Mark one payslip paid; the period is paid once everyone is (PAY-7).
+ */
+export const MarkPaidParams = zod.object({
+  "id": zod.uuid(),
+  "user_id": zod.uuid()
+})
+
+export const MarkPaidBody = zod.object({
+  "method": zod.string().describe('`cash` · `bank` · `wallet`')
+})
+
+export const MarkPaidResponse = zod.object({
+  "absent_days": zod.number(),
+  "advance_installment_piastres": zod.number(),
+  "base_salary_piastres": zod.number(),
+  "bonuses_piastres": zod.number(),
+  "breakdown": zod.unknown(),
+  "carry_out_piastres": zod.number().describe('What deductions exceeded pay by; carried into the next payslip (PAY-12).'),
+  "deductions_piastres": zod.number(),
+  "generated_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "late_minutes": zod.number(),
+  "leave_days": zod.number(),
+  "net_piastres": zod.number(),
+  "org_id": zod.uuid(),
+  "overtime_minutes": zod.number(),
+  "overtime_piastres": zod.number(),
+  "paid_at": zod.iso.datetime({"offset":true}).nullish(),
+  "paid_method": zod.string().nullish().describe('Paid by `cash` · `bank` · `wallet` (PAY-7); null until marked paid.'),
+  "payroll_period_id": zod.uuid(),
+  "period_end": zod.iso.date().nullish(),
+  "period_name": zod.string().nullish().describe('The period this covers, denormalised. A payslip identified only by its\ngeneration timestamp is unreadable — two months run on the same day would\nbe indistinguishable to the employee looking at them.'),
+  "period_start": zod.iso.date().nullish(),
+  "user_id": zod.uuid(),
+  "user_name": zod.string().nullish(),
+  "worked_days": zod.number()
+})
 
 
 export const PreviewPeriodParams = zod.object({
@@ -16654,6 +17950,7 @@ export const PreviewPeriodResponseItem = zod.object({
   "base_salary_piastres": zod.number(),
   "bonuses_piastres": zod.number(),
   "breakdown": zod.unknown().describe('Line-by-line, so a preview can name each deduction rather than showing a\nlump sum nobody can argue with.'),
+  "carry_out_piastres": zod.number().describe('Deductions beyond what was earned: the payslip stops at zero and this\ncarries into the next one as a debt (PAY-12).'),
   "deductions_piastres": zod.number(),
   "late_minutes": zod.number(),
   "leave_days": zod.number(),
@@ -16691,6 +17988,87 @@ export const SetPeriodStatusResponse = zod.object({
   "total_net_piastres": zod.number(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
+
+
+/**
+ * @summary Advances given in range, and what is still owed.
+ */
+export const AdvancesQueryParams = zod.object({
+  "from": zod.iso.date(),
+  "to": zod.iso.date(),
+  "branch_id": zod.uuid().optional()
+})
+
+export const AdvancesResponse = zod.object({
+  "expense": zod.array(zod.object({
+  "amount_piastres": zod.number(),
+  "given_on": zod.iso.date(),
+  "id": zod.uuid(),
+  "purpose": zod.string(),
+  "user_id": zod.uuid(),
+  "user_name": zod.string(),
+  "via": zod.string().describe('`safe` · `bank` · `till`')
+})).describe('Cash for shop purchases: a log, never deducted (AV-7).'),
+  "expense_given_piastres": zod.number(),
+  "salary": zod.array(zod.object({
+  "amount_piastres": zod.number(),
+  "given_on": zod.iso.date(),
+  "id": zod.uuid(),
+  "installments": zod.number(),
+  "remaining_piastres": zod.number(),
+  "status": zod.string().describe('`pending` · `approved` · `rejected` · …'),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+})).describe('Against salary, repaid by installments.'),
+  "salary_given_piastres": zod.number(),
+  "salary_outstanding_piastres": zod.number()
+})
+
+
+/**
+ * @summary Labour cost vs sales, per branch and day. Only when POS is on (DSH-4).
+ */
+export const LabourVsSalesQueryParams = zod.object({
+  "from": zod.iso.date(),
+  "to": zod.iso.date(),
+  "branch_id": zod.uuid().optional()
+})
+
+export const LabourVsSalesResponseItem = zod.object({
+  "branch_id": zod.uuid(),
+  "date": zod.iso.date(),
+  "labour_piastres": zod.number().describe('From the clock: worked minutes at each person\'s minute rate, plus the\novertime premium. The payslip stays the final word.'),
+  "labour_share_bp": zod.number().nullish().describe('Labour as a share of sales, basis points (null with no sales).'),
+  "sales_piastres": zod.number().describe('Completed sales, net of refunds.')
+})
+export const LabourVsSalesResponse = zod.array(LabourVsSalesResponseItem)
+
+
+/**
+ * @summary Overtime and payroll history: one row per pay period in range.
+ */
+export const PayrollHistoryQueryParams = zod.object({
+  "from": zod.iso.date(),
+  "to": zod.iso.date(),
+  "branch_id": zod.uuid().optional()
+})
+
+export const PayrollHistoryResponseItem = zod.object({
+  "advances_piastres": zod.number(),
+  "base_piastres": zod.number(),
+  "bonuses_piastres": zod.number(),
+  "deductions_piastres": zod.number(),
+  "end_date": zod.iso.date(),
+  "name": zod.string(),
+  "net_piastres": zod.number(),
+  "overtime_minutes": zod.number(),
+  "overtime_piastres": zod.number(),
+  "people": zod.number(),
+  "period_id": zod.uuid(),
+  "start_date": zod.iso.date(),
+  "status": zod.string()
+})
+export const PayrollHistoryResponse = zod.array(PayrollHistoryResponseItem)
 
 
 export const ListRequestsQueryParams = zod.object({
@@ -16808,6 +18186,184 @@ export const DecideRequestResponse = zod.object({
 })
 
 
+/**
+ * @summary The manager's roster for one branch (SC-7, RO-6).
+ */
+export const RosterQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "from": zod.iso.date(),
+  "to": zod.iso.date()
+})
+
+export const RosterResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "from": zod.iso.date(),
+  "holidays": zod.array(zod.object({
+  "decision": zod.string().nullish().describe('null = not decided yet: a normal day unless set up (RU-10).'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "on_date": zod.iso.date()
+})),
+  "limits_unconfirmed": zod.boolean().describe('The limits are not yet confirmed by a lawyer; say so beside them.'),
+  "open_shifts": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "claimed_by": zod.uuid().nullish(),
+  "claimed_by_name": zod.string().nullish(),
+  "end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "id": zod.uuid(),
+  "on_date": zod.iso.date(),
+  "shift_name": zod.string(),
+  "start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`open` · `claimed` · `filled` · `cancelled`'),
+  "work_shift_id": zod.uuid()
+})),
+  "published_weeks": zod.array(zod.iso.date()).describe('Saturdays of the published weeks in range.'),
+  "shifts": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "changed": zod.boolean().describe('Changed after its week was published (SC-4).'),
+  "date": zod.iso.date(),
+  "end_at": zod.iso.datetime({"offset":true}),
+  "on_leave": zod.boolean().describe('On approved leave or a mission that day.'),
+  "shift_name": zod.string(),
+  "start_at": zod.iso.datetime({"offset":true}),
+  "user_id": zod.uuid(),
+  "user_name": zod.string(),
+  "work_shift_id": zod.uuid()
+})),
+  "staff": zod.array(zod.object({
+  "cant_work_days": zod.array(zod.number()),
+  "department_id": zod.uuid().nullish(),
+  "gender": zod.string().nullish(),
+  "name": zod.string(),
+  "pref_time": zod.string().nullish(),
+  "user_id": zod.uuid()
+})),
+  "to": zod.iso.date(),
+  "warnings": zod.array(zod.object({
+  "date": zod.iso.date().describe('The day (or, for a week\'s limit, the Saturday it starts).'),
+  "kind": zod.string().describe('`day_hours` · `week_hours` · `presence` · `rest` · `weekly_rest` · `overtime_day`'),
+  "limit_minutes": zod.number(),
+  "minutes": zod.number(),
+  "user_id": zod.uuid()
+}).describe('A roster past a labour limit. Warns, never blocks (RU-13).')).describe('Labour limits the roster (or, for `overtime_day`, the clock) goes past.\nWarnings, never blocks (RU-13).'),
+  "work_shifts": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "crosses_midnight": zod.boolean(),
+  "end_time": zod.string(),
+  "grace_minutes": zod.number(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "start_time": zod.string()
+}))
+})
+
+
+export const GetCoverageQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const GetCoverageResponse = zod.object({
+  "derived": zod.array(zod.object({
+  "band_end": zod.string(),
+  "band_start": zod.string(),
+  "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
+  "department_id": zod.uuid().nullish().describe('Only people of this department count toward it.'),
+  "staff": zod.number()
+}).describe('One band of the weekly coverage grid.')).describe('What POS sales suggest, one-hour bands, when POS is on.'),
+  "needs": zod.array(zod.object({
+  "band_end": zod.string(),
+  "band_start": zod.string(),
+  "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
+  "department_id": zod.uuid().nullish().describe('Only people of this department count toward it.'),
+  "staff": zod.number()
+}).describe('One band of the weekly coverage grid.')).describe('The typed grid.'),
+  "orders_per_staff": zod.number(),
+  "source": zod.string().describe('What the engine uses: `grid` (typed), `pos` (derived from sales) or\n`pattern` (the standing pattern\'s own coverage).')
+})
+
+
+export const PutCoverageBody = zod.object({
+  "branch_id": zod.uuid(),
+  "needs": zod.array(zod.object({
+  "band_end": zod.string(),
+  "band_start": zod.string(),
+  "day_of_week": zod.number().describe('0 = Sunday … 6 = Saturday.'),
+  "department_id": zod.uuid().nullish().describe('Only people of this department count toward it.'),
+  "staff": zod.number()
+}).describe('One band of the weekly coverage grid.')).describe('The whole grid; an empty list clears it.')
+})
+
+export const PutCoverageResponse = zod.void()
+
+
+/**
+ * @summary Owner only, monthly: who works the nights, by gender, against who said
+they want them.
+ */
+export const FairnessQueryParams = zod.object({
+  "month": zod.iso.date().describe('Any day of the month.')
+})
+
+export const FairnessResponse = zod.object({
+  "accepted_4w": zod.number(),
+  "decided_4w": zod.number().describe('Suggestions managers decided in the last 4 weeks, and how many they accepted.'),
+  "learning_frozen": zod.boolean().describe('Learning is paused: under 40% accepted over 4 weeks.'),
+  "month": zod.iso.date(),
+  "rows": zod.array(zod.object({
+  "gender": zod.string().nullish().describe('`m` · `f` · null (not set)'),
+  "night_shifts": zod.number(),
+  "people": zod.number(),
+  "shifts": zod.number(),
+  "willing": zod.number().describe('Said they prefer evenings.')
+})).describe('Night share by gender against stated willingness.')
+})
+
+
+/**
+ * @summary Publish a week: staff see it and are told (SC-3).
+ */
+export const PublishBody = zod.object({
+  "branch_id": zod.uuid(),
+  "week_start": zod.iso.date().describe('Any day of the week; it is rounded to its Saturday.')
+})
+
+export const PublishResponse = zod.void()
+
+
+export const SuggestionsQueryParams = zod.object({
+  "branch_id": zod.uuid(),
+  "week_start": zod.iso.date()
+})
+
+export const SuggestionsResponseItem = zod.object({
+  "by_default": zod.boolean().describe('The gender default decided it (it says so).'),
+  "confidence": zod.number().describe('0–100.'),
+  "date": zod.iso.date(),
+  "from_user_id": zod.uuid().nullish().describe('Who it takes off it, for a reassignment.'),
+  "from_user_name": zod.string().nullish(),
+  "id": zod.string().describe('Opaque; send it back to accept or reject.'),
+  "reason_args": zod.unknown(),
+  "reason_key": zod.string().describe('A core i18n key for the one-line reason, and its arguments.'),
+  "shift_name": zod.string(),
+  "user_id": zod.uuid().describe('Who the suggestion puts on the shift.'),
+  "user_name": zod.string(),
+  "work_shift_id": zod.uuid()
+})
+export const SuggestionsResponse = zod.array(SuggestionsResponseItem)
+
+
+/**
+ * @summary Accept (changes that date only) or reject; either way it is remembered.
+ */
+export const DecideSuggestionBody = zod.object({
+  "accept": zod.boolean(),
+  "branch_id": zod.uuid(),
+  "id": zod.string()
+})
+
+export const DecideSuggestionResponse = zod.void()
+
+
 export const ListAssignmentsQueryParams = zod.object({
   "user_id": zod.uuid().optional().describe('Omit for the WHOLE org\'s roster — what a schedule grid needs, and the\nonly way to draw one without a request per employee.')
 })
@@ -16901,6 +18457,42 @@ export const DeleteAssignmentParams = zod.object({
 })
 
 export const DeleteAssignmentResponse = zod.void()
+
+
+export const ListSwapsQueryParams = zod.object({
+  "status": zod.string().optional()
+})
+
+export const ListSwapsResponseItem = zod.object({
+  "created_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "peer_date": zod.iso.date(),
+  "peer_id": zod.uuid(),
+  "peer_name": zod.string(),
+  "peer_shift_id": zod.uuid(),
+  "peer_shift_name": zod.string(),
+  "requester_date": zod.iso.date(),
+  "requester_id": zod.uuid(),
+  "requester_name": zod.string(),
+  "requester_shift_id": zod.uuid(),
+  "requester_shift_name": zod.string(),
+  "status": zod.string().describe('`awaiting_peer` · `pending` · `approved` · `rejected` · `cancelled`')
+})
+export const ListSwapsResponse = zod.array(ListSwapsResponseItem)
+
+
+/**
+ * @summary The manager approves: both rosters update for those dates (SC-8).
+ */
+export const DecideSwapParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const DecideSwapBody = zod.object({
+  "approve": zod.boolean()
+})
+
+export const DecideSwapResponse = zod.void()
 
 
 /**
@@ -17753,6 +19345,7 @@ export const AddCashMovementBody = zod.object({
   "corrects_id": zod.uuid().nullish(),
   "created_at": zod.iso.datetime({"offset":true}).nullish(),
   "device_id": zod.uuid().nullish(),
+  "expense_advance_to": zod.uuid().nullish().describe('A pay-out handed to an employee for shop purchases: logged in Dawam as\ntheir expense advance, never deducted (AV-8).'),
   "kind": zod.union([zod.null(),zod.enum(['pay_in', 'pay_out', 'safe_drop', 'correction']).describe('What a cash movement IS, which fixes its sign.')]).optional(),
   "note": zod.string()
 })

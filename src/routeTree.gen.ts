@@ -38,11 +38,17 @@ import { Route as AppMenuIndexRouteImport } from './routes/_app/menu/index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app/inventory/index'
 import { Route as AppDeliveryIndexRouteImport } from './routes/_app/delivery/index'
 import { Route as AppAccessIndexRouteImport } from './routes/_app/access/index'
+import { Route as AppStaffTeamRouteImport } from './routes/_app/staff/team'
 import { Route as AppStaffShiftsRouteImport } from './routes/_app/staff/shifts'
+import { Route as AppStaffSetupRouteImport } from './routes/_app/staff/setup'
+import { Route as AppStaffScheduleRouteImport } from './routes/_app/staff/schedule'
 import { Route as AppStaffRulesRouteImport } from './routes/_app/staff/rules'
 import { Route as AppStaffRequestsRouteImport } from './routes/_app/staff/requests'
+import { Route as AppStaffReportsRouteImport } from './routes/_app/staff/reports'
+import { Route as AppStaffPayrollRouteImport } from './routes/_app/staff/payroll'
 import { Route as AppStaffEmployeesRouteImport } from './routes/_app/staff/employees'
 import { Route as AppStaffAttendanceRouteImport } from './routes/_app/staff/attendance'
+import { Route as AppStaffApprovalsRouteImport } from './routes/_app/staff/approvals'
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
 import { Route as AppSettingsStaffPoolRouteImport } from './routes/_app/settings/staff-pool'
 import { Route as AppSettingsQrRouteImport } from './routes/_app/settings/qr'
@@ -241,9 +247,24 @@ const AppAccessIndexRoute = AppAccessIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppAccessRouteRoute,
 } as any)
+const AppStaffTeamRoute = AppStaffTeamRouteImport.update({
+  id: '/staff/team',
+  path: '/staff/team',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppStaffShiftsRoute = AppStaffShiftsRouteImport.update({
   id: '/staff/shifts',
   path: '/staff/shifts',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppStaffSetupRoute = AppStaffSetupRouteImport.update({
+  id: '/staff/setup',
+  path: '/staff/setup',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppStaffScheduleRoute = AppStaffScheduleRouteImport.update({
+  id: '/staff/schedule',
+  path: '/staff/schedule',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppStaffRulesRoute = AppStaffRulesRouteImport.update({
@@ -256,6 +277,16 @@ const AppStaffRequestsRoute = AppStaffRequestsRouteImport.update({
   path: '/staff/requests',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppStaffReportsRoute = AppStaffReportsRouteImport.update({
+  id: '/staff/reports',
+  path: '/staff/reports',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppStaffPayrollRoute = AppStaffPayrollRouteImport.update({
+  id: '/staff/payroll',
+  path: '/staff/payroll',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppStaffEmployeesRoute = AppStaffEmployeesRouteImport.update({
   id: '/staff/employees',
   path: '/staff/employees',
@@ -264,6 +295,11 @@ const AppStaffEmployeesRoute = AppStaffEmployeesRouteImport.update({
 const AppStaffAttendanceRoute = AppStaffAttendanceRouteImport.update({
   id: '/staff/attendance',
   path: '/staff/attendance',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppStaffApprovalsRoute = AppStaffApprovalsRouteImport.update({
+  id: '/staff/approvals',
+  path: '/staff/approvals',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSettingsWhatsappRoute = AppSettingsWhatsappRouteImport.update({
@@ -614,11 +650,17 @@ export interface FileRoutesByFullPath {
   '/settings/qr': typeof AppSettingsQrRoute
   '/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/staff/approvals': typeof AppStaffApprovalsRoute
   '/staff/attendance': typeof AppStaffAttendanceRoute
   '/staff/employees': typeof AppStaffEmployeesRoute
+  '/staff/payroll': typeof AppStaffPayrollRoute
+  '/staff/reports': typeof AppStaffReportsRoute
   '/staff/requests': typeof AppStaffRequestsRoute
   '/staff/rules': typeof AppStaffRulesRoute
+  '/staff/schedule': typeof AppStaffScheduleRoute
+  '/staff/setup': typeof AppStaffSetupRoute
   '/staff/shifts': typeof AppStaffShiftsRoute
+  '/staff/team': typeof AppStaffTeamRoute
   '/access/': typeof AppAccessIndexRoute
   '/delivery/': typeof AppDeliveryIndexRoute
   '/inventory/': typeof AppInventoryIndexRoute
@@ -697,11 +739,17 @@ export interface FileRoutesByTo {
   '/settings/qr': typeof AppSettingsQrRoute
   '/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/staff/approvals': typeof AppStaffApprovalsRoute
   '/staff/attendance': typeof AppStaffAttendanceRoute
   '/staff/employees': typeof AppStaffEmployeesRoute
+  '/staff/payroll': typeof AppStaffPayrollRoute
+  '/staff/reports': typeof AppStaffReportsRoute
   '/staff/requests': typeof AppStaffRequestsRoute
   '/staff/rules': typeof AppStaffRulesRoute
+  '/staff/schedule': typeof AppStaffScheduleRoute
+  '/staff/setup': typeof AppStaffSetupRoute
   '/staff/shifts': typeof AppStaffShiftsRoute
+  '/staff/team': typeof AppStaffTeamRoute
   '/access': typeof AppAccessIndexRoute
   '/delivery': typeof AppDeliveryIndexRoute
   '/inventory': typeof AppInventoryIndexRoute
@@ -787,11 +835,17 @@ export interface FileRoutesById {
   '/_app/settings/qr': typeof AppSettingsQrRoute
   '/_app/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
+  '/_app/staff/approvals': typeof AppStaffApprovalsRoute
   '/_app/staff/attendance': typeof AppStaffAttendanceRoute
   '/_app/staff/employees': typeof AppStaffEmployeesRoute
+  '/_app/staff/payroll': typeof AppStaffPayrollRoute
+  '/_app/staff/reports': typeof AppStaffReportsRoute
   '/_app/staff/requests': typeof AppStaffRequestsRoute
   '/_app/staff/rules': typeof AppStaffRulesRoute
+  '/_app/staff/schedule': typeof AppStaffScheduleRoute
+  '/_app/staff/setup': typeof AppStaffSetupRoute
   '/_app/staff/shifts': typeof AppStaffShiftsRoute
+  '/_app/staff/team': typeof AppStaffTeamRoute
   '/_app/access/': typeof AppAccessIndexRoute
   '/_app/delivery/': typeof AppDeliveryIndexRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
@@ -877,11 +931,17 @@ export interface FileRouteTypes {
     | '/settings/qr'
     | '/settings/staff-pool'
     | '/settings/whatsapp'
+    | '/staff/approvals'
     | '/staff/attendance'
     | '/staff/employees'
+    | '/staff/payroll'
+    | '/staff/reports'
     | '/staff/requests'
     | '/staff/rules'
+    | '/staff/schedule'
+    | '/staff/setup'
     | '/staff/shifts'
+    | '/staff/team'
     | '/access/'
     | '/delivery/'
     | '/inventory/'
@@ -960,11 +1020,17 @@ export interface FileRouteTypes {
     | '/settings/qr'
     | '/settings/staff-pool'
     | '/settings/whatsapp'
+    | '/staff/approvals'
     | '/staff/attendance'
     | '/staff/employees'
+    | '/staff/payroll'
+    | '/staff/reports'
     | '/staff/requests'
     | '/staff/rules'
+    | '/staff/schedule'
+    | '/staff/setup'
     | '/staff/shifts'
+    | '/staff/team'
     | '/access'
     | '/delivery'
     | '/inventory'
@@ -1049,11 +1115,17 @@ export interface FileRouteTypes {
     | '/_app/settings/qr'
     | '/_app/settings/staff-pool'
     | '/_app/settings/whatsapp'
+    | '/_app/staff/approvals'
     | '/_app/staff/attendance'
     | '/_app/staff/employees'
+    | '/_app/staff/payroll'
+    | '/_app/staff/reports'
     | '/_app/staff/requests'
     | '/_app/staff/rules'
+    | '/_app/staff/schedule'
+    | '/_app/staff/setup'
     | '/_app/staff/shifts'
+    | '/_app/staff/team'
     | '/_app/access/'
     | '/_app/delivery/'
     | '/_app/inventory/'
@@ -1276,11 +1348,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccessIndexRouteImport
       parentRoute: typeof AppAccessRouteRoute
     }
+    '/_app/staff/team': {
+      id: '/_app/staff/team'
+      path: '/staff/team'
+      fullPath: '/staff/team'
+      preLoaderRoute: typeof AppStaffTeamRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/staff/shifts': {
       id: '/_app/staff/shifts'
       path: '/staff/shifts'
       fullPath: '/staff/shifts'
       preLoaderRoute: typeof AppStaffShiftsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/staff/setup': {
+      id: '/_app/staff/setup'
+      path: '/staff/setup'
+      fullPath: '/staff/setup'
+      preLoaderRoute: typeof AppStaffSetupRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/staff/schedule': {
+      id: '/_app/staff/schedule'
+      path: '/staff/schedule'
+      fullPath: '/staff/schedule'
+      preLoaderRoute: typeof AppStaffScheduleRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/staff/rules': {
@@ -1297,6 +1390,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStaffRequestsRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/staff/reports': {
+      id: '/_app/staff/reports'
+      path: '/staff/reports'
+      fullPath: '/staff/reports'
+      preLoaderRoute: typeof AppStaffReportsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/staff/payroll': {
+      id: '/_app/staff/payroll'
+      path: '/staff/payroll'
+      fullPath: '/staff/payroll'
+      preLoaderRoute: typeof AppStaffPayrollRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/staff/employees': {
       id: '/_app/staff/employees'
       path: '/staff/employees'
@@ -1309,6 +1416,13 @@ declare module '@tanstack/react-router' {
       path: '/staff/attendance'
       fullPath: '/staff/attendance'
       preLoaderRoute: typeof AppStaffAttendanceRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/staff/approvals': {
+      id: '/_app/staff/approvals'
+      path: '/staff/approvals'
+      fullPath: '/staff/approvals'
+      preLoaderRoute: typeof AppStaffApprovalsRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/settings/whatsapp': {
@@ -1850,11 +1964,17 @@ interface AppRouteRouteChildren {
   AppReportsStaffRoute: typeof AppReportsStaffRoute
   AppReportsStaffPoolRoute: typeof AppReportsStaffPoolRoute
   AppReportsTillsRoute: typeof AppReportsTillsRoute
+  AppStaffApprovalsRoute: typeof AppStaffApprovalsRoute
   AppStaffAttendanceRoute: typeof AppStaffAttendanceRoute
   AppStaffEmployeesRoute: typeof AppStaffEmployeesRoute
+  AppStaffPayrollRoute: typeof AppStaffPayrollRoute
+  AppStaffReportsRoute: typeof AppStaffReportsRoute
   AppStaffRequestsRoute: typeof AppStaffRequestsRoute
   AppStaffRulesRoute: typeof AppStaffRulesRoute
+  AppStaffScheduleRoute: typeof AppStaffScheduleRoute
+  AppStaffSetupRoute: typeof AppStaffSetupRoute
   AppStaffShiftsRoute: typeof AppStaffShiftsRoute
+  AppStaffTeamRoute: typeof AppStaffTeamRoute
   AppReportsOperationsProfitabilityRoute: typeof AppReportsOperationsProfitabilityRoute
   AppReportsOperationsTablesRoute: typeof AppReportsOperationsTablesRoute
   AppReportsOperationsIndexRoute: typeof AppReportsOperationsIndexRoute
@@ -1896,11 +2016,17 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppReportsStaffRoute: AppReportsStaffRoute,
   AppReportsStaffPoolRoute: AppReportsStaffPoolRoute,
   AppReportsTillsRoute: AppReportsTillsRoute,
+  AppStaffApprovalsRoute: AppStaffApprovalsRoute,
   AppStaffAttendanceRoute: AppStaffAttendanceRoute,
   AppStaffEmployeesRoute: AppStaffEmployeesRoute,
+  AppStaffPayrollRoute: AppStaffPayrollRoute,
+  AppStaffReportsRoute: AppStaffReportsRoute,
   AppStaffRequestsRoute: AppStaffRequestsRoute,
   AppStaffRulesRoute: AppStaffRulesRoute,
+  AppStaffScheduleRoute: AppStaffScheduleRoute,
+  AppStaffSetupRoute: AppStaffSetupRoute,
   AppStaffShiftsRoute: AppStaffShiftsRoute,
+  AppStaffTeamRoute: AppStaffTeamRoute,
   AppReportsOperationsProfitabilityRoute:
     AppReportsOperationsProfitabilityRoute,
   AppReportsOperationsTablesRoute: AppReportsOperationsTablesRoute,
