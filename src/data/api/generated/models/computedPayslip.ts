@@ -17,8 +17,12 @@ export interface ComputedPayslip {
      * pay would go negative; this is the affordable figure, the one collected.
      */
   advance_installment_piastres: number;
-  /** After the attendance proration — what the days actually worked earn. */
+  /**
+     * After the calendar-day proration — what the days employed earn, at
+     * each day's salary (PAY-13).
+     */
   base_piastres: number;
+  /** The monthly salary in force at the end of the window. */
   base_salary_piastres: number;
   bonuses_piastres: number;
   /**

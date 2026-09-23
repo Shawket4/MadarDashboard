@@ -22,12 +22,19 @@ const calls = {
   reviewAdvance: vi.fn(async () => ({})),
 };
 
+/** Sections whose list fails (a 403 for a branch manager, say). */
+const failing = new Set<string>();
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
   const opts = args.find((a) => typeof a === "object" && a !== null && "query" in (a as object)) as
     | { query?: { enabled?: boolean } }
     | undefined;
   (enabledSeen[name] ??= []).push(opts?.query?.enabled ?? true);
-  return { data: data(), isLoading: false, isFetching: false, error: null, refetch: vi.fn() };
+  return {
+    data: failing.has(name) ? undefined : data(),
+    isLoading: false, isFetching: false,
+    error: failing.has(name) ? Object.assign(new Error("Forbidden"), { response: { status: 403 } }) : null,
+    refetch: vi.fn(),
+  };
 };
 
 vi.mock("@/data/authz/use-authz", async () => {
@@ -98,6 +105,19 @@ beforeEach(() => {
 });
 
 describe("ApprovalsPage", () => {
+  it("shows the lists that loaded when one is refused, and says which (DSH-1)", () => {
+    failing.add("advances");
+    try {
+      wrap(<ApprovalsPage />);
+      expect(screen.getByRole("alert")).toHaveTextContent(/Couldn't load Salary advances/);
+      // Everything else is still there to decide.
+      expect(screen.getByText("Cover")).toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: "Approve" }).length).toBeGreaterThan(0);
+    } finally {
+      failing.clear();
+    }
+  });
+
   it("shows only what this person may decide, and asks for nothing else", () => {
     held = ["hr.shift_cover.confirm"];
     wrap(<ApprovalsPage />);
@@ -167,7 +187,8 @@ describe("ApprovalsPage", () => {
     await user.type(n, "4");
     await user.click(within(dialog).getByRole("button", { name: "Approve" }));
     await waitFor(() =>
-      expect(calls.reviewAdvance).toHaveBeenCalledWith("v1", { approve: true, amount_piastres: 50_000, installments: 4, note: null }),
+      // The amount was not touched, so none is sent: the piastres asked for stay (audit 06 B11).
+      expect(calls.reviewAdvance).toHaveBeenCalledWith("v1", { approve: true, amount_piastres: null, installments: 4, note: null }),
     );
     await user.click(within(approveIn("Bonus over the limit")).getByRole("button", { name: "Approve" }));
     await waitFor(() => expect(calls.decideAdjustment).toHaveBeenCalledWith("bonus", "a2", { approve: true }));

@@ -67,6 +67,8 @@ export interface AttendanceRecord {
   /** @nullable */
   scheduled_start_at?: string | null;
   status: string;
+  /** A manager set this day's status by hand; automation keeps it (AT-7). */
+  status_overridden?: boolean;
   tracking_off: boolean;
   updated_at: string;
   /** @nullable */

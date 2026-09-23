@@ -100,6 +100,28 @@ describe("EmployeeDialog · Dawam", () => {
     );
   });
 
+  it("flips 'paid through Dawam' only for someone with hr.payroll.edit (owner decision, PAY-3)", async () => {
+    const user = userEvent.setup();
+    putEmployee.mockClear();
+    held = ["hr.staff.edit", "hr.payroll.edit"];
+    const { unmount } = open({ ...sara, on_payroll: true } as Employee);
+    const box = screen.getByRole("checkbox", { name: "Paid through Dawam" });
+    expect(box).toBeChecked();
+    await user.click(box);
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalledWith("e1", expect.objectContaining({ on_payroll: false })));
+    unmount();
+
+    // A branch manager never sees the box, and the field is not sent.
+    putEmployee.mockClear();
+    held = ["hr.staff.edit"];
+    open({ ...sara, on_payroll: true } as Employee);
+    expect(screen.queryByRole("checkbox", { name: "Paid through Dawam" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalled());
+    expect((putEmployee.mock.calls[0] as unknown[])[1]).not.toHaveProperty("on_payroll");
+  });
+
   it("app access needs a number", async () => {
     const user = userEvent.setup();
     putEmployee.mockClear();

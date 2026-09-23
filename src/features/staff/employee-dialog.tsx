@@ -89,6 +89,7 @@ export function EmployeeDialog({
           gender: z.enum([NONE, "m", "f"]),
           pay_method: z.enum(["cash", "bank", "wallet"]),
           pay_account: z.string().max(64),
+          on_payroll: z.boolean(),
         })
         // Mirrors the database CHECK: a terminated profile must say when, and a
         // live one must not carry a termination date.
@@ -115,7 +116,7 @@ export function EmployeeDialog({
       department_id: NONE, employee_code: "", job_title: "", hire_date: "",
       employment_status: "active", termination_date: "", base_salary_egp: 0,
       national_id: "", emergency_contact_name: "", emergency_contact_phone: "", notes: "",
-      gender: NONE, pay_method: "cash", pay_account: "",
+      gender: NONE, pay_method: "cash", pay_account: "", on_payroll: true,
     },
   });
   const status = form.watch("employment_status");
@@ -142,6 +143,7 @@ export function EmployeeDialog({
       gender: employee.gender === "m" || employee.gender === "f" ? employee.gender : NONE,
       pay_method: (["cash", "bank", "wallet"].includes(employee.pay_method) ? employee.pay_method : "cash") as Values["pay_method"],
       pay_account: employee.pay_account ?? "",
+      on_payroll: employee.on_payroll ?? true,
     });
   }, [employee, open]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -184,6 +186,9 @@ export function EmployeeDialog({
         // Omitted entirely when the caller cannot see salary, so the server's
         // "keep the stored value" branch is what runs.
         ...(canSeeSalary ? { base_salary_piastres: egpToPiastres(v.base_salary_egp) } : {}),
+        // Same gate as the salary (hr.payroll.edit everywhere): the server
+        // ignores it from anyone else.
+        ...(canEditSalary ? { on_payroll: v.on_payroll } : {}),
         national_id: v.national_id || null,
         emergency_contact_name: v.emergency_contact_name || null,
         emergency_contact_phone: v.emergency_contact_phone || null,
@@ -359,6 +364,23 @@ export function EmployeeDialog({
                     <FormLabel>{t("staff.terminationDate", "Termination date")}</FormLabel>
                     <FormControl><Input type="date" {...field} /></FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : null}
+            {canEditSalary ? (
+              <FormField
+                control={form.control}
+                name="on_payroll"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <div className="flex items-center gap-2">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={(c) => field.onChange(c === true)} />
+                      </FormControl>
+                      <FormLabel className="font-normal">{t("dawam.onPayroll", "Paid through Dawam")}</FormLabel>
+                    </div>
+                    <FormDescription>{t("dawam.onPayrollHint", "Off for someone who uses the app and is rostered but is not paid here — an owner, say. They are skipped by the payroll run, the estimate and the payslips.")}</FormDescription>
                   </FormItem>
                 )}
               />

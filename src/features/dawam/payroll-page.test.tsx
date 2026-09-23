@@ -35,9 +35,12 @@ const calls = {
   setPeriodStatus: vi.fn(async () => ({})),
   markPaid: vi.fn(async () => ({})),
   waiveDeduction: vi.fn(async () => ({})),
+  unwaiveDeduction: vi.fn(async () => ({})),
+  overrideDeduction: vi.fn(async () => ({})),
   deleteDeduction: vi.fn(async () => ({})),
   deleteBonus: vi.fn(async () => ({})),
   createAdjustment: vi.fn(async () => ({})),
+  recordAdvance: vi.fn(async () => ({})),
 };
 
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
@@ -66,6 +69,7 @@ vi.mock("@/features/staff/util", async () => {
 });
 vi.mock("./rules-banner", () => ({ RulesFirstBanner: () => null }));
 vi.mock("@/hooks/use-org-modules", () => ({ useCurrentOrg: () => ({ name: "Madar Coffee" }), useOrgModules: () => ["pos", "dawam"] }));
+vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
 vi.mock("@/data/api/generated/api", () => ({
   useCurrent: hook("current", () => current),
   useListEmployees: hook("employees", () => [
@@ -76,6 +80,7 @@ vi.mock("@/data/api/generated/api", () => ({
   useListAdvances: hook("advances", () => []),
   useListExpenseAdvances: hook("expenses", () => []),
   useListPayslips: hook("payslips", () => []),
+  useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
   exportPeriodCsv: vi.fn(),
   decideAdjustment: vi.fn(),
   stopAdjustment: vi.fn(),
@@ -121,7 +126,7 @@ const period = (status: string) => ({
 beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
-  held = ["hr.payroll.read", "hr.payroll.run", "hr.adjustments.create"];
+  held = ["hr.payroll.read", "hr.payroll.run", "hr.adjustments.create", "hr.deductions.create"];
   current = {
     period: period("draft"),
     preview: [slip("e1", "Sara Ahmed"), slip("e4", "Youssef Adel", { net_piastres: 745_000 })],
@@ -162,9 +167,90 @@ describe("PayrollPage", () => {
     await waitFor(() => expect(calls.markPaid).toHaveBeenCalledWith("p2", "e1", { method: "bank" }));
     unmount();
 
-    current = { ...current!, payslips: [frozen("e1", "Sara Ahmed", "bank"), frozen("e4", "Youssef Adel", null)] };
+    current = { ...current!, paid_count: 1, payslips: [frozen("e1", "Sara Ahmed", "bank"), frozen("e4", "Youssef Adel", null)] };
     wrap(<PayrollPage />);
     expect(screen.queryByRole("button", { name: /Reopen/ })).not.toBeInTheDocument();
+    // The server's count, not a client sum (AT-3).
+    expect(screen.getByText("Paid 1 of 2")).toBeInTheDocument();
+  });
+
+  it("reopens only with a reason, which goes to the server (PAY-6, AD-9)", async () => {
+    const user = userEvent.setup();
+    current = { ...current!, period: period("generated"), payslips: [], paid_count: 0 };
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("button", { name: /Reopen/ }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Reopen" }));
+    expect(calls.setPeriodStatus).not.toHaveBeenCalled();
+    await user.type(within(dialog).getByLabelText("Reason"), "A line was missing");
+    await user.click(within(dialog).getByRole("button", { name: "Reopen" }));
+    await waitFor(() => expect(calls.setPeriodStatus).toHaveBeenCalledWith("p2", { status: "draft", reason: "A line was missing" }));
+  });
+
+  it("overrides a rule-made line with a reason, and undoes a waiver with one (AD-8, AT-7)", async () => {
+    const user = userEvent.setup();
+    current = {
+      ...current!,
+      preview: [slip("e1", "Sara Ahmed", {
+        breakdown: {
+          paid_days: 31, window_days: 31, bonuses: [], advances: [],
+          deductions: [
+            { id: "d1", reason: "Late arrival", piastres: 5_000, source: "late_penalty" },
+            { id: "d3", reason: "Absent", piastres: 9_000, source: "absence", waived: true },
+          ],
+        },
+      })],
+    } as unknown as CurrentPayroll;
+    wrap(<PayrollPage />);
+    await user.click(screen.getAllByText("Sara Ahmed")[0]);
+    const sheet = await screen.findByRole("dialog");
+    await user.click(within(sheet).getByRole("button", { name: "Override" }));
+    const form = (await screen.findAllByRole("dialog")).at(-1)!;
+    const amount = within(form).getByLabelText("New amount (EGP)");
+    expect(amount).toHaveValue(50);
+    await user.clear(amount);
+    await user.type(amount, "0");
+    await user.type(within(form).getByLabelText("Reason"), "Covered by a colleague");
+    await user.click(within(form).getByRole("button", { name: "Override" }));
+    await waitFor(() => expect(calls.overrideDeduction).toHaveBeenCalledWith("d1", { amount_piastres: 0, reason: "Covered by a colleague" }));
+
+    await user.click(within(sheet).getByRole("button", { name: "Undo the waiver" }));
+    const undo = (await screen.findAllByRole("dialog")).at(-1)!;
+    await user.type(within(undo).getByLabelText("Reason"), "Waived the wrong day");
+    await user.click(within(undo).getByRole("button", { name: "Undo the waiver" }));
+    await waitFor(() => expect(calls.unwaiveDeduction).toHaveBeenCalledWith("d3", { reason: "Waived the wrong day" }));
+  });
+
+  it("keeps deductions to hr.deductions.create and bonuses to hr.adjustments.create (AD-5)", async () => {
+    const user = userEvent.setup();
+    held = ["hr.payroll.read", "hr.adjustments.create"];
+    wrap(<PayrollPage />);
+    await user.click(screen.getAllByText("Sara Ahmed")[0]);
+    const sheet = await screen.findByRole("dialog");
+    expect(within(sheet).getByRole("button", { name: "Bonus" })).toBeInTheDocument();
+    expect(within(sheet).queryByRole("button", { name: "Deduction" })).not.toBeInTheDocument();
+    expect(within(sheet).queryByRole("button", { name: "Waive" })).not.toBeInTheDocument();
+    expect(within(sheet).queryByRole("button", { name: "Override" })).not.toBeInTheDocument();
+    // The manual deduction line is not theirs to delete either.
+    expect(within(sheet).queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
+  });
+
+  it("files a pay line under the month picked (AD-1, AD-10)", async () => {
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getAllByText("Youssef Adel")[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Bonus" }));
+    const form = (await screen.findAllByRole("dialog")).at(-1)!;
+    await user.type(within(form).getByLabelText("Amount (EGP)"), "100");
+    await user.type(within(form).getByLabelText("Reason"), "Eid");
+    const month = within(form).getByLabelText("Counts in the month of");
+    expect((month as HTMLInputElement).value).toMatch(/^\d{4}-\d{2}$/);
+    await user.clear(month);
+    await user.type(month, "2026-11");
+    await user.click(within(form).getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(calls.createAdjustment).toHaveBeenCalledWith(expect.objectContaining({ effective_date: "2026-11-01", amount_piastres: 10_000 })),
+    );
   });
 
   it("waives a rule-made line and deletes only a manual one (AD-7)", async () => {

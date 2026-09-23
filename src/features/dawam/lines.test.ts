@@ -70,4 +70,31 @@ describe("payslipLines", () => {
     expect(late.deductionId).toBeUndefined();
     expect(linesTotal(lines)).toBe(847_000);
   });
+
+  it("keeps the waived row's id for undoing the waiver (AT-7)", () => {
+    const lines = payslipLines(
+      slip({
+        breakdown: {
+          paid_days: 31, window_days: 31, bonuses: [], advances: [],
+          deductions: [{ id: "d1", reason: "Late", piastres: 5_000, source: "late_penalty", waived: true }],
+        },
+      }),
+    );
+    expect(lines.find((l) => l.key === "d|d1")).toMatchObject({ waivedId: "d1", deductionId: undefined });
+  });
+
+  it("names the capped part so the lines add up to a net of zero (PAY-12)", () => {
+    const lines = payslipLines(
+      slip({
+        net_piastres: 0, deductions_piastres: 900_000, carry_out_piastres: 100_000, bonuses_piastres: 0,
+        advance_installment_piastres: 0,
+        breakdown: {
+          paid_days: 31, window_days: 31, bonuses: [], advances: [], capped_piastres: 100_000,
+          deductions: [{ id: "d9", reason: "Damages", piastres: 1_000_000, source: "manual" }],
+        },
+      }),
+    );
+    expect(lines.find((l) => l.key === "capped")).toMatchObject({ amount: 100_000, labelKey: "dawam.lineCapped" });
+    expect(linesTotal(lines)).toBe(0);
+  });
 });

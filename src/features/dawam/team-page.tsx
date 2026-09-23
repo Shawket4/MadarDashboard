@@ -8,7 +8,8 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  CircleAlert, Clock3, FileSpreadsheet, LogIn, MapPinOff, ShieldAlert, Smartphone, TimerOff, UserRoundCheck, UserRoundPlus, UsersRound,
+  CircleAlert, Clock3, FileSpreadsheet, LogIn, MapPinOff, ReceiptText, ShieldAlert, Smartphone, TimerOff, UserRoundCheck, UserRoundPlus,
+  UsersRound, Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -35,7 +36,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { fmtDateTime, fmtMoney, fmtTime } from "@/lib/format";
 import { fmtMinutes, invalidateStaff } from "@/features/staff/util";
-import { readPounds } from "./money-dialogs";
+import { AdjustmentDialog, ExpenseAdvanceDialog, readPounds } from "./money-dialogs";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
 
 const STATE_LABEL: Record<string, string> = {
@@ -66,6 +67,10 @@ export function TeamPage() {
   const [punching, setPunching] = useState<PresenceRow | null>(null);
   const [adding, setAdding] = useState<"one" | "sheet" | null>(null);
   const canCreate = authz.can(Cap.hrStaffCreate);
+  // Money a branch manager handles from here, without the Payroll page (DSH-1).
+  const canPayLine = authz.canAny(Cap.hrAdjustmentsCreate, Cap.hrDeductionsCreate);
+  const canExpense = authz.can(Cap.hrExpenseAdvancesLog);
+  const [money, setMoney] = useState<"line" | "expense" | null>(null);
 
   const presenceQ = useTeamPresence({ branch_id: branchId ?? undefined }, { query: { enabled: canRead, refetchInterval: 60_000 } });
   const flagsQ = useListAttendanceFlags({ branch_id: branchId ?? undefined }, { query: { enabled: canRead } });
@@ -83,10 +88,12 @@ export function TeamPage() {
         title={t("dawam.team", "Team")}
         description={t("dawam.teamSubtitle", "Who's in right now, and what the location pings noticed.")}
         actions={
-          canCreate ? (
+          canCreate || canPayLine || canExpense ? (
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => setAdding("sheet")}><FileSpreadsheet className="size-4" />{t("dawam.importTitle", "Import from a spreadsheet")}</Button>
-              <Button onClick={() => setAdding("one")}><UserRoundPlus className="size-4" />{t("dawam.addEmployee", "Add employee")}</Button>
+              {canPayLine ? <Button variant="outline" onClick={() => setMoney("line")}><ReceiptText className="size-4" />{t("dawam.addPayLineHere", "Add a bonus or deduction")}</Button> : null}
+              {canExpense ? <Button variant="outline" onClick={() => setMoney("expense")}><Wallet className="size-4" />{t("dawam.logExpense", "Log an expense advance")}</Button> : null}
+              {canCreate ? <Button variant="outline" onClick={() => setAdding("sheet")}><FileSpreadsheet className="size-4" />{t("dawam.importTitle", "Import from a spreadsheet")}</Button> : null}
+              {canCreate ? <Button onClick={() => setAdding("one")}><UserRoundPlus className="size-4" />{t("dawam.addEmployee", "Add employee")}</Button> : null}
             </div>
           ) : undefined
         }
@@ -162,6 +169,8 @@ export function TeamPage() {
       {adding === "one" ? <AddEmployeeDialog onOpenChange={(o) => !o && setAdding(null)} /> : null}
       {adding === "sheet" ? <ImportPeopleDialog onOpenChange={(o) => !o && setAdding(null)} /> : null}
       <PunchDialog key={punching?.employee_id} person={punching} onOpenChange={(o) => !o && setPunching(null)} />
+      <AdjustmentDialog key={`line-${money === "line"}`} open={money === "line"} onOpenChange={(o) => !o && setMoney(null)} />
+      <ExpenseAdvanceDialog key={`exp-${money === "expense"}`} open={money === "expense"} onOpenChange={(o) => !o && setMoney(null)} />
     </Page>
   );
 }
@@ -170,13 +179,15 @@ export function TeamPage() {
 function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpenChange: (o: boolean) => void }) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState(flag ? String(flag.suggested_deduction_piastres / 100) : "");
+  const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   if (!flag) return null;
   const meta = FLAG_META[flag.kind] ?? FLAG_META.suspicious;
   const send = async (action: string, amountPiastres?: number) => {
     setBusy(true);
     try {
-      await resolveFlag(flag.id, { action, amount_piastres: amountPiastres ?? null });
+      // A deduction is a pay line the employee reads: it carries why (AD-9).
+      await resolveFlag(flag.id, { action, amount_piastres: amountPiastres ?? null, reason: action === "deduct" ? reason.trim() || null : null });
       toast.success(t("dawam.flagHandled", "Flag handled"));
       void invalidateStaff();
       onOpenChange(false);
@@ -206,6 +217,10 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
               <p className="text-xs text-muted-foreground">
                 {t("dawam.suggested", { amount: fmtMoney(flag.suggested_deduction_piastres), defaultValue: `Suggested: ${fmtMoney(flag.suggested_deduction_piastres)}, time away at their minute rate.` })}
               </p>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="flag-reason">{t("dawam.deductReason", "Reason (the employee sees it)")}</Label>
+              <Input id="flag-reason" value={reason} onChange={(e) => setReason(e.target.value)} />
             </div>
             <Button variant="destructive" disabled={busy || deduct === null} onClick={() => void send("deduct", deduct!)}>{t("dawam.deduct", "Deduct")}</Button>
           </div>

@@ -4,6 +4,18 @@
 export interface DisciplineRow {
   absent_days: number;
   /**
+     * Their own shifts a colleague covered (not rejected): the absence stays
+     * theirs (CV-6), this says someone stepped in.
+     */
+  covered_by_others?: number;
+  /**
+     * Colleagues' shifts this person covered, confirmed by a manager (CV-7).
+     * A cover is never a present day of the coverer's own.
+     */
+  covers_given?: number;
+  /** Covers still waiting for the manager. */
+  covers_pending?: number;
+  /**
      * `None` for a person with no department set — grouped as "Unassigned".
      * @nullable
      */

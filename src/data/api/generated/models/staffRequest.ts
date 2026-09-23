@@ -18,12 +18,14 @@ export interface StaffRequest {
   /** @nullable */
   employee_name?: string | null;
   /**
-     * Set for `leave` and `mission`; the span's last day.
+     * Set for `leave` and `mission`: the span's last day. For an `excuse`
+     * that runs past midnight, the next day (its end is then on that day).
      * @nullable
      */
   end_date?: string | null;
   /**
      * Start of the excused window. `None` = open to the shift's start.
+     * For a `correction`: the proposed check-in, branch-local.
      * @nullable
      */
   from_time?: string | null;
@@ -34,9 +36,17 @@ export interface StaffRequest {
      * @nullable
      */
   is_paid?: boolean | null;
-  /** `leave` | `late_arrival` | `early_departure` | `excuse` | `mission`. */
+  /** `leave` | `late_arrival` | `early_departure` | `excuse` | `mission` | `correction`. */
   kind: string;
-  /** @nullable */
+  /**
+     * A half-day leave: `first` or `second` half of the day off (RQ-8).
+     * @nullable
+     */
+  leave_half?: string | null;
+  /**
+     * Deprecated (RQ-2): older rows only; never set on new requests.
+     * @nullable
+     */
   leave_type_id?: string | null;
   /** @nullable */
   leave_type_name?: string | null;
@@ -44,15 +54,41 @@ export interface StaffRequest {
   location?: string | null;
   on_date: string;
   org_id: string;
+  /**
+     * For a pending excuse or early departure: the business's (or branch's)
+     * rule, which the approve dialog starts from (RQ-7).
+     * @nullable
+     */
+  paid_default?: boolean | null;
   /** @nullable */
   reason?: string | null;
+  /**
+     * For a correction: the record's current punches, so an approver sees
+     * what the proposal changes.
+     * @nullable
+     */
+  record_check_in_at?: string | null;
+  /** @nullable */
+  record_check_out_at?: string | null;
   status: string;
   /** @nullable */
   title?: string | null;
   /**
+     * A manager's own request waiting for someone above them (RQ-5): the
+     * owner decides it. Worked out by the server from capabilities.
+     */
+  to_owner?: boolean;
+  /**
      * End of the excused window. `None` = open to the shift's end.
+     * For a `correction`: the proposed check-out, branch-local (earlier on the
+     * clock than the check-in = the next morning, a night shift).
      * @nullable
      */
   to_time?: string | null;
   updated_at: string;
+  /**
+     * The shift a late arrival, early departure or excuse is for (split days).
+     * @nullable
+     */
+  work_shift_id?: string | null;
 }

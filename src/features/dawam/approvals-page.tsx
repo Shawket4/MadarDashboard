@@ -76,9 +76,20 @@ export function ApprovalsPage() {
   const claimsQ = useListOpenShifts({ from, to }, { query: { enabled: can.roster } });
   const attendanceQ = useListAttendance({ from, to: isoDaysFromToday(0) }, { query: { enabled: can.covers || can.overtime } });
   const payLinesQ = useListAdjustments({ status: "pending" }, { query: { enabled: can.payLines } });
+  // Each list stands on its own (DSH-1, PAGE-Approvals): one that fails —
+  // a 403 on advances for a branch manager, say — is reported in its place,
+  // and everything else still shows and can be decided.
+  const sections: { key: string; label: string; q: { error: unknown; refetch: () => unknown } }[] = [
+    { key: "requests", label: t("staff.requests", "Requests"), q: requestsQ },
+    { key: "advances", label: t("dawam.salaryAdvances", "Salary advances"), q: advancesQ },
+    { key: "swaps", label: t("dawam.swap", "Shift swap"), q: swapsQ },
+    { key: "claims", label: t("dawam.openShiftClaim", "Open-shift claim"), q: claimsQ },
+    { key: "attendance", label: t("dawam.overtime", "Overtime"), q: attendanceQ },
+    { key: "payLines", label: t("dawam.payLines", "Bonuses & deductions"), q: payLinesQ },
+  ];
   const queries = [requestsQ, advancesQ, swapsQ, claimsQ, attendanceQ, payLinesQ];
   const loading = queries.some((q) => q.isLoading);
-  const failed = queries.find((q) => q.error);
+  const failedSections = sections.filter((s) => s.q.error);
 
   const decided = () => {
     toast.success(t("staff.decisionSaved", "Decision saved"));
@@ -235,10 +246,16 @@ export function ApprovalsPage() {
           />
         }
       />
+      {failedSections.map((s) => (
+        <ErrorState
+          key={s.key}
+          title={t("dawam.sectionLoadError", { section: s.label, defaultValue: `Couldn't load ${s.label}` })}
+          message={getErrorMessage(s.q.error)}
+          onRetry={() => void s.q.refetch()}
+        />
+      ))}
       {loading ? (
         <Skeleton className="h-48 w-full rounded-2xl" />
-      ) : failed ? (
-        <ErrorState title={t("dawam.approvalsLoadError", "Couldn't load approvals")} message={getErrorMessage(failed.error)} onRetry={() => queries.forEach((q) => void q.refetch())} />
       ) : shown.length === 0 ? (
         <EmptyState icon={Inbox} title={t("dawam.nothingWaiting", "Nothing is waiting on you")} description={t("dawam.nothingWaitingHint", "New requests, covers, swaps and claims land here.")} />
       ) : (
