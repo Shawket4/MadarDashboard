@@ -194,7 +194,7 @@ export function AdjustmentDialog({
       title={t("dawam.addPayLine", "Add a bonus or deduction")}
       description={t("dawam.addPayLineHint", "Over your limit, it waits for the owner before it counts.")}
       onSave={async (v) => {
-        await createAdjustment({
+        const line = await createAdjustment({
           employee_id: v.employee_id,
           kind: v.kind,
           reason: v.reason.trim(),
@@ -203,7 +203,9 @@ export function AdjustmentDialog({
           percent_of_base: by === "percent" ? Number(v.amount) : null,
           effective_date: monthToDate(v.month),
         });
-        toast.success(t("dawam.payLineAdded", "Pay line added"));
+        // Over the manager's limit the server keeps it pending for the owner (AD-5).
+        if (line?.status === "pending") toast.info(t("dawam.payLinePending", "Over your limit: it waits for the owner before it counts."));
+        else toast.success(t("dawam.payLineAdded", "Pay line added"));
       }}
     >
       {fixedUser ? null : <PersonField form={form} name="employee_id" enabled={open} />}

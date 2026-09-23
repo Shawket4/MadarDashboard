@@ -6234,6 +6234,7 @@
     "modulesLoadError": "Couldn't check what this business has switched on",
     "importNoSalaryRight": "The salaries in this sheet won't be saved: setting pay needs the owner's permission. The people are added without one.",
     "badAmount": "Type an amount above zero",
-    "flagsLoadError": "Couldn't load the flags"
+    "flagsLoadError": "Couldn't load the flags",
+    "payLinePending": "Over your limit: it waits for the owner before it counts."
   }
 }

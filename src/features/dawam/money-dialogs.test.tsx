@@ -20,6 +20,8 @@ vi.mock("@/data/api/generated/api", () => ({
   ...calls,
 }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
+const toast = { success: vi.fn(), info: vi.fn(), error: vi.fn(), warning: vi.fn() };
+vi.mock("sonner", () => ({ toast }));
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateStaff: vi.fn() };
@@ -38,6 +40,7 @@ const wrap = (node: React.ReactNode) => render(<QueryClientProvider client={new 
 
 beforeEach(() => {
   for (const f of Object.values(calls)) f.mockClear();
+  for (const f of Object.values(toast)) f.mockClear();
 });
 
 describe("RecordAdvanceDialog", () => {
@@ -88,6 +91,19 @@ describe("AdjustmentDialog", () => {
         amount_piastres: 2_500, percent_of_base: null, effective_date: expect.stringMatching(/^\d{4}-\d{2}-01$/),
       }),
     );
+  });
+
+  it("says a line over the manager's limit waits for the owner, not that it was added (AD-5)", async () => {
+    // E2E: Karim's 1,200 EGP deduction came back pending; the toast said "Pay line added".
+    calls.createAdjustment.mockResolvedValueOnce({ status: "pending" } as never);
+    const user = userEvent.setup();
+    wrap(<AdjustmentDialog open onOpenChange={() => {}} userId="e1" bonus={false} />);
+    const dialog = await screen.findByRole("dialog");
+    await user.type(within(dialog).getByLabelText("Amount (EGP)"), "1200");
+    await user.type(within(dialog).getByLabelText("Reason"), "Broken tray");
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(toast.info).toHaveBeenCalledWith("Over your limit: it waits for the owner before it counts."));
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it("turns a picked month into its first day", () => {
