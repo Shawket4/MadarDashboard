@@ -8,7 +8,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  CircleAlert, Clock3, FileSpreadsheet, LogIn, MapPinOff, ShieldAlert, Smartphone, TimerOff, UserRoundCheck, UserRoundPlus, UsersRound,
+  BatteryLow, CircleAlert, Clock3, FileSpreadsheet, LogIn, MapPinOff, ShieldAlert, Smartphone, TimerOff, UserRoundCheck, UserRoundPlus, UsersRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -53,6 +53,7 @@ export const FLAG_META: Record<string, { icon: LucideIcon; labelKey: string; fal
   time_unverified: { icon: Clock3, labelKey: "dawam.flag_time_unverified", fallback: "Time unverified" },
   new_phone: { icon: Smartphone, labelKey: "dawam.flag_new_phone", fallback: "New phone" },
   cover: { icon: UserRoundCheck, labelKey: "dawam.flag_cover", fallback: "Cover" },
+  phone_died: { icon: BatteryLow, labelKey: "dawam.flag_phone_died", fallback: "Phone likely died" },
 };
 
 export function TeamPage() {
@@ -169,6 +170,10 @@ export function TeamPage() {
 /** What a manager does with a flag. Nothing is charged automatically (CL-6). */
 function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpenChange: (o: boolean) => void }) {
   const { t } = useTranslation();
+  // Money from a flag is a deduction line: the server asks for the
+  // deduction right on top of handling the flag, so only its holder is
+  // offered it (PM-4; the server still decides, limit and all).
+  const canDeduct = useAuthz().can(Cap.hrDeductionsCreate);
   const [amount, setAmount] = useState(flag ? String(flag.suggested_deduction_piastres / 100) : "");
   const [busy, setBusy] = useState(false);
   if (!flag) return null;
@@ -198,16 +203,24 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
           <div className="grid gap-3">
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" disabled={busy} onClick={() => void send("excuse_paid")}>{t("dawam.excusePaid", "Excuse, paid")}</Button>
-              <Button variant="outline" disabled={busy} onClick={() => void send("excuse_unpaid")}>{t("dawam.excuseUnpaid", "Excuse, unpaid")}</Button>
+              {canDeduct ? (
+                <Button variant="outline" disabled={busy} onClick={() => void send("excuse_unpaid")}>{t("dawam.excuseUnpaid", "Excuse, unpaid")}</Button>
+              ) : null}
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="flag-amount">{t("dawam.deductAmount", "Deduct (EGP)")}</Label>
-              <Input id="flag-amount" type="number" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
-              <p className="text-xs text-muted-foreground">
-                {t("dawam.suggested", { amount: fmtMoney(flag.suggested_deduction_piastres), defaultValue: `Suggested: ${fmtMoney(flag.suggested_deduction_piastres)}, time away at their minute rate.` })}
-              </p>
-            </div>
-            <Button variant="destructive" disabled={busy || deduct === null} onClick={() => void send("deduct", deduct!)}>{t("dawam.deduct", "Deduct")}</Button>
+            {canDeduct ? (
+              <div className="space-y-1">
+                <Label htmlFor="flag-amount">{t("dawam.deductAmount", "Deduct (EGP)")}</Label>
+                <Input id="flag-amount" type="number" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                <p className="text-xs text-muted-foreground">
+                  {t("dawam.suggested", { amount: fmtMoney(flag.suggested_deduction_piastres), defaultValue: `Suggested: ${fmtMoney(flag.suggested_deduction_piastres)}, time away at their minute rate.` })}
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">{t("dawam.deductNeedsRight", "Deducting for it needs the right to add deductions. The owner can give it to you.")}</p>
+            )}
+            {canDeduct ? (
+              <Button variant="destructive" disabled={busy || deduct === null} onClick={() => void send("deduct", deduct!)}>{t("dawam.deduct", "Deduct")}</Button>
+            ) : null}
           </div>
         ) : null}
         <DialogFooter className="gap-2">
@@ -229,7 +242,8 @@ function flagHint(f: AttendanceFlag): string {
     case "left_mid_shift": return `Two pings in a row were outside the branch, ${f.minutes_away} minutes in all.`;
     case "suspicious": return "The location didn't move the way a real phone does, or the phone reported a fake location.";
     case "tracking_off": return "They clocked in without \"Always\" location, so there are no pings for this shift.";
-    case "time_unverified": return "The phone restarted while offline, so this punch's time couldn't be checked.";
+    case "time_unverified": return "This punch was queued offline and its time rests on the phone's word (it restarted, or the time the server gave it can't be proven), so it couldn't be checked.";
+    case "phone_died": return "The pings stopped with the battery low: the phone likely died on shift.";
     case "new_phone": return "They signed in on a new phone; the old one is already signed out.";
     default: return "A colleague covered this shift. Confirm it to pay them for it.";
   }

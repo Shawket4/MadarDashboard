@@ -4325,8 +4325,7 @@
     "requestFiled": "Request filed",
     "requests": "Requests",
     "requestsSubtitle": "Approving a request waives the penalty for that day at its source — there is nothing to correct afterwards.",
-    "requireGeofence": "Require location to clock in",
-    "requireGeofenceHint": "Punches outside the branch's radius are refused.",
+    "fenceAlwaysOn": "Clocking in from the app always checks the phone is inside the branch's radius.",
     "restDay": "Rest",
     "roster": "Roster",
     "rosterHint": "A weekday with no row is a rest day. A weekday-specific row beats the every-day one.",
@@ -4418,7 +4417,17 @@
     "noEmployeesHint2": "Add someone who signs in to the staff app, someone on the records only, or make an existing Madar user an employee.",
     "kind_linked": "Madar user",
     "kind_app": "Staff app",
-    "kind_manual": "Records only"
+    "kind_manual": "Records only",
+    "method_manager": "by a manager",
+    "method_manual": "entered by hand",
+    "method_till": "till PIN",
+    "method_correction": "corrected",
+    "method_offline": "queued offline",
+    "method_cover": "cover",
+    "method_kiosk": "kiosk",
+    "method_auto": "auto-closed",
+    "inMethodColumn": "In by",
+    "outMethodColumn": "Out by"
   },
   "basira": {
     "title": "Basira",
@@ -5708,7 +5717,7 @@
     "flagHint_left_mid_shift": "Two pings in a row were outside the branch, {{m}} minutes in all.",
     "flagHint_new_phone": "They signed in on a new phone; the old one is already signed out.",
     "flagHint_suspicious": "The location didn't move the way a real phone does, or the phone reported a fake location.",
-    "flagHint_time_unverified": "The phone restarted while offline, so this punch's time couldn't be checked.",
+    "flagHint_time_unverified": "This punch was queued offline and its time rests on the phone's word (it restarted, or the time the server gave it can't be proven), so it couldn't be checked.",
     "flagHint_tracking_off": "They clocked in without \"Always\" location, so there are no pings for this shift.",
     "flag_cover": "Cover",
     "flag_left_mid_shift": "Left mid-shift",
@@ -6031,6 +6040,9 @@
     "branches": "Branches",
     "badPhone": "Not a phone number",
     "deviceSince": "Signed in on {{model}} since {{since}}",
-    "noDevice": "No phone signed in."
+    "noDevice": "No phone signed in.",
+    "flag_phone_died": "Phone likely died",
+    "flagHint_phone_died": "The pings stopped with the battery low: the phone likely died on shift.",
+    "deductNeedsRight": "Deducting for it needs the right to add deductions. The owner can give it to you."
   }
 }

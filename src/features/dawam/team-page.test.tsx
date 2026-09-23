@@ -61,6 +61,7 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "f1", employee_id: "e4", employee_name: "Youssef Adel", kind: "left_mid_shift", minutes_away: 35, detected_at: "2026-09-22T14:10:00Z", resolution: null, suggested_deduction_piastres: 5_500 },
     { id: "f2", employee_id: "e5", employee_name: "Laila Hassan", kind: "new_phone", minutes_away: 0, detected_at: "2026-09-22T07:00:00Z", resolution: null, suggested_deduction_piastres: 0 },
     { id: "f3", employee_id: "e1", employee_name: "Sara Ahmed", kind: "suspicious", minutes_away: 0, detected_at: "2026-09-21T07:00:00Z", resolution: "ignored", suggested_deduction_piastres: 0 },
+    { id: "f4", employee_id: "e6", employee_name: "Omar Nabil", kind: "phone_died", minutes_away: 0, detected_at: "2026-09-22T12:00:00Z", resolution: null, suggested_deduction_piastres: 0 },
   ]),
   resolveFlag: (...a: unknown[]) => resolveFlag(...(a as [])),
   punchFor: (...a: unknown[]) => punchFor(...(a as [])),
@@ -76,7 +77,7 @@ beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   resolveFlag.mockClear();
   punchFor.mockClear();
-  held = ["hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others"];
+  held = ["hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others", "hr.deductions.create"];
 });
 
 describe("TeamPage", () => {
@@ -92,6 +93,26 @@ describe("TeamPage", () => {
     expect(screen.getByText("Youssef Adel · Left mid-shift")).toBeInTheDocument();
     expect(screen.getByText("Laila Hassan · New phone")).toBeInTheDocument();
     expect(screen.queryByText(/Location looks spoofed/)).not.toBeInTheDocument();
+  });
+
+  it("names a phone that died on shift as that, not as a spoofed location", async () => {
+    const user = userEvent.setup();
+    wrap(<TeamPage />);
+    await user.click(screen.getByText("Omar Nabil · Phone likely died"));
+    expect(within(await screen.findByRole("dialog")).getByText(/battery low/)).toBeInTheDocument();
+  });
+
+  it("offers money for a flag only to someone who may add deductions (AT-11)", async () => {
+    held = ["hr.attendance.read", "hr.attendance.edit"];
+    const user = userEvent.setup();
+    wrap(<TeamPage />);
+    await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).queryByRole("button", { name: "Deduct" })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: "Excuse, unpaid" })).not.toBeInTheDocument();
+    expect(within(dialog).getByText(/needs the right to add deductions/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Excuse, paid" }));
+    await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f1", { action: "excuse_paid", amount_piastres: null }));
   });
 
   it("deducts the amount the manager types, suggested from the server (CL-7)", async () => {

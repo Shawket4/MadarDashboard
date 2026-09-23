@@ -94,6 +94,16 @@ describe("Dawam rules", () => {
     expect(body).not.toHaveProperty("gender_mode");
   });
 
+  it("offer no switch that turns the branch fence off: every app punch is fenced (CL-2)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    expect(screen.queryByText("Require location to clock in")).not.toBeInTheDocument();
+    expect(screen.getByText(/always checks the phone is inside the branch's radius/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await waitFor(() => expect(put).toHaveBeenCalled());
+    expect((put.mock.calls[0] as unknown[])[0]).not.toHaveProperty("require_geofence");
+  });
+
   it("let only the owner's capability change the gender mode (SC-12)", async () => {
     const user = userEvent.setup();
     renderPage();

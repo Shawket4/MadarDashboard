@@ -52,7 +52,6 @@ export function AttendanceRulesPage() {
   const [otMultiplier, setOtMultiplier] = useState("1.5");
   const [workingDays, setWorkingDays] = useState("30");
   const [autoBuffer, setAutoBuffer] = useState("120");
-  const [requireGeofence, setRequireGeofence] = useState(true);
   const [excusedPaid, setExcusedPaid] = useState(true);
   const [dawam, setDawam] = useState<DawamRules>(DEFAULT_RULES);
 
@@ -64,7 +63,6 @@ export function AttendanceRulesPage() {
     setOtMultiplier(String(s.default_overtime_multiplier ?? 1.5));
     setWorkingDays(String(s.working_days_per_month ?? 30));
     setAutoBuffer(String(s.auto_checkout_buffer_minutes ?? 120));
-    setRequireGeofence(s.require_geofence ?? true);
     setExcusedPaid(s.excused_time_paid_default ?? true);
     setDawam(rulesFrom(s));
   }, [query.data]);
@@ -119,7 +117,6 @@ export function AttendanceRulesPage() {
         default_overtime_multiplier: Number(otMultiplier),
         working_days_per_month: Number(workingDays),
         auto_checkout_buffer_minutes: Number(autoBuffer),
-        require_geofence: requireGeofence,
         excused_time_paid_default: excusedPaid,
       });
       toast.success(t("staff.rulesSaved", "Rules saved"));
@@ -313,15 +310,11 @@ export function AttendanceRulesPage() {
             <CardTitle className="text-base">{t("staff.policies", "Policies")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <Label htmlFor="ar-geo">{t("staff.requireGeofence", "Require location to clock in")}</Label>
-                <p className="text-xs text-muted-foreground">
-                  {t("staff.requireGeofenceHint", "Punches outside the branch's radius are refused.")}
-                </p>
-              </div>
-              <Switch id="ar-geo" checked={requireGeofence} onCheckedChange={setRequireGeofence} />
-            </div>
+            {/* Every app punch is checked against the branch's fence (spec
+                CL-2): there is no switch to turn that off, so none is shown. */}
+            <p className="text-xs text-muted-foreground">
+              {t("staff.fenceAlwaysOn", "Clocking in from the app always checks the phone is inside the branch's radius.")}
+            </p>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <Label htmlFor="ar-excused">{t("staff.excusedPaid", "Approved permissions are paid")}</Label>

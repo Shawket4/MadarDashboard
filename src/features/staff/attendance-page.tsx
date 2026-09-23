@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AlarmClock, CalendarCheck, CalendarClock, CalendarX, MapPin, PencilLine, Plus, Timer } from "lucide-react";
 import { toast } from "sonner";
@@ -98,6 +99,8 @@ export function AttendancePage() {
         },
         { header: t("staff.checkOut", "Out"), accessor: (r) => r.check_out_at ?? null, type: "dateTime", width: 22 },
         { header: t("staff.autoClosedColumn", "Auto-closed"), accessor: (r) => r.check_out_method === "auto", type: "bool", width: 14 },
+        { header: t("staff.inMethodColumn", "In by"), accessor: (r) => methodText(t, r.check_in_method), type: "text", width: 16 },
+        { header: t("staff.outMethodColumn", "Out by"), accessor: (r) => methodText(t, r.check_out_method), type: "text", width: 16 },
         { header: t("staff.workedMinutes", "Worked (minutes)"), accessor: (r) => r.worked_minutes, type: "integer", width: 16, total: true },
         { header: t("staff.lateMinutes", "Late (minutes)"), accessor: (r) => r.late_minutes, type: "integer", width: 16, total: true },
         { header: t("staff.overtimeMinutes", "Overtime (minutes)"), accessor: (r) => r.overtime_minutes, type: "integer", width: 18, total: true },
@@ -161,6 +164,7 @@ export function AttendancePage() {
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
             <span>{row.original.check_in_at ? fmtDateTime(row.original.check_in_at) : "—"}</span>
+            <MethodBadge method={row.original.check_in_method} />
             {row.original.check_in_distance_meters !== null
               && row.original.check_in_distance_meters !== undefined ? (
               <span
@@ -185,7 +189,9 @@ export function AttendancePage() {
               <Badge variant="secondary" className="font-sans text-xs">
                 {t("staff.autoClosed", "auto")}
               </Badge>
-            ) : null}
+            ) : (
+              <MethodBadge method={row.original.check_out_method} />
+            )}
           </div>
         ),
       },
@@ -562,5 +568,37 @@ function CorrectRecordDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * How a punch was made (CL-16), for every way but the phone's own: a
+ * manager's punch, the till PIN, a correction, a punch queued offline, a
+ * cover. `mobile_gps` (the app, live) is the normal case and says nothing.
+ */
+const METHOD_LABEL: Record<string, [string, string]> = {
+  manager: ["staff.method_manager", "by a manager"],
+  manual: ["staff.method_manual", "entered by hand"],
+  till: ["staff.method_till", "till PIN"],
+  correction: ["staff.method_correction", "corrected"],
+  offline: ["staff.method_offline", "queued offline"],
+  cover: ["staff.method_cover", "cover"],
+  kiosk: ["staff.method_kiosk", "kiosk"],
+  auto: ["staff.method_auto", "auto-closed"],
+};
+
+function methodText(t: TFunction, method?: string | null): string {
+  const m = method ? METHOD_LABEL[method] : undefined;
+  return m ? t(m[0], m[1]) : "";
+}
+
+function MethodBadge({ method }: { method?: string | null }) {
+  const { t } = useTranslation();
+  const text = methodText(t, method);
+  if (!text) return null;
+  return (
+    <Badge variant="outline" className="font-sans text-xs">
+      {text}
+    </Badge>
   );
 }
