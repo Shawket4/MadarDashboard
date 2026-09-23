@@ -1,5 +1,7 @@
 import { useGetOrg, useGetOrgModules } from "@/data/api/generated/api";
 import type { Org } from "@/data/api/generated/models";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 
 /** Every module: what a platform user with no org pinned sees. */
@@ -12,7 +14,9 @@ export const ALL_MODULES: readonly string[] = ["pos", "dawam"];
  */
 export function useCurrentOrg(): Org | undefined {
   const orgId = useOrgId();
-  return useGetOrg(orgId ?? "", { query: { enabled: !!orgId } }).data;
+  // Only someone who may read it asks: a manager's page must not 403.
+  const canRead = useAuthz().can(Cap.orgSettingsRead);
+  return useGetOrg(orgId ?? "", { query: { enabled: !!orgId && canRead } }).data;
 }
 
 /**
