@@ -4,6 +4,7 @@
  * way the staff app's core does (`madar-core/src/dawam.rs::slip_of`).
  */
 import type { ComputedPayslip, Payslip } from "@/data/api/generated/models";
+import { fmtMoney } from "@/lib/format";
 
 export interface PayLine {
   key: string;
@@ -102,8 +103,9 @@ export function payslipLines(p: ComputedPayslip | Payslip): PayLine[] {
     out.push({
       key: "capped",
       labelKey: "dawam.lineCapped",
-      label: `Capped at what was earned (${capped / 100} carries)`,
-      vars: { amount: capped },
+      label: `Capped at what was earned (${fmtMoney(capped)} carries)`,
+      // Formatted money in the words, never raw piastres.
+      vars: { amount: fmtMoney(capped) },
       amount: capped,
       rule: false,
     });

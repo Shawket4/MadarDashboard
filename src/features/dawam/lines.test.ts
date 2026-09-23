@@ -94,7 +94,11 @@ describe("payslipLines", () => {
         },
       }),
     );
-    expect(lines.find((l) => l.key === "capped")).toMatchObject({ amount: 100_000, labelKey: "dawam.lineCapped" });
+    const capped = lines.find((l) => l.key === "capped")!;
+    expect(capped).toMatchObject({ amount: 100_000, labelKey: "dawam.lineCapped" });
+    // E2E: "Capped at what was earned (152139 carries)" — raw piastres in the words.
+    expect(String(capped.vars?.amount)).toMatch(/1,000\.00/);
+    expect(capped.label).toMatch(/1,000\.00/);
     expect(linesTotal(lines)).toBe(0);
   });
 });
