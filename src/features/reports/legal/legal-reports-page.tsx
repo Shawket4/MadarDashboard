@@ -15,6 +15,7 @@ import {
   useRefundsAudit, useVoidsAudit, useWaiversAudit,
 } from "@/data/api/generated/api";
 import { useOrgId } from "@/hooks/use-org-id";
+import { useOrgModules } from "@/hooks/use-org-modules";
 import { AuditTab } from "./audit-tab";
 import { TaxTab } from "./tax-report-page";
 
@@ -44,6 +45,26 @@ const EXTRA_CAP: Partial<Record<TabKey, Capability>> = {
   attendance_corrections: Cap.hrAttendanceRead,
 };
 
+/** The module each tab reports on (PS-3): a Dawam-only business sees only
+ *  the pay and attendance corrections, a POS-only one only the till's. */
+const TAB_MODULE: Record<TabKey, "pos" | "dawam"> = {
+  tax: "pos",
+  refunds: "pos",
+  voids: "pos",
+  discounts: "pos",
+  waivers: "pos",
+  price_overrides: "pos",
+  manual_deductions: "dawam",
+  deduction_overrides: "dawam",
+  loyalty_adjustments: "pos",
+  attendance_corrections: "dawam",
+};
+
+/** The tabs this person sees, in order. Pure, so it is tested directly. */
+export function legalTabs(can: (c: Capability) => boolean, modules: readonly string[]): TabKey[] {
+  return TABS.filter((k) => modules.includes(TAB_MODULE[k]) && (!EXTRA_CAP[k] || can(EXTRA_CAP[k])));
+}
+
 /** Legal / compliance reports: the VAT summary plus an audit trail of every
  * kind of money or record a human corrected after the fact — refunds,
  * voids, discounts, service-charge waivers, price overrides, manual payroll
@@ -61,9 +82,10 @@ export function LegalReportsPage() {
   const [picked, setTab] = useState<TabKey>("tax");
   // reports.legal (tax and every audit); a manager sees only their branches.
   const authz = useAuthz();
+  const modules = useOrgModules();
   const canSee = authz.can(Cap.reportsLegal);
-  const visible = TABS.filter((k) => !EXTRA_CAP[k] || authz.can(EXTRA_CAP[k]));
-  const tab = visible.includes(picked) ? picked : "tax";
+  const visible = legalTabs(authz.can, modules);
+  const tab: TabKey | undefined = visible.includes(picked) ? picked : visible[0];
   const enabled = !!orgId && canSee;
   const on = (k: TabKey) => enabled && tab === k && visible.includes(k);
 
@@ -120,7 +142,8 @@ export function LegalReportsPage() {
         }
       />
 
-      {tab === "tax" ? <TaxTab range={range} />
+      {!tab ? null
+        : tab === "tax" ? <TaxTab range={range} />
         : tab === "refunds" ? <AuditTab query={refunds} reasonLabel={byReason} exportTitle={TAB_LABEL.refunds} />
         : tab === "voids" ? <AuditTab query={voids} reasonLabel={byReason} exportTitle={TAB_LABEL.voids} />
         : tab === "discounts" ? <AuditTab query={discounts} reasonLabel={byDiscount} exportTitle={TAB_LABEL.discounts} />

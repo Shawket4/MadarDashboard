@@ -25,12 +25,20 @@ export function useCurrentOrg(): Org | undefined {
  * nothing module-tagged is shown or routed to on a guess, so a Dawam-only
  * org's manager never glimpses a POS page.
  */
-export function useOrgModulesState(): { modules: readonly string[]; known: boolean } {
+export interface OrgModulesState {
+  modules: readonly string[];
+  known: boolean;
+  /** The server could not be asked (never "all modules" on an error). */
+  error?: unknown;
+  retry?: () => void;
+}
+
+export function useOrgModulesState(): OrgModulesState {
   const orgId = useOrgId();
   const q = useGetOrgModules(orgId ?? "", { query: { enabled: !!orgId, staleTime: 60_000 } });
   if (!orgId) return { modules: ALL_MODULES, known: true };
   if (q.data) return { modules: q.data.modules, known: true };
-  return { modules: [], known: false };
+  return { modules: [], known: false, error: q.error ?? undefined, retry: () => void q.refetch() };
 }
 
 /** The switched-on modules; empty until the server has answered. */

@@ -148,3 +148,105 @@ describe("arabic locale coverage", () => {
     expect(wrong, `Arabic plural forms are wrong here:\n  ${wrong.join("\n  ")}`).toEqual([]);
   });
 });
+
+// ── AT-13: a key used in code must exist in BOTH locales ──────────────────
+//
+// The test above only asks about calls that carry `{ defaultValue }`. A
+// `t("key", "English")` whose key is in neither file renders the English
+// fallback in Arabic and passes everything (the Attendance export headers
+// did exactly that). Here every literal key used in the Dawam pages and the
+// shell they sit in must be in en.json AND ar.json; the rest of the app is
+// held to a ratchet so the count of gaps can only fall.
+
+function flatKeys(tree: Record<string, unknown>, prefix = "", out = new Set<string>()): Set<string> {
+  for (const [k, v] of Object.entries(tree)) {
+    if (v && typeof v === "object") flatKeys(v as Record<string, unknown>, `${prefix}${k}.`, out);
+    else out.add(`${prefix}${k}`);
+  }
+  return out;
+}
+
+const EN_KEYS = flatKeys(en as Record<string, unknown>);
+const AR_KEYS = flatKeys(ar as Record<string, unknown>);
+const inLocale = (keys: Set<string>, key: string) =>
+  keys.has(key) || ["one", "other", "zero"].some((s) => keys.has(`${key}_${s}`));
+
+/** Dawam's pages and the shell every page sits in: no gaps allowed. */
+const STRICT = [
+  "features/dawam/",
+  "features/staff/",
+  "features/settings/",
+  "features/reports/legal/",
+  "components/app/",
+  "components/layout/",
+  "config/",
+  "hooks/",
+  "routes/_app/staff",
+];
+
+/** Gaps elsewhere in the app when this gate landed (POS pages, landing). */
+const RATCHET = 111;
+
+function literalKeys(src: string): string[] {
+  const keys: string[] = [];
+  const re = /\bt\(\s*["']([\w.-]+)["']|\b(?:labelKey|descKey|i18nKey)[=:]\s*["']([\w.-]+)["']/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) {
+    const key = m[1] ?? m[2];
+    if (key.includes(".")) keys.push(key);
+  }
+  return keys;
+}
+
+describe("every key used in code is in English and Arabic (AT-13)", () => {
+  const files = sourceFiles(SRC).map((f) => ({ file: f.slice(SRC.length + 1), src: readFileSync(f, "utf8") }));
+  const strict = (file: string) => STRICT.some((p) => file.startsWith(p));
+
+  const gaps = (only: (file: string) => boolean) =>
+    files.filter(({ file }) => only(file)).flatMap(({ file, src }) =>
+      literalKeys(src).flatMap((key) => [
+        ...(inLocale(EN_KEYS, key) ? [] : [`${key} — no en · ${file}`]),
+        ...(inLocale(AR_KEYS, key) ? [] : [`${key} — no ar · ${file}`]),
+      ]),
+    );
+
+  it("the scanner reads the Dawam pages", () => {
+    const dawam = files.filter(({ file }) => file.startsWith("features/dawam/"));
+    expect(dawam.length).toBeGreaterThan(10);
+    expect(dawam.flatMap(({ src }) => literalKeys(src)).length).toBeGreaterThan(300);
+  });
+
+  it("the Dawam pages and the shell have no missing key", () => {
+    const missing = [...new Set(gaps(strict))];
+    expect(missing, `add these to en.json and ar.json:\n  ${missing.join("\n  ")}`).toEqual([]);
+  });
+
+  it("the rest of the app has no more gaps than before (ratchet)", () => {
+    const missing = gaps((f) => !strict(f));
+    expect(missing.length, `new gaps:\n  ${missing.join("\n  ")}`).toBeLessThanOrEqual(RATCHET);
+  });
+
+  it("a key built at run time (`dawam.pay_${m}`) has its family in both files", () => {
+    const missing: string[] = [];
+    for (const { file, src } of files.filter(({ file }) => strict(file))) {
+      for (const m of src.matchAll(/\bt\(\s*`([\w.-]+)\$\{/g)) {
+        const prefix = m[1];
+        const has = (keys: Set<string>) => [...keys].some((k) => k.startsWith(prefix));
+        if (!has(EN_KEYS) || !has(AR_KEYS)) missing.push(`${prefix}… · ${file}`);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it("one Dawam key means one sentence (no key reused with two different defaults)", () => {
+    const defaults = new Map<string, Set<string>>();
+    for (const { file, src } of files.filter(({ file }) => strict(file))) {
+      for (const m of src.matchAll(/\bt\(\s*"((?:dawam|staff)\.[\w.-]+)"\s*,\s*"((?:[^"\\]|\\.)*)"/g)) {
+        (defaults.get(m[1]) ?? defaults.set(m[1], new Set()).get(m[1])!).add(m[2]);
+        void file;
+      }
+    }
+    const reused = [...defaults].filter(([, d]) => d.size > 1).map(([k, d]) => `${k}: ${[...d].join(" | ")}`);
+    expect(reused, reused.join("\n")).toEqual([]);
+  });
+});

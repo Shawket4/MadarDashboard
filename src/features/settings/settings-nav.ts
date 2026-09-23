@@ -25,6 +25,7 @@ import {
   Truck,
   Utensils,
 } from "lucide-react";
+import type { OrgModule } from "@/config/nav";
 import type { Authz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
 
@@ -38,6 +39,8 @@ export interface SettingsLeaf {
   /** Visible when ANY is held. Omitted = everyone. Never a role. */
   caps?: Capability[];
   superAdminOnly?: boolean;
+  /** The org module this pane configures (PS-3). Omitted = every org. */
+  module?: OrgModule;
 }
 
 export interface SettingsGroup {
@@ -63,6 +66,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         // A manager owns their own mark and their own links; everything else
         // about an organisation stays super-admin territory.
         to: "/settings/brand",
+        module: "pos",
         labelKey: "settings.brand",
         fallback: "Brand",
         descKey: "settings.brandDesc",
@@ -77,6 +81,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
     items: [
       {
         to: "/settings/delivery",
+        module: "pos",
         caps: [Cap.deliverySettingsRead],
         labelKey: "nav.delivery",
         fallback: "Delivery",
@@ -86,6 +91,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       },
       {
         to: "/settings/bookings",
+        module: "pos",
         caps: [Cap.bookingsEdit],
         labelKey: "nav.bookings",
         fallback: "Bookings",
@@ -95,6 +101,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       },
       {
         to: "/settings/loyalty",
+        module: "pos",
         caps: [Cap.loyaltyUse, Cap.loyaltyMembersList],
         labelKey: "nav.loyalty",
         fallback: "Loyalty",
@@ -104,6 +111,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       },
       {
         to: "/settings/qr",
+        module: "pos",
         labelKey: "nav.qr",
         fallback: "QR codes",
         descKey: "settings.qrDesc",
@@ -118,6 +126,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
     items: [
       {
         to: "/settings/payment-methods",
+        module: "pos",
         labelKey: "nav.paymentMethods",
         fallback: "Payment methods",
         descKey: "settings.paymentMethodsDesc",
@@ -129,6 +138,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         // Money given away rather than taken, which is why it sits here: a
         // staff drink is stock off the shelf with no sale against it.
         to: "/settings/staff-pool",
+        module: "pos",
         labelKey: "nav.staffPool",
         fallback: "Staff drinks",
         descKey: "settings.staffPoolDesc",
@@ -144,6 +154,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
     items: [
       {
         to: "/settings/kitchen-stations",
+        module: "pos",
         caps: [Cap.kitchenStationsEdit],
         labelKey: "nav.kitchenStations",
         fallback: "Stations",
@@ -153,6 +164,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       },
       {
         to: "/settings/kitchen-routing",
+        module: "pos",
         caps: [Cap.kitchenStationsEdit],
         labelKey: "nav.kitchenRouting",
         fallback: "Order routing",
@@ -168,6 +180,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
     items: [
       {
         to: "/settings/integrations",
+        module: "pos",
         labelKey: "nav.integrations",
         fallback: "Integrations",
         descKey: "settings.integrationsDesc",
@@ -188,11 +201,16 @@ export const SETTINGS_NAV: SettingsGroup[] = [
   },
 ];
 
-/** The entries this person may see. */
-export const visibleSettings = (authz: Authz): SettingsGroup[] =>
+/**
+ * The entries this person may see, in an org with these modules on. A pane
+ * of a switched-off module is gone (a Dawam-only org has no delivery, till
+ * or kitchen to configure); until the modules are known, none shows.
+ */
+export const visibleSettings = (authz: Authz, modules: readonly string[]): SettingsGroup[] =>
   SETTINGS_NAV.map((g) => ({
     ...g,
     items: g.items.filter((i) => {
+      if (i.module && !modules.includes(i.module)) return false;
       if (i.superAdminOnly) return authz.platform;
       if (i.caps) return authz.canAny(...i.caps);
       return true;

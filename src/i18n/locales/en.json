@@ -113,7 +113,11 @@
     "errors": {
       "phoneRequired": "Enter a phone number.",
       "phoneInvalid": "Enter a valid phone number."
-    }
+    },
+    "restrictedTitle": "Not available on this account",
+    "restrictedBody": "This is managed by Madar. Get in touch if you need a change here.",
+    "searchTimezone": "Search timezones…",
+    "selectTimezone": "Select timezone…"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -4418,7 +4422,12 @@
     "noEmployeesHint2": "Add someone who signs in to the staff app, someone on the records only, or make an existing Madar user an employee.",
     "kind_linked": "Madar user",
     "kind_app": "Staff app",
-    "kind_manual": "Records only"
+    "kind_manual": "Records only",
+    "checkInDistance": "In distance (m)",
+    "autoClosedColumn": "Auto-closed",
+    "workedMinutes": "Worked (minutes)",
+    "lateMinutes": "Late (minutes)",
+    "overtimeMinutes": "Overtime (minutes)"
   },
   "basira": {
     "title": "Basira",
@@ -5719,14 +5728,11 @@
     "flags": "Flags",
     "frozenHint": "Frozen when payroll was approved.",
     "gender": "Gender",
-    "genderF": "Female",
     "genderHard": "A rule",
     "genderHint": "How much the gender default weighs when the schedule suggests people. Only the owner can change it.",
-    "genderM": "Male",
     "genderOff": "Ignore it",
     "genderSoft": "A preference",
     "genderTitle": "Gender in suggestions",
-    "genderUnset": "Not set",
     "gender_f": "Female",
     "gender_m": "Male",
     "halfDayLeave": "Half-day leave counts as",
@@ -5783,7 +5789,7 @@
     "markPaidTitle": "Mark {{name}} paid",
     "markedPaid": "Marked paid",
     "minutesAway": "{{m}} min away",
-    "moduleDawam": "Dawam (staff)",
+    "moduleDawam": "Dawam by Madar",
     "modulePos": "Madar POS",
     "modules": "Modules",
     "modulesAtLeastOne": "Pick at least one module",
@@ -6007,7 +6013,7 @@
     "wholeDay": "The whole day",
     "willing": "Prefer evenings",
     "moduleOffTitle": "Not part of this business's plan",
-    "moduleDawamOff": "Dawam (staff) is switched off for this business. Ask Madar to switch it on.",
+    "moduleDawamOff": "Dawam by Madar is switched off for this business. Ask Madar to switch it on.",
     "modulePosOff": "Madar POS is switched off for this business. Ask Madar to switch it on.",
     "pickBranchError": "Pick at least one branch",
     "badSalary": "Not an amount",
@@ -6031,6 +6037,8 @@
     "branches": "Branches",
     "badPhone": "Not a phone number",
     "deviceSince": "Signed in on {{model}} since {{since}}",
-    "noDevice": "No phone signed in."
+    "noDevice": "No phone signed in.",
+    "genderSuggestHint": "Suggestions lean late and night shifts to men by default; a person's own preferences win.",
+    "modulesLoadError": "Couldn't check what this business has switched on"
   }
 }

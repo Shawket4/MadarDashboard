@@ -251,6 +251,8 @@ const EXTRA_MODULE_ROUTES: Array<[string, OrgModule]> = [
   ["/shifts", "pos"],
   ["/reports/sales", "pos"],
   ["/settings/bookings", "pos"],
+  ["/settings/brand", "pos"],
+  ["/settings/integrations", "pos"],
   ["/settings/delivery", "pos"],
   ["/settings/delivery-zones", "pos"],
   ["/settings/kitchen-routing", "pos"],

@@ -385,12 +385,12 @@ export function EmployeeDialog({
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value={NONE}>{t("dawam.genderUnset", "Not set")}</SelectItem>
-                      <SelectItem value="f">{t("dawam.genderF", "Female")}</SelectItem>
-                      <SelectItem value="m">{t("dawam.genderM", "Male")}</SelectItem>
+                      <SelectItem value={NONE}>{t("dawam.notSet", "Not set")}</SelectItem>
+                      <SelectItem value="f">{t("dawam.gender_f", "Female")}</SelectItem>
+                      <SelectItem value="m">{t("dawam.gender_m", "Male")}</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>{t("dawam.genderHint", "Suggestions lean late and night shifts to men by default; a person's own preferences win.")}</FormDescription>
+                  <FormDescription>{t("dawam.genderSuggestHint", "Suggestions lean late and night shifts to men by default; a person's own preferences win.")}</FormDescription>
                 </FormItem>
               )}
             />

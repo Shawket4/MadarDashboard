@@ -222,7 +222,7 @@ export function ProvisionWizard({ open, onOpenChange }: Props) {
                             checked={field.value.includes(m)}
                             onCheckedChange={(on) => field.onChange(on ? [...field.value, m] : field.value.filter((x) => x !== m))}
                           />
-                          {m === "pos" ? t("dawam.modulePos", "Madar POS") : t("dawam.moduleDawam", "Dawam (staff)")}
+                          {m === "pos" ? t("dawam.modulePos", "Madar POS") : t("dawam.moduleDawam", "Dawam by Madar")}
                         </label>
                       ))}
                     </div>
