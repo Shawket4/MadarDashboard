@@ -1,4 +1,11 @@
 import { http, HttpResponse, passthrough } from "msw";
+import {
+  MOCK_STAFF_POOL_SETTINGS,
+  mockStaffDrinks,
+  mockStaffDrinksSummary,
+  mockStaffOrder,
+  mockStaffPoolToday,
+} from "./staff-pool";
 import { defaultsFor } from "@/data/authz/use-authz";
 
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
@@ -547,6 +554,30 @@ export const handlers = [
 
   // ── Orders ────────────────────────────────────────────────────────────────
   http.get("*/orders", () => HttpResponse.json(MOCK_ORDERS_PAGE)),
+  // One order, for the sheet. Only the sales behind the seeded staff drinks
+  // exist in full; anything else falls through as it did before this handler.
+  http.get("*/orders/:id", ({ params }) => {
+    const found = mockStaffOrder(params.id as string);
+    return found ? HttpResponse.json(found) : undefined;
+  }),
+
+  // ── Staff drinks pool ─────────────────────────────────────────────────────
+  // `drinks/summary` before `drinks`: same query, and the strip must describe
+  // exactly the rows listed under it.
+  http.get("*/staff-pool/settings", () => HttpResponse.json(MOCK_STAFF_POOL_SETTINGS)),
+  http.put("*/staff-pool/settings", echoCreated),
+  http.get("*/staff-pool/today", ({ request }) => {
+    const q = new URL(request.url).searchParams;
+    return HttpResponse.json(mockStaffPoolToday(q.get("branch_id"), q.get("business_date")));
+  }),
+  http.get("*/staff-pool/drinks/summary", ({ request }) => {
+    const q = new URL(request.url).searchParams;
+    return HttpResponse.json(mockStaffDrinksSummary(q.get("to"), q.get("overspent_only") === "true"));
+  }),
+  http.get("*/staff-pool/drinks", ({ request }) => {
+    const q = new URL(request.url).searchParams;
+    return HttpResponse.json(mockStaffDrinks(q.get("to"), q.get("overspent_only") === "true"));
+  }),
 
   // ── Floor plan ────────────────────────────────────────────────────────────
   // A real, mutable room. The floor editor is direct manipulation, so it can

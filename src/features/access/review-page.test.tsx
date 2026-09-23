@@ -129,3 +129,51 @@ describe("ReviewPage bulk select", () => {
     await i18n.changeLanguage("en");
   });
 });
+
+describe("ReviewPage — staff drink replay flags", () => {
+  const CAP = "orders.staff_drink.record";
+  const DETAILS = [
+    "comp_mismatch",
+    "overspent",
+    "device_overcounted",
+    "duplicate_id",
+    "pool_off",
+    "no_eligible_items",
+    "item_not_eligible",
+    "note_required",
+  ];
+
+  it("says what happened in words, never as a raw capability:detail key", () => {
+    rows = DETAILS.map((d, i) => flag(i + 1, { capability: `${CAP}:${d}` }));
+    const { container } = renderPage();
+    expect(screen.getByText("Staff drink: the till gave a different amount free than the server priced")).toBeInTheDocument();
+    expect(screen.getByText("Staff drink: the same drink was already rung on another order")).toBeInTheDocument();
+    expect(screen.getAllByText("Record a staff drink")).toHaveLength(DETAILS.length);
+    // No key leaks, no untranslated i18n path, and the fixed reason — which
+    // would read "without the permission" — is not what these rows say.
+    expect(container.textContent).not.toContain(CAP);
+    expect(container.textContent).not.toContain("access.review.details");
+    expect(screen.queryByText("Done offline without the permission")).not.toBeInTheDocument();
+  });
+
+  it("leaves the plain permission flag, and any detail it has no words for, as they were", () => {
+    rows = [flag(1, { capability: CAP }), flag(2, { capability: "orders.discount.preset:inactive" })];
+    renderPage();
+    expect(screen.getAllByText("Done offline without the permission")).toHaveLength(2);
+    expect(screen.getByText(CAP)).toBeInTheDocument();
+    expect(screen.getByText("orders.discount.preset:inactive")).toBeInTheDocument();
+  });
+
+  it("has Arabic for every detail", async () => {
+    await i18n.changeLanguage("ar");
+    try {
+      rows = DETAILS.map((d, i) => flag(i + 1, { capability: `${CAP}:${d}` }));
+      const { container } = renderPage();
+      expect(screen.getByText("مشروب موظفين: المبلغ المجاني الذي سجّله الكاشير يختلف عمّا حسبه الخادم")).toBeInTheDocument();
+      expect(screen.getAllByText("تسجيل مشروب موظفين")).toHaveLength(DETAILS.length);
+      expect(container.textContent).not.toMatch(/Staff drink|access\.review|orders\.staff_drink/);
+    } finally {
+      await i18n.changeLanguage("en");
+    }
+  });
+});

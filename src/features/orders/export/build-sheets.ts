@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import type { ExcelSheet } from "@/lib/excel";
 import type { OrderExport } from "@/data/api/generated/models";
 import { getTranslatedName } from "@/lib/translation";
+import { staffDrinkLine } from "../staff-drink-lines";
 import type { Grain } from "./types";
 import {
   deductionAggColumns,
@@ -53,6 +54,8 @@ export function buildSheets(orders: OrderExport[], grains: Grain[], t: TFunction
         quantity: it.quantity,
         unit_price: it.unit_price,
         line_total: it.line_total,
+        staff_comp: Math.max(0, it.staff_comp_minor ?? 0),
+        staff_charged: staffDrinkLine(it)?.charged ?? null,
         line_cost: it.line_cost ?? null,
         addons: (it.addons || [])
           .map(

@@ -160,7 +160,6 @@ import type {
   CreateFloorTransferRequest,
   CreateGroupRequest,
   CreateIngredientCategoryRequest,
-  CreateLinkedCopyRequest,
   CreateMarketingLinkRequest,
   CreateMenuItemRequest,
   CreateOpenTicketRequest,
@@ -298,7 +297,6 @@ import type {
   LegacyListTillEntitiesParams,
   LegacyTill,
   LiabilityTrend,
-  LinkedCopyResult,
   LintIssue,
   ListAddonCatalogParams,
   ListAddonCostsParams,
@@ -580,6 +578,7 @@ import type {
   StaffContext,
   StaffDocument,
   StaffDrink,
+  StaffDrinksSummary,
   StaffNotification,
   StaffOtpRequest,
   StaffOtpSent,
@@ -600,6 +599,7 @@ import type {
   SuggestedComponentsParams,
   Suggestion,
   SuggestionsParams,
+  SummarizeStaffDrinksParams,
   Supplier,
   SupplierSpendRow,
   Swap,
@@ -16906,66 +16906,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getDuplicateItemMutationOptions(options), queryClient);
     }
 
-export const createLinkedCopy = (
-    id: string,
-    createLinkedCopyRequest: CreateLinkedCopyRequest,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<LinkedCopyResult>(
-      {url: `/menu-items/${id}/linked-copy`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createLinkedCopyRequest, signal
-    },
-      options);
-    }
-
-
-
-
-export const getCreateLinkedCopyMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLinkedCopy>>, TError,{id: string;data: CreateLinkedCopyRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof createLinkedCopy>>, TError,{id: string;data: CreateLinkedCopyRequest}, TContext> => {
-
-const mutationKey = ['createLinkedCopy'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createLinkedCopy>>, {id: string;data: CreateLinkedCopyRequest}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  createLinkedCopy(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CreateLinkedCopyMutationResult = NonNullable<Awaited<ReturnType<typeof createLinkedCopy>>>
-    export type CreateLinkedCopyMutationBody = CreateLinkedCopyRequest
-    export type CreateLinkedCopyMutationError = ErrorBody
-
-    export const useCreateLinkedCopy = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLinkedCopy>>, TError,{id: string;data: CreateLinkedCopyRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createLinkedCopy>>,
-        TError,
-        {id: string;data: CreateLinkedCopyRequest},
-        TContext
-      > => {
-      return useMutation(getCreateLinkedCopyMutationOptions(options), queryClient);
-    }
-
 export const putModifierGroups = (
     id: string,
     putModifierGroupsRequest: PutModifierGroupsRequest,
@@ -32927,6 +32867,100 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getRecordStaffDrinkMutationOptions(options), queryClient);
     }
+
+/**
+ * @summary Totals for the same range and filter as `GET /staff-pool/drinks`.
+ */
+export const summarizeStaffDrinks = (
+    params: SummarizeStaffDrinksParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StaffDrinksSummary>(
+      {url: `/staff-pool/drinks/summary`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getSummarizeStaffDrinksQueryKey = (params?: SummarizeStaffDrinksParams,) => {
+    return [
+    `/staff-pool/drinks/summary`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSummarizeStaffDrinksQueryOptions = <TData = Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError = ErrorBody>(params: SummarizeStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSummarizeStaffDrinksQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof summarizeStaffDrinks>>> = ({ signal }) => summarizeStaffDrinks(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SummarizeStaffDrinksQueryResult = NonNullable<Awaited<ReturnType<typeof summarizeStaffDrinks>>>
+export type SummarizeStaffDrinksQueryError = ErrorBody
+
+
+export function useSummarizeStaffDrinks<TData = Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError = ErrorBody>(
+ params: SummarizeStaffDrinksParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof summarizeStaffDrinks>>,
+          TError,
+          Awaited<ReturnType<typeof summarizeStaffDrinks>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSummarizeStaffDrinks<TData = Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError = ErrorBody>(
+ params: SummarizeStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof summarizeStaffDrinks>>,
+          TError,
+          Awaited<ReturnType<typeof summarizeStaffDrinks>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSummarizeStaffDrinks<TData = Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError = ErrorBody>(
+ params: SummarizeStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Totals for the same range and filter as `GET /staff-pool/drinks`.
+ */
+
+export function useSummarizeStaffDrinks<TData = Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError = ErrorBody>(
+ params: SummarizeStaffDrinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof summarizeStaffDrinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSummarizeStaffDrinksQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getStaffPoolSettings = (
     params?: GetStaffPoolSettingsParams,

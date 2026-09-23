@@ -12,6 +12,17 @@
  * overspend when the till had not thought so — two devices disagreeing about
  * the day's count, usually an offline tablet catching up. Worth seeing when you
  * are looking at an overspend; not worth a column you would scan past all day.
+ *
+ * The money columns read the SERVER's verdict: what the pool gave free
+ * (`comp_minor`) and what the line was still charged (`extras_minor`). Two
+ * things about them must survive any redesign:
+ *
+ * - a drink rung by a till from before staff drinks were priced has NO figures.
+ *   That is "unknown", so it is a dash and a footnote — a 0 would claim the
+ *   branch gave nothing away, which is the one thing it certainly did not do;
+ * - when an offline till claimed a different comp than the server priced, the
+ *   row says both figures in a sentence, under the note where there is room
+ *   for one, and the figure itself carries the marker.
  */
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,9 +30,13 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/components/app/data-table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/app/empty-state";
+import { StatusPill } from "@/components/app/status-pill";
 import type { StaffDrink } from "@/data/api/generated/models";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
+
+import { staffDrinkMoney } from "./util";
 
 export function StaffDrinksTable({
   drinks,
@@ -30,14 +45,22 @@ export function StaffDrinksTable({
   onRetry,
   /** More than one business day is on screen, so each row says which. */
   showDate,
+  onOpenOrder,
 }: {
   drinks: StaffDrink[];
   loading?: boolean;
   error?: unknown;
   onRetry?: () => void;
   showDate?: boolean;
+  /** Opens the sale a drink was rung on. Omit it and no row offers the link. */
+  onOpenOrder?: (orderId: string) => void;
 }) {
   const { t } = useTranslation();
+  const unpricedHint = t(
+    "staffPool.unpricedHint",
+    "Rung before staff drinks were priced",
+  );
+  const anyUnpriced = drinks.some((d) => !staffDrinkMoney(d).priced);
 
   const columns = useMemo<ColumnDef<StaffDrink>[]>(
     () => [
@@ -51,7 +74,11 @@ export function StaffDrinksTable({
           // to the day the branch is still working through.
           return showDate ? `${fmtDate(d.business_date)} · ${time}` : time;
         },
-        meta: { label: t("staffPool.colTime", "Time"), numeric: true, align: "start" },
+        meta: {
+          label: t("staffPool.colTime", "Time"),
+          numeric: true,
+          align: "start",
+        },
       },
       {
         accessorKey: "item_name",
@@ -60,24 +87,102 @@ export function StaffDrinksTable({
           const d = row.original;
           // The size is part of the item's identity here: a large and a single
           // are different costs out of the same pool.
-          const label = d.size_label ? `${d.item_name} · ${d.size_label}` : d.item_name;
-          return d.quantity > 1 ? `${label} × ${d.quantity}` : label;
+          const label = d.size_label
+            ? `${d.item_name} · ${d.size_label}`
+            : d.item_name;
+          const text = d.quantity > 1 ? `${label} × ${d.quantity}` : label;
+          const orderId = d.order_id;
+          // A record-only drink has no sale behind it: nothing to open, and a
+          // dead link would be worse than none. The link rides under the item
+          // rather than in a column of its own — the row is already wide, and
+          // a column that is empty for every old till's drink earns no width.
+          if (!onOpenOrder || !orderId) return text;
+          return (
+            <div className="space-y-0.5">
+              <span className="block">{text}</span>
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0 text-xs font-normal text-muted-foreground"
+                onClick={() => onOpenOrder(orderId)}
+              >
+                {t("staffPool.viewOrder", "View order")}
+              </Button>
+            </div>
+          );
         },
         meta: { label: t("staffPool.colItem", "Item"), phone: "title" },
       },
       {
         accessorKey: "note",
         header: t("staffPool.colNote", "Note"),
-        cell: ({ row }) => (
-          <span className="whitespace-pre-wrap break-words">{row.original.note}</span>
-        ),
-        meta: { label: t("staffPool.colNote", "Note"), className: "min-w-56" },
+        cell: ({ row }) => {
+          const money = staffDrinkMoney(row.original);
+          return (
+            <div className="space-y-1">
+              <span
+                dir="auto"
+                className="block whitespace-pre-wrap break-words"
+              >
+                {row.original.note}
+              </span>
+              {money.priced && money.tillSaid != null ? (
+                <p
+                  data-testid="comp-mismatch"
+                  className="whitespace-normal text-xs text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]"
+                >
+                  {t("staffPool.compMismatch", {
+                    defaultValue:
+                      "The till reported {{reported}}; the server priced it at {{server}}.",
+                    reported: fmtMoney(money.tillSaid),
+                    server: fmtMoney(money.comp),
+                  })}
+                </p>
+              ) : null}
+            </div>
+          );
+        },
+        meta: { label: t("staffPool.colNote", "Note"), className: "min-w-56 max-w-96 whitespace-normal" },
+      },
+      {
+        accessorKey: "comp_minor",
+        header: t("staffPool.colComp", "Given free"),
+        cell: ({ row }) => {
+          const money = staffDrinkMoney(row.original);
+          if (!money.priced) return <Unpriced hint={unpricedHint} />;
+          return (
+            <span className="inline-flex flex-col items-end gap-1">
+              {fmtMoney(money.comp)}
+              {money.tillSaid != null ? (
+                <StatusPill tone="warning" size="sm" className="font-sans">
+                  {t("staffPool.compMismatchBadge", "Till differs")}
+                </StatusPill>
+              ) : null}
+            </span>
+          );
+        },
+        meta: { label: t("staffPool.colComp", "Given free"), numeric: true },
+      },
+      {
+        accessorKey: "extras_minor",
+        header: t("staffPool.colExtras", "Extras charged"),
+        cell: ({ row }) => {
+          const money = staffDrinkMoney(row.original);
+          if (!money.priced) return <Unpriced hint={unpricedHint} />;
+          return fmtMoney(money.extras);
+        },
+        meta: {
+          label: t("staffPool.colExtras", "Extras charged"),
+          numeric: true,
+        },
       },
       {
         accessorKey: "cost_minor",
         header: t("staffPool.colCost", "Cost"),
         cell: ({ row }) =>
-          row.original.cost_minor == null ? "—" : fmtMoney(row.original.cost_minor),
+          row.original.cost_minor == null
+            ? "—"
+            : fmtMoney(row.original.cost_minor),
         meta: { label: t("staffPool.colCost", "Cost"), numeric: true },
       },
       {
@@ -111,18 +216,43 @@ export function StaffDrinksTable({
         meta: { label: t("staffPool.colOver", "Over allowance"), align: "end" },
       },
     ],
-    [t, showDate],
+    [t, showDate, onOpenOrder, unpricedHint],
   );
 
   return (
-    <DataTable
-      columns={columns}
-      data={drinks}
-      loading={loading}
-      error={error}
-      onRetry={onRetry}
-      getRowId={(d) => d.id}
-      emptyState={<EmptyState title={t("staffPool.drinksEmpty", "No staff drinks in this period")} />}
-    />
+    <div className="space-y-2">
+      <DataTable
+        columns={columns}
+        data={drinks}
+        loading={loading}
+        error={error}
+        onRetry={onRetry}
+        getRowId={(d) => d.id}
+        emptyState={
+          <EmptyState
+            title={t("staffPool.drinksEmpty", "No staff drinks in this period")}
+          />
+        }
+      />
+      {anyUnpriced ? (
+        // The dash needs its reason on the page, not only in a tooltip: a touch
+        // screen has no hover, and "—" beside money invites the reading "free".
+        <p className="text-xs text-muted-foreground">
+          {t(
+            "staffPool.unpricedNote",
+            "— means the drink was rung before staff drinks were priced, so there is no figure for it. It still counted against the allowance.",
+          )}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function Unpriced({ hint }: { hint: string }) {
+  return (
+    <span title={hint} data-testid="comp-unpriced">
+      <span aria-hidden>—</span>
+      <span className="sr-only">{hint}</span>
+    </span>
   );
 }

@@ -3,6 +3,8 @@ import type { ExcelColumn } from "@/lib/excel";
 import type { OrderExport, PaymentLeg } from "@/data/api/generated/models";
 import { fmtMoney } from "@/lib/format";
 
+import { orderStaffComp } from "../staff-drink-lines";
+
 /** What was paid, as a cell. A split sale's `payment_method` is the nominal
  *  "mixed", which states no amount; its legs are what every money report
  *  buckets by, so the cell lists each method with what it paid. */
@@ -23,6 +25,16 @@ export const orderColumns = (t: TFunction): ExcelColumn<OrderExport>[] => [
     accessor: (o) => paymentText(t, o.payment_method, o.payment_legs),
     type: "text",
     width: 18,
+  },
+  // What the staff pool gave free. The subtotal beside it is stored NET of this,
+  // so the column explains a low subtotal; it is not to be subtracted again.
+  {
+    key: "staff_comp",
+    header: t("orders.exportStaffComp", "Staff drinks given free"),
+    accessor: (o) => orderStaffComp(o.items),
+    type: "money",
+    width: 20,
+    total: true,
   },
   { key: "subtotal", header: t("common.subtotal", "Subtotal"), accessor: (o) => o.subtotal, type: "money", width: 15, total: true },
   { key: "discount", header: t("orders.discount", "Discount"), accessor: (o) => o.discount_amount, type: "money", width: 15, total: true },
@@ -68,6 +80,10 @@ export interface LineItemRow {
   quantity: number;
   unit_price: number;
   line_total: number;
+  /** Whole-line staff comp (size part + covered picks). 0 on a paid line. */
+  staff_comp: number;
+  /** What the whole line was charged, add-ons and optionals in. Staff drinks only. */
+  staff_charged: number | null;
   line_cost: number | null;
   addons: string;
   optionals: string;
@@ -90,6 +106,22 @@ export const lineItemColumns = (t: TFunction): ExcelColumn<LineItemRow>[] => [
   { key: "quantity", header: t("common.qty", "Qty"), accessor: (r) => r.quantity, type: "number", width: 10, total: true },
   { key: "unit_price", header: t("common.price", "Unit Price"), accessor: (r) => r.unit_price, type: "money", width: 15 },
   { key: "line_total", header: t("common.total", "Line Total"), accessor: (r) => r.line_total, type: "money", width: 15, total: true },
+  {
+    key: "staff_comp",
+    header: t("orders.exportStaffComp", "Staff drinks given free"),
+    accessor: (r) => r.staff_comp,
+    type: "money",
+    width: 20,
+    total: true,
+  },
+  {
+    key: "staff_charged",
+    header: t("orders.exportStaffCharged", "Staff drink charged (with extras)"),
+    accessor: (r) => r.staff_charged,
+    type: "money",
+    width: 24,
+    total: true,
+  },
   { key: "line_cost", header: t("orders.cogs", "COGS"), accessor: (r) => r.line_cost, type: "money", width: 15, total: true },
   { key: "addons", header: t("menu.addons", "Addons"), accessor: (r) => r.addons || "—", type: "text", width: 25 },
   { key: "optionals", header: t("menu.optionals", "Optionals"), accessor: (r) => r.optionals || "—", type: "text", width: 25 },
