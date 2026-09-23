@@ -6423,7 +6423,8 @@
     "reason_absent_half_unpaid_leave": "غياب عن نصف الشغل · إجازة نصف يوم غير مدفوعة",
     "reason_unpaid_excused_minutes": "وقت إذن غير مدفوع: {{minutes}} دقيقة",
     "reason_unpaid_excuse": "إذن غير مدفوع",
-    "reason_left_mid_shift": "غادر أثناء الوردية"
+    "reason_left_mid_shift": "غادر أثناء الوردية",
+    "pay_none": "لا شيء للصرف"
   },
   "legal": {
     "label": "قانوني",

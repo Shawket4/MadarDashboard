@@ -112,6 +112,10 @@ export function PayrollPage() {
     paid: currentQ.data?.paid_count ?? 0,
   };
 
+  // Reopen closes once a PERSON is paid (PAY-6). A zero-net payslip settled at
+  // approval (method "none", PAY-7) isn't anyone being paid; the server allows it.
+  const paidByHand = rows.filter((r) => r.paid_method && r.paid_method !== "none").length;
+
   if (authz.ready && !canRead) {
     return <Restricted title={t("dawam.payroll", "Payroll")} who={t("dawam.payrollNoAccess", "Payroll needs payroll rights. The owner can give you access.")} />;
   }
@@ -227,7 +231,7 @@ export function PayrollPage() {
             {canRun && phase === "open" && period ? (
               <Button onClick={() => void approve()}><BadgeCheck className="size-4" />{t("dawam.approve", "Approve payroll")}</Button>
             ) : null}
-            {canRun && phase === "approved" && totals.paid === 0 ? (
+            {canRun && phase === "approved" && paidByHand === 0 ? (
               <Button variant="outline" onClick={() => setReopening(true)}><RotateCcw className="size-4" />{t("dawam.reopen", "Reopen")}</Button>
             ) : null}
             {phase !== "open" ? (

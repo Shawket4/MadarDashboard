@@ -174,6 +174,17 @@ describe("PayrollPage", () => {
     expect(screen.getByText("Paid 1 of 2")).toBeInTheDocument();
   });
 
+  it("still offers reopen when the only 'paid' slip is a zero-net one settled automatically (PAY-6, PAY-7)", () => {
+    // E2E: the owner's 0-net payslip is settled at approval (paid_method "none");
+    // the server still allows a reopen, but the page hid the button.
+    const frozen = (u: string, n: string, paid: string | null, net = 880_000) =>
+      ({ ...slip(u, n, { net_piastres: net }), id: `s-${u}`, employee_name: n, paid_method: paid, payroll_period_id: "p2" }) as unknown as Payslip;
+    current = { ...current!, period: period("generated"), paid_count: 1, payslips: [frozen("e1", "Sara Ahmed", null), frozen("e9", "The Owner", "none", 0)] };
+    wrap(<PayrollPage />);
+    expect(screen.getByRole("button", { name: /Reopen/ })).toBeInTheDocument();
+    expect(screen.queryByText("none")).not.toBeInTheDocument();
+  });
+
   it("reopens only with a reason, which goes to the server (PAY-6, AD-9)", async () => {
     const user = userEvent.setup();
     current = { ...current!, period: period("generated"), payslips: [], paid_count: 0 };

@@ -6242,7 +6242,8 @@
     "reason_absent_half_unpaid_leave": "Absent from the worked half · unpaid half-day leave",
     "reason_unpaid_excused_minutes": "Unpaid excused time: {{minutes}} minutes",
     "reason_unpaid_excuse": "Unpaid excuse",
-    "reason_left_mid_shift": "Left mid-shift"
+    "reason_left_mid_shift": "Left mid-shift",
+    "pay_none": "Nothing to pay"
   },
   "legal": {
     "label": "Legal",

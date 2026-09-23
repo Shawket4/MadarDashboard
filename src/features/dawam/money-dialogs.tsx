@@ -389,7 +389,7 @@ export function ExpenseAdvanceDialog({ open, onOpenChange }: { open: boolean; on
 }
 
 export const PAY_METHODS = ["cash", "bank", "wallet"] as const;
-export const PAY_METHOD_FALLBACK: Record<string, string> = { cash: "Cash", bank: "Bank transfer", wallet: "Mobile wallet" };
+export const PAY_METHOD_FALLBACK: Record<string, string> = { cash: "Cash", bank: "Bank transfer", wallet: "Mobile wallet", none: "Nothing to pay" };
 
 /** Paid, per person, with how (PAY-7). */
 export function MarkPaidDialog({
