@@ -30,6 +30,7 @@ globalThis.ResizeObserver ??= class {
 let held: string[] = [];
 let current: CurrentPayroll | undefined;
 let adjustments: unknown[] = [];
+let advances: unknown[] = [];
 let scopeBranch: string | null = null;
 const expenseParams: unknown[] = [];
 const enabledSeen: Record<string, boolean[]> = {};
@@ -84,7 +85,7 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "e4", name: "Youssef Adel", pay_method: "cash" },
   ] as Partial<Employee>[]),
   useListAdjustments: hook("adjustments", () => adjustments),
-  useListAdvances: hook("advances", () => []),
+  useListAdvances: hook("advances", () => advances),
   useListExpenseAdvances: (params: unknown, ...rest: unknown[]) => { expenseParams.push(params); return hook("expenses", () => [])(params, ...rest); },
   useListPayslips: hook("payslips", () => []),
   useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
@@ -425,6 +426,22 @@ describe("PayrollPage", () => {
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText(/This month keeps it/)).toBeInTheDocument();
     expect(within(dialog).queryByText(/stops from the month that is open now/)).not.toBeInTheDocument();
+  });
+
+  it("D7: a manager reads each person's advances as within or over the cap, never the cap", async () => {
+    const user = userEvent.setup();
+    held = ["hr.payroll.read", "hr.advances.decide"];
+    const adv = { employee_id: "e4", employee_name: "Youssef Adel", installments: 1, created_at: "2026-09-20T08:00:00Z", remaining_piastres: 0, monthly_installment_piastres: 0, org_id: "o", updated_at: "" };
+    advances = [
+      { ...adv, id: "v1", amount_piastres: 50_000, status: "approved", remaining_piastres: 50_000, outstanding_piastres: 50_000, cap_piastres: null, within_cap: true },
+      { ...adv, id: "v2", amount_piastres: 90_000, status: "pending", outstanding_piastres: 140_000, cap_piastres: null, within_cap: false },
+    ];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Salary advances/ }));
+    expect(screen.getByText("Within cap")).toBeInTheDocument();
+    expect(screen.getByText("Over the cap: only the owner can approve")).toBeInTheDocument();
+    expect(screen.queryByText(/Owes /)).not.toBeInTheDocument();
+    advances = [];
   });
 
   it("leaves nothing-to-transfer payslips out of the bank and wallet lists (PAY-8)", async () => {

@@ -24,6 +24,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SegmentedControl } from "@/components/app/segmented-control";
+import { StatusPill } from "@/components/app/status-pill";
 import {
   createAdjustment, logExpenseAdvance, markPaid, overrideDeduction, recordAdvance, reviewAdvance,
   setPeriodStatus, stopAdjustment, unwaiveDeduction, useListBranches, useListEmployees, waiveDeduction,
@@ -31,8 +32,9 @@ import {
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
-import { cairoNow, egpToPiastres } from "@/lib/format";
+import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
+import { capView, type AdvanceD } from "./phase-d-contract";
 
 /** Pounds as typed → piastres; null when it isn't a positive amount. */
 export const readPounds = (s: string): number | null => {
@@ -642,3 +644,31 @@ export function ReviewAdvanceDialog({
     </FormDialog>
   );
 }
+
+/**
+ * An advance against the owner's cap (AV-5, owner decision 7): "Within cap"
+ * or "Over cap" for everyone. The figures show only when the server sends the
+ * cap (it reveals the salary). Someone who may not pass the cap reads that
+ * only the owner can approve it.
+ */
+export function AdvanceCapNote({ advance, mayPassCap }: { advance: AdvanceD; mayPassCap: boolean }) {
+  const { t } = useTranslation();
+  const { within, owed, cap } = capView(advance);
+  if (within === null) return null;
+  const figures = cap != null
+    ? t("dawam.capFigures", { owed: fmtMoney(owed), cap: fmtMoney(cap), defaultValue: `Owes ${fmtMoney(owed)} of a ${fmtMoney(cap)} cap` })
+    : null;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1">
+      <StatusPill tone={within ? "success" : "warning"}>
+        {within
+          ? t("dawam.withinCap", "Within cap")
+          : mayPassCap
+            ? t("dawam.overCap", "Over cap")
+            : t("dawam.overCapOwner", "Over the cap: only the owner can approve")}
+      </StatusPill>
+      {figures ? <span className="text-xs text-muted-foreground">{figures}</span> : null}
+    </span>
+  );
+}
+

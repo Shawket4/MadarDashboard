@@ -2296,7 +2296,8 @@
       "SHIFTS_OVERLAP_named": "{{a}} و{{b}} هيتداخلوا يوم {{date}}.",
       "ORG_SUSPENDED": "النشاط ده موقوف. كلّم الدعم عشان يرجّعوه.",
       "SHIFT_COVERED": "{{coverer_name}} بيغطّي الوردية دي. أنهي التغطية أو ارفضها الأول.",
-      "OWNER_ONLY": "ده بيعمله المالك بس."
+      "OWNER_ONLY": "ده بيعمله المالك بس.",
+      "ADVANCE_OVER_CAP_owner": "ده فوق حد السلف. المالك بس اللي يقدر يوافق عليه."
     }
   },
   "theme": {
@@ -6540,7 +6541,11 @@
     "coverPayBlockHint": "تُدفع الفترة المغطّاة كيوم كامل مهما كانت قصيرة.",
     "coverPayBusiness": "استخدام إعداد النشاط",
     "coverPayBusinessHint": "يدفع هذا الفرع التغطية بنفس طريقة النشاط.",
-    "monthlyUntil": "شهري حتى {{date}}"
+    "monthlyUntil": "شهري حتى {{date}}",
+    "withinCap": "في حدود السقف",
+    "overCap": "فوق السقف",
+    "overCapOwner": "فوق السقف: الموافقة للمالك فقط",
+    "capFigures": "عليه {{owed}} من سقف {{cap}}"
   },
   "legal": {
     "label": "قانوني",

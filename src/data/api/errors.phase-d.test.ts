@@ -37,4 +37,15 @@ describe("Phase D refusals", () => {
     await i18n.changeLanguage("ar");
     expect(getErrorMessage(err)).toMatch(/المالك/);
   });
+
+  it("D7: an over-cap refusal names no amount for a manager, and the amount for someone who sees the salary", async () => {
+    const manager = apiError({ code: "ADVANCE_OVER_CAP", error: "x", vars: { over_cap: true } });
+    expect(getErrorMessage(manager)).toBe("That's over the advance cap. Only the owner can approve it.");
+    const payroll = apiError({ code: "ADVANCE_OVER_CAP", error: "x", vars: { over_cap: true, more_piastres: 165_000, more_egp: 1650 } });
+    expect(getErrorMessage(payroll)).toMatch(/1650 EGP/);
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(manager)).toMatch(/المالك/);
+    expect(getErrorMessage(manager)).not.toMatch(/\d/);
+  });
 });
+

@@ -33,7 +33,8 @@ import { Cap } from "@/generated/capabilities";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
 import { ApproveWithPayDialog, ASKS_PAY, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds } from "@/features/staff/requests-inbox";
 import { fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
-import { ReviewAdvanceDialog } from "./money-dialogs";
+import { AdvanceCapNote, ReviewAdvanceDialog } from "./money-dialogs";
+import { capView, type AdvanceD } from "./phase-d-contract";
 
 export type Section = "all" | "requests" | "money" | "shifts";
 
@@ -72,6 +73,8 @@ export function ApprovalsPage() {
     overtime: authz.can(Cap.hrOvertimeApprove),
     payLines: authz.can(Cap.hrPayrollRun),
   };
+  // The owner (payroll run everywhere) may pass the advance cap; a manager can't (D7).
+  const mayPassCap = authz.canEverywhere(Cap.hrPayrollRun);
   const any = Object.values(can).some(Boolean);
   const from = isoDaysFromToday(-35);
 
@@ -133,7 +136,9 @@ export function ApprovalsPage() {
         reject: () => decideRequest(r.id, { status: "rejected" }),
       });
     }
-    for (const a of can.advances ? (advancesQ.data ?? []).filter((x) => x.status === "pending") : []) {
+    for (const a of can.advances ? ((advancesQ.data ?? []) as AdvanceD[]).filter((x) => x.status === "pending") : []) {
+      // Over the cap, only the owner can approve: a manager may still reject (D7).
+      const overForMe = capView(a).within === false && !mayPassCap;
       out.push({
         key: `v|${a.id}`,
         section: "money",
@@ -142,7 +147,9 @@ export function ApprovalsPage() {
         kind: t("dawam.salaryAdvance", "Salary advance"),
         detail: [t("dawam.advanceMeta", { amount: fmtMoney(a.amount_piastres), count: a.installments }), a.reason].filter(Boolean).join(" · "),
         at: a.created_at,
+        badges: <AdvanceCapNote advance={a} mayPassCap={mayPassCap} />,
         approve: () => setReviewing(a),
+        rejectOnly: overForMe,
         reject: () => reviewAdvance(a.id, { approve: false }),
       });
     }
@@ -226,7 +233,7 @@ export function ApprovalsPage() {
     }
     return out.sort((a, b) => b.at.localeCompare(a.at));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestsQ.data, own, advancesQ.data, payLinesQ.data, swapsQ.data, claimsQ.data, attendanceQ.data, t]);
+  }, [requestsQ.data, own, advancesQ.data, payLinesQ.data, swapsQ.data, claimsQ.data, attendanceQ.data, t, mayPassCap]);
 
   if (authz.ready && !any) {
     return <Restricted title={t("dawam.approvals", "Approvals")} who={t("dawam.approvalsNoAccess", "Nothing here is yours to decide. The owner can give you access.")} />;

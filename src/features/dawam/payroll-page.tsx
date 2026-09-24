@@ -52,8 +52,9 @@ import { payslipLines, reasonText, type PayLine } from "./lines";
 import { printPayslip } from "./payslip-print";
 import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
-  ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog,
+  ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote,
 } from "./money-dialogs";
+import type { AdvanceD } from "./phase-d-contract";
 
 type Slip = ComputedPayslip | Payslip;
 type Row = Slip & { employee_name: string; paid_method: string | null };
@@ -547,6 +548,9 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
 
 function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: () => void }) {
   const { t } = useTranslation();
+  const authz = useAuthz();
+  // The owner may pass the cap and sees its figures; a manager reads within / over only (D7).
+  const mayPassCap = authz.canEverywhere(Cap.hrPayrollRun);
   const q = useListAdvances({});
   const [reviewing, setReviewing] = useState<SalaryAdvance | null>(null);
   const rows = q.data ?? [];
@@ -566,7 +570,8 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
                 a.reason,
               ].filter(Boolean).join(" · ")}
               trailing={
-                <span className="flex items-center gap-2">
+                <span className="flex flex-wrap items-center justify-end gap-2">
+                  {a.status === "pending" || a.status === "approved" ? <AdvanceCapNote advance={a as AdvanceD} mayPassCap={mayPassCap} /> : null}
                   {a.status === "approved" ? (
                     <span className="text-sm tabular-nums text-muted-foreground">{t("dawam.remaining", { amount: fmtMoney(a.remaining_piastres), defaultValue: `${fmtMoney(a.remaining_piastres)} left` })}</span>
                   ) : null}

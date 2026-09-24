@@ -64,7 +64,10 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
             ? `${code}_named`
             : code === "SHIFTS_OVERLAP" && typeof vars.a === "string"
               ? "SHIFTS_OVERLAP_named"
-              : code;
+              : // Over the cap with no amount: the caller may not see the salary it reveals (D7).
+                code === "ADVANCE_OVER_CAP" && vars.more_egp === undefined && vars.over_cap === true
+                ? "ADVANCE_OVER_CAP_owner"
+                : code;
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
     // A 403 the server didn't code is a missing right; its prose is English (B-ROTA-9).
     if (status === 403 && !code) return t("errors.unauthorized");

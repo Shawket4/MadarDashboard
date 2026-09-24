@@ -18,6 +18,11 @@ const ATTENDANCE = [
   { id: "r6", employee_name: "Omar Khaled", overtime_status: "pending", overtime_minutes: 45, business_date: "2026-09-21", check_out_at: "2026-09-21T20:45:00Z", created_at: "2026-09-21T08:00:00Z" },
 ];
 let attendanceRows: Record<string, unknown>[] = ATTENDANCE;
+const ADVANCES = [
+  { id: "v1", employee_name: "Sara Ahmed", amount_piastres: 50_000, installments: 2, status: "pending", created_at: "2026-09-22T08:00:00Z", reason: "Rent" },
+  { id: "v0", employee_name: "Sara Ahmed", amount_piastres: 90_000, installments: 1, status: "approved", created_at: "2026-09-01T08:00:00Z" },
+];
+let advanceRows: Record<string, unknown>[] = ADVANCES;
 const enabledSeen: Record<string, boolean[]> = {};
 const paramsSeen: Record<string, unknown[]> = {};
 const calls = {
@@ -67,10 +72,7 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "e-me", name: "Karim Manager", user_id: "u-me" },
     { id: "e1", name: "Youssef Adel", user_id: null },
   ]),
-  useListAdvances: hook("advances", () => [
-    { id: "v1", employee_name: "Sara Ahmed", amount_piastres: 50_000, installments: 2, status: "pending", created_at: "2026-09-22T08:00:00Z", reason: "Rent" },
-    { id: "v0", employee_name: "Sara Ahmed", amount_piastres: 90_000, installments: 1, status: "approved", created_at: "2026-09-01T08:00:00Z" },
-  ]),
+  useListAdvances: hook("advances", () => advanceRows),
   useListSwaps: hook("swaps", () => [
     { id: "w1", requester_name: "Sara Ahmed", peer_name: "Youssef Adel", requester_shift_name: "Morning", peer_shift_name: "Evening", requester_date: "2026-09-26", peer_date: "2026-09-26", status: "pending", created_at: "2026-09-22T06:00:00Z" },
   ]),
@@ -109,6 +111,7 @@ beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
   requestRows = [LEAVE];
+  advanceRows = ADVANCES;
   held = [
     "hr.leave.edit", "hr.advances.decide", "hr.schedule.edit", "hr.shift_cover.confirm",
     "hr.overtime.approve", "hr.payroll.run",
@@ -329,5 +332,35 @@ describe("ApprovalsPage", () => {
     await user.click(screen.getByRole("button", { name: "Approve" }));
     await waitFor(() => expect(calls.decideRequest).toHaveBeenCalled());
     expect(screen.getByRole("button", { name: "Approve" })).toBeInTheDocument();
+  });
+
+  describe("D7: the advance cap (owner decision 7)", () => {
+    const pending = { id: "v2", employee_name: "Omar Nabil", amount_piastres: 80_000, installments: 1, status: "pending", created_at: "2026-09-23T08:00:00Z", outstanding_piastres: 140_000 };
+
+    it("a manager sees an over-cap advance as the owner's to approve, with no cap figure", () => {
+      held = ["hr.advances.decide"];
+      advanceRows = [{ ...pending, cap_piastres: null, within_cap: false }];
+      wrap(<ApprovalsPage />);
+      expect(screen.getByText("Over the cap: only the owner can approve")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Reject" })).toBeInTheDocument();
+      expect(screen.queryByText(/1,400|cap EGP|of a/)).not.toBeInTheDocument();
+    });
+
+    it("a manager sees an advance within the cap as that, and may approve it", () => {
+      held = ["hr.advances.decide"];
+      advanceRows = [{ ...pending, cap_piastres: null, within_cap: true }];
+      wrap(<ApprovalsPage />);
+      expect(screen.getByText("Within cap")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Approve" })).toBeInTheDocument();
+    });
+
+    it("the owner sees the figures and may pass the cap", () => {
+      advanceRows = [{ ...pending, cap_piastres: 100_000, within_cap: false }];
+      wrap(<ApprovalsPage />);
+      expect(screen.getByText("Over cap")).toBeInTheDocument();
+      expect(screen.getByText(/Owes EGP 1,400\.00 of a EGP 1,000\.00 cap/)).toBeInTheDocument();
+      expect(within(approveIn("Salary advance")).getByRole("button", { name: "Approve" })).toBeInTheDocument();
+    });
   });
 });
