@@ -54,11 +54,14 @@ export function setupProgress(d: SetupData): SetupProgress {
 /** The live data behind the checklist. `enabled` false asks the server nothing. */
 export function useSetupData(enabled = true): SetupData {
   const orgId = useOrgId();
+  // No organization in scope (a super admin who hasn't picked one): every
+  // staff read would be refused, so none is sent.
+  const on = enabled && !!orgId;
   const reads = [
-    useListBranches({ org_id: orgId ?? "" }, { query: { enabled: enabled && !!orgId } }),
-    useListEmployees({ employment_status: "active" }, { query: { enabled } }),
-    useListWorkShifts({ query: { enabled } }),
-    useGetAttendanceSettings({}, { query: { enabled } }),
+    useListBranches({ org_id: orgId ?? "" }, { query: { enabled: on } }),
+    useListEmployees({ employment_status: "active" }, { query: { enabled: on } }),
+    useListWorkShifts({ query: { enabled: on } }),
+    useGetAttendanceSettings({}, { query: { enabled: on } }),
   ] as const;
   const [branches, employees, shifts, settings] = reads;
   // Only a read with no data to show counts as failed; a background refetch
