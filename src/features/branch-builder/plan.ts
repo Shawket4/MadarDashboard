@@ -286,6 +286,18 @@ export const routeCategory = (plan: Plan, categoryId: string, sectionId: string 
   }),
 });
 
+/** Give many categories to one section at once (one undo step), or take them from it with `null`. */
+export const routeCategories = (plan: Plan, categoryIds: string[], sectionId: string | null): Plan => {
+  const moving = new Set(categoryIds);
+  return {
+    ...plan,
+    sections: plan.sections.map((s) => {
+      const rest = s.category_ids.filter((c) => !moving.has(c));
+      return s.id === sectionId ? { ...s, category_ids: [...rest, ...categoryIds] } : { ...s, category_ids: rest };
+    }),
+  };
+};
+
 export const setDefaultSection = (plan: Plan, sectionId: string): Plan => ({
   ...plan,
   sections: plan.sections.map((s) => ({ ...s, is_default: s.id === sectionId })),

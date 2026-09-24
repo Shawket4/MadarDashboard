@@ -6635,6 +6635,8 @@
     "versionN": "النسخة {{n}}",
     "worthChecking": "يستحق المراجعة:",
     "makeDefault": "اجعل هذا القسم يستقبل كل ما تبقّى",
-    "tillPrintsKitchenHintSections": "تشغيل: إلى جانب شاشات المطبخ وطابعاته، تطبع نقطة البيع تذكرة لكل طلب أيضًا."
+    "tillPrintsKitchenHintSections": "تشغيل: إلى جانب شاشات المطبخ وطابعاته، تطبع نقطة البيع تذكرة لكل طلب أيضًا.",
+    "selectAll": "تحديد الكل",
+    "categoriesHere": "{{here}} من {{total}}"
   }
 }

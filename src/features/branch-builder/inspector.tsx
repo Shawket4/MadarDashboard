@@ -31,7 +31,7 @@ import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 
 import {
-  addLink, parsePieceKey, pieceKey, removeLink, routeCategory, setDefaultSection, setupOf,
+  addLink, parsePieceKey, pieceKey, removeLink, routeCategories, routeCategory, setDefaultSection, setupOf,
   unroutedCategories, type Connection, type PieceRef, type Plan, type PlanDevice, type PlanPrinter,
   type PlanSection, type Problem,
 } from "./plan";
@@ -147,7 +147,7 @@ function CheckRow({
   id, checked, disabled, onChange, children, hint,
 }: {
   id: string;
-  checked: boolean;
+  checked: boolean | "indeterminate";
   disabled?: boolean;
   onChange: (checked: boolean) => void;
   children: ReactNode;
@@ -718,6 +718,26 @@ function SectionInspector({
           <Empty>{t("builder.noCategories", "The menu has no categories yet.")}</Empty>
         ) : (
           <div className="max-h-72 space-y-0.5 overflow-y-auto">
+            {(() => {
+              const here = categories.filter((c) => section.category_ids.includes(c.id)).length;
+              const all = here === categories.length;
+              return (
+                <div className="border-b pb-0.5">
+                  <CheckRow
+                    id={`bb-cat-${section.id}-all`}
+                    checked={all ? true : here > 0 ? "indeterminate" : false}
+                    disabled={!editable}
+                    hint={t("builder.categoriesHere", "{{here}} of {{total}}", { here, total: categories.length })}
+                    // Some or none ticked → take them all; all ticked → clear this section.
+                    onChange={() =>
+                      change((p) => routeCategories(p, categories.map((c) => c.id), all ? null : section.id))
+                    }
+                  >
+                    <span className="font-medium">{t("builder.selectAll", "Select all")}</span>
+                  </CheckRow>
+                </div>
+              );
+            })()}
             {categories.map((c) => {
               const here = section.category_ids.includes(c.id);
               const elsewhere = !here ? owner.get(c.id) : undefined;

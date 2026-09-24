@@ -6434,6 +6434,8 @@
     "versionN": "Version {{n}}",
     "worthChecking": "Worth checking:",
     "makeDefault": "Make this the catch-all",
-    "tillPrintsKitchenHintSections": "On: besides the kitchen's own screens and printers, the till prints a chit for each order too."
+    "tillPrintsKitchenHintSections": "On: besides the kitchen's own screens and printers, the till prints a chit for each order too.",
+    "selectAll": "Select all",
+    "categoriesHere": "{{here}} of {{total}}"
   }
 }

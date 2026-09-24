@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  EMPTY_PLAN, addLink, checkPlan, diffPlans, linkKindFor, linksOf, planForSetup, removePieces,
+  EMPTY_PLAN, addLink, checkPlan, diffPlans, linkKindFor, linksOf, planForSetup, removePieces, routeCategories,
   routeCategory, setupOf, unroutedCategories, type Plan,
 } from "./plan";
 
@@ -114,5 +114,17 @@ describe("routing and changes", () => {
     expect(diffPlans(plan, moved)).toEqual({ added: [], removed: [], changed: [] });
     const renamed = { ...plan, devices: [{ ...plan.devices[0], name: "Front till" }] };
     expect(diffPlans(plan, renamed).changed).toEqual([{ kind: "device", id: plan.devices[0].id }]);
+  });
+});
+
+describe("select all categories", () => {
+  it("takes every category into one section in one step, and clears it again", () => {
+    const plan = planForSetup("sections", names, ["c1", "c2"], seq());
+    const [hot, cold] = plan.sections;
+    const all = routeCategories(plan, ["c1", "c2", "c3"], cold.id);
+    expect(all.sections.find((s) => s.id === cold.id)!.category_ids).toEqual(["c1", "c2", "c3"]);
+    expect(all.sections.find((s) => s.id === hot.id)!.category_ids).toEqual([]);
+    const none = routeCategories(all, ["c1", "c2", "c3"], null);
+    expect(none.sections.every((s) => s.category_ids.length === 0)).toBe(true);
   });
 });
