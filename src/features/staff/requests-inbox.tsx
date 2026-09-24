@@ -238,6 +238,8 @@ export function RequestsInboxPage() {
                     <RequestBadges r={r} mine={mine} />
                   </span>
                 }
+                // Who decided and who cancelled must stay readable on a phone.
+                wrapMeta
                 meta={[
                   describeWindow(r, t), r.reason,
                   // Who decided, with their note; a cancel keeps both and names its own author (AT-10, B-TEAM-3, RQ-F6).

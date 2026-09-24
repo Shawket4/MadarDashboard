@@ -193,6 +193,8 @@ describe("Requests inbox, server answers", () => {
     // Who decided and who cancelled (backend 68078ac, AT-10).
     expect(screen.getByText(/Decided by Tasbeeh/)).toBeInTheDocument();
     expect(screen.getByText(/Cancelled by Karim Mostafa/)).toBeInTheDocument();
+    // On a phone the whole line wraps rather than cutting off who cancelled (E2E team re-verify).
+    expect(screen.getByText(/Cancelled by Karim Mostafa/)).not.toHaveClass("truncate");
   });
 
   it("never offers to cancel an approved correction, which the server refuses (409)", () => {
