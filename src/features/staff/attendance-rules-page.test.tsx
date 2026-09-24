@@ -165,6 +165,15 @@ describe("Rules page for the owner", () => {
     });
   });
 
+  it("doesn't claim a suggested ladder when it shows the business's own unsaved one (E2E D-257)", () => {
+    // An HR org from before Dawam: a ladder is stored, the rules were never saved.
+    business = { ...BUSINESS, rules_saved_at: null };
+    renderPage();
+    expect(screen.getByText("Save the rules before anyone can clock in")).toBeInTheDocument();
+    expect(screen.queryByText(/A suggested ladder is filled in/)).toBeNull();
+    expect(screen.getByText(/1–30 min late → 15 minutes of pay/)).toBeInTheDocument();
+  });
+
   it("refuses overlapping rungs and a zero working month before asking the server", async () => {
     const user = userEvent.setup();
     renderPage();

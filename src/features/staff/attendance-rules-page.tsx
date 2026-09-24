@@ -211,7 +211,7 @@ export function AttendanceRulesPage() {
       {!branchId && query.data && !query.data.rules_saved_at ? (
         <p role="status" className="rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm font-medium">
           {t("dawam.rulesFirstTitle", "Save the rules before anyone can clock in")}
-          {canEdit ? (
+          {canEdit && !((query.data.late_deduction_tiers as unknown[] | undefined) ?? []).length ? (
             <span className="block font-normal text-muted-foreground">
               {t("staff.rulesSuggested", "A suggested ladder is filled in. Change it to suit you, then save.")}
             </span>
