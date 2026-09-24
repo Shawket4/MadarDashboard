@@ -25,4 +25,24 @@ describe("auditReasonText", () => {
     expect(headers.join(" ")).not.toMatch(/Label|Events|Amount/);
     await i18n.changeLanguage("en");
   });
+
+  it("words the deduction-override types the server sends without a code (E2E payroll, Legal ▸ Deduction overrides)", async () => {
+    const t = i18n.t.bind(i18n);
+    await i18n.changeLanguage("ar");
+    expect(auditReasonText(t, { label: "waived", code: null })).not.toMatch(/waived/);
+    expect(auditReasonText(t, { label: "overridden", code: null })).not.toMatch(/overridden/);
+    await i18n.changeLanguage("en");
+    expect(auditReasonText(t, { label: "waived", code: null })).toBe("Waived");
+    expect(auditReasonText(t, { label: "overridden", code: "overridden" })).toBe("Overridden");
+  });
+
+  it("counts events with the right plural form", async () => {
+    await i18n.changeLanguage("en");
+    expect(i18n.t("reports.legal.eventsCount", { count: 1, n: "1" })).toBe("1 event");
+    expect(i18n.t("reports.legal.eventsCount", { count: 4, n: "4" })).toBe("4 events");
+    await i18n.changeLanguage("ar");
+    expect(i18n.t("reports.legal.eventsCount", { count: 3, n: "3" })).toBe("3 أحداث");
+    expect(i18n.t("reports.legal.eventsCount", { count: 1, n: "1" })).toBe("حدث واحد");
+    await i18n.changeLanguage("en");
+  });
 });

@@ -5630,7 +5630,12 @@
       "byDiscount": "حسب الخصم",
       "byBranch": "حسب الفرع",
       "byIssuer": "حسب الموظف",
-      "eventsCount": "{{n}} حدث",
+      "eventsCount_zero": "مفيش أحداث",
+      "eventsCount_one": "حدث واحد",
+      "eventsCount_two": "حدثين",
+      "eventsCount_few": "{{n}} أحداث",
+      "eventsCount_many": "{{n}} حدث",
+      "eventsCount_other": "{{n}} حدث",
       "eventPoints": "النقاط المعدّلة",
       "byType": "حسب النوع",
       "byKind": "حسب نوع الخصم",
@@ -5642,7 +5647,9 @@
         "unspecified": "غير محدد",
         "correction_request": "طلب تصحيح معتمد",
         "auto_closed": "أُغلق تلقائيًا: لم يُسجَّل انصراف",
-        "marked_absent": "سُجّل غياب تلقائيًا: لم يُسجَّل حضور"
+        "marked_absent": "سُجّل غياب تلقائيًا: لم يُسجَّل حضور",
+        "waived": "تم التنازل عنه",
+        "overridden": "تم تعديله"
       }
     },
     "loyalty": {

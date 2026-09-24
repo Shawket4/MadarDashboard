@@ -41,18 +41,24 @@ const REASON_CODE_KEYS: Record<string, [string, string]> = {
   correction_request: ["reports.legal.reason.correction_request", "Approved correction request"],
   auto_closed: ["reports.legal.reason.auto_closed", "Closed automatically: no check-out"],
   marked_absent: ["reports.legal.reason.marked_absent", "Marked absent automatically: no check-in"],
+  waived: ["reports.legal.reason.waived", "Waived"],
+  overridden: ["reports.legal.reason.overridden", "Overridden"],
 };
+
+/** Labels the server writes with no code yet (Deduction overrides' by-type rows). */
+const UNCODED_SERVER_WORDS = new Set(["waived", "overridden"]);
 
 /** A breakdown row's label in the reader's language: a server code is worded here; a person's own words stay as typed. */
 export function auditReasonText(t: TFunction | ((k: string, o?: Record<string, unknown>) => string), r: { label: string; code?: string | null }): string {
   const tt = t as (k: string, o?: Record<string, unknown>) => string;
-  if (!r.code) return r.label;
-  const known = REASON_CODE_KEYS[r.code];
+  const code = r.code ?? (UNCODED_SERVER_WORDS.has(r.label) ? r.label : null);
+  if (!code) return r.label;
+  const known = REASON_CODE_KEYS[code];
   if (known) return tt(known[0], { defaultValue: known[1] });
-  const voidKey = `orders.voidReasons.${r.code}`;
+  const voidKey = `orders.voidReasons.${code}`;
   const v = tt(voidKey, { defaultValue: "" });
   if (v) return v;
-  if (["preset", "manual_amount", "manual_percent"].includes(r.code)) return discountKindLabel(t as TFunction, r.code);
+  if (["preset", "manual_amount", "manual_percent"].includes(code)) return discountKindLabel(t as TFunction, code);
   return r.label;
 }
 
@@ -193,7 +199,7 @@ function BreakdownCard({
               <li key={r.label} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="min-w-0">
                   <p className="truncate font-medium">{r.label}</p>
-                  <p className="text-xs text-muted-foreground">{t("reports.legal.eventsCount", { defaultValue: "{{n}} events", n: fmtNumber(r.count) })}</p>
+                  <p className="text-xs text-muted-foreground">{t("reports.legal.eventsCount", { defaultValue: "{{n}} events", n: fmtNumber(r.count), count: r.count })}</p>
                 </div>
                 {amount === "none" ? null : (
                   <span className="shrink-0 font-mono tabular-nums">

@@ -5474,7 +5474,8 @@
       "byDiscount": "By discount",
       "byBranch": "By branch",
       "byIssuer": "By staff member",
-      "eventsCount": "{{n}} events",
+      "eventsCount_one": "{{n}} event",
+      "eventsCount_other": "{{n}} events",
       "eventPoints": "Points moved",
       "byType": "By type",
       "byKind": "By kind",
@@ -5486,7 +5487,9 @@
         "unspecified": "Not given",
         "correction_request": "Approved correction request",
         "auto_closed": "Closed automatically: no check-out",
-        "marked_absent": "Marked absent automatically: no check-in"
+        "marked_absent": "Marked absent automatically: no check-in",
+        "waived": "Waived",
+        "overridden": "Overridden"
       }
     },
     "loyalty": {
