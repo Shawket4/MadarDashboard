@@ -31,6 +31,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";
 import { cairoParts, fmtDate, fmtMoney } from "@/lib/format";
 import { fmtHours } from "@/features/staff/util";
+import { dawamQuery } from "./live";
+import { DawamRefreshButton } from "./refresh-button";
 
 /** A scope instant → the calendar day the backend's date params want, in the active zone. */
 const localDate = (iso: string) => {
@@ -124,6 +126,7 @@ export function StaffReportsPage() {
       <PageHeader
         title={t("dawam.reports", "Reports")}
         description={t("dawam.reportsSubtitle", "Attendance, labour cost, payroll and advances over the period above.")}
+        actions={<DawamRefreshButton />}
       />
       <Tabs value={tab} onValueChange={setPicked} className="gap-6">
         <PageTabsList>
@@ -146,7 +149,7 @@ const sum = <R,>(rows: R[], f: (r: R) => number) => rows.reduce((a, r) => a + f(
 
 function AttendanceTab({ params }: { params: Params }) {
   const { t } = useTranslation();
-  const q = useAttendanceSummary(params);
+  const q = useAttendanceSummary(params, { query: dawamQuery() });
   const rows = q.data ?? [];
   type R = (typeof rows)[number];
   const cols: Col<R>[] = [
@@ -175,7 +178,7 @@ function AttendanceTab({ params }: { params: Params }) {
 function LabourTab({ params }: { params: Params }) {
   const { t } = useTranslation();
   const orgId = useOrgId();
-  const q = useLabourVsSales(params);
+  const q = useLabourVsSales(params, { query: dawamQuery() });
   const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } }).data ?? [];
   const names = new Map(branches.map((b) => [b.id, b.name]));
   const rows = q.data ?? [];
@@ -204,7 +207,7 @@ function LabourTab({ params }: { params: Params }) {
 
 function PayrollTab({ params }: { params: Params }) {
   const { t } = useTranslation();
-  const q = usePayrollHistory(params);
+  const q = usePayrollHistory(params, { query: dawamQuery() });
   const rows = q.data ?? [];
   type R = (typeof rows)[number];
   const cols: Col<R>[] = [
@@ -233,7 +236,7 @@ function PayrollTab({ params }: { params: Params }) {
 
 function AdvancesTab({ params }: { params: Params }) {
   const { t } = useTranslation();
-  const q = useAdvances(params);
+  const q = useAdvances(params, { query: dawamQuery() });
   const salary = q.data?.salary ?? [];
   const expense = q.data?.expense ?? [];
   type S = (typeof salary)[number];

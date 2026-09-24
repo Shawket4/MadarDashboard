@@ -21,6 +21,7 @@ globalThis.IntersectionObserver ??= class {
 
 let held: string[] = [];
 const enabledSeen: Record<string, boolean[]> = {};
+const querySeen: Record<string, Record<string, unknown> | undefined> = {};
 const resolveFlag = vi.fn(async () => ({}));
 const punchFor = vi.fn(async () => ({}));
 const createAdjustment = vi.fn(async () => ({}));
@@ -32,6 +33,7 @@ const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
     | { query?: { enabled?: boolean } }
     | undefined;
   (enabledSeen[name] ??= []).push(opts?.query?.enabled ?? true);
+  querySeen[name] = opts?.query;
   const error = failing[name] ?? null;
   return { data: error ? undefined : data(), isLoading: false, isFetching: false, error, refetch: vi.fn() };
 };
@@ -230,5 +232,15 @@ describe("TeamPage", () => {
     wrap(<TeamPage />);
     expect(screen.getByRole("button", { name: /Add employee/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Import from a spreadsheet/ })).toBeInTheDocument();
+  });
+
+  it("stays current: the board polls, both lists refetch when the tab comes back, and the header refreshes", () => {
+    // Even someone with nothing to add gets the Refresh button.
+    held = ["hr.attendance.read"];
+    const { container } = wrap(<TeamPage />);
+    expect(querySeen.presence).toMatchObject({ enabled: true, refetchInterval: 60_000, refetchOnWindowFocus: true });
+    expect(querySeen.flags).toMatchObject({ enabled: true, refetchOnWindowFocus: true });
+    const header = container.querySelector<HTMLElement>('[data-slot="page-header"]')!;
+    expect(within(header).getByRole("button", { name: "Refresh" })).toBeInTheDocument();
   });
 });

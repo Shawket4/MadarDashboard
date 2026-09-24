@@ -48,6 +48,8 @@ import { fmtDate, fmtMoney, fmtMoneySigned } from "@/lib/format";
 import { invalidateStaff, REQUEST_STATUS_TONE } from "@/features/staff/util";
 
 import { payslipLines, type PayLine } from "./lines";
+import { dawamQuery } from "./live";
+import { DawamRefreshButton } from "./refresh-button";
 import { printPayslip } from "./payslip-print";
 import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
@@ -86,8 +88,8 @@ export function PayrollPage() {
   const confirm = useConfirm();
   const logoUrl = useExportLogo();
 
-  const currentQ = useCurrent({ query: { enabled: canRead } });
-  const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: canRead } });
+  const currentQ = useCurrent({ query: dawamQuery({ enabled: canRead }) });
+  const employeesQ = useListEmployees({ employment_status: "active" }, { query: dawamQuery({ enabled: canRead }) });
   const period = currentQ.data?.period;
   const phase = periodPhase(period);
   const people = useMemo(() => new Map((employeesQ.data ?? []).map((e) => [e.id, e])), [employeesQ.data]);
@@ -226,7 +228,8 @@ export function PayrollPage() {
             : t("dawam.payrollSubtitle", "One run for the whole business, from the preview to paid.")
         }
         actions={
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <DawamRefreshButton />
             {period ? <StatusPill tone={PHASE_TONE[phase]}>{t(`dawam.phase_${phase}`, phase)}</StatusPill> : null}
             {canRun && phase === "open" && period ? (
               <Button onClick={() => void approve()}><BadgeCheck className="size-4" />{t("dawam.approve", "Approve payroll")}</Button>
@@ -465,7 +468,7 @@ const ADJ_TONE: Record<string, "warning" | "success" | "danger" | "neutral"> = {
 
 function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: boolean; onAdd: () => void }) {
   const { t } = useTranslation();
-  const q = useListAdjustments({});
+  const q = useListAdjustments({}, { query: dawamQuery() });
   const act = async (fn: () => Promise<unknown>, ok: string) => {
     try {
       await fn();
@@ -523,7 +526,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
 
 function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: () => void }) {
   const { t } = useTranslation();
-  const q = useListAdvances({});
+  const q = useListAdvances({}, { query: dawamQuery() });
   const [reviewing, setReviewing] = useState<SalaryAdvance | null>(null);
   const rows = q.data ?? [];
   return (
@@ -563,7 +566,7 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
 
 function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) {
   const { t } = useTranslation();
-  const q = useListExpenseAdvances({});
+  const q = useListExpenseAdvances({}, { query: dawamQuery() });
   const rows = q.data ?? [];
   return (
     <div className="space-y-3">
@@ -590,7 +593,7 @@ function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) 
 function HistoryTab({ periods, people }: { periods: PayrollPeriod[]; people: Map<string, Employee> }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState<PayrollPeriod | null>(null);
-  const slipsQ = useListPayslips(open?.id ?? "", { query: { enabled: !!open } });
+  const slipsQ = useListPayslips(open?.id ?? "", { query: dawamQuery({ enabled: !!open }) });
   if (periods.length === 0) {
     return <EmptyState icon={History} title={t("dawam.noHistory", "No earlier months yet")} description={t("dawam.noHistoryHint", "Approved months stay here with their frozen payslips.")} />;
   }

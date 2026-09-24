@@ -31,6 +31,8 @@ import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
+import { dawamQuery } from "@/features/dawam/live";
+import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { CorrectRecordDialog, ManualRecordDialog } from "./attendance-dialogs";
 import {
   ATTENDANCE_STATUS_TONE, fmtHours, fmtMinutes, isoDaysFromToday, todayIso,
@@ -60,8 +62,8 @@ export function AttendancePage() {
     branch_id: branchId ?? undefined,
     status: status === ALL ? undefined : status,
   };
-  const recordsQ = useListAttendance(params);
-  const summaryQ = useAttendanceSummary(params);
+  const recordsQ = useListAttendance(params, { query: dawamQuery() });
+  const summaryQ = useAttendanceSummary(params, { query: dawamQuery() });
   const records = useMemo(() => recordsQ.data ?? [], [recordsQ.data]);
 
   // Roll the per-employee summary up to a headline for the window.
@@ -245,6 +247,7 @@ export function AttendancePage() {
         )}
         actions={
           <>
+            <DawamRefreshButton />
             <ExportButton onExport={handleExport} loading={exporting} disabled={!records.length} />
             {canAdd ? (
               <Button onClick={() => setManualOpen(true)}>

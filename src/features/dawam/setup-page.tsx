@@ -18,14 +18,19 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { cn } from "@/lib/utils";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
+import { DAWAM_KEY_PREFIX } from "./live";
+import { DawamRefreshButton } from "./refresh-button";
 import { branchPinned, setupProgress, SETUP_STEPS, useSetupData, type SetupStep } from "./setup";
+
+/** The checklist reads the branches (step 1: pinned on the map) besides Dawam's own. */
+const SETUP_KEYS = [DAWAM_KEY_PREFIX, "/branches"];
 
 export function SetupPage() {
   const { t } = useTranslation();
   const authz = useAuthz();
   // A capability, not the owner role (DSH-6, PM-4): whoever sets the rules.
   const canSetUp = authz.can(Cap.hrRulesEdit);
-  const data = useSetupData(canSetUp);
+  const data = useSetupData(canSetUp, true);
   const p = setupProgress(data);
   const [adding, setAdding] = useState<"one" | "sheet" | null>(null);
 
@@ -81,6 +86,7 @@ export function SetupPage() {
             ? t("dawam.setupProgress", { n: p.count, total: SETUP_STEPS.length, defaultValue: `${p.count} of ${SETUP_STEPS.length} done` })
             : t("dawam.setupSubtitle", "Four steps before your team can clock in.")
         }
+        actions={<DawamRefreshButton prefixes={SETUP_KEYS} />}
       />
       {!p.ready ? <Skeleton className="h-72 w-full rounded-2xl" /> : (
         <div className="space-y-3">

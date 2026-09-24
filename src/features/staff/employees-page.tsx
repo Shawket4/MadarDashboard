@@ -31,6 +31,8 @@ import { AddEmployeeDialog, ImportPeopleDialog } from "@/features/dawam/add-empl
 import type { Department, Employee } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate, fmtMoney } from "@/lib/format";
+import { dawamQuery } from "@/features/dawam/live";
+import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { EmployeeDialog } from "./employee-dialog";
 import { EMPLOYMENT_STATUS_TONE, invalidateDepartments, invalidateEmployees } from "./util";
 
@@ -59,11 +61,14 @@ export function EmployeesPage() {
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const branchName = useMemo(() => new Map((branchesQ.data ?? []).map((b) => [b.id, b.name])), [branchesQ.data]);
 
-  const employeesQ = useListEmployees({
-    employment_status: status === ALL ? undefined : status,
-    department_id: department === ALL ? undefined : department,
-  });
-  const departmentsQ = useListDepartments();
+  const employeesQ = useListEmployees(
+    {
+      employment_status: status === ALL ? undefined : status,
+      department_id: department === ALL ? undefined : department,
+    },
+    { query: dawamQuery() },
+  );
+  const departmentsQ = useListDepartments({ query: dawamQuery() });
   const employees = useMemo(() => employeesQ.data ?? [], [employeesQ.data]);
 
   // Redaction is per-caller, not per-row: if the first row hides salary, the
@@ -217,6 +222,7 @@ export function EmployeesPage() {
         )}
         actions={
           <>
+            <DawamRefreshButton />
             <Button variant="outline" onClick={() => setDeptOpen(true)}>
               <Users className="size-4" />
               {t("staff.departments", "Departments")}

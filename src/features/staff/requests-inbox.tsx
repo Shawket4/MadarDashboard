@@ -39,6 +39,8 @@ import {
 import type { StaffRequest } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
+import { dawamQuery } from "@/features/dawam/live";
+import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { invalidateRequests, REQUEST_STATUS_TONE, todayIso } from "./util";
 
 const ALL = "__all__";
@@ -68,7 +70,7 @@ export const ASKS_PAY = ["leave", "excuse", "early_departure"];
 export function useOwnEmployeeIds(enabled = true): Set<string> {
   // Only a fallback for a server that doesn't say (see isMine / mayDecide).
   const userId = useAuthStore((s) => s.user?.id);
-  const q = useListEmployees({}, { query: { enabled: enabled && !!userId } });
+  const q = useListEmployees({}, { query: dawamQuery({ enabled: enabled && !!userId }) });
   return useMemo(
     () => new Set((q.data ?? []).filter((e) => !!userId && e.user_id === userId).map((e) => e.id)),
     [q.data, userId],
@@ -100,10 +102,13 @@ export function RequestsInboxPage() {
   const own = useOwnEmployeeIds();
   const canFile = useAuthz().can(Cap.hrLeaveCreate);
 
-  const requestsQ = useListRequests({
-    status: status === ALL ? undefined : status,
-    kind: kind === ALL ? undefined : kind,
-  });
+  const requestsQ = useListRequests(
+    {
+      status: status === ALL ? undefined : status,
+      kind: kind === ALL ? undefined : kind,
+    },
+    { query: dawamQuery() },
+  );
   const rows = useMemo(() => requestsQ.data ?? [], [requestsQ.data]);
 
   const confirm = useConfirm();
@@ -140,13 +145,16 @@ export function RequestsInboxPage() {
           "Approving a request waives the penalty for that day at its source — there is nothing to correct afterwards.",
         )}
         actions={
-          // Filing for someone is hr.leave.create; the server refuses anyone else (403).
-          canFile ? (
-            <Button onClick={() => setAddOpen(true)}>
-              <Plus className="size-4" />
-              {t("staff.newRequest", "New request")}
-            </Button>
-          ) : undefined
+          <>
+            <DawamRefreshButton />
+            {/* Filing for someone is hr.leave.create; the server refuses anyone else (403). */}
+            {canFile ? (
+              <Button onClick={() => setAddOpen(true)}>
+                <Plus className="size-4" />
+                {t("staff.newRequest", "New request")}
+              </Button>
+            ) : null}
+          </>
         }
         below={
           <div className="flex flex-wrap gap-2">

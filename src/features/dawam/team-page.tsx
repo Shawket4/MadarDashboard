@@ -44,6 +44,8 @@ import { fmtDateTime, fmtMoney, fmtTime } from "@/lib/format";
 import { fmtMinutes, invalidateStaff } from "@/features/staff/util";
 import { AdjustmentDialog, ExpenseAdvanceDialog, readPounds } from "./money-dialogs";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
+import { dawamQuery } from "./live";
+import { DawamRefreshButton } from "./refresh-button";
 
 const STATE_LABEL: Record<string, string> = {
   in: "In", late: "Late", absent: "Absent", on_leave: "On leave", off: "Off", done: "Done",
@@ -79,8 +81,8 @@ export function TeamPage() {
   const canExpense = authz.can(Cap.hrExpenseAdvancesLog);
   const [money, setMoney] = useState<"line" | "expense" | null>(null);
 
-  const presenceQ = useTeamPresence({ branch_id: branchId ?? undefined }, { query: { enabled: canRead, refetchInterval: 60_000 } });
-  const flagsQ = useListAttendanceFlags({ branch_id: branchId ?? undefined }, { query: { enabled: canRead } });
+  const presenceQ = useTeamPresence({ branch_id: branchId ?? undefined }, { query: dawamQuery({ enabled: canRead, refetchInterval: 60_000 }) });
+  const flagsQ = useListAttendanceFlags({ branch_id: branchId ?? undefined }, { query: dawamQuery({ enabled: canRead }) });
   const rows = useMemo(() => presenceQ.data?.rows ?? [], [presenceQ.data]);
   const flags = useMemo(() => (flagsQ.data ?? []).filter((f) => !f.resolution), [flagsQ.data]);
 
@@ -95,14 +97,13 @@ export function TeamPage() {
         title={t("dawam.team", "Team")}
         description={t("dawam.teamSubtitle", "Who's in right now, and what the location pings noticed.")}
         actions={
-          canCreate || canPayLine || canExpense ? (
-            <div className="flex flex-wrap gap-2">
-              {canPayLine ? <Button variant="outline" onClick={() => setMoney("line")}><ReceiptText className="size-4" />{t("dawam.addPayLineHere", "Add a bonus or deduction")}</Button> : null}
-              {canExpense ? <Button variant="outline" onClick={() => setMoney("expense")}><Wallet className="size-4" />{t("dawam.logExpense", "Log an expense advance")}</Button> : null}
-              {canCreate ? <Button variant="outline" onClick={() => setAdding("sheet")}><FileSpreadsheet className="size-4" />{t("dawam.importTitle", "Import from a spreadsheet")}</Button> : null}
-              {canCreate ? <Button onClick={() => setAdding("one")}><UserRoundPlus className="size-4" />{t("dawam.addEmployee", "Add employee")}</Button> : null}
-            </div>
-          ) : undefined
+          <div className="flex flex-wrap gap-2">
+            <DawamRefreshButton />
+            {canPayLine ? <Button variant="outline" onClick={() => setMoney("line")}><ReceiptText className="size-4" />{t("dawam.addPayLineHere", "Add a bonus or deduction")}</Button> : null}
+            {canExpense ? <Button variant="outline" onClick={() => setMoney("expense")}><Wallet className="size-4" />{t("dawam.logExpense", "Log an expense advance")}</Button> : null}
+            {canCreate ? <Button variant="outline" onClick={() => setAdding("sheet")}><FileSpreadsheet className="size-4" />{t("dawam.importTitle", "Import from a spreadsheet")}</Button> : null}
+            {canCreate ? <Button onClick={() => setAdding("one")}><UserRoundPlus className="size-4" />{t("dawam.addEmployee", "Add employee")}</Button> : null}
+          </div>
         }
       />
       <RulesFirstBanner />

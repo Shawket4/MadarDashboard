@@ -66,6 +66,7 @@
     "page": "صفحة {{current}} من {{total}}",
     "export": "تصدير إلى إكسل",
     "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث…",
     "comingSoon": "قريباً",
     "noResults": "لا توجد نتائج",
     "confirmDelete": "حذف «{{name}}»؟",

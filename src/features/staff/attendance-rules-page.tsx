@@ -29,6 +29,8 @@ import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { invalidateAttendance } from "./util";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
+import { dawamQuery } from "@/features/dawam/live";
+import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { DawamRulesCard } from "@/features/dawam/rules-card";
 import {
   branchBody, EMPTY_VALUES, fullBody, ruleLabel, rulesSchema, valuesFrom,
@@ -62,8 +64,14 @@ export function AttendanceRulesPage() {
 
   const [scope, setScope] = useState(BUSINESS);
   const branchId = scope === BUSINESS ? null : scope;
-  const branchesQ = useListBranchRules({ query: { enabled: canView } });
-  const query = useGetAttendanceSettings(branchId ? { branch_id: branchId } : {}, { query: { enabled: canView } });
+  const branchesQ = useListBranchRules({ query: dawamQuery({ enabled: canView }) });
+  // The form below is reset from this answer (the effect on `query.data`), so it
+  // refetches on focus only for someone who can't edit: a background refetch
+  // must never throw away rules half typed (live.ts).
+  const query = useGetAttendanceSettings(
+    branchId ? { branch_id: branchId } : {},
+    { query: dawamQuery({ enabled: canView, refetchOnWindowFocus: readOnly }) },
+  );
   const [busy, setBusy] = useState(false);
   // Rules this branch hands back to the business on the next save.
   const [inherit, setInherit] = useState<string[]>([]);
@@ -164,7 +172,7 @@ export function AttendanceRulesPage() {
   if (query.isLoading || query.error) {
     return (
       <Page width="reading">
-        <PageHeader title={title} below={branchSelect} />
+        <PageHeader title={title} actions={<DawamRefreshButton />} below={branchSelect} />
         {query.error ? (
           <ErrorState
             title={t("staff.rulesLoadError", "Couldn't load attendance rules")}
@@ -191,12 +199,15 @@ export function AttendanceRulesPage() {
           "What lateness and absence cost. These are the rules the system charges against — an approved request waives them for that day.",
         )}
         actions={
-          readOnly ? null : (
-            <Button onClick={() => void save()} disabled={busy || !!tierError}>
-              <Save className="size-4" />
-              {t("common.save", "Save")}
-            </Button>
-          )
+          <>
+            <DawamRefreshButton />
+            {readOnly ? null : (
+              <Button onClick={() => void save()} disabled={busy || !!tierError}>
+                <Save className="size-4" />
+                {t("common.save", "Save")}
+              </Button>
+            )}
+          </>
         }
         below={branchSelect}
       />

@@ -16,6 +16,8 @@ import { deleteWorkShift, useListBranches, useListWorkShifts } from "@/data/api/
 import type { WorkShift } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
+import { dawamQuery } from "@/features/dawam/live";
+import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { invalidateWorkShifts, WEEKDAYS } from "./util";
 import { ScheduleGrid } from "./schedule-grid";
 import { WEEK_ORDER, WorkShiftDialog } from "./work-shift-dialog";
@@ -23,7 +25,7 @@ import { WEEK_ORDER, WorkShiftDialog } from "./work-shift-dialog";
 export function WorkShiftsPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
-  const shiftsQ = useListWorkShifts();
+  const shiftsQ = useListWorkShifts({ query: dawamQuery() });
   const orgId = useOrgId();
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const branches = useMemo(() => branchesQ.data ?? [], [branchesQ.data]);
@@ -69,10 +71,13 @@ export function WorkShiftsPage() {
           "Working hours and the roster that assigns them. These are HR schedules — separate from cash-drawer shifts.",
         )}
         actions={
-          <Button onClick={() => setCreating(true)}>
-            <Plus className="size-4" />
-            {t("staff.newShift", "New shift")}
-          </Button>
+          <>
+            <DawamRefreshButton />
+            <Button onClick={() => setCreating(true)}>
+              <Plus className="size-4" />
+              {t("staff.newShift", "New shift")}
+            </Button>
+          </>
         }
       />
 

@@ -66,6 +66,7 @@
     "page": "Page {{current}} of {{total}}",
     "export": "Export Excel",
     "refresh": "Refresh",
+    "refreshing": "Refreshing…",
     "comingSoon": "Coming soon",
     "noResults": "No results found",
     "confirmDelete": "Delete \"{{name}}\"?",

@@ -42,6 +42,8 @@ import { fmtHours, invalidateStaff, todayIso, WEEKDAYS } from "@/features/staff/
 import { CoverageEditor } from "./coverage-editor";
 import { blockTimesOn, blocksOn, DayEditor, ShiftTimes } from "./day-editor";
 import { FairnessCard } from "./fairness-card";
+import { dawamQuery } from "./live";
+import { DawamRefreshButton } from "./refresh-button";
 import { PreferencesDialog } from "./preferences-dialog";
 import { weekDays, weekdayOf, weekStartOf, addDays } from "./week";
 
@@ -66,11 +68,11 @@ export function SchedulePage() {
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: canRead && !!orgId } });
   const branchId = scope.branchId ?? picked ?? branchesQ.data?.[0]?.id ?? "";
   const days = weekDays(week);
-  const rosterQ = useRoster({ branch_id: branchId, from: week, to: days[6] }, { query: { enabled: canRead && !!branchId } });
-  const suggestionsQ = useSuggestions({ branch_id: branchId, week_start: week }, { query: { enabled: canEdit && !!branchId } });
+  const rosterQ = useRoster({ branch_id: branchId, from: week, to: days[6] }, { query: dawamQuery({ enabled: canRead && !!branchId }) });
+  const suggestionsQ = useSuggestions({ branch_id: branchId, week_start: week }, { query: dawamQuery({ enabled: canEdit && !!branchId }) });
   const upcoming = useRoster(
     { branch_id: branchId, from: todayIso(), to: addDays(todayIso(), 45) },
-    { query: { enabled: canEdit && !!branchId } },
+    { query: dawamQuery({ enabled: canEdit && !!branchId }) },
   );
 
   const view = rosterQ.data;
@@ -166,6 +168,7 @@ export function SchedulePage() {
         description={t("dawam.scheduleSubtitle", "The week as it will be worked: change single days, post open shifts, then publish.")}
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <DawamRefreshButton />
             {canEdit ? (
               <Button variant={showCoverage ? "secondary" : "outline"} aria-pressed={showCoverage} onClick={() => setShowCoverage((v) => !v)}>
                 <Grid3x3 className="size-4" />{t("dawam.coverageTitle", "Coverage needs")}

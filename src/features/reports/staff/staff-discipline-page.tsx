@@ -14,6 +14,8 @@ import { useScope } from "@/data/scope/use-scope";
 import { useDisciplineReport } from "@/data/api/generated/api";
 import type { DisciplineRow } from "@/data/api/generated/models";
 import { cairoParts, fmtNumber } from "@/lib/format";
+import { dawamQuery } from "@/features/dawam/live";
+import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 
 const PRESET_FALLBACK: Record<string, string> = {
   today: "Today",
@@ -63,7 +65,7 @@ export function StaffDisciplinePage() {
   const canSee = authz.can(Cap.hrAttendanceRead);
   const q = useDisciplineReport(
     { from: localDate(from), to: localDate(to), branch_id: branchId ?? undefined },
-    { query: { enabled: canSee } },
+    { query: dawamQuery({ enabled: canSee }) },
   );
 
   const groups = useMemo(() => groupByDepartment(q.data?.rows ?? []), [q.data]);
@@ -82,6 +84,7 @@ export function StaffDisciplinePage() {
             {periodLabel}
           </span>
         }
+        actions={<DawamRefreshButton />}
       />
 
       {q.isLoading ? (

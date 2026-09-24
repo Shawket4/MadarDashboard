@@ -33,6 +33,8 @@ import { Cap } from "@/generated/capabilities";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
 import { ApproveWithPayDialog, ASKS_PAY, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds } from "@/features/staff/requests-inbox";
 import { fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
+import { dawamQuery } from "./live";
+import { DawamRefreshButton } from "./refresh-button";
 import { ReviewAdvanceDialog } from "./money-dialogs";
 
 export type Section = "all" | "requests" | "money" | "shifts";
@@ -76,14 +78,14 @@ export function ApprovalsPage() {
   const from = isoDaysFromToday(-35);
   const to = isoDaysFromToday(35);
 
-  const requestsQ = useListRequests({ status: "pending" }, { query: { enabled: can.requests } });
+  const requestsQ = useListRequests({ status: "pending" }, { query: dawamQuery({ enabled: can.requests }) });
   // A manager's own requests are decided above them (RQ-5): not in their queue.
   const own = useOwnEmployeeIds(can.requests);
-  const advancesQ = useListAdvances({}, { query: { enabled: can.advances } });
-  const swapsQ = useListSwaps({ status: "pending" }, { query: { enabled: can.roster } });
-  const claimsQ = useListOpenShifts({ from, to }, { query: { enabled: can.roster } });
-  const attendanceQ = useListAttendance({ from, to: isoDaysFromToday(0) }, { query: { enabled: can.covers || can.overtime } });
-  const payLinesQ = useListAdjustments({ status: "pending" }, { query: { enabled: can.payLines } });
+  const advancesQ = useListAdvances({}, { query: dawamQuery({ enabled: can.advances }) });
+  const swapsQ = useListSwaps({ status: "pending" }, { query: dawamQuery({ enabled: can.roster }) });
+  const claimsQ = useListOpenShifts({ from, to }, { query: dawamQuery({ enabled: can.roster }) });
+  const attendanceQ = useListAttendance({ from, to: isoDaysFromToday(0) }, { query: dawamQuery({ enabled: can.covers || can.overtime }) });
+  const payLinesQ = useListAdjustments({ status: "pending" }, { query: dawamQuery({ enabled: can.payLines }) });
   // Each list stands on its own (DSH-1, PAGE-Approvals): one that fails —
   // a 403 on advances for a branch manager, say — is reported in its place,
   // and everything else still shows and can be decided.
@@ -251,6 +253,7 @@ export function ApprovalsPage() {
       <PageHeader
         title={t("dawam.approvals", "Approvals")}
         description={t("dawam.approvalsSubtitle", "Everything waiting on you, from requests to pay lines over a manager's limit.")}
+        actions={<DawamRefreshButton />}
         below={
           <SegmentedControl
             value={section}
