@@ -20,6 +20,7 @@ export * from './addonSlot';
 export * from './addonSlotLabelTranslations';
 export * from './addRoundRequest';
 export * from './adjustment';
+export * from './adjustmentReasonVars';
 export * from './adjustRequest';
 export * from './advancesParams';
 export * from './advancesReport';

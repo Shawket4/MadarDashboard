@@ -17,8 +17,22 @@ function codedVars(raw: unknown): Record<string, unknown> {
   return out;
 }
 
-/** Extract a human-readable message from any API / JS error. */
-export const getErrorMessage = (err: unknown): string => {
+/**
+ * SETTING_OUT_OF_RANGE (attendance rules, B-SETUP-1) comes in four shapes:
+ * a list of allowed values, or a range whose ends may be open.
+ */
+function settingKey(vars: Record<string, unknown>): string {
+  if (Array.isArray(vars.allowed)) return "SETTING_OUT_OF_RANGE_choice";
+  if (vars.min_inclusive === false) return "SETTING_OUT_OF_RANGE_above";
+  if (vars.max_inclusive === false) return "SETTING_OUT_OF_RANGE_below";
+  return "SETTING_OUT_OF_RANGE";
+}
+
+/**
+ * Extract a human-readable message from any API / JS error. `fieldLabel`
+ * names a refused field in the page's words (a coded refusal's `vars.field`).
+ */
+export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: string) => string } = {}): string => {
   const t = i18n.getFixedT(null, "translation");
 
   if (err instanceof AxiosError) {
@@ -30,7 +44,10 @@ export const getErrorMessage = (err: unknown): string => {
     const code = typeof data?.code === "string" ? data.code : undefined;
     const vars = codedVars(data?.vars);
     // A paid month can't be reopened, so it gets its own wording (PERIOD_CLOSED {paid}).
-    const key = code === "PERIOD_CLOSED" && vars.paid === true ? "PERIOD_CLOSED_paid" : code;
+    if (typeof vars.field === "string") vars.field = opts.fieldLabel?.(vars.field) ?? vars.field;
+    const key = code === "PERIOD_CLOSED" && vars.paid === true
+      ? "PERIOD_CLOSED_paid"
+      : code === "SETTING_OUT_OF_RANGE" ? settingKey(vars) : code;
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
 
     // Backend convention: { error: "..." } or { message: "..." }

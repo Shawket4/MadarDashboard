@@ -323,6 +323,8 @@
     "ordersWord": "orders"
   },
   "orgs": {
+    "timezone": "Timezone",
+    "timezoneHint": "Default for all branches. A branch can override its own.",
     "title": "Organizations",
     "subtitle": "Manage all coffee brands and franchises",
     "newTitle": "New Organization",
@@ -2202,6 +2204,10 @@
     "boundaryDescription": "This screen hit an unexpected error. It has been reported — try again, and if it keeps happening reload the page.",
     "boundaryRetry": "Try again",
     "codes": {
+      "SETTING_OUT_OF_RANGE": "{{field}} must be from {{min}} to {{max}}.",
+      "SETTING_OUT_OF_RANGE_above": "{{field}} must be more than {{min}} and at most {{max}}.",
+      "SETTING_OUT_OF_RANGE_below": "{{field}} must be from {{min}} and less than {{max}}.",
+      "SETTING_OUT_OF_RANGE_choice": "{{field}}: that value isn't one of the allowed choices.",
       "EMPTY_ALLOW_LIST": "Pick at least one payment method, or allow all.",
       "RECONCILIATION_AMOUNT_REQUIRED": "Enter the counted amount for every method that doesn't match.",
       "RECONCILIATION_NOTE_REQUIRED": "Add a note for every method that doesn't match.",
@@ -6073,6 +6079,7 @@
     "setupShifts": "Set up your shifts",
     "setupShiftsHint": "The shifts people work, with their times and grace minutes.",
     "setupSubtitle": "Four steps before your team can clock in.",
+    "setupLoadError": "Couldn't load the set-up checklist",
     "sg_cant_work": "{{name}} said they can't work this day",
     "sg_coverage": "{{shift}} is {{short}} short at {{hour}}",
     "sg_gap": "{{shift}} is {{short}} short of its usual cover",

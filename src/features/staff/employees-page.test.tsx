@@ -28,6 +28,7 @@ Element.prototype.releasePointerCapture ??= () => {};
 Element.prototype.scrollIntoView ??= () => {};
 
 let held: string[] = [];
+let everywhere: string[] | undefined;
 const revokeDevice = vi.fn(async (_id: string) => ({}));
 const deleteEmployee = vi.fn(async (_id: string) => ({}));
 const createEmployee = vi.fn(async (_b: unknown) => ({}));
@@ -57,7 +58,7 @@ vi.mock("@/data/authz/use-authz", async () => {
   const me = () =>
     real.authzFrom({
       user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
-      capabilities: held as never, ask_manager: [], limits: {},
+      capabilities: held as never, ask_manager: [], limits: {}, everywhere: everywhere as never,
     });
   return { ...real, useAuthz: me };
 });
@@ -94,6 +95,7 @@ const wrap = (node: ReactNode) =>
 const rowOf = (name: string) => screen.getAllByText(name)[0].closest("tr") as HTMLElement;
 
 beforeEach(() => {
+  everywhere = undefined;
   held = ["hr.staff.read", "hr.staff.create", "hr.staff.edit", "hr.staff.delete"];
   revokeDevice.mockClear();
   deleteEmployee.mockClear();
@@ -101,6 +103,24 @@ beforeEach(() => {
 });
 
 describe("EmployeesPage", () => {
+  it("offers adding and deleting departments only to someone who may do it at every branch (O-2, B-SETUP-3)", async () => {
+    const user = userEvent.setup();
+    // A branch manager: may add staff at their branch, not departments (every branch).
+    held = ["hr.staff.read", "hr.staff.create", "hr.staff.edit"];
+    everywhere = [];
+    const { unmount } = wrap(<EmployeesPage />);
+    await user.click(screen.getByRole("button", { name: "Departments" }));
+    const d = await screen.findByRole("dialog", { name: "Departments" });
+    expect(within(d).queryByPlaceholderText("New department")).toBeNull();
+    unmount();
+    // The owner: held everywhere.
+    held = ["hr.staff.read", "hr.staff.create", "hr.staff.edit", "hr.staff.delete"];
+    everywhere = ["hr.staff.create", "hr.staff.delete"];
+    wrap(<EmployeesPage />);
+    await user.click(screen.getByRole("button", { name: "Departments" }));
+    expect(within(await screen.findByRole("dialog", { name: "Departments" })).getByPlaceholderText("New department")).toBeInTheDocument();
+  });
+
   it("shows each person's kind, branches, number, app access, role and phone", () => {
     wrap(<EmployeesPage />);
     const sara = rowOf("Sara Ahmed");

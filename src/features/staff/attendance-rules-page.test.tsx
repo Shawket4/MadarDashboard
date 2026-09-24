@@ -165,6 +165,15 @@ describe("Rules page for the owner", () => {
     });
   });
 
+  it("doesn't claim a suggested ladder when it shows the business's own unsaved one (E2E D-257)", () => {
+    // An HR org from before Dawam: a ladder is stored, the rules were never saved.
+    business = { ...BUSINESS, rules_saved_at: null };
+    renderPage();
+    expect(screen.getByText("Save the rules before anyone can clock in")).toBeInTheDocument();
+    expect(screen.queryByText(/A suggested ladder is filled in/)).toBeNull();
+    expect(screen.getByText(/1–30 min late → 15 minutes of pay/)).toBeInTheDocument();
+  });
+
   it("refuses overlapping rungs and a zero working month before asking the server", async () => {
     const user = userEvent.setup();
     renderPage();
@@ -190,6 +199,28 @@ describe("Rules page for the owner", () => {
     renderPage();
     await user.click(screen.getByRole("button", { name: /Save/ }));
     await waitFor(() => expect(toastError).toHaveBeenCalled());
+  });
+
+  it("reads a SETTING_OUT_OF_RANGE refusal in the page language, naming the rule (B-SETUP-1)", async () => {
+    const { AxiosError } = await import("axios");
+    const refusal = (vars: Record<string, unknown>) => {
+      const e = new AxiosError("Request failed with status code 400");
+      e.response = { status: 400, data: { error: "x must be…", code: "SETTING_OUT_OF_RANGE", vars } } as never;
+      return e;
+    };
+    const user = userEvent.setup();
+    put.mockRejectedValueOnce(refusal({ field: "advance_cap_percent", min: 0, max: 100, min_inclusive: true, max_inclusive: true }));
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("Advance cap (% of salary) must be from 0 to 100."));
+    put.mockRejectedValueOnce(refusal({ field: "overtime_mode", allowed: ["off", "automatic", "approval"] }));
+    await i18n.changeLanguage("ar");
+    try {
+      await user.click(screen.getByRole("button", { name: /حفظ/ }));
+      await waitFor(() => expect(toastError).toHaveBeenLastCalledWith("الوقت الإضافي: القيمة دي مش من الاختيارات المسموحة."));
+    } finally {
+      await i18n.changeLanguage("en");
+    }
   });
 
   it("saves a branch's changed rule only, as an override (RU-2)", async () => {

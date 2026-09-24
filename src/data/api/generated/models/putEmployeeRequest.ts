@@ -38,7 +38,7 @@ export interface PutEmployeeRequest {
      */
   employment_status?: string | null;
   /**
-     * `m` · `f`; omitted keeps what is there.
+     * `m` · `f`; `null` or empty = not set; omitted keeps what is there.
      * @nullable
      */
   gender?: string | null;
@@ -58,10 +58,15 @@ export interface PutEmployeeRequest {
      * @nullable
      */
   on_payroll?: boolean | null;
-  /** @nullable */
+  /**
+     * The IBAN or wallet number; `null` or empty clears it; omitted keeps
+     * it. Always cleared when the method is (or stays) `cash`.
+     * @nullable
+     */
   pay_account?: string | null;
   /**
-     * `cash` · `bank` · `wallet`; omitted keeps what is there.
+     * `cash` · `bank` · `wallet`; omitted keeps what is there. Cash clears
+     * the account.
      * @nullable
      */
   pay_method?: string | null;

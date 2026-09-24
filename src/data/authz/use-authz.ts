@@ -33,6 +33,12 @@ export interface Authz {
   roleKinds: readonly string[];
   can: (cap: Capability) => boolean;
   canAny: (...caps: Capability[]) => boolean;
+  /**
+   * Held at EVERY branch of the business (`/authz/me` `everywhere`), what an
+   * org-wide act needs: a department, a shift block, a public holiday. A
+   * backend that doesn't send the list falls back to `can`.
+   */
+  canEverywhere: (cap: Capability) => boolean;
   /** Not held, but the owner lets this person ask a manager. */
   canAsk: (cap: Capability) => boolean;
   limitsOf: (cap: Capability) => Limits | undefined;
@@ -50,6 +56,7 @@ export function authzFrom(me: MyAuthz | null | undefined, opts: { platform?: boo
       roleKinds: ["org_admin"],
       can: () => true,
       canAny: () => true,
+      canEverywhere: () => true,
       canAsk: () => false,
       limitsOf: () => undefined,
     };
@@ -59,6 +66,8 @@ export function authzFrom(me: MyAuthz | null | undefined, opts: { platform?: boo
   const limits = (me?.limits ?? {}) as Record<string, Limits>;
   const platform = !!me?.platform;
   const can = (cap: Capability) => platform || held.has(cap);
+  const everywhere = me?.everywhere ? new Set(me.everywhere) : null;
+  const canEverywhere = (cap: Capability) => platform || (everywhere ? everywhere.has(cap) : can(cap));
   return {
     ready: !!me,
     platform,
@@ -66,6 +75,7 @@ export function authzFrom(me: MyAuthz | null | undefined, opts: { platform?: boo
     roleKinds: me?.role_kinds ?? [],
     can,
     canAny: (...caps) => caps.some(can),
+    canEverywhere,
     canAsk: (cap) => !can(cap) && ask.has(cap),
     limitsOf: (cap) => limits[cap],
   };

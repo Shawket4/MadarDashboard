@@ -17,6 +17,8 @@ import { useBranchRealtime } from "@/data/realtime/use-branch-realtime";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useGetOnboarding } from "@/data/api/generated/api";
 import { ONBOARDING_SKIP_KEY } from "@/features/onboarding/config";
+import { sendsToOnboarding } from "@/features/onboarding/gate";
+import { useOrgModulesState } from "@/hooks/use-org-modules";
 
 /**
  * Scope as typed, validated URL search params on the app shell — the single
@@ -62,14 +64,19 @@ function AppLayout() {
       return false;
     }
   })();
+  // The POS checklist is for an org that sells with Madar POS; a Dawam-only
+  // owner's first run is Staff ▸ Set-up (SA-4), never the POS wizard.
+  const mods = useOrgModulesState();
+  const hasPos = mods.known && mods.modules.includes("pos");
   const onboarding = useGetOnboarding(orgId ?? "", {
-    query: { enabled: !!orgId && role === "org_admin" && !skipped },
+    query: { enabled: !!orgId && role === "org_admin" && !skipped && hasPos },
+  });
+  const toOnboarding = sendsToOnboarding({
+    role, skipped, modules: mods.modules, modulesKnown: mods.known, completed: onboarding.data?.completed,
   });
   useEffect(() => {
-    if (onboarding.data && !onboarding.data.completed && !skipped) {
-      void navigate({ to: "/onboarding" });
-    }
-  }, [onboarding.data, skipped, navigate]);
+    if (toOnboarding) void navigate({ to: "/onboarding" });
+  }, [toOnboarding, navigate]);
 
   // On a bare entry (no scope in the URL), hydrate it from the persisted
   // last-used scope so every URL is complete and shareable. Runs once.
