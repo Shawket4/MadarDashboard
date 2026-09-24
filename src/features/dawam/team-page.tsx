@@ -33,7 +33,7 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { punchFor, resolveFlag, useListAttendanceFlags, useTeamPresence } from "@/data/api/generated/api";
+import { punchFor, resolveFlag, useListAttendance, useListAttendanceFlags, useTeamPresence } from "@/data/api/generated/api";
 import type { AttendanceFlag, PresenceRow } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
@@ -41,7 +41,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { fmtDateTime, fmtMoney, fmtTime } from "@/lib/format";
-import { fmtMinutes, invalidateStaff } from "@/features/staff/util";
+import { coveredBy, fmtMinutes, invalidateStaff } from "@/features/staff/util";
 import { AdjustmentDialog, ExpenseAdvanceDialog, readPounds } from "./money-dialogs";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
 import { useOwnEmployeeIds } from "@/features/staff/requests-inbox";
@@ -83,6 +83,13 @@ export function TeamPage() {
   const presenceQ = useTeamPresence({ branch_id: branchId ?? undefined }, { query: { enabled: canRead, refetchInterval: 60_000 } });
   const flagsQ = useListAttendanceFlags({ branch_id: branchId ?? undefined }, { query: { enabled: canRead } });
   const rows = useMemo(() => presenceQ.data?.rows ?? [], [presenceQ.data]);
+  // Today's records say whose shift a colleague is covering: that punch is refused (D1).
+  const today = presenceQ.data?.business_date;
+  const todayQ = useListAttendance(
+    { from: today ?? "", to: today ?? "", branch_id: branchId ?? undefined },
+    { query: { enabled: canPunch && !!today } },
+  );
+  const todayRecords = useMemo(() => todayQ.data ?? [], [todayQ.data]);
   const flags = useMemo(() => (flagsQ.data ?? []).filter((f) => !f.resolution), [flagsQ.data]);
 
   if (authz.ready && !canRead) {
@@ -158,17 +165,24 @@ export function TeamPage() {
                   r.check_in_at ? t("dawam.inAt", { time: fmtTime(r.check_in_at), defaultValue: `in ${fmtTime(r.check_in_at)}` }) : null,
                   r.late_minutes > 0 ? t("dawam.lateBy", { m: fmtMinutes(r.late_minutes), defaultValue: `late ${fmtMinutes(r.late_minutes)}` }) : null,
                 ].filter(Boolean).join(" · ")}
-                trailing={
-                  <span className="flex items-center gap-2">
-                    <StatusPill tone={STATE_TONE[r.state] ?? "neutral"}>{t(`dawam.state_${r.state}`, STATE_LABEL[r.state] ?? r.state)}</StatusPill>
-                    {canPunch && ["in", "late", "absent"].includes(r.state) ? (
-                      <Button size="sm" variant="outline" onClick={() => setPunching(r)}>
-                        <LogIn className="size-4" />
-                        {r.check_in_at && !r.check_out_at ? t("dawam.punchOut", "Punch out") : t("dawam.punchIn", "Punch in")}
-                      </Button>
-                    ) : null}
-                  </span>
-                }
+                trailing={(() => {
+                  const out = !!r.check_in_at && !r.check_out_at;
+                  const coverer = !out && today ? coveredBy(todayRecords, r.employee_id, today) : null;
+                  return (
+                    <span className="flex flex-wrap items-center justify-end gap-2">
+                      <StatusPill tone={STATE_TONE[r.state] ?? "neutral"}>{t(`dawam.state_${r.state}`, STATE_LABEL[r.state] ?? r.state)}</StatusPill>
+                      {coverer ? (
+                        <span className="text-xs text-muted-foreground">{t("dawam.coveredBy", { name: coverer, defaultValue: `Covered by ${coverer}` })}</span>
+                      ) : null}
+                      {canPunch && ["in", "late", "absent"].includes(r.state) ? (
+                        <Button size="sm" variant="outline" disabled={!!coverer} onClick={() => setPunching(r)}>
+                          <LogIn className="size-4" />
+                          {out ? t("dawam.punchOut", "Punch out") : t("dawam.punchIn", "Punch in")}
+                        </Button>
+                      ) : null}
+                    </span>
+                  );
+                })()}
               />
             ))}
           </ListCard>

@@ -25,6 +25,8 @@ const resolveFlag = vi.fn(async () => ({}));
 const punchFor = vi.fn(async () => ({}));
 const createAdjustment = vi.fn(async () => ({}));
 const logExpenseAdvance = vi.fn(async () => ({}));
+/** Today's attendance records (covers, a closed month). */
+let todayRecords: Record<string, unknown>[] = [];
 
 const failing: Record<string, Error | null> = {};
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
@@ -68,6 +70,7 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "f3", employee_id: "e1", employee_name: "Sara Ahmed", kind: "suspicious", minutes_away: 0, detected_at: "2026-09-21T07:00:00Z", resolution: "ignored", suggested_deduction_piastres: 0 },
     { id: "f4", employee_id: "e6", employee_name: "Omar Nabil", kind: "phone_died", minutes_away: 0, detected_at: "2026-09-22T12:00:00Z", resolution: null, suggested_deduction_piastres: 0 },
   ]),
+  useListAttendance: hook("attendance", () => todayRecords),
   resolveFlag: (...a: unknown[]) => resolveFlag(...(a as [])),
   punchFor: (...a: unknown[]) => punchFor(...(a as [])),
   useListEmployees: hook("employees", () => [{ id: "e4", name: "Youssef Adel" }, { id: "e6", name: "Omar Nabil", user_id: "u-me" }]),
@@ -87,6 +90,7 @@ beforeEach(() => {
   for (const k of Object.keys(failing)) delete failing[k];
   resolveFlag.mockClear();
   punchFor.mockClear();
+  todayRecords = [];
   held = [
     "hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others",
     "hr.deductions.create", "hr.staff.edit", "hr.shift_cover.confirm",
@@ -233,6 +237,24 @@ describe("TeamPage", () => {
     await user.type(within(dialog).getByLabelText("Reason"), "Phone died");
     await user.click(go);
     await waitFor(() => expect(punchFor).toHaveBeenCalledWith({ employee_id: "e4", reason: "Phone died" }));
+  });
+
+  it("D1: a shift a colleague is covering can't be punched, and says who covers it", () => {
+    todayRecords = [
+      { id: "c1", employee_id: "e7", employee_name: "Salma Adel", covered_employee_id: "e4", cover_status: "confirmed", business_date: "2026-09-22", work_shift_id: "w1" },
+    ];
+    wrap(<TeamPage />);
+    expect(screen.getByRole("button", { name: /Punch in/ })).toBeDisabled();
+    expect(screen.getByText("Covered by Salma Adel")).toBeInTheDocument();
+  });
+
+  it("D1: a rejected cover blocks nothing", () => {
+    todayRecords = [
+      { id: "c1", employee_id: "e7", employee_name: "Salma Adel", covered_employee_id: "e4", cover_status: "rejected", business_date: "2026-09-22", work_shift_id: "w1" },
+    ];
+    wrap(<TeamPage />);
+    expect(screen.getByRole("button", { name: /Punch in/ })).toBeEnabled();
+    expect(screen.queryByText(/Covered by/)).not.toBeInTheDocument();
   });
 
   it("hides punching from someone without the right", () => {

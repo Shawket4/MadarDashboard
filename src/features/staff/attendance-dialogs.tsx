@@ -23,7 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  correctRecord, createManualRecord, useListBranches, useListEmployees, useListWorkShifts,
+  correctRecord, createManualRecord, useListAttendance, useListBranches, useListEmployees, useListWorkShifts,
 } from "@/data/api/generated/api";
 import type { AttendanceRecord } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -31,7 +31,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { getActiveTz } from "@/lib/format";
 import { fromZonedInput, toZonedInput } from "@/lib/zoned-input";
 
-import { invalidateAttendance, todayIso } from "./util";
+import { coveredBy, invalidateAttendance, todayIso } from "./util";
 
 const NONE = "__none__";
 /** "From the times": the server derives the status (no override). */
@@ -118,6 +118,19 @@ export function ManualRecordDialog({
     if (open) form.reset(empty);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on open only
   }, [open]);
+
+  // The picked day's records: a colleague covering the picked shift refuses a
+  // clock-in for its owner (D1, 409 SHIFT_COVERED).
+  const [pickedEmployee, pickedDate, pickedShift, typedIn] = form.watch(["employee_id", "business_date", "work_shift_id", "check_in"]);
+  const validDate = /^\d{4}-\d{2}-\d{2}$/.test(pickedDate ?? "");
+  const dayQ = useListAttendance(
+    { from: pickedDate, to: pickedDate },
+    { query: { enabled: open && validDate && !!pickedEmployee && pickedShift !== NONE } },
+  );
+  const coverer = pickedEmployee && validDate && pickedShift !== NONE
+    ? coveredBy(dayQ.data ?? [], pickedEmployee, pickedDate, pickedShift)
+    : null;
+  const coverBlocks = !!coverer && !!typedIn;
 
   const save = form.handleSubmit(async (v) => {
     if (!branchId) {
@@ -227,6 +240,7 @@ export function ManualRecordDialog({
               )}
             />
             <TimesFields tz={tz} />
+            {coverer ? <CoveredNote name={coverer} /> : null}
             <FormField
               control={form.control}
               name="reason"
@@ -242,12 +256,25 @@ export function ManualRecordDialog({
             />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-              <Button type="submit" disabled={busy}>{t("common.save", "Save")}</Button>
+              <Button type="submit" disabled={busy || coverBlocks}>{t("common.save", "Save")}</Button>
             </DialogFooter>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** A colleague covers this shift, so its owner can't be clocked in on it (D1). */
+function CoveredNote({ name }: { name: string }) {
+  const { t } = useTranslation();
+  return (
+    <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+      {t("dawam.coveredByHint", {
+        name,
+        defaultValue: "Covered by {{name}}: nobody can clock its owner in. End or reject the cover first.",
+      })}
+    </p>
   );
 }
 
@@ -304,9 +331,12 @@ type CorrectValues = z.infer<ReturnType<typeof correctSchema>>;
  *  Only what changed is sent: an untouched stamp or status is kept as it is. */
 export function CorrectRecordDialog({
   record,
+  coveredBy: coverer = null,
   onOpenChange,
 }: {
   record: AttendanceRecord | null;
+  /** A colleague covering this shift (D1): its owner can't be clocked in on it. */
+  coveredBy?: string | null;
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useTranslation();
@@ -323,6 +353,8 @@ export function CorrectRecordDialog({
   );
   const form = useForm<CorrectValues>({ resolver: zodResolver(correctSchema(t)), defaultValues: initial });
   useEffect(() => form.reset(initial), [form, initial]);
+  const typedIn = form.watch("check_in");
+  const coverBlocks = !!coverer && !!typedIn && typedIn !== initial.check_in;
 
   const save = form.handleSubmit(async (v) => {
     if (!record) return;
@@ -356,6 +388,7 @@ export function CorrectRecordDialog({
         <Form {...form}>
           <form onSubmit={(e) => void save(e)} className="grid gap-3" noValidate>
             <TimesFields tz={tz} />
+            {coverer ? <CoveredNote name={coverer} /> : null}
             <FormField
               control={form.control}
               name="status"
@@ -384,7 +417,7 @@ export function CorrectRecordDialog({
             />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-              <Button type="submit" disabled={busy}>{t("common.save", "Save")}</Button>
+              <Button type="submit" disabled={busy || coverBlocks}>{t("common.save", "Save")}</Button>
             </DialogFooter>
           </form>
         </Form>

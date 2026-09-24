@@ -68,7 +68,7 @@ vi.mock("@/data/api/generated/api", () => ({
   listAttendance: vi.fn(async () => []),
   useListAttendance: () => q(records),
   useAttendanceSummary: () => q([]),
-  useListEmployees: () => q([{ id: "e1", name: "Sara Ahmed" }]),
+  useListEmployees: () => q([{ id: "e1", name: "Sara Ahmed", branch_ids: ["b1"] }, { id: "e2", name: "Omar Nabil", branch_ids: ["b1"] }]),
   useListWorkShifts: () => q(shifts),
   // The browser here runs in UTC; the branch is in Cairo.
   useListBranches: () => q([{ id: "b1", name: "Zamalek", timezone: "Africa/Cairo" }]),
@@ -219,5 +219,59 @@ describe("Add a record by hand", () => {
       status: null,
       reason: "The app missed the day",
     });
+  });
+});
+
+/** Omar's absent day, and Salma covering it (D1). */
+const absent = {
+  ...record, id: "r2", employee_id: "e2", employee_name: "Omar Nabil", check_in_at: null, check_out_at: null,
+  status: "absent", late_minutes: 0, worked_minutes: 0, work_shift_id: "w1",
+};
+const cover = {
+  ...record, id: "c1", employee_id: "e7", employee_name: "Salma Adel", covered_employee_id: "e2", cover_status: "pending",
+  work_shift_id: "w1", check_in_method: "cover",
+};
+
+describe("D1: a shift a colleague covers", () => {
+  it("says who covers the owner's day", () => {
+    records = [absent, cover];
+    wrap(<AttendancePage />);
+    expect(screen.getByText("Covered by Salma Adel")).toBeInTheDocument();
+    records = [record];
+  });
+
+  it("a correction can't clock the owner in while it's covered", async () => {
+    records = [absent, cover];
+    const user = userEvent.setup();
+    wrap(<AttendancePage />);
+    const omar = screen.getByText("Omar Nabil").closest("tr") as HTMLElement;
+    await user.click(within(omar).getByRole("button", { name: /^correct$/i }));
+    const dialog = await screen.findByRole("dialog");
+    await user.type(within(dialog).getByLabelText("In"), "2026-09-22T09:30");
+    await user.type(within(dialog).getByLabelText("Reason"), "He came in");
+    expect(within(dialog).getByText(/Covered by Salma Adel/)).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Save" })).toBeDisabled();
+    expect(correctRecord).not.toHaveBeenCalled();
+    records = [record];
+  });
+
+  it("Add record can't clock the owner in on the covered shift", async () => {
+    records = [absent, cover];
+    shifts = [{ id: "w1", name: "Morning", branch_id: "b1" }];
+    const user = userEvent.setup();
+    wrap(<AttendancePage />);
+    await user.click(screen.getByRole("button", { name: /add record/i }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("combobox", { name: "Employee" }));
+    await user.click(await screen.findByRole("option", { name: "Omar Nabil" }));
+    const date = within(dialog).getByLabelText("Date");
+    await user.clear(date);
+    await user.type(date, "2026-09-22");
+    await user.click(within(dialog).getByRole("combobox", { name: "Work shift" }));
+    await user.click(await screen.findByRole("option", { name: "Morning" }));
+    await user.type(within(dialog).getByLabelText("In"), "2026-09-22T09:30");
+    expect(within(dialog).getByText(/Covered by Salma Adel/)).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Save" })).toBeDisabled();
+    records = [record];
   });
 });
