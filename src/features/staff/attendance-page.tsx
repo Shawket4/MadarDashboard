@@ -114,6 +114,8 @@ export function AttendancePage() {
         { header: t("staff.autoClosedColumn", "Auto-closed"), accessor: (r) => r.check_out_method === "auto", type: "bool", width: 14 },
         { header: t("staff.inMethodColumn", "In by"), accessor: (r) => methodText(t, r.check_in_method), type: "text", width: 16 },
         { header: t("staff.outMethodColumn", "Out by"), accessor: (r) => methodText(t, r.check_out_method), type: "text", width: 16 },
+        { header: t("staff.inReasonColumn", "Why punched in"), accessor: (r) => r.punch_reason ?? "", type: "text", width: 24 },
+        { header: t("staff.outReasonColumn", "Why punched out"), accessor: (r) => r.check_out_reason ?? "", type: "text", width: 24 },
         { header: t("staff.workedMinutes", "Worked (minutes)"), accessor: (r) => r.worked_minutes, type: "integer", width: 16, total: true },
         { header: t("staff.lateMinutes", "Late (minutes)"), accessor: (r) => r.late_minutes, type: "integer", width: 16, total: true },
         { header: t("staff.overtimeMinutes", "Overtime (minutes)"), accessor: (r) => r.overtime_minutes, type: "integer", width: 18, total: true },
@@ -192,6 +194,7 @@ export function AttendancePage() {
                 <bdi>{t("staff.metres", { n: fmtNumber(Math.round(row.original.check_in_distance_meters)), defaultValue: "{{n}}m" })}</bdi>
               </span>
             ) : null}
+            <PunchReason text={row.original.punch_reason} />
           </div>
         ),
       },
@@ -209,6 +212,7 @@ export function AttendancePage() {
             ) : (
               <MethodBadge method={row.original.check_out_method} />
             )}
+            <PunchReason text={row.original.check_out_reason} />
           </div>
         ),
       },
@@ -360,5 +364,15 @@ function MethodBadge({ method }: { method?: string | null }) {
     <Badge variant="outline" className="font-sans text-xs">
       {text}
     </Badge>
+  );
+}
+
+/** Why someone else made this punch (AT-10; the out-reason is its own, BC-1). */
+function PunchReason({ text }: { text?: string | null }) {
+  if (!text) return null;
+  return (
+    <span className="max-w-48 truncate font-sans text-xs text-muted-foreground" title={text}>
+      <bdi>{text}</bdi>
+    </span>
   );
 }

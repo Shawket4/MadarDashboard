@@ -4710,7 +4710,9 @@
     "payChoiceNeeded": "قول الإجازة دي مدفوعة ولا لأ",
     "leavePayQuestion": "مدفوعة ولا غير مدفوعة؟ هتتعتمد وانت بتقدّمها.",
     "paid": "مدفوعة",
-    "unpaid": "غير مدفوعة"
+    "unpaid": "غير مدفوعة",
+    "inReasonColumn": "سبب تسجيل الحضور",
+    "outReasonColumn": "سبب تسجيل الانصراف"
   },
   "basira": {
     "title": "بصيرة",

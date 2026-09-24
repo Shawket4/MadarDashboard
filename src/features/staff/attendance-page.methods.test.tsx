@@ -26,9 +26,10 @@ const record = (id: string, name: string, inMethod: string, outMethod: string | 
 
 const rows = [
   record("e1", "Sara Ahmed", "mobile_gps", "mobile_gps"),
-  record("e2", "Omar Khaled", "manager", "till"),
+  { ...record("e2", "Omar Khaled", "manager", "manager"), punch_reason: "Phone died", check_out_reason: "Forgot to clock out" },
   record("e3", "Hana Mostafa", "correction", "offline"),
   record("e4", "Youssef Adel", "mobile_gps", "auto"),
+  record("e5", "Nada Samir", "mobile_gps", "till"),
 ];
 
 const q = (data: unknown) => () => ({ data, isLoading: false, isFetching: false, error: null, refetch: vi.fn() });
@@ -76,8 +77,8 @@ describe("AttendancePage punch methods (CL-16)", () => {
     await i18n.changeLanguage("en");
     page();
     const omar = within(rowOf("Omar Khaled"));
-    expect(omar.getByText("by a manager")).toBeInTheDocument();
-    expect(omar.getByText("till PIN")).toBeInTheDocument();
+    expect(omar.getAllByText("by a manager")).toHaveLength(2);
+    expect(within(rowOf("Nada Samir")).getByText("till PIN")).toBeInTheDocument();
     const hana = within(rowOf("Hana Mostafa"));
     expect(hana.getByText("corrected")).toBeInTheDocument();
     expect(hana.getByText("queued offline")).toBeInTheDocument();
@@ -91,8 +92,17 @@ describe("AttendancePage punch methods (CL-16)", () => {
     await i18n.changeLanguage("ar");
     page();
     const omar = within(rowOf("Omar Khaled"));
-    expect(omar.getByText("من المدير")).toBeInTheDocument();
-    expect(omar.getByText("رقم سري على الكاشير")).toBeInTheDocument();
+    expect(omar.getAllByText("من المدير")).toHaveLength(2);
+    expect(within(rowOf("Nada Samir")).getByText("رقم سري على الكاشير")).toBeInTheDocument();
     await i18n.changeLanguage("en");
+  });
+
+  it("shows why a manager punched someone in and why they punched them out (AT-10, BC-1)", async () => {
+    await i18n.changeLanguage("en");
+    page();
+    const omar = within(rowOf("Omar Khaled"));
+    expect(omar.getByText(/Phone died/)).toBeInTheDocument();
+    expect(omar.getByText(/Forgot to clock out/)).toBeInTheDocument();
+    expect(within(rowOf("Sara Ahmed")).queryByText(/Phone died|Forgot/)).not.toBeInTheDocument();
   });
 });

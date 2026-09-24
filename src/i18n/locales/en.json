@@ -4577,7 +4577,9 @@
     "payChoiceNeeded": "Say whether this leave is paid or unpaid",
     "leavePayQuestion": "Paid or unpaid? It is approved as you file it.",
     "paid": "Paid",
-    "unpaid": "Unpaid"
+    "unpaid": "Unpaid",
+    "inReasonColumn": "Why punched in",
+    "outReasonColumn": "Why punched out"
   },
   "basira": {
     "title": "Basira",
