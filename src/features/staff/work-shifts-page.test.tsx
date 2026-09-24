@@ -28,7 +28,7 @@ const hook = (data: () => unknown) => () => ({ data: data(), isLoading: false, i
 
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
 /** Who is looking: the owner by default; a branch manager holds edit but not create/delete. */
-let me: { owner: boolean; caps: string[] } = { owner: true, caps: [] };
+let me: { owner: boolean; caps: string[]; everywhere?: string[] } = { owner: true, caps: [] };
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
   return {
@@ -37,6 +37,7 @@ vi.mock("@/data/authz/use-authz", async () => {
       real.authzFrom({
         user_id: "u", epoch: 0, spec_version: 0, owner: me.owner, platform: false, role_kinds: [],
         capabilities: me.caps as never, ask_manager: [], limits: {},
+        ...(me.everywhere ? { everywhere: me.everywhere as never } : {}),
       }),
   };
 });
@@ -240,5 +241,21 @@ describe("WorkShiftsPage", () => {
     expect(screen.queryByRole("button", { name: "Delete work shift" })).not.toBeInTheDocument();
     // Their own branch's block stays editable; the business-wide one does not.
     expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(1);
+  });
+
+  it("keeps business-wide blocks to someone holding the right at every branch (B-SETUP-3, /authz/me everywhere)", async () => {
+    // Karim holds the roster rights at Arkan only: his branch's block is his, a business-wide one is not.
+    me = { owner: false, caps: OWNER_CAPS, everywhere: ["hr.schedule.read"] };
+    shifts = [evening, { ...evening, id: "w3", name: "Anywhere", branch_id: null, day_times: [] }];
+    const user = userEvent.setup();
+    wrap(<WorkShiftsPage />);
+    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Delete work shift" })).toHaveLength(1);
+    // A new block is his branch's: "Every branch" isn't offered.
+    await user.click(screen.getAllByRole("button", { name: "New shift" })[0]);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("combobox", { name: "Branch" }));
+    expect(screen.queryByRole("option", { name: "Every branch" })).not.toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Zamalek" })).toBeInTheDocument();
   });
 });

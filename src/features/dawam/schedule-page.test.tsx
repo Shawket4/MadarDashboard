@@ -15,6 +15,8 @@ import { todayIso } from "@/features/staff/util";
 import { addDays, weekStartOf } from "./week";
 
 let held: string[] = [];
+/** `/authz/me` `everywhere`: unset = an older server that doesn't send it. */
+let everywhere: string[] | undefined;
 const week = weekStartOf(todayIso());
 let publishedWeeks: string[] = [];
 let warnings: unknown[] = [];
@@ -51,6 +53,7 @@ vi.mock("@/data/authz/use-authz", async () => {
       real.authzFrom({
         user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
         capabilities: held as never, ask_manager: [], limits: {},
+        ...(everywhere ? { everywhere: everywhere as never } : {}),
       }),
   };
 });
@@ -121,6 +124,7 @@ const wrap = (node: ReactNode) =>
 beforeEach(() => {
   for (const f of Object.values(calls)) f.mockClear();
   held = ["hr.schedule.read", "hr.schedule.edit", "hr.schedule.publish"];
+  everywhere = undefined;
   publishedWeeks = [];
   warnings = [];
   coverage = null;
@@ -175,6 +179,15 @@ describe("SchedulePage", () => {
     await waitFor(() => expect(calls.decideSuggestion).toHaveBeenCalledWith({ branch_id: "b1", id: "g1", accept: true }));
     await user.click(screen.getByRole("button", { name: "Make it a holiday" }));
     await waitFor(() => expect(calls.decideHoliday).toHaveBeenCalledWith(addDays(todayIso(), 10), { decision: "holiday" }));
+  });
+
+  it("leaves a public holiday's decision to someone who publishes at every branch (B-SETUP-3)", () => {
+    // Karim publishes Arkan's rota only; a holiday is the whole business's.
+    everywhere = ["hr.schedule.read"];
+    wrap(<SchedulePage />);
+    expect(screen.getByText("Armed Forces Day")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Make it a holiday" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Normal day" })).not.toBeInTheDocument();
   });
 
   it("is read-only for someone who can only read", () => {

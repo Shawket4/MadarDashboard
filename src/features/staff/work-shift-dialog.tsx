@@ -152,11 +152,14 @@ export function WorkShiftDialog({
   open,
   onOpenChange,
   branches,
+  wholeBusiness = true,
 }: {
   shift: WorkShift | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   branches: { id: string; name: string }[];
+  /** May this person make a block business-wide (the right at every branch)? */
+  wholeBusiness?: boolean;
 }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
@@ -167,9 +170,13 @@ export function WorkShiftDialog({
   });
 
   useEffect(() => {
-    if (open) form.reset(valuesOf(shift));
+    if (!open) return;
+    const v = valuesOf(shift);
+    // Without the right everywhere a new block starts at a branch, not the whole business.
+    if (!wholeBusiness && v.branch_id === WHOLE_BUSINESS && branches[0]) v.branch_id = branches[0].id;
+    form.reset(v);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, shift]);
+  }, [open, shift, wholeBusiness, branches.length]);
 
   const validDays = useWatch({ control: form.control, name: "valid_days" }) ?? [];
   const start = useWatch({ control: form.control, name: "start_time" }) ?? "";
@@ -259,7 +266,9 @@ export function WorkShiftDialog({
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl><SelectTrigger aria-label={t("staff.shiftBranch", "Branch")}><SelectValue /></SelectTrigger></FormControl>
                   <SelectContent>
-                    <SelectItem value={WHOLE_BUSINESS}>{t("staff.wholeBusiness", "Every branch")}</SelectItem>
+                    {wholeBusiness || field.value === WHOLE_BUSINESS ? (
+                      <SelectItem value={WHOLE_BUSINESS}>{t("staff.wholeBusiness", "Every branch")}</SelectItem>
+                    ) : null}
                     {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
                   </SelectContent>
                 </Select>

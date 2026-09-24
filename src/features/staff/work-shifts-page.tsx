@@ -32,7 +32,10 @@ export function WorkShiftsPage() {
   const canCreate = authz.can(Cap.hrScheduleCreate);
   const canDelete = authz.can(Cap.hrScheduleDelete);
   const canEdit = authz.can(Cap.hrScheduleEdit);
-  const canEditShift = (s: WorkShift) => canEdit && (!!s.branch_id || authz.owner || canCreate);
+  // A business-wide block needs the right at every branch (/authz/me `everywhere`, B-SETUP-3).
+  const canEditShift = (s: WorkShift) =>
+    canEdit && (!!s.branch_id || (authz.canEverywhere(Cap.hrScheduleEdit) && (authz.owner || canCreate)));
+  const canDeleteShift = (s: WorkShift) => canDelete && (!!s.branch_id || authz.canEverywhere(Cap.hrScheduleDelete));
   const shiftsQ = useListWorkShifts();
   const orgId = useOrgId();
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
@@ -151,7 +154,7 @@ export function WorkShiftsPage() {
                       <Pencil className="size-4" />
                     </RowAction>
                   ) : null}
-                  {canDelete ? (
+                  {canDeleteShift(s) ? (
                     <RowAction destructive label={t("staff.deleteShift", "Delete work shift")} onClick={() => void removeShift(s)}>
                       <Trash2 className="size-4" />
                     </RowAction>
@@ -168,6 +171,7 @@ export function WorkShiftsPage() {
 
       <WorkShiftDialog
         branches={branches}
+        wholeBusiness={authz.canEverywhere(editing ? Cap.hrScheduleEdit : Cap.hrScheduleCreate)}
         shift={editing}
         open={creating || !!editing}
         onOpenChange={(o) => {

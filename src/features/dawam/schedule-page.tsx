@@ -54,6 +54,8 @@ export function SchedulePage() {
   const canEdit = authz.can(Cap.hrScheduleEdit);
   const canPublish = authz.can(Cap.hrSchedulePublish);
   const canSettings = authz.can(Cap.hrRosterSettings);
+  // A public holiday is the whole business's: deciding it needs publish at every branch (B-SETUP-3).
+  const canDecideHolidays = authz.canEverywhere(Cap.hrSchedulePublish);
   const canStaffEdit = authz.can(Cap.hrStaffEdit);
   const [dayOpen, setDayOpen] = useState<{ person: RosterPerson; date: string } | null>(null);
   const [prefsOf, setPrefsOf] = useState<RosterPerson | null>(null);
@@ -372,7 +374,9 @@ export function SchedulePage() {
                 title={i18n.language.startsWith("ar") ? h.name_ar : h.name_en}
                 meta={t("dawam.holidayHint", { date: fmtDate(h.on_date), defaultValue: `${fmtDate(h.on_date)} · as a holiday nobody is marked absent, and working it pays extra` })}
                 trailing={
-                  <span className="flex items-center gap-1">
+                  !canDecideHolidays ? (
+                    <span className="text-xs text-muted-foreground">{t("dawam.holidayDecidedAbove", "Decided for every branch at once")}</span>
+                  ) : <span className="flex items-center gap-1">
                     <Button size="sm" variant="outline" onClick={() => void run(`h|${h.on_date}`, () => decideHoliday(h.on_date, { decision: "holiday" }), t("dawam.holidaySet", "Set as a holiday"))}>{t("dawam.makeHoliday", "Make it a holiday")}</Button>
                     <Button size="sm" variant="ghost" onClick={() => void run(`h|${h.on_date}`, () => decideHoliday(h.on_date, { decision: "dismissed" }), t("dawam.holidayDismissed", "Kept as a normal day"))}>{t("dawam.normalDay", "Normal day")}</Button>
                   </span>

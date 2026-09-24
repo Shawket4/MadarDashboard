@@ -6315,7 +6315,8 @@
     "reason_left_mid_shift": "Left mid-shift",
     "pay_none": "Nothing to pay",
     "stopTitle": "Stop \"{{line}}\"?",
-    "stopHint": "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log."
+    "stopHint": "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log.",
+    "holidayDecidedAbove": "Decided for every branch at once"
   },
   "legal": {
     "label": "Legal",
