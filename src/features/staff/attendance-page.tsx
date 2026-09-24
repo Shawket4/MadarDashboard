@@ -20,7 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  listAttendance, useAttendanceSummary, useListAttendance,
+  listAttendance, useAttendanceSummary, useListAttendance, useListBranches,
 } from "@/data/api/generated/api";
 import type { AttendanceRecord } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -28,6 +28,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
+import { useOrgId } from "@/hooks/use-org-id";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
@@ -63,6 +64,14 @@ export function AttendancePage() {
   const recordsQ = useListAttendance(params);
   const summaryQ = useAttendanceSummary(params);
   const records = useMemo(() => recordsQ.data ?? [], [recordsQ.data]);
+  // Each punch reads on its own branch's clock (AT-1), also with "All
+  // branches" in scope, as the Correct dialog does.
+  const orgId = useOrgId();
+  const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
+  const zones = useMemo(
+    () => new Map((branchesQ.data ?? []).map((b) => [b.id, b.timezone || undefined])),
+    [branchesQ.data],
+  );
 
   // Roll the per-employee summary up to a headline for the window.
   const totals = useMemo(() => {
@@ -171,7 +180,7 @@ export function AttendancePage() {
         meta: { label: t("staff.checkIn", "In"), numeric: true, align: "start" },
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
-            <span>{row.original.check_in_at ? fmtDateTime(row.original.check_in_at) : "—"}</span>
+            <span>{row.original.check_in_at ? fmtDateTime(row.original.check_in_at, zones.get(row.original.branch_id)) : "—"}</span>
             <MethodBadge method={row.original.check_in_method} />
             {row.original.check_in_distance_meters !== null
               && row.original.check_in_distance_meters !== undefined ? (
@@ -192,7 +201,7 @@ export function AttendancePage() {
         meta: { label: t("staff.checkOut", "Out"), numeric: true, align: "start" },
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
-            <span>{row.original.check_out_at ? fmtDateTime(row.original.check_out_at) : "—"}</span>
+            <span>{row.original.check_out_at ? fmtDateTime(row.original.check_out_at, zones.get(row.original.branch_id)) : "—"}</span>
             {row.original.check_out_method === "auto" ? (
               <Badge variant="secondary" className="font-sans text-xs">
                 {t("staff.autoClosed", "auto")}
@@ -232,7 +241,7 @@ export function AttendancePage() {
           ),
       },
     ],
-    [t],
+    [t, zones],
   );
 
   return (

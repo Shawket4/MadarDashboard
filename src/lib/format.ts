@@ -24,7 +24,7 @@ export const getActiveTz = (): string => useAppStore.getState().activeTimezone |
  */
 const upMeridiem = (s: string): string => s.replace(/\b([ap])\.?m\.?\b/gi, (_m, p: string) => `${p.toUpperCase()}M`);
 
-const withTZ = (opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions => ({
+const withTZ = (opts: Intl.DateTimeFormatOptions, tz?: string): Intl.DateTimeFormatOptions => ({
   // 12-hour clock and Western digits in both languages — the POS shape
   // (docs/design/SPEC.md §9): `06:02 PM`, Arabic `06:02 م`. Every time of day
   // the dashboard SHOWS goes through here; wire values (an `<input type=time>`,
@@ -33,7 +33,7 @@ const withTZ = (opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions =>
   hourCycle: "h12",
   numberingSystem: "latn",
   ...opts,
-  timeZone: getActiveTz(),
+  timeZone: tz || getActiveTz(),
 });
 
 // ── Money ────────────────────────────────────────────────────────────────────
@@ -173,11 +173,12 @@ export const fmtTime = (iso: string | Date | null | undefined): string => {
   ).format(new Date(iso)));
 };
 
-export const fmtDateTime = (iso: string | Date | null | undefined): string => {
+/** `tz`: the zone to read the instant in (a record's branch, AT-1); else the active one. */
+export const fmtDateTime = (iso: string | Date | null | undefined, tz?: string | null): string => {
   if (!iso) return "—";
   return upMeridiem(new Intl.DateTimeFormat(
     getLocale(),
-    withTZ({ day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
+    withTZ({ day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }, tz ?? undefined),
   ).format(new Date(iso)));
 };
 

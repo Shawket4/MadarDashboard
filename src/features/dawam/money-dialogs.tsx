@@ -30,6 +30,7 @@ import {
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
+import { useAuthStore } from "@/data/stores/auth.store";
 import { cairoNow, egpToPiastres } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
 
@@ -101,9 +102,12 @@ function FormDialog<V extends FieldValues>({
   );
 }
 
-function PersonField<V extends FieldValues>({ form, name, enabled }: { form: UseFormReturn<V>; name: Path<V>; enabled: boolean }) {
+function PersonField<V extends FieldValues>({ form, name, enabled, notSelf = false }: { form: UseFormReturn<V>; name: Path<V>; enabled: boolean; notSelf?: boolean }) {
   const { t } = useTranslation();
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled } });
+  // A pay line is never for yourself (AD-4): the server refuses it, so it isn't offered.
+  const me = useAuthStore((s) => s.user?.id);
+  const people = (employeesQ.data ?? []).filter((e) => !notSelf || !me || e.user_id !== me);
   return (
     <FormField
       control={form.control}
@@ -118,7 +122,7 @@ function PersonField<V extends FieldValues>({ form, name, enabled }: { form: Use
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {(employeesQ.data ?? []).map((e) => (
+              {people.map((e) => (
                 <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
               ))}
             </SelectContent>
@@ -208,7 +212,7 @@ export function AdjustmentDialog({
         else toast.success(t("dawam.payLineAdded", "Pay line added"));
       }}
     >
-      {fixedUser ? null : <PersonField form={form} name="employee_id" enabled={open} />}
+      {fixedUser ? null : <PersonField form={form} name="employee_id" enabled={open} notSelf />}
       <FormField
         control={form.control}
         name="kind"
