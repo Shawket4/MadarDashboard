@@ -125,7 +125,10 @@ describe("the server's own wording in the reader's language (D-B2)", () => {
     };
     expect(label("a")).toBe("تأخير 24 دقيقة");
     expect(label("b")).toBe("غياب — لم يُسجَّل حضور");
-    expect(label("c")).toBe("وقت إذن غير مدفوع: 40 دقيقة");
+    // D2: the minutes counted are the minutes actually away inside the excuse.
+    expect(label("c")).toBe("غياب أثناء إذن غير مدفوع: 40 دقيقة");
+    const c = lines.find((x) => x.key === "d|c")!;
+    expect(i18n.getFixedT("en")(c.labelKey!, { ...c.vars, defaultValue: c.label })).toBe("Away during an unpaid excuse: 40 minutes");
     expect(label("d")).toBe("غادرت الفرع بدون إذن");
     expect(label("e")).toBe("Something new");
     expect(label("f")).toBe("Unpaid leave");

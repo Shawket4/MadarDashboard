@@ -310,6 +310,9 @@ describe("ApprovalsPage", () => {
     let dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("switch")).not.toBeChecked();
     expect(within(dialog).getByText("The rule says unpaid.")).toBeInTheDocument();
+    // D2: only the minutes actually away count; paid never adds worked time.
+    expect(within(dialog).getByText(/Only the minutes they were actually away count/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/still count toward the day/)).not.toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Approve" }));
     await waitFor(() => expect(calls.decideRequest).toHaveBeenCalledWith("q4", { status: "approved", note: null }));
 

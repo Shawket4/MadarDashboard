@@ -419,7 +419,7 @@ export function ApproveWithPayDialog({
                   ? t("staff.paidLeaveHint", "Off, the days are docked like an absence.")
                   : t(
                       "staff.paidTimeHint",
-                      "On, the excused hours still count toward the day. Off, they are excused but unpaid.",
+                      "Only the minutes they were actually away count. On, those minutes are forgiven; off, they are docked. Worked time is never more than real presence.",
                     )}
               </p>
               {!isLeave && request?.paid_default != null ? (
