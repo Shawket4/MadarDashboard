@@ -14,6 +14,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorkShift } from "@/data/api/generated/models";
 
 let shifts: WorkShift[] = [];
+let employees: { id: string; name: string; branch_ids: string[] }[] = [];
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
 vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const calls = {
@@ -26,6 +27,20 @@ const calls = {
 const hook = (data: () => unknown) => () => ({ data: data(), isLoading: false, isFetching: false, error: null, refetch: vi.fn() });
 
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
+/** Who is looking: the owner by default; a branch manager holds edit but not create/delete. */
+let me: { owner: boolean; caps: string[] } = { owner: true, caps: [] };
+vi.mock("@/data/authz/use-authz", async () => {
+  const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
+  return {
+    ...real,
+    useAuthz: () =>
+      real.authzFrom({
+        user_id: "u", epoch: 0, spec_version: 0, owner: me.owner, platform: false, role_kinds: [],
+        capabilities: me.caps as never, ask_manager: [], limits: {},
+      }),
+  };
+});
+const OWNER_CAPS = ["hr.schedule.read", "hr.schedule.edit", "hr.schedule.create", "hr.schedule.delete"];
 vi.mock("./util", async () => {
   const real = await vi.importActual<typeof import("./util")>("./util");
   return { ...real, invalidateWorkShifts: vi.fn(), invalidateSchedules: vi.fn() };
@@ -33,7 +48,7 @@ vi.mock("./util", async () => {
 vi.mock("@/data/api/generated/api", () => ({
   useListWorkShifts: hook(() => shifts),
   useListBranches: hook(() => [{ id: "b1", name: "Zamalek" }, { id: "b2", name: "Maadi" }]),
-  useListEmployees: hook(() => [{ id: "e1", name: "Sara Ahmed" }]),
+  useListEmployees: hook(() => employees),
   useListAssignments: hook(() => []),
   ...calls,
 }));
@@ -69,6 +84,8 @@ beforeEach(() => {
   for (const f of Object.values(calls)) f.mockClear();
   toastMock.warning.mockClear();
   shifts = [];
+  employees = [{ id: "e1", name: "Sara Ahmed", branch_ids: ["b1"] }];
+  me = { owner: true, caps: OWNER_CAPS };
 });
 
 describe("the shift body", () => {
@@ -172,8 +189,8 @@ describe("WorkShiftsPage", () => {
     const table = screen.getByRole("table");
     const row = within(table).getByText("Sara Ahmed").closest("tr")!;
     const cells = within(row).getAllByRole("button");
-    // Columns: Every day, Sun … Sat; Friday is index 6.
-    await user.click(cells[6]);
+    // Columns: Every day, then the week as the business reads it, Sat … Fri; Friday is last.
+    await user.click(cells[7]);
     const fri = await screen.findAllByRole("menuitem");
     expect(fri.map((m) => m.textContent)).toEqual(["Evening16:00–01:00", "Rest day"]);
   });
@@ -183,12 +200,45 @@ describe("WorkShiftsPage", () => {
     await i18n.changeLanguage("ar");
     try {
       wrap(<WorkShiftsPage />);
-      await user.click(screen.getAllByRole("button", { name: "جدول عمل جديدة" })[0]);
+      await user.click(screen.getAllByRole("button", { name: "جدول عمل جديد" })[0]);
       const dialog = await screen.findByRole("dialog");
       expect(within(dialog).getByRole("group", { name: "أيام العمل بها" })).toBeInTheDocument();
       expect(within(dialog).getByLabelText("معدل الإضافي الليلي")).toBeInTheDocument();
     } finally {
       await i18n.changeLanguage("en");
     }
+  });
+
+  it("runs the pattern's week from Saturday, like every other week view (O-16)", () => {
+    shifts = [evening];
+    wrap(<WorkShiftsPage />);
+    const heads = within(screen.getByRole("table")).getAllByRole("columnheader").map((h) => h.textContent);
+    expect(heads.slice(2)).toEqual(["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]);
+  });
+
+  it("offers a person only the blocks of their own branches and business-wide ones (D-076)", async () => {
+    const user = userEvent.setup();
+    shifts = [
+      evening,
+      { ...evening, id: "w2", name: "Maadi late", branch_id: "b2", day_times: [] },
+      { ...evening, id: "w3", name: "Anywhere", branch_id: null, day_times: [] },
+    ];
+    wrap(<WorkShiftsPage />);
+    const row = within(screen.getByRole("table")).getByText("Sara Ahmed").closest("tr")!;
+    await user.click(within(row).getAllByRole("button")[1]); // Saturday
+    const items = (await screen.findAllByRole("menuitem")).map((m) => m.textContent);
+    expect(items.some((t) => t?.startsWith("Evening"))).toBe(true);
+    expect(items.some((t) => t?.startsWith("Anywhere"))).toBe(true);
+    expect(items.some((t) => t?.startsWith("Maadi late"))).toBe(false);
+  });
+
+  it("does not offer a branch manager what the server refuses: new, delete, a business-wide block (O-1)", () => {
+    me = { owner: false, caps: ["hr.schedule.read", "hr.schedule.edit"] };
+    shifts = [evening, { ...evening, id: "w3", name: "Anywhere", branch_id: null, day_times: [] }];
+    wrap(<WorkShiftsPage />);
+    expect(screen.queryByRole("button", { name: "New shift" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete work shift" })).not.toBeInTheDocument();
+    // Their own branch's block stays editable; the business-wide one does not.
+    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(1);
   });
 });

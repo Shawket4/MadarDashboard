@@ -17,6 +17,9 @@ import type { ScheduleAssignment, WorkShift } from "@/data/api/generated/models"
 import { getErrorMessage } from "@/data/api/errors";
 import { invalidateSchedules, WEEKDAYS } from "./util";
 
+/** Saturday first, as every other week view in Dawam reads (Egypt). */
+const WEEK_COLUMNS = [6, 0, 1, 2, 3, 4, 5].map((v) => WEEKDAYS.find((d) => d.value === v)!);
+
 /**
  * The roster as a grid: everyone down the side, the week across the top.
  *
@@ -127,7 +130,7 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
                       {t("staff.everyDay", "Every day")}
                     </span>
                   </th>
-                  {WEEKDAYS.map((d) => (
+                  {WEEK_COLUMNS.map((d) => (
                     <th key={d.value} className="border-b px-1 py-2.5 text-center text-xs font-semibold text-muted-foreground">
                       {t(d.labelKey, d.fallback)}
                     </th>
@@ -137,6 +140,11 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
               <tbody>
                 {employees.map((e) => {
                   const entry = roster.get(e.id);
+                  // A block belongs to its branch (SC-1): offer this person
+                  // only their own branches' blocks and business-wide ones.
+                  const theirs = activeShifts.filter(
+                    (s) => !s.branch_id || (e.branch_ids ?? []).includes(s.branch_id),
+                  );
                   return (
                     <tr key={e.id} className="[&:first-child>td]:border-t-0">
                       <td className="sticky start-0 z-10 max-w-[12rem] truncate border-t bg-card px-4 py-1.5 font-medium">
@@ -145,19 +153,19 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
                       <Cell
                         busy={busyCell === `${e.id}:all`}
                         assignment={entry?.everyDay}
-                        shifts={activeShifts}
+                        shifts={theirs}
                         onPick={(shiftId) =>
                           void setCell(e.id, null, entry?.everyDay, shiftId)
                         }
                       />
-                      {WEEKDAYS.map((d) => (
+                      {WEEK_COLUMNS.map((d) => (
                         <Cell
                           key={d.value}
                           weekday={d.value}
                           busy={busyCell === `${e.id}:${d.value}`}
                           assignment={entry?.byWeekday[d.value]}
                           inherited={entry?.everyDay}
-                          shifts={activeShifts}
+                          shifts={theirs}
                           onPick={(shiftId) =>
                             void setCell(e.id, d.value, entry?.byWeekday[d.value], shiftId)
                           }
