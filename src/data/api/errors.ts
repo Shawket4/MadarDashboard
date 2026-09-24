@@ -30,7 +30,13 @@ export const getErrorMessage = (err: unknown): string => {
     const code = typeof data?.code === "string" ? data.code : undefined;
     const vars = codedVars(data?.vars);
     // A paid month can't be reopened, so it gets its own wording (PERIOD_CLOSED {paid}).
-    const key = code === "PERIOD_CLOSED" && vars.paid === true ? "PERIOD_CLOSED_paid" : code;
+    const key =
+      code === "PERIOD_CLOSED" && vars.paid === true
+        ? "PERIOD_CLOSED_paid"
+        : // A manager's move names who already has the block (B-ROTA-1); the app's claim sends no figures.
+          code === "ALREADY_ROSTERED" && typeof vars.name === "string"
+          ? "ALREADY_ROSTERED_named"
+          : code;
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
 
     // Backend convention: { error: "..." } or { message: "..." }

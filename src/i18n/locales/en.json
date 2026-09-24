@@ -2217,6 +2217,7 @@
       "SUGGESTION_STALE": "That suggestion no longer applies. Refresh the suggestions.",
       "WEEK_NOT_PUBLISHED": "That week isn't published yet.",
       "ALREADY_ROSTERED": "They're already on that shift.",
+      "ALREADY_ROSTERED_named": "{{name}} is already on {{shift}} on {{date}}. Nothing was moved.",
       "SWAP_STALE": "Those shifts aren't on the roster any more.",
       "SWAP_STARTED": "A shift that already started can't be swapped.",
       "SWAP_OTHER_BRANCH": "Swaps are only with a colleague at the same branch.",
