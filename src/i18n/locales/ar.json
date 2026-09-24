@@ -6532,7 +6532,14 @@
     "coveredByHint": "بيغطّيها {{name}}: محدش يقدر يسجّل حضور صاحب الوردية. أنهي التغطية أو ارفضها الأول.",
     "holidaysOwnerOnly": "يقرّر المالك العطلات الرسمية.",
     "holidayDecided": "عطلة",
-    "holidayUndecided": "لم يُحسم بعد"
+    "holidayUndecided": "لم يُحسم بعد",
+    "coverPay": "أجر التغطية",
+    "coverPayMinute": "أجر الدقيقة لمن يغطّي",
+    "coverPayMinuteHint": "تُدفع دقائق التغطية بأجر الدقيقة الخاص بمن يغطّي (أجره اليومي ÷ 8 ساعات).",
+    "coverPayBlock": "يوم كامل عن الفترة",
+    "coverPayBlockHint": "تُدفع الفترة المغطّاة كيوم كامل مهما كانت قصيرة.",
+    "coverPayBusiness": "استخدام إعداد النشاط",
+    "coverPayBusinessHint": "يدفع هذا الفرع التغطية بنفس طريقة النشاط."
   },
   "legal": {
     "label": "قانوني",

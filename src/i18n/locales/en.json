@@ -6335,7 +6335,14 @@
     "coveredByHint": "Covered by {{name}}: nobody can clock its owner in. End or reject the cover first.",
     "holidaysOwnerOnly": "The owner decides public holidays.",
     "holidayDecided": "Holiday",
-    "holidayUndecided": "Not decided yet"
+    "holidayUndecided": "Not decided yet",
+    "coverPay": "Cover pay",
+    "coverPayMinute": "The coverer's minute rate",
+    "coverPayMinuteHint": "Pay the covered minutes at the coverer's own minute rate (their day rate ÷ 8 hours).",
+    "coverPayBlock": "A full day for the block",
+    "coverPayBlockHint": "Pay a covered block as a full day, however short it is.",
+    "coverPayBusiness": "Use the business setting",
+    "coverPayBusinessHint": "This branch pays covers the way the business does."
   },
   "legal": {
     "label": "Legal",

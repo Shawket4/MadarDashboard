@@ -4,7 +4,8 @@
  * approves, its day and night rates, the public-holiday rate, the cap on
  * outstanding salary advances, the day a pay period starts, and how half-day
  * leave counts; the night window (RU-9), labour limits that warn and never
- * block (RU-13), POS-derived coverage and the owner's gender mode (SC-12).
+ * block (RU-13), POS-derived coverage and the owner's gender mode (SC-12),
+ * and how a confirmed cover is paid (owner decision D5).
  * Saved with the rest of the page's rules in one request.
  */
 import { useTranslation } from "react-i18next";
@@ -13,7 +14,8 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { AttendanceSettings, PutAttendanceSettingsRequest } from "@/data/api/generated/models";
+import { cn } from "@/lib/utils";
+import { coverPayOf, type CoverPayMode, type SettingsD, type SettingsPutD } from "./phase-d-contract";
 
 export interface DawamRules {
   overtimeMode: "off" | "automatic" | "approval";
@@ -32,6 +34,7 @@ export interface DawamRules {
   limitRest: string;
   limitOtDay: string;
   ordersPerStaff: string;
+  coverPayMode: CoverPayMode;
 }
 
 type NumKey = "otDay" | "otNight" | "holidayMult" | "advanceCap" | "periodStartDay" | "limitDay" | "limitWeek" | "limitPresence" | "limitRest" | "limitOtDay" | "ordersPerStaff";
@@ -44,9 +47,10 @@ export const DEFAULT_RULES: DawamRules = {
   overtimeMode: "off", otDay: "1.35", otNight: "1.70", holidayMult: "2", advanceCap: "50", periodStartDay: "1", halfDay: "half_shift",
   nightStart: "22:00", nightEnd: "06:00", genderMode: "off",
   limitDay: "8", limitWeek: "48", limitPresence: "10", limitRest: "12", limitOtDay: "2", ordersPerStaff: "12",
+  coverPayMode: "minute_rate",
 };
 
-export const rulesFrom = (s: AttendanceSettings): DawamRules => ({
+export const rulesFrom = (s: SettingsD): DawamRules => ({
   overtimeMode: (["off", "automatic", "approval"].includes(s.overtime_mode) ? s.overtime_mode : "off") as DawamRules["overtimeMode"],
   otDay: String(s.overtime_day_multiplier ?? 1.35),
   otNight: String(s.overtime_night_multiplier ?? 1.7),
@@ -63,6 +67,7 @@ export const rulesFrom = (s: AttendanceSettings): DawamRules => ({
   limitRest: String(s.limit_rest_hours ?? DEFAULT_RULES.limitRest),
   limitOtDay: String(s.limit_overtime_day_hours ?? DEFAULT_RULES.limitOtDay),
   ordersPerStaff: String(s.orders_per_staff ?? DEFAULT_RULES.ordersPerStaff),
+  coverPayMode: coverPayOf(s),
 });
 
 /**
@@ -70,7 +75,7 @@ export const rulesFrom = (s: AttendanceSettings): DawamRules => ({
  * rides only for someone holding `hr.roster.settings`; anyone else would be
  * refused the whole save for a field they can't change.
  */
-export function rulesRequest(r: DawamRules, canGender = false): { ok: PutAttendanceSettingsRequest } | { error: string } {
+export function rulesRequest(r: DawamRules, canGender = false): { ok: SettingsPutD } | { error: string } {
   const n = (s: string) => Number(s);
   if (!(n(r.otDay) >= 1 && n(r.otNight) >= 1 && n(r.holidayMult) >= 1)) return { error: "dawam.rulesRateLow" };
   if (!(n(r.advanceCap) >= 0 && n(r.advanceCap) <= 100)) return { error: "dawam.rulesCapRange" };
@@ -98,6 +103,7 @@ export function rulesRequest(r: DawamRules, canGender = false): { ok: PutAttenda
       limit_rest_hours: limits[3],
       limit_overtime_day_hours: limits[4],
       orders_per_staff: perStaff,
+      cover_pay_mode: r.coverPayMode,
       ...(canGender ? { gender_mode: r.genderMode } : {}),
     },
   };
@@ -109,9 +115,13 @@ export function rulesRequest(r: DawamRules, canGender = false): { ok: PutAttenda
  * business-only settings (the pay period start, the advance cap, gender mode).
  */
 export function DawamRulesCard({
-  value, onChange, canGender = false, readOnly = false, branch = false,
+  value, onChange, canGender = false, readOnly = false, branch = false, coverFollows, onCoverChoice,
 }: {
   value: DawamRules; onChange: (v: DawamRules) => void; canGender?: boolean; readOnly?: boolean; branch?: boolean;
+  /** A branch: whether it pays covers the business's way (no override of its own). */
+  coverFollows?: boolean;
+  /** A branch's choice: follow the business, or a mode of its own. */
+  onCoverChoice?: (c: CoverChoice) => void;
 }) {
   const { t } = useTranslation();
   const set = <K extends keyof DawamRules>(k: K, v: DawamRules[K]) => onChange({ ...value, [k]: v });
@@ -174,6 +184,12 @@ export function DawamRulesCard({
           ))}
         </div>
         <p className="text-xs text-muted-foreground">{t("dawam.nightUnconfirmed", "Night hours for the night rate and for suggestions. Unconfirmed: check them with your lawyer.")}</p>
+        <CoverPayChoice
+          value={branch && coverFollows ? "business" : value.coverPayMode}
+          branch={branch}
+          disabled={readOnly}
+          onChange={(c) => (branch && onCoverChoice ? onCoverChoice(c) : c !== "business" && set("coverPayMode", c))}
+        />
       </CardContent>
       <CardHeader>
         <CardTitle>{t("dawam.limitsTitle", "Labour limits")}</CardTitle>
@@ -212,3 +228,63 @@ export function DawamRulesCard({
     </Card>
   );
 }
+
+/** A branch's cover-pay choice: the business's way, or its own mode. */
+export type CoverChoice = "business" | CoverPayMode;
+
+/**
+ * How a confirmed cover is paid (owner decision D5): the coverer's plain
+ * minute rate (spec CV-4, the default) or the covered block as a full day.
+ * A branch can also follow the business. Each option says what it does.
+ */
+function CoverPayChoice({
+  value, onChange, branch, disabled,
+}: {
+  value: CoverChoice; onChange: (c: CoverChoice) => void; branch: boolean; disabled: boolean;
+}) {
+  const { t } = useTranslation();
+  const options: { value: CoverChoice; label: string; hint: string }[] = [
+    ...(branch
+      ? [{
+          value: "business" as const,
+          label: t("dawam.coverPayBusiness", "Use the business setting"),
+          hint: t("dawam.coverPayBusinessHint", "This branch pays covers the way the business does."),
+        }]
+      : []),
+    {
+      value: "minute_rate",
+      label: t("dawam.coverPayMinute", "The coverer's minute rate"),
+      hint: t("dawam.coverPayMinuteHint", "Pay the covered minutes at the coverer's own minute rate (their day rate ÷ 8 hours)."),
+    },
+    {
+      value: "full_block",
+      label: t("dawam.coverPayBlock", "A full day for the block"),
+      hint: t("dawam.coverPayBlockHint", "Pay a covered block as a full day, however short it is."),
+    },
+  ];
+  return (
+    <div className="space-y-2">
+      <Label id="cover-pay-label">{t("dawam.coverPay", "Cover pay")}</Label>
+      <div role="radiogroup" aria-labelledby="cover-pay-label" className="grid gap-2">
+        {options.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            role="radio"
+            aria-checked={value === o.value}
+            disabled={disabled}
+            onClick={() => onChange(o.value)}
+            className={cn(
+              "rounded-lg border p-3 text-start transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-60",
+              value === o.value ? "border-primary bg-primary/5" : "hover:bg-accent",
+            )}
+          >
+            <span className="block text-sm font-medium">{o.label}</span>
+            <span className="block text-xs text-muted-foreground">{o.hint}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+

@@ -38,13 +38,14 @@ const BUSINESS = {
 };
 let business: Record<string, unknown> = BUSINESS;
 const ARKAN = { ...BUSINESS, branch_id: "b1", overtime_mode: "automatic", absence_deduction_days: 2, overridden: ["overtime_mode", "absence_deduction_days"] };
+let arkan: Record<string, unknown> = ARKAN;
 let settingsError: unknown = null;
 
 vi.mock("@/data/api/generated/api", () => ({
   useGetAttendanceSettings: (params: { branch_id?: string }) => {
     seenParams.push(params);
     return {
-      data: settingsError ? undefined : ((params.branch_id === "b1" ? ARKAN : business) as unknown as AttendanceSettings),
+      data: settingsError ? undefined : ((params.branch_id === "b1" ? arkan : business) as unknown as AttendanceSettings),
       isLoading: false, isFetching: false, error: settingsError, refetch: vi.fn(),
     };
   },
@@ -100,6 +101,7 @@ beforeEach(() => {
   toastError.mockClear();
   seenParams.length = 0;
   business = BUSINESS;
+  arkan = ARKAN;
   settingsError = null;
   held = ["hr.rules.edit"];
 });
@@ -300,3 +302,60 @@ describe("branchBody", () => {
     expect(branchBody("b1", base, base, [])).toBeNull();
   });
 });
+
+describe("D5: cover pay (owner decision 5)", () => {
+  it("the business picks how a cover is paid, each option said in one line, minute rate by default", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const group = screen.getByRole("radiogroup", { name: "Cover pay" });
+    expect(within(group).getByRole("radio", { name: /The coverer's minute rate/ })).toHaveAttribute("aria-checked", "true");
+    expect(within(group).getByText(/Pay the covered minutes at the coverer's own minute rate/)).toBeInTheDocument();
+    expect(within(group).getByText(/Pay a covered block as a full day/)).toBeInTheDocument();
+    await user.click(within(group).getByRole("radio", { name: /A full day for the block/ }));
+    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await waitFor(() => expect(put).toHaveBeenCalled());
+    expect(put.mock.calls[0][0]).toMatchObject({ cover_pay_mode: "full_block" });
+  });
+
+  it("a branch that follows the business says so, and choosing a mode makes it the branch's own", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await pickBranch(user, /Maadi/);
+    const group = screen.getByRole("radiogroup", { name: "Cover pay" });
+    expect(within(group).getByRole("radio", { name: /Use the business setting/ })).toHaveAttribute("aria-checked", "true");
+    // The same value as the business's still becomes this branch's own.
+    await user.click(within(group).getByRole("radio", { name: /The coverer's minute rate/ }));
+    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await waitFor(() => expect(put).toHaveBeenCalled());
+    expect(put.mock.calls[0][0]).toEqual({ branch_id: "b2", cover_pay_mode: "minute_rate" });
+  });
+
+  it("a branch with its own cover pay hands it back with inherit", async () => {
+    arkan = { ...ARKAN, cover_pay_mode: "full_block", overridden: [...ARKAN.overridden, "cover_pay_mode"] };
+    const user = userEvent.setup();
+    renderPage();
+    await pickBranch(user, /Arkan/);
+    const own = screen.getByText("This branch's own rules").closest("[data-slot=card]") as HTMLElement;
+    expect(within(own).getByText("Cover pay")).toBeInTheDocument();
+    const group = screen.getByRole("radiogroup", { name: "Cover pay" });
+    expect(within(group).getByRole("radio", { name: /A full day for the block/ })).toHaveAttribute("aria-checked", "true");
+    await user.click(within(group).getByRole("radio", { name: /Use the business setting/ }));
+    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await waitFor(() => expect(put).toHaveBeenCalled());
+    expect(put.mock.calls[0][0]).toEqual({ branch_id: "b1", inherit: ["cover_pay_mode"] });
+  });
+
+  it("is read-only for a manager", () => {
+    held = ["hr.rules.view"];
+    renderPage();
+    const group = screen.getByRole("radiogroup", { name: "Cover pay" });
+    for (const r of within(group).getAllByRole("radio")) expect(r).toBeDisabled();
+  });
+
+  it("branchBody sends a forced field even when its value didn't change", () => {
+    const base = valuesFrom(BUSINESS as unknown as AttendanceSettings);
+    expect(branchBody("b2", base, base, [], ["cover_pay_mode"])).toEqual({ branch_id: "b2", cover_pay_mode: "minute_rate" });
+    expect(branchBody("b2", base, base, ["cover_pay_mode"], ["cover_pay_mode"])).toEqual({ branch_id: "b2", inherit: ["cover_pay_mode"] });
+  });
+});
+
