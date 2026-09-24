@@ -13,4 +13,9 @@ export interface ActivateDeviceResponse {
   device_token: string;
   org_id: string;
   org_name: string;
+  /**
+     * The branch-plan slot this device now fills, when the code was made for one.
+     * @nullable
+     */
+  slot_id?: string | null;
 }

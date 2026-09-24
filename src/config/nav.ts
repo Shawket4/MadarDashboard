@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Armchair,
+  Network,
   Contact,
   ArrowLeftRight,
   Wallet,
@@ -174,6 +175,9 @@ export const NAV: NavGroup[] = [
     fallback: "Setup",
     entries: [
       { to: "/settings", labelKey: "nav.settings", fallback: "Settings", icon: Settings },
+      // The branch's hardware and how it talks: a canvas, so a page of its own
+      // rather than a settings pane.
+      { caps: [Cap.kitchenStationsEdit], module: "pos", to: "/branch-setup", labelKey: "nav.branchSetup", fallback: "Branch setup", icon: Network },
       { caps: [Cap.loyaltyUse, Cap.loyaltyMembersList], module: "pos", to: "/settings/loyalty", labelKey: "nav.loyalty", fallback: "Loyalty", icon: Star },
       { caps: [Cap.orgSettingsRead, Cap.orgSettingsEdit], module: "pos", to: "/settings/staff-pool", labelKey: "nav.staffPool", fallback: "Staff drinks", icon: CupSoda },
     ],
