@@ -82,6 +82,7 @@ import type {
   BranchMenuOverride,
   BranchMenuOverrideInput,
   BranchPerson,
+  BranchPlanView,
   BranchPoLeadTimeParams,
   BranchPosMetricsParams,
   BranchQrParams,
@@ -268,6 +269,7 @@ import type {
   GetMarginTargetsParams,
   GetMenuLintParams,
   GetMyAuthzParams,
+  GetPlanParams,
   GetRoutingModeParams,
   GetScheduledDayParams,
   GetStaffPoolSettingsParams,
@@ -356,6 +358,7 @@ import type {
   ListTillsParams,
   ListTransfersParams,
   ListUsersParams,
+  ListVersionsParams,
   ListWasteParams,
   ListZonesParams,
   LoginRequest,
@@ -465,6 +468,7 @@ import type {
   PinSuggestion,
   PingRequest,
   PingResult,
+  PlanVersionView,
   PoLeadTimeReport,
   PolicyEntry,
   PosMetricsReport,
@@ -565,6 +569,7 @@ import type {
   RoutingModeResponse,
   SalaryAdvance,
   SaveLayoutRequest,
+  SavePlanRequest,
   ScanResult,
   ScheduleAssignment,
   ScheduleOverride,
@@ -4561,6 +4566,241 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getDeleteBranchMenuOverrideMutationOptions(options), queryClient);
     }
+
+export const getPlan = (
+    params: GetPlanParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BranchPlanView>(
+      {url: `/branch-plan`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetPlanQueryKey = (params?: GetPlanParams,) => {
+    return [
+    `/branch-plan`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPlanQueryOptions = <TData = Awaited<ReturnType<typeof getPlan>>, TError = ErrorBody>(params: GetPlanParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlan>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPlanQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPlan>>> = ({ signal }) => getPlan(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPlan>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPlanQueryResult = NonNullable<Awaited<ReturnType<typeof getPlan>>>
+export type GetPlanQueryError = ErrorBody
+
+
+export function useGetPlan<TData = Awaited<ReturnType<typeof getPlan>>, TError = ErrorBody>(
+ params: GetPlanParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlan>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPlan>>,
+          TError,
+          Awaited<ReturnType<typeof getPlan>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPlan<TData = Awaited<ReturnType<typeof getPlan>>, TError = ErrorBody>(
+ params: GetPlanParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlan>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPlan>>,
+          TError,
+          Awaited<ReturnType<typeof getPlan>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPlan<TData = Awaited<ReturnType<typeof getPlan>>, TError = ErrorBody>(
+ params: GetPlanParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlan>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetPlan<TData = Awaited<ReturnType<typeof getPlan>>, TError = ErrorBody>(
+ params: GetPlanParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlan>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPlanQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const savePlan = (
+    savePlanRequest: SavePlanRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BranchPlanView>(
+      {url: `/branch-plan`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: savePlanRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getSavePlanMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof savePlan>>, TError,{data: SavePlanRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof savePlan>>, TError,{data: SavePlanRequest}, TContext> => {
+
+const mutationKey = ['savePlan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof savePlan>>, {data: SavePlanRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  savePlan(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SavePlanMutationResult = NonNullable<Awaited<ReturnType<typeof savePlan>>>
+    export type SavePlanMutationBody = SavePlanRequest
+    export type SavePlanMutationError = ErrorBody
+
+    export const useSavePlan = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof savePlan>>, TError,{data: SavePlanRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof savePlan>>,
+        TError,
+        {data: SavePlanRequest},
+        TContext
+      > => {
+      return useMutation(getSavePlanMutationOptions(options), queryClient);
+    }
+
+export const listVersions = (
+    params: ListVersionsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PlanVersionView[]>(
+      {url: `/branch-plan/versions`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListVersionsQueryKey = (params?: ListVersionsParams,) => {
+    return [
+    `/branch-plan/versions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListVersionsQueryOptions = <TData = Awaited<ReturnType<typeof listVersions>>, TError = ErrorBody>(params: ListVersionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listVersions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListVersionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listVersions>>> = ({ signal }) => listVersions(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listVersions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListVersionsQueryResult = NonNullable<Awaited<ReturnType<typeof listVersions>>>
+export type ListVersionsQueryError = ErrorBody
+
+
+export function useListVersions<TData = Awaited<ReturnType<typeof listVersions>>, TError = ErrorBody>(
+ params: ListVersionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listVersions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listVersions>>,
+          TError,
+          Awaited<ReturnType<typeof listVersions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListVersions<TData = Awaited<ReturnType<typeof listVersions>>, TError = ErrorBody>(
+ params: ListVersionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listVersions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listVersions>>,
+          TError,
+          Awaited<ReturnType<typeof listVersions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListVersions<TData = Awaited<ReturnType<typeof listVersions>>, TError = ErrorBody>(
+ params: ListVersionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listVersions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListVersions<TData = Awaited<ReturnType<typeof listVersions>>, TError = ErrorBody>(
+ params: ListVersionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listVersions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListVersionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const listBranches = (
     params: ListBranchesParams,

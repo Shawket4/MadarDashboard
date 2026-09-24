@@ -542,7 +542,8 @@ export const ActivateResponse = zod.object({
 }),
   "device_token": zod.string().describe('The device\'s own credential. Returned ONCE; store it in the device\nvault. Sent later as `X-Madar-Device-Token`.'),
   "org_id": zod.uuid(),
-  "org_name": zod.string()
+  "org_name": zod.string(),
+  "slot_id": zod.uuid().nullish().describe('The branch-plan slot this device now fills, when the code was made for one.')
 })
 
 
@@ -1711,6 +1712,227 @@ export const DeleteBranchMenuOverrideQueryParams = zod.object({
 })
 
 export const DeleteBranchMenuOverrideResponse = zod.void()
+
+
+export const GetPlanQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const GetPlanResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "categories": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.unknown()
+})),
+  "devices": zod.array(zod.object({
+  "app_version": zod.string().nullish(),
+  "code": zod.string(),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `kds` | `waiter`'),
+  "label": zod.string().nullish(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "platform": zod.string().nullish()
+}).describe('A registered install at the branch, for showing which slot it fills and\nwhen it was last heard from.')),
+  "item_overrides": zod.array(zod.object({
+  "count": zod.number(),
+  "section_id": zod.uuid()
+}).describe('A count per section: open kitchen items, or items routed there one by one.')).describe('Items routed to a section one by one, bypassing their category.'),
+  "open_items": zod.array(zod.object({
+  "count": zod.number(),
+  "section_id": zod.uuid()
+}).describe('A count per section: open kitchen items, or items routed there one by one.')).describe('Kitchen items not yet bumped, per section. A section with any can\'t be\nremoved (spec KS-9, CH-4).'),
+  "plan": zod.object({
+  "devices": zod.array(zod.object({
+  "device_id": zod.uuid().nullish().describe('The registered install filling this slot, if any.'),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `waiter` | `kitchen`'),
+  "name": zod.string(),
+  "receipt_printer_id": zod.uuid().nullish().describe('For a POS or waiter device: the receipt printer its receipts go to.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "printers": zod.array(zod.object({
+  "brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
+  "connection": zod.string().describe('`network` | `usb` | `bluetooth`'),
+  "host_device_id": zod.uuid().nullish().describe('For a USB or Bluetooth printer: the device slot it is plugged into.'),
+  "id": zod.uuid(),
+  "ip": zod.string().nullish(),
+  "name": zod.string(),
+  "paper_mm": zod.number(),
+  "port": zod.number().nullish(),
+  "role": zod.string().describe('`receipt` | `kitchen`'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "sections": zod.array(zod.object({
+  "category_ids": zod.array(zod.uuid()).optional(),
+  "id": zod.uuid(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "printer_ids": zod.array(zod.uuid()).optional().describe('Kitchen printers this section prints on.'),
+  "screen_ids": zod.array(zod.uuid()).optional().describe('Kitchen screens (device slots of kind `kitchen`) this section shows on.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "till_prints_kitchen": zod.boolean().optional().describe('Case 1 (till only): the till\'s receipt printer also prints kitchen chits.')
+}),
+  "routing_mode": zod.string().describe('The branch\'s kitchen routing mode as stored now.'),
+  "saved": zod.boolean().describe('False until the plan is first saved. Until then it is assembled from the\nbranch\'s existing stations, printers and registered devices.'),
+  "version": zod.number().describe('Bumped by every save; send it back as `expected_version`.')
+})
+
+
+export const SavePlanBody = zod.object({
+  "branch_id": zod.uuid(),
+  "expected_version": zod.number().describe('The `version` the plan was loaded at. A save over a newer version is\nrefused (`PLAN_CHANGED`), so two people editing one branch never\nsilently overwrite each other.'),
+  "plan": zod.object({
+  "devices": zod.array(zod.object({
+  "device_id": zod.uuid().nullish().describe('The registered install filling this slot, if any.'),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `waiter` | `kitchen`'),
+  "name": zod.string(),
+  "receipt_printer_id": zod.uuid().nullish().describe('For a POS or waiter device: the receipt printer its receipts go to.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "printers": zod.array(zod.object({
+  "brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
+  "connection": zod.string().describe('`network` | `usb` | `bluetooth`'),
+  "host_device_id": zod.uuid().nullish().describe('For a USB or Bluetooth printer: the device slot it is plugged into.'),
+  "id": zod.uuid(),
+  "ip": zod.string().nullish(),
+  "name": zod.string(),
+  "paper_mm": zod.number(),
+  "port": zod.number().nullish(),
+  "role": zod.string().describe('`receipt` | `kitchen`'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "sections": zod.array(zod.object({
+  "category_ids": zod.array(zod.uuid()).optional(),
+  "id": zod.uuid(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "printer_ids": zod.array(zod.uuid()).optional().describe('Kitchen printers this section prints on.'),
+  "screen_ids": zod.array(zod.uuid()).optional().describe('Kitchen screens (device slots of kind `kitchen`) this section shows on.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "till_prints_kitchen": zod.boolean().optional().describe('Case 1 (till only): the till\'s receipt printer also prints kitchen chits.')
+})
+})
+
+export const SavePlanResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "categories": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.unknown()
+})),
+  "devices": zod.array(zod.object({
+  "app_version": zod.string().nullish(),
+  "code": zod.string(),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `kds` | `waiter`'),
+  "label": zod.string().nullish(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "platform": zod.string().nullish()
+}).describe('A registered install at the branch, for showing which slot it fills and\nwhen it was last heard from.')),
+  "item_overrides": zod.array(zod.object({
+  "count": zod.number(),
+  "section_id": zod.uuid()
+}).describe('A count per section: open kitchen items, or items routed there one by one.')).describe('Items routed to a section one by one, bypassing their category.'),
+  "open_items": zod.array(zod.object({
+  "count": zod.number(),
+  "section_id": zod.uuid()
+}).describe('A count per section: open kitchen items, or items routed there one by one.')).describe('Kitchen items not yet bumped, per section. A section with any can\'t be\nremoved (spec KS-9, CH-4).'),
+  "plan": zod.object({
+  "devices": zod.array(zod.object({
+  "device_id": zod.uuid().nullish().describe('The registered install filling this slot, if any.'),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `waiter` | `kitchen`'),
+  "name": zod.string(),
+  "receipt_printer_id": zod.uuid().nullish().describe('For a POS or waiter device: the receipt printer its receipts go to.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "printers": zod.array(zod.object({
+  "brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
+  "connection": zod.string().describe('`network` | `usb` | `bluetooth`'),
+  "host_device_id": zod.uuid().nullish().describe('For a USB or Bluetooth printer: the device slot it is plugged into.'),
+  "id": zod.uuid(),
+  "ip": zod.string().nullish(),
+  "name": zod.string(),
+  "paper_mm": zod.number(),
+  "port": zod.number().nullish(),
+  "role": zod.string().describe('`receipt` | `kitchen`'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "sections": zod.array(zod.object({
+  "category_ids": zod.array(zod.uuid()).optional(),
+  "id": zod.uuid(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "printer_ids": zod.array(zod.uuid()).optional().describe('Kitchen printers this section prints on.'),
+  "screen_ids": zod.array(zod.uuid()).optional().describe('Kitchen screens (device slots of kind `kitchen`) this section shows on.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "till_prints_kitchen": zod.boolean().optional().describe('Case 1 (till only): the till\'s receipt printer also prints kitchen chits.')
+}),
+  "routing_mode": zod.string().describe('The branch\'s kitchen routing mode as stored now.'),
+  "saved": zod.boolean().describe('False until the plan is first saved. Until then it is assembled from the\nbranch\'s existing stations, printers and registered devices.'),
+  "version": zod.number().describe('Bumped by every save; send it back as `expected_version`.')
+})
+
+
+export const ListVersionsQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const ListVersionsResponseItem = zod.object({
+  "plan": zod.object({
+  "devices": zod.array(zod.object({
+  "device_id": zod.uuid().nullish().describe('The registered install filling this slot, if any.'),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `waiter` | `kitchen`'),
+  "name": zod.string(),
+  "receipt_printer_id": zod.uuid().nullish().describe('For a POS or waiter device: the receipt printer its receipts go to.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "printers": zod.array(zod.object({
+  "brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
+  "connection": zod.string().describe('`network` | `usb` | `bluetooth`'),
+  "host_device_id": zod.uuid().nullish().describe('For a USB or Bluetooth printer: the device slot it is plugged into.'),
+  "id": zod.uuid(),
+  "ip": zod.string().nullish(),
+  "name": zod.string(),
+  "paper_mm": zod.number(),
+  "port": zod.number().nullish(),
+  "role": zod.string().describe('`receipt` | `kitchen`'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "sections": zod.array(zod.object({
+  "category_ids": zod.array(zod.uuid()).optional(),
+  "id": zod.uuid(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "printer_ids": zod.array(zod.uuid()).optional().describe('Kitchen printers this section prints on.'),
+  "screen_ids": zod.array(zod.uuid()).optional().describe('Kitchen screens (device slots of kind `kitchen`) this section shows on.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "till_prints_kitchen": zod.boolean().optional().describe('Case 1 (till only): the till\'s receipt printer also prints kitchen chits.')
+}),
+  "saved_at": zod.iso.datetime({"offset":true}),
+  "saved_by_name": zod.string().nullish(),
+  "version": zod.number()
+})
+export const ListVersionsResponse = zod.array(ListVersionsResponseItem)
 
 
 export const ListBranchesQueryParams = zod.object({
@@ -4411,6 +4633,7 @@ export const ListCodesResponseItem = zod.object({
   "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
   "label": zod.string().nullish(),
   "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "slot_id": zod.uuid().nullish().describe('The branch-plan slot this code fills, when it was made from the\nbranch builder. The device that uses it takes the slot.'),
   "state": zod.enum(['free', 'used', 'expired', 'revoked']),
   "used_at": zod.iso.datetime({"offset":true}).nullish(),
   "used_by_device": zod.uuid().nullish()
@@ -4421,7 +4644,8 @@ export const ListCodesResponse = zod.array(ListCodesResponseItem)
 export const CreateCodeBody = zod.object({
   "branch_id": zod.uuid(),
   "kind": zod.union([zod.null(),zod.enum(['pos', 'kds', 'waiter']).describe('`pos` (default) | `kds` | `waiter`')]).optional(),
-  "label": zod.string().nullish().describe('A name for the tablet it is meant for (\"Front counter\").')
+  "label": zod.string().nullish().describe('A name for the tablet it is meant for (\"Front counter\").'),
+  "slot_id": zod.uuid().nullish().describe('A slot of the branch plan (`GET \/branch-plan`). The code takes the\nslot\'s kind and name, and the device that uses it fills the slot.')
 })
 
 export const CreateCodeResponse = zod.object({
@@ -4433,6 +4657,7 @@ export const CreateCodeResponse = zod.object({
   "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
   "label": zod.string().nullish(),
   "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "slot_id": zod.uuid().nullish().describe('The branch-plan slot this code fills, when it was made from the\nbranch builder. The device that uses it takes the slot.'),
   "state": zod.enum(['free', 'used', 'expired', 'revoked']),
   "used_at": zod.iso.datetime({"offset":true}).nullish(),
   "used_by_device": zod.uuid().nullish()
@@ -4452,6 +4677,7 @@ export const RevokeCodeResponse = zod.object({
   "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
   "label": zod.string().nullish(),
   "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "slot_id": zod.uuid().nullish().describe('The branch-plan slot this code fills, when it was made from the\nbranch builder. The device that uses it takes the slot.'),
   "state": zod.enum(['free', 'used', 'expired', 'revoked']),
   "used_at": zod.iso.datetime({"offset":true}).nullish(),
   "used_by_device": zod.uuid().nullish()
@@ -15529,7 +15755,7 @@ export const StopAdjustmentParams = zod.object({
 })
 
 export const StopAdjustmentBody = zod.object({
-  "reason": zod.string().nullish().describe('Why it stops (AD-9).')
+  "reason": zod.string().nullish().describe('Why it stops (AD-9). Required: blank or missing is a 400.')
 })
 
 export const StopAdjustmentResponse = zod.object({
@@ -16625,7 +16851,8 @@ export const PreferenceLogResponse = zod.array(PreferenceLogResponseItem)
 
 
 export const ListExpenseAdvancesQueryParams = zod.object({
-  "employee_id": zod.uuid().optional()
+  "employee_id": zod.uuid().optional(),
+  "branch_id": zod.uuid().optional().describe('Only the expenses logged at this branch (the expense\'s own branch,\nAV-9). A branch the caller can\'t read is refused (403).')
 })
 
 export const ListExpenseAdvancesResponseItem = zod.object({
@@ -16978,7 +17205,7 @@ export const CheckOutResponse = zod.object({
 
 export const MyContextResponse = zod.object({
   "adjustment_limit_piastres": zod.number().nullish().describe('My ceiling on a bonus before it waits for the owner; null = none.'),
-  "advance_limit_percent": zod.number().nullish(),
+  "advance_limit_percent": zod.number().nullish().describe('My ceiling on an advance, as whole percent of the person\'s salary owed\nafter it (the grant stores basis points); null = none.'),
   "branches": zod.array(zod.object({
   "geo_radius_meters": zod.number().nullish(),
   "id": zod.uuid(),
@@ -17305,9 +17532,12 @@ export const SetStaffPushTokenResponse = zod.void()
 export const MyRequestsResponseItem = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -17360,9 +17590,12 @@ export const CreateMyRequestBody = zod.object({
 export const CreateMyRequestResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18500,9 +18733,12 @@ export const ListRequestsQueryParams = zod.object({
 export const ListRequestsResponseItem = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18555,9 +18791,12 @@ export const CreateRequestAdminBody = zod.object({
 export const CreateRequestAdminResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18601,9 +18840,12 @@ export const DecideRequestBody = zod.object({
 export const DecideRequestResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
