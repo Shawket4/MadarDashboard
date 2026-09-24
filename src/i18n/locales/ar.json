@@ -2253,7 +2253,8 @@
       "NOT_YOUR_BRANCH": "الفرع ده مش من فروعه.",
       "BRANCH_NO_LOCATION": "الفرع ده لسه ملوش مكان على الخريطة. حدّده من التجهيز الأول.",
       "LOCATION_REQUIRED": "تسجيل الحضور محتاج موقع الموبايل.",
-      "BRANCH_OTHER_ORG": "الفرع ده تبع نشاط تاني."
+      "BRANCH_OTHER_ORG": "الفرع ده تبع نشاط تاني.",
+      "LEAVE_PAY_REQUIRED": "قول الإجازة دي مدفوعة ولا لأ."
     }
   },
   "theme": {
@@ -4669,7 +4670,11 @@
     "timesInZone": "المواعيد بتوقيت الفرع ({{tz}}).",
     "monthClosedRejectOnly": "الشهر مقفول: الرفض فقط",
     "monthClosed": "الشهر مقفول",
-    "metres": "{{n}} م"
+    "metres": "{{n}} م",
+    "payChoiceNeeded": "قول الإجازة دي مدفوعة ولا لأ",
+    "leavePayQuestion": "مدفوعة ولا غير مدفوعة؟ هتتعتمد وانت بتقدّمها.",
+    "paid": "مدفوعة",
+    "unpaid": "غير مدفوعة"
   },
   "basira": {
     "title": "بصيرة",

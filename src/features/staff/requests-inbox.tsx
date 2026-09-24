@@ -502,6 +502,8 @@ const newRequestSchema = (t: TFunction) =>
       to_time: z.string(),
       half_day: z.boolean(),
       leave_half: z.enum(["first", "second"]),
+      /** Paid or unpaid — asked when the leave is approved as it is filed. */
+      pay: z.enum(["", "paid", "unpaid"]),
       title: z.string().max(200),
       reason: z.string().max(500),
     })
@@ -537,6 +539,8 @@ export function newRequestBody(v: NewRequestValues) {
     from_time: v.kind === "early_departure" || v.kind === "excuse" ? hhmmss(v.from_time) : null,
     to_time: v.kind === "late_arrival" || v.kind === "excuse" ? hhmmss(v.to_time) : null,
     ...(v.kind === "leave" ? { is_half_day: half, ...(half ? { leave_half: v.leave_half } : {}) } : {}),
+    // A leave approved as it is filed carries its pay choice (RQ-2).
+    ...(v.kind === "leave" && v.pay ? { is_paid: v.pay === "paid" } : {}),
     title: v.kind === "mission" ? v.title.trim() || null : null,
     reason: v.reason.trim() || null,
   };
@@ -554,7 +558,7 @@ function NewRequestDialog({
   const schema = useMemo(() => newRequestSchema(t), [t]);
   const blank: NewRequestValues = {
     kind: "late_arrival", employee_id: "", on_date: todayIso(), end_date: todayIso(),
-    from_time: "12:00", to_time: "14:00", half_day: false, leave_half: "first", title: "", reason: "",
+    from_time: "12:00", to_time: "14:00", half_day: false, leave_half: "first", pay: "", title: "", reason: "",
   };
   const form = useForm<NewRequestValues>({ resolver: zodResolver(schema), defaultValues: blank });
   const errors = form.formState.errors;
@@ -565,13 +569,25 @@ function NewRequestDialog({
   }, [open]);
 
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: open } });
+  const authz = useAuthz();
+  const userId = useAuthStore((s) => s.user?.id);
 
   const kind = v.kind;
+  // Filing one's OWN leave while approving one's own requests: it is approved
+  // as it is filed, with nobody to choose paid or unpaid — so the filer says
+  // (RQ-2; the server refuses it otherwise, LEAVE_PAY_REQUIRED).
+  const mine = (employeesQ.data ?? []).find((e) => e.id === v.employee_id)?.user_id;
+  const needsPay =
+    kind === "leave" && !!userId && mine === userId && authz.can(Cap.hrRequestsSelfApprove);
   const needsFrom = kind === "early_departure" || kind === "excuse";
   const needsTo = kind === "late_arrival" || kind === "excuse";
   const isSpan = kind === "mission" || (kind === "leave" && !v.half_day);
 
   const save = form.handleSubmit(async (values) => {
+    if (needsPay && !values.pay) {
+      form.setError("pay", { message: t("staff.payChoiceNeeded", "Say whether this leave is paid or unpaid") });
+      return;
+    }
     try {
       const row = await createRequestAdmin(newRequestBody(values));
       // The server decides whether it was approved as it was filed (RQ-5).
@@ -640,6 +656,20 @@ function NewRequestDialog({
                     { value: "second", label: t("staff.secondHalf", "Second half") },
                   ]}
                 />
+              ) : null}
+              {needsPay ? (
+                <div className="space-y-1">
+                  <Label>{t("staff.leavePayQuestion", "Paid or unpaid? It is approved as you file it.")}</Label>
+                  <SegmentedControl
+                    value={v.pay}
+                    onChange={(p) => { form.setValue("pay", p); form.clearErrors("pay"); }}
+                    options={[
+                      { value: "paid", label: t("staff.paid", "Paid") },
+                      { value: "unpaid", label: t("staff.unpaid", "Unpaid") },
+                    ]}
+                  />
+                  {err(errors.pay?.message)}
+                </div>
               ) : null}
             </div>
           ) : null}

@@ -237,8 +237,39 @@ describe("Filing for someone", () => {
     await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith("Request filed and approved"));
   });
 
+  it("asks paid or unpaid when the filer's own leave is approved as filed, and refuses without it (QUESTIONS #19, RQ-2)", async () => {
+    held = ["hr.leave.create", "hr.leave.edit", "hr.attendance.edit", "hr.requests.self_approve"];
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /New request/ }));
+    const dialog = await screen.findByRole("dialog");
+    await pick(user, "Kind", "Leave");
+    await pick(user, "Employee", "Karim Manager");
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    expect(await within(dialog).findByText("Say whether this leave is paid or unpaid")).toBeInTheDocument();
+    expect(createRequestAdmin).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole("radio", { name: "Unpaid" }));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(createRequestAdmin).toHaveBeenCalled());
+    expect(createRequestAdmin.mock.calls[0][0]).toMatchObject({ employee_id: "e-me", kind: "leave", is_paid: false });
+  });
+
+  it("doesn't ask for someone else's leave (their approver chooses)", async () => {
+    held = ["hr.leave.create", "hr.leave.edit", "hr.attendance.edit", "hr.requests.self_approve"];
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /New request/ }));
+    const dialog = await screen.findByRole("dialog");
+    await pick(user, "Kind", "Leave");
+    await pick(user, "Employee", "Youssef Adel");
+    expect(within(dialog).queryByRole("radio", { name: "Unpaid" })).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(createRequestAdmin).toHaveBeenCalled());
+    expect(createRequestAdmin.mock.calls[0][0]).not.toHaveProperty("is_paid");
+  });
+
   it("builds an excuse across midnight as filed, and a late arrival with its time only", () => {
-    const base = { employee_id: "e1", on_date: "2026-09-23", end_date: "2026-09-23", half_day: false, leave_half: "first" as const, title: "", reason: "" };
+    const base = { employee_id: "e1", on_date: "2026-09-23", end_date: "2026-09-23", half_day: false, leave_half: "first" as const, pay: "" as const, title: "", reason: "" };
     expect(newRequestBody({ ...base, kind: "excuse", from_time: "23:00", to_time: "01:00" })).toMatchObject({
       from_time: "23:00:00", to_time: "01:00:00", end_date: null,
     });

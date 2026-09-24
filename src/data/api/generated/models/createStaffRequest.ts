@@ -23,8 +23,9 @@ export interface CreateStaffRequest {
   is_half_day?: boolean | null;
   /**
      * Only when the request is approved as it is filed (the filer holds
-     * `hr.requests.self_approve`): leave paid or unpaid, an excuse's pay.
-     * Omitted: leave is paid, an excuse follows the rule.
+     * `hr.requests.self_approve`): leave paid or unpaid — REQUIRED for such a
+     * leave (400 `LEAVE_PAY_REQUIRED`, RQ-2) — and an excuse's pay (omitted:
+     * the rule decides).
      * @nullable
      */
   is_paid?: boolean | null;

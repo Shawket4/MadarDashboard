@@ -2230,7 +2230,8 @@
       "NOT_YOUR_BRANCH": "That branch isn't one of theirs.",
       "BRANCH_NO_LOCATION": "This branch has no pin on the map yet. Pin it in Set-up first.",
       "LOCATION_REQUIRED": "Clocking in needs the phone's location.",
-      "BRANCH_OTHER_ORG": "That branch belongs to another business."
+      "BRANCH_OTHER_ORG": "That branch belongs to another business.",
+      "LEAVE_PAY_REQUIRED": "Say whether this leave is paid or unpaid."
     }
   },
   "theme": {
@@ -4536,7 +4537,11 @@
     "timesInZone": "Times are the branch's clock ({{tz}}).",
     "monthClosedRejectOnly": "Month closed: reject only",
     "monthClosed": "Month closed",
-    "metres": "{{n}}m"
+    "metres": "{{n}}m",
+    "payChoiceNeeded": "Say whether this leave is paid or unpaid",
+    "leavePayQuestion": "Paid or unpaid? It is approved as you file it.",
+    "paid": "Paid",
+    "unpaid": "Unpaid"
   },
   "basira": {
     "title": "Basira",
