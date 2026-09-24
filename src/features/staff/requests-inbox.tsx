@@ -218,7 +218,12 @@ export function RequestsInboxPage() {
                     <RequestBadges r={r} mine={mine} />
                   </span>
                 }
-                meta={[describeWindow(r, t), r.reason, r.decision_note].filter(Boolean).join(" · ")}
+                meta={[
+                  describeWindow(r, t), r.reason, r.decision_note,
+                  // Why it was cancelled, kept apart from the approver's note (B-TEAM-3).
+                  // Not in the generated model yet: the field is new in the API.
+                  (r as typeof r & { cancel_note?: string | null }).cancel_note,
+                ].filter(Boolean).join(" · ")}
                 trailing={
                   <>
                     <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
