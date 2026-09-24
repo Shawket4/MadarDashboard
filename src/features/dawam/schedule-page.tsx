@@ -240,7 +240,7 @@ export function SchedulePage() {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="size-6 shrink-0"
+                        className="size-8 shrink-0 sm:size-6"
                         aria-label={t("dawam.prefsOf", { name: p.name, defaultValue: `${p.name}'s preferences` })}
                         onClick={() => setPrefsOf(p)}
                       >

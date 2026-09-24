@@ -464,4 +464,12 @@ describe("SchedulePage", () => {
     expect(group).toHaveClass("flex-nowrap");
     expect(group).toHaveAttribute("role", "group");
   });
+
+  it("gives each person's preferences button a 32 px tap target on a phone (L-13)", () => {
+    wrap(<SchedulePage />);
+    const btn = screen.getByRole("button", { name: "Sara Ahmed's preferences" });
+    expect(btn).toHaveClass("size-8");
+    expect(btn).not.toHaveClass("size-6");
+  });
 });
+
