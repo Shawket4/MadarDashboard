@@ -518,7 +518,7 @@ export function UnwaiveDialog({
   );
 }
 
-/** Stop a monthly line from the next open month, with why (AD-3, AD-9). */
+/** Stop a monthly line from next month, with why (AD-3, AD-9): the open month keeps it (owner decision 6). */
 export function StopDialog({
   line, onOpenChange,
 }: {
@@ -531,7 +531,7 @@ export function StopDialog({
       open={!!line}
       onOpenChange={onOpenChange}
       title={t("dawam.stopTitle", { line: line?.reason ?? "", defaultValue: `Stop "${line?.reason ?? ""}"?` })}
-      description={t("dawam.stopHint", "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log.")}
+      description={t("dawam.stopHint", "This month keeps it; it stops from next month. The reason is kept in the audit log.")}
       saveLabel={t("dawam.stop", "Stop")}
       destructive
       onSave={(reason) => stopAdjustment(line!.kind, line!.id, { reason })}

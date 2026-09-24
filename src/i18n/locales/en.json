@@ -6328,7 +6328,7 @@
     "reason_left_mid_shift": "Left mid-shift",
     "pay_none": "Nothing to pay",
     "stopTitle": "Stop \"{{line}}\"?",
-    "stopHint": "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log.",
+    "stopHint": "This month keeps it; it stops from next month. The reason is kept in the audit log.",
     "approveDaysAhead_one": "1 day of this month is still to come; nobody can clock in on it after approval.",
     "approveDaysAhead_other": "{{count}} days of this month are still to come; nobody can clock in on them after approval.",
     "coveredBy": "Covered by {{name}}",
@@ -6342,7 +6342,8 @@
     "coverPayBlock": "A full day for the block",
     "coverPayBlockHint": "Pay a covered block as a full day, however short it is.",
     "coverPayBusiness": "Use the business setting",
-    "coverPayBusinessHint": "This branch pays covers the way the business does."
+    "coverPayBusinessHint": "This branch pays covers the way the business does.",
+    "monthlyUntil": "monthly until {{date}}"
   },
   "legal": {
     "label": "Legal",

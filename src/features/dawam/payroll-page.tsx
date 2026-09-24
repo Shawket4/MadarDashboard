@@ -496,7 +496,10 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
       ) : (
         <ListCard>
           {rows.map((a: Adjustment) => {
-            const stopped = !!a.ends_on;
+            // Stop ends a monthly line at the end of the open month, which keeps it (D6):
+            // until then it still counts, and it can't be stopped twice.
+            const endsOn = a.ends_on ?? null;
+            const stopped = !!endsOn && endsOn < todayIso();
             const value = a.percent_of_base != null ? `${a.percent_of_base}%` : fmtMoney(a.kind === "bonus" ? (a.amount_piastres ?? 0) : -(a.amount_piastres ?? 0));
             return (
               <ListRow
@@ -505,7 +508,15 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="truncate">{a.employee_name}</span>
                     <Badge variant="secondary">{a.kind === "bonus" ? t("dawam.bonus", "Bonus") : t("dawam.deduction", "Deduction")}</Badge>
-                    {a.recurring ? <Badge variant="outline">{stopped ? t("dawam.stopped", "stopped") : t("dawam.monthly", "monthly")}</Badge> : null}
+                    {a.recurring ? (
+                      <Badge variant="outline">
+                        {stopped
+                          ? t("dawam.stopped", "stopped")
+                          : endsOn
+                            ? t("dawam.monthlyUntil", { date: fmtDate(endsOn), defaultValue: `monthly until ${fmtDate(endsOn)}` })
+                            : t("dawam.monthly", "monthly")}
+                      </Badge>
+                    ) : null}
                   </span>
                 }
                 meta={[reasonText(t, a.reason_code, a.reason_vars as Record<string, unknown> | null, a.reason), fmtDate(a.effective_date)].join(" · ")}
@@ -519,7 +530,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                         <Button size="sm" variant="ghost" aria-label={t("common.reject", "Reject")} onClick={() => void act(() => decideAdjustment(a.kind, a.id, { approve: false }), t("staff.decisionSaved", "Decision saved"))}><X className="size-4" /></Button>
                       </>
                     ) : null}
-                    {canAdjust && a.recurring && !stopped && a.status === "approved" ? (
+                    {canAdjust && a.recurring && !endsOn && a.status === "approved" ? (
                       <Button size="sm" variant="ghost" onClick={() => setStopping(a)}>{t("dawam.stop", "Stop")}</Button>
                     ) : null}
                   </span>

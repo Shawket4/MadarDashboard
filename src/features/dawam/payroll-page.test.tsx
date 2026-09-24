@@ -401,6 +401,32 @@ describe("PayrollPage", () => {
     await waitFor(() => expect(calls.stopAdjustment).toHaveBeenCalledWith("bonus", "b7", { reason: "Moved to the day shift" }));
   });
 
+  it("D6: Stop says this month keeps the line, and a stopped line stays active until its month ends", async () => {
+    const { todayIso, isoDaysFromToday } = await import("@/features/staff/util");
+    const { fmtDate } = await import("@/lib/format");
+    const user = userEvent.setup();
+    const line = {
+      kind: "bonus", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 30_000, percent_of_base: null,
+      value_piastres: 30_000, reason: "Meal allowance", effective_date: "2026-09-01", source: "manual", status: "approved", recurring: true,
+    };
+    const end = isoDaysFromToday(6);
+    adjustments = [
+      { ...line, id: "b1", ends_on: null },
+      // Stopped today: it still counts this month (owner decision 6).
+      { ...line, id: "b2", reason: "Transport", ends_on: end, stopped_at: `${todayIso()}T10:00:00Z`, stop_reason: "Moved nearby" },
+      { ...line, id: "b3", reason: "Old allowance", ends_on: "2026-06-25", stopped_at: "2026-06-10T10:00:00Z" },
+    ];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(screen.getAllByRole("button", { name: "Stop" })).toHaveLength(1);
+    expect(screen.getByText(`monthly until ${fmtDate(end)}`)).toBeInTheDocument();
+    expect(screen.getByText("stopped")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Stop" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/This month keeps it/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/stops from the month that is open now/)).not.toBeInTheDocument();
+  });
+
   it("leaves nothing-to-transfer payslips out of the bank and wallet lists (PAY-8)", async () => {
     // E2E payroll: a 0.00 net (deductions carried to next month) was listed as a bank transfer;
     // the server's bank/wallet CSV already lists only net > 0.
