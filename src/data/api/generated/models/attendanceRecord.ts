@@ -48,6 +48,12 @@ export interface AttendanceRecord {
   id: string;
   is_manual: boolean;
   late_minutes: number;
+  /**
+     * Its day is in an approved or paid month (period_lock): an overtime or
+     * cover approval, a correction or a deduction on it is refused with
+     * PERIOD_CLOSED, so clients don't offer them.
+     */
+  month_closed?: boolean;
   /** @nullable */
   notes?: string | null;
   org_id: string;
