@@ -227,7 +227,7 @@ export function ApprovalsPage() {
           reject: () => decideCover(r.id, { approve: false }),
           // A closed month can't take a confirmed cover; rejecting one still goes through.
           rejectOnly: !!r.month_closed,
-          badges: r.month_closed ? <Badge variant="outline">{t("staff.monthClosedRejectOnly", "Month closed: reject only")}</Badge> : undefined,
+          badges: r.month_closed ? <ClosedMonthNote /> : undefined,
         });
       }
       if (can.overtime && r.overtime_status === "pending") {
@@ -241,9 +241,9 @@ export function ApprovalsPage() {
           at: r.check_out_at ?? r.created_at,
           approve: () => decideOvertime(r.id, { approve: true }),
           reject: () => decideOvertime(r.id, { approve: false }),
-          // The server refuses deciding overtime at all in a closed month.
-          locked: !!r.month_closed,
-          badges: r.month_closed ? <Badge variant="outline">{t("staff.monthClosed", "Month closed")}</Badge> : undefined,
+          // A closed month takes no new pay; rejecting moves none, so it goes through (owner decision 32).
+          rejectOnly: !!r.month_closed,
+          badges: r.month_closed ? <ClosedMonthNote /> : undefined,
         });
       }
     }
@@ -354,3 +354,17 @@ export function ApprovalsPage() {
     </Page>
   );
 }
+
+/** A cover or overtime in an approved or paid month: reject it, or pay it as a line next month (owner decision 32). */
+function ClosedMonthNote() {
+  const { t } = useTranslation();
+  return (
+    <>
+      <Badge variant="outline">{t("staff.monthClosedRejectOnly", "Month closed: reject only")}</Badge>
+      <span className="basis-full text-xs font-normal text-muted-foreground">
+        {t("dawam.closedMonthNextLine", "To pay it, add it as a line in next month.")}
+      </span>
+    </>
+  );
+}
+

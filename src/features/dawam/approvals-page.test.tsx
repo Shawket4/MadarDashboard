@@ -271,20 +271,23 @@ describe("ApprovalsPage", () => {
     expect(screen.getByText("Month closed: reject only")).toBeInTheDocument();
   });
 
-  it("closed-month records: a cover offers Reject only, overtime offers nothing (AttendanceRecord.month_closed)", () => {
-    // The server refuses approving a cover, and deciding overtime at all, in an approved or paid month.
+  it("M32: closed-month cover and overtime offer Reject only, and point to next month's lines (month_closed)", async () => {
+    // Approving moves money into a closed month (refused); rejecting moves none (owner decision 32).
     attendanceRows = ATTENDANCE.map((r) => ({ ...r, month_closed: true }));
     requestRows = [];
     held = ["hr.shift_cover.confirm", "hr.overtime.approve"];
+    const user = userEvent.setup();
     wrap(<ApprovalsPage />);
     const rowOf = (text: string) => screen.getAllByText(text)[0].closest('[data-slot="list-card"] > div') as HTMLElement;
-    const cover = rowOf("Cover");
-    expect(within(cover).queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
-    expect(within(cover).getByRole("button", { name: "Reject" })).toBeInTheDocument();
-    const ot = rowOf("Omar Khaled");
-    expect(within(ot).queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
-    expect(within(ot).queryByRole("button", { name: "Reject" })).not.toBeInTheDocument();
-    expect(within(ot).getByText("Month closed")).toBeInTheDocument();
+    for (const row of [rowOf("Cover"), rowOf("Omar Khaled")]) {
+      expect(within(row).queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+      expect(within(row).getByRole("button", { name: "Reject" })).toBeInTheDocument();
+      expect(within(row).getByText("Month closed: reject only")).toBeInTheDocument();
+      expect(within(row).getByText(/add it as a line in next month/)).toBeInTheDocument();
+    }
+    await user.click(within(rowOf("Omar Khaled")).getByRole("button", { name: "Reject" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(calls.decideOvertime).toHaveBeenCalledWith("r6", { approve: false }));
     attendanceRows = ATTENDANCE;
   });
 

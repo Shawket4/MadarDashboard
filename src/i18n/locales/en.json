@@ -6371,7 +6371,8 @@
     "salaryMissingTitle_one": "{{count}} person on payroll has no salary",
     "salaryMissingTitle_other": "{{count}} people on payroll have no salary",
     "salaryMissingHint": "Set their salary on Employees, or mark them not paid through Dawam. Payroll can't be approved until then.",
-    "lineWaivedWhy": "Waived: {{reason}}"
+    "lineWaivedWhy": "Waived: {{reason}}",
+    "closedMonthNextLine": "To pay it, add it as a line in next month."
   },
   "legal": {
     "label": "Legal",
