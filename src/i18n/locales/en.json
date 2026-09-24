@@ -2275,7 +2275,8 @@
       "SHIFT_COVERED": "{{coverer_name}} is covering this shift. End or reject the cover first.",
       "OWNER_ONLY": "Only the owner can do this.",
       "ADVANCE_OVER_CAP_owner": "That's over the advance cap. Only the owner can approve it.",
-      "REASON_REQUIRED": "Say why: a rejection needs a reason."
+      "REASON_REQUIRED": "Say why: a rejection needs a reason.",
+      "SALARY_MISSING": "No salary is set for {{names}}. Set it, or mark them not on payroll, before approving."
     }
   },
   "theme": {
@@ -6361,7 +6362,15 @@
     "capFigures": "Owes {{owed}} of a {{cap}} cap",
     "rejectWhyHint": "They are told, with your reason, and nothing is paid for it. The reason is kept in the audit log.",
     "rejectLineTitle": "Reject {{name}}'s line?",
-    "rejectedWhy": "Rejected: {{reason}}"
+    "rejectedWhy": "Rejected: {{reason}}",
+    "dailyRateEgp": "Daily rate (EGP)",
+    "hourlyRateEgp": "Hourly rate (EGP)",
+    "salaryBasis": "From the rules: {{days}} working days of {{hours}} h a month.",
+    "firstPay": "First pay (from {{from}} to {{to}}): {{amount}}",
+    "salaryNotSetHint": "No salary yet: payroll can't be approved until it's set, or they're marked not paid through Dawam.",
+    "salaryMissingTitle_one": "{{count}} person on payroll has no salary",
+    "salaryMissingTitle_other": "{{count}} people on payroll have no salary",
+    "salaryMissingHint": "Set their salary on Employees, or mark them not paid through Dawam. Payroll can't be approved until then."
   },
   "legal": {
     "label": "Legal",

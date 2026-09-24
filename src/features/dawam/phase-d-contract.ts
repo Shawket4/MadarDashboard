@@ -4,7 +4,8 @@
  * through these types, so the generated client can take over in one place.
  */
 import type {
-  Adjustment, AttendanceSettings, AuditReport, Decide, PutAttendanceSettingsRequest, ReviewAdvance, SalaryAdvance,
+  Adjustment, AttendanceSettings, AuditReport, ComputedPayslip, CurrentPayroll, Decide, Employee, PutAttendanceSettingsRequest,
+  ReviewAdvance, SalaryAdvance,
 } from "@/data/api/generated/models";
 
 /** How a confirmed cover is paid (D5): the coverer's plain minute rate, or the covered block as a full day. */
@@ -57,4 +58,22 @@ export interface DeductionOverrideEvent {
 }
 /** A Legal audit report; only Deduction overrides carries `history`. */
 export type AuditReportD = AuditReport & { history?: DeductionOverrideEvent[] | null };
+
+/**
+ * An employee (D7, D9): `salary_set` is always sent; false means nobody set
+ * a salary (shown "Not set"), true with a null salary means it is hidden from
+ * this caller. `advance_within_cap` is for everyone who sees the person.
+ */
+export type EmployeeD = Employee & { salary_set?: boolean; advance_within_cap?: boolean };
+
+/** How a salary reads to this caller. */
+export function salaryState(e: EmployeeD): "set" | "not_set" | "hidden" {
+  if (e.salary_set === false) return "not_set";
+  return e.base_salary_piastres == null ? "hidden" : "set";
+}
+
+/** A preview row (D9): on payroll with no salary, so approval is refused (409 SALARY_MISSING). */
+export type PayslipD = ComputedPayslip & { salary_missing?: boolean };
+/** The current run (D9): how many on-payroll people have no salary. */
+export type CurrentPayrollD = CurrentPayroll & { missing_salary_count?: number; totals: CurrentPayroll["totals"] & { missing_salary_count?: number } };
 

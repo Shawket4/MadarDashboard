@@ -19,6 +19,8 @@ function codedVars(raw: unknown, t: TFunction): Record<string, unknown> {
     else if (k === "days" && Array.isArray(v))
       out[k] = v.map((d) => t(`staff.${WEEKDAY_KEYS[Number(d)] ?? ""}`, String(d))).join(t("common.listSeparator", ", "));
     else if (k === "status" && typeof v === "string") out[k] = t(`staff.req_${v}`, v);
+    // People named in a refusal (SALARY_MISSING, D9).
+    else if (k === "names" && Array.isArray(v)) out[k] = v.join(t("common.listSeparator", ", "));
     else if (k.endsWith("_at") && typeof v === "string") out[k] = fmtTime(v);
     else out[k] = v;
   }

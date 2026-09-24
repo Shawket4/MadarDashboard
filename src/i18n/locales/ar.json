@@ -2298,7 +2298,8 @@
       "SHIFT_COVERED": "{{coverer_name}} بيغطّي الوردية دي. أنهي التغطية أو ارفضها الأول.",
       "OWNER_ONLY": "ده بيعمله المالك بس.",
       "ADVANCE_OVER_CAP_owner": "ده فوق حد السلف. المالك بس اللي يقدر يوافق عليه.",
-      "REASON_REQUIRED": "قول السبب: الرفض لازم يكون له سبب."
+      "REASON_REQUIRED": "قول السبب: الرفض لازم يكون له سبب.",
+      "SALARY_MISSING": "مفيش راتب متحدد لـ {{names}}. حدّده، أو علّم إنهم مش على الرواتب، قبل الاعتماد."
     }
   },
   "theme": {
@@ -6558,7 +6559,19 @@
     "capFigures": "عليه {{owed}} من سقف {{cap}}",
     "rejectWhyHint": "يُبلَّغ صاحبه بالسبب، ولا يُدفع شيء عنه. يُحفظ السبب في سجل التدقيق.",
     "rejectLineTitle": "رفض بند {{name}}؟",
-    "rejectedWhy": "مرفوض: {{reason}}"
+    "rejectedWhy": "مرفوض: {{reason}}",
+    "dailyRateEgp": "الأجر اليومي (ج.م)",
+    "hourlyRateEgp": "أجر الساعة (ج.م)",
+    "salaryBasis": "حسب القواعد: {{days}} يوم عمل في الشهر، {{hours}} ساعات في اليوم.",
+    "firstPay": "أول راتب (من {{from}} إلى {{to}}): {{amount}}",
+    "salaryNotSetHint": "لا يوجد راتب بعد: لا يمكن اعتماد الرواتب حتى يُحدَّد، أو يُعلَّم أنه لا يُدفع له عبر دوام.",
+    "salaryMissingTitle_one": "شخص واحد على الرواتب بدون راتب",
+    "salaryMissingTitle_other": "{{count}} شخص على الرواتب بدون راتب",
+    "salaryMissingHint": "حدّد رواتبهم من صفحة الموظفين، أو علّم أنهم لا يُدفع لهم عبر دوام. لا يمكن اعتماد الرواتب قبل ذلك.",
+    "salaryMissingTitle_zero": "لا أحد على الرواتب بدون راتب",
+    "salaryMissingTitle_two": "شخصان على الرواتب بدون راتب",
+    "salaryMissingTitle_few": "{{count}} أشخاص على الرواتب بدون راتب",
+    "salaryMissingTitle_many": "{{count}} شخصًا على الرواتب بدون راتب"
   },
   "legal": {
     "label": "قانوني",

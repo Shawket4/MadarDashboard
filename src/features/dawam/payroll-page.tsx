@@ -54,7 +54,7 @@ import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
   ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote, RejectDialog,
 } from "./money-dialogs";
-import type { AdjustmentD, AdvanceD, DecideD } from "./phase-d-contract";
+import type { AdjustmentD, AdvanceD, CurrentPayrollD, DecideD, PayslipD } from "./phase-d-contract";
 
 type Slip = ComputedPayslip | Payslip;
 type Row = Slip & { employee_name: string; paid_method: string | null };
@@ -117,6 +117,12 @@ export function PayrollPage() {
     people: currentQ.data?.totals?.people ?? rows.length,
     paid: currentQ.data?.paid_count ?? 0,
   };
+
+  // On payroll with no salary (owner decision 9): approval is refused until
+  // each is set or marked not paid through Dawam (409 SALARY_MISSING).
+  const missing = rows.filter((r) => (r as PayslipD).salary_missing);
+  const cur = currentQ.data as CurrentPayrollD | undefined;
+  const missingCount = cur?.missing_salary_count ?? cur?.totals?.missing_salary_count ?? missing.length;
 
   // Reopen closes once a PERSON is paid (PAY-6). A zero-net payslip settled at
   // approval (method "none", PAY-7) isn't anyone being paid; the server allows it.
@@ -194,7 +200,15 @@ export function PayrollPage() {
       meta: { label: t("staff.name", "Name"), phone: "title" },
       cell: ({ row }) => <span className="font-medium">{row.original.employee_name}</span>,
     },
-    { id: "base", header: t("dawam.salary", "Salary"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(payslipLines(row.original)[0].amount) },
+    {
+      id: "base",
+      header: t("dawam.salary", "Salary"),
+      meta: { numeric: true, align: "end" },
+      cell: ({ row }) =>
+        (row.original as PayslipD).salary_missing
+          ? <Badge variant="outline" className="border-warning/60">{t("dawam.notSet", "Not set")}</Badge>
+          : fmtMoney(payslipLines(row.original)[0].amount),
+    },
     { id: "ot", header: t("dawam.overtime", "Overtime"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(row.original.overtime_piastres) },
     { id: "bonuses", header: t("dawam.bonuses", "Bonuses"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(row.original.bonuses_piastres) },
     { id: "deductions", header: t("dawam.deductions", "Deductions"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(-row.original.deductions_piastres) },
@@ -241,7 +255,9 @@ export function PayrollPage() {
           <div className="flex flex-wrap gap-2">
             {period ? <StatusPill tone={PHASE_TONE[phase]}>{t(`dawam.phase_${phase}`, phase)}</StatusPill> : null}
             {canRun && phase === "open" && period ? (
-              <Button onClick={() => void approve()}><BadgeCheck className="size-4" />{t("dawam.approve", "Approve payroll")}</Button>
+              <Button onClick={() => void approve()} disabled={missingCount > 0} aria-describedby={missingCount > 0 ? "salary-missing" : undefined}>
+                <BadgeCheck className="size-4" />{t("dawam.approve", "Approve payroll")}
+              </Button>
             ) : null}
             {canRun && phase === "approved" && paidByHand === 0 ? (
               <Button variant="outline" onClick={() => setReopening(true)}><RotateCcw className="size-4" />{t("dawam.reopen", "Reopen")}</Button>
@@ -256,6 +272,17 @@ export function PayrollPage() {
         }
       />
       <RulesFirstBanner />
+      {phase === "open" && missingCount > 0 ? (
+        <div id="salary-missing" role="alert" className="rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
+          <p className="font-medium">
+            {t("dawam.salaryMissingTitle", { count: missingCount, defaultValue: "{{count}} people on payroll have no salary" })}
+          </p>
+          <p className="text-muted-foreground">
+            {missing.length ? `${missing.map((r) => r.employee_name).join(t("common.listSeparator", ", "))}. ` : ""}
+            {t("dawam.salaryMissingHint", "Set their salary on Employees, or mark them not paid through Dawam. Payroll can't be approved until then.")}
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("dawam.totalNet", "Net pay")} value={totals.net} formatType="money" icon={CircleDollarSign} loading={currentQ.isLoading} />

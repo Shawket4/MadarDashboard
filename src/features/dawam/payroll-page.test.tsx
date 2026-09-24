@@ -469,6 +469,25 @@ describe("PayrollPage", () => {
     adjustments = [];
   });
 
+  it("D9: flags people on payroll with no salary, and won't approve until it's set", () => {
+    held = ["hr.payroll.read", "hr.payroll.run"];
+    current = {
+      ...current!,
+      preview: [
+        slip("e1", "Sara Ahmed"),
+        { ...slip("e4", "Youssef Adel", { base_piastres: 0, base_salary_piastres: 0, net_piastres: 0 }), salary_missing: true },
+      ],
+      missing_salary_count: 1,
+      totals: { ...current!.totals, missing_salary_count: 1 },
+    } as unknown as CurrentPayroll;
+    wrap(<PayrollPage />);
+    const banner = screen.getByRole("alert");
+    expect(within(banner).getByText(/1 person on payroll has no salary/)).toBeInTheDocument();
+    expect(within(banner).getByText(/Youssef Adel/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Approve payroll/ })).toBeDisabled();
+    expect(screen.getByText("Not set")).toBeInTheDocument();
+  });
+
   it("leaves nothing-to-transfer payslips out of the bank and wallet lists (PAY-8)", async () => {
     // E2E payroll: a 0.00 net (deductions carried to next month) was listed as a bank transfer;
     // the server's bank/wallet CSV already lists only net > 0.

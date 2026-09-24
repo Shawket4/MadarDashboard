@@ -54,5 +54,14 @@ describe("Phase D refusals", () => {
     await i18n.changeLanguage("ar");
     expect(getErrorMessage(err)).not.toMatch(/[A-Za-z]/);
   });
+
+  it("D9: approving with salaries missing names the people (SALARY_MISSING {names})", async () => {
+    const err = apiError({ code: "SALARY_MISSING", error: "x", vars: { names: ["Omar Nabil", "Aya Hassan"], employee_ids: ["e1", "e2"] } });
+    expect(getErrorMessage(err)).toBe("No salary is set for Omar Nabil, Aya Hassan. Set it, or mark them not on payroll, before approving.");
+    await i18n.changeLanguage("ar");
+    const ar = getErrorMessage(err);
+    expect(ar).toMatch(/Omar Nabil/);
+    expect(ar).toMatch(/راتب/);
+  });
 });
 
