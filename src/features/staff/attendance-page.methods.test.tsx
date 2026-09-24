@@ -112,6 +112,8 @@ describe("AttendancePage punch methods (CL-16)", () => {
     const reason = within(rowOf("Omar Khaled")).getByText("Phone died");
     const chip = reason.closest("span[title]")!;
     expect(chip).toHaveClass("basis-full");
+    // A phone can't hover, so the whole reason wraps rather than ending in "…".
+    expect(chip).not.toHaveClass("truncate");
     expect(chip.parentElement).toHaveClass("flex-wrap");
   });
 });

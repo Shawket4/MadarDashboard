@@ -372,7 +372,7 @@ function PunchReason({ text }: { text?: string | null }) {
   if (!text) return null;
   return (
     // Its own line under the punch, so a narrow card never squeezes it to nothing.
-    <span className="min-w-0 basis-full truncate font-sans text-xs text-muted-foreground" title={text}>
+    <span className="min-w-0 basis-full font-sans text-xs break-words whitespace-normal text-muted-foreground" title={text}>
       <bdi>{text}</bdi>
     </span>
   );
