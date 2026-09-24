@@ -2227,6 +2227,7 @@
       "SWAP_STALE": "Those shifts aren't on the roster any more.",
       "SWAP_STARTED": "A shift that already started can't be swapped.",
       "SWAP_OTHER_BRANCH": "Swaps are only with a colleague at the same branch.",
+      "OWN_DECISION": "This one is about you, so someone else has to decide it.",
       "PERIOD_CLOSED_paid": "That month is paid, so it can't change. Pick a day in an open month.",
       "OUTSIDE_FENCE": "The phone is {{distance_m}} m from the branch; clocking in needs it within {{radius_m}} m.",
       "CHECKIN_TOO_EARLY": "{{shift}} opens for clocking in {{minutes}} minutes before it starts, at {{opens_at}}.",
