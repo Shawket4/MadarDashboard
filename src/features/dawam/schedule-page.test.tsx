@@ -181,13 +181,19 @@ describe("SchedulePage", () => {
     await waitFor(() => expect(calls.decideHoliday).toHaveBeenCalledWith(addDays(todayIso(), 10), { decision: "holiday" }));
   });
 
-  it("leaves a public holiday's decision to someone who publishes at every branch (B-SETUP-3)", () => {
-    // Karim publishes Arkan's rota only; a holiday is the whole business's.
+  it("lets a branch manager who publishes decide a public holiday (R-B3, RU-10)", () => {
+    // Karim publishes Arkan's rota only; since R-B3 that is enough for a holiday.
     everywhere = ["hr.schedule.read"];
+    wrap(<SchedulePage />);
+    expect(screen.getByRole("button", { name: "Make it a holiday" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Normal day" })).toBeInTheDocument();
+  });
+
+  it("offers no holiday decision without the publish right", () => {
+    held = ["hr.schedule.read", "hr.schedule.edit"];
     wrap(<SchedulePage />);
     expect(screen.getByText("Armed Forces Day")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Make it a holiday" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Normal day" })).not.toBeInTheDocument();
   });
 
   it("is read-only for someone who can only read", () => {
