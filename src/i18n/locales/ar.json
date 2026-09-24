@@ -5592,7 +5592,15 @@
       "byType": "حسب النوع",
       "byKind": "حسب نوع الخصم",
       "discountSales": "مبيعات عليها خصم",
-      "flagged": "مُعلَّم"
+      "flagged": "مُعلَّم",
+      "colLabel": "البيان",
+      "colAmount": "المبلغ",
+      "reason": {
+        "unspecified": "غير محدد",
+        "correction_request": "طلب تصحيح معتمد",
+        "auto_closed": "أُغلق تلقائيًا: لم يُسجَّل انصراف",
+        "marked_absent": "سُجّل غياب تلقائيًا: لم يُسجَّل حضور"
+      }
     },
     "loyalty": {
       "title": "الولاء",

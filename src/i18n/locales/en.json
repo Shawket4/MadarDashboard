@@ -5436,7 +5436,15 @@
       "byType": "By type",
       "byKind": "By kind",
       "discountSales": "Discounted sales",
-      "flagged": "Flagged"
+      "flagged": "Flagged",
+      "colLabel": "Label",
+      "colAmount": "Amount",
+      "reason": {
+        "unspecified": "Not given",
+        "correction_request": "Approved correction request",
+        "auto_closed": "Closed automatically: no check-out",
+        "marked_absent": "Marked absent automatically: no check-in"
+      }
     },
     "loyalty": {
       "title": "Loyalty",

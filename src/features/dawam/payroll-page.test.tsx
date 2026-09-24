@@ -403,6 +403,22 @@ describe("PayrollPage", () => {
     expect(expenseParams.at(-1)).toEqual({});
   });
 
+  it("words a rule-made line in the reader's language from its code, not the server's English (AT-13)", async () => {
+    // E2E payroll (L-27/L-29): the Bonuses & deductions tab showed "Absent — no check-in recorded" in Arabic.
+    const user = userEvent.setup();
+    adjustments = [
+      { id: "d9", kind: "deduction", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 3_125, percent_of_base: null, value_piastres: 3_125,
+        reason: "SERVER TEXT late", reason_code: "late", reason_vars: { minutes: 24 }, effective_date: "2026-09-18", source: "late_penalty", status: "approved", recurring: false, ends_on: null },
+      { id: "d8", kind: "deduction", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 20_000, percent_of_base: null, value_piastres: 20_000,
+        reason: "Broken glassware", reason_code: null, reason_vars: null, effective_date: "2026-09-05", source: "manual", status: "approved", recurring: false, ends_on: null },
+    ];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(screen.getByText(/Late by 24 minutes/)).toBeInTheDocument();
+    expect(screen.queryByText(/SERVER TEXT/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Broken glassware/)).toBeInTheDocument();
+  });
+
   it("reads the server's period status as a phase", () => {
     expect(periodPhase(period("draft") as never)).toBe("open");
     expect(periodPhase(period("generated") as never)).toBe("approved");

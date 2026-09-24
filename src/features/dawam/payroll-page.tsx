@@ -48,7 +48,7 @@ import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { fmtDate, fmtMoney, fmtMoneySigned } from "@/lib/format";
 import { invalidateStaff, REQUEST_STATUS_TONE } from "@/features/staff/util";
 
-import { payslipLines, type PayLine } from "./lines";
+import { payslipLines, reasonText, type PayLine } from "./lines";
 import { printPayslip } from "./payslip-print";
 import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
@@ -499,7 +499,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                     {a.recurring ? <Badge variant="outline">{stopped ? t("dawam.stopped", "stopped") : t("dawam.monthly", "monthly")}</Badge> : null}
                   </span>
                 }
-                meta={[a.reason, fmtDate(a.effective_date)].join(" · ")}
+                meta={[reasonText(t, a.reason_code, a.reason_vars as Record<string, unknown> | null, a.reason), fmtDate(a.effective_date)].join(" · ")}
                 trailing={
                   <span className="flex items-center gap-2">
                     <span className="tabular-nums">{value}</span>

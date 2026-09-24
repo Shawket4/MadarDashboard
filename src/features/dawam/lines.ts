@@ -56,6 +56,20 @@ const REASON_KEYS: Record<string, string> = {
   left_mid_shift: "dawam.reason_left_mid_shift",
 };
 
+/**
+ * A line's reason in the reader's language: the code's wording when this build
+ * knows the code, else the server's (or a person's own) text.
+ */
+export const reasonText = (
+  t: (k: string, o?: Record<string, unknown>) => string,
+  code: string | null | undefined,
+  vars: Record<string, unknown> | null | undefined,
+  fallback: string,
+): string => {
+  const key = code ? REASON_KEYS[code] : undefined;
+  return key ? t(key, { ...(vars ?? {}), defaultValue: fallback }) : fallback;
+};
+
 /** Base pay before overtime, bonuses, deductions and the advance installment. */
 export const basePiastres = (p: ComputedPayslip | Payslip): number =>
   "base_piastres" in p && typeof p.base_piastres === "number"
