@@ -357,6 +357,13 @@ function lineLabel(l: PayLine, t: (k: string, o?: Record<string, unknown>) => st
   return l.labelKey ? t(l.labelKey, { ...l.vars, defaultValue: l.label }) : l.label;
 }
 
+/** "Waived", with why when the server says (AD-6, M29). */
+function waivedText(l: PayLine, t: (k: string, o?: Record<string, unknown>) => string) {
+  return l.waiveReason
+    ? t("dawam.lineWaivedWhy", { reason: l.waiveReason, defaultValue: `Waived: ${l.waiveReason}` })
+    : t("dawam.lineWaived", { defaultValue: "Waived" });
+}
+
 /** One person's payslip, every line with its reason (AD-6), and what can change on it. */
 function PayslipSheet({
   row, onOpenChange, editable, canDeduct, phase, period,
@@ -404,7 +411,7 @@ function PayslipSheet({
       company: org?.name ?? "",
       period,
       person: row.employee_name,
-      lines: lines.map((l) => ({ label: lineLabel(l, t), line: l })),
+      lines: lines.map((l) => ({ label: lineLabel(l, t), line: l, waivedNote: l.waived ? waivedText(l, t) : undefined })),
       net: row.net_piastres,
       carryOut: row.carry_out_piastres,
       labels: {
@@ -437,7 +444,7 @@ function PayslipSheet({
                 key={l.key}
                 variant="ledger"
                 title={<span className={l.waived ? "text-muted-foreground line-through" : undefined}>{lineLabel(l, t)}</span>}
-                meta={l.waived ? t("dawam.lineWaived", "Waived") : l.rule ? t("dawam.ruleLine", "From the rules") : l.manual ? t("dawam.manualLine", "Added by hand") : undefined}
+                meta={l.waived ? waivedText(l, t) : l.rule ? t("dawam.ruleLine", "From the rules") : l.manual ? t("dawam.manualLine", "Added by hand") : undefined}
                 trailing={
                   <span className="flex items-center gap-1">
                     <span className={l.waived ? "text-muted-foreground line-through tabular-nums" : l.amount < 0 ? "text-destructive tabular-nums" : "tabular-nums"}>{fmtMoneySigned(l.amount)}</span>

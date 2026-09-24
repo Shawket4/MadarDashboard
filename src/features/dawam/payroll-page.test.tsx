@@ -550,7 +550,7 @@ describe("PayrollPage", () => {
           breakdown: {
             paid_days: 31, window_days: 31, bonuses: [], advances: [],
             deductions: [
-              { id: "d1", reason: "Late arrival", piastres: 5_000, source: "late_penalty", waived: true },
+              { id: "d1", reason: "Late arrival", piastres: 5_000, source: "late_penalty", waived: true, waive_reason: "Metro <stopped>" },
               { id: "d2", reason: "Broke <b>a</b> glass", piastres: 15_000, source: "manual" },
             ],
           },
@@ -564,7 +564,8 @@ describe("PayrollPage", () => {
     await user.click(screen.getAllByText("Sara Ahmed")[0]);
     const sheet = await screen.findByRole("dialog");
     expect(within(sheet).getByText("Late arrival")).toHaveClass("line-through");
-    expect(within(sheet).getByText("Waived")).toBeInTheDocument();
+    // M29: why it was waived (AD-6).
+    expect(within(sheet).getByText("Waived: Metro <stopped>")).toBeInTheDocument();
     expect(within(sheet).queryByRole("button", { name: "Waive" })).not.toBeInTheDocument();
 
     await user.click(within(sheet).getByRole("button", { name: /Download PDF/ }));
@@ -575,6 +576,7 @@ describe("PayrollPage", () => {
     expect(html).toContain("line-through");
     // A reason someone typed is text, never markup.
     expect(html).toContain("Broke &lt;b&gt;a&lt;/b&gt; glass");
+    expect(html).toContain("Waived: Metro &lt;stopped&gt;");
     await waitFor(() => expect(win.print).toHaveBeenCalled());
     open.mockRestore();
   });

@@ -6571,7 +6571,8 @@
     "salaryMissingTitle_zero": "لا أحد على الرواتب بدون راتب",
     "salaryMissingTitle_two": "شخصان على الرواتب بدون راتب",
     "salaryMissingTitle_few": "{{count}} أشخاص على الرواتب بدون راتب",
-    "salaryMissingTitle_many": "{{count}} شخصًا على الرواتب بدون راتب"
+    "salaryMissingTitle_many": "{{count}} شخصًا على الرواتب بدون راتب",
+    "lineWaivedWhy": "اتنازلت عنه: {{reason}}"
   },
   "legal": {
     "label": "قانوني",

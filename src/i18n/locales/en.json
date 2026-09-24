@@ -6370,7 +6370,8 @@
     "salaryNotSetHint": "No salary yet: payroll can't be approved until it's set, or they're marked not paid through Dawam.",
     "salaryMissingTitle_one": "{{count}} person on payroll has no salary",
     "salaryMissingTitle_other": "{{count}} people on payroll have no salary",
-    "salaryMissingHint": "Set their salary on Employees, or mark them not paid through Dawam. Payroll can't be approved until then."
+    "salaryMissingHint": "Set their salary on Employees, or mark them not paid through Dawam. Payroll can't be approved until then.",
+    "lineWaivedWhy": "Waived: {{reason}}"
   },
   "legal": {
     "label": "Legal",

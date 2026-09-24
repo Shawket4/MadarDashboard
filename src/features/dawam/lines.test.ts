@@ -83,6 +83,22 @@ describe("payslipLines", () => {
     expect(lines.find((l) => l.key === "d|d1")).toMatchObject({ waivedId: "d1", deductionId: undefined });
   });
 
+  it("M29: carries why a line was waived, when the server says (AD-6)", () => {
+    const lines = payslipLines(
+      slip({
+        breakdown: {
+          paid_days: 31, window_days: 31, bonuses: [], advances: [],
+          deductions: [
+            { id: "d1", reason: "Late", piastres: 5_000, source: "late_penalty", waived: true, waive_reason: "Traffic accident" },
+            { id: "d3", reason: "Late", piastres: 5_000, source: "late_penalty", waived: true },
+          ],
+        },
+      }),
+    );
+    expect(lines.find((l) => l.key === "d|d1")?.waiveReason).toBe("Traffic accident");
+    expect(lines.find((l) => l.key === "d|d3")?.waiveReason).toBeUndefined();
+  });
+
   it("names the capped part so the lines add up to a net of zero (PAY-12)", () => {
     const lines = payslipLines(
       slip({
