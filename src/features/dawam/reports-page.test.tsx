@@ -106,10 +106,26 @@ describe("StaffReportsPage", () => {
     expect(screen.getAllByText("20.0%").length).toBeGreaterThan(0);
     await user.click(screen.getByRole("tab", { name: /Overtime & payroll/ }));
     expect(seen.payroll[0]).toMatchObject({ from: "2026-09-01", to: "2026-09-21" });
-    expect(screen.getAllByText(/paid/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Paid").length).toBeGreaterThan(0);
     await user.click(screen.getByRole("tab", { name: /Salary advances/ }));
     expect(screen.getAllByText("Youssef Adel").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Till pay-out").length).toBeGreaterThan(0);
+  });
+
+  it("names a period's status in the reader's words, on screen and in the CSV (AT-13)", async () => {
+    // E2E payroll: the Status column showed the server's raw "generated".
+    const user = userEvent.setup();
+    wrap();
+    await user.click(screen.getByRole("tab", { name: /Overtime & payroll/ }));
+    expect(screen.getAllByText("Paid").length).toBeGreaterThan(0);
+    expect(screen.queryByText("paid")).not.toBeInTheDocument();
+  });
+
+  it("writes plain text to the CSV: no invisible direction marks (AT-2)", async () => {
+    // E2E payroll: Arabic hours reached the CSV wrapped in U+2066…U+2069.
+    const { toCsv } = await import("./reports-page");
+    const csv = toCsv([{ id: "h", header: "Hours", value: (r: { h: string }) => r.h }], [{ h: "\u206622 س 15 د\u2069" }]);
+    expect(csv).toBe("Hours\r\n22 س 15 د");
   });
 
   it("keeps payroll tabs from someone with attendance rights only", () => {
