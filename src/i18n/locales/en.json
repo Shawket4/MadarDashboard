@@ -2272,7 +2272,8 @@
       "SHIFT_DAYS_IN_USE_named": "{{name}} still has people rostered on {{days}}. Move them first.",
       "SHIFTS_OVERLAP_named": "{{a}} and {{b}} would overlap on {{date}}.",
       "ORG_SUSPENDED": "This business is suspended. Contact support to reactivate it.",
-      "SHIFT_COVERED": "{{coverer_name}} is covering this shift. End or reject the cover first."
+      "SHIFT_COVERED": "{{coverer_name}} is covering this shift. End or reject the cover first.",
+      "OWNER_ONLY": "Only the owner can do this."
     }
   },
   "theme": {
@@ -6331,7 +6332,10 @@
     "approveDaysAhead_one": "1 day of this month is still to come; nobody can clock in on it after approval.",
     "approveDaysAhead_other": "{{count}} days of this month are still to come; nobody can clock in on them after approval.",
     "coveredBy": "Covered by {{name}}",
-    "coveredByHint": "Covered by {{name}}: nobody can clock its owner in. End or reject the cover first."
+    "coveredByHint": "Covered by {{name}}: nobody can clock its owner in. End or reject the cover first.",
+    "holidaysOwnerOnly": "The owner decides public holidays.",
+    "holidayDecided": "Holiday",
+    "holidayUndecided": "Not decided yet"
   },
   "legal": {
     "label": "Legal",

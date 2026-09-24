@@ -55,6 +55,9 @@ export function SchedulePage() {
   const canPublish = authz.can(Cap.hrSchedulePublish);
   const canSettings = authz.can(Cap.hrRosterSettings);
   const canStaffEdit = authz.can(Cap.hrStaffEdit);
+  // Public holidays are the owner's, like the rules (D3): the rules right at
+  // every branch decides them (else 403 OWNER_ONLY); everyone else reads them.
+  const canDecideHoliday = authz.canEverywhere(Cap.hrRulesEdit);
   const [dayOpen, setDayOpen] = useState<{ person: RosterPerson; date: string } | null>(null);
   const [prefsOf, setPrefsOf] = useState<RosterPerson | null>(null);
   const [showCoverage, setShowCoverage] = useState(false);
@@ -70,7 +73,7 @@ export function SchedulePage() {
   const suggestionsQ = useSuggestions({ branch_id: branchId, week_start: week }, { query: { enabled: canEdit && !!branchId } });
   const upcoming = useRoster(
     { branch_id: branchId, from: todayIso(), to: addDays(todayIso(), 45) },
-    { query: { enabled: canEdit && !!branchId } },
+    { query: { enabled: canRead && !!branchId } },
   );
 
   const view = rosterQ.data;
@@ -140,7 +143,7 @@ export function SchedulePage() {
     if (ok) await run("publish", () => publish({ branch_id: branchId, week_start: week }), t("dawam.published", "Week published"));
   };
 
-  const holidays = (upcoming.data?.holidays ?? []).filter((h) => !h.decision);
+  const holidays = upcoming.data?.holidays ?? [];
 
   // A pattern suggestion changes the person's standing week, not one day: say so first.
   const decide = async (g: Suggestion, accept: boolean) => {
@@ -361,9 +364,12 @@ export function SchedulePage() {
         </section>
       ) : null}
 
-      {canEdit && holidays.length > 0 ? (
+      {holidays.length > 0 ? (
         <section className="space-y-3">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground"><PartyPopper className="size-4" />{t("dawam.holidays", "Public holidays")}</h2>
+          {canDecideHoliday ? null : (
+            <p className="text-sm text-muted-foreground">{t("dawam.holidaysOwnerOnly", "The owner decides public holidays.")}</p>
+          )}
           <ListCard>
             {holidays.map((h) => (
               <ListRow
@@ -372,11 +378,18 @@ export function SchedulePage() {
                 title={i18n.language.startsWith("ar") ? h.name_ar : h.name_en}
                 meta={t("dawam.holidayHint", { date: fmtDate(h.on_date), defaultValue: `${fmtDate(h.on_date)} · as a holiday nobody is marked absent, and working it pays extra` })}
                 trailing={
-                  // Publishing at any branch is enough to decide a public holiday (R-B3).
-                  !canPublish ? null : <span className="flex items-center gap-1">
-                    <Button size="sm" variant="outline" onClick={() => void run(`h|${h.on_date}`, () => decideHoliday(h.on_date, { decision: "holiday" }), t("dawam.holidaySet", "Set as a holiday"))}>{t("dawam.makeHoliday", "Make it a holiday")}</Button>
-                    <Button size="sm" variant="ghost" onClick={() => void run(`h|${h.on_date}`, () => decideHoliday(h.on_date, { decision: "dismissed" }), t("dawam.holidayDismissed", "Kept as a normal day"))}>{t("dawam.normalDay", "Normal day")}</Button>
-                  </span>
+                  h.decision ? (
+                    <StatusPill tone={h.decision === "holiday" ? "info" : "neutral"}>
+                      {h.decision === "holiday" ? t("dawam.holidayDecided", "Holiday") : t("dawam.normalDay", "Normal day")}
+                    </StatusPill>
+                  ) : !canDecideHoliday ? (
+                    <StatusPill tone="warning">{t("dawam.holidayUndecided", "Not decided yet")}</StatusPill>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      <Button size="sm" variant="outline" disabled={busy === `h|${h.on_date}`} onClick={() => void run(`h|${h.on_date}`, () => decideHoliday(h.on_date, { decision: "holiday" }), t("dawam.holidaySet", "Set as a holiday"))}>{t("dawam.makeHoliday", "Make it a holiday")}</Button>
+                      <Button size="sm" variant="ghost" disabled={busy === `h|${h.on_date}`} onClick={() => void run(`h|${h.on_date}`, () => decideHoliday(h.on_date, { decision: "dismissed" }), t("dawam.holidayDismissed", "Kept as a normal day"))}>{t("dawam.normalDay", "Normal day")}</Button>
+                    </span>
+                  )
                 }
               />
             ))}

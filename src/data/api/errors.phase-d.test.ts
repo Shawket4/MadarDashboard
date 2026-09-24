@@ -30,4 +30,11 @@ describe("Phase D refusals", () => {
     expect(ar).toMatch(/Salma Adel/);
     expect(ar).toMatch(/بيغطّي/);
   });
+
+  it("D3: a holiday decided by someone who isn't the owner (OWNER_ONLY, 403, no vars)", async () => {
+    const err = apiError({ code: "OWNER_ONLY", error: "Only the owner decides public holidays." }, 403);
+    expect(getErrorMessage(err)).toBe("Only the owner can do this.");
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(err)).toMatch(/المالك/);
+  });
 });
