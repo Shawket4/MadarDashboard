@@ -2270,7 +2270,8 @@
       "SHIFT_IN_USE": "{{n}} roster assignment(s) still use {{name}}. Move them off it first, or switch it off instead.",
       "REQUEST_ALREADY_DECIDED": "This request was already decided: {{status}}.",
       "SHIFT_DAYS_IN_USE_named": "{{name}} still has people rostered on {{days}}. Move them first.",
-      "SHIFTS_OVERLAP_named": "{{a}} and {{b}} would overlap on {{date}}."
+      "SHIFTS_OVERLAP_named": "{{a}} and {{b}} would overlap on {{date}}.",
+      "ORG_SUSPENDED": "This business is suspended. Contact support to reactivate it."
     }
   },
   "theme": {

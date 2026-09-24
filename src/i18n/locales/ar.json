@@ -2293,7 +2293,8 @@
       "SHIFT_IN_USE": "فيه {{n}} تعيين في الجدول لسه على {{name}}. انقلهم الأول، أو اقفلها بدل ما تمسحها.",
       "REQUEST_ALREADY_DECIDED": "الطلب ده اتقرر خلاص: {{status}}.",
       "SHIFT_DAYS_IN_USE_named": "لسه فيه ناس متسجلين على {{name}} يوم {{days}}. انقلهم الأول.",
-      "SHIFTS_OVERLAP_named": "{{a}} و{{b}} هيتداخلوا يوم {{date}}."
+      "SHIFTS_OVERLAP_named": "{{a}} و{{b}} هيتداخلوا يوم {{date}}.",
+      "ORG_SUSPENDED": "النشاط ده موقوف. كلّم الدعم عشان يرجّعوه."
     }
   },
   "theme": {
