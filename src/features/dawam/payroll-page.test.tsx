@@ -27,10 +27,25 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 } as unknown as typeof ResizeObserver;
 
+// Radix Select asks for pointer capture and scrolls its options; jsdom has neither.
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.releasePointerCapture ??= () => {};
+Element.prototype.scrollIntoView ??= () => {};
+
 let held: string[] = [];
 let current: CurrentPayroll | undefined;
 let adjustments: unknown[] = [];
 let advances: unknown[] = [];
+let expenses: unknown[] = [];
+let isOwner = false;
+const expenseCalls = vi.hoisted(() => ({
+  clear: vi.fn(async (_id: string, _b: unknown) => ({})),
+  reassign: vi.fn(async (_id: string, _b: unknown) => ({})),
+}));
+vi.mock("./phase-d-contract", async () => {
+  const real = await vi.importActual<typeof import("./phase-d-contract")>("./phase-d-contract");
+  return { ...real, clearExpenseAdvance: expenseCalls.clear, reassignExpenseAdvance: expenseCalls.reassign };
+});
 let scopeBranch: string | null = null;
 const expenseParams: unknown[] = [];
 const decideAdjustment = vi.fn(async () => ({}));
@@ -63,7 +78,7 @@ vi.mock("@/data/authz/use-authz", async () => {
     ...real,
     useAuthz: () =>
       real.authzFrom({
-        user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
+        user_id: "u", epoch: 0, spec_version: 0, owner: isOwner, platform: false, role_kinds: [],
         capabilities: held as never, ask_manager: [], limits: {},
       }),
   };
@@ -87,7 +102,7 @@ vi.mock("@/data/api/generated/api", () => ({
   ] as Partial<Employee>[]),
   useListAdjustments: hook("adjustments", () => adjustments),
   useListAdvances: hook("advances", () => advances),
-  useListExpenseAdvances: (params: unknown, ...rest: unknown[]) => { expenseParams.push(params); return hook("expenses", () => [])(params, ...rest); },
+  useListExpenseAdvances: (params: unknown, ...rest: unknown[]) => { expenseParams.push(params); return hook("expenses", () => expenses)(params, ...rest); },
   useListPayslips: hook("payslips", () => []),
   useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
   exportPeriodCsv: vi.fn(),
@@ -135,6 +150,10 @@ beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
   adjustments = [];
+  expenses = [];
+  isOwner = false;
+  expenseCalls.clear.mockClear();
+  expenseCalls.reassign.mockClear();
   scopeBranch = null;
   expenseParams.length = 0;
   held = ["hr.payroll.read", "hr.payroll.run", "hr.adjustments.create", "hr.deductions.create"];
@@ -486,6 +505,55 @@ describe("PayrollPage", () => {
     expect(within(banner).getByText(/Youssef Adel/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Approve payroll/ })).toBeDisabled();
     expect(screen.getByText("Not set")).toBeInTheDocument();
+  });
+
+  describe("M39: correcting a till-tagged expense advance (owner decision 39)", () => {
+    const till = { id: "x1", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 20_000, purpose: "Milk", via: "till", given_on: "2026-09-20", branch_id: "b1", created_at: "", handed_by_name: "Karim" };
+    const safe = { ...till, id: "x2", via: "safe", purpose: "Cups" };
+
+    it("the owner clears a till tag with a reason; the pay-out stays", async () => {
+      isOwner = true;
+      expenses = [till, safe];
+      const user = userEvent.setup();
+      wrap(<PayrollPage />);
+      await user.click(screen.getByRole("tab", { name: /Expense advances/ }));
+      // Only the till-tagged one can be corrected here (a hand-logged one is the log itself).
+      expect(screen.getAllByRole("button", { name: "Correct the tag" })).toHaveLength(1);
+      await user.click(screen.getByRole("button", { name: "Correct the tag" }));
+      const dialog = await screen.findByRole("dialog");
+      expect(within(dialog).getByText(/The cash that left the till stays as it is/)).toBeInTheDocument();
+      await user.click(within(dialog).getByRole("radio", { name: "Clear the tag" }));
+      await user.click(within(dialog).getByRole("button", { name: "Save" }));
+      expect(await within(dialog).findByText("A reason is needed")).toBeInTheDocument();
+      expect(expenseCalls.clear).not.toHaveBeenCalled();
+      await user.type(within(dialog).getByLabelText("Reason"), "Not an advance: shop milk");
+      await user.click(within(dialog).getByRole("button", { name: "Save" }));
+      await waitFor(() => expect(expenseCalls.clear).toHaveBeenCalledWith("x1", { reason: "Not an advance: shop milk" }));
+    });
+
+    it("the owner reassigns a till tag to someone else, with a reason", async () => {
+      isOwner = true;
+      expenses = [till];
+      const user = userEvent.setup();
+      wrap(<PayrollPage />);
+      await user.click(screen.getByRole("tab", { name: /Expense advances/ }));
+      await user.click(screen.getByRole("button", { name: "Correct the tag" }));
+      const dialog = await screen.findByRole("dialog");
+      await user.click(within(dialog).getByRole("combobox", { name: "Employee" }));
+      await user.click(await screen.findByRole("option", { name: "Sara Ahmed" }));
+      await user.type(within(dialog).getByLabelText("Reason"), "Sara took it, not Youssef");
+      await user.click(within(dialog).getByRole("button", { name: "Save" }));
+      await waitFor(() => expect(expenseCalls.reassign).toHaveBeenCalledWith("x1", { employee_id: "e1", reason: "Sara took it, not Youssef" }));
+    });
+
+    it("a manager isn't offered it", async () => {
+      expenses = [till];
+      const user = userEvent.setup();
+      wrap(<PayrollPage />);
+      await user.click(screen.getByRole("tab", { name: /Expense advances/ }));
+      expect(screen.getByText("Youssef Adel")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Correct the tag" })).not.toBeInTheDocument();
+    });
   });
 
   it("leaves nothing-to-transfer payslips out of the bank and wallet lists (PAY-8)", async () => {

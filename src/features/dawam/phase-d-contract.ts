@@ -3,6 +3,7 @@
  * the backend's "Contract as built" names them. Every screen reads them
  * through these types, so the generated client can take over in one place.
  */
+import { customInstance } from "@/data/api/custom-instance";
 import type {
   Adjustment, AttendanceSettings, AuditReport, ComputedPayslip, CurrentPayroll, Decide, Employee, LabourWarning, PresenceRow,
   PutAttendanceSettingsRequest, ReviewAdvance, SalaryAdvance,
@@ -89,4 +90,15 @@ export const warningsOf = (out: unknown): LabourWarning[] => {
   const w = (out as { warnings?: unknown } | null | undefined)?.warnings;
   return Array.isArray(w) ? (w as LabourWarning[]) : [];
 };
+
+/**
+ * Correcting a till-tagged expense advance (owner decision 39): the owner
+ * clears the tag or moves it to someone else, with a reason; the cash that
+ * left the till stays as it is. Through the Orval mutator until the client is
+ * regenerated with these endpoints.
+ */
+export const clearExpenseAdvance = (id: string, body: { reason: string }) =>
+  customInstance<unknown>({ url: `/staff/expense-advances/${id}`, method: "DELETE", headers: { "Content-Type": "application/json" }, data: body });
+export const reassignExpenseAdvance = (id: string, body: { employee_id: string; reason: string }) =>
+  customInstance<unknown>({ url: `/staff/expense-advances/${id}`, method: "PATCH", headers: { "Content-Type": "application/json" }, data: body });
 

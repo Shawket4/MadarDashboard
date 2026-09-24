@@ -6372,7 +6372,15 @@
     "salaryMissingTitle_other": "{{count}} people on payroll have no salary",
     "salaryMissingHint": "Set their salary on Employees, or mark them not paid through Dawam. Payroll can't be approved until then.",
     "lineWaivedWhy": "Waived: {{reason}}",
-    "closedMonthNextLine": "To pay it, add it as a line in next month."
+    "closedMonthNextLine": "To pay it, add it as a line in next month.",
+    "correctTag": "Correct the tag",
+    "correctTagTitle": "Correct {{name}}'s till tag",
+    "correctTagHint": "The cash that left the till stays as it is. Only who it is logged against changes, and the reason is kept in the audit log.",
+    "reassignTag": "Someone else took it",
+    "clearTag": "Clear the tag",
+    "pickSomeoneElse": "Pick who really took it",
+    "tagCleared": "Tag cleared: it stays a plain till pay-out",
+    "tagReassigned": "Moved to the right person"
   },
   "legal": {
     "label": "Legal",

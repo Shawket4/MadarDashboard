@@ -52,7 +52,7 @@ import { payslipLines, reasonText, type PayLine } from "./lines";
 import { printPayslip } from "./payslip-print";
 import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
-  ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote, RejectDialog,
+  ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote, RejectDialog, CorrectExpenseTagDialog,
 } from "./money-dialogs";
 import type { AdjustmentD, AdvanceD, CurrentPayrollD, DecideD, PayslipD } from "./phase-d-contract";
 
@@ -642,6 +642,9 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
 
 function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) {
   const { t } = useTranslation();
+  // The owner corrects a till tag here, since the POS has no correction screen (owner decision 39).
+  const canCorrectTag = useAuthz().owner;
+  const [correcting, setCorrecting] = useState<ExpenseAdvance | null>(null);
   // The scope bar's branch (the expense's own branch, AV-9); every branch when none is picked.
   const { branchId } = useScope();
   const q = useListExpenseAdvances(branchId ? { branch_id: branchId } : {});
@@ -659,11 +662,19 @@ function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) 
               key={x.id}
               title={x.employee_name}
               meta={[x.purpose, fmtDate(x.given_on), t(`dawam.via_${x.via}`, x.via), x.handed_by_name].filter(Boolean).join(" · ")}
-              trailing={<span className="tabular-nums">{fmtMoney(x.amount_piastres)}</span>}
+              trailing={
+                <span className="flex items-center gap-2">
+                  <span className="tabular-nums">{fmtMoney(x.amount_piastres)}</span>
+                  {canCorrectTag && x.via === "till" ? (
+                    <Button size="sm" variant="ghost" onClick={() => setCorrecting(x)}>{t("dawam.correctTag", "Correct the tag")}</Button>
+                  ) : null}
+                </span>
+              }
             />
           ))}
         </ListCard>
       )}
+      <CorrectExpenseTagDialog key={correcting?.id} expense={correcting} onOpenChange={(o) => !o && setCorrecting(null)} />
     </div>
   );
 }

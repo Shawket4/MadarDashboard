@@ -6573,7 +6573,15 @@
     "salaryMissingTitle_few": "{{count}} أشخاص على الرواتب بدون راتب",
     "salaryMissingTitle_many": "{{count}} شخصًا على الرواتب بدون راتب",
     "lineWaivedWhy": "اتنازلت عنه: {{reason}}",
-    "closedMonthNextLine": "لصرفه، أضِفه كبند في الشهر القادم."
+    "closedMonthNextLine": "لصرفه، أضِفه كبند في الشهر القادم.",
+    "correctTag": "تصحيح الوسم",
+    "correctTagTitle": "تصحيح وسم الخزينة لـ {{name}}",
+    "correctTagHint": "يبقى المبلغ الذي خرج من الخزينة كما هو. يتغير فقط الشخص المسجَّل عليه، ويُحفظ السبب في سجل التدقيق.",
+    "reassignTag": "أخذه شخص آخر",
+    "clearTag": "إزالة الوسم",
+    "pickSomeoneElse": "اختر من أخذه فعلًا",
+    "tagCleared": "أُزيل الوسم: يبقى صرفًا عاديًا من الخزينة",
+    "tagReassigned": "نُقل إلى الشخص الصحيح"
   },
   "legal": {
     "label": "قانوني",

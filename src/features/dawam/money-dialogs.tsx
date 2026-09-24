@@ -34,7 +34,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
-import { capView, type AdvanceD } from "./phase-d-contract";
+import { capView, clearExpenseAdvance, reassignExpenseAdvance, type AdvanceD } from "./phase-d-contract";
 
 /** Pounds as typed → piastres; null when it isn't a positive amount. */
 export const readPounds = (s: string): number | null => {
@@ -390,6 +390,68 @@ export function ExpenseAdvanceDialog({ open, onOpenChange }: { open: boolean; on
           />
         )}
       />
+    </FormDialog>
+  );
+}
+
+/**
+ * Correct a till-tagged expense advance (owner decision 39, AV-10): clear the
+ * tag, or move it to the person who really took the cash, with why. The
+ * pay-out itself stays in the till's count.
+ */
+export function CorrectExpenseTagDialog({
+  expense, onOpenChange,
+}: {
+  expense: { id: string; employee_id: string; employee_name: string } | null;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const { t } = useTranslation();
+  const schema = z
+    .object({
+      action: z.enum(["reassign", "clear"]),
+      employee_id: z.string(),
+      reason: nonEmpty(t, ["dawam.reasonRequired", "A reason is needed"]).max(500),
+    })
+    .refine((v) => v.action === "clear" || (!!v.employee_id && v.employee_id !== expense?.employee_id), {
+      path: ["employee_id"],
+      message: t("dawam.pickSomeoneElse", "Pick who really took it"),
+    });
+  type Values = z.infer<typeof schema>;
+  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { action: "reassign", employee_id: "", reason: "" } });
+  const action = form.watch("action");
+  return (
+    <FormDialog
+      open={!!expense}
+      onOpenChange={onOpenChange}
+      form={form}
+      title={t("dawam.correctTagTitle", { name: expense?.employee_name ?? "", defaultValue: `Correct ${expense?.employee_name ?? ""}'s till tag` })}
+      description={t("dawam.correctTagHint", "The cash that left the till stays as it is. Only who it is logged against changes, and the reason is kept in the audit log.")}
+      onSave={async (v) => {
+        if (v.action === "clear") {
+          await clearExpenseAdvance(expense!.id, { reason: v.reason.trim() });
+          toast.success(t("dawam.tagCleared", "Tag cleared: it stays a plain till pay-out"));
+        } else {
+          await reassignExpenseAdvance(expense!.id, { employee_id: v.employee_id, reason: v.reason.trim() });
+          toast.success(t("dawam.tagReassigned", "Moved to the right person"));
+        }
+      }}
+    >
+      <FormField
+        control={form.control}
+        name="action"
+        render={({ field }) => (
+          <SegmentedControl
+            value={field.value}
+            onChange={field.onChange}
+            options={[
+              { value: "reassign", label: t("dawam.reassignTag", "Someone else took it") },
+              { value: "clear", label: t("dawam.clearTag", "Clear the tag") },
+            ]}
+          />
+        )}
+      />
+      {action === "reassign" ? <PersonField form={form} name="employee_id" enabled={!!expense} /> : null}
+      <TextField form={form} name="reason" label={t("staff.reason", "Reason")} />
     </FormDialog>
   );
 }
