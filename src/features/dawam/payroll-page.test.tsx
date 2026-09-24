@@ -65,6 +65,8 @@ vi.mock("@/data/authz/use-authz", async () => {
   };
 });
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
+const excel = vi.fn(async (_c: unknown) => {});
+vi.mock("@/lib/excel", () => ({ exportToExcel: (c: unknown) => excel(c) }));
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateStaff: vi.fn() };
@@ -364,6 +366,22 @@ describe("PayrollPage", () => {
     await user.type(within(dialog).getByLabelText("Reason"), "Moved to the day shift");
     await user.click(within(dialog).getByRole("button", { name: "Stop" }));
     await waitFor(() => expect(calls.stopAdjustment).toHaveBeenCalledWith("bonus", "b7", { reason: "Moved to the day shift" }));
+  });
+
+  it("leaves nothing-to-transfer payslips out of the bank and wallet lists (PAY-8)", async () => {
+    // E2E payroll: a 0.00 net (deductions carried to next month) was listed as a bank transfer;
+    // the server's bank/wallet CSV already lists only net > 0.
+    const user = userEvent.setup();
+    const frozen = (u: string, n: string, net: number) =>
+      ({ ...slip(u, n, { net_piastres: net }), id: `s-${u}`, employee_name: n, paid_method: null, payroll_period_id: "p2" }) as unknown as Payslip;
+    current = { ...current!, period: period("generated"), payslips: [frozen("e1", "Sara Ahmed", 0), frozen("e4", "Youssef Adel", 745_000)] };
+    excel.mockClear();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("button", { name: /Bank & wallet lists/ }));
+    await waitFor(() => expect(excel).toHaveBeenCalled());
+    const cfg = excel.mock.calls[0][0] as { sheets: { rows: { employee_id: string }[] }[] };
+    // Sara is paid by bank but has nothing to receive; Youssef is paid in cash.
+    expect(cfg.sheets.flatMap((sh) => sh.rows)).toEqual([]);
   });
 
   it("reads the server's period status as a phase", () => {

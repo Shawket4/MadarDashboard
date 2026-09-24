@@ -140,7 +140,8 @@ export function PayrollPage() {
   const exportLists = async () => {
     setExporting(true);
     try {
-      const pick = (m: string) => rows.filter((r) => (people.get(r.employee_id)?.pay_method ?? "cash") === m);
+      // Only what is actually transferred: a payslip with nothing to pay (a 0.00 net) is no transfer (PAY-8).
+      const pick = (m: string) => rows.filter((r) => r.net_piastres > 0 && (people.get(r.employee_id)?.pay_method ?? "cash") === m);
       const cols = (acct: string): ExcelColumn<Row>[] => [
         { header: t("staff.name", "Name"), accessor: (r) => r.employee_name, type: "text", width: 26 },
         { header: acct, accessor: (r) => people.get(r.employee_id)?.pay_account ?? "", type: "text", width: 30 },
