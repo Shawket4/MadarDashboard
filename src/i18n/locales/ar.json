@@ -4667,7 +4667,8 @@
     "reasonRequired": "قول السبب",
     "statusFromTimes": "من المواعيد",
     "timesInZone": "المواعيد بتوقيت الفرع ({{tz}}).",
-    "monthClosedRejectOnly": "الشهر مقفول: الرفض فقط"
+    "monthClosedRejectOnly": "الشهر مقفول: الرفض فقط",
+    "monthClosed": "الشهر مقفول"
   },
   "basira": {
     "title": "بصيرة",

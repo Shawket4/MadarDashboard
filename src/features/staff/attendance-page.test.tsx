@@ -43,6 +43,7 @@ const record = {
   overtime_minutes: 0,
 };
 
+let records: Record<string, unknown>[] = [record];
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
   return {
@@ -63,7 +64,7 @@ vi.mock("./util", async () => {
 });
 vi.mock("@/data/api/generated/api", () => ({
   listAttendance: vi.fn(async () => []),
-  useListAttendance: () => q([record]),
+  useListAttendance: () => q(records),
   useAttendanceSummary: () => q([]),
   useListEmployees: () => q([{ id: "e1", name: "Sara Ahmed" }]),
   useListWorkShifts: () => q([]),
@@ -98,6 +99,14 @@ describe("Attendance actions follow capabilities", () => {
     expect(screen.getByText("Sara Ahmed")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /add record/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /^correct$/i })).toBeNull();
+  });
+
+  it("a record in a closed month can't be corrected, and says so (month_closed)", () => {
+    records = [{ ...record, month_closed: true }];
+    wrap(<AttendancePage />);
+    expect(screen.queryByRole("button", { name: /^correct$/i })).toBeNull();
+    expect(screen.getByText("Month closed")).toBeInTheDocument();
+    records = [record];
   });
 
   it("hr.attendance.edit alone: Correct but not Add", () => {

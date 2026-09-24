@@ -4534,7 +4534,8 @@
     "reasonRequired": "Say why",
     "statusFromTimes": "From the times",
     "timesInZone": "Times are the branch's clock ({{tz}}).",
-    "monthClosedRejectOnly": "Month closed: reject only"
+    "monthClosedRejectOnly": "Month closed: reject only",
+    "monthClosed": "Month closed"
   },
   "basira": {
     "title": "Basira",

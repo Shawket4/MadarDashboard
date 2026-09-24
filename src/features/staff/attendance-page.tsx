@@ -156,9 +156,13 @@ export function AttendancePage() {
         header: t("staff.attendanceStatus", "Status"),
         meta: { label: t("staff.attendanceStatus", "Status") },
         cell: ({ row }) => (
-          <StatusPill tone={ATTENDANCE_STATUS_TONE[row.original.status] ?? "neutral"}>
-            {t(`staff.att_${row.original.status}`, row.original.status)}
-          </StatusPill>
+          <span className="inline-flex flex-wrap items-center gap-1">
+            <StatusPill tone={ATTENDANCE_STATUS_TONE[row.original.status] ?? "neutral"}>
+              {t(`staff.att_${row.original.status}`, row.original.status)}
+            </StatusPill>
+            {/* Its month is approved or paid: the server refuses a correction (PERIOD_CLOSED). */}
+            {row.original.month_closed ? <Badge variant="outline">{t("staff.monthClosed", "Month closed")}</Badge> : null}
+          </span>
         ),
       },
       {
@@ -290,11 +294,12 @@ export function AttendancePage() {
         onRetry={() => void recordsQ.refetch()}
         rowActions={
           canCorrect
-            ? (r) => (
-                <RowAction label={t("staff.correct", "Correct")} onClick={() => setCorrecting(r)}>
-                  <PencilLine className="size-4" />
-                </RowAction>
-              )
+            ? (r) =>
+                r.month_closed ? null : (
+                  <RowAction label={t("staff.correct", "Correct")} onClick={() => setCorrecting(r)}>
+                    <PencilLine className="size-4" />
+                  </RowAction>
+                )
             : undefined
         }
         getRowId={(r) => r.id}

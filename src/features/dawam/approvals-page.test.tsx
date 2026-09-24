@@ -13,6 +13,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 let held: string[] = [];
 const LEAVE = { id: "q1", employee_id: "e1", employee_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", created_at: "2026-09-22T07:00:00Z", reason: "Family wedding" };
 let requestRows: Record<string, unknown>[] = [LEAVE];
+const ATTENDANCE = [
+  { id: "r5", employee_name: "Sara Ahmed", covered_employee_id: "e4", cover_status: "pending", work_shift_name: "Evening", business_date: "2026-09-22", check_in_at: "2026-09-22T12:40:00Z", created_at: "2026-09-22T12:40:00Z", overtime_minutes: 0 },
+  { id: "r6", employee_name: "Omar Khaled", overtime_status: "pending", overtime_minutes: 45, business_date: "2026-09-21", check_out_at: "2026-09-21T20:45:00Z", created_at: "2026-09-21T08:00:00Z" },
+];
+let attendanceRows: Record<string, unknown>[] = ATTENDANCE;
 const enabledSeen: Record<string, boolean[]> = {};
 const calls = {
   decideCover: vi.fn(async () => ({})),
@@ -71,10 +76,7 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "o1", shift_name: "Evening", on_date: "2026-09-27", status: "claimed", claimed_by_name: "Laila Hassan" },
     { id: "o2", shift_name: "Morning", on_date: "2026-09-28", status: "open" },
   ]),
-  useListAttendance: hook("attendance", () => [
-    { id: "r5", employee_name: "Sara Ahmed", covered_employee_id: "e4", cover_status: "pending", work_shift_name: "Evening", business_date: "2026-09-22", check_in_at: "2026-09-22T12:40:00Z", created_at: "2026-09-22T12:40:00Z", overtime_minutes: 0 },
-    { id: "r6", employee_name: "Omar Khaled", overtime_status: "pending", overtime_minutes: 45, business_date: "2026-09-21", check_out_at: "2026-09-21T20:45:00Z", created_at: "2026-09-21T08:00:00Z" },
-  ]),
+  useListAttendance: hook("attendance", () => attendanceRows),
   useListAdjustments: hook("payLines", () => [
     { id: "a2", kind: "bonus", employee_name: "Sara Ahmed", amount_piastres: 150_000, reason: "Best month", status: "pending", created_at: "2026-09-22T09:00:00Z" },
   ]),
@@ -230,6 +232,23 @@ describe("ApprovalsPage", () => {
     expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reject" })).toBeInTheDocument();
     expect(screen.getByText("Month closed: reject only")).toBeInTheDocument();
+  });
+
+  it("closed-month records: a cover offers Reject only, overtime offers nothing (AttendanceRecord.month_closed)", () => {
+    // The server refuses approving a cover, and deciding overtime at all, in an approved or paid month.
+    attendanceRows = ATTENDANCE.map((r) => ({ ...r, month_closed: true }));
+    requestRows = [];
+    held = ["hr.shift_cover.confirm", "hr.overtime.approve"];
+    wrap(<ApprovalsPage />);
+    const rowOf = (text: string) => screen.getAllByText(text)[0].closest('[data-slot="list-card"] > div') as HTMLElement;
+    const cover = rowOf("Cover");
+    expect(within(cover).queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+    expect(within(cover).getByRole("button", { name: "Reject" })).toBeInTheDocument();
+    const ot = rowOf("Omar Khaled");
+    expect(within(ot).queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+    expect(within(ot).queryByRole("button", { name: "Reject" })).not.toBeInTheDocument();
+    expect(within(ot).getByText("Month closed")).toBeInTheDocument();
+    attendanceRows = ATTENDANCE;
   });
 
   it("shows a correction's proposed times against the record's punches, a half day and who decides", () => {

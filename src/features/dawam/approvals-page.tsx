@@ -51,6 +51,8 @@ export interface Pending {
   approve: () => Promise<unknown> | void;
   /** Its month is approved or paid: only a rejection goes through (month_closed). */
   rejectOnly?: boolean;
+  /** Its month is closed and nothing about it can be decided any more. */
+  locked?: boolean;
   reject: () => Promise<unknown>;
 }
 
@@ -200,6 +202,9 @@ export function ApprovalsPage() {
           at: r.check_in_at ?? r.created_at,
           approve: () => decideCover(r.id, { approve: true }),
           reject: () => decideCover(r.id, { approve: false }),
+          // A closed month can't take a confirmed cover; rejecting one still goes through.
+          rejectOnly: !!r.month_closed,
+          badges: r.month_closed ? <Badge variant="outline">{t("staff.monthClosedRejectOnly", "Month closed: reject only")}</Badge> : undefined,
         });
       }
       if (can.overtime && r.overtime_status === "pending") {
@@ -213,6 +218,9 @@ export function ApprovalsPage() {
           at: r.check_out_at ?? r.created_at,
           approve: () => decideOvertime(r.id, { approve: true }),
           reject: () => decideOvertime(r.id, { approve: false }),
+          // The server refuses deciding overtime at all in a closed month.
+          locked: !!r.month_closed,
+          badges: r.month_closed ? <Badge variant="outline">{t("staff.monthClosed", "Month closed")}</Badge> : undefined,
         });
       }
     }
@@ -283,7 +291,7 @@ export function ApprovalsPage() {
               }
               meta={i.detail}
               trailing={
-                <span className="flex items-center gap-1">
+                i.locked ? undefined : <span className="flex items-center gap-1">
                   {i.rejectOnly ? null : (
                     <Button size="sm" variant="outline" onClick={() => {
                       const r = i.approve();
