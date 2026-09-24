@@ -2231,7 +2231,11 @@
       "BRANCH_NO_LOCATION": "This branch has no pin on the map yet. Pin it in Set-up first.",
       "LOCATION_REQUIRED": "Clocking in needs the phone's location.",
       "BRANCH_OTHER_ORG": "That branch belongs to another business.",
-      "LEAVE_PAY_REQUIRED": "Say whether this leave is paid or unpaid."
+      "LEAVE_PAY_REQUIRED": "Say whether this leave is paid or unpaid.",
+      "ADVANCE_OVER_CAP": "That's over the advance cap: at most EGP {{more_egp}} more. The owner can approve it.",
+      "ABOVE_LIMIT": "This is above your limit too. It waits for someone with a higher one.",
+      "OWN_ADVANCE": "Someone else has to decide or record your own advance.",
+      "OWN_PAY_LINE": "You can't add pay lines for yourself."
     }
   },
   "theme": {
