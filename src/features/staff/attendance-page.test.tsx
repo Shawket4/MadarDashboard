@@ -62,12 +62,14 @@ vi.mock("./util", async () => {
   const real = await vi.importActual<typeof import("./util")>("./util");
   return { ...real, invalidateAttendance: vi.fn() };
 });
+/** Blocks at the record's branch (b1), another branch (b2), and the whole business. */
+let shifts: { id: string; name: string; branch_id: string | null }[] = [];
 vi.mock("@/data/api/generated/api", () => ({
   listAttendance: vi.fn(async () => []),
   useListAttendance: () => q(records),
   useAttendanceSummary: () => q([]),
   useListEmployees: () => q([{ id: "e1", name: "Sara Ahmed" }]),
-  useListWorkShifts: () => q([]),
+  useListWorkShifts: () => q(shifts),
   // The browser here runs in UTC; the branch is in Cairo.
   useListBranches: () => q([{ id: "b1", name: "Zamalek", timezone: "Africa/Cairo" }]),
   correctRecord: (...a: unknown[]) => correctRecord(...(a as [])),
@@ -90,6 +92,7 @@ beforeEach(() => {
   correctRecord.mockClear();
   createManualRecord.mockClear();
   held = ["hr.attendance.read", "hr.attendance.edit", "hr.attendance.create"];
+  shifts = [];
 });
 
 describe("Attendance actions follow capabilities", () => {
@@ -171,6 +174,23 @@ describe("Correct a record", () => {
 });
 
 describe("Add a record by hand", () => {
+  it("offers only the record's branch's blocks and business-wide ones (E2E team re-verify)", async () => {
+    // The owner at Arkan was offered Maadi's "Evening" and saved an Arkan record on it.
+    shifts = [
+      { id: "w1", name: "Morning", branch_id: "b1" },
+      { id: "w2", name: "Evening Maadi", branch_id: "b2" },
+      { id: "w3", name: "Anywhere", branch_id: null },
+    ];
+    const user = userEvent.setup();
+    wrap(<AttendancePage />);
+    await user.click(screen.getByRole("button", { name: /add record/i }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("combobox", { name: "Work shift" }));
+    expect(await screen.findByRole("option", { name: "Morning" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Anywhere" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Evening Maadi" })).not.toBeInTheDocument();
+  });
+
   it("needs an employee and a reason, and writes the branch's clock with a derived status", async () => {
     const user = userEvent.setup();
     wrap(<AttendancePage />);
