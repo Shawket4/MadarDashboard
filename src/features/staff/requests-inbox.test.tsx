@@ -92,6 +92,19 @@ describe("Requests inbox", () => {
     expect(screen.queryByRole("button", { name: /New request/ })).not.toBeInTheDocument();
   });
 
+  it("a cancelled request says who cancelled it and why, keeping the approval's note (RQ-F6)", () => {
+    rows = [
+      { ...APPROVED, id: "q8", employee_name: "Omar Cancelled", status: "cancelled", decided_by: "u-other", decision_note: "Enjoy the trip",
+        cancelled_by: "u-me", cancel_note: "Trip called off" },
+      { ...LEAVE, id: "q9", employee_name: "Nada Self", status: "cancelled", cancelled_by: null, cancel_note: null },
+    ];
+    renderPage();
+    const row = screen.getByText(/Trip called off/);
+    expect(row.textContent).toContain("Enjoy the trip");
+    expect(row.textContent).toContain("Cancelled by Karim Manager: Trip called off");
+    expect(screen.queryByText(/Cancelled by .*Nada/)).not.toBeInTheDocument();
+  });
+
   it("never offers a manager their own request, and marks it (RQ-5)", () => {
     renderPage();
     const mine = rowOf("Karim Manager");

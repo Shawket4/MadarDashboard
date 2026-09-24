@@ -139,7 +139,7 @@ describe("TeamPage", () => {
     await i18n.changeLanguage("ar");
     expect(i18n.t("errors.codes.OWN_DECISION")).not.toMatch(/Someone else/);
     await i18n.changeLanguage("en");
-    expect(i18n.t("errors.codes.OWN_DECISION")).toBe("Someone else has to decide this one.");
+    expect(i18n.t("errors.codes.OWN_DECISION")).toBe("This one is about you, so someone else has to decide it.");
   });
 
   it("offers money for a flag only to someone who may add deductions (AT-11)", async () => {

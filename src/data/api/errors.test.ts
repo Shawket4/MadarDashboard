@@ -32,7 +32,7 @@ describe("getErrorMessage", () => {
       expect(getErrorMessage(apiError({ code, error: "English" }))).not.toBe("English");
     }
     await i18n.changeLanguage("en");
-    expect(getErrorMessage(cap)).toMatch(/EGP 3250/);
+    expect(getErrorMessage(cap)).toMatch(/3250 EGP/);
   });
 
   it("falls back to the server message for unknown codes", () => {

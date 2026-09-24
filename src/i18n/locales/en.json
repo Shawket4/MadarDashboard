@@ -2239,7 +2239,6 @@
       "BRANCH_NO_LOCATION": "This branch has no pin on the map yet. Pin it in Set-up first.",
       "LOCATION_REQUIRED": "Clocking in needs the phone's location.",
       "BRANCH_OTHER_ORG": "That branch belongs to another business.",
-      "OWN_DECISION": "Someone else has to decide this one.",
       "ABOVE_LIMIT": "This is above your limit too — it waits for someone with a higher one.",
       "ADVANCE_OVER_CAP": "That's over the advance cap — at most {{more_egp}} EGP more. The owner can approve it.",
       "CORRECTION_WAITING": "This shift already has a correction waiting.",
