@@ -70,7 +70,7 @@ vi.mock("@/data/api/generated/api", () => ({
   ]),
   resolveFlag: (...a: unknown[]) => resolveFlag(...(a as [])),
   punchFor: (...a: unknown[]) => punchFor(...(a as [])),
-  useListEmployees: hook("employees", () => [{ id: "e4", name: "Youssef Adel" }]),
+  useListEmployees: hook("employees", () => [{ id: "e4", name: "Youssef Adel" }, { id: "e6", name: "Omar Nabil", user_id: "u-me" }]),
   useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
   createAdjustment: (...a: unknown[]) => createAdjustment(...(a as [])),
   logExpenseAdvance: (...a: unknown[]) => logExpenseAdvance(...(a as [])),
@@ -121,6 +121,25 @@ describe("TeamPage", () => {
     wrap(<TeamPage />);
     await user.click(screen.getByText("Omar Nabil · Phone likely died"));
     expect(within(await screen.findByRole("dialog")).getByText(/battery low/)).toBeInTheDocument();
+  });
+
+  it("offers nothing on the manager's own flag: someone else decides it (B-TEAM-1, OWN_DECISION)", async () => {
+    const { useAuthStore } = await import("@/data/stores/auth.store");
+    useAuthStore.setState({ user: { id: "u-me" } } as never);
+    const user = userEvent.setup();
+    wrap(<TeamPage />);
+    await user.click(screen.getByText("Omar Nabil · Phone likely died"));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/Someone else decides your own flags/)).toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: "Ignore" })).not.toBeInTheDocument();
+    useAuthStore.setState({ user: null } as never);
+  });
+
+  it("reads the own-decision refusal in Arabic", async () => {
+    await i18n.changeLanguage("ar");
+    expect(i18n.t("errors.codes.OWN_DECISION")).not.toMatch(/Someone else/);
+    await i18n.changeLanguage("en");
+    expect(i18n.t("errors.codes.OWN_DECISION")).toBe("Someone else has to decide this one.");
   });
 
   it("offers money for a flag only to someone who may add deductions (AT-11)", async () => {

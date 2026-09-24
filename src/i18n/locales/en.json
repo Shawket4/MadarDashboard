@@ -2231,6 +2231,7 @@
       "BRANCH_NO_LOCATION": "This branch has no pin on the map yet. Pin it in Set-up first.",
       "LOCATION_REQUIRED": "Clocking in needs the phone's location.",
       "BRANCH_OTHER_ORG": "That branch belongs to another business.",
+      "OWN_DECISION": "Someone else has to decide this one.",
       "LEAVE_PAY_REQUIRED": "Say whether this leave is paid or unpaid."
     }
   },
@@ -5837,6 +5838,7 @@
     "flagHint_time_unverified": "This punch was queued offline and its time rests on the phone's word (it restarted, or the time the server gave it can't be proven), so it couldn't be checked.",
     "flagHint_tracking_off": "They clocked in without \"Always\" location, so there are no pings for this shift.",
     "flag_cover": "Cover",
+    "ownFlag": "Someone else decides your own flags: the owner, or a manager above you.",
     "flag_left_mid_shift": "Left mid-shift",
     "flag_new_phone": "New phone",
     "flag_suspicious": "Location looks spoofed",

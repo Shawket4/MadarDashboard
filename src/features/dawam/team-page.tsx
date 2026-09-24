@@ -44,6 +44,7 @@ import { fmtDateTime, fmtMoney, fmtTime } from "@/lib/format";
 import { fmtMinutes, invalidateStaff } from "@/features/staff/util";
 import { AdjustmentDialog, ExpenseAdvanceDialog, readPounds } from "./money-dialogs";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
+import { useOwnEmployeeIds } from "@/features/staff/requests-inbox";
 
 const STATE_LABEL: Record<string, string> = {
   in: "In", late: "Late", absent: "Absent", on_leave: "On leave", off: "Off", done: "Done",
@@ -195,6 +196,9 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
   const canDeduct = authz.can(Cap.hrDeductionsCreate) || authz.canAsk(Cap.hrDeductionsCreate);
   const canConfirmCover = authz.can(Cap.hrShiftCoverConfirm);
   const canRevoke = authz.can(Cap.hrStaffEdit);
+  // Nobody decides their own flag (server 403 OWN_DECISION): nothing is offered.
+  const own = useOwnEmployeeIds(!!flag);
+  const mine = !!flag && own.has(flag.employee_id);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   // The typed deduction (CL-7), prefilled with the server's suggestion.
@@ -230,7 +234,10 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
           <DialogTitle>{`${flag.employee_name} · ${t(meta.labelKey, meta.fallback)}`}</DialogTitle>
           <DialogDescription>{t(`dawam.flagHint_${flag.kind}`, { m: flag.minutes_away, defaultValue: flagHint(flag) })}</DialogDescription>
         </DialogHeader>
-        {flag.kind === "left_mid_shift" ? (
+        {mine ? (
+          <p className="text-sm text-muted-foreground">{t("dawam.ownFlag", "Someone else decides your own flags: the owner, or a manager above you.")}</p>
+        ) : null}
+        {!mine && flag.kind === "left_mid_shift" ? (
           <div className="grid gap-3">
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline" disabled={busy} onClick={() => void send("excuse_paid")}>{t("dawam.excusePaid", "Excuse, paid")}</Button>
@@ -267,7 +274,7 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
             )}
           </div>
         ) : null}
-        <DialogFooter className="gap-2">
+        {mine ? null : <DialogFooter className="gap-2">
           {flag.kind === "new_phone" && canRevoke ? (
             <Button variant="destructive" disabled={busy} onClick={() => void send("revoke")}>{t("dawam.revokePhone", "Revoke this phone")}</Button>
           ) : null}
@@ -275,7 +282,7 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
             <Button disabled={busy} onClick={() => void send("confirm")}>{t("dawam.confirmCover", "Confirm the cover")}</Button>
           ) : null}
           <Button variant="ghost" disabled={busy} onClick={() => void send("ignore")}>{t("dawam.ignore", "Ignore")}</Button>
-        </DialogFooter>
+        </DialogFooter>}
       </DialogContent>
     </Dialog>
   );
