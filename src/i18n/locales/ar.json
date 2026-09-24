@@ -5625,7 +5625,19 @@
       "title": "انضباط الموظفين",
       "empty": "لا يوجد سجل حضور في هذه الفترة",
       "unassigned": "غير محدد",
-      "rowSummary": "{{late}} تأخير · {{absent}} غياب · {{minutes}} دقيقة"
+      "rowSummary": "{{late}} تأخير · {{absent}} غياب · {{minutes}} دقيقة",
+      "coversGiven_zero": "لم يغطِّ أي وردية",
+      "coversGiven_one": "غطّى وردية واحدة",
+      "coversGiven_two": "غطّى ورديتين",
+      "coversGiven_few": "غطّى {{n}} ورديات",
+      "coversGiven_many": "غطّى {{n}} وردية",
+      "coversGiven_other": "غطّى {{n}} وردية",
+      "coveredByOthers_zero": "لم يغطِّ زميل أي وردية له",
+      "coveredByOthers_one": "وردية واحدة غطّاها زميل",
+      "coveredByOthers_two": "ورديتان غطّاهما زميل",
+      "coveredByOthers_few": "{{n}} ورديات غطّاها زميل",
+      "coveredByOthers_many": "{{n}} وردية غطّاها زميل",
+      "coveredByOthers_other": "{{n}} وردية غطّاها زميل"
     },
     "noAccess": "لا يمكن لحسابك فتح هذا التقرير. يمكن للمالك منحك الصلاحية.",
     "operations": {

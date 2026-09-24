@@ -5469,7 +5469,11 @@
       "title": "Staff discipline",
       "empty": "No attendance recorded in this period",
       "unassigned": "Unassigned",
-      "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m"
+      "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m",
+      "coversGiven_one": "Covered {{n}} shift",
+      "coversGiven_other": "Covered {{n}} shifts",
+      "coveredByOthers_one": "{{n}} shift covered by a colleague",
+      "coveredByOthers_other": "{{n}} shifts covered by a colleague"
     },
     "noAccess": "Your account can't open this report. The owner can give you access.",
     "operations": {
