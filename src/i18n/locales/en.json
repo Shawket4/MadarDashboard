@@ -2204,6 +2204,10 @@
     "boundaryDescription": "This screen hit an unexpected error. It has been reported — try again, and if it keeps happening reload the page.",
     "boundaryRetry": "Try again",
     "codes": {
+      "SETTING_OUT_OF_RANGE": "{{field}} must be from {{min}} to {{max}}.",
+      "SETTING_OUT_OF_RANGE_above": "{{field}} must be more than {{min}} and at most {{max}}.",
+      "SETTING_OUT_OF_RANGE_below": "{{field}} must be from {{min}} and less than {{max}}.",
+      "SETTING_OUT_OF_RANGE_choice": "{{field}}: that value isn't one of the allowed choices.",
       "EMPTY_ALLOW_LIST": "Pick at least one payment method, or allow all.",
       "RECONCILIATION_AMOUNT_REQUIRED": "Enter the counted amount for every method that doesn't match.",
       "RECONCILIATION_NOTE_REQUIRED": "Add a note for every method that doesn't match.",

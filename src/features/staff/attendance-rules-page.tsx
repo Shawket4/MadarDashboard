@@ -110,7 +110,7 @@ export function AttendanceRulesPage() {
         toast.success(t("staff.rulesSaved", "Rules saved"));
         void invalidateAttendance();
       } catch (e) {
-        toast.error(getErrorMessage(e));
+        toast.error(getErrorMessage(e, { fieldLabel: (f) => ruleLabel(f, t) }));
       } finally {
         setBusy(false);
       }

@@ -2227,6 +2227,10 @@
     "boundaryDescription": "واجهت هذه الشاشة خطأً غير متوقع. تم الإبلاغ عنه — حاول مرة أخرى، وإذا تكرر الأمر فأعد تحميل الصفحة.",
     "boundaryRetry": "حاول مرة أخرى",
     "codes": {
+      "SETTING_OUT_OF_RANGE": "{{field}} لازم يكون من {{min}} لـ {{max}}.",
+      "SETTING_OUT_OF_RANGE_above": "{{field}} لازم يكون أكبر من {{min}} ولحد {{max}}.",
+      "SETTING_OUT_OF_RANGE_below": "{{field}} لازم يكون من {{min}} وأقل من {{max}}.",
+      "SETTING_OUT_OF_RANGE_choice": "{{field}}: القيمة دي مش من الاختيارات المسموحة.",
       "EMPTY_ALLOW_LIST": "اختر طريقة دفع واحدة على الأقل، أو اسمح بكل الطرق.",
       "RECONCILIATION_AMOUNT_REQUIRED": "أدخل المبلغ المعدود لكل طريقة غير مطابقة.",
       "RECONCILIATION_NOTE_REQUIRED": "أضف ملاحظة لكل طريقة غير مطابقة.",
