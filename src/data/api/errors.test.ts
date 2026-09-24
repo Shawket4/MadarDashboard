@@ -40,6 +40,18 @@ describe("getErrorMessage", () => {
     await i18n.changeLanguage("en");
   });
 
+  it("words deciding your own flag (OWN_DECISION) in the user's language", async () => {
+    // E2E clocking: Karim ignoring his own flag on the Arabic dashboard saw the
+    // server's English "Someone else has to decide this one."
+    const err = apiError({ code: "OWN_DECISION", error: "Someone else has to decide this one." });
+    await i18n.changeLanguage("en");
+    expect(getErrorMessage(err)).toMatch(/about you/);
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(err)).not.toBe("Someone else has to decide this one.");
+    expect(getErrorMessage(err)).toMatch(/يخصّك/);
+    await i18n.changeLanguage("en");
+  });
+
   it("fills a refusal's figures into its words (OUTSIDE_FENCE, SHIFT_ENDED)", async () => {
     await i18n.changeLanguage("en");
     expect(getErrorMessage(apiError({ code: "OUTSIDE_FENCE", error: "x", vars: { distance_m: 1470, radius_m: 200 } }))).toBe(
