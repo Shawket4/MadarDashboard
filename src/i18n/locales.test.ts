@@ -184,6 +184,11 @@ const STRICT = [
   "config/",
   "hooks/",
   "routes/_app/staff",
+  // Where Madar switches Dawam on (modules) and the Dawam-related settings (E2E L-37).
+  "features/orgs/org-dialog.tsx",
+  "features/orgs/provision-wizard.tsx",
+  "features/access/",
+  "features/branches/branch-dialog.tsx",
 ];
 
 /** Gaps elsewhere in the app when this gate landed (POS pages, landing). */

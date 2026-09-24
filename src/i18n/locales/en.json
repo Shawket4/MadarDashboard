@@ -323,6 +323,8 @@
     "ordersWord": "orders"
   },
   "orgs": {
+    "timezone": "Timezone",
+    "timezoneHint": "Default for all branches. A branch can override its own.",
     "title": "Organizations",
     "subtitle": "Manage all coffee brands and franchises",
     "newTitle": "New Organization",
