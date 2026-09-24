@@ -22,6 +22,11 @@ export interface StaffRequest {
      * @nullable
      */
   cancelled_by?: string | null;
+  /**
+     * Who cancelled it, by name, the same way.
+     * @nullable
+     */
+  cancelled_by_name?: string | null;
   created_at: string;
   /** @nullable */
   decided_at?: string | null;
@@ -31,6 +36,13 @@ export interface StaffRequest {
      * @nullable
      */
   decided_by?: string | null;
+  /**
+     * Who decided it, by name — their employee's name when linked, else
+     * their account's — so a phone that can't look up the owner's account
+     * still names them (RQ-F6).
+     * @nullable
+     */
+  decided_by_name?: string | null;
   /** @nullable */
   decision_note?: string | null;
   employee_id: string;
