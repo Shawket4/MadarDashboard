@@ -454,4 +454,14 @@ describe("SchedulePage", () => {
       await i18n.changeLanguage("en");
     }
   });
+
+  it("keeps the week arrows and the range together so a wrapped toolbar never splits them (L-12)", () => {
+    wrap(<SchedulePage />);
+    const prev = screen.getByRole("button", { name: "Previous week" });
+    const next = screen.getByRole("button", { name: "Next week" });
+    const group = prev.parentElement!;
+    expect(group).toBe(next.parentElement);
+    expect(group).toHaveClass("flex-nowrap");
+    expect(group).toHaveAttribute("role", "group");
+  });
 });
