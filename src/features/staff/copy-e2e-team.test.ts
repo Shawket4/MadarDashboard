@@ -19,3 +19,15 @@ describe("E2E team copy", () => {
     expect(ar.dawam.reviewAdvanceHint).not.toMatch(/ينتظر المالك/);
   });
 });
+
+describe("Latin digits in Arabic Dawam copy (C-4, DSH-8)", () => {
+  it("no Arabic-Indic digits in the dawam / staff / errors strings", () => {
+    const bad: string[] = [];
+    const walk = (o: unknown, p: string) => {
+      if (typeof o === "string") { if (/[٠-٩]/.test(o)) bad.push(`${p} = ${o}`); return; }
+      if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) walk(v, p ? `${p}.${k}` : k);
+    };
+    walk({ dawam: ar.dawam, staff: ar.staff, errors: ar.errors }, "");
+    expect(bad).toEqual([]);
+  });
+});
