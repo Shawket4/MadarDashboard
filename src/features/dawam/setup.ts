@@ -21,6 +21,10 @@ export interface SetupData {
   employees?: Pick<Employee, "employment_status">[];
   shifts?: Pick<WorkShift, "is_active">[];
   settings?: Pick<AttendanceSettings, "rules_saved_at">;
+  /** The first read that failed, if any (the page says so instead of waiting forever). */
+  error?: unknown;
+  /** Asks every failed read again. */
+  retry?: () => void;
 }
 
 export interface SetupProgress {
@@ -56,12 +60,28 @@ export function setupProgress(d: SetupData): SetupProgress {
  */
 export function useSetupData(enabled = true, onPage = false): SetupData {
   const orgId = useOrgId();
-  const opts = (on: boolean) => (onPage ? dawamQuery({ enabled: on }) : { enabled: on });
-  const branches = useListBranches({ org_id: orgId ?? "" }, { query: opts(enabled && !!orgId) }).data;
-  const employees = useListEmployees({ employment_status: "active" }, { query: opts(enabled) }).data;
-  const shifts = useListWorkShifts({ query: opts(enabled) }).data;
-  const settings = useGetAttendanceSettings({}, { query: opts(enabled) }).data;
-  return { branches, employees, shifts, settings };
+  // No organization in scope (a super admin who hasn't picked one): every
+  // staff read would be refused, so none is sent.
+  const on = enabled && !!orgId;
+  const query = onPage ? dawamQuery({ enabled: on }) : { enabled: on };
+  const reads = [
+    useListBranches({ org_id: orgId ?? "" }, { query }),
+    useListEmployees({ employment_status: "active" }, { query }),
+    useListWorkShifts({ query }),
+    useGetAttendanceSettings({}, { query }),
+  ] as const;
+  const [branches, employees, shifts, settings] = reads;
+  // Only a read with no data to show counts as failed; a background refetch
+  // that fails keeps the last good answer on screen.
+  const failed = reads.filter((r) => r.error && r.data === undefined);
+  return {
+    branches: branches.data,
+    employees: employees.data,
+    shifts: shifts.data,
+    settings: settings.data,
+    error: failed[0]?.error ?? undefined,
+    retry: () => failed.forEach((r) => void r.refetch()),
+  };
 }
 
 export const useSetupProgress = (enabled = true) => setupProgress(useSetupData(enabled));

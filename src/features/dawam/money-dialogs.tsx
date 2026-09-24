@@ -26,10 +26,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SegmentedControl } from "@/components/app/segmented-control";
 import {
   createAdjustment, logExpenseAdvance, markPaid, overrideDeduction, recordAdvance, reviewAdvance,
-  setPeriodStatus, unwaiveDeduction, useListBranches, useListEmployees, waiveDeduction,
+  setPeriodStatus, stopAdjustment, unwaiveDeduction, useListBranches, useListEmployees, waiveDeduction,
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
+import { useAuthStore } from "@/data/stores/auth.store";
 import { cairoNow, egpToPiastres } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
 
@@ -101,9 +102,12 @@ function FormDialog<V extends FieldValues>({
   );
 }
 
-function PersonField<V extends FieldValues>({ form, name, enabled }: { form: UseFormReturn<V>; name: Path<V>; enabled: boolean }) {
+function PersonField<V extends FieldValues>({ form, name, enabled, notSelf = false }: { form: UseFormReturn<V>; name: Path<V>; enabled: boolean; notSelf?: boolean }) {
   const { t } = useTranslation();
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled } });
+  // A pay line is never for yourself (AD-4): the server refuses it, so it isn't offered.
+  const me = useAuthStore((s) => s.user?.id);
+  const people = (employeesQ.data ?? []).filter((e) => !notSelf || !me || e.user_id !== me);
   return (
     <FormField
       control={form.control}
@@ -118,7 +122,7 @@ function PersonField<V extends FieldValues>({ form, name, enabled }: { form: Use
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {(employeesQ.data ?? []).map((e) => (
+              {people.map((e) => (
                 <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
               ))}
             </SelectContent>
@@ -208,7 +212,7 @@ export function AdjustmentDialog({
         else toast.success(t("dawam.payLineAdded", "Pay line added"));
       }}
     >
-      {fixedUser ? null : <PersonField form={form} name="employee_id" enabled={open} />}
+      {fixedUser ? null : <PersonField form={form} name="employee_id" enabled={open} notSelf />}
       <FormField
         control={form.control}
         name="kind"
@@ -510,6 +514,28 @@ export function UnwaiveDialog({
       saveLabel={t("dawam.unwaive", "Undo the waiver")}
       onSave={(reason) => unwaiveDeduction(deductionId!, { reason })}
       done={t("dawam.unwaived", "Waiver undone")}
+    />
+  );
+}
+
+/** Stop a monthly line from the next open month, with why (AD-3, AD-9). */
+export function StopDialog({
+  line, onOpenChange,
+}: {
+  line: { kind: string; id: string; reason: string } | null;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <ReasonDialog
+      open={!!line}
+      onOpenChange={onOpenChange}
+      title={t("dawam.stopTitle", { line: line?.reason ?? "", defaultValue: `Stop "${line?.reason ?? ""}"?` })}
+      description={t("dawam.stopHint", "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log.")}
+      saveLabel={t("dawam.stop", "Stop")}
+      destructive
+      onSave={(reason) => stopAdjustment(line!.kind, line!.id, { reason })}
+      done={t("dawam.stoppedToast", "Stopped from next month")}
     />
   );
 }

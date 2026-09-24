@@ -20,7 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  listAttendance, useAttendanceSummary, useListAttendance,
+  listAttendance, useAttendanceSummary, useListAttendance, useListBranches,
 } from "@/data/api/generated/api";
 import type { AttendanceRecord } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -28,6 +28,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
+import { useOrgId } from "@/hooks/use-org-id";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
@@ -65,6 +66,14 @@ export function AttendancePage() {
   const recordsQ = useListAttendance(params, { query: dawamQuery() });
   const summaryQ = useAttendanceSummary(params, { query: dawamQuery() });
   const records = useMemo(() => recordsQ.data ?? [], [recordsQ.data]);
+  // Each punch reads on its own branch's clock (AT-1), also with "All
+  // branches" in scope, as the Correct dialog does.
+  const orgId = useOrgId();
+  const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
+  const zones = useMemo(
+    () => new Map((branchesQ.data ?? []).map((b) => [b.id, b.timezone || undefined])),
+    [branchesQ.data],
+  );
 
   // Roll the per-employee summary up to a headline for the window.
   const totals = useMemo(() => {
@@ -107,6 +116,8 @@ export function AttendancePage() {
         { header: t("staff.autoClosedColumn", "Auto-closed"), accessor: (r) => r.check_out_method === "auto", type: "bool", width: 14 },
         { header: t("staff.inMethodColumn", "In by"), accessor: (r) => methodText(t, r.check_in_method), type: "text", width: 16 },
         { header: t("staff.outMethodColumn", "Out by"), accessor: (r) => methodText(t, r.check_out_method), type: "text", width: 16 },
+        { header: t("staff.inReasonColumn", "Why punched in"), accessor: (r) => r.punch_reason ?? "", type: "text", width: 24 },
+        { header: t("staff.outReasonColumn", "Why punched out"), accessor: (r) => r.check_out_reason ?? "", type: "text", width: 24 },
         { header: t("staff.workedMinutes", "Worked (minutes)"), accessor: (r) => r.worked_minutes, type: "integer", width: 16, total: true },
         { header: t("staff.lateMinutes", "Late (minutes)"), accessor: (r) => r.late_minutes, type: "integer", width: 16, total: true },
         { header: t("staff.overtimeMinutes", "Overtime (minutes)"), accessor: (r) => r.overtime_minutes, type: "integer", width: 18, total: true },
@@ -172,8 +183,8 @@ export function AttendancePage() {
         header: t("staff.checkIn", "In"),
         meta: { label: t("staff.checkIn", "In"), numeric: true, align: "start" },
         cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
-            <span>{row.original.check_in_at ? fmtDateTime(row.original.check_in_at) : "—"}</span>
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+            <span>{row.original.check_in_at ? fmtDateTime(row.original.check_in_at, zones.get(row.original.branch_id)) : "—"}</span>
             <MethodBadge method={row.original.check_in_method} />
             {row.original.check_in_distance_meters !== null
               && row.original.check_in_distance_meters !== undefined ? (
@@ -185,6 +196,7 @@ export function AttendancePage() {
                 <bdi>{t("staff.metres", { n: fmtNumber(Math.round(row.original.check_in_distance_meters)), defaultValue: "{{n}}m" })}</bdi>
               </span>
             ) : null}
+            <PunchReason text={row.original.punch_reason} />
           </div>
         ),
       },
@@ -193,8 +205,8 @@ export function AttendancePage() {
         header: t("staff.checkOut", "Out"),
         meta: { label: t("staff.checkOut", "Out"), numeric: true, align: "start" },
         cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
-            <span>{row.original.check_out_at ? fmtDateTime(row.original.check_out_at) : "—"}</span>
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+            <span>{row.original.check_out_at ? fmtDateTime(row.original.check_out_at, zones.get(row.original.branch_id)) : "—"}</span>
             {row.original.check_out_method === "auto" ? (
               <Badge variant="secondary" className="font-sans text-xs">
                 {t("staff.autoClosed", "auto")}
@@ -202,6 +214,7 @@ export function AttendancePage() {
             ) : (
               <MethodBadge method={row.original.check_out_method} />
             )}
+            <PunchReason text={row.original.check_out_reason} />
           </div>
         ),
       },
@@ -234,7 +247,7 @@ export function AttendancePage() {
           ),
       },
     ],
-    [t],
+    [t, zones],
   );
 
   return (
@@ -354,5 +367,16 @@ function MethodBadge({ method }: { method?: string | null }) {
     <Badge variant="outline" className="font-sans text-xs">
       {text}
     </Badge>
+  );
+}
+
+/** Why someone else made this punch (AT-10; the out-reason is its own, BC-1). */
+function PunchReason({ text }: { text?: string | null }) {
+  if (!text) return null;
+  return (
+    // Its own line under the punch, so a narrow card never squeezes it to nothing.
+    <span className="min-w-0 basis-full font-sans text-xs break-words whitespace-normal text-muted-foreground" title={text}>
+      <bdi>{text}</bdi>
+    </span>
   );
 }

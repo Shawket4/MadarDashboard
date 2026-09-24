@@ -316,6 +316,10 @@ export function EmployeesPage() {
         open={deptOpen}
         onOpenChange={setDeptOpen}
         departments={departmentsQ.data ?? []}
+        // A department spans the business: the server wants the right at
+        // every branch, so a branch manager only reads the list (O-2).
+        canAdd={authz.canEverywhere(Cap.hrStaffCreate)}
+        canDelete={authz.canEverywhere(Cap.hrStaffDelete)}
       />
 
     </Page>
@@ -326,10 +330,14 @@ function DepartmentsDialog({
   open,
   onOpenChange,
   departments,
+  canAdd,
+  canDelete,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   departments: Department[];
+  canAdd: boolean;
+  canDelete: boolean;
 }) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
@@ -376,6 +384,7 @@ function DepartmentsDialog({
           <DialogTitle>{t("staff.departments", "Departments")}</DialogTitle>
         </DialogHeader>
 
+        {canAdd ? (
         <div className="flex gap-2">
           <Input
             value={name}
@@ -389,6 +398,7 @@ function DepartmentsDialog({
             <Plus className="size-4" />
           </Button>
         </div>
+        ) : null}
 
         <div className="space-y-2">
           {departments.length === 0 ? (
@@ -404,9 +414,11 @@ function DepartmentsDialog({
                     <Badge variant="secondary" className="tabular-nums">
                       {t("staff.employeeCount", "{{count}} staff", { count: d.employee_count })}
                     </Badge>
-                    <RowAction destructive label={t("common.delete", "Delete")} onClick={() => void remove(d)}>
-                      <Trash2 className="size-4" />
-                    </RowAction>
+                    {canDelete ? (
+                      <RowAction destructive label={t("common.delete", "Delete")} onClick={() => void remove(d)}>
+                        <Trash2 className="size-4" />
+                      </RowAction>
+                    ) : null}
                   </div>
                 </CardHeader>
                 {d.manager_name ? (

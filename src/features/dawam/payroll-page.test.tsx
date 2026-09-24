@@ -29,6 +29,9 @@ globalThis.ResizeObserver ??= class {
 
 let held: string[] = [];
 let current: CurrentPayroll | undefined;
+let adjustments: unknown[] = [];
+let scopeBranch: string | null = null;
+const expenseParams: unknown[] = [];
 const enabledSeen: Record<string, boolean[]> = {};
 const calls = {
   generatePeriod: vi.fn(async () => ({})),
@@ -41,6 +44,7 @@ const calls = {
   deleteBonus: vi.fn(async () => ({})),
   createAdjustment: vi.fn(async () => ({})),
   recordAdvance: vi.fn(async () => ({})),
+  stopAdjustment: vi.fn(async () => ({})),
 };
 
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
@@ -63,6 +67,8 @@ vi.mock("@/data/authz/use-authz", async () => {
   };
 });
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
+const excel = vi.fn(async (_c: unknown) => {});
+vi.mock("@/lib/excel", () => ({ exportToExcel: (c: unknown) => excel(c) }));
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateStaff: vi.fn() };
@@ -70,20 +76,20 @@ vi.mock("@/features/staff/util", async () => {
 vi.mock("./rules-banner", () => ({ RulesFirstBanner: () => null }));
 vi.mock("@/hooks/use-org-modules", () => ({ useCurrentOrg: () => ({ name: "Madar Coffee" }), useOrgModules: () => ["pos", "dawam"] }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
+vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: scopeBranch }) }));
 vi.mock("@/data/api/generated/api", () => ({
   useCurrent: hook("current", () => current),
   useListEmployees: hook("employees", () => [
     { id: "e1", name: "Sara Ahmed", pay_method: "bank", pay_account: "EG38 0019" },
     { id: "e4", name: "Youssef Adel", pay_method: "cash" },
   ] as Partial<Employee>[]),
-  useListAdjustments: hook("adjustments", () => []),
+  useListAdjustments: hook("adjustments", () => adjustments),
   useListAdvances: hook("advances", () => []),
-  useListExpenseAdvances: hook("expenses", () => []),
+  useListExpenseAdvances: (params: unknown, ...rest: unknown[]) => { expenseParams.push(params); return hook("expenses", () => [])(params, ...rest); },
   useListPayslips: hook("payslips", () => []),
   useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
   exportPeriodCsv: vi.fn(),
   decideAdjustment: vi.fn(),
-  stopAdjustment: vi.fn(),
   createAdvanceAdmin: vi.fn(),
   reviewAdvance: vi.fn(),
   logExpenseAdvance: vi.fn(),
@@ -126,6 +132,9 @@ const period = (status: string) => ({
 beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
+  adjustments = [];
+  scopeBranch = null;
+  expenseParams.length = 0;
   held = ["hr.payroll.read", "hr.payroll.run", "hr.adjustments.create", "hr.deductions.create"];
   current = {
     period: period("draft"),
@@ -151,6 +160,34 @@ describe("PayrollPage", () => {
     await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
     await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Approve payroll" }));
     await waitFor(() => expect(calls.generatePeriod).toHaveBeenCalledWith("p2"));
+  });
+
+  it("warns before approving a month whose last days are still to come (BC-3 decision a, Q-payroll-1)", async () => {
+    const { isoDaysFromToday } = await import("@/features/staff/util");
+    const user = userEvent.setup();
+    current = { ...current!, period: { ...period("draft"), end_date: isoDaysFromToday(5) } };
+    const { unmount } = wrap(<PayrollPage />);
+    await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
+    const dialog = await screen.findByRole("alertdialog");
+    // Today and the five days after it: nobody can clock in on them once it's approved.
+    expect(within(dialog).getByText(/6 days of this month are still to come/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    unmount();
+    // In Arabic too.
+    await i18n.changeLanguage("ar");
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("button", { name: /اعتماد/ }));
+    expect(within(await screen.findByRole("alertdialog")).getByText(/6/)).toBeInTheDocument();
+    await i18n.changeLanguage("en");
+  });
+
+  it("says nothing about days to come once the month has ended", async () => {
+    const { isoDaysFromToday } = await import("@/features/staff/util");
+    const user = userEvent.setup();
+    current = { ...current!, period: { ...period("draft"), end_date: isoDaysFromToday(-1) } };
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
+    expect(within(await screen.findByRole("alertdialog")).queryByText(/still to come/)).not.toBeInTheDocument();
   });
 
   it("marks someone paid with their own pay method, and hides reopen once anyone is paid (PAY-6, PAY-7)", async () => {
@@ -342,6 +379,72 @@ describe("PayrollPage", () => {
     const again = await screen.findByRole("dialog");
     expect(within(again).getByText("EGP 8,850.00")).toBeInTheDocument();
     expect(within(again).queryByText("Late arrival")).not.toBeInTheDocument();
+  });
+
+  it("stops a monthly line only with a reason, which goes to the server (AD-3, AD-9)", async () => {
+    // E2E payroll: Stop sent {} — the audit row had no "why".
+    const user = userEvent.setup();
+    adjustments = [{
+      id: "b7", kind: "bonus", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 30_000, percent_of_base: null,
+      value_piastres: 30_000, reason: "Meal allowance", effective_date: "2026-09-01", source: "manual", status: "approved",
+      recurring: true, ends_on: null,
+    }];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    await user.click(await screen.findByRole("button", { name: "Stop" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Stop" }));
+    expect(await within(dialog).findByText("A reason is needed")).toBeInTheDocument();
+    expect(calls.stopAdjustment).not.toHaveBeenCalled();
+    await user.type(within(dialog).getByLabelText("Reason"), "Moved to the day shift");
+    await user.click(within(dialog).getByRole("button", { name: "Stop" }));
+    await waitFor(() => expect(calls.stopAdjustment).toHaveBeenCalledWith("bonus", "b7", { reason: "Moved to the day shift" }));
+  });
+
+  it("leaves nothing-to-transfer payslips out of the bank and wallet lists (PAY-8)", async () => {
+    // E2E payroll: a 0.00 net (deductions carried to next month) was listed as a bank transfer;
+    // the server's bank/wallet CSV already lists only net > 0.
+    const user = userEvent.setup();
+    const frozen = (u: string, n: string, net: number) =>
+      ({ ...slip(u, n, { net_piastres: net }), id: `s-${u}`, employee_name: n, paid_method: null, payroll_period_id: "p2" }) as unknown as Payslip;
+    current = { ...current!, period: period("generated"), payslips: [frozen("e1", "Sara Ahmed", 0), frozen("e4", "Youssef Adel", 745_000)] };
+    excel.mockClear();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("button", { name: /Bank & wallet lists/ }));
+    await waitFor(() => expect(excel).toHaveBeenCalled());
+    const cfg = excel.mock.calls[0][0] as { sheets: { rows: { employee_id: string }[] }[] };
+    // Sara is paid by bank but has nothing to receive; Youssef is paid in cash.
+    expect(cfg.sheets.flatMap((sh) => sh.rows)).toEqual([]);
+  });
+
+  it("lists expense advances for the scope bar's branch, or every branch (AV-9)", async () => {
+    // E2E payroll (B-PAY-3): the list ignored the branch picked in the scope bar.
+    const user = userEvent.setup();
+    scopeBranch = "b1";
+    const { unmount } = wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Expense advances/ }));
+    expect(expenseParams.at(-1)).toEqual({ branch_id: "b1" });
+    unmount();
+    scopeBranch = null;
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Expense advances/ }));
+    expect(expenseParams.at(-1)).toEqual({});
+  });
+
+  it("words a rule-made line in the reader's language from its code, not the server's English (AT-13)", async () => {
+    // E2E payroll (L-27/L-29): the Bonuses & deductions tab showed "Absent — no check-in recorded" in Arabic.
+    const user = userEvent.setup();
+    adjustments = [
+      { id: "d9", kind: "deduction", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 3_125, percent_of_base: null, value_piastres: 3_125,
+        reason: "SERVER TEXT late", reason_code: "late", reason_vars: { minutes: 24 }, effective_date: "2026-09-18", source: "late_penalty", status: "approved", recurring: false, ends_on: null },
+      { id: "d8", kind: "deduction", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 20_000, percent_of_base: null, value_piastres: 20_000,
+        reason: "Broken glassware", reason_code: null, reason_vars: null, effective_date: "2026-09-05", source: "manual", status: "approved", recurring: false, ends_on: null },
+    ];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(screen.getByText(/Late by 24 minutes/)).toBeInTheDocument();
+    expect(screen.queryByText(/SERVER TEXT/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Broken glassware/)).toBeInTheDocument();
   });
 
   it("reads the server's period status as a phase", () => {

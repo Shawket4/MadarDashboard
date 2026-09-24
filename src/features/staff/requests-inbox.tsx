@@ -77,6 +77,15 @@ export function useOwnEmployeeIds(enabled = true): Set<string> {
   );
 }
 
+/** Who a user is, by the employee linked to them (a cancel names a user, RQ-F6). */
+function useNamesByUser(): Map<string, string> {
+  const q = useListEmployees({}, { query: dawamQuery() });
+  return useMemo(
+    () => new Map((q.data ?? []).filter((e) => !!e.user_id).map((e) => [e.user_id as string, e.name])),
+    [q.data],
+  );
+}
+
 /** The caller's own request: the server says so (`is_own`); else guessed. */
 export const isMine = (r: StaffRequest, own: Set<string>) => r.is_own ?? own.has(r.employee_id);
 
@@ -100,7 +109,18 @@ export function RequestsInboxPage() {
   const [deciding, setDeciding] = useState<StaffRequest | null>(null);
   const [cancelling, setCancelling] = useState<StaffRequest | null>(null);
   const own = useOwnEmployeeIds();
+  const names = useNamesByUser();
   const canFile = useAuthz().can(Cap.hrLeaveCreate);
+  // A cancel keeps the approval's note and names its own author (RQ-F6).
+  const cancelWords = (r: StaffRequest) => {
+    if (r.status !== "cancelled") return null;
+    // The server names the canceller (cancelled_by_name); else the user's linked employee.
+    const who = r.cancelled_by_name ?? (r.cancelled_by ? names.get(r.cancelled_by) : undefined);
+    const head = who
+      ? t("staff.cancelledBy", { name: who, defaultValue: `Cancelled by ${who}` })
+      : r.cancelled_by ? t("staff.req_cancelled", "Cancelled") : null;
+    return [head, r.cancel_note].filter(Boolean).join(": ") || null;
+  };
 
   const requestsQ = useListRequests(
     {
@@ -226,7 +246,17 @@ export function RequestsInboxPage() {
                     <RequestBadges r={r} mine={mine} />
                   </span>
                 }
-                meta={[describeWindow(r, t), r.reason, r.decision_note].filter(Boolean).join(" · ")}
+                // Who decided and who cancelled must stay readable on a phone.
+                wrapMeta
+                meta={[
+                  describeWindow(r, t), r.reason,
+                  // Who decided, with their note; a cancel keeps both and names its own author (AT-10, B-TEAM-3, RQ-F6).
+                  r.decided_by_name && r.status !== "pending"
+                    ? t("staff.decidedBy", { name: r.decided_by_name, defaultValue: "Decided by {{name}}" })
+                    : null,
+                  r.decision_note,
+                  cancelWords(r),
+                ].filter(Boolean).join(" · ")}
                 trailing={
                   <>
                     <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>

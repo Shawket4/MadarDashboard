@@ -196,7 +196,8 @@ export const NAV: NavGroup[] = [
           { caps: [Cap.hrScheduleRead], module: "dawam", to: "/staff/shifts", labelKey: "nav.workShifts", fallback: "Work shifts", icon: CalendarRange },
           { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/staff/team", labelKey: "nav.team", fallback: "Team", icon: Users },
           {
-            caps: [Cap.hrLeaveEdit, Cap.hrAdvancesDecide, Cap.hrScheduleEdit, Cap.hrShiftCoverConfirm, Cap.hrOvertimeApprove, Cap.hrPayrollRun],
+            // The same rights the page decides with (approvals-page `can`), attendance edits included.
+            caps: [Cap.hrLeaveEdit, Cap.hrAttendanceEdit, Cap.hrAdvancesDecide, Cap.hrScheduleEdit, Cap.hrShiftCoverConfirm, Cap.hrOvertimeApprove, Cap.hrPayrollRun],
             module: "dawam", to: "/staff/approvals", labelKey: "nav.approvals", fallback: "Approvals", icon: ListChecks,
           },
           { caps: [Cap.hrScheduleRead], module: "dawam", to: "/staff/schedule", labelKey: "nav.schedule", fallback: "Schedule", icon: CalendarClock },

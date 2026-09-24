@@ -118,7 +118,8 @@
     "restrictedTitle": "Not available on this account",
     "restrictedBody": "This is managed by Madar. Get in touch if you need a change here.",
     "searchTimezone": "Search timezones…",
-    "selectTimezone": "Select timezone…"
+    "selectTimezone": "Select timezone…",
+    "listSeparator": ", "
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -324,6 +325,8 @@
     "ordersWord": "orders"
   },
   "orgs": {
+    "timezoneHint": "Default for all branches. A branch can override its own.",
+    "timezone": "Timezone",
     "title": "Organizations",
     "subtitle": "Manage all coffee brands and franchises",
     "newTitle": "New Organization",
@@ -2203,6 +2206,10 @@
     "boundaryDescription": "This screen hit an unexpected error. It has been reported — try again, and if it keeps happening reload the page.",
     "boundaryRetry": "Try again",
     "codes": {
+      "SETTING_OUT_OF_RANGE": "{{field}} must be from {{min}} to {{max}}.",
+      "SETTING_OUT_OF_RANGE_above": "{{field}} must be more than {{min}} and at most {{max}}.",
+      "SETTING_OUT_OF_RANGE_below": "{{field}} must be from {{min}} and less than {{max}}.",
+      "SETTING_OUT_OF_RANGE_choice": "{{field}}: that value isn't one of the allowed choices.",
       "EMPTY_ALLOW_LIST": "Pick at least one payment method, or allow all.",
       "RECONCILIATION_AMOUNT_REQUIRED": "Enter the counted amount for every method that doesn't match.",
       "RECONCILIATION_NOTE_REQUIRED": "Add a note for every method that doesn't match.",
@@ -2218,9 +2225,11 @@
       "SUGGESTION_STALE": "That suggestion no longer applies. Refresh the suggestions.",
       "WEEK_NOT_PUBLISHED": "That week isn't published yet.",
       "ALREADY_ROSTERED": "They're already on that shift.",
+      "ALREADY_ROSTERED_named": "{{name}} is already on {{shift}} on {{date}}. Nothing was moved.",
       "SWAP_STALE": "Those shifts aren't on the roster any more.",
       "SWAP_STARTED": "A shift that already started can't be swapped.",
       "SWAP_OTHER_BRANCH": "Swaps are only with a colleague at the same branch.",
+      "OWN_DECISION": "This one is about you, so someone else has to decide it.",
       "PERIOD_CLOSED_paid": "That month is paid, so it can't change. Pick a day in an open month.",
       "OUTSIDE_FENCE": "The phone is {{distance_m}} m from the branch; clocking in needs it within {{radius_m}} m.",
       "CHECKIN_TOO_EARLY": "{{shift}} opens for clocking in {{minutes}} minutes before it starts, at {{opens_at}}.",
@@ -2232,7 +2241,38 @@
       "BRANCH_NO_LOCATION": "This branch has no pin on the map yet. Pin it in Set-up first.",
       "LOCATION_REQUIRED": "Clocking in needs the phone's location.",
       "BRANCH_OTHER_ORG": "That branch belongs to another business.",
-      "LEAVE_PAY_REQUIRED": "Say whether this leave is paid or unpaid."
+      "ABOVE_LIMIT": "This is above your limit too — it waits for someone with a higher one.",
+      "ADVANCE_OVER_CAP": "That's over the advance cap — at most {{more_egp}} EGP more. The owner can approve it.",
+      "CORRECTION_WAITING": "This shift already has a correction waiting.",
+      "FLAG_HANDLED": "That flag is already handled.",
+      "MANAGER_REQUEST_ABOVE": "A manager's own request is decided by someone above them, usually the owner.",
+      "OVERLAPPING_REQUEST": "There is already a request like this for that time.",
+      "OWN_ADVANCE": "Someone else has to decide or record your own advance.",
+      "OWN_CLAIM": "You can't approve your own claim.",
+      "OWN_COVER": "You can't confirm a cover you're part of.",
+      "OWN_OVERTIME": "You can't approve your own overtime.",
+      "OWN_PAY_LINE": "You can't add pay lines for yourself.",
+      "OWN_PUNCH": "Punch yourself in from your own phone.",
+      "OWN_REQUEST": "Your own requests are decided by someone above you.",
+      "OWN_SWAP": "You can't approve a swap you're part of.",
+      "LEAVE_PAY_REQUIRED": "Say whether this leave is paid or unpaid.",
+      "PHONE_NOT_REGISTERED": "This number isn't registered with any business. Ask your manager to add you.",
+      "OTP_RECENTLY_SENT": "A code was just sent. Wait {{wait_seconds}} seconds before asking again.",
+      "OTP_WRONG": "Wrong code · {{attempts_left}} tries left",
+      "OTP_TOO_MANY_TRIES": "Too many tries. Send a new code.",
+      "OTP_NONE_ACTIVE": "There's no active code. Send a new one.",
+      "COORDINATES_OUT_OF_RANGE": "That location isn't a real place on the map.",
+      "NOT_CLOCKED_IN": "They aren't clocked in.",
+      "SHIFT_NOT_COVERABLE": "That shift can't be covered now.",
+      "ALREADY_CLAIMED": "Someone already claimed that shift.",
+      "SWAP_EXISTS": "This swap was already asked for and is waiting.",
+      "DAWAM_OFF": "Dawam is switched off for this business.",
+      "PRIVACY_NOT_ACCEPTED": "They haven't accepted the location notice in the app yet.",
+      "SHIFT_IN_USE": "{{n}} roster assignment(s) still use {{name}}. Move them off it first, or switch it off instead.",
+      "REQUEST_ALREADY_DECIDED": "This request was already decided: {{status}}.",
+      "SHIFT_DAYS_IN_USE_named": "{{name}} still has people rostered on {{days}}. Move them first.",
+      "SHIFTS_OVERLAP_named": "{{a}} and {{b}} would overlap on {{date}}.",
+      "ORG_SUSPENDED": "This business is suspended. Contact support to reactivate it."
     }
   },
   "theme": {
@@ -4149,7 +4189,7 @@
     "amount": "Amount",
     "annualQuota": "Annual quota (days)",
     "approveRequest": "Approve request",
-    "arrivingBy": "arriving by",
+    "arrivingBy": "Arriving by",
     "assignShift": "Assign shift",
     "att_absent": "Absent",
     "att_half_day": "Half day",
@@ -4480,6 +4520,8 @@
     "ruleSaysUnpaid": "The rule says unpaid.",
     "cancelNoteRequired": "Say why it is cancelled",
     "requestCancelled": "Request cancelled",
+    "decidedBy": "Decided by {{name}}",
+    "cancelledBy": "Cancelled by {{name}}",
     "cancelRequestTitle": "Cancel this request?",
     "cancelNote": "Why",
     "endBeforeStart": "The last day is before the first",
@@ -4542,7 +4584,9 @@
     "payChoiceNeeded": "Say whether this leave is paid or unpaid",
     "leavePayQuestion": "Paid or unpaid? It is approved as you file it.",
     "paid": "Paid",
-    "unpaid": "Unpaid"
+    "unpaid": "Unpaid",
+    "inReasonColumn": "Why punched in",
+    "outReasonColumn": "Why punched out"
   },
   "basira": {
     "title": "Basira",
@@ -5432,12 +5476,23 @@
       "byDiscount": "By discount",
       "byBranch": "By branch",
       "byIssuer": "By staff member",
-      "eventsCount": "{{n}} events",
+      "eventsCount_one": "{{n}} event",
+      "eventsCount_other": "{{n}} events",
       "eventPoints": "Points moved",
       "byType": "By type",
       "byKind": "By kind",
       "discountSales": "Discounted sales",
-      "flagged": "Flagged"
+      "flagged": "Flagged",
+      "colLabel": "Label",
+      "colAmount": "Amount",
+      "reason": {
+        "unspecified": "Not given",
+        "correction_request": "Approved correction request",
+        "auto_closed": "Closed automatically: no check-out",
+        "marked_absent": "Marked absent automatically: no check-in",
+        "waived": "Waived",
+        "overridden": "Overridden"
+      }
     },
     "loyalty": {
       "title": "Loyalty",
@@ -5470,7 +5525,11 @@
       "title": "Staff discipline",
       "empty": "No attendance recorded in this period",
       "unassigned": "Unassigned",
-      "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m"
+      "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m",
+      "coversGiven_one": "Covered {{n}} shift",
+      "coversGiven_other": "Covered {{n}} shifts",
+      "coveredByOthers_one": "{{n}} shift covered by a colleague",
+      "coveredByOthers_other": "{{n}} shifts covered by a colleague"
     },
     "noAccess": "Your account can't open this report. The owner can give you access.",
     "operations": {
@@ -5838,6 +5897,7 @@
     "flagHint_time_unverified": "This punch was queued offline and its time rests on the phone's word (it restarted, or the time the server gave it can't be proven), so it couldn't be checked.",
     "flagHint_tracking_off": "They clocked in without \"Always\" location, so there are no pings for this shift.",
     "flag_cover": "Cover",
+    "ownFlag": "Someone else decides your own flags: the owner, or a manager above you.",
     "flag_left_mid_shift": "Left mid-shift",
     "flag_new_phone": "New phone",
     "flag_suspicious": "Location looks spoofed",
@@ -5916,6 +5976,7 @@
     "monthly": "monthly",
     "net": "Net",
     "nextWeek": "Next week",
+    "week": "Week",
     "nightEnd": "Night ends",
     "nightShifts": "Night shifts",
     "nightStart": "Night starts",
@@ -6031,7 +6092,7 @@
     "reportsSubtitle": "Attendance, labour cost, payroll and advances over the period above.",
     "review": "Review",
     "reviewAdvance": "Approve {{name}}'s advance",
-    "reviewAdvanceHint": "Change the amount or the installments if you need to. Above the cap it waits for the owner.",
+    "reviewAdvanceHint": "Change the amount or the installments if you need to. Above the advance cap, only the owner can approve it.",
     "revokeHint": "The phone is refused on its next request. They sign in again with a WhatsApp code.",
     "revokePhone": "Revoke this phone",
     "revokePhoneShort": "Sign the phone out",
@@ -6074,6 +6135,7 @@
     "setupShifts": "Set up your shifts",
     "setupShiftsHint": "The shifts people work, with their times and grace minutes.",
     "setupSubtitle": "Four steps before your team can clock in.",
+    "setupLoadError": "Couldn't load the set-up checklist",
     "sg_cant_work": "{{name}} said they can't work this day",
     "sg_coverage": "{{shift}} is {{short}} short at {{hour}}",
     "sg_gap": "{{shift}} is {{short}} short of its usual cover",
@@ -6263,7 +6325,11 @@
     "reason_unpaid_excused_minutes": "Unpaid excused time: {{minutes}} minutes",
     "reason_unpaid_excuse": "Unpaid excuse",
     "reason_left_mid_shift": "Left mid-shift",
-    "pay_none": "Nothing to pay"
+    "pay_none": "Nothing to pay",
+    "stopTitle": "Stop \"{{line}}\"?",
+    "stopHint": "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log.",
+    "approveDaysAhead_one": "1 day of this month is still to come; nobody can clock in on it after approval.",
+    "approveDaysAhead_other": "{{count}} days of this month are still to come; nobody can clock in on them after approval."
   },
   "legal": {
     "label": "Legal",

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import { Coins, ListChecks, Tag, UserRound } from "lucide-react";
 
@@ -34,13 +35,44 @@ interface AuditTabProps {
   amount?: "money" | "points" | "none";
 }
 
-function auditCols(amount: "money" | "points" | "none"): ExcelColumn<AuditRow>[] {
+/** Codes for labels the server wrote itself (AT-13, E2E L-34) → their wording here. */
+const REASON_CODE_KEYS: Record<string, [string, string]> = {
+  unspecified: ["reports.legal.reason.unspecified", "Not given"],
+  correction_request: ["reports.legal.reason.correction_request", "Approved correction request"],
+  auto_closed: ["reports.legal.reason.auto_closed", "Closed automatically: no check-out"],
+  marked_absent: ["reports.legal.reason.marked_absent", "Marked absent automatically: no check-in"],
+  waived: ["reports.legal.reason.waived", "Waived"],
+  overridden: ["reports.legal.reason.overridden", "Overridden"],
+};
+
+/** Labels the server writes with no code yet (Deduction overrides' by-type rows). */
+const UNCODED_SERVER_WORDS = new Set(["waived", "overridden"]);
+
+/** A breakdown row's label in the reader's language: a server code is worded here; a person's own words stay as typed. */
+export function auditReasonText(t: TFunction | ((k: string, o?: Record<string, unknown>) => string), r: { label: string; code?: string | null }): string {
+  const tt = t as (k: string, o?: Record<string, unknown>) => string;
+  const code = r.code ?? (UNCODED_SERVER_WORDS.has(r.label) ? r.label : null);
+  if (!code) return r.label;
+  const known = REASON_CODE_KEYS[code];
+  if (known) return tt(known[0], { defaultValue: known[1] });
+  const voidKey = `orders.voidReasons.${code}`;
+  const v = tt(voidKey, { defaultValue: "" });
+  if (v) return v;
+  if (["preset", "manual_amount", "manual_percent"].includes(code)) return discountKindLabel(t as TFunction, code);
+  return r.label;
+}
+
+export function auditCols(t: TFunction | ((k: string, o?: Record<string, unknown>) => string), amount: "money" | "points" | "none"): ExcelColumn<AuditRow>[] {
+  const tt = t as (k: string, o?: Record<string, unknown>) => string;
   const cols: ExcelColumn<AuditRow>[] = [
-    { header: "Label", accessor: (r) => r.label, type: "text", width: 28 },
-    { header: "Events", accessor: (r) => r.count, type: "integer", width: 12, total: true },
+    { header: tt("reports.legal.colLabel", { defaultValue: "Label" }), accessor: (r) => r.label, type: "text", width: 28 },
+    { header: tt("reports.legal.eventCount", { defaultValue: "Events" }), accessor: (r) => r.count, type: "integer", width: 12, total: true },
   ];
   if (amount !== "none") {
-    cols.push({ header: amount === "points" ? "Points" : "Amount", accessor: (r) => r.amount_minor, type: amount === "points" ? "integer" : "money", width: 16, total: true });
+    cols.push({
+      header: amount === "points" ? tt("reports.legal.eventPoints", { defaultValue: "Points moved" }) : tt("reports.legal.colAmount", { defaultValue: "Amount" }),
+      accessor: (r) => r.amount_minor, type: amount === "points" ? "integer" : "money", width: 16, total: true,
+    });
   }
   return cols;
 }
@@ -58,14 +90,15 @@ export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: 
     { key: "count", label: t("reports.legal.eventCount", "Events"), icon: ListChecks, accent: "primary", value: d?.total_count ?? 0, formatType: "number", loading: query.isLoading },
     ...(amount === "none" ? [] : [{ key: "amount", label: amountLabel, icon: Coins, accent: "warning", value: d?.total_amount_minor ?? 0, formatType: amount === "points" ? "number" : "money", loading: query.isLoading } as LedgerItem]),
   ];
-  const cols = auditCols(amount);
+  const cols = auditCols(t, amount);
+  const byReason = (d?.by_reason ?? []).map((r) => ({ ...r, label: auditReasonText(t, r) }));
 
   const buildSheets = () => [
     {
       name: reasonLabel.slice(0, 31),
       title: exportTitle,
       subtitle: reasonLabel,
-      rows: (d?.by_reason ?? []) as unknown as Record<string, unknown>[],
+      rows: byReason as unknown as Record<string, unknown>[],
       columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
       stats: [
         { label: t("reports.legal.eventCount", "Events"), value: d?.total_count ?? 0, type: "number" as const },
@@ -120,7 +153,7 @@ export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: 
         <EmptyState title={t("reports.legal.empty", "Nothing recorded in this period")} />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          <BreakdownCard icon={ListChecks} title={reasonLabel} rows={d.by_reason} amount={amount} />
+          <BreakdownCard icon={ListChecks} title={reasonLabel} rows={byReason} amount={amount} />
           <BreakdownCard icon={UserRound} title={t("reports.legal.byIssuer", "By staff member")} rows={d.by_issuer} amount={amount} />
           {d.by_kind ? (
             <BreakdownCard
@@ -166,7 +199,7 @@ function BreakdownCard({
               <li key={r.label} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="min-w-0">
                   <p className="truncate font-medium">{r.label}</p>
-                  <p className="text-xs text-muted-foreground">{t("reports.legal.eventsCount", { defaultValue: "{{n}} events", n: fmtNumber(r.count) })}</p>
+                  <p className="text-xs text-muted-foreground">{t("reports.legal.eventsCount", { defaultValue: "{{n}} events", n: fmtNumber(r.count), count: r.count })}</p>
                 </div>
                 {amount === "none" ? null : (
                   <span className="shrink-0 font-mono tabular-nums">

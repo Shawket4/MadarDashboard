@@ -61,10 +61,14 @@ function columnsOf<R>(cols: Col<R>[]): ColumnDef<R>[] {
   }));
 }
 
-/** RFC 4180 CSV; money in pounds so a spreadsheet adds it up. */
+/** open · approved · paid, from a period's server status (as on the Payroll page). */
+const phaseOf = (status: string): "open" | "approved" | "paid" =>
+  status === "generated" ? "approved" : status === "paid" || status === "closed" ? "paid" : "open";
+
+/** RFC 4180 CSV; money in pounds so a spreadsheet adds it up; plain text (no bidi isolates). */
 export function toCsv<R>(cols: Col<R>[], rows: R[]): string {
   const q = (v: string | number) => {
-    const s = String(v);
+    const s = String(v).replace(/[\u2066-\u2069\u200e\u200f]/g, "");
     return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const lines = [cols.map((c) => q(c.header)).join(",")];
@@ -220,7 +224,8 @@ function PayrollTab({ params }: { params: Params }) {
     { id: "deductions", header: t("dawam.deductions", "Deductions"), value: (r) => r.deductions_piastres, money: true },
     { id: "advances", header: t("dawam.advancesCollected", "Advances collected"), value: (r) => r.advances_piastres, money: true },
     { id: "net", header: t("dawam.net", "Net"), value: (r) => r.net_piastres, money: true },
-    { id: "status", header: t("common.status", "Status"), value: (r) => r.status },
+    // The reader's words for the phase, never the server's raw status (AT-13).
+    { id: "status", header: t("common.status", "Status"), value: (r) => t(`dawam.phase_${phaseOf(r.status)}`) },
   ];
   return (
     <div className="space-y-4">

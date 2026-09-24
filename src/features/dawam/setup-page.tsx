@@ -11,6 +11,8 @@ import { CheckCircle2, Circle, FileSpreadsheet, MapPin, UserRoundPlus } from "lu
 
 import { Page, PageHeader } from "@/components/app/page";
 import { Restricted } from "@/components/app/restricted";
+import { ErrorState } from "@/components/app/empty-state";
+import { getErrorMessage } from "@/data/api/errors";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -88,7 +90,13 @@ export function SetupPage() {
         }
         actions={<DawamRefreshButton prefixes={SETUP_KEYS} />}
       />
-      {!p.ready ? <Skeleton className="h-72 w-full rounded-2xl" /> : (
+      {!p.ready && data.error ? (
+        <ErrorState
+          title={t("dawam.setupLoadError", "Couldn't load the set-up checklist")}
+          message={getErrorMessage(data.error)}
+          onRetry={data.retry}
+        />
+      ) : !p.ready ? <Skeleton className="h-72 w-full rounded-2xl" /> : (
         <div className="space-y-3">
           <div className="h-2 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuemin={0} aria-valuemax={4} aria-valuenow={p.count}>
             <div className="h-full bg-primary transition-[width]" style={{ width: `${(p.count / SETUP_STEPS.length) * 100}%` }} />

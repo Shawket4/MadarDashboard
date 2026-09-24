@@ -20,6 +20,8 @@ interface ListRowProps {
   variant?: ListRowVariant;
   title: ReactNode;
   meta?: ReactNode;
+  /** Let a long meta line wrap instead of cutting it to one line. */
+  wrapMeta?: boolean;
   icon?: LucideIcon;
   /** Replaces the glyph (an avatar, an image). */
   leading?: ReactNode;
@@ -42,6 +44,7 @@ export function ListRow({
   variant = "item",
   title,
   meta,
+  wrapMeta = false,
   icon: Icon,
   leading,
   sign,
@@ -85,7 +88,7 @@ export function ListRow({
       {lead}
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold">{title}</span>
-        {meta ? <span className="mt-0.5 block truncate text-[13px] text-muted-foreground">{meta}</span> : null}
+        {meta ? <span className={cn("mt-0.5 block text-[13px] text-muted-foreground", wrapMeta ? "break-words" : "truncate")}>{meta}</span> : null}
       </span>
       {value !== undefined && value !== null ? (
         <span

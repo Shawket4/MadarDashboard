@@ -76,14 +76,14 @@ export function ApprovalsPage() {
   };
   const any = Object.values(can).some(Boolean);
   const from = isoDaysFromToday(-35);
-  const to = isoDaysFromToday(35);
 
   const requestsQ = useListRequests({ status: "pending" }, { query: dawamQuery({ enabled: can.requests }) });
   // A manager's own requests are decided above them (RQ-5): not in their queue.
   const own = useOwnEmployeeIds(can.requests);
   const advancesQ = useListAdvances({}, { query: dawamQuery({ enabled: can.advances }) });
   const swapsQ = useListSwaps({ status: "pending" }, { query: dawamQuery({ enabled: can.roster }) });
-  const claimsQ = useListOpenShifts({ from, to }, { query: dawamQuery({ enabled: can.roster }) });
+  // A claim can sit on any published week, however far ahead (O-8).
+  const claimsQ = useListOpenShifts({ from, to: isoDaysFromToday(366) }, { query: dawamQuery({ enabled: can.roster }) });
   const attendanceQ = useListAttendance({ from, to: isoDaysFromToday(0) }, { query: dawamQuery({ enabled: can.covers || can.overtime }) });
   const payLinesQ = useListAdjustments({ status: "pending" }, { query: dawamQuery({ enabled: can.payLines }) });
   // Each list stands on its own (DSH-1, PAGE-Approvals): one that fails —
@@ -241,7 +241,11 @@ export function ApprovalsPage() {
   const reject = async (i: Pending) => {
     const ok = await confirm({
       title: t("dawam.rejectTitle", { name: i.who, kind: i.kind, defaultValue: `Reject ${i.who}'s ${i.kind}?` }),
-      description: t("dawam.rejectHint", "They are told, and nothing is paid or changed for it."),
+      // A rejected request leaves the day as if nothing was filed, so its
+      // lateness or absence is charged; anything else just isn't paid.
+      description: i.section === "requests"
+        ? t("staff.rejectRequestHint", "The day is treated as if no request was filed, so any lateness or absence penalty applies.")
+        : t("dawam.rejectHint", "They are told, and nothing is paid or changed for it."),
       confirmLabel: t("common.reject", "Reject"),
       destructive: true,
     });

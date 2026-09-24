@@ -55,6 +55,10 @@ export const RULE_LABELS: Record<string, [string, string]> = {
   limit_rest_hours: ["dawam.limitRest", "Rest between shifts"],
   limit_overtime_day_hours: ["dawam.limitOtDay", "Overtime a day"],
   orders_per_staff: ["dawam.ordersPerStaff", "Orders an hour per person"],
+  // Business-only settings: never a branch chip, but a refusal can name them.
+  advance_cap_percent: ["dawam.advanceCap", "Advance cap (% of salary)"],
+  period_start_day: ["dawam.periodStartDay", "Pay period starts on day"],
+  gender_mode: ["dawam.genderTitle", "Gender in suggestions"],
 };
 
 export const ruleLabel = (name: string, t: TFunction) => {

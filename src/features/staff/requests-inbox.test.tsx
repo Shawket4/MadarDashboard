@@ -92,6 +92,19 @@ describe("Requests inbox", () => {
     expect(screen.queryByRole("button", { name: /New request/ })).not.toBeInTheDocument();
   });
 
+  it("a cancelled request says who cancelled it and why, keeping the approval's note (RQ-F6)", () => {
+    rows = [
+      { ...APPROVED, id: "q8", employee_name: "Omar Cancelled", status: "cancelled", decided_by: "u-other", decision_note: "Enjoy the trip",
+        cancelled_by: "u-me", cancel_note: "Trip called off" },
+      { ...LEAVE, id: "q9", employee_name: "Nada Self", status: "cancelled", cancelled_by: null, cancel_note: null },
+    ];
+    renderPage();
+    const row = screen.getByText(/Trip called off/);
+    expect(row.textContent).toContain("Enjoy the trip");
+    expect(row.textContent).toContain("Cancelled by Karim Manager: Trip called off");
+    expect(screen.queryByText(/Cancelled by .*Nada/)).not.toBeInTheDocument();
+  });
+
   it("never offers a manager their own request, and marks it (RQ-5)", () => {
     renderPage();
     const mine = rowOf("Karim Manager");
@@ -172,6 +185,18 @@ describe("Requests inbox", () => {
 });
 
 describe("Requests inbox, server answers", () => {
+  it("shows why an approved request was cancelled, beside the approver's note (B-TEAM-3)", () => {
+    rows = [{ ...APPROVED, status: "cancelled", decision_note: "Go ahead", cancel_note: "Trip postponed", decided_by_name: "Tasbeeh", cancelled_by_name: "Karim Mostafa" }];
+    renderPage();
+    expect(screen.getByText(/Go ahead/)).toBeInTheDocument();
+    expect(screen.getByText(/Trip postponed/)).toBeInTheDocument();
+    // Who decided and who cancelled (backend 68078ac, AT-10).
+    expect(screen.getByText(/Decided by Tasbeeh/)).toBeInTheDocument();
+    expect(screen.getByText(/Cancelled by Karim Mostafa/)).toBeInTheDocument();
+    // On a phone the whole line wraps rather than cutting off who cancelled (E2E team re-verify).
+    expect(screen.getByText(/Cancelled by Karim Mostafa/)).not.toHaveClass("truncate");
+  });
+
   it("never offers to cancel an approved correction, which the server refuses (409)", () => {
     rows = [{ id: "q5", employee_id: "e1", employee_name: "Youssef Adel", kind: "correction", status: "approved", on_date: "2026-09-20", from_time: "09:00:00", is_half_day: false, created_at: "2026-09-19T08:00:00Z" }];
     renderPage();

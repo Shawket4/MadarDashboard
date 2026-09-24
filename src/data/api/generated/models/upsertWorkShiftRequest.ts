@@ -3,7 +3,12 @@
 import type { DayTime } from './dayTime';
 
 export interface UpsertWorkShiftRequest {
-  /** @nullable */
+  /**
+     * The block's branch; null = the whole business. On an update, omitted
+     * keeps the block's branch (E2E B-ROTA-8); on a create, omitted = the
+     * whole business.
+     * @nullable
+     */
   branch_id?: string | null;
   /** @nullable */
   break_minutes?: number | null;

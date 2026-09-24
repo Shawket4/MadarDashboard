@@ -217,7 +217,8 @@ export function ManualRecordDialog({
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value={NONE}>{t("staff.unscheduled", "Unscheduled")}</SelectItem>
-                      {(shiftsQ.data ?? []).map((s) => (
+                      {/* The record's branch's blocks and business-wide ones only. */}
+                      {(shiftsQ.data ?? []).filter((s) => !s.branch_id || s.branch_id === branchId).map((s) => (
                         <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
                     </SelectContent>

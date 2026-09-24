@@ -15,6 +15,8 @@ import { todayIso } from "@/features/staff/util";
 import { addDays, weekStartOf } from "./week";
 
 let held: string[] = [];
+/** `/authz/me` `everywhere`: unset = an older server that doesn't send it. */
+let everywhere: string[] | undefined;
 const week = weekStartOf(todayIso());
 let publishedWeeks: string[] = [];
 let warnings: unknown[] = [];
@@ -51,6 +53,7 @@ vi.mock("@/data/authz/use-authz", async () => {
       real.authzFrom({
         user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
         capabilities: held as never, ask_manager: [], limits: {},
+        ...(everywhere ? { everywhere: everywhere as never } : {}),
       }),
   };
 });
@@ -121,6 +124,7 @@ const wrap = (node: ReactNode) =>
 beforeEach(() => {
   for (const f of Object.values(calls)) f.mockClear();
   held = ["hr.schedule.read", "hr.schedule.edit", "hr.schedule.publish"];
+  everywhere = undefined;
   publishedWeeks = [];
   warnings = [];
   coverage = null;
@@ -175,6 +179,21 @@ describe("SchedulePage", () => {
     await waitFor(() => expect(calls.decideSuggestion).toHaveBeenCalledWith({ branch_id: "b1", id: "g1", accept: true }));
     await user.click(screen.getByRole("button", { name: "Make it a holiday" }));
     await waitFor(() => expect(calls.decideHoliday).toHaveBeenCalledWith(addDays(todayIso(), 10), { decision: "holiday" }));
+  });
+
+  it("lets a branch manager who publishes decide a public holiday (R-B3, RU-10)", () => {
+    // Karim publishes Arkan's rota only; since R-B3 that is enough for a holiday.
+    everywhere = ["hr.schedule.read"];
+    wrap(<SchedulePage />);
+    expect(screen.getByRole("button", { name: "Make it a holiday" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Normal day" })).toBeInTheDocument();
+  });
+
+  it("offers no holiday decision without the publish right", () => {
+    held = ["hr.schedule.read", "hr.schedule.edit"];
+    wrap(<SchedulePage />);
+    expect(screen.getByText("Armed Forces Day")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Make it a holiday" })).not.toBeInTheDocument();
   });
 
   it("is read-only for someone who can only read", () => {
@@ -454,4 +473,22 @@ describe("SchedulePage", () => {
       await i18n.changeLanguage("en");
     }
   });
+
+  it("keeps the week arrows and the range together so a wrapped toolbar never splits them (L-12)", () => {
+    wrap(<SchedulePage />);
+    const prev = screen.getByRole("button", { name: "Previous week" });
+    const next = screen.getByRole("button", { name: "Next week" });
+    const group = prev.parentElement!;
+    expect(group).toBe(next.parentElement);
+    expect(group).toHaveClass("flex-nowrap");
+    expect(group).toHaveAttribute("role", "group");
+  });
+
+  it("gives each person's preferences button a 32 px tap target on a phone (L-13)", () => {
+    wrap(<SchedulePage />);
+    const btn = screen.getByRole("button", { name: "Sara Ahmed's preferences" });
+    expect(btn).toHaveClass("size-8");
+    expect(btn).not.toHaveClass("size-6");
+  });
 });
+
