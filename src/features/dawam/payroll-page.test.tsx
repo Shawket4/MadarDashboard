@@ -30,6 +30,8 @@ globalThis.ResizeObserver ??= class {
 let held: string[] = [];
 let current: CurrentPayroll | undefined;
 let adjustments: unknown[] = [];
+let scopeBranch: string | null = null;
+const expenseParams: unknown[] = [];
 const enabledSeen: Record<string, boolean[]> = {};
 const calls = {
   generatePeriod: vi.fn(async () => ({})),
@@ -74,6 +76,7 @@ vi.mock("@/features/staff/util", async () => {
 vi.mock("./rules-banner", () => ({ RulesFirstBanner: () => null }));
 vi.mock("@/hooks/use-org-modules", () => ({ useCurrentOrg: () => ({ name: "Madar Coffee" }), useOrgModules: () => ["pos", "dawam"] }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
+vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: scopeBranch }) }));
 vi.mock("@/data/api/generated/api", () => ({
   useCurrent: hook("current", () => current),
   useListEmployees: hook("employees", () => [
@@ -82,7 +85,7 @@ vi.mock("@/data/api/generated/api", () => ({
   ] as Partial<Employee>[]),
   useListAdjustments: hook("adjustments", () => adjustments),
   useListAdvances: hook("advances", () => []),
-  useListExpenseAdvances: hook("expenses", () => []),
+  useListExpenseAdvances: (params: unknown, ...rest: unknown[]) => { expenseParams.push(params); return hook("expenses", () => [])(params, ...rest); },
   useListPayslips: hook("payslips", () => []),
   useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
   exportPeriodCsv: vi.fn(),
@@ -130,6 +133,8 @@ beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
   adjustments = [];
+  scopeBranch = null;
+  expenseParams.length = 0;
   held = ["hr.payroll.read", "hr.payroll.run", "hr.adjustments.create", "hr.deductions.create"];
   current = {
     period: period("draft"),
@@ -382,6 +387,20 @@ describe("PayrollPage", () => {
     const cfg = excel.mock.calls[0][0] as { sheets: { rows: { employee_id: string }[] }[] };
     // Sara is paid by bank but has nothing to receive; Youssef is paid in cash.
     expect(cfg.sheets.flatMap((sh) => sh.rows)).toEqual([]);
+  });
+
+  it("lists expense advances for the scope bar's branch, or every branch (AV-9)", async () => {
+    // E2E payroll (B-PAY-3): the list ignored the branch picked in the scope bar.
+    const user = userEvent.setup();
+    scopeBranch = "b1";
+    const { unmount } = wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Expense advances/ }));
+    expect(expenseParams.at(-1)).toEqual({ branch_id: "b1" });
+    unmount();
+    scopeBranch = null;
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Expense advances/ }));
+    expect(expenseParams.at(-1)).toEqual({});
   });
 
   it("reads the server's period status as a phase", () => {

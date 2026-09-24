@@ -40,6 +40,7 @@ import type {
 import { getErrorMessage } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
 import { useAuthz } from "@/data/authz/use-authz";
+import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useCurrentOrg } from "@/hooks/use-org-modules";
@@ -566,7 +567,9 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
 
 function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) {
   const { t } = useTranslation();
-  const q = useListExpenseAdvances({});
+  // The scope bar's branch (the expense's own branch, AV-9); every branch when none is picked.
+  const { branchId } = useScope();
+  const q = useListExpenseAdvances(branchId ? { branch_id: branchId } : {});
   const rows = q.data ?? [];
   return (
     <div className="space-y-3">
