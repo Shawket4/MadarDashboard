@@ -5,6 +5,9 @@ import { fmtDate, fmtTime } from "@/lib/format";
 
 const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
+/** The kinds the backend's AppError writes before its sentence. */
+const SERVER_KIND_PREFIX = /^(?:Unauthorized|Forbidden|Not found|Bad request|Conflict|Service unavailable|Database error): /;
+
 /**
  * A coded refusal's figures (`ErrorBody.vars`) ready for its sentence: a
  * date reads as a date, an instant as a time, weekdays and a status as
@@ -74,8 +77,10 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
     // A 403 the server didn't code is a missing right; its prose is English (B-ROTA-9).
     if (status === 403 && !code) return t("errors.unauthorized");
 
-    // Backend convention: { error: "..." } or { message: "..." }
-    if (typeof data?.error === "string") return data.error;
+    // Backend convention: { error: "..." } or { message: "..." }. The server
+    // prefixes the error's kind ("Conflict: …", AppError's Display); the
+    // reader wants the sentence (owner decision 43).
+    if (typeof data?.error === "string") return data.error.replace(SERVER_KIND_PREFIX, "");
     if (typeof data?.message === "string") return data.message;
 
     // Network / offline

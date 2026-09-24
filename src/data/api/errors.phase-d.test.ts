@@ -63,5 +63,13 @@ describe("Phase D refusals", () => {
     expect(ar).toMatch(/Omar Nabil/);
     expect(ar).toMatch(/راتب/);
   });
+
+  it("M43: a server sentence never starts with the error's kind (\"Conflict: …\")", () => {
+    expect(getErrorMessage(apiError({ error: "Conflict: You already have a request that day." }))).toBe("You already have a request that day.");
+    expect(getErrorMessage(apiError({ error: "Bad request: A reason is required." }, 400))).toBe("A reason is required.");
+    expect(getErrorMessage(apiError({ error: "Not found: No such shift." }, 404))).toBe("No such shift.");
+    // A sentence that merely contains a colon stays whole.
+    expect(getErrorMessage(apiError({ error: "Time off: 3 days left" }))).toBe("Time off: 3 days left");
+  });
 });
 
