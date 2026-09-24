@@ -27,6 +27,8 @@ const createAdjustment = vi.fn(async () => ({}));
 const logExpenseAdvance = vi.fn(async () => ({}));
 /** Today's attendance records (covers, a closed month). */
 let todayRecords: Record<string, unknown>[] = [];
+/** More presence rows for a test (someone before their shift, M15). */
+let extraRows: Record<string, unknown>[] = [];
 
 const failing: Record<string, Error | null> = {};
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
@@ -62,6 +64,7 @@ vi.mock("@/data/api/generated/api", () => ({
     rows: [
       { employee_id: "e1", employee_name: "Sara Ahmed", state: "in", check_in_at: "2026-09-22T05:00:00Z", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 60, branch_name: "Zamalek" },
       { employee_id: "e4", employee_name: "Youssef Adel", state: "absent", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 0, branch_name: "Zamalek" },
+      ...extraRows,
     ],
   })),
   useListAttendanceFlags: hook("flags", () => [
@@ -91,6 +94,7 @@ beforeEach(() => {
   resolveFlag.mockClear();
   punchFor.mockClear();
   todayRecords = [];
+  extraRows = [];
   held = [
     "hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others",
     "hr.deductions.create", "hr.staff.edit", "hr.shift_cover.confirm",
@@ -255,6 +259,22 @@ describe("TeamPage", () => {
     wrap(<TeamPage />);
     expect(screen.getByRole("button", { name: /Punch in/ })).toBeEnabled();
     expect(screen.queryByText(/Covered by/)).not.toBeInTheDocument();
+  });
+
+  it("M15: offers Punch in once the check-in window opens, before the shift starts (CL-3)", () => {
+    const past = new Date(Date.now() - 5 * 60_000).toISOString();
+    const later = new Date(Date.now() + 60 * 60_000).toISOString();
+    extraRows = [
+      { employee_id: "e8", employee_name: "Mona Samir", state: "off", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 0, branch_name: "Zamalek", punch_opens_at: past },
+      { employee_id: "e9", employee_name: "Hany Fathy", state: "off", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 0, branch_name: "Zamalek", punch_opens_at: later },
+      // A server that doesn't send the window: as before, nothing before the shift.
+      { employee_id: "e10", employee_name: "Rana Adel", state: "off", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 0, branch_name: "Zamalek" },
+    ];
+    wrap(<TeamPage />);
+    const row = (name: string) => screen.getByText(name).closest("[data-slot=list-row]") as HTMLElement;
+    expect(within(row("Mona Samir")).getByRole("button", { name: /Punch in/ })).toBeInTheDocument();
+    expect(within(row("Hany Fathy")).queryByRole("button", { name: /Punch/ })).toBeNull();
+    expect(within(row("Rana Adel")).queryByRole("button", { name: /Punch/ })).toBeNull();
   });
 
   it("hides punching from someone without the right", () => {

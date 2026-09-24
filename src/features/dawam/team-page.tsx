@@ -45,6 +45,7 @@ import { coveredBy, fmtMinutes, invalidateStaff } from "@/features/staff/util";
 import { AdjustmentDialog, ExpenseAdvanceDialog, readPounds } from "./money-dialogs";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
 import { useOwnEmployeeIds } from "@/features/staff/requests-inbox";
+import { punchWindowOpen, type PresenceRowD } from "./phase-d-contract";
 
 const STATE_LABEL: Record<string, string> = {
   in: "In", late: "Late", absent: "Absent", on_leave: "On leave", off: "Off", done: "Done",
@@ -174,7 +175,7 @@ export function TeamPage() {
                       {coverer ? (
                         <span className="text-xs text-muted-foreground">{t("dawam.coveredBy", { name: coverer, defaultValue: `Covered by ${coverer}` })}</span>
                       ) : null}
-                      {canPunch && ["in", "late", "absent"].includes(r.state) ? (
+                      {canPunch && (["in", "late", "absent"].includes(r.state) || punchWindowOpen(r as PresenceRowD)) ? (
                         <Button size="sm" variant="outline" disabled={!!coverer} onClick={() => setPunching(r)}>
                           <LogIn className="size-4" />
                           {out ? t("dawam.punchOut", "Punch out") : t("dawam.punchIn", "Punch in")}

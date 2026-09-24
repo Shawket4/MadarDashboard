@@ -4,8 +4,8 @@
  * through these types, so the generated client can take over in one place.
  */
 import type {
-  Adjustment, AttendanceSettings, AuditReport, ComputedPayslip, CurrentPayroll, Decide, Employee, PutAttendanceSettingsRequest,
-  ReviewAdvance, SalaryAdvance,
+  Adjustment, AttendanceSettings, AuditReport, ComputedPayslip, CurrentPayroll, Decide, Employee, PresenceRow,
+  PutAttendanceSettingsRequest, ReviewAdvance, SalaryAdvance,
 } from "@/data/api/generated/models";
 
 /** How a confirmed cover is paid (D5): the coverer's plain minute rate, or the covered block as a full day. */
@@ -76,4 +76,11 @@ export function salaryState(e: EmployeeD): "set" | "not_set" | "hidden" {
 export type PayslipD = ComputedPayslip & { salary_missing?: boolean };
 /** The current run (D9): how many on-payroll people have no salary. */
 export type CurrentPayrollD = CurrentPayroll & { missing_salary_count?: number; totals: CurrentPayroll["totals"] & { missing_salary_count?: number } };
+
+/** A presence row (M15): when this person's check-in window opens today (shift start − the window); absent from an older server. */
+export type PresenceRowD = PresenceRow & { punch_opens_at?: string | null };
+
+/** Rostered today, not in yet, and the check-in window is open: a manager may punch them in, as the app would (CL-3). */
+export const punchWindowOpen = (r: PresenceRowD, now = Date.now()): boolean =>
+  r.state === "off" && r.scheduled_minutes > 0 && !r.check_in_at && !!r.punch_opens_at && Date.parse(r.punch_opens_at) <= now;
 
