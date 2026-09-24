@@ -1,16 +1,24 @@
 import { AxiosError } from "axios";
+import type { TFunction } from "i18next";
 import i18n from "@/i18n";
 import { fmtDate, fmtTime } from "@/lib/format";
 
+const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
 /**
  * A coded refusal's figures (`ErrorBody.vars`) ready for its sentence: a
- * date reads as a date, an instant as a time; everything else as sent.
+ * date reads as a date, an instant as a time, weekdays and a status as
+ * words; everything else as sent.
  */
-function codedVars(raw: unknown): Record<string, unknown> {
+function codedVars(raw: unknown, t: TFunction): Record<string, unknown> {
   if (!raw || typeof raw !== "object") return {};
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
     if (k === "date" && typeof v === "string") out[k] = fmtDate(v);
+    // Weekdays 0 = Sunday (SHIFT_DAYS_IN_USE); a request's status (REQUEST_ALREADY_DECIDED).
+    else if (k === "days" && Array.isArray(v))
+      out[k] = v.map((d) => t(`staff.${WEEKDAY_KEYS[Number(d)] ?? ""}`, String(d))).join(t("common.listSeparator", ", "));
+    else if (k === "status" && typeof v === "string") out[k] = t(`staff.req_${v}`, v);
     else if (k.endsWith("_at") && typeof v === "string") out[k] = fmtTime(v);
     else out[k] = v;
   }
@@ -42,7 +50,7 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
     // A stable `code` the UI knows reads in the user's language; anything else
     // falls back to the server's own message.
     const code = typeof data?.code === "string" ? data.code : undefined;
-    const vars = codedVars(data?.vars);
+    const vars = codedVars(data?.vars, t);
     if (typeof vars.field === "string") vars.field = opts.fieldLabel?.(vars.field) ?? vars.field;
     // A paid month can't be reopened, so it gets its own wording (PERIOD_CLOSED {paid}).
     const key =
@@ -50,10 +58,13 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
         ? "PERIOD_CLOSED_paid"
         : code === "SETTING_OUT_OF_RANGE"
           ? settingKey(vars)
-          : // A manager's move names who already has the block (B-ROTA-1); the app's claim sends no figures.
-            code === "ALREADY_ROSTERED" && typeof vars.name === "string"
-            ? "ALREADY_ROSTERED_named"
-            : code;
+          : // Refusals that name who or what, when the server sends the figures (B-ROTA-1, B-ROTA-3);
+            // the app's claim and an older server send none.
+            (code === "ALREADY_ROSTERED" || code === "SHIFT_DAYS_IN_USE") && typeof vars.name === "string"
+            ? `${code}_named`
+            : code === "SHIFTS_OVERLAP" && typeof vars.a === "string"
+              ? "SHIFTS_OVERLAP_named"
+              : code;
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
     // A 403 the server didn't code is a missing right; its prose is English (B-ROTA-9).
     if (status === 403 && !code) return t("errors.unauthorized");

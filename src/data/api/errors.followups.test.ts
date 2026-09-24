@@ -71,4 +71,31 @@ describe("the backend fixes' refusal codes", () => {
     const err = apiError({ code: "OWN_PAY_LINE", error: "You can't add pay lines for yourself." }, 403);
     expect(getErrorMessage(err)).toBe(i18n.t("errors.codes.OWN_PAY_LINE"));
   });
+
+  it("names the block, the count, the days and the date in the rota refusals (B-ROTA-2, B-ROTA-3)", async () => {
+    const inUse = apiError({ code: "SHIFT_IN_USE", error: "x", vars: { n: 2, name: "Evening" } });
+    const days = apiError({ code: "SHIFT_DAYS_IN_USE", error: "x", vars: { n: 1, name: "Morning", days: [1, 5] } });
+    const overlap = apiError({ code: "SHIFTS_OVERLAP", error: "x", vars: { a: "Morning", b: "E2E Morning", date: "2026-10-04" } });
+    await i18n.changeLanguage("en");
+    expect(getErrorMessage(inUse)).toMatch(/2 .*Evening/);
+    expect(getErrorMessage(days)).toMatch(/Morning/);
+    expect(getErrorMessage(days)).toMatch(/Mon.*Fri/);
+    expect(getErrorMessage(overlap)).toMatch(/Morning.*E2E Morning/);
+    expect(getErrorMessage(overlap)).not.toMatch(/night/);
+    await i18n.changeLanguage("ar");
+    for (const e of [inUse, days, overlap]) expect(getErrorMessage(e)).not.toBe("x");
+    expect(getErrorMessage(inUse)).toMatch(/Evening/);
+    expect(getErrorMessage(days)).toMatch(/إثنين/);
+    expect(getErrorMessage(overlap)).toMatch(/E2E Morning/);
+  });
+
+  it("says a request was already decided, and how, in the reader's language", async () => {
+    const err = apiError({ code: "REQUEST_ALREADY_DECIDED", error: "This request is already approved", vars: { status: "approved" } });
+    await i18n.changeLanguage("en");
+    expect(getErrorMessage(err)).toMatch(/already/i);
+    expect(getErrorMessage(err)).toMatch(/approved/i);
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(err)).toMatch(i18n.t("staff.req_approved"));
+    expect(getErrorMessage(err)).not.toMatch(/[A-Za-z]{3,}/);
+  });
 });
