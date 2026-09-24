@@ -4614,6 +4614,7 @@
     "requestCancelled": "تم إلغاء الطلب",
     "cancelRequestTitle": "إلغاء هذا الطلب؟",
     "cancelNote": "السبب",
+    "cancelledBy": "ألغاه {{name}}",
     "endBeforeStart": "آخر يوم قبل أول يوم",
     "timeNeeded": "اختر وقتًا",
     "missionNeedsText": "اكتب عنوانًا للمأمورية أو ملاحظة",

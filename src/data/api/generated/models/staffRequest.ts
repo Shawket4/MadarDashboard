@@ -13,10 +13,23 @@ export interface StaffRequest {
      * the requester (RQ-5). The same checks the decision makes.
      */
   can_decide?: boolean;
+  /** @nullable */
+  cancel_note?: string | null;
+  /** @nullable */
+  cancelled_at?: string | null;
+  /**
+     * Who cancelled it (the person themselves or a manager), when and why.
+     * @nullable
+     */
+  cancelled_by?: string | null;
   created_at: string;
   /** @nullable */
   decided_at?: string | null;
-  /** @nullable */
+  /**
+     * Who approved or rejected it, when and why. A later cancellation keeps
+     * these (the approval stays on record) and fills `cancelled_*`.
+     * @nullable
+     */
   decided_by?: string | null;
   /** @nullable */
   decision_note?: string | null;

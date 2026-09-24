@@ -15529,7 +15529,7 @@ export const StopAdjustmentParams = zod.object({
 })
 
 export const StopAdjustmentBody = zod.object({
-  "reason": zod.string().nullish().describe('Why it stops (AD-9).')
+  "reason": zod.string().nullish().describe('Why it stops (AD-9). Required: blank or missing is a 400.')
 })
 
 export const StopAdjustmentResponse = zod.object({
@@ -16625,7 +16625,8 @@ export const PreferenceLogResponse = zod.array(PreferenceLogResponseItem)
 
 
 export const ListExpenseAdvancesQueryParams = zod.object({
-  "employee_id": zod.uuid().optional()
+  "employee_id": zod.uuid().optional(),
+  "branch_id": zod.uuid().optional().describe('Only the expenses logged at this branch (the expense\'s own branch,\nAV-9). A branch the caller can\'t read is refused (403).')
 })
 
 export const ListExpenseAdvancesResponseItem = zod.object({
@@ -16978,7 +16979,7 @@ export const CheckOutResponse = zod.object({
 
 export const MyContextResponse = zod.object({
   "adjustment_limit_piastres": zod.number().nullish().describe('My ceiling on a bonus before it waits for the owner; null = none.'),
-  "advance_limit_percent": zod.number().nullish(),
+  "advance_limit_percent": zod.number().nullish().describe('My ceiling on an advance, as whole percent of the person\'s salary owed\nafter it (the grant stores basis points); null = none.'),
   "branches": zod.array(zod.object({
   "geo_radius_meters": zod.number().nullish(),
   "id": zod.uuid(),
@@ -17305,9 +17306,12 @@ export const SetStaffPushTokenResponse = zod.void()
 export const MyRequestsResponseItem = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -17360,9 +17364,12 @@ export const CreateMyRequestBody = zod.object({
 export const CreateMyRequestResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18500,9 +18507,12 @@ export const ListRequestsQueryParams = zod.object({
 export const ListRequestsResponseItem = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18555,9 +18565,12 @@ export const CreateRequestAdminBody = zod.object({
 export const CreateRequestAdminResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18601,9 +18614,12 @@ export const DecideRequestBody = zod.object({
 export const DecideRequestResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),

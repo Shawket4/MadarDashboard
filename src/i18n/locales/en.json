@@ -4481,6 +4481,7 @@
     "requestCancelled": "Request cancelled",
     "cancelRequestTitle": "Cancel this request?",
     "cancelNote": "Why",
+    "cancelledBy": "Cancelled by {{name}}",
     "endBeforeStart": "The last day is before the first",
     "timeNeeded": "Pick a time",
     "missionNeedsText": "Give the mission a title or a note",

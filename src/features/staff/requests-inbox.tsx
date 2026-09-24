@@ -75,6 +75,15 @@ export function useOwnEmployeeIds(enabled = true): Set<string> {
   );
 }
 
+/** Who a user is, by the employee linked to them (a cancel names a user, RQ-F6). */
+function useNamesByUser(): Map<string, string> {
+  const q = useListEmployees({});
+  return useMemo(
+    () => new Map((q.data ?? []).filter((e) => !!e.user_id).map((e) => [e.user_id as string, e.name])),
+    [q.data],
+  );
+}
+
 /** The caller's own request: the server says so (`is_own`); else guessed. */
 export const isMine = (r: StaffRequest, own: Set<string>) => r.is_own ?? own.has(r.employee_id);
 
@@ -98,7 +107,17 @@ export function RequestsInboxPage() {
   const [deciding, setDeciding] = useState<StaffRequest | null>(null);
   const [cancelling, setCancelling] = useState<StaffRequest | null>(null);
   const own = useOwnEmployeeIds();
+  const names = useNamesByUser();
   const canFile = useAuthz().can(Cap.hrLeaveCreate);
+  // A cancel keeps the approval's note and names its own author (RQ-F6).
+  const cancelWords = (r: StaffRequest) => {
+    if (r.status !== "cancelled" || !r.cancelled_by) return null;
+    const who = names.get(r.cancelled_by);
+    const head = who
+      ? t("staff.cancelledBy", { name: who, defaultValue: `Cancelled by ${who}` })
+      : t("staff.req_cancelled", "Cancelled");
+    return r.cancel_note ? `${head}: ${r.cancel_note}` : head;
+  };
 
   const requestsQ = useListRequests({
     status: status === ALL ? undefined : status,
@@ -218,7 +237,7 @@ export function RequestsInboxPage() {
                     <RequestBadges r={r} mine={mine} />
                   </span>
                 }
-                meta={[describeWindow(r, t), r.reason, r.decision_note].filter(Boolean).join(" · ")}
+                meta={[describeWindow(r, t), r.reason, r.decision_note, cancelWords(r)].filter(Boolean).join(" · ")}
                 trailing={
                   <>
                     <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
