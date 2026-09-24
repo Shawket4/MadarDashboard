@@ -32,9 +32,9 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
 import { ApproveWithPayDialog, ASKS_PAY, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds } from "@/features/staff/requests-inbox";
-import { fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
+import { fmtHours, fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
 import { AdvanceCapNote, RejectDialog, ReviewAdvanceDialog } from "./money-dialogs";
-import { capView, type AdvanceD, type DecideD, type ReviewAdvanceD } from "./phase-d-contract";
+import { capView, warningsOf, type AdvanceD, type DecideD, type ReviewAdvanceD } from "./phase-d-contract";
 
 export type Section = "all" | "requests" | "money" | "shifts";
 
@@ -111,8 +111,19 @@ export function ApprovalsPage() {
   };
   const run = async (fn: () => Promise<unknown>) => {
     try {
-      await fn();
+      const out = await fn();
       decided();
+      // A claim that makes a long day passes a labour limit: said, never blocked (RU-13, M26).
+      for (const w of warningsOf(out)) {
+        toast.warning(
+          t("dawam.limitWarning", {
+            limit: t(`dawam.warn_${w.kind}`, w.kind),
+            minutes: fmtHours(w.minutes),
+            cap: fmtHours(w.limit_minutes),
+            defaultValue: "{{limit}}: {{minutes}} of {{cap}}. Only a warning.",
+          }),
+        );
+      }
     } catch (e) {
       toast.error(getErrorMessage(e));
     }

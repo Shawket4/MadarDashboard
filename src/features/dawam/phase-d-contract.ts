@@ -4,7 +4,7 @@
  * through these types, so the generated client can take over in one place.
  */
 import type {
-  Adjustment, AttendanceSettings, AuditReport, ComputedPayslip, CurrentPayroll, Decide, Employee, PresenceRow,
+  Adjustment, AttendanceSettings, AuditReport, ComputedPayslip, CurrentPayroll, Decide, Employee, LabourWarning, PresenceRow,
   PutAttendanceSettingsRequest, ReviewAdvance, SalaryAdvance,
 } from "@/data/api/generated/models";
 
@@ -83,4 +83,10 @@ export type PresenceRowD = PresenceRow & { punch_opens_at?: string | null };
 /** Rostered today, not in yet, and the check-in window is open: a manager may punch them in, as the app would (CL-3). */
 export const punchWindowOpen = (r: PresenceRowD, now = Date.now()): boolean =>
   r.state === "off" && r.scheduled_minutes > 0 && !r.check_in_at && !!r.punch_opens_at && Date.parse(r.punch_opens_at) <= now;
+
+/** A decision that may pass a labour limit (M26: an approved open-shift claim): the server's warnings, which never block (RU-13). */
+export const warningsOf = (out: unknown): LabourWarning[] => {
+  const w = (out as { warnings?: unknown } | null | undefined)?.warnings;
+  return Array.isArray(w) ? (w as LabourWarning[]) : [];
+};
 

@@ -11,6 +11,8 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 let held: string[] = [];
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() }));
+vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const LEAVE = { id: "q1", employee_id: "e1", employee_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", created_at: "2026-09-22T07:00:00Z", reason: "Family wedding" };
 let requestRows: Record<string, unknown>[] = [LEAVE];
 const ATTENDANCE = [
@@ -168,6 +170,18 @@ describe("ApprovalsPage", () => {
       expect(calls.decideClaim).toHaveBeenCalledWith("o1", { approve: true });
       expect(calls.decideOvertime).toHaveBeenCalledWith("r6", { approve: true });
     });
+  });
+
+  it("M26: approving a claim says which labour limit it passes, and blocks nothing (RU-13)", async () => {
+    calls.decideClaim.mockResolvedValueOnce({
+      warnings: [{ employee_id: "e7", date: "2026-09-27", kind: "day_hours", minutes: 960, limit_minutes: 480 }],
+    } as never);
+    toastMock.warning.mockClear();
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    await user.click(within(approveIn("Laila Hassan")).getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(toastMock.warning).toHaveBeenCalledWith("Hours a day: 16h of 8h. Only a warning."));
+    expect(toastMock.success).toHaveBeenCalled();
   });
 
   it("rejects a swap only after confirming", async () => {
