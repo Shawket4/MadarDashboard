@@ -3,6 +3,7 @@
 import type { AddonSlot } from './addonSlot';
 import type { ItemSize } from './itemSize';
 import type { MenuItem } from './menuItem';
+import type { MenuItemFullPricing } from './menuItemFullPricing';
 import type { MenuItemRecipe } from './menuItemRecipe';
 import type { OptionalField } from './optionalField';
 import type { RecipeStep } from './recipeStep';
@@ -18,6 +19,15 @@ export type MenuItemFull = MenuItem & {
   /** Explicit per-item addon allowlist. Empty = no restriction (use org catalog). */
   allowed_addon_ids: string[];
   optional_fields: OptionalField[];
+  /**
+     * How a sale line of this item is priced at the requested branch:
+     * madar-catalog's `ItemView` (sizes with their branch prices, the
+     * branch's item price, the recipe's swap bases and their candidates, the
+     * optional fields). The till prices with it exactly as the order path
+     * does. Present on `?full=true` lists; additive, older tills ignore it.
+     * @nullable
+     */
+  pricing?: MenuItemFullPricing;
   /**
      * How the item is made, in order. Each preset step carries its animation's
      * address and fingerprint, so a device downloads only what its own menu

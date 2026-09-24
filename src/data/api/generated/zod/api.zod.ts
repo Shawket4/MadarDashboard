@@ -31,6 +31,9 @@ export const ListAddonItemsResponseItem = zod.object({
 
 }),
   "org_id": zod.uuid(),
+  "pricing": zod.looseObject({
+
+}).nullish().describe('How a sale line charges this option: madar-catalog\'s `OptionView`\n(branch-effective price, its group\'s effect and swap category, the\ningredient it replaces, its lines per size). The till prices lines with\nit exactly as the order path does. Additive; older tills ignore it.'),
   "primary_ingredient_id": zod.uuid().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -66,6 +69,9 @@ export const CreateAddonItemResponse = zod.object({
 
 }),
   "org_id": zod.uuid(),
+  "pricing": zod.looseObject({
+
+}).nullish().describe('How a sale line charges this option: madar-catalog\'s `OptionView`\n(branch-effective price, its group\'s effect and swap category, the\ningredient it replaces, its lines per size). The till prices lines with\nit exactly as the order path does. Additive; older tills ignore it.'),
   "primary_ingredient_id": zod.uuid().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -102,6 +108,9 @@ export const ListAddonCatalogResponse = zod.object({
 
 }),
   "org_id": zod.uuid(),
+  "pricing": zod.looseObject({
+
+}).nullish().describe('How a sale line charges this option: madar-catalog\'s `OptionView`\n(branch-effective price, its group\'s effect and swap category, the\ningredient it replaces, its lines per size). The till prices lines with\nit exactly as the order path does. Additive; older tills ignore it.'),
   "primary_ingredient_id": zod.uuid().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })),
@@ -152,6 +161,9 @@ export const UpdateAddonItemResponse = zod.object({
 
 }),
   "org_id": zod.uuid(),
+  "pricing": zod.looseObject({
+
+}).nullish().describe('How a sale line charges this option: madar-catalog\'s `OptionView`\n(branch-effective price, its group\'s effect and swap category, the\ningredient it replaces, its lines per size). The till prices lines with\nit exactly as the order path does. Additive; older tills ignore it.'),
   "primary_ingredient_id": zod.uuid().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })
@@ -7180,6 +7192,9 @@ export const CreateMenuItemResponse = zod.object({
   "size_label": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })),
+  "pricing": zod.looseObject({
+
+}).nullish().describe('How a sale line of this item is priced at the requested branch:\nmadar-catalog\'s `ItemView` (sizes with their branch prices, the\nbranch\'s item price, the recipe\'s swap bases and their candidates, the\noptional fields). The till prices with it exactly as the order path\ndoes. Present on `?full=true` lists; additive, older tills ignore it.'),
   "recipe_steps": zod.array(zod.object({
   "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
   "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
@@ -7321,6 +7336,9 @@ export const GetMenuItemResponse = zod.object({
   "size_label": zod.string().nullish(),
   "updated_at": zod.iso.datetime({"offset":true})
 })),
+  "pricing": zod.looseObject({
+
+}).nullish().describe('How a sale line of this item is priced at the requested branch:\nmadar-catalog\'s `ItemView` (sizes with their branch prices, the\nbranch\'s item price, the recipe\'s swap bases and their candidates, the\noptional fields). The till prices with it exactly as the order path\ndoes. Present on `?full=true` lists; additive, older tills ignore it.'),
   "recipe_steps": zod.array(zod.object({
   "animation_hash": zod.string().nullish().describe('Content hash of the global asset; `None` until ingested or when retired.'),
   "animation_is_global": zod.boolean().describe('Always true for preset animations (global library).'),
