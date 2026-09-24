@@ -162,6 +162,34 @@ describe("PayrollPage", () => {
     await waitFor(() => expect(calls.generatePeriod).toHaveBeenCalledWith("p2"));
   });
 
+  it("warns before approving a month whose last days are still to come (BC-3 decision a, Q-payroll-1)", async () => {
+    const { isoDaysFromToday } = await import("@/features/staff/util");
+    const user = userEvent.setup();
+    current = { ...current!, period: { ...period("draft"), end_date: isoDaysFromToday(5) } };
+    const { unmount } = wrap(<PayrollPage />);
+    await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
+    const dialog = await screen.findByRole("alertdialog");
+    // Today and the five days after it: nobody can clock in on them once it's approved.
+    expect(within(dialog).getByText(/6 days of this month are still to come/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    unmount();
+    // In Arabic too.
+    await i18n.changeLanguage("ar");
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("button", { name: /اعتماد/ }));
+    expect(within(await screen.findByRole("alertdialog")).getByText(/6/)).toBeInTheDocument();
+    await i18n.changeLanguage("en");
+  });
+
+  it("says nothing about days to come once the month has ended", async () => {
+    const { isoDaysFromToday } = await import("@/features/staff/util");
+    const user = userEvent.setup();
+    current = { ...current!, period: { ...period("draft"), end_date: isoDaysFromToday(-1) } };
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
+    expect(within(await screen.findByRole("alertdialog")).queryByText(/still to come/)).not.toBeInTheDocument();
+  });
+
   it("marks someone paid with their own pay method, and hides reopen once anyone is paid (PAY-6, PAY-7)", async () => {
     const user = userEvent.setup();
     const frozen = (u: string, n: string, paid: string | null) =>

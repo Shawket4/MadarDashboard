@@ -6318,7 +6318,9 @@
     "pay_none": "Nothing to pay",
     "stopTitle": "Stop \"{{line}}\"?",
     "stopHint": "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log.",
-    "holidayDecidedAbove": "Decided for every branch at once"
+    "holidayDecidedAbove": "Decided for every branch at once",
+    "approveDaysAhead_one": "1 day of this month is still to come; nobody can clock in on it after approval.",
+    "approveDaysAhead_other": "{{count}} days of this month are still to come; nobody can clock in on them after approval."
   },
   "legal": {
     "label": "Legal",

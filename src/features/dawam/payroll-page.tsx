@@ -46,7 +46,7 @@ import { useExportLogo } from "@/hooks/use-export-logo";
 import { useCurrentOrg } from "@/hooks/use-org-modules";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { fmtDate, fmtMoney, fmtMoneySigned } from "@/lib/format";
-import { invalidateStaff, REQUEST_STATUS_TONE } from "@/features/staff/util";
+import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "@/features/staff/util";
 
 import { payslipLines, reasonText, type PayLine } from "./lines";
 import { printPayslip } from "./payslip-print";
@@ -57,6 +57,10 @@ import {
 
 type Slip = ComputedPayslip | Payslip;
 type Row = Slip & { employee_name: string; paid_method: string | null };
+
+/** Days from `today` to the month's last day, both counted; 0 once it has ended. */
+export const daysStillToCome = (endDate: string, today: string): number =>
+  Math.max(0, Math.round((Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000) + 1);
 
 /** open · approved · paid, from the server's period status. */
 export const periodPhase = (p: PayrollPeriod | undefined): "open" | "approved" | "paid" =>
@@ -122,9 +126,14 @@ export function PayrollPage() {
   }
 
   const approve = async () => {
+    // Nothing is written into an approved month (BC-3 decision a), so its days still to come lose their clock-ins.
+    const ahead = period ? daysStillToCome(period.end_date, todayIso()) : 0;
+    const hint = t("dawam.approveHint", "Every payslip is frozen with the lines behind it, and people can see theirs. You can reopen until anyone is marked paid.");
     const ok = await confirm({
       title: t("dawam.approveTitle", "Approve this month's payroll?"),
-      description: t("dawam.approveHint", "Every payslip is frozen with the lines behind it, and people can see theirs. You can reopen until anyone is marked paid."),
+      description: ahead > 0
+        ? `${t("dawam.approveDaysAhead", { count: ahead, defaultValue: "{{count}} days of this month are still to come; nobody can clock in on them after approval." })} ${hint}`
+        : hint,
       confirmLabel: t("dawam.approve", "Approve payroll"),
     });
     if (!ok || !period) return;
