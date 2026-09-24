@@ -6262,7 +6262,9 @@
     "reason_unpaid_excused_minutes": "Unpaid excused time: {{minutes}} minutes",
     "reason_unpaid_excuse": "Unpaid excuse",
     "reason_left_mid_shift": "Left mid-shift",
-    "pay_none": "Nothing to pay"
+    "pay_none": "Nothing to pay",
+    "stopTitle": "Stop \"{{line}}\"?",
+    "stopHint": "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log."
   },
   "legal": {
     "label": "Legal",

@@ -6443,7 +6443,9 @@
     "reason_unpaid_excused_minutes": "وقت إذن غير مدفوع: {{minutes}} دقيقة",
     "reason_unpaid_excuse": "إذن غير مدفوع",
     "reason_left_mid_shift": "غادر أثناء الوردية",
-    "pay_none": "لا شيء للصرف"
+    "pay_none": "لا شيء للصرف",
+    "stopTitle": "إيقاف «{{line}}»؟",
+    "stopHint": "يتوقف بدءًا من الشهر المفتوح الآن، وتبقى الشهور المعتمدة كما هي. يُحفظ السبب في سجل التدقيق."
   },
   "legal": {
     "label": "قانوني",

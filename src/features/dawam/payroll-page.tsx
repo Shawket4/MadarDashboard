@@ -31,7 +31,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   decideAdjustment, deleteBonus, deleteDeduction, exportPeriodCsv, generatePeriod,
-  stopAdjustment, useCurrent, useListAdjustments, useListAdvances, useListEmployees,
+  useCurrent, useListAdjustments, useListAdvances, useListEmployees,
   useListExpenseAdvances, useListPayslips,
 } from "@/data/api/generated/api";
 import type {
@@ -51,7 +51,7 @@ import { payslipLines, type PayLine } from "./lines";
 import { printPayslip } from "./payslip-print";
 import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
-  ReviewAdvanceDialog, UnwaiveDialog, WaiveDialog,
+  ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog,
 } from "./money-dialogs";
 
 type Slip = ComputedPayslip | Payslip;
@@ -466,6 +466,7 @@ const ADJ_TONE: Record<string, "warning" | "success" | "danger" | "neutral"> = {
 function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: boolean; onAdd: () => void }) {
   const { t } = useTranslation();
   const q = useListAdjustments({});
+  const [stopping, setStopping] = useState<Adjustment | null>(null);
   const act = async (fn: () => Promise<unknown>, ok: string) => {
     try {
       await fn();
@@ -508,7 +509,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                       </>
                     ) : null}
                     {canAdjust && a.recurring && !stopped && a.status === "approved" ? (
-                      <Button size="sm" variant="ghost" onClick={() => void act(() => stopAdjustment(a.kind, a.id, {}), t("dawam.stoppedToast", "Stopped from next month"))}>{t("dawam.stop", "Stop")}</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setStopping(a)}>{t("dawam.stop", "Stop")}</Button>
                     ) : null}
                   </span>
                 }
@@ -517,6 +518,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
           })}
         </ListCard>
       )}
+      <StopDialog key={`stop-${stopping?.id}`} line={stopping} onOpenChange={(o) => !o && setStopping(null)} />
     </div>
   );
 }

@@ -26,7 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SegmentedControl } from "@/components/app/segmented-control";
 import {
   createAdjustment, logExpenseAdvance, markPaid, overrideDeduction, recordAdvance, reviewAdvance,
-  setPeriodStatus, unwaiveDeduction, useListBranches, useListEmployees, waiveDeduction,
+  setPeriodStatus, stopAdjustment, unwaiveDeduction, useListBranches, useListEmployees, waiveDeduction,
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -510,6 +510,28 @@ export function UnwaiveDialog({
       saveLabel={t("dawam.unwaive", "Undo the waiver")}
       onSave={(reason) => unwaiveDeduction(deductionId!, { reason })}
       done={t("dawam.unwaived", "Waiver undone")}
+    />
+  );
+}
+
+/** Stop a monthly line from the next open month, with why (AD-3, AD-9). */
+export function StopDialog({
+  line, onOpenChange,
+}: {
+  line: { kind: string; id: string; reason: string } | null;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <ReasonDialog
+      open={!!line}
+      onOpenChange={onOpenChange}
+      title={t("dawam.stopTitle", { line: line?.reason ?? "", defaultValue: `Stop "${line?.reason ?? ""}"?` })}
+      description={t("dawam.stopHint", "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log.")}
+      saveLabel={t("dawam.stop", "Stop")}
+      destructive
+      onSave={(reason) => stopAdjustment(line!.kind, line!.id, { reason })}
+      done={t("dawam.stoppedToast", "Stopped from next month")}
     />
   );
 }

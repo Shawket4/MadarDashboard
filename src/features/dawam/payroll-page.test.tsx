@@ -29,6 +29,7 @@ globalThis.ResizeObserver ??= class {
 
 let held: string[] = [];
 let current: CurrentPayroll | undefined;
+let adjustments: unknown[] = [];
 const enabledSeen: Record<string, boolean[]> = {};
 const calls = {
   generatePeriod: vi.fn(async () => ({})),
@@ -41,6 +42,7 @@ const calls = {
   deleteBonus: vi.fn(async () => ({})),
   createAdjustment: vi.fn(async () => ({})),
   recordAdvance: vi.fn(async () => ({})),
+  stopAdjustment: vi.fn(async () => ({})),
 };
 
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
@@ -76,14 +78,13 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "e1", name: "Sara Ahmed", pay_method: "bank", pay_account: "EG38 0019" },
     { id: "e4", name: "Youssef Adel", pay_method: "cash" },
   ] as Partial<Employee>[]),
-  useListAdjustments: hook("adjustments", () => []),
+  useListAdjustments: hook("adjustments", () => adjustments),
   useListAdvances: hook("advances", () => []),
   useListExpenseAdvances: hook("expenses", () => []),
   useListPayslips: hook("payslips", () => []),
   useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
   exportPeriodCsv: vi.fn(),
   decideAdjustment: vi.fn(),
-  stopAdjustment: vi.fn(),
   createAdvanceAdmin: vi.fn(),
   reviewAdvance: vi.fn(),
   logExpenseAdvance: vi.fn(),
@@ -126,6 +127,7 @@ const period = (status: string) => ({
 beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
+  adjustments = [];
   held = ["hr.payroll.read", "hr.payroll.run", "hr.adjustments.create", "hr.deductions.create"];
   current = {
     period: period("draft"),
@@ -342,6 +344,26 @@ describe("PayrollPage", () => {
     const again = await screen.findByRole("dialog");
     expect(within(again).getByText("EGP 8,850.00")).toBeInTheDocument();
     expect(within(again).queryByText("Late arrival")).not.toBeInTheDocument();
+  });
+
+  it("stops a monthly line only with a reason, which goes to the server (AD-3, AD-9)", async () => {
+    // E2E payroll: Stop sent {} — the audit row had no "why".
+    const user = userEvent.setup();
+    adjustments = [{
+      id: "b7", kind: "bonus", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 30_000, percent_of_base: null,
+      value_piastres: 30_000, reason: "Meal allowance", effective_date: "2026-09-01", source: "manual", status: "approved",
+      recurring: true, ends_on: null,
+    }];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    await user.click(await screen.findByRole("button", { name: "Stop" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Stop" }));
+    expect(await within(dialog).findByText("A reason is needed")).toBeInTheDocument();
+    expect(calls.stopAdjustment).not.toHaveBeenCalled();
+    await user.type(within(dialog).getByLabelText("Reason"), "Moved to the day shift");
+    await user.click(within(dialog).getByRole("button", { name: "Stop" }));
+    await waitFor(() => expect(calls.stopAdjustment).toHaveBeenCalledWith("bonus", "b7", { reason: "Moved to the day shift" }));
   });
 
   it("reads the server's period status as a phase", () => {
