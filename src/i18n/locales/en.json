@@ -6073,6 +6073,7 @@
     "setupShifts": "Set up your shifts",
     "setupShiftsHint": "The shifts people work, with their times and grace minutes.",
     "setupSubtitle": "Four steps before your team can clock in.",
+    "setupLoadError": "Couldn't load the set-up checklist",
     "sg_cant_work": "{{name}} said they can't work this day",
     "sg_coverage": "{{shift}} is {{short}} short at {{hour}}",
     "sg_gap": "{{shift}} is {{short}} short of its usual cover",

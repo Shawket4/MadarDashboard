@@ -20,6 +20,10 @@ export interface SetupData {
   employees?: Pick<Employee, "employment_status">[];
   shifts?: Pick<WorkShift, "is_active">[];
   settings?: Pick<AttendanceSettings, "rules_saved_at">;
+  /** The first read that failed, if any (the page says so instead of waiting forever). */
+  error?: unknown;
+  /** Asks every failed read again. */
+  retry?: () => void;
 }
 
 export interface SetupProgress {
@@ -50,11 +54,24 @@ export function setupProgress(d: SetupData): SetupProgress {
 /** The live data behind the checklist. `enabled` false asks the server nothing. */
 export function useSetupData(enabled = true): SetupData {
   const orgId = useOrgId();
-  const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: enabled && !!orgId } }).data;
-  const employees = useListEmployees({ employment_status: "active" }, { query: { enabled } }).data;
-  const shifts = useListWorkShifts({ query: { enabled } }).data;
-  const settings = useGetAttendanceSettings({}, { query: { enabled } }).data;
-  return { branches, employees, shifts, settings };
+  const reads = [
+    useListBranches({ org_id: orgId ?? "" }, { query: { enabled: enabled && !!orgId } }),
+    useListEmployees({ employment_status: "active" }, { query: { enabled } }),
+    useListWorkShifts({ query: { enabled } }),
+    useGetAttendanceSettings({}, { query: { enabled } }),
+  ] as const;
+  const [branches, employees, shifts, settings] = reads;
+  // Only a read with no data to show counts as failed; a background refetch
+  // that fails keeps the last good answer on screen.
+  const failed = reads.filter((r) => r.error && r.data === undefined);
+  return {
+    branches: branches.data,
+    employees: employees.data,
+    shifts: shifts.data,
+    settings: settings.data,
+    error: failed[0]?.error ?? undefined,
+    retry: () => failed.forEach((r) => void r.refetch()),
+  };
 }
 
 export const useSetupProgress = (enabled = true) => setupProgress(useSetupData(enabled));

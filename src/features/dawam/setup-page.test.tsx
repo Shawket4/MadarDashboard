@@ -22,6 +22,8 @@ const unpinned = { id: "b2", name: "Maadi", latitude: 29.96, longitude: 31.25, g
 let owner = true;
 let held: string[] = ["hr.rules.edit"];
 let data: Record<string, unknown> = {};
+// A read that failed: its error, and the refetch the Retry button must call.
+let failing: Record<string, { error: Error; refetch: () => void }> = {};
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ to, search, children }: { to: string; search?: { edit?: string }; children: ReactNode }) => (
@@ -41,10 +43,10 @@ vi.mock("@/data/authz/use-authz", async () => {
 });
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
 vi.mock("@/data/api/generated/api", () => ({
-  useListBranches: () => ({ data: data.branches }),
-  useListEmployees: () => ({ data: data.employees }),
-  useListWorkShifts: () => ({ data: data.shifts }),
-  useGetAttendanceSettings: () => ({ data: data.settings }),
+  useListBranches: () => failing.branches ?? { data: data.branches, refetch: vi.fn() },
+  useListEmployees: () => failing.employees ?? { data: data.employees, refetch: vi.fn() },
+  useListWorkShifts: () => failing.shifts ?? { data: data.shifts, refetch: vi.fn() },
+  useGetAttendanceSettings: () => failing.settings ?? { data: data.settings, refetch: vi.fn() },
   useLinkableUsers: () => ({ data: [] }),
   createEmployee: vi.fn(),
 }));
@@ -58,6 +60,7 @@ const { authzFrom } = await import("@/data/authz/use-authz");
 const wrap = () => render(<QueryClientProvider client={new QueryClient()}><SetupPage /></QueryClientProvider>);
 
 beforeEach(() => {
+  failing = {};
   owner = true;
   held = ["hr.rules.edit"];
   data = {
@@ -99,6 +102,18 @@ describe("SetupPage", () => {
     expect(within(screen.getByTestId("step-rules")).getByRole("link", { name: "Set the rules" })).toHaveAttribute("href", "/staff/rules");
     await user.click(within(screen.getByTestId("step-employees")).getByRole("button", { name: /Add employee/ }));
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("says so when a read fails, with a Retry that asks again, instead of an endless skeleton (E2E D-027, O-9)", async () => {
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    delete data.shifts;
+    failing = { shifts: { error: new Error("Request failed with status code 500"), refetch } };
+    wrap();
+    expect(screen.getByRole("alert")).toHaveTextContent("Couldn't load the set-up checklist");
+    expect(screen.queryByTestId("step-branches")).toBeNull();
+    await user.click(screen.getByRole("button", { name: /Retry/ }));
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
   it("says so when everything is done", () => {
