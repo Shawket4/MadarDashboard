@@ -17,6 +17,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Vector files copied from madar-shared must be the bytes at the tag
+      # they name (src/lib/*.source.json).
+      - name: Shared vectors match madar-shared
+        run: scripts/check-shared-vectors.sh
+
       - name: Build dashboard
         run: npm run build
         env:
