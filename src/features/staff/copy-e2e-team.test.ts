@@ -36,5 +36,6 @@ describe("Organizations dialog in Arabic (L-37)", () => {
   it("has an Arabic label for the time zone", () => {
     expect((ar as { orgs?: { timezone?: string } }).orgs?.timezone).toBe("المنطقة الزمنية");
     expect((en as { orgs?: { timezone?: string } }).orgs?.timezone).toBe("Timezone");
+    expect((ar as { orgs?: { timezoneHint?: string } }).orgs?.timezoneHint).toMatch(/الفروع/);
   });
 });
