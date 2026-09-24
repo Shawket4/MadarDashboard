@@ -218,7 +218,18 @@ export function RequestsInboxPage() {
                     <RequestBadges r={r} mine={mine} />
                   </span>
                 }
-                meta={[describeWindow(r, t), r.reason, r.decision_note].filter(Boolean).join(" · ")}
+                meta={[
+                  describeWindow(r, t), r.reason,
+                  // Who decided and who cancelled, each with their note (AT-10, B-TEAM-3).
+                  r.decided_by_name && r.status !== "pending"
+                    ? t("staff.decidedBy", { name: r.decided_by_name, defaultValue: "Decided by {{name}}" })
+                    : null,
+                  r.decision_note,
+                  r.cancelled_by_name
+                    ? t("staff.cancelledBy", { name: r.cancelled_by_name, defaultValue: "Cancelled by {{name}}" })
+                    : null,
+                  r.cancel_note,
+                ].filter(Boolean).join(" · ")}
                 trailing={
                   <>
                     <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>

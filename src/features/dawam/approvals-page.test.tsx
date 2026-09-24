@@ -19,6 +19,7 @@ const ATTENDANCE = [
 ];
 let attendanceRows: Record<string, unknown>[] = ATTENDANCE;
 const enabledSeen: Record<string, boolean[]> = {};
+const paramsSeen: Record<string, unknown[]> = {};
 const calls = {
   decideCover: vi.fn(async () => ({})),
   decideOvertime: vi.fn(async () => ({})),
@@ -36,6 +37,7 @@ const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
     | { query?: { enabled?: boolean } }
     | undefined;
   (enabledSeen[name] ??= []).push(opts?.query?.enabled ?? true);
+  (paramsSeen[name] ??= []).push(args[0]);
   return {
     data: failing.has(name) ? undefined : data(),
     isLoading: false, isFetching: false,
@@ -172,6 +174,24 @@ describe("ApprovalsPage", () => {
     expect(calls.decideSwap).not.toHaveBeenCalled();
     await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Reject" }));
     await waitFor(() => expect(calls.decideSwap).toHaveBeenCalledWith("w1", { approve: false }));
+  });
+
+  it("warns that rejecting a request lets the day's penalties apply (E2E, team)", async () => {
+    requestRows = [{ ...LEAVE, can_decide: true }];
+    held = ["hr.leave.edit"];
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    await user.click(screen.getByRole("button", { name: "Reject" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByText(/any lateness or absence penalty applies/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/nothing is paid or changed/)).toBeNull();
+  });
+
+  it("asks for claims however far ahead the week is published (O-8; E2E, team: a claim 40 days out never showed)", () => {
+    wrap(<ApprovalsPage />);
+    const { to } = paramsSeen.claims.at(-1) as { to: string };
+    const days = (Date.parse(to) - Date.now()) / 86_400_000;
+    expect(days).toBeGreaterThan(300);
   });
 
   it("approves leave as unpaid when the manager says so (RQ-2)", async () => {

@@ -172,6 +172,16 @@ describe("Requests inbox", () => {
 });
 
 describe("Requests inbox, server answers", () => {
+  it("shows why an approved request was cancelled, beside the approver's note (B-TEAM-3)", () => {
+    rows = [{ ...APPROVED, status: "cancelled", decision_note: "Go ahead", cancel_note: "Trip postponed", decided_by_name: "Tasbeeh", cancelled_by_name: "Karim Mostafa" }];
+    renderPage();
+    expect(screen.getByText(/Go ahead/)).toBeInTheDocument();
+    expect(screen.getByText(/Trip postponed/)).toBeInTheDocument();
+    // Who decided and who cancelled (backend 68078ac, AT-10).
+    expect(screen.getByText(/Decided by Tasbeeh/)).toBeInTheDocument();
+    expect(screen.getByText(/Cancelled by Karim Mostafa/)).toBeInTheDocument();
+  });
+
   it("never offers to cancel an approved correction, which the server refuses (409)", () => {
     rows = [{ id: "q5", employee_id: "e1", employee_name: "Youssef Adel", kind: "correction", status: "approved", on_date: "2026-09-20", from_time: "09:00:00", is_half_day: false, created_at: "2026-09-19T08:00:00Z" }];
     renderPage();
