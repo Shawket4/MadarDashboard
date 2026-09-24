@@ -6003,7 +6003,7 @@
     "noHistory": "No earlier months yet",
     "noHistoryHint": "Approved months stay here with their frozen payslips.",
     "noPayLines": "No bonuses or deductions",
-    "noPayLinesHint": "Lines added by hand show here, with who added them and why.",
+    "noPayLinesHint": "Lines added by hand and the ones the rules make (lateness, absence) show here, with why. Rule-made ones are waived from the payslip.",
     "noPayslips": "Nobody on payroll yet",
     "noPayslipsHint": "Active employees with a salary show here.",
     "noSuggestions": "Nothing to suggest for this week.",
@@ -6380,7 +6380,12 @@
     "clearTag": "Clear the tag",
     "pickSomeoneElse": "Pick who really took it",
     "tagCleared": "Tag cleared: it stays a plain till pay-out",
-    "tagReassigned": "Moved to the right person"
+    "tagReassigned": "Moved to the right person",
+    "ruleSource_late": "Rule · late",
+    "ruleSource_absence": "Rule · absence",
+    "ruleSource_left_mid_shift": "Rule · left mid-shift",
+    "ruleSource_excused_unpaid": "Rule · unpaid excuse",
+    "ruleSource_carry": "Carried from last month"
   },
   "legal": {
     "label": "Legal",

@@ -505,6 +505,15 @@ function PayslipSheet({
   );
 }
 
+/** Which rule made a line (payroll_deductions.source), as its label. */
+const RULE_SOURCE: Record<string, [string, string]> = {
+  late_penalty: ["dawam.ruleSource_late", "Rule · late"],
+  absence: ["dawam.ruleSource_absence", "Rule · absence"],
+  left_mid_shift: ["dawam.ruleSource_left_mid_shift", "Rule · left mid-shift"],
+  excused_unpaid: ["dawam.ruleSource_excused_unpaid", "Rule · unpaid excuse"],
+  carry: ["dawam.ruleSource_carry", "Carried from last month"],
+};
+
 const ADJ_TONE: Record<string, "warning" | "success" | "danger" | "neutral"> = {
   pending: "warning", approved: "success", rejected: "danger",
 };
@@ -528,7 +537,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
     <div className="space-y-3">
       {canAdjust ? <Button onClick={onAdd}><Plus className="size-4" />{t("dawam.addPayLine", "Add a bonus or deduction")}</Button> : null}
       {q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
-        <EmptyState icon={ReceiptText} title={t("dawam.noPayLines", "No bonuses or deductions")} description={t("dawam.noPayLinesHint", "Lines added by hand show here, with who added them and why.")} />
+        <EmptyState icon={ReceiptText} title={t("dawam.noPayLines", "No bonuses or deductions")} description={t("dawam.noPayLinesHint", "Lines added by hand and the ones the rules make (lateness, absence) show here, with why. Rule-made ones are waived from the payslip.")} />
       ) : (
         <ListCard>
           {rows.map((a: Adjustment) => {
@@ -544,6 +553,8 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="truncate">{a.employee_name}</span>
                     <Badge variant="secondary">{a.kind === "bonus" ? t("dawam.bonus", "Bonus") : t("dawam.deduction", "Deduction")}</Badge>
+                    {/* Made by a rule, not by hand: waived on the payslip, never deleted (AD-7, M30). */}
+                    {RULE_SOURCE[a.source] ? <Badge variant="outline">{t(RULE_SOURCE[a.source][0], RULE_SOURCE[a.source][1])}</Badge> : null}
                     {a.recurring ? (
                       <Badge variant="outline">
                         {stopped

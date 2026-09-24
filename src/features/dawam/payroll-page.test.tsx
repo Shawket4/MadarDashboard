@@ -556,6 +556,27 @@ describe("PayrollPage", () => {
     });
   });
 
+  it("M30: rule-made lines say which rule made them, and the empty list doesn't claim only hand-made lines", async () => {
+    const user = userEvent.setup();
+    const base = { kind: "deduction", employee_id: "e4", employee_name: "Youssef Adel", percent_of_base: null, effective_date: "2026-09-18", status: "approved", recurring: false, ends_on: null, reason_code: null, reason_vars: null };
+    adjustments = [
+      { ...base, id: "d1", amount_piastres: 3_125, value_piastres: 3_125, reason: "Late by 24 minutes", source: "late_penalty" },
+      { ...base, id: "d2", amount_piastres: 20_000, value_piastres: 20_000, reason: "Absent", source: "absence" },
+      { ...base, id: "d3", amount_piastres: 5_000, value_piastres: 5_000, reason: "Broken glassware", source: "manual" },
+    ];
+    const { unmount } = wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(screen.getByText("Rule · late")).toBeInTheDocument();
+    expect(screen.getByText("Rule · absence")).toBeInTheDocument();
+    expect(screen.getAllByText(/^Rule · /)).toHaveLength(2);
+    unmount();
+    adjustments = [];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(screen.queryByText(/Lines added by hand show here/)).not.toBeInTheDocument();
+    expect(screen.getByText(/the ones the rules make/)).toBeInTheDocument();
+  });
+
   it("leaves nothing-to-transfer payslips out of the bank and wallet lists (PAY-8)", async () => {
     // E2E payroll: a 0.00 net (deductions carried to next month) was listed as a bank transfer;
     // the server's bank/wallet CSV already lists only net > 0.
