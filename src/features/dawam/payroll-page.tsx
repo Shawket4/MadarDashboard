@@ -31,7 +31,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   decideAdjustment, deleteBonus, deleteDeduction, exportPeriodCsv, generatePeriod,
-  stopAdjustment, useCurrent, useListAdjustments, useListAdvances, useListEmployees,
+  useCurrent, useListAdjustments, useListAdvances, useListEmployees,
   useListExpenseAdvances, useListPayslips,
 } from "@/data/api/generated/api";
 import type {
@@ -40,6 +40,7 @@ import type {
 import { getErrorMessage } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
 import { useAuthz } from "@/data/authz/use-authz";
+import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useCurrentOrg } from "@/hooks/use-org-modules";
@@ -47,11 +48,11 @@ import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { fmtDate, fmtMoney, fmtMoneySigned } from "@/lib/format";
 import { invalidateStaff, REQUEST_STATUS_TONE } from "@/features/staff/util";
 
-import { payslipLines, type PayLine } from "./lines";
+import { payslipLines, reasonText, type PayLine } from "./lines";
 import { printPayslip } from "./payslip-print";
 import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
-  ReviewAdvanceDialog, UnwaiveDialog, WaiveDialog,
+  ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog,
 } from "./money-dialogs";
 
 type Slip = ComputedPayslip | Payslip;
@@ -140,7 +141,8 @@ export function PayrollPage() {
   const exportLists = async () => {
     setExporting(true);
     try {
-      const pick = (m: string) => rows.filter((r) => (people.get(r.employee_id)?.pay_method ?? "cash") === m);
+      // Only what is actually transferred: a payslip with nothing to pay (a 0.00 net) is no transfer (PAY-8).
+      const pick = (m: string) => rows.filter((r) => r.net_piastres > 0 && (people.get(r.employee_id)?.pay_method ?? "cash") === m);
       const cols = (acct: string): ExcelColumn<Row>[] => [
         { header: t("staff.name", "Name"), accessor: (r) => r.employee_name, type: "text", width: 26 },
         { header: acct, accessor: (r) => people.get(r.employee_id)?.pay_account ?? "", type: "text", width: 30 },
@@ -466,6 +468,7 @@ const ADJ_TONE: Record<string, "warning" | "success" | "danger" | "neutral"> = {
 function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: boolean; onAdd: () => void }) {
   const { t } = useTranslation();
   const q = useListAdjustments({});
+  const [stopping, setStopping] = useState<Adjustment | null>(null);
   const act = async (fn: () => Promise<unknown>, ok: string) => {
     try {
       await fn();
@@ -496,7 +499,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                     {a.recurring ? <Badge variant="outline">{stopped ? t("dawam.stopped", "stopped") : t("dawam.monthly", "monthly")}</Badge> : null}
                   </span>
                 }
-                meta={[a.reason, fmtDate(a.effective_date)].join(" · ")}
+                meta={[reasonText(t, a.reason_code, a.reason_vars as Record<string, unknown> | null, a.reason), fmtDate(a.effective_date)].join(" · ")}
                 trailing={
                   <span className="flex items-center gap-2">
                     <span className="tabular-nums">{value}</span>
@@ -508,7 +511,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                       </>
                     ) : null}
                     {canAdjust && a.recurring && !stopped && a.status === "approved" ? (
-                      <Button size="sm" variant="ghost" onClick={() => void act(() => stopAdjustment(a.kind, a.id, {}), t("dawam.stoppedToast", "Stopped from next month"))}>{t("dawam.stop", "Stop")}</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setStopping(a)}>{t("dawam.stop", "Stop")}</Button>
                     ) : null}
                   </span>
                 }
@@ -517,6 +520,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
           })}
         </ListCard>
       )}
+      <StopDialog key={`stop-${stopping?.id}`} line={stopping} onOpenChange={(o) => !o && setStopping(null)} />
     </div>
   );
 }
@@ -563,7 +567,9 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
 
 function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) {
   const { t } = useTranslation();
-  const q = useListExpenseAdvances({});
+  // The scope bar's branch (the expense's own branch, AV-9); every branch when none is picked.
+  const { branchId } = useScope();
+  const q = useListExpenseAdvances(branchId ? { branch_id: branchId } : {});
   const rows = q.data ?? [];
   return (
     <div className="space-y-3">

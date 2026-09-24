@@ -2238,7 +2238,11 @@
       "BRANCH_NO_LOCATION": "This branch has no pin on the map yet. Pin it in Set-up first.",
       "LOCATION_REQUIRED": "Clocking in needs the phone's location.",
       "BRANCH_OTHER_ORG": "That branch belongs to another business.",
-      "LEAVE_PAY_REQUIRED": "Say whether this leave is paid or unpaid."
+      "LEAVE_PAY_REQUIRED": "Say whether this leave is paid or unpaid.",
+      "ADVANCE_OVER_CAP": "That's over the advance cap: at most EGP {{more_egp}} more. The owner can approve it.",
+      "ABOVE_LIMIT": "This is above your limit too. It waits for someone with a higher one.",
+      "OWN_ADVANCE": "Someone else has to decide or record your own advance.",
+      "OWN_PAY_LINE": "You can't add pay lines for yourself."
     }
   },
   "theme": {
@@ -5443,7 +5447,15 @@
       "byType": "By type",
       "byKind": "By kind",
       "discountSales": "Discounted sales",
-      "flagged": "Flagged"
+      "flagged": "Flagged",
+      "colLabel": "Label",
+      "colAmount": "Amount",
+      "reason": {
+        "unspecified": "Not given",
+        "correction_request": "Approved correction request",
+        "auto_closed": "Closed automatically: no check-out",
+        "marked_absent": "Marked absent automatically: no check-in"
+      }
     },
     "loyalty": {
       "title": "Loyalty",
@@ -5476,7 +5488,11 @@
       "title": "Staff discipline",
       "empty": "No attendance recorded in this period",
       "unassigned": "Unassigned",
-      "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m"
+      "rowSummary": "{{late}} late · {{absent}} absent · {{minutes}}m",
+      "coversGiven_one": "Covered {{n}} shift",
+      "coversGiven_other": "Covered {{n}} shifts",
+      "coveredByOthers_one": "{{n}} shift covered by a colleague",
+      "coveredByOthers_other": "{{n}} shifts covered by a colleague"
     },
     "noAccess": "Your account can't open this report. The owner can give you access.",
     "operations": {
@@ -6271,7 +6287,9 @@
     "reason_unpaid_excused_minutes": "Unpaid excused time: {{minutes}} minutes",
     "reason_unpaid_excuse": "Unpaid excuse",
     "reason_left_mid_shift": "Left mid-shift",
-    "pay_none": "Nothing to pay"
+    "pay_none": "Nothing to pay",
+    "stopTitle": "Stop \"{{line}}\"?",
+    "stopHint": "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log."
   },
   "legal": {
     "label": "Legal",

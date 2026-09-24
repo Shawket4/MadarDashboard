@@ -2261,7 +2261,11 @@
       "BRANCH_NO_LOCATION": "الفرع ده لسه ملوش مكان على الخريطة. حدّده من التجهيز الأول.",
       "LOCATION_REQUIRED": "تسجيل الحضور محتاج موقع الموبايل.",
       "BRANCH_OTHER_ORG": "الفرع ده تبع نشاط تاني.",
-      "LEAVE_PAY_REQUIRED": "قول الإجازة دي مدفوعة ولا لأ."
+      "LEAVE_PAY_REQUIRED": "قول الإجازة دي مدفوعة ولا لأ.",
+      "ADVANCE_OVER_CAP": "هذا يتجاوز سقف السلف: المتاح {{more_egp}} ج.م فقط. يمكن للمالك الموافقة عليه.",
+      "ABOVE_LIMIT": "هذا يتجاوز حدّك أيضًا، وينتظر من لديه حدّ أعلى.",
+      "OWN_ADVANCE": "يجب أن يقرّر شخص آخر سلفتك أو يسجّلها.",
+      "OWN_PAY_LINE": "لا يمكنك إضافة بنود راتب لنفسك."
     }
   },
   "theme": {
@@ -5599,7 +5603,15 @@
       "byType": "حسب النوع",
       "byKind": "حسب نوع الخصم",
       "discountSales": "مبيعات عليها خصم",
-      "flagged": "مُعلَّم"
+      "flagged": "مُعلَّم",
+      "colLabel": "البيان",
+      "colAmount": "المبلغ",
+      "reason": {
+        "unspecified": "غير محدد",
+        "correction_request": "طلب تصحيح معتمد",
+        "auto_closed": "أُغلق تلقائيًا: لم يُسجَّل انصراف",
+        "marked_absent": "سُجّل غياب تلقائيًا: لم يُسجَّل حضور"
+      }
     },
     "loyalty": {
       "title": "الولاء",
@@ -5632,7 +5644,19 @@
       "title": "انضباط الموظفين",
       "empty": "لا يوجد سجل حضور في هذه الفترة",
       "unassigned": "غير محدد",
-      "rowSummary": "{{late}} تأخير · {{absent}} غياب · {{minutes}} دقيقة"
+      "rowSummary": "{{late}} تأخير · {{absent}} غياب · {{minutes}} دقيقة",
+      "coversGiven_zero": "لم يغطِّ أي وردية",
+      "coversGiven_one": "غطّى وردية واحدة",
+      "coversGiven_two": "غطّى ورديتين",
+      "coversGiven_few": "غطّى {{n}} ورديات",
+      "coversGiven_many": "غطّى {{n}} وردية",
+      "coversGiven_other": "غطّى {{n}} وردية",
+      "coveredByOthers_zero": "لم يغطِّ زميل أي وردية له",
+      "coveredByOthers_one": "وردية واحدة غطّاها زميل",
+      "coveredByOthers_two": "ورديتان غطّاهما زميل",
+      "coveredByOthers_few": "{{n}} ورديات غطّاها زميل",
+      "coveredByOthers_many": "{{n}} وردية غطّاها زميل",
+      "coveredByOthers_other": "{{n}} وردية غطّاها زميل"
     },
     "noAccess": "لا يمكن لحسابك فتح هذا التقرير. يمكن للمالك منحك الصلاحية.",
     "operations": {
@@ -6452,7 +6476,9 @@
     "reason_unpaid_excused_minutes": "وقت إذن غير مدفوع: {{minutes}} دقيقة",
     "reason_unpaid_excuse": "إذن غير مدفوع",
     "reason_left_mid_shift": "غادر أثناء الوردية",
-    "pay_none": "لا شيء للصرف"
+    "pay_none": "لا شيء للصرف",
+    "stopTitle": "إيقاف «{{line}}»؟",
+    "stopHint": "يتوقف بدءًا من الشهر المفتوح الآن، وتبقى الشهور المعتمدة كما هي. يُحفظ السبب في سجل التدقيق."
   },
   "legal": {
     "label": "قانوني",

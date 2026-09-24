@@ -112,13 +112,22 @@ export function StaffDisciplinePage() {
                         </Badge>
                         <span className="truncate font-medium">{r.employee_name}</span>
                       </div>
-                      <span className="shrink-0 text-end text-xs text-muted-foreground">
-                        {t("reports.staff.rowSummary", {
-                          defaultValue: "{{late}} late · {{absent}} absent · {{minutes}}m",
-                          late: fmtNumber(r.late_days),
-                          absent: fmtNumber(r.absent_days),
-                          minutes: fmtNumber(r.total_late_minutes),
-                        })}
+                      <span className="flex shrink-0 flex-col items-end text-end text-xs text-muted-foreground">
+                        <span>
+                          {t("reports.staff.rowSummary", {
+                            defaultValue: "{{late}} late · {{absent}} absent · {{minutes}}m",
+                            late: fmtNumber(r.late_days),
+                            absent: fmtNumber(r.absent_days),
+                            minutes: fmtNumber(r.total_late_minutes),
+                          })}
+                        </span>
+                        {/* A cover shows for both people (CV-7). */}
+                        {(r.covers_given ?? 0) > 0 ? (
+                          <span>{t("reports.staff.coversGiven", { count: r.covers_given, n: fmtNumber(r.covers_given) })}</span>
+                        ) : null}
+                        {(r.covered_by_others ?? 0) > 0 ? (
+                          <span>{t("reports.staff.coveredByOthers", { count: r.covered_by_others, n: fmtNumber(r.covered_by_others) })}</span>
+                        ) : null}
                       </span>
                     </li>
                   ))}

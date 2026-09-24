@@ -23,6 +23,18 @@ describe("getErrorMessage", () => {
     await i18n.changeLanguage("en");
   });
 
+  it("words the payroll refusals in the reader's language, with the amount (E2E payroll AV-5)", async () => {
+    await i18n.changeLanguage("ar");
+    const cap = apiError({ code: "ADVANCE_OVER_CAP", error: "That's over the advance cap — at most 3250 EGP more; the owner can approve it.", vars: { more_egp: 3250, more_piastres: 325000 } });
+    expect(getErrorMessage(cap)).toMatch(/3250/);
+    expect(getErrorMessage(cap)).not.toMatch(/[A-Za-z]{3,}/);
+    for (const code of ["ABOVE_LIMIT", "OWN_ADVANCE", "OWN_PAY_LINE"]) {
+      expect(getErrorMessage(apiError({ code, error: "English" }))).not.toBe("English");
+    }
+    await i18n.changeLanguage("en");
+    expect(getErrorMessage(cap)).toMatch(/EGP 3250/);
+  });
+
   it("falls back to the server message for unknown codes", () => {
     expect(getErrorMessage(apiError({ code: "SOMETHING_NEW", error: "Server says no" }))).toBe("Server says no");
   });
