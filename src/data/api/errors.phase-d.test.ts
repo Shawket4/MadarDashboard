@@ -47,5 +47,12 @@ describe("Phase D refusals", () => {
     expect(getErrorMessage(manager)).toMatch(/المالك/);
     expect(getErrorMessage(manager)).not.toMatch(/\d/);
   });
+
+  it("D8: a rejection with no reason (REASON_REQUIRED, 400, no vars)", async () => {
+    const err = apiError({ code: "REASON_REQUIRED", error: "A reason is required." }, 400);
+    expect(getErrorMessage(err)).toBe("Say why: a rejection needs a reason.");
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(err)).not.toMatch(/[A-Za-z]/);
+  });
 });
 

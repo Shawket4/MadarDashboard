@@ -33,6 +33,7 @@ let adjustments: unknown[] = [];
 let advances: unknown[] = [];
 let scopeBranch: string | null = null;
 const expenseParams: unknown[] = [];
+const decideAdjustment = vi.fn(async () => ({}));
 const enabledSeen: Record<string, boolean[]> = {};
 const calls = {
   generatePeriod: vi.fn(async () => ({})),
@@ -90,7 +91,7 @@ vi.mock("@/data/api/generated/api", () => ({
   useListPayslips: hook("payslips", () => []),
   useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
   exportPeriodCsv: vi.fn(),
-  decideAdjustment: vi.fn(),
+  decideAdjustment: (...a: unknown[]) => decideAdjustment(...(a as [])),
   createAdvanceAdmin: vi.fn(),
   reviewAdvance: vi.fn(),
   logExpenseAdvance: vi.fn(),
@@ -442,6 +443,30 @@ describe("PayrollPage", () => {
     expect(screen.getByText("Over the cap: only the owner can approve")).toBeInTheDocument();
     expect(screen.queryByText(/Owes /)).not.toBeInTheDocument();
     advances = [];
+  });
+
+  it("D8: the owner rejects a pending pay line only with a reason, and the list shows why", async () => {
+    const user = userEvent.setup();
+    held = ["hr.payroll.read", "hr.payroll.run", "hr.adjustments.create"];
+    const line = {
+      kind: "bonus", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 150_000, percent_of_base: null,
+      value_piastres: 150_000, reason: "Best month", effective_date: "2026-09-01", source: "manual", recurring: false, ends_on: null,
+    };
+    adjustments = [
+      { ...line, id: "a2", status: "pending" },
+      { ...line, id: "a3", status: "rejected", reason: "Extra shift", decision_note: "Already paid as overtime" },
+    ];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(screen.getByText(/Already paid as overtime/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Reject" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    expect(await within(dialog).findByText("A reason is needed")).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText("Reason"), "Not agreed");
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(decideAdjustment).toHaveBeenCalledWith("bonus", "a2", { approve: false, reason: "Not agreed" }));
+    adjustments = [];
   });
 
   it("leaves nothing-to-transfer payslips out of the bank and wallet lists (PAY-8)", async () => {

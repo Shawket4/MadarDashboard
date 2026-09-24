@@ -52,9 +52,9 @@ import { payslipLines, reasonText, type PayLine } from "./lines";
 import { printPayslip } from "./payslip-print";
 import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
-  ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote,
+  ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote, RejectDialog,
 } from "./money-dialogs";
-import type { AdvanceD } from "./phase-d-contract";
+import type { AdjustmentD, AdvanceD, DecideD } from "./phase-d-contract";
 
 type Slip = ComputedPayslip | Payslip;
 type Row = Slip & { employee_name: string; paid_method: string | null };
@@ -479,6 +479,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
   const { t } = useTranslation();
   const q = useListAdjustments({});
   const [stopping, setStopping] = useState<Adjustment | null>(null);
+  const [rejecting, setRejecting] = useState<Adjustment | null>(null);
   const act = async (fn: () => Promise<unknown>, ok: string) => {
     try {
       await fn();
@@ -520,7 +521,14 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                     ) : null}
                   </span>
                 }
-                meta={[reasonText(t, a.reason_code, a.reason_vars as Record<string, unknown> | null, a.reason), fmtDate(a.effective_date)].join(" · ")}
+                meta={[
+                  reasonText(t, a.reason_code, a.reason_vars as Record<string, unknown> | null, a.reason),
+                  fmtDate(a.effective_date),
+                  // Why the owner refused it (D8).
+                  a.status === "rejected" && (a as AdjustmentD).decision_note
+                    ? t("dawam.rejectedWhy", { reason: (a as AdjustmentD).decision_note, defaultValue: `Rejected: ${(a as AdjustmentD).decision_note}` })
+                    : null,
+                ].filter(Boolean).join(" · ")}
                 trailing={
                   <span className="flex items-center gap-2">
                     <span className="tabular-nums">{value}</span>
@@ -528,7 +536,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                     {owner && a.status === "pending" ? (
                       <>
                         <Button size="sm" variant="outline" onClick={() => void act(() => decideAdjustment(a.kind, a.id, { approve: true }), t("staff.decisionSaved", "Decision saved"))}>{t("common.approve", "Approve")}</Button>
-                        <Button size="sm" variant="ghost" aria-label={t("common.reject", "Reject")} onClick={() => void act(() => decideAdjustment(a.kind, a.id, { approve: false }), t("staff.decisionSaved", "Decision saved"))}><X className="size-4" /></Button>
+                        <Button size="sm" variant="ghost" aria-label={t("common.reject", "Reject")} onClick={() => setRejecting(a)}><X className="size-4" /></Button>
                       </>
                     ) : null}
                     {canAdjust && a.recurring && !endsOn && a.status === "approved" ? (
@@ -542,6 +550,14 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
         </ListCard>
       )}
       <StopDialog key={`stop-${stopping?.id}`} line={stopping} onOpenChange={(o) => !o && setStopping(null)} />
+      <RejectDialog
+        key={`reject-${rejecting?.id}`}
+        open={!!rejecting}
+        onOpenChange={(o) => !o && setRejecting(null)}
+        title={t("dawam.rejectLineTitle", { name: rejecting?.employee_name ?? "", defaultValue: `Reject ${rejecting?.employee_name ?? ""}'s line?` })}
+        description={t("dawam.rejectWhyHint", "They are told, with your reason, and nothing is paid for it. The reason is kept in the audit log.")}
+        onReject={(reason) => decideAdjustment(rejecting!.kind, rejecting!.id, { approve: false, reason } as DecideD)}
+      />
     </div>
   );
 }

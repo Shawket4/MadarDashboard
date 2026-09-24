@@ -2274,7 +2274,8 @@
       "ORG_SUSPENDED": "This business is suspended. Contact support to reactivate it.",
       "SHIFT_COVERED": "{{coverer_name}} is covering this shift. End or reject the cover first.",
       "OWNER_ONLY": "Only the owner can do this.",
-      "ADVANCE_OVER_CAP_owner": "That's over the advance cap. Only the owner can approve it."
+      "ADVANCE_OVER_CAP_owner": "That's over the advance cap. Only the owner can approve it.",
+      "REASON_REQUIRED": "Say why: a rejection needs a reason."
     }
   },
   "theme": {
@@ -5494,7 +5495,16 @@
         "marked_absent": "Marked absent automatically: no check-in",
         "waived": "Waived",
         "overridden": "Overridden"
-      }
+      },
+      "history": "History",
+      "historyUnwaived": "Waiver undone",
+      "historyWhen": "When",
+      "historyAction": "What",
+      "historyBy": "By",
+      "historyByName": "by {{name}}",
+      "historyLineOf": "line of {{date}}",
+      "historyBefore": "Before",
+      "historyAfter": "After"
     },
     "loyalty": {
       "title": "Loyalty",
@@ -6348,7 +6358,10 @@
     "withinCap": "Within cap",
     "overCap": "Over cap",
     "overCapOwner": "Over the cap: only the owner can approve",
-    "capFigures": "Owes {{owed}} of a {{cap}} cap"
+    "capFigures": "Owes {{owed}} of a {{cap}} cap",
+    "rejectWhyHint": "They are told, with your reason, and nothing is paid for it. The reason is kept in the audit log.",
+    "rejectLineTitle": "Reject {{name}}'s line?",
+    "rejectedWhy": "Rejected: {{reason}}"
   },
   "legal": {
     "label": "Legal",

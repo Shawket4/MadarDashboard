@@ -2297,7 +2297,8 @@
       "ORG_SUSPENDED": "النشاط ده موقوف. كلّم الدعم عشان يرجّعوه.",
       "SHIFT_COVERED": "{{coverer_name}} بيغطّي الوردية دي. أنهي التغطية أو ارفضها الأول.",
       "OWNER_ONLY": "ده بيعمله المالك بس.",
-      "ADVANCE_OVER_CAP_owner": "ده فوق حد السلف. المالك بس اللي يقدر يوافق عليه."
+      "ADVANCE_OVER_CAP_owner": "ده فوق حد السلف. المالك بس اللي يقدر يوافق عليه.",
+      "REASON_REQUIRED": "قول السبب: الرفض لازم يكون له سبب."
     }
   },
   "theme": {
@@ -5654,7 +5655,16 @@
         "marked_absent": "سُجّل غياب تلقائيًا: لم يُسجَّل حضور",
         "waived": "تم التنازل عنه",
         "overridden": "تم تعديله"
-      }
+      },
+      "history": "السجل",
+      "historyUnwaived": "أُلغي التنازل",
+      "historyWhen": "الوقت",
+      "historyAction": "الإجراء",
+      "historyBy": "بواسطة",
+      "historyByName": "بواسطة {{name}}",
+      "historyLineOf": "بند يوم {{date}}",
+      "historyBefore": "قبل",
+      "historyAfter": "بعد"
     },
     "loyalty": {
       "title": "الولاء",
@@ -6545,7 +6555,10 @@
     "withinCap": "في حدود السقف",
     "overCap": "فوق السقف",
     "overCapOwner": "فوق السقف: الموافقة للمالك فقط",
-    "capFigures": "عليه {{owed}} من سقف {{cap}}"
+    "capFigures": "عليه {{owed}} من سقف {{cap}}",
+    "rejectWhyHint": "يُبلَّغ صاحبه بالسبب، ولا يُدفع شيء عنه. يُحفظ السبب في سجل التدقيق.",
+    "rejectLineTitle": "رفض بند {{name}}؟",
+    "rejectedWhy": "مرفوض: {{reason}}"
   },
   "legal": {
     "label": "قانوني",

@@ -476,6 +476,31 @@ function ReasonDialog({
   );
 }
 
+/** Reject an advance or a pay line, with why (owner decision 8, AD-9): the server refuses one without (REASON_REQUIRED). */
+export function RejectDialog({
+  open, onOpenChange, title, description, onReject,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  title: string;
+  description: string;
+  onReject: (reason: string) => Promise<unknown>;
+}) {
+  const { t } = useTranslation();
+  return (
+    <ReasonDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description={description}
+      saveLabel={t("common.reject", "Reject")}
+      destructive
+      onSave={onReject}
+      done={t("staff.decisionSaved", "Decision saved")}
+    />
+  );
+}
+
 /** Waive a rule-made deduction with a reason; final unless undone with one (AD-7, AD-8, AT-7). */
 export function WaiveDialog({
   deductionId, label, onOpenChange,

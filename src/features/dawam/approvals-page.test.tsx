@@ -363,4 +363,30 @@ describe("ApprovalsPage", () => {
       expect(within(approveIn("Salary advance")).getByRole("button", { name: "Approve" })).toBeInTheDocument();
     });
   });
+
+  describe("D8: a rejected advance or pay line says why (owner decision 8)", () => {
+    it("an advance is rejected only with a reason, which goes to the server", async () => {
+      const user = userEvent.setup();
+      wrap(<ApprovalsPage />);
+      await user.click(within(approveIn("Salary advance")).getByRole("button", { name: "Reject" }));
+      const dialog = await screen.findByRole("dialog");
+      await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+      expect(await within(dialog).findByText("A reason is needed")).toBeInTheDocument();
+      expect(calls.reviewAdvance).not.toHaveBeenCalled();
+      await user.type(within(dialog).getByLabelText("Reason"), "Asked too soon after the last one");
+      await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+      await waitFor(() => expect(calls.reviewAdvance).toHaveBeenCalledWith("v1", { approve: false, reason: "Asked too soon after the last one" }));
+    });
+
+    it("a pay line over the limit is rejected only with a reason", async () => {
+      const user = userEvent.setup();
+      wrap(<ApprovalsPage />);
+      await user.click(within(approveIn("Bonus over the limit")).getByRole("button", { name: "Reject" }));
+      const dialog = await screen.findByRole("dialog");
+      await user.type(within(dialog).getByLabelText("Reason"), "Not this month");
+      await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+      await waitFor(() => expect(calls.decideAdjustment).toHaveBeenCalledWith("bonus", "a2", { approve: false, reason: "Not this month" }));
+    });
+  });
 });
+

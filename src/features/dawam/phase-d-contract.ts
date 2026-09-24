@@ -3,7 +3,9 @@
  * the backend's "Contract as built" names them. Every screen reads them
  * through these types, so the generated client can take over in one place.
  */
-import type { AttendanceSettings, PutAttendanceSettingsRequest, SalaryAdvance } from "@/data/api/generated/models";
+import type {
+  Adjustment, AttendanceSettings, AuditReport, Decide, PutAttendanceSettingsRequest, ReviewAdvance, SalaryAdvance,
+} from "@/data/api/generated/models";
 
 /** How a confirmed cover is paid (D5): the coverer's plain minute rate, or the covered block as a full day. */
 export type CoverPayMode = "minute_rate" | "full_block";
@@ -29,4 +31,30 @@ export function capView(a: AdvanceD): { within: boolean | null; owed: number; ca
   const within = typeof a.within_cap === "boolean" ? a.within_cap : cap != null ? a.outstanding_piastres <= cap : null;
   return { within, owed: a.outstanding_piastres, cap };
 }
+
+/** Deciding a pay line (D8): a rejection carries why (else 400 REASON_REQUIRED). */
+export type DecideD = Decide & { reason?: string | null };
+/** Deciding an advance (D8): `reason` (or `note`) says why a rejection was made. */
+export type ReviewAdvanceD = ReviewAdvance & { reason?: string | null };
+/** A pay line with the reason it was approved or rejected with (D8). */
+export type AdjustmentD = Adjustment & { decision_note?: string | null };
+
+/** One waive, undo or override of a rule-made deduction, newest first (D8, Legal ▸ Deduction overrides). */
+export interface DeductionOverrideEvent {
+  deduction_id: string;
+  employee_id?: string | null;
+  employee_name?: string | null;
+  action: "waive" | "unwaive" | "override" | string;
+  actor_id?: string | null;
+  actor_name?: string | null;
+  at: string;
+  reason?: string | null;
+  amount_before_piastres?: number | null;
+  amount_after_piastres?: number | null;
+  effective_date?: string | null;
+  source?: string | null;
+  reason_code?: string | null;
+}
+/** A Legal audit report; only Deduction overrides carries `history`. */
+export type AuditReportD = AuditReport & { history?: DeductionOverrideEvent[] | null };
 

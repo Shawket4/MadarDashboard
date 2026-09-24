@@ -33,8 +33,8 @@ import { Cap } from "@/generated/capabilities";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
 import { ApproveWithPayDialog, ASKS_PAY, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds } from "@/features/staff/requests-inbox";
 import { fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
-import { AdvanceCapNote, ReviewAdvanceDialog } from "./money-dialogs";
-import { capView, type AdvanceD } from "./phase-d-contract";
+import { AdvanceCapNote, RejectDialog, ReviewAdvanceDialog } from "./money-dialogs";
+import { capView, type AdvanceD, type DecideD, type ReviewAdvanceD } from "./phase-d-contract";
 
 export type Section = "all" | "requests" | "money" | "shifts";
 
@@ -54,7 +54,9 @@ export interface Pending {
   rejectOnly?: boolean;
   /** Its month is closed and nothing about it can be decided any more. */
   locked?: boolean;
-  reject: () => Promise<unknown>;
+  /** A rejection that must say why (money, D8): its reason goes to the server. */
+  reasonRequired?: boolean;
+  reject: (reason?: string) => Promise<unknown>;
 }
 
 export function ApprovalsPage() {
@@ -64,6 +66,7 @@ export function ApprovalsPage() {
   const [section, setSection] = useState<Section>("all");
   const [paying, setPaying] = useState<StaffRequest | null>(null);
   const [reviewing, setReviewing] = useState<Parameters<typeof ReviewAdvanceDialog>[0]["advance"]>(null);
+  const [rejecting, setRejecting] = useState<Pending | null>(null);
 
   const can = {
     requests: authz.canAny(Cap.hrLeaveEdit, Cap.hrAttendanceEdit),
@@ -150,7 +153,8 @@ export function ApprovalsPage() {
         badges: <AdvanceCapNote advance={a} mayPassCap={mayPassCap} />,
         approve: () => setReviewing(a),
         rejectOnly: overForMe,
-        reject: () => reviewAdvance(a.id, { approve: false }),
+        reasonRequired: true,
+        reject: (reason) => reviewAdvance(a.id, { approve: false, reason } as ReviewAdvanceD),
       });
     }
     for (const a of can.payLines ? payLinesQ.data ?? [] : []) {
@@ -163,7 +167,8 @@ export function ApprovalsPage() {
         detail: [a.percent_of_base != null ? `${a.percent_of_base}%` : fmtMoney(a.amount_piastres ?? 0), a.reason].join(" · "),
         at: a.created_at,
         approve: () => decideAdjustment(a.kind, a.id, { approve: true }),
-        reject: () => decideAdjustment(a.kind, a.id, { approve: false }),
+        reasonRequired: true,
+        reject: (reason) => decideAdjustment(a.kind, a.id, { approve: false, reason } as DecideD),
       });
     }
     for (const s of can.roster ? swapsQ.data ?? [] : []) {
@@ -244,6 +249,11 @@ export function ApprovalsPage() {
   const label = (s: Section, text: string) => `${text} (${count(s)})`;
 
   const reject = async (i: Pending) => {
+    // Money says why it was refused (D8); the rest confirms.
+    if (i.reasonRequired) {
+      setRejecting(i);
+      return;
+    }
     const ok = await confirm({
       title: t("dawam.rejectTitle", { name: i.who, kind: i.kind, defaultValue: `Reject ${i.who}'s ${i.kind}?` }),
       // A rejected request leaves the day as if nothing was filed, so its
@@ -322,6 +332,14 @@ export function ApprovalsPage() {
       )}
       <ApproveWithPayDialog key={paying?.id} request={paying} onOpenChange={(o) => !o && setPaying(null)} />
       <ReviewAdvanceDialog key={reviewing?.id} advance={reviewing} onOpenChange={(o) => !o && setReviewing(null)} />
+      <RejectDialog
+        key={rejecting?.key}
+        open={!!rejecting}
+        onOpenChange={(o) => !o && setRejecting(null)}
+        title={rejecting ? t("dawam.rejectTitle", { name: rejecting.who, kind: rejecting.kind, defaultValue: `Reject ${rejecting.who}'s ${rejecting.kind}?` }) : ""}
+        description={t("dawam.rejectWhyHint", "They are told, with your reason, and nothing is paid for it. The reason is kept in the audit log.")}
+        onReject={(reason) => rejecting!.reject(reason)}
+      />
     </Page>
   );
 }
