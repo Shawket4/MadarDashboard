@@ -16781,6 +16781,8 @@ export const DecideHolidayBody = zod.object({
 })
 
 export const DecideHolidayResponse = zod.object({
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided it and when (AT-10); null while undecided.'),
   "decision": zod.string().nullish().describe('null = not decided yet: a normal day unless set up (RU-10).'),
   "name_ar": zod.string(),
   "name_en": zod.string(),
@@ -18739,6 +18741,8 @@ export const RosterResponse = zod.object({
 }).describe('A person\'s date that holds its own set (a date change), not the pattern.')).optional().describe('The dates that hold their own set (a date change), a day off included:\nthe ones \"back to the pattern\" applies to.'),
   "from": zod.iso.date(),
   "holidays": zod.array(zod.object({
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided it and when (AT-10); null while undecided.'),
   "decision": zod.string().nullish().describe('null = not decided yet: a normal day unless set up (RU-10).'),
   "name_ar": zod.string(),
   "name_en": zod.string(),
@@ -19422,7 +19426,7 @@ export const ListWorkShiftsResponse = zod.array(ListWorkShiftsResponseItem)
 
 
 export const CreateWorkShiftBody = zod.object({
-  "branch_id": zod.uuid().nullish(),
+  "branch_id": zod.uuid().nullish().describe('The block\'s branch; null = the whole business. On an update, omitted\nkeeps the block\'s branch (E2E B-ROTA-8); on a create, omitted = the\nwhole business.'),
   "break_minutes": zod.number().nullish(),
   "checkin_window_minutes": zod.number().nullish(),
   "day_times": zod.array(zod.object({
@@ -19486,7 +19490,7 @@ export const UpdateWorkShiftParams = zod.object({
 })
 
 export const UpdateWorkShiftBody = zod.object({
-  "branch_id": zod.uuid().nullish(),
+  "branch_id": zod.uuid().nullish().describe('The block\'s branch; null = the whole business. On an update, omitted\nkeeps the block\'s branch (E2E B-ROTA-8); on a create, omitted = the\nwhole business.'),
   "break_minutes": zod.number().nullish(),
   "checkin_window_minutes": zod.number().nullish(),
   "day_times": zod.array(zod.object({
