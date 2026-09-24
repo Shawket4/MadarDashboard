@@ -819,6 +819,7 @@ export const GetMyAuthzResponse = zod.object({
   "branch_id": zod.uuid().nullish(),
   "capabilities": zod.array(zod.string()).describe('Capability keys held.'),
   "epoch": zod.number(),
+  "everywhere": zod.array(zod.string()).nullish().describe('The capabilities held at EVERY branch of the business — what an\norg-wide act (a department, a shift block, a public holiday, the\nrules) needs. `\/authz\/me` only; absent elsewhere. (E2E B-SETUP-3)'),
   "limits": zod.record(zod.string(), zod.object({
   "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
@@ -14041,16 +14042,19 @@ export const AttendanceCorrectionsAuditQueryParams = zod.object({
 export const AttendanceCorrectionsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14140,16 +14144,19 @@ export const DeductionOverridesAuditQueryParams = zod.object({
 export const DeductionOverridesAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14188,16 +14195,19 @@ export const DiscountsAuditQueryParams = zod.object({
 export const DiscountsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14274,16 +14284,19 @@ export const LoyaltyAdjustmentsAuditQueryParams = zod.object({
 export const LoyaltyAdjustmentsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14322,16 +14335,19 @@ export const ManualDeductionsAuditQueryParams = zod.object({
 export const ManualDeductionsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14419,16 +14435,19 @@ export const PriceOverridesQueryParams = zod.object({
 export const PriceOverridesResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14467,16 +14486,19 @@ export const RefundsAuditQueryParams = zod.object({
 export const RefundsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14581,16 +14603,19 @@ export const VoidsAuditQueryParams = zod.object({
 export const VoidsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14629,16 +14654,19 @@ export const WaiversAuditQueryParams = zod.object({
 export const WaiversAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -15434,6 +15462,10 @@ export const ListAdjustmentsResponseItem = zod.object({
   "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
+  "reason_code": zod.string().nullish().describe('A rule-made line\'s reason as a code and its figures (`late`\n`{minutes}`, `absent_no_punch`, …), the payslip breakdown\'s own, so a\nclient words it in its language (AT-13, E2E B-PAY-4). Null for a\nbonus and for a manual line (its `reason` is what was typed).'),
+  "reason_vars": zod.looseObject({
+
+}).nullish(),
   "recurring": zod.boolean(),
   "source": zod.string(),
   "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
@@ -15473,6 +15505,10 @@ export const CreateAdjustmentResponse = zod.object({
   "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
+  "reason_code": zod.string().nullish().describe('A rule-made line\'s reason as a code and its figures (`late`\n`{minutes}`, `absent_no_punch`, …), the payslip breakdown\'s own, so a\nclient words it in its language (AT-13, E2E B-PAY-4). Null for a\nbonus and for a manual line (its `reason` is what was typed).'),
+  "reason_vars": zod.looseObject({
+
+}).nullish(),
   "recurring": zod.boolean(),
   "source": zod.string(),
   "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
@@ -15510,6 +15546,10 @@ export const DecideAdjustmentResponse = zod.object({
   "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
+  "reason_code": zod.string().nullish().describe('A rule-made line\'s reason as a code and its figures (`late`\n`{minutes}`, `absent_no_punch`, …), the payslip breakdown\'s own, so a\nclient words it in its language (AT-13, E2E B-PAY-4). Null for a\nbonus and for a manual line (its `reason` is what was typed).'),
+  "reason_vars": zod.looseObject({
+
+}).nullish(),
   "recurring": zod.boolean(),
   "source": zod.string(),
   "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
@@ -15529,7 +15569,7 @@ export const StopAdjustmentParams = zod.object({
 })
 
 export const StopAdjustmentBody = zod.object({
-  "reason": zod.string().nullish().describe('Why it stops (AD-9).')
+  "reason": zod.string().nullish().describe('Why it stops (AD-9). Required: blank or missing is a 400.')
 })
 
 export const StopAdjustmentResponse = zod.object({
@@ -15546,6 +15586,10 @@ export const StopAdjustmentResponse = zod.object({
   "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
+  "reason_code": zod.string().nullish().describe('A rule-made line\'s reason as a code and its figures (`late`\n`{minutes}`, `absent_no_punch`, …), the payslip breakdown\'s own, so a\nclient words it in its language (AT-13, E2E B-PAY-4). Null for a\nbonus and for a manual line (its `reason` is what was typed).'),
+  "reason_vars": zod.looseObject({
+
+}).nullish(),
   "recurring": zod.boolean(),
   "source": zod.string(),
   "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
@@ -16476,15 +16520,15 @@ export const PutEmployeeBody = zod.object({
   "emergency_contact_phone": zod.string().nullish(),
   "employee_code": zod.string().nullish(),
   "employment_status": zod.string().nullish().describe('`active` | `suspended` | `terminated`. Defaults to `active`. Anything\nbut `active` signs the phone out (RO-10).'),
-  "gender": zod.string().nullish().describe('`m` · `f`; omitted keeps what is there.'),
+  "gender": zod.string().nullish().describe('`m` · `f`; `null` or empty = not set; omitted keeps what is there.'),
   "hire_date": zod.iso.date().nullish(),
   "job_title": zod.string().nullish(),
   "name": zod.string().nullish(),
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "on_payroll": zod.boolean().nullish().describe('Paid through Dawam. Like the salary, ignored unless the caller has\n`hr.payroll.edit` for every branch.'),
-  "pay_account": zod.string().nullish(),
-  "pay_method": zod.string().nullish().describe('`cash` · `bank` · `wallet`; omitted keeps what is there.'),
+  "pay_account": zod.string().nullish().describe('The IBAN or wallet number; `null` or empty clears it; omitted keeps\nit. Always cleared when the method is (or stays) `cash`.'),
+  "pay_method": zod.string().nullish().describe('`cash` · `bank` · `wallet`; omitted keeps what is there. Cash clears\nthe account.'),
   "phone": zod.string().nullish().describe('A new number signs the old phone out (RO-10). Empty clears it.'),
   "photo_url": zod.string().nullish(),
   "termination_date": zod.iso.date().nullish()
@@ -16625,7 +16669,8 @@ export const PreferenceLogResponse = zod.array(PreferenceLogResponseItem)
 
 
 export const ListExpenseAdvancesQueryParams = zod.object({
-  "employee_id": zod.uuid().optional()
+  "employee_id": zod.uuid().optional(),
+  "branch_id": zod.uuid().optional().describe('Only the expenses logged at this branch (the expense\'s own branch,\nAV-9). A branch the caller can\'t read is refused (403).')
 })
 
 export const ListExpenseAdvancesResponseItem = zod.object({
@@ -16750,6 +16795,10 @@ export const MyAdjustmentsResponseItem = zod.object({
   "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
+  "reason_code": zod.string().nullish().describe('A rule-made line\'s reason as a code and its figures (`late`\n`{minutes}`, `absent_no_punch`, …), the payslip breakdown\'s own, so a\nclient words it in its language (AT-13, E2E B-PAY-4). Null for a\nbonus and for a manual line (its `reason` is what was typed).'),
+  "reason_vars": zod.looseObject({
+
+}).nullish(),
   "recurring": zod.boolean(),
   "source": zod.string(),
   "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
@@ -16978,7 +17027,7 @@ export const CheckOutResponse = zod.object({
 
 export const MyContextResponse = zod.object({
   "adjustment_limit_piastres": zod.number().nullish().describe('My ceiling on a bonus before it waits for the owner; null = none.'),
-  "advance_limit_percent": zod.number().nullish(),
+  "advance_limit_percent": zod.number().nullish().describe('My ceiling on an advance, as whole percent of the person\'s salary owed\nafter it (the grant stores basis points); null = none.'),
   "branches": zod.array(zod.object({
   "geo_radius_meters": zod.number().nullish(),
   "id": zod.uuid(),
@@ -17305,9 +17354,14 @@ export const SetStaffPushTokenResponse = zod.void()
 export const MyRequestsResponseItem = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
+  "cancelled_by_name": zod.string().nullish().describe('Who cancelled it, by name, the same way.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
+  "decided_by_name": zod.string().nullish().describe('Who decided it, by name — their employee\'s name when linked, else\ntheir account\'s — so a phone that can\'t look up the owner\'s account\nstill names them (RQ-F6).'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -17360,9 +17414,14 @@ export const CreateMyRequestBody = zod.object({
 export const CreateMyRequestResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
+  "cancelled_by_name": zod.string().nullish().describe('Who cancelled it, by name, the same way.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
+  "decided_by_name": zod.string().nullish().describe('Who decided it, by name — their employee\'s name when linked, else\ntheir account\'s — so a phone that can\'t look up the owner\'s account\nstill names them (RQ-F6).'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18500,9 +18559,14 @@ export const ListRequestsQueryParams = zod.object({
 export const ListRequestsResponseItem = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
+  "cancelled_by_name": zod.string().nullish().describe('Who cancelled it, by name, the same way.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
+  "decided_by_name": zod.string().nullish().describe('Who decided it, by name — their employee\'s name when linked, else\ntheir account\'s — so a phone that can\'t look up the owner\'s account\nstill names them (RQ-F6).'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18555,9 +18619,14 @@ export const CreateRequestAdminBody = zod.object({
 export const CreateRequestAdminResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
+  "cancelled_by_name": zod.string().nullish().describe('Who cancelled it, by name, the same way.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
+  "decided_by_name": zod.string().nullish().describe('Who decided it, by name — their employee\'s name when linked, else\ntheir account\'s — so a phone that can\'t look up the owner\'s account\nstill names them (RQ-F6).'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18601,9 +18670,14 @@ export const DecideRequestBody = zod.object({
 export const DecideRequestResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish().describe('The record a `correction` proposes to fix. `None` for every other kind.'),
   "can_decide": zod.boolean().optional().describe('The caller may approve or reject it now: it is pending, not their own,\nat one of their branches, and — a manager\'s request — they outrank\nthe requester (RQ-5). The same checks the decision makes.'),
+  "cancel_note": zod.string().nullish(),
+  "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
+  "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
+  "cancelled_by_name": zod.string().nullish().describe('Who cancelled it, by name, the same way.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
-  "decided_by": zod.uuid().nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
+  "decided_by_name": zod.string().nullish().describe('Who decided it, by name — their employee\'s name when linked, else\ntheir account\'s — so a phone that can\'t look up the owner\'s account\nstill names them (RQ-F6).'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),

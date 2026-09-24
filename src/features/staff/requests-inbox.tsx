@@ -219,10 +219,16 @@ export function RequestsInboxPage() {
                   </span>
                 }
                 meta={[
-                  describeWindow(r, t), r.reason, r.decision_note,
-                  // Why it was cancelled, kept apart from the approver's note (B-TEAM-3).
-                  // Not in the generated model yet: the field is new in the API.
-                  (r as typeof r & { cancel_note?: string | null }).cancel_note,
+                  describeWindow(r, t), r.reason,
+                  // Who decided and who cancelled, each with their note (AT-10, B-TEAM-3).
+                  r.decided_by_name && r.status !== "pending"
+                    ? t("staff.decidedBy", { name: r.decided_by_name, defaultValue: "Decided by {{name}}" })
+                    : null,
+                  r.decision_note,
+                  r.cancelled_by_name
+                    ? t("staff.cancelledBy", { name: r.cancelled_by_name, defaultValue: "Cancelled by {{name}}" })
+                    : null,
+                  r.cancel_note,
                 ].filter(Boolean).join(" · ")}
                 trailing={
                   <>
