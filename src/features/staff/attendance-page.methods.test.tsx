@@ -105,4 +105,13 @@ describe("AttendancePage punch methods (CL-16)", () => {
     expect(omar.getByText(/Forgot to clock out/)).toBeInTheDocument();
     expect(within(rowOf("Sara Ahmed")).queryByText(/Phone died|Forgot/)).not.toBeInTheDocument();
   });
+
+  it("keeps the reasons readable on a phone: the punch wraps and the reason takes its own line (E2E team re-verify)", async () => {
+    await i18n.changeLanguage("en");
+    page();
+    const reason = within(rowOf("Omar Khaled")).getByText("Phone died");
+    const chip = reason.closest("span[title]")!;
+    expect(chip).toHaveClass("basis-full");
+    expect(chip.parentElement).toHaveClass("flex-wrap");
+  });
 });

@@ -181,7 +181,7 @@ export function AttendancePage() {
         header: t("staff.checkIn", "In"),
         meta: { label: t("staff.checkIn", "In"), numeric: true, align: "start" },
         cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
             <span>{row.original.check_in_at ? fmtDateTime(row.original.check_in_at, zones.get(row.original.branch_id)) : "—"}</span>
             <MethodBadge method={row.original.check_in_method} />
             {row.original.check_in_distance_meters !== null
@@ -203,7 +203,7 @@ export function AttendancePage() {
         header: t("staff.checkOut", "Out"),
         meta: { label: t("staff.checkOut", "Out"), numeric: true, align: "start" },
         cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
             <span>{row.original.check_out_at ? fmtDateTime(row.original.check_out_at, zones.get(row.original.branch_id)) : "—"}</span>
             {row.original.check_out_method === "auto" ? (
               <Badge variant="secondary" className="font-sans text-xs">
@@ -371,7 +371,8 @@ function MethodBadge({ method }: { method?: string | null }) {
 function PunchReason({ text }: { text?: string | null }) {
   if (!text) return null;
   return (
-    <span className="max-w-48 truncate font-sans text-xs text-muted-foreground" title={text}>
+    // Its own line under the punch, so a narrow card never squeezes it to nothing.
+    <span className="min-w-0 basis-full truncate font-sans text-xs text-muted-foreground" title={text}>
       <bdi>{text}</bdi>
     </span>
   );
