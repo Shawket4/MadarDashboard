@@ -11,7 +11,11 @@ export interface StaffContext {
      * @nullable
      */
   adjustment_limit_piastres?: number | null;
-  /** @nullable */
+  /**
+     * My ceiling on an advance, as whole percent of the person's salary owed
+     * after it (the grant stores basis points); null = none.
+     * @nullable
+     */
   advance_limit_percent?: number | null;
   branches: ContextBranch[];
   /**
