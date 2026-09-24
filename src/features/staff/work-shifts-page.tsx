@@ -16,6 +16,8 @@ import { deleteWorkShift, useListBranches, useListWorkShifts } from "@/data/api/
 import type { WorkShift } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { invalidateWorkShifts, WEEKDAYS } from "./util";
 import { ScheduleGrid } from "./schedule-grid";
 import { WEEK_ORDER, WorkShiftDialog } from "./work-shift-dialog";
@@ -23,6 +25,14 @@ import { WEEK_ORDER, WorkShiftDialog } from "./work-shift-dialog";
 export function WorkShiftsPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
+  const authz = useAuthz();
+  // Offer only what the server allows (AT-11): a branch manager edits their
+  // branch's blocks but can't add or remove blocks, and a business-wide block
+  // needs the roster right at every branch.
+  const canCreate = authz.can(Cap.hrScheduleCreate);
+  const canDelete = authz.can(Cap.hrScheduleDelete);
+  const canEdit = authz.can(Cap.hrScheduleEdit);
+  const canEditShift = (s: WorkShift) => canEdit && (!!s.branch_id || authz.owner || canCreate);
   const shiftsQ = useListWorkShifts();
   const orgId = useOrgId();
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
@@ -69,10 +79,12 @@ export function WorkShiftsPage() {
           "Working hours and the roster that assigns them. These are HR schedules — separate from cash-drawer shifts.",
         )}
         actions={
-          <Button onClick={() => setCreating(true)}>
-            <Plus className="size-4" />
-            {t("staff.newShift", "New shift")}
-          </Button>
+          canCreate ? (
+            <Button onClick={() => setCreating(true)}>
+              <Plus className="size-4" />
+              {t("staff.newShift", "New shift")}
+            </Button>
+          ) : undefined
         }
       />
 
@@ -101,7 +113,7 @@ export function WorkShiftsPage() {
             "staff.noShiftsHint",
             "Create a shift with its start and end time, then roster people onto it.",
           )}
-          action={<Button onClick={() => setCreating(true)}>{t("staff.newShift", "New shift")}</Button>}
+          action={canCreate ? <Button onClick={() => setCreating(true)}>{t("staff.newShift", "New shift")}</Button> : undefined}
         />
       ) : (
         <ListCard>
@@ -134,12 +146,16 @@ export function WorkShiftsPage() {
                     <StatusPill tone="warning" icon={TriangleAlert}>{t("staff.overCapShort", "Over the presence limit")}</StatusPill>
                   ) : null}
                   {!s.is_active ? <StatusPill tone="neutral">{t("staff.inactive", "Inactive")}</StatusPill> : null}
-                  <RowAction label={t("common.edit", "Edit")} onClick={() => setEditing(s)}>
-                    <Pencil className="size-4" />
-                  </RowAction>
-                  <RowAction destructive label={t("staff.deleteShift", "Delete work shift")} onClick={() => void removeShift(s)}>
-                    <Trash2 className="size-4" />
-                  </RowAction>
+                  {canEditShift(s) ? (
+                    <RowAction label={t("common.edit", "Edit")} onClick={() => setEditing(s)}>
+                      <Pencil className="size-4" />
+                    </RowAction>
+                  ) : null}
+                  {canDelete ? (
+                    <RowAction destructive label={t("staff.deleteShift", "Delete work shift")} onClick={() => void removeShift(s)}>
+                      <Trash2 className="size-4" />
+                    </RowAction>
+                  ) : null}
                 </>
               }
             />

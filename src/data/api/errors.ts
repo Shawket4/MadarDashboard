@@ -43,11 +43,17 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
     // falls back to the server's own message.
     const code = typeof data?.code === "string" ? data.code : undefined;
     const vars = codedVars(data?.vars);
-    // A paid month can't be reopened, so it gets its own wording (PERIOD_CLOSED {paid}).
     if (typeof vars.field === "string") vars.field = opts.fieldLabel?.(vars.field) ?? vars.field;
-    const key = code === "PERIOD_CLOSED" && vars.paid === true
-      ? "PERIOD_CLOSED_paid"
-      : code === "SETTING_OUT_OF_RANGE" ? settingKey(vars) : code;
+    // A paid month can't be reopened, so it gets its own wording (PERIOD_CLOSED {paid}).
+    const key =
+      code === "PERIOD_CLOSED" && vars.paid === true
+        ? "PERIOD_CLOSED_paid"
+        : code === "SETTING_OUT_OF_RANGE"
+          ? settingKey(vars)
+          : // A manager's move names who already has the block (B-ROTA-1); the app's claim sends no figures.
+            code === "ALREADY_ROSTERED" && typeof vars.name === "string"
+            ? "ALREADY_ROSTERED_named"
+            : code;
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
 
     // Backend convention: { error: "..." } or { message: "..." }

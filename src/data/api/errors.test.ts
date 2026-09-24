@@ -50,4 +50,16 @@ describe("getErrorMessage", () => {
     expect(getErrorMessage(apiError({ code: "SHIFT_ENDED", error: "x", vars: { shift: "Evening" } }))).toBe("وردية Evening انتهت خلاص.");
     await i18n.changeLanguage("en");
   });
+
+  it("names who is already on the block when a move would drop it (ALREADY_ROSTERED with vars, B-ROTA-1)", async () => {
+    const named = apiError({ code: "ALREADY_ROSTERED", error: "x", vars: { name: "Karim Mostafa", shift: "Morning", date: "2026-10-03" } });
+    await i18n.changeLanguage("en");
+    expect(getErrorMessage(named)).toMatch(/^Karim Mostafa is already on Morning on .+\. Nothing was moved\.$/);
+    // The app's claim path sends no figures: the plain wording stays.
+    expect(getErrorMessage(apiError({ code: "ALREADY_ROSTERED", error: "x" }))).toBe("They're already on that shift.");
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(named)).toMatch(/^Karim Mostafa مُجدول بالفعل في وردية Morning يوم .+\. لم يُنقل شيء\.$/);
+    await i18n.changeLanguage("en");
+  });
 });
+

@@ -179,9 +179,12 @@ export function SchedulePage() {
                 </SelectContent>
               </Select>
             ) : null}
-            <Button variant="outline" size="icon" aria-label={t("dawam.prevWeek", "Previous week")} onClick={() => setWeek(addDays(week, -7))}><ChevronLeft className="size-4 rtl:rotate-180" /></Button>
-            <span className="text-sm font-medium tabular-nums">{fmtDate(week)} – {fmtDate(days[6])}</span>
-            <Button variant="outline" size="icon" aria-label={t("dawam.nextWeek", "Next week")} onClick={() => setWeek(addDays(week, 7))}><ChevronRight className="size-4 rtl:rotate-180" /></Button>
+            {/* The week's arrows and range move as one: a wrapped toolbar never splits them (L-12). */}
+            <div role="group" aria-label={t("dawam.week", "Week")} className="flex flex-nowrap items-center gap-2">
+              <Button variant="outline" size="icon" aria-label={t("dawam.prevWeek", "Previous week")} onClick={() => setWeek(addDays(week, -7))}><ChevronLeft className="size-4 rtl:rotate-180" /></Button>
+              <span className="text-sm font-medium tabular-nums">{fmtDate(week)} – {fmtDate(days[6])}</span>
+              <Button variant="outline" size="icon" aria-label={t("dawam.nextWeek", "Next week")} onClick={() => setWeek(addDays(week, 7))}><ChevronRight className="size-4 rtl:rotate-180" /></Button>
+            </div>
             {published ? (
               <StatusPill tone="success" icon={CalendarCheck}>{t("dawam.isPublished", "Published")}</StatusPill>
             ) : canPublish ? (
@@ -237,7 +240,7 @@ export function SchedulePage() {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="size-6 shrink-0"
+                        className="size-8 shrink-0 sm:size-6"
                         aria-label={t("dawam.prefsOf", { name: p.name, defaultValue: `${p.name}'s preferences` })}
                         onClick={() => setPrefsOf(p)}
                       >

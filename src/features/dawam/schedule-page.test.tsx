@@ -454,4 +454,22 @@ describe("SchedulePage", () => {
       await i18n.changeLanguage("en");
     }
   });
+
+  it("keeps the week arrows and the range together so a wrapped toolbar never splits them (L-12)", () => {
+    wrap(<SchedulePage />);
+    const prev = screen.getByRole("button", { name: "Previous week" });
+    const next = screen.getByRole("button", { name: "Next week" });
+    const group = prev.parentElement!;
+    expect(group).toBe(next.parentElement);
+    expect(group).toHaveClass("flex-nowrap");
+    expect(group).toHaveAttribute("role", "group");
+  });
+
+  it("gives each person's preferences button a 32 px tap target on a phone (L-13)", () => {
+    wrap(<SchedulePage />);
+    const btn = screen.getByRole("button", { name: "Sara Ahmed's preferences" });
+    expect(btn).toHaveClass("size-8");
+    expect(btn).not.toHaveClass("size-6");
+  });
 });
+
