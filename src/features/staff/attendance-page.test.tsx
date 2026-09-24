@@ -109,6 +109,15 @@ describe("Attendance actions follow capabilities", () => {
     records = [record];
   });
 
+  it("the clock-in distance carries the language's unit (E2E: '14m' in Arabic)", async () => {
+    records = [{ ...record, check_in_distance_meters: 14.2 }];
+    await i18n.changeLanguage("ar");
+    wrap(<AttendancePage />);
+    expect(screen.getByText("14 م")).toBeInTheDocument();
+    await i18n.changeLanguage("en");
+    records = [record];
+  });
+
   it("hr.attendance.edit alone: Correct but not Add", () => {
     held = ["hr.attendance.read", "hr.attendance.edit"];
     wrap(<AttendancePage />);

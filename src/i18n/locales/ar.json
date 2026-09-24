@@ -4668,7 +4668,8 @@
     "statusFromTimes": "من المواعيد",
     "timesInZone": "المواعيد بتوقيت الفرع ({{tz}}).",
     "monthClosedRejectOnly": "الشهر مقفول: الرفض فقط",
-    "monthClosed": "الشهر مقفول"
+    "monthClosed": "الشهر مقفول",
+    "metres": "{{n}} م"
   },
   "basira": {
     "title": "بصيرة",

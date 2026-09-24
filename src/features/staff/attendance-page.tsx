@@ -180,7 +180,7 @@ export function AttendancePage() {
                 title={t("staff.distanceFromBranch", "Distance from the branch when clocking in")}
               >
                 <MapPin className="size-3" />
-                <bdi>{fmtNumber(Math.round(row.original.check_in_distance_meters))}m</bdi>
+                <bdi>{t("staff.metres", { n: fmtNumber(Math.round(row.original.check_in_distance_meters)), defaultValue: "{{n}}m" })}</bdi>
               </span>
             ) : null}
           </div>
