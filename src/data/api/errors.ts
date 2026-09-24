@@ -55,6 +55,8 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
             ? "ALREADY_ROSTERED_named"
             : code;
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
+    // A 403 the server didn't code is a missing right; its prose is English (B-ROTA-9).
+    if (status === 403 && !code) return t("errors.unauthorized");
 
     // Backend convention: { error: "..." } or { message: "..." }
     if (typeof data?.error === "string") return data.error;

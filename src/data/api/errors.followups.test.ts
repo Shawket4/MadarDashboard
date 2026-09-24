@@ -1,0 +1,74 @@
+/**
+ * The refusal codes the backend fixes added (FOLLOWUPS, BC-2, B-ROTA-4/7,
+ * B-ROTA-9): each reads in the reader's language, with its figures, and a
+ * 403 the server didn't code reads as the plain "no permission".
+ */
+import { AxiosError, AxiosHeaders } from "axios";
+import { afterEach, describe, expect, it } from "vitest";
+
+const { default: i18n } = await import("@/i18n");
+const { getErrorMessage } = await import("./errors");
+
+const apiError = (data: Record<string, unknown>, status = 409) =>
+  new AxiosError("Request failed", "ERR_BAD_REQUEST", undefined, undefined, {
+    status,
+    statusText: "",
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+    data,
+  });
+
+/** Every code a Dawam screen can meet (FOLLOWUPS.md + BC-2 + B-ROTA-4/7). */
+const DAWAM_CODES = [
+  "OWN_DECISION", "SETTING_OUT_OF_RANGE", "ALREADY_ROSTERED", "ADVANCE_OVER_CAP", "OWN_PAY_LINE", "OWN_ADVANCE",
+  "OWN_OVERTIME", "OWN_COVER", "OWN_PUNCH", "OWN_CLAIM", "OWN_SWAP", "OWN_REQUEST", "MANAGER_REQUEST_ABOVE",
+  "ABOVE_LIMIT", "FLAG_HANDLED", "EMPLOYMENT_NOT_ACTIVE", "OVERLAPPING_REQUEST", "CORRECTION_WAITING",
+  "PHONE_NOT_REGISTERED", "OTP_RECENTLY_SENT", "OTP_WRONG", "OTP_TOO_MANY_TRIES", "OTP_NONE_ACTIVE",
+  "COORDINATES_OUT_OF_RANGE", "NOT_CLOCKED_IN", "SHIFT_NOT_COVERABLE", "ALREADY_CLAIMED", "SWAP_EXISTS",
+  "SHIFT_INACTIVE", "PERIOD_CLOSED", "DAWAM_OFF", "PRIVACY_NOT_ACCEPTED",
+];
+
+afterEach(async () => {
+  await i18n.changeLanguage("en");
+});
+
+describe("the backend fixes' refusal codes", () => {
+  it("has EN and AR words for every code, and they differ", async () => {
+    for (const code of DAWAM_CODES) {
+      const err = apiError({ code, error: "SERVER ENGLISH", vars: {} });
+      await i18n.changeLanguage("en");
+      const en = getErrorMessage(err);
+      await i18n.changeLanguage("ar");
+      const ar = getErrorMessage(err);
+      expect(en, code).not.toBe("SERVER ENGLISH");
+      expect(ar, code).not.toBe("SERVER ENGLISH");
+      expect(ar, code).not.toBe(en);
+      expect(ar, code).toMatch(/[؀-ۿ]/);
+    }
+  });
+
+  it("fills in the sign-in figures (OTP_RECENTLY_SENT, OTP_WRONG)", async () => {
+    const wait = apiError({ code: "OTP_RECENTLY_SENT", error: "x", vars: { wait_seconds: 60 } });
+    const wrong = apiError({ code: "OTP_WRONG", error: "x", vars: { attempts_left: 2 } });
+    for (const lang of ["en", "ar"]) {
+      await i18n.changeLanguage(lang);
+      expect(getErrorMessage(wait)).toMatch(/60/);
+      expect(getErrorMessage(wrong)).toMatch(/2/);
+    }
+  });
+
+  it("reads an uncoded 403 as the plain no-permission words, in both languages (B-ROTA-9)", async () => {
+    const err = apiError({ error: "Forbidden: This needs hr.schedule.publish for every branch" }, 403);
+    await i18n.changeLanguage("en");
+    expect(getErrorMessage(err)).toBe(i18n.t("errors.unauthorized"));
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(err)).toBe(i18n.t("errors.unauthorized"));
+    expect(getErrorMessage(err)).not.toMatch(/Forbidden|every branch/);
+  });
+
+  it("still words a coded 403 by its code", async () => {
+    await i18n.changeLanguage("ar");
+    const err = apiError({ code: "OWN_PAY_LINE", error: "You can't add pay lines for yourself." }, 403);
+    expect(getErrorMessage(err)).toBe(i18n.t("errors.codes.OWN_PAY_LINE"));
+  });
+});

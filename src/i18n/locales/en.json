@@ -2253,7 +2253,19 @@
       "OWN_PUNCH": "Punch yourself in from your own phone.",
       "OWN_REQUEST": "Your own requests are decided by someone above you.",
       "OWN_SWAP": "You can't approve a swap you're part of.",
-      "LEAVE_PAY_REQUIRED": "Say whether this leave is paid or unpaid."
+      "LEAVE_PAY_REQUIRED": "Say whether this leave is paid or unpaid.",
+      "PHONE_NOT_REGISTERED": "This number isn't registered with any business. Ask your manager to add you.",
+      "OTP_RECENTLY_SENT": "A code was just sent. Wait {{wait_seconds}} seconds before asking again.",
+      "OTP_WRONG": "Wrong code · {{attempts_left}} tries left",
+      "OTP_TOO_MANY_TRIES": "Too many tries. Send a new code.",
+      "OTP_NONE_ACTIVE": "There's no active code. Send a new one.",
+      "COORDINATES_OUT_OF_RANGE": "That location isn't a real place on the map.",
+      "NOT_CLOCKED_IN": "They aren't clocked in.",
+      "SHIFT_NOT_COVERABLE": "That shift can't be covered now.",
+      "ALREADY_CLAIMED": "Someone already claimed that shift.",
+      "SWAP_EXISTS": "This swap was already asked for and is waiting.",
+      "DAWAM_OFF": "Dawam is switched off for this business.",
+      "PRIVACY_NOT_ACCEPTED": "They haven't accepted the location notice in the app yet."
     }
   },
   "theme": {
