@@ -31,3 +31,10 @@ describe("Latin digits in Arabic Dawam copy (C-4, DSH-8)", () => {
     expect(bad).toEqual([]);
   });
 });
+
+describe("Organizations dialog in Arabic (L-37)", () => {
+  it("has an Arabic label for the time zone", () => {
+    expect((ar as { orgs?: { timezone?: string } }).orgs?.timezone).toBe("المنطقة الزمنية");
+    expect((en as { orgs?: { timezone?: string } }).orgs?.timezone).toBe("Timezone");
+  });
+});

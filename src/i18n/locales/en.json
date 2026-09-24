@@ -323,6 +323,7 @@
     "ordersWord": "orders"
   },
   "orgs": {
+    "timezone": "Timezone",
     "title": "Organizations",
     "subtitle": "Manage all coffee brands and franchises",
     "newTitle": "New Organization",
