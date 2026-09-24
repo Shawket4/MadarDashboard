@@ -13,11 +13,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useFairness, useFairnessAudits } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate } from "@/lib/format";
+import { dawamQuery } from "./live";
 
 export function FairnessCard({ month }: { month: string }) {
   const { t } = useTranslation();
-  const q = useFairness({ month });
-  const auditsQ = useFairnessAudits();
+  const q = useFairness({ month }, { query: dawamQuery() });
+  const auditsQ = useFairnessAudits({ query: dawamQuery() });
   const v = q.data;
   const gender = (g: string | null | undefined) =>
     g === "m" ? t("dawam.gender_m", "Male") : g === "f" ? t("dawam.gender_f", "Female") : t("dawam.notSet", "Not set");

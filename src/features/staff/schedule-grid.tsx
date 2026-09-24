@@ -15,6 +15,7 @@ import {
 } from "@/data/api/generated/api";
 import type { ScheduleAssignment, WorkShift } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { dawamQuery } from "@/features/dawam/live";
 import { invalidateSchedules, WEEKDAYS } from "./util";
 
 /**
@@ -29,9 +30,9 @@ import { invalidateSchedules, WEEKDAYS } from "./util";
  */
 export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
   const { t } = useTranslation();
-  const employeesQ = useListEmployees({ employment_status: "active" });
+  const employeesQ = useListEmployees({ employment_status: "active" }, { query: dawamQuery() });
   // No employee_id = the whole org's roster in one request.
-  const assignmentsQ = useListAssignments({});
+  const assignmentsQ = useListAssignments({}, { query: dawamQuery() });
   const [busyCell, setBusyCell] = useState<string | null>(null);
 
   const activeShifts = useMemo(() => shifts.filter((s) => s.is_active), [shifts]);

@@ -7,6 +7,7 @@ import {
 } from "@/data/api/generated/api";
 import type { AttendanceSettings, Branch, Employee, WorkShift } from "@/data/api/generated/models";
 import { useOrgId } from "@/hooks/use-org-id";
+import { dawamQuery } from "./live";
 
 export type SetupStep = "branches" | "employees" | "shifts" | "rules";
 export const SETUP_STEPS: SetupStep[] = ["branches", "employees", "shifts", "rules"];
@@ -47,13 +48,19 @@ export function setupProgress(d: SetupData): SetupProgress {
   };
 }
 
-/** The live data behind the checklist. `enabled` false asks the server nothing. */
-export function useSetupData(enabled = true): SetupData {
+/**
+ * The live data behind the checklist. `enabled` false asks the server nothing.
+ * `onPage`: read by a Dawam page (Set-up, the rules banner), so it refetches
+ * when the tab comes back (`live.ts`). The sidebar and the command palette
+ * read it on every page and keep the app-wide defaults.
+ */
+export function useSetupData(enabled = true, onPage = false): SetupData {
   const orgId = useOrgId();
-  const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: enabled && !!orgId } }).data;
-  const employees = useListEmployees({ employment_status: "active" }, { query: { enabled } }).data;
-  const shifts = useListWorkShifts({ query: { enabled } }).data;
-  const settings = useGetAttendanceSettings({}, { query: { enabled } }).data;
+  const opts = (on: boolean) => (onPage ? dawamQuery({ enabled: on }) : { enabled: on });
+  const branches = useListBranches({ org_id: orgId ?? "" }, { query: opts(enabled && !!orgId) }).data;
+  const employees = useListEmployees({ employment_status: "active" }, { query: opts(enabled) }).data;
+  const shifts = useListWorkShifts({ query: opts(enabled) }).data;
+  const settings = useGetAttendanceSettings({}, { query: opts(enabled) }).data;
   return { branches, employees, shifts, settings };
 }
 

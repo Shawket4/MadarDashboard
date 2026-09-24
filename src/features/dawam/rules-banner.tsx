@@ -13,7 +13,7 @@ import { setupProgress, useSetupData } from "./setup";
 
 export function RulesFirstBanner() {
   const { t } = useTranslation();
-  const data = useSetupData();
+  const data = useSetupData(true, true);
   // Only an answer that says "never saved" shows it; loading or an error says nothing.
   if (!data.settings || data.settings.rules_saved_at) return null;
   // The checklist only when we know another step is missing too; someone who
