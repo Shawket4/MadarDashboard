@@ -80,6 +80,8 @@ function manualSchema(t: (k: string, d: string) => string) {
       business_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, t("staff.pickDate", "Pick a date")),
       status: z.string(),
       work_shift_id: z.string(),
+      /** Only asked when no single branch is in scope and the person works at several. */
+      branch_id: z.string(),
       check_in: z.string(),
       check_out: z.string(),
       reason: z.string().trim().min(1, t("staff.reasonRequired", "Say why")),
@@ -99,16 +101,18 @@ export function ManualRecordDialog({
   branchId: string | null;
 }) {
   const { t } = useTranslation();
-  const tz = useBranchZone(branchId);
   const [busy, setBusy] = useState(false);
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: open } });
   const shiftsQ = useListWorkShifts({ query: { enabled: open } });
+  const orgId = useOrgId();
+  const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: open && !!orgId && !branchId } });
 
   const empty: ManualValues = {
     employee_id: "",
     business_date: todayIso(),
     status: DERIVED,
     work_shift_id: NONE,
+    branch_id: "",
     check_in: "",
     check_out: "",
     reason: "",
@@ -118,6 +122,16 @@ export function ManualRecordDialog({
     if (open) form.reset(empty);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on open only
   }, [open]);
+
+  // With every branch in scope, the record's branch is the person's: their
+  // only one, or the one picked among theirs (box verify: a one-branch
+  // manager was told to pick a single branch first).
+  const person = (employeesQ.data ?? []).find((e) => e.id === form.watch("employee_id"));
+  const theirBranches = person?.branch_ids ?? [];
+  const pickedBranch = form.watch("branch_id");
+  const recordBranch = branchId ?? (theirBranches.length === 1 ? theirBranches[0] : theirBranches.includes(pickedBranch) ? pickedBranch : null);
+  const askBranch = !branchId && theirBranches.length > 1;
+  const tz = useBranchZone(recordBranch);
 
   // The picked day's records: a colleague covering the picked shift refuses a
   // clock-in for its owner (D1, 409 SHIFT_COVERED).
@@ -137,15 +151,15 @@ export function ManualRecordDialog({
   const coverBlocks = !!coverer && !!typedIn;
 
   const save = form.handleSubmit(async (v) => {
-    if (!branchId) {
-      toast.error(t("staff.pickBranchFirst", "Pick a single branch first"));
+    if (!recordBranch) {
+      form.setError("branch_id", { message: t("dawam.pickBranch", "Pick a branch") });
       return;
     }
     setBusy(true);
     try {
       await createManualRecord({
         employee_id: v.employee_id,
-        branch_id: branchId,
+        branch_id: recordBranch,
         business_date: v.business_date,
         work_shift_id: v.work_shift_id === NONE ? null : v.work_shift_id,
         check_in_at: fromZonedInput(v.check_in, tz),
@@ -198,6 +212,28 @@ export function ManualRecordDialog({
                 </FormItem>
               )}
             />
+            {askBranch ? (
+              <FormField
+                control={form.control}
+                name="branch_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("dawam.branch", "Branch")}</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder={t("dawam.pickBranch", "Pick a branch")} /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {theirBranches.map((id) => (
+                          <SelectItem key={id} value={id}>{(branchesQ.data ?? []).find((b) => b.id === id)?.name ?? id}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : null}
             <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
@@ -235,7 +271,7 @@ export function ManualRecordDialog({
                     <SelectContent>
                       <SelectItem value={NONE}>{t("staff.unscheduled", "Unscheduled")}</SelectItem>
                       {/* The record's branch's blocks and business-wide ones only. */}
-                      {(shiftsQ.data ?? []).filter((s) => !s.branch_id || s.branch_id === branchId).map((s) => (
+                      {(shiftsQ.data ?? []).filter((s) => !s.branch_id || s.branch_id === recordBranch).map((s) => (
                         <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
                     </SelectContent>

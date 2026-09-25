@@ -55,7 +55,8 @@ vi.mock("@/data/authz/use-authz", async () => {
       }),
   };
 });
-vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: "b1" }) }));
+let scopeBranch: string | null = "b1";
+vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: scopeBranch }) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o1" }));
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
 vi.mock("./util", async () => {
@@ -68,10 +69,13 @@ vi.mock("@/data/api/generated/api", () => ({
   listAttendance: vi.fn(async () => []),
   useListAttendance: () => q(records),
   useAttendanceSummary: () => q([]),
-  useListEmployees: () => q([{ id: "e1", name: "Sara Ahmed", branch_ids: ["b1"] }, { id: "e2", name: "Omar Nabil", branch_ids: ["b1"] }]),
+  useListEmployees: () => q([
+    { id: "e1", name: "Sara Ahmed", branch_ids: ["b1"] }, { id: "e2", name: "Omar Nabil", branch_ids: ["b1"] },
+    { id: "e3", name: "Hana Adel", branch_ids: ["b1", "b2"] },
+  ]),
   useListWorkShifts: () => q(shifts),
   // The browser here runs in UTC; the branch is in Cairo.
-  useListBranches: () => q([{ id: "b1", name: "Zamalek", timezone: "Africa/Cairo" }]),
+  useListBranches: () => q([{ id: "b1", name: "Zamalek", timezone: "Africa/Cairo" }, { id: "b2", name: "Maadi", timezone: "Africa/Cairo" }]),
   correctRecord: (...a: unknown[]) => correctRecord(...(a as [])),
   createManualRecord: (...a: unknown[]) => createManualRecord(...(a as [])),
 }));
@@ -289,6 +293,35 @@ describe("A closed month (box verify, BC-3 decision a)", () => {
     expect(await within(dialog).findByText(/That day is in an approved payroll month/)).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "Save" })).toBeDisabled();
     records = [record];
+  });
+});
+
+describe("Add record with every branch in scope (box verify: Karim has one branch)", () => {
+  it("takes the branch from someone who works at one, and asks among theirs otherwise", async () => {
+    scopeBranch = null;
+    const user = userEvent.setup();
+    wrap(<AttendancePage />);
+    await user.click(screen.getByRole("button", { name: /add record/i }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("combobox", { name: "Employee" }));
+    await user.click(await screen.findByRole("option", { name: "Sara Ahmed" }));
+    expect(within(dialog).queryByRole("combobox", { name: "Branch" })).not.toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText("Reason"), "The app missed the day");
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(createManualRecord).toHaveBeenCalledWith(expect.objectContaining({ employee_id: "e1", branch_id: "b1" })));
+
+    // Someone at two branches: pick which.
+    createManualRecord.mockClear();
+    await user.click(screen.getByRole("button", { name: /add record/i }));
+    const again = await screen.findByRole("dialog");
+    await user.click(within(again).getByRole("combobox", { name: "Employee" }));
+    await user.click(await screen.findByRole("option", { name: "Hana Adel" }));
+    await user.click(within(again).getByRole("combobox", { name: "Branch" }));
+    await user.click(await screen.findByRole("option", { name: "Maadi" }));
+    await user.type(within(again).getByLabelText("Reason"), "Covered at Maadi");
+    await user.click(within(again).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(createManualRecord).toHaveBeenCalledWith(expect.objectContaining({ employee_id: "e3", branch_id: "b2" })));
+    scopeBranch = "b1";
   });
 });
 
