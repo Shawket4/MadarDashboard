@@ -49,7 +49,7 @@ import { fmtDate, fmtMoney, fmtMoneySigned, fmtPeriod } from "@/lib/format";
 import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "@/features/staff/util";
 
 import { payslipLines, reasonText, type PayLine } from "./lines";
-import { dawamQuery } from "./live";
+import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { printPayslip } from "./payslip-print";
 import {
@@ -402,7 +402,7 @@ export function PayrollPage() {
         </PageTabsList>
 
         <TabsContent value="payslips">
-          {shownQ.error ? (
+          {failedEmpty(shownQ) ? (
             <ErrorState title={t("dawam.payrollLoadError", "Couldn't load payroll")} message={getErrorMessage(shownQ.error)} onRetry={() => void shownQ.refetch()} />
           ) : (
             <DataTable
@@ -643,7 +643,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
   return (
     <div className="space-y-3">
       {canAdjust ? <Button onClick={onAdd}><Plus className="size-4" />{t("dawam.addPayLine", "Add a bonus or deduction")}</Button> : null}
-      {q.error ? (
+      {failedEmpty(q) ? (
         <ErrorState title={t("dawam.payLinesLoadError", "Couldn't load the bonuses and deductions")} message={getErrorMessage(q.error)} onRetry={() => void q.refetch()} />
       ) : q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
         <EmptyState icon={ReceiptText} title={t("dawam.noPayLines", "No bonuses or deductions")} description={t("dawam.noPayLinesHint", "Lines added by hand and the ones the rules make (lateness, absence) show here, with why. Rule-made ones are waived from the payslip.")} />
@@ -727,7 +727,7 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
   return (
     <div className="space-y-3">
       {canAdvance ? <Button onClick={onRecord}><Plus className="size-4" />{t("dawam.recordAdvance", "Record a salary advance")}</Button> : null}
-      {q.error ? (
+      {failedEmpty(q) ? (
         <ErrorState title={t("dawam.advancesLoadError", "Couldn't load the salary advances")} message={getErrorMessage(q.error)} onRetry={() => void q.refetch()} />
       ) : q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
         <EmptyState icon={HandCoins} title={t("dawam.noAdvances", "No salary advances")} description={t("dawam.noAdvancesHint", "Advances asked for in the app, or recorded here, and what is left to pay back.")} />
@@ -775,7 +775,7 @@ function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) 
     <div className="space-y-3">
       {canLog ? <Button onClick={onLog}><Plus className="size-4" />{t("dawam.logExpense", "Log an expense advance")}</Button> : null}
       <p className="text-sm text-muted-foreground">{t("dawam.expenseNever", "Expense advances are a log: never deducted, never settled, never on a payslip.")}</p>
-      {q.error ? (
+      {failedEmpty(q) ? (
         <ErrorState title={t("dawam.expensesLoadError", "Couldn't load the expense advances")} message={getErrorMessage(q.error)} onRetry={() => void q.refetch()} />
       ) : q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
         <EmptyState icon={Wallet} title={t("dawam.noExpenses", "Nothing logged")} description={t("dawam.noExpensesHint", "Cash handed over for the shop shows here, per person and branch.")} />
@@ -848,7 +848,7 @@ function HistoryTab({
             </SheetDescription>
           </SheetHeader>
           <div className="px-4 pb-6">
-            {slipsQ.error ? (
+            {failedEmpty(slipsQ) ? (
               <ErrorState title={t("dawam.payslipsLoadError", "Couldn't load this month's payslips")} message={getErrorMessage(slipsQ.error)} onRetry={() => void slipsQ.refetch()} />
             ) : slipsQ.isLoading ? <Skeleton className="h-40 w-full" /> : (
               <ListCard>

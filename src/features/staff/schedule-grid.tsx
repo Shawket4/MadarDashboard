@@ -15,7 +15,7 @@ import {
 } from "@/data/api/generated/api";
 import type { ScheduleAssignment, WorkShift } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { dawamQuery } from "@/features/dawam/live";
+import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { invalidateStaff, WEEKDAYS } from "./util";
 
 /** Saturday first, as every other week view in Dawam reads (Egypt). */
@@ -107,7 +107,7 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
       <div className="overflow-hidden rounded-2xl border bg-card">
         {employeesQ.isLoading || assignmentsQ.isLoading ? (
           <div className="space-y-2 p-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
-        ) : employeesQ.error || assignmentsQ.error ? (
+        ) : failedEmpty(employeesQ) || failedEmpty(assignmentsQ) ? (
           <ErrorState
             title={t("staff.rosterLoadError", "Couldn't load the roster")}
             onRetry={() => { void employeesQ.refetch(); void assignmentsQ.refetch(); }}

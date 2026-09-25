@@ -2375,7 +2375,8 @@
       "PERIOD_FROZEN": "This month is {{status}} and frozen. Reopen it (before anyone is paid) to approve it again.",
       "PERIOD_NOT_GENERATED": "Approve the month before exporting it.",
       "RECORD_EXISTS": "They already have a record for that day and shift. Correct it instead."
-    }
+    },
+    "tooManyRequests": "Too many requests just now. Try again in a moment."
   },
   "theme": {
     "light": "Light",

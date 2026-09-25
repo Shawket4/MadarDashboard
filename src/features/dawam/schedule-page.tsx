@@ -42,7 +42,7 @@ import { fmtHours, invalidateStaff, todayIso, WEEKDAYS } from "@/features/staff/
 import { CoverageEditor } from "./coverage-editor";
 import { blockTimesOn, blocksOn, DayEditor, ShiftTimes } from "./day-editor";
 import { FairnessCard } from "./fairness-card";
-import { dawamQuery } from "./live";
+import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { PreferencesDialog } from "./preferences-dialog";
 import { weekDays, weekdayOf, weekStartOf, addDays } from "./week";
@@ -219,12 +219,12 @@ export function SchedulePage() {
         </p>
       ) : null}
 
-      {!branchId && branchesQ.error ? (
+      {!branchId && failedEmpty(branchesQ) ? (
         // H2-D2: with no branch the roster never loads; say why, never a skeleton for ever.
         <ErrorState title={t("dawam.branchesLoadError", "Couldn't load the branches")} message={getErrorMessage(branchesQ.error)} onRetry={() => void branchesQ.refetch()} />
       ) : !branchId && branchesQ.data ? (
         <EmptyState icon={CalendarCheck} title={t("dawam.noBranchYet", "Add a branch first: the schedule is kept per branch.")} />
-      ) : rosterQ.error ? (
+      ) : failedEmpty(rosterQ) ? (
         <ErrorState title={t("staff.rosterLoadError", "Couldn't load the roster")} message={getErrorMessage(rosterQ.error)} onRetry={() => void rosterQ.refetch()} />
       ) : rosterQ.isLoading || !view ? (
         <Skeleton className="h-72 w-full rounded-2xl" />
@@ -361,7 +361,7 @@ export function SchedulePage() {
       {canEdit ? (
         <section className="space-y-3">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground"><Sparkles className="size-4" />{t("dawam.suggestions", "Suggestions")}</h2>
-          {suggestionsQ.error ? (
+          {failedEmpty(suggestionsQ) ? (
             // H2-D1: a failed read is not "nothing to suggest".
             <ErrorState title={t("dawam.suggestionsLoadError", "Couldn't load the suggestions")} message={getErrorMessage(suggestionsQ.error)} onRetry={() => void suggestionsQ.refetch()} />
           ) : suggestionsQ.isLoading ? <Skeleton className="h-20 w-full rounded-2xl" /> : (suggestionsQ.data ?? []).length === 0 ? (

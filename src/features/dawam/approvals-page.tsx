@@ -35,7 +35,7 @@ import {
   ApproveWithPayDialog, ASKS_PAY, confirmMissionOverPunches, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds,
 } from "@/features/staff/requests-inbox";
 import { fmtHours, fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
-import { dawamQuery } from "./live";
+import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { AdvanceCapNote, RejectDialog, ReviewAdvanceDialog } from "./money-dialogs";
 import { capView, warningsOf } from "./phase-d";
@@ -103,7 +103,7 @@ export function ApprovalsPage() {
   // Each list stands on its own (DSH-1, PAGE-Approvals): one that fails —
   // a 403 on advances for a branch manager, say — is reported in its place,
   // and everything else still shows and can be decided.
-  const sections: { key: string; label: string; q: { error: unknown; refetch: () => unknown } }[] = [
+  const sections: { key: string; label: string; q: { error: unknown; data: unknown; refetch: () => unknown } }[] = [
     { key: "requests", label: t("staff.requests", "Requests"), q: requestsQ },
     { key: "advances", label: t("dawam.salaryAdvances", "Salary advances"), q: advancesQ },
     { key: "swaps", label: t("dawam.swap", "Shift swap"), q: swapsQ },
@@ -114,7 +114,7 @@ export function ApprovalsPage() {
   ];
   const queries = [requestsQ, advancesQ, swapsQ, claimsQ, coversQ, overtimeQ, payLinesQ];
   const loading = queries.some((q) => q.isLoading);
-  const failedSections = sections.filter((s) => s.q.error);
+  const failedSections = sections.filter((s) => failedEmpty(s.q));
 
   const decided = () => {
     toast.success(t("staff.decisionSaved", "Decision saved"));

@@ -32,7 +32,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
-import { dawamQuery } from "@/features/dawam/live";
+import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { CorrectRecordDialog, ManualRecordDialog } from "./attendance-dialogs";
 import {
@@ -306,10 +306,10 @@ export function AttendancePage() {
 
       {/* A failed summary has no counts: a dash, never a reassuring 0 (H3, as the Team board). */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={CalendarCheck} label={t("staff.presentDays", "Present days")} value={summaryQ.error ? "—" : totals.present} loading={summaryQ.isLoading} />
-        <StatCard icon={AlarmClock} label={t("staff.lateDays", "Late days")} value={summaryQ.error ? "—" : totals.late} loading={summaryQ.isLoading} />
-        <StatCard icon={CalendarX} label={t("staff.absentDays", "Absent days")} value={summaryQ.error ? "—" : totals.absent} loading={summaryQ.isLoading} />
-        <StatCard icon={Timer} label={t("staff.overtime", "Overtime")} value={summaryQ.error ? "—" : fmtHours(totals.overtime)} loading={summaryQ.isLoading} />
+        <StatCard icon={CalendarCheck} label={t("staff.presentDays", "Present days")} value={failedEmpty(summaryQ) ? "—" : totals.present} loading={summaryQ.isLoading} />
+        <StatCard icon={AlarmClock} label={t("staff.lateDays", "Late days")} value={failedEmpty(summaryQ) ? "—" : totals.late} loading={summaryQ.isLoading} />
+        <StatCard icon={CalendarX} label={t("staff.absentDays", "Absent days")} value={failedEmpty(summaryQ) ? "—" : totals.absent} loading={summaryQ.isLoading} />
+        <StatCard icon={Timer} label={t("staff.overtime", "Overtime")} value={failedEmpty(summaryQ) ? "—" : fmtHours(totals.overtime)} loading={summaryQ.isLoading} />
       </div>
 
       <DataTable

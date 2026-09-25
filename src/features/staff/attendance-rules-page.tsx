@@ -29,7 +29,7 @@ import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { invalidateAttendance } from "./util";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
-import { dawamQuery } from "@/features/dawam/live";
+import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { DawamRulesCard, type CoverChoice } from "@/features/dawam/rules-card";
 import {
@@ -191,7 +191,7 @@ export function AttendanceRulesPage() {
     return (
       <Page width="reading">
         <PageHeader title={title} actions={<DawamRefreshButton />} below={branchSelect} />
-        {query.error ? (
+        {failedEmpty(query) ? (
           <ErrorState
             title={t("staff.rulesLoadError", "Couldn't load attendance rules")}
             message={getErrorMessage(query.error)}

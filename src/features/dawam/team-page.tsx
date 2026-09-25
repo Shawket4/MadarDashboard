@@ -44,7 +44,7 @@ import { fmtDateTime, fmtMoney, fmtTime } from "@/lib/format";
 import { coveredBy, fmtMinutes, invalidateStaff } from "@/features/staff/util";
 import { AdjustmentDialog, ExpenseAdvanceDialog, readPounds } from "./money-dialogs";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
-import { dawamQuery } from "./live";
+import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { useOwnEmployeeIds } from "@/features/staff/requests-inbox";
 import { punchWindowOpen } from "./phase-d";
@@ -123,12 +123,12 @@ export function TeamPage() {
         <StatCard label={t("dawam.stateIn", "In")} value={p ? p.present : "—"} formatType="number" icon={UsersRound} accent="success" loading={presenceQ.isLoading} />
         <StatCard label={t("dawam.stateLate", "Late")} value={p ? p.late : "—"} formatType="number" icon={Clock3} accent="warning" loading={presenceQ.isLoading} />
         <StatCard label={t("dawam.stateAbsent", "Absent")} value={p ? p.absent : "—"} formatType="number" icon={CircleAlert} accent="destructive" loading={presenceQ.isLoading} />
-        <StatCard label={t("dawam.openFlags", "Open flags")} value={flagsQ.error ? "—" : flags.length} formatType="number" icon={ShieldAlert} loading={flagsQ.isLoading} />
+        <StatCard label={t("dawam.openFlags", "Open flags")} value={failedEmpty(flagsQ) ? "—" : flags.length} formatType="number" icon={ShieldAlert} loading={flagsQ.isLoading} />
       </div>
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-muted-foreground">{t("dawam.flags", "Flags")}</h2>
-        {flagsQ.error ? (
+        {failedEmpty(flagsQ) ? (
           <ErrorState title={t("dawam.flagsLoadError", "Couldn't load the flags")} message={getErrorMessage(flagsQ.error)} onRetry={() => void flagsQ.refetch()} />
         ) : flagsQ.isLoading ? <Skeleton className="h-24 w-full rounded-2xl" /> : flags.length === 0 ? (
           <EmptyState icon={ShieldAlert} title={t("dawam.noFlags", "No open flags")} description={t("dawam.noFlagsHint", "Leaving mid-shift, spoofed locations and new phones show up here.")} />
@@ -160,7 +160,7 @@ export function TeamPage() {
             {t("dawam.todayMonthClosed", "Today is in an approved payroll month, so nobody can be punched in or out. Reopen the month to change today.")}
           </p>
         ) : null}
-        {presenceQ.error ? (
+        {failedEmpty(presenceQ) ? (
           <ErrorState title={t("dawam.teamLoadError", "Couldn't load the team")} message={getErrorMessage(presenceQ.error)} onRetry={() => void presenceQ.refetch()} />
         ) : presenceQ.isLoading ? <Skeleton className="h-48 w-full rounded-2xl" /> : rows.length === 0 ? (
           <EmptyState icon={UsersRound} title={t("dawam.nobodyRostered", "Nobody is rostered today")} />

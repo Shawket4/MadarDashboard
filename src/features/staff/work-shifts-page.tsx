@@ -16,7 +16,7 @@ import { deleteWorkShift, useListBranches, useListWorkShifts } from "@/data/api/
 import type { WorkShift } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
-import { dawamQuery } from "@/features/dawam/live";
+import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
@@ -98,7 +98,7 @@ export function WorkShiftsPage() {
       />
 
       <section className="space-y-3">
-        <SectionHeader title={t("staff.shiftsSection", "Shifts")} count={shiftsQ.isLoading || shiftsQ.error ? undefined : shifts.length} />
+        <SectionHeader title={t("staff.shiftsSection", "Shifts")} count={shiftsQ.isLoading || failedEmpty(shiftsQ) ? undefined : shifts.length} />
       {shiftsQ.isLoading ? (
         <ListCard>
           {[0, 1, 2].map((i) => (
@@ -108,7 +108,7 @@ export function WorkShiftsPage() {
             </div>
           ))}
         </ListCard>
-      ) : shiftsQ.error ? (
+      ) : failedEmpty(shiftsQ) ? (
         <ErrorState
           title={t("staff.shiftsLoadError", "Couldn't load work shifts")}
           onRetry={() => void shiftsQ.refetch()}

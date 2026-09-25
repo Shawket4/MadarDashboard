@@ -39,7 +39,7 @@ import {
 import type { StaffRequest } from "@/data/api/generated/models";
 import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
-import { dawamQuery } from "@/features/dawam/live";
+import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "./util";
 
@@ -255,7 +255,7 @@ export function RequestsInboxPage() {
             </div>
           ))}
         </ListCard>
-      ) : requestsQ.error ? (
+      ) : failedEmpty(requestsQ) ? (
         <ErrorState
           title={t("staff.requestsLoadError", "Couldn't load requests")}
           message={getErrorMessage(requestsQ.error)}

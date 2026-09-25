@@ -78,6 +78,9 @@ const STALE_CODES = new Set([
   "NO_CLAIM_WAITING", "NO_SWAP_WAITING", "NO_SWAP_TO_CANCEL", "OPEN_SHIFT_CLOSED",
   "NO_COVER_WAITING", "NO_OVERTIME_WAITING", "PAYSLIP_ALREADY_PAID",
 ]);
+/** The server's limiter said "not now" (429): ask again later, keep what is shown. */
+export const isRateLimited = (err: unknown): boolean => err instanceof AxiosError && err.response?.status === 429;
+
 export const isStaleRefusal = (err: unknown): boolean => {
   if (!(err instanceof AxiosError)) return false;
   const code = (err.response?.data as { code?: unknown } | undefined)?.code;
@@ -129,6 +132,8 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
                 ? "ADVANCE_OVER_CAP_owner"
                 : code);
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
+    // The limiter's 429 carries no code and English prose: word it, never as the network.
+    if (status === 429 && !code) return t("errors.tooManyRequests");
     // A 403 the server didn't code is a missing right; its prose is English (B-ROTA-9).
     if (status === 403 && !code) return t("errors.unauthorized");
 

@@ -68,12 +68,15 @@ let previewById: Record<string, unknown[]> = {};
 let previewError: unknown = null;
 /** Any other read that fails, by hook name (H3: a failed list read as "none"). */
 let failing: Record<string, unknown> = {};
+/** A refetch that failed while the read still holds its last data (a 429, say). */
+let refetchFailing: Record<string, unknown> = {};
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
   const opts = args.find((a) => typeof a === "object" && a !== null && "query" in (a as object)) as
     | { query?: { enabled?: boolean } }
     | undefined;
   (enabledSeen[name] ??= []).push(opts?.query?.enabled ?? true);
   const error = name === "payslips" ? payslipsError : name === "preview" ? previewError : (failing[name] ?? null);
+  if (refetchFailing[name]) return { data: data(), isLoading: false, isFetching: false, error: refetchFailing[name], refetch: vi.fn() };
   return { data: error ? undefined : data(), isLoading: false, isFetching: false, error, refetch: vi.fn() };
 };
 
@@ -160,6 +163,7 @@ beforeEach(() => {
   previewById = {};
   previewError = null;
   failing = {};
+  refetchFailing = {};
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
   adjustments = [];
@@ -219,6 +223,20 @@ describe("PayrollPage: a failed list never reads as an empty one (H3)", () => {
     await user.click(screen.getByRole("tab", { name: tab }));
     expect(await screen.findByRole("button", { name: /Retry|Try again/ })).toBeInTheDocument();
     expect(screen.queryByText(emptyText)).not.toBeInTheDocument();
+  });
+});
+
+describe("PayrollPage: a refresh that fails keeps what was on screen (429)", () => {
+  it("the payslips and the pay lines stay when their refetch is refused", async () => {
+    refetchFailing = { current: new Error("429"), adjustments: new Error("429") };
+    adjustments = [{ id: "a1", kind: "bonus", employee_id: "e1", employee_name: "Sara Ahmed", amount_piastres: 10_000, reason: "Extra hours", status: "approved", effective_date: "2026-09-10", created_at: "2026-09-10T08:00:00Z" }];
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    expect(screen.getAllByText("Sara Ahmed").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Couldn't load payroll")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(await screen.findByText(/Extra hours/)).toBeInTheDocument();
+    expect(screen.queryByText("Couldn't load the bonuses and deductions")).not.toBeInTheDocument();
   });
 });
 
