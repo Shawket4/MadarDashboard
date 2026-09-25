@@ -84,5 +84,12 @@ describe("Phase D refusals", () => {
       expect(ar).not.toBe(en);
     }
   });
+
+  it("M39: moving a till tag to someone who isn't active (EMPLOYEE_INACTIVE {status})", async () => {
+    const err = apiError({ code: "EMPLOYEE_INACTIVE", error: "x", vars: { status: "terminated" } }, 403);
+    expect(getErrorMessage(err)).toBe("They aren't active any more, so nothing can be moved to them.");
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(err)).not.toMatch(/[A-Za-z]{3,}/);
+  });
 });
 

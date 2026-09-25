@@ -55,10 +55,11 @@ export const warningsOf = (out: unknown): LabourWarning[] => {
 /**
  * Correcting a till-tagged expense advance (owner decision 39): the owner
  * clears the tag or moves it to someone else, with a reason; the cash that
- * left the till stays as it is. Through the Orval mutator until the client is
- * regenerated with these endpoints.
+ * left the till stays as it is (DELETE `?reason=`, PATCH `{employee_id,
+ * reason}`; the payroll-run right at every branch). Through the Orval mutator
+ * until the client is regenerated with these endpoints.
  */
-export const clearExpenseAdvance = (id: string, body: { reason: string }) =>
-  customInstance<unknown>({ url: `/staff/expense-advances/${id}`, method: "DELETE", headers: { "Content-Type": "application/json" }, data: body });
+export const clearExpenseAdvance = (id: string, params: { reason: string }) =>
+  customInstance<unknown>({ url: `/staff/expense-advances/${id}`, method: "DELETE", params });
 export const reassignExpenseAdvance = (id: string, body: { employee_id: string; reason: string }) =>
   customInstance<unknown>({ url: `/staff/expense-advances/${id}`, method: "PATCH", headers: { "Content-Type": "application/json" }, data: body });

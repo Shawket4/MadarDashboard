@@ -654,8 +654,8 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
 
 function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) {
   const { t } = useTranslation();
-  // The owner corrects a till tag here, since the POS has no correction screen (owner decision 39).
-  const canCorrectTag = useAuthz().owner;
+  // The owner (payroll run at every branch) corrects a till tag here, since the POS has no correction screen (owner decision 39).
+  const canCorrectTag = useAuthz().canEverywhere(Cap.hrPayrollRun);
   const [correcting, setCorrecting] = useState<ExpenseAdvance | null>(null);
   // The scope bar's branch (the expense's own branch, AV-9); every branch when none is picked.
   const { branchId } = useScope();

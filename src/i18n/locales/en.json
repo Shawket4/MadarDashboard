@@ -2279,7 +2279,8 @@
       "SALARY_MISSING": "No salary is set for {{names}}. Set it, or mark them not on payroll, before approving.",
       "DEVICE_REVOKED": "This phone was signed out. Sign in again with your code.",
       "STAFF_APP_ONLY": "This is for the Dawam app, signed in on your phone.",
-      "MANAGER_ACCOUNT_NEEDED": "Managing others needs a Madar account with those rights."
+      "MANAGER_ACCOUNT_NEEDED": "Managing others needs a Madar account with those rights.",
+      "EMPLOYEE_INACTIVE": "They aren't active any more, so nothing can be moved to them."
     }
   },
   "theme": {

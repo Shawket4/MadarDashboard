@@ -547,6 +547,7 @@ describe("PayrollPage", () => {
     });
 
     it("a manager isn't offered it", async () => {
+      held = ["hr.payroll.read", "hr.expense_advances.log"];
       expenses = [till];
       const user = userEvent.setup();
       wrap(<PayrollPage />);
