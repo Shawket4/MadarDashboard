@@ -225,6 +225,42 @@ describe("the price check (C11)", () => {
   });
 });
 
+describe("an existing combo's category (live T3: a re-save wiped it)", () => {
+  const withCategory = (): Combo => ({ ...saved(), category_id: "drinks" });
+
+  it("opens with its category shown and nothing unsaved", async () => {
+    comboId = "c-1";
+    combo = withCategory();
+    mount();
+    expect(await screen.findByRole("combobox", { name: "Category" })).toHaveTextContent("Drinks");
+    expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
+  });
+
+  it("keeps the category when the categories load after the combo", async () => {
+    const user = userEvent.setup();
+    comboId = "c-1";
+    combo = withCategory();
+    const loaded = menu.categories;
+    menu.categories = [];
+    updateCombo.mockResolvedValue({ ...withCategory(), price: 16000 });
+    const view = mount();
+    menu.categories = loaded;
+    view.rerender(
+      <QueryClientProvider client={new QueryClient()}>
+        <ComboEditorPage />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByRole("combobox", { name: "Category" })).toHaveTextContent("Drinks");
+
+    const price = screen.getByLabelText("Combo price");
+    await user.clear(price);
+    await user.type(price, "160");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(updateCombo).toHaveBeenCalledWith("c-1", expect.objectContaining({ price: 16000, category_id: "drinks" }));
+  });
+});
+
 describe("capability gating", () => {
   it("is read-only without menu.combos.edit: fields disabled, no Save", () => {
     held = ["menu.items.read"];
