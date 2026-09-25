@@ -241,7 +241,7 @@ describe("SchedulePage", () => {
     wrap(<SchedulePage />);
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Day off" }));
-    await waitFor(() => expect(calls.putDay).toHaveBeenCalledWith({ employee_id: "e1", on_date: week, shifts: [] }));
+    await waitFor(() => expect(calls.putDay).toHaveBeenCalledWith({ employee_id: "e1", on_date: week, shifts: [], branch_id: "b1" }));
   });
 
   it("publishes only after confirming, and then shows it published (SC-3)", async () => {
@@ -382,6 +382,7 @@ describe("SchedulePage", () => {
     await waitFor(() =>
       expect(calls.putDay).toHaveBeenCalledWith({
         employee_id: "e1", on_date: week,
+        branch_id: "b1",
         shifts: [
           { work_shift_id: "zM", start_time: null, end_time: null },
           { work_shift_id: "zE", start_time: null, end_time: null },
@@ -422,6 +423,7 @@ describe("SchedulePage", () => {
     await waitFor(() =>
       expect(calls.putDay).toHaveBeenCalledWith({
         employee_id: "e1", on_date: week, shifts: [{ work_shift_id: "zM", start_time: "07:30:00", end_time: "11:30:00" }],
+        branch_id: "b1",
       }),
     );
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);

@@ -30,6 +30,8 @@ const DAWAM_CODES = [
   "ORG_SUSPENDED",
   // A decision someone made first; a cover flag is confirmed or rejected only (H2-B2, H2-B3).
   "ALREADY_DECIDED", "FLAG_COVER_CONFIRM_OR_REJECT",
+  // A pending-only list asked without a range; a board's branch the person isn't at (H2-B5, H2-B8).
+  "RANGE_REQUIRED", "EMPLOYEE_NOT_AT_BRANCH",
 ];
 
 afterEach(async () => {

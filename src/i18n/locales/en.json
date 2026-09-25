@@ -2274,7 +2274,9 @@
       "SHIFTS_OVERLAP_named": "{{a}} and {{b}} would overlap on {{date}}.",
       "ORG_SUSPENDED": "This business is suspended. Contact support to reactivate it.",
       "ALREADY_DECIDED": "Someone already decided this: {{status}}. The list is up to date now.",
-      "FLAG_COVER_CONFIRM_OR_REJECT": "A cover can only be confirmed or rejected."
+      "FLAG_COVER_CONFIRM_OR_REJECT": "A cover can only be confirmed or rejected.",
+      "RANGE_REQUIRED": "Pick the dates to show.",
+      "EMPLOYEE_NOT_AT_BRANCH": "This person doesn't work at this branch, so a shift can't be set here for them."
     }
   },
   "theme": {

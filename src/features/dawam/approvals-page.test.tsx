@@ -227,6 +227,14 @@ describe("ApprovalsPage", () => {
     expect(days).toBeGreaterThan(300);
   });
 
+  it("asks for every pending cover and overtime, however old (H2-B5, H2-D11: -35 days lost them)", () => {
+    wrap(<ApprovalsPage />);
+    const asked = paramsSeen.attendance as Record<string, unknown>[];
+    expect(asked).toContainEqual({ cover_status: "pending" });
+    expect(asked).toContainEqual({ overtime_status: "pending" });
+    expect(asked.some((p) => "from" in p || "to" in p)).toBe(false);
+  });
+
   it("approves leave as unpaid when the manager says so (RQ-2)", async () => {
     const user = userEvent.setup();
     wrap(<ApprovalsPage />);

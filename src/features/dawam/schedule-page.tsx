@@ -422,6 +422,7 @@ export function SchedulePage() {
           templates={templates}
           staff={view.staff}
           ownSet={dateSets.has(`${dayOpen.person.employee_id}|${dayOpen.date}`)}
+          branchId={branchId}
         />
       ) : null}
       {prefsOf ? (

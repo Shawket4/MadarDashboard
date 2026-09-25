@@ -84,7 +84,10 @@ export function ApprovalsPage() {
   const swapsQ = useListSwaps({ status: "pending" }, { query: dawamQuery({ enabled: can.roster }) });
   // A claim can sit on any published week, however far ahead (O-8).
   const claimsQ = useListOpenShifts({ from, to: isoDaysFromToday(366) }, { query: dawamQuery({ enabled: can.roster }) });
-  const attendanceQ = useListAttendance({ from, to: isoDaysFromToday(0) }, { query: dawamQuery({ enabled: can.covers || can.overtime }) });
+  // Every pending cover and overtime, however old (H2-B5): a 35-day window
+  // dropped older ones out of every queue.
+  const coversQ = useListAttendance({ cover_status: "pending" }, { query: dawamQuery({ enabled: can.covers }) });
+  const overtimeQ = useListAttendance({ overtime_status: "pending" }, { query: dawamQuery({ enabled: can.overtime }) });
   const payLinesQ = useListAdjustments({ status: "pending" }, { query: dawamQuery({ enabled: can.payLines }) });
   // Each list stands on its own (DSH-1, PAGE-Approvals): one that fails —
   // a 403 on advances for a branch manager, say — is reported in its place,
@@ -94,10 +97,11 @@ export function ApprovalsPage() {
     { key: "advances", label: t("dawam.salaryAdvances", "Salary advances"), q: advancesQ },
     { key: "swaps", label: t("dawam.swap", "Shift swap"), q: swapsQ },
     { key: "claims", label: t("dawam.openShiftClaim", "Open-shift claim"), q: claimsQ },
-    { key: "attendance", label: t("dawam.overtime", "Overtime"), q: attendanceQ },
+    { key: "covers", label: t("dawam.cover", "Cover"), q: coversQ },
+    { key: "overtime", label: t("dawam.overtime", "Overtime"), q: overtimeQ },
     { key: "payLines", label: t("dawam.payLines", "Bonuses & deductions"), q: payLinesQ },
   ];
-  const queries = [requestsQ, advancesQ, swapsQ, claimsQ, attendanceQ, payLinesQ];
+  const queries = [requestsQ, advancesQ, swapsQ, claimsQ, coversQ, overtimeQ, payLinesQ];
   const loading = queries.some((q) => q.isLoading);
   const failedSections = sections.filter((s) => s.q.error);
 
@@ -198,8 +202,8 @@ export function ApprovalsPage() {
         reject: () => decideClaim(o.id, { approve: false }),
       });
     }
-    for (const r of attendanceQ.data ?? []) {
-      if (can.covers && r.covered_employee_id && r.cover_status === "pending") {
+    for (const r of can.covers ? coversQ.data ?? [] : []) {
+      if (r.covered_employee_id && r.cover_status === "pending") {
         out.push({
           key: `c|${r.id}`,
           section: "shifts",
@@ -220,7 +224,9 @@ export function ApprovalsPage() {
           badges: r.month_closed ? <Badge variant="outline">{t("staff.monthClosedRejectOnly", "Month closed: reject only")}</Badge> : undefined,
         });
       }
-      if (can.overtime && r.overtime_status === "pending") {
+    }
+    for (const r of can.overtime ? overtimeQ.data ?? [] : []) {
+      if (r.overtime_status === "pending") {
         out.push({
           key: `t|${r.id}`,
           section: "shifts",
@@ -239,7 +245,7 @@ export function ApprovalsPage() {
     }
     return out.sort((a, b) => b.at.localeCompare(a.at));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestsQ.data, own, advancesQ.data, payLinesQ.data, swapsQ.data, claimsQ.data, attendanceQ.data, t]);
+  }, [requestsQ.data, own, advancesQ.data, payLinesQ.data, swapsQ.data, claimsQ.data, coversQ.data, overtimeQ.data, t]);
 
   if (authz.ready && !any) {
     return <Restricted title={t("dawam.approvals", "Approvals")} who={t("dawam.approvalsNoAccess", "Nothing here is yours to decide. The owner can give you access.")} />;

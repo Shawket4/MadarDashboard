@@ -2297,7 +2297,9 @@
       "SHIFTS_OVERLAP_named": "{{a}} و{{b}} هيتداخلوا يوم {{date}}.",
       "ORG_SUSPENDED": "النشاط ده موقوف. كلّم الدعم عشان يرجّعوه.",
       "ALREADY_DECIDED": "حد تاني قرر في ده خلاص: {{status}}. القايمة اتحدّثت.",
-      "FLAG_COVER_CONFIRM_OR_REJECT": "التغطية يا تتأكد يا تترفض بس."
+      "FLAG_COVER_CONFIRM_OR_REJECT": "التغطية يا تتأكد يا تترفض بس.",
+      "RANGE_REQUIRED": "اختار التواريخ اللي عايز تشوفها.",
+      "EMPLOYEE_NOT_AT_BRANCH": "الشخص ده مش بيشتغل في الفرع ده، فمينفعش نحطله شيفت هنا."
     }
   },
   "theme": {
