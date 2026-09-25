@@ -63,7 +63,7 @@ export function SalaryCalculator({
 
   return (
     <div className="space-y-2">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
         <div className="space-y-1">
           <Label htmlFor={id}>{label}</Label>
           <Input

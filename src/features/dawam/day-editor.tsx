@@ -15,8 +15,8 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TimeRangeField, toHHMM } from "@/components/inputs";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -193,17 +193,14 @@ export function DayEditor({
 
               {editing === s.work_shift_id ? (
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label htmlFor={`from-${s.work_shift_id}`}>{t("dawam.from", "From")}</Label>
-                    <Input id={`from-${s.work_shift_id}`} type="time" value={from} onChange={(e) => setFrom(e.target.value)} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor={`to-${s.work_shift_id}`}>{t("dawam.to", "To")}</Label>
-                    <Input id={`to-${s.work_shift_id}`} type="time" value={to} onChange={(e) => setTo(e.target.value)} />
-                  </div>
-                  {from && to && to <= from ? (
-                    <p className="col-span-2 text-xs text-muted-foreground">{t("staff.endsNextDay", "Ends the next day")}</p>
-                  ) : null}
+                  <TimeRangeField
+                    id={`times-${s.work_shift_id}`}
+                    className="col-span-2"
+                    startLabel={t("dawam.from", "From")}
+                    endLabel={t("dawam.to", "To")}
+                    value={{ start: from, end: to }}
+                    onChange={(r) => { setFrom(r.start); setTo(r.end); }}
+                  />
                   <div className="col-span-2 flex flex-wrap justify-end gap-2">
                     {s.times_edited ? (
                       <Button
@@ -223,7 +220,7 @@ export function DayEditor({
                     ) : null}
                     <Button
                       size="sm"
-                      disabled={busy || !from || !to}
+                      disabled={busy || !toHHMM(from) || !toHHMM(to) || from === to}
                       onClick={() =>
                         void run(
                           () => putTimes({ employee_id: person.employee_id, on_date: date, work_shift_id: s.work_shift_id, start_time: `${from}:00`, end_time: `${to}:00` }),
