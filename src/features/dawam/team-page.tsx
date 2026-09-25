@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { punchFor, resolveFlag, useListAttendanceFlags, useTeamPresence } from "@/data/api/generated/api";
 import type { AttendanceFlag, PresenceRow } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
+import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
 import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
@@ -223,6 +223,11 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
+      // Handled by someone else first: the board reads again (H2-B3).
+      if (isStaleRefusal(e)) {
+        void invalidateStaff();
+        onOpenChange(false);
+      }
     } finally {
       setBusy(false);
     }
@@ -279,10 +284,19 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
           {flag.kind === "new_phone" && canRevoke ? (
             <Button variant="destructive" disabled={busy} onClick={() => void send("revoke")}>{t("dawam.revokePhone", "Revoke this phone")}</Button>
           ) : null}
+          {/* A cover flag is confirmed or rejected, nothing else (H2-B3). */}
           {flag.kind === "cover" && canConfirmCover ? (
-            <Button disabled={busy} onClick={() => void send("confirm")}>{t("dawam.confirmCover", "Confirm the cover")}</Button>
+            <>
+              <Button variant="outline" disabled={busy} onClick={() => void send("reject")}>{t("dawam.rejectCover", "Reject the cover")}</Button>
+              <Button disabled={busy} onClick={() => void send("confirm")}>{t("dawam.confirmCover", "Confirm the cover")}</Button>
+            </>
           ) : null}
-          <Button variant="ghost" disabled={busy} onClick={() => void send("ignore")}>{t("dawam.ignore", "Ignore")}</Button>
+          {flag.kind === "cover" && !canConfirmCover ? (
+            <p className="text-xs text-muted-foreground">{t("dawam.coverNeedsRight", "Confirming or rejecting a cover needs the cover right. The owner can give it to you.")}</p>
+          ) : null}
+          {flag.kind === "cover" ? null : (
+            <Button variant="ghost" disabled={busy} onClick={() => void send("ignore")}>{t("dawam.ignore", "Ignore")}</Button>
+          )}
         </DialogFooter>}
       </DialogContent>
     </Dialog>

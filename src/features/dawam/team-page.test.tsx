@@ -69,6 +69,7 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "f2", employee_id: "e5", employee_name: "Laila Hassan", kind: "new_phone", minutes_away: 0, detected_at: "2026-09-22T07:00:00Z", resolution: null, suggested_deduction_piastres: 0 },
     { id: "f3", employee_id: "e1", employee_name: "Sara Ahmed", kind: "suspicious", minutes_away: 0, detected_at: "2026-09-21T07:00:00Z", resolution: "ignored", suggested_deduction_piastres: 0 },
     { id: "f4", employee_id: "e6", employee_name: "Omar Nabil", kind: "phone_died", minutes_away: 0, detected_at: "2026-09-22T12:00:00Z", resolution: null, suggested_deduction_piastres: 0 },
+    { id: "f5", employee_id: "e7", employee_name: "Nada Samir", kind: "cover", minutes_away: 0, detected_at: "2026-09-22T16:00:00Z", resolution: null, suggested_deduction_piastres: 0 },
   ]),
   resolveFlag: (...a: unknown[]) => resolveFlag(...(a as [])),
   punchFor: (...a: unknown[]) => punchFor(...(a as [])),
@@ -182,6 +183,27 @@ describe("TeamPage", () => {
     await user.click(within(dialog).getByRole("button", { name: "Deduct" }));
     expect(await within(dialog).findByText("Type an amount above zero")).toBeInTheDocument();
     expect(resolveFlag).not.toHaveBeenCalled();
+  });
+
+  it("a cover flag is confirmed or rejected, never ignored (H2-B3)", async () => {
+    const user = userEvent.setup();
+    wrap(<TeamPage />);
+    await user.click(screen.getByText("Nada Samir · Cover"));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).queryByRole("button", { name: "Ignore" })).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Confirm the cover" })).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Reject the cover" }));
+    await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f5", { action: "reject", amount_piastres: null, reason: null }));
+  });
+
+  it("a cover flag without the cover right says why nothing is offered (H2-B3)", async () => {
+    held = ["hr.attendance.read", "hr.attendance.edit"];
+    const user = userEvent.setup();
+    wrap(<TeamPage />);
+    await user.click(screen.getByText("Nada Samir · Cover"));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).queryByRole("button", { name: "Confirm the cover" })).toBeNull();
+    expect(within(dialog).getByText("Confirming or rejecting a cover needs the cover right. The owner can give it to you.")).toBeInTheDocument();
   });
 
   it("revokes a new phone", async () => {

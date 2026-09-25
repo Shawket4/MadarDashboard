@@ -27,7 +27,7 @@ import {
   useListAdjustments, useListAdvances, useListAttendance, useListOpenShifts, useListRequests, useListSwaps,
 } from "@/data/api/generated/api";
 import type { StaffRequest } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
+import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
@@ -118,6 +118,8 @@ export function ApprovalsPage() {
       }
     } catch (e) {
       toast.error(getErrorMessage(e));
+      // Decided by someone else first: the queue reads again (H2-B2).
+      if (isStaleRefusal(e)) void invalidateStaff();
     } finally {
       setBusy(null);
     }

@@ -2295,7 +2295,9 @@
       "REQUEST_ALREADY_DECIDED": "الطلب ده اتقرر خلاص: {{status}}.",
       "SHIFT_DAYS_IN_USE_named": "لسه فيه ناس متسجلين على {{name}} يوم {{days}}. انقلهم الأول.",
       "SHIFTS_OVERLAP_named": "{{a}} و{{b}} هيتداخلوا يوم {{date}}.",
-      "ORG_SUSPENDED": "النشاط ده موقوف. كلّم الدعم عشان يرجّعوه."
+      "ORG_SUSPENDED": "النشاط ده موقوف. كلّم الدعم عشان يرجّعوه.",
+      "ALREADY_DECIDED": "حد تاني قرر في ده خلاص: {{status}}. القايمة اتحدّثت.",
+      "FLAG_COVER_CONFIRM_OR_REJECT": "التغطية يا تتأكد يا تترفض بس."
     }
   },
   "theme": {
@@ -4720,7 +4722,8 @@
     "unpaid": "غير مدفوعة",
     "inReasonColumn": "سبب تسجيل الحضور",
     "outReasonColumn": "سبب تسجيل الانصراف",
-    "noteTooLong": "خلّي الملاحظة أقل من 500 حرف"
+    "noteTooLong": "خلّي الملاحظة أقل من 500 حرف",
+    "req_confirmed": "اتأكدت"
   },
   "basira": {
     "title": "بصيرة",
@@ -6534,7 +6537,9 @@
     "suggestionsLoadError": "تعذّر تحميل الاقتراحات",
     "coverageLoadError": "تعذّر تحميل عدد الناس المطلوب",
     "neverApproved": "الشهر ده ما اتعتمدش، فمالوش قسائم مرتب لسه.",
-    "payslipsLoadError": "تعذّر تحميل قسائم مرتب الشهر ده"
+    "payslipsLoadError": "تعذّر تحميل قسائم مرتب الشهر ده",
+    "rejectCover": "ارفض التغطية",
+    "coverNeedsRight": "تأكيد أو رفض التغطية محتاج صلاحية التغطية. صاحب الشغل يقدر يديهالك."
   },
   "legal": {
     "label": "قانوني",

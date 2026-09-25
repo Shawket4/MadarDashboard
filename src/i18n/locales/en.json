@@ -2272,7 +2272,9 @@
       "REQUEST_ALREADY_DECIDED": "This request was already decided: {{status}}.",
       "SHIFT_DAYS_IN_USE_named": "{{name}} still has people rostered on {{days}}. Move them first.",
       "SHIFTS_OVERLAP_named": "{{a}} and {{b}} would overlap on {{date}}.",
-      "ORG_SUSPENDED": "This business is suspended. Contact support to reactivate it."
+      "ORG_SUSPENDED": "This business is suspended. Contact support to reactivate it.",
+      "ALREADY_DECIDED": "Someone already decided this: {{status}}. The list is up to date now.",
+      "FLAG_COVER_CONFIRM_OR_REJECT": "A cover can only be confirmed or rejected."
     }
   },
   "theme": {
@@ -4587,7 +4589,8 @@
     "unpaid": "Unpaid",
     "inReasonColumn": "Why punched in",
     "outReasonColumn": "Why punched out",
-    "noteTooLong": "Keep the note under 500 characters"
+    "noteTooLong": "Keep the note under 500 characters",
+    "req_confirmed": "Confirmed"
   },
   "basira": {
     "title": "Basira",
@@ -6337,7 +6340,9 @@
     "suggestionsLoadError": "Couldn't load the suggestions",
     "coverageLoadError": "Couldn't load the coverage needs",
     "neverApproved": "This month was never approved, so it has no payslips yet.",
-    "payslipsLoadError": "Couldn't load this month's payslips"
+    "payslipsLoadError": "Couldn't load this month's payslips",
+    "rejectCover": "Reject the cover",
+    "coverNeedsRight": "Confirming or rejecting a cover needs the cover right. The owner can give it to you."
   },
   "legal": {
     "label": "Legal",

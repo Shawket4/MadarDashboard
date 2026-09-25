@@ -28,6 +28,8 @@ const DAWAM_CODES = [
   "SHIFT_INACTIVE", "PERIOD_CLOSED", "DAWAM_OFF", "PRIVACY_NOT_ACCEPTED",
   // Sign-in to a suspended business (E2E setup re-verify, D-310).
   "ORG_SUSPENDED",
+  // A decision someone made first; a cover flag is confirmed or rejected only (H2-B2, H2-B3).
+  "ALREADY_DECIDED", "FLAG_COVER_CONFIRM_OR_REJECT",
 ];
 
 afterEach(async () => {

@@ -30,6 +30,9 @@ const calls = {
   reviewAdvance: vi.fn(async () => ({})),
 };
 
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() }));
+vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
+
 /** Sections whose list fails (a 403 for a branch manager, say). */
 const failing = new Set<string>();
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
@@ -178,6 +181,23 @@ describe("ApprovalsPage", () => {
     expect(calls.decideClaim).toHaveBeenCalledTimes(1);
     finish({});
     await waitFor(() => expect(approve).not.toBeDisabled());
+  });
+
+  it("a decision someone made first says so and refreshes the queue (H2-B2)", async () => {
+    const { invalidateStaff } = await import("@/features/staff/util");
+    vi.mocked(invalidateStaff).mockClear();
+    const { AxiosError, AxiosHeaders } = await import("axios");
+    calls.decideOvertime.mockRejectedValueOnce(
+      new AxiosError("409", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 409, statusText: "", headers: {}, config: { headers: new AxiosHeaders() },
+        data: { error: "Conflict: Already decided", code: "ALREADY_DECIDED", vars: { status: "approved" } },
+      }),
+    );
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    await user.click(within(approveIn("Omar Khaled")).getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith("Someone already decided this: Approved. The list is up to date now."));
+    expect(invalidateStaff).toHaveBeenCalled();
   });
 
   it("rejects a swap only after confirming", async () => {

@@ -36,6 +36,18 @@ function settingKey(vars: Record<string, unknown>): string {
   return "SETTING_OUT_OF_RANGE";
 }
 
+/** Refusals that mean the screen is stale: someone else decided, claimed or
+ *  handled it first. The page refreshes so the list says what is true (H2-B2). */
+const STALE_CODES = new Set([
+  "REQUEST_ALREADY_DECIDED", "ALREADY_DECIDED", "FLAG_HANDLED", "ALREADY_CLAIMED",
+  "CLAIM_ALREADY_DECIDED", "NO_PENDING_CLAIM", "SWAP_STALE", "SUGGESTION_STALE",
+]);
+export const isStaleRefusal = (err: unknown): boolean => {
+  if (!(err instanceof AxiosError)) return false;
+  const code = (err.response?.data as { code?: unknown } | undefined)?.code;
+  return typeof code === "string" && STALE_CODES.has(code);
+};
+
 /**
  * Extract a human-readable message from any API / JS error. `fieldLabel`
  * names a refused field in the page's words (a coded refusal's `vars.field`).

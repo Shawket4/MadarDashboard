@@ -37,7 +37,7 @@ import {
   useListEmployees, useListRequests,
 } from "@/data/api/generated/api";
 import type { StaffRequest } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
+import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { dawamQuery } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
@@ -158,6 +158,8 @@ export function RequestsInboxPage() {
       void invalidateStaff();
     } catch (e) {
       toast.error(getErrorMessage(e));
+      // Decided by someone else first: the list reads again (H2-B2).
+      if (isStaleRefusal(e)) void invalidateStaff();
     } finally {
       setBusy(null);
     }
