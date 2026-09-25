@@ -304,7 +304,14 @@ export const MOCK_MENU_ITEMS = ITEM_SEEDS.map((s) => ({
   category_id: s.cat,
   image_url: null,
   is_active: true,
-  sizes: [],
+  // The latte has sizes, so the combo editor's per-size surcharge grid shows under mock.
+  sizes:
+    s.id === "mi_latte"
+      ? [
+          { label: "Regular", price_override: 6_000, is_active: true },
+          { label: "Large", price_override: 7_500, is_active: true },
+        ]
+      : [],
   recipes: [],
   sku_costs: [],
 }));
