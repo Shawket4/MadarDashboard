@@ -46,7 +46,7 @@ vi.mock("@/data/authz/use-authz", async () => {
 });
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
-  return { ...real, invalidateRequests: vi.fn(), todayIso: () => "2026-09-23" };
+  return { ...real, invalidateRequests: vi.fn(), invalidateStaff: vi.fn(), todayIso: () => "2026-09-23" };
 });
 vi.mock("sonner", () => ({
   toast: { success: (m: string) => toastSuccess(m), info: vi.fn(), error: (m: string) => toastError(m) },
@@ -83,6 +83,58 @@ beforeEach(() => {
   toastSuccess.mockClear();
   rows = [LEAVE, MINE, APPROVED];
   held = ["hr.leave.create", "hr.leave.edit", "hr.attendance.edit"];
+});
+
+describe("Requests inbox: nothing fails in silence (H2)", () => {
+  it("a cleared date says why Save does nothing (H2-D7)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /New request/ }));
+    const dialog = await screen.findByRole("dialog");
+    await pick(user, "Kind", "Late arrival");
+    await pick(user, "Employee", "Youssef Adel");
+    await user.clear(within(dialog).getByLabelText("Date"));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    expect(await within(dialog).findByText("Pick a date")).toBeInTheDocument();
+    expect(createRequestAdmin).not.toHaveBeenCalled();
+  });
+
+  it("a note too long to approve with says so (H2-D7)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(within(rowOf("Youssef Adel")).getByRole("button", { name: "Approve" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByLabelText("Note"));
+    await user.paste("x".repeat(501));
+    await user.click(within(dialog).getByRole("button", { name: "Approve" }));
+    expect(await within(dialog).findByText("Keep the note under 500 characters")).toBeInTheDocument();
+    expect(decideRequest).not.toHaveBeenCalled();
+  });
+
+  it("a decision goes once however fast it is tapped (H2-D8)", async () => {
+    let finish: (v: object) => void = () => {};
+    decideRequest.mockImplementationOnce(() => new Promise<object>((r) => { finish = r; }));
+    rows = [{ ...LEAVE, kind: "mission", title: "Bank" }];
+    const user = userEvent.setup();
+    renderPage();
+    const approve = within(rowOf("Youssef Adel")).getByRole("button", { name: "Approve" });
+    await user.click(approve);
+    await user.click(approve);
+    expect(decideRequest).toHaveBeenCalledTimes(1);
+    finish({});
+    await waitFor(() => expect(toastSuccess).toHaveBeenCalledTimes(1));
+  });
+
+  it("a decision refreshes everything that reads it: the roster, attendance, pay (H2-D9)", async () => {
+    const { invalidateStaff } = await import("@/features/staff/util");
+    vi.mocked(invalidateStaff).mockClear();
+    rows = [{ ...LEAVE, kind: "mission", title: "Bank" }];
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(within(rowOf("Youssef Adel")).getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalled());
+    await waitFor(() => expect(invalidateStaff).toHaveBeenCalled());
+  });
 });
 
 describe("Requests inbox", () => {

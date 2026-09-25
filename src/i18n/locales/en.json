@@ -4586,7 +4586,8 @@
     "paid": "Paid",
     "unpaid": "Unpaid",
     "inReasonColumn": "Why punched in",
-    "outReasonColumn": "Why punched out"
+    "outReasonColumn": "Why punched out",
+    "noteTooLong": "Keep the note under 500 characters"
   },
   "basira": {
     "title": "Basira",

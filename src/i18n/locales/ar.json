@@ -4719,7 +4719,8 @@
     "paid": "مدفوعة",
     "unpaid": "غير مدفوعة",
     "inReasonColumn": "سبب تسجيل الحضور",
-    "outReasonColumn": "سبب تسجيل الانصراف"
+    "outReasonColumn": "سبب تسجيل الانصراف",
+    "noteTooLong": "خلّي الملاحظة أقل من 500 حرف"
   },
   "basira": {
     "title": "بصيرة",

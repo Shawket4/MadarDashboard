@@ -41,7 +41,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { dawamQuery } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
-import { invalidateRequests, REQUEST_STATUS_TONE, todayIso } from "./util";
+import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "./util";
 
 const ALL = "__all__";
 
@@ -108,6 +108,8 @@ export function RequestsInboxPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [deciding, setDeciding] = useState<StaffRequest | null>(null);
   const [cancelling, setCancelling] = useState<StaffRequest | null>(null);
+  /** The request being decided in one click: its buttons wait (H2-D8). */
+  const [busy, setBusy] = useState<string | null>(null);
   const own = useOwnEmployeeIds();
   const names = useNamesByUser();
   const canFile = useAuthz().can(Cap.hrLeaveCreate);
@@ -147,12 +149,17 @@ export function RequestsInboxPage() {
       });
       if (!ok) return;
     }
+    if (busy) return;
+    setBusy(r.id);
     try {
       await decideRequest(r.id, { status: next });
       toast.success(t("staff.decisionSaved", "Decision saved"));
-      void invalidateRequests();
+      // The roster's leave, attendance and pay read it too (H2-D9).
+      void invalidateStaff();
     } catch (e) {
       toast.error(getErrorMessage(e));
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -265,12 +272,12 @@ export function RequestsInboxPage() {
                     {mayDecide(r, own) ? (
                       <>
                         {r.month_closed ? null : (
-                          <Button size="sm" variant="outline" className="ms-2" onClick={() => void quickDecide(r, "approved")}>
+                          <Button size="sm" variant="outline" className="ms-2" disabled={busy === r.id} onClick={() => void quickDecide(r, "approved")}>
                             <Check className="size-4" />
                             {t("common.approve", "Approve")}
                           </Button>
                         )}
-                        <RowAction destructive label={t("common.reject", "Reject")} onClick={() => void quickDecide(r, "rejected")}>
+                        <RowAction destructive disabled={busy === r.id} label={t("common.reject", "Reject")} onClick={() => void quickDecide(r, "rejected")}>
                           <X className="size-4" />
                         </RowAction>
                       </>
@@ -385,7 +392,7 @@ export function ApproveWithPayDialog({
 }) {
   const { t } = useTranslation();
   const isLeave = request?.kind === "leave";
-  const schema = z.object({ paid: z.boolean(), touched: z.boolean(), note: z.string().max(500) });
+  const schema = z.object({ paid: z.boolean(), touched: z.boolean(), note: z.string().max(500, t("staff.noteTooLong", "Keep the note under 500 characters")) });
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: { paid: request?.paid_default ?? true, touched: false, note: "" },
@@ -402,7 +409,7 @@ export function ApproveWithPayDialog({
         note: v.note.trim() || null,
       });
       toast.success(t("staff.decisionSaved", "Decision saved"));
-      void invalidateRequests();
+      void invalidateStaff();
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -450,6 +457,8 @@ export function ApproveWithPayDialog({
           <div className="space-y-1">
             <Label htmlFor="ap-note">{t("staff.note", "Note")}</Label>
             <Input id="ap-note" {...form.register("note")} />
+            {/* H2-D7: a refused note says why, never a dead Approve button. */}
+            {form.formState.errors.note?.message ? <p className="text-xs text-destructive">{form.formState.errors.note.message}</p> : null}
           </div>
         </form>
         <DialogFooter>
@@ -495,7 +504,7 @@ export function CancelRequestDialog({
     try {
       await decideRequest(request.id, { status: "cancelled", note: v.note.trim() || null });
       toast.success(t("staff.requestCancelled", "Request cancelled"));
-      void invalidateRequests();
+      void invalidateStaff();
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -534,7 +543,7 @@ const newRequestSchema = (t: TFunction) =>
     .object({
       kind: z.enum(["leave", "late_arrival", "early_departure", "excuse", "mission"]),
       employee_id: z.string().min(1, t("staff.pickEmployee", "Pick an employee")),
-      on_date: z.string().min(1),
+      on_date: z.string().min(1, t("staff.pickDate", "Pick a date")),
       end_date: z.string(),
       from_time: z.string(),
       to_time: z.string(),
@@ -634,7 +643,7 @@ function NewRequestDialog({
           ? t("staff.requestFiledApproved", "Request filed and approved")
           : t("staff.requestFiled", "Request filed"),
       );
-      void invalidateRequests();
+      void invalidateStaff();
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -722,6 +731,7 @@ function NewRequestDialog({
             <div className="space-y-1">
               <Label htmlFor="nr-date">{isSpan ? t("staff.from", "From") : t("staff.date", "Date")}</Label>
               <Input id="nr-date" type="date" {...form.register("on_date")} />
+              {err(errors.on_date?.message)}
             </div>
             {isSpan ? (
               <div className="space-y-1">
