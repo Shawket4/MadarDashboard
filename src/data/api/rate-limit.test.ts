@@ -1,8 +1,10 @@
 /**
- * The server's limiter answers 429 with no code and English prose ("Too many
- * requests just now…"). The dashboard words it in the reader's language,
- * never as a network problem, waits and asks again, and keeps the data it had
- * on screen, saying the refresh failed (box phase 2).
+ * The server's limiter answers 429 with English prose ("Too many requests
+ * just now…"): the general and per-address buckets with the code
+ * `RATE_LIMITED`, a route's own governor with no code at all. The dashboard
+ * words it in the reader's language, never as a network problem, waits and
+ * asks again, and keeps the data it had on screen, saying the refresh failed
+ * (box phase 2).
  */
 import { AxiosError, AxiosHeaders } from "axios";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -15,13 +17,13 @@ const { getErrorMessage } = await import("./errors");
 const { queryRetry, onQueryError } = await import("./query");
 const { failedEmpty } = await import("@/features/dawam/live");
 
-const limited = () =>
+const limited = (data: Record<string, unknown> = { error: "Too many requests just now. This will clear in a moment." }) =>
   new AxiosError("Request failed with status code 429", "ERR_BAD_REQUEST", undefined, undefined, {
     status: 429,
     statusText: "",
     headers: {},
     config: { headers: new AxiosHeaders() },
-    data: { error: "Too many requests just now. This will clear in a moment." },
+    data,
   });
 
 afterEach(async () => {
@@ -40,6 +42,38 @@ describe("a rate-limited answer (429)", () => {
     expect(ar).toMatch(/[؀-ۿ]/);
     expect(ar).not.toMatch(/Too many|just now/);
     expect(ar).not.toBe(i18n.t("errors.networkError"));
+  });
+
+  // Every 429 said EXPORT_RATE_LIMITED until the server named its limiter
+  // (iOS device checks, 2026-09-25); an ordinary read's now says RATE_LIMITED,
+  // and a coded 429 read the server's English in Arabic too.
+  it("reads the same when the server names the limiter (RATE_LIMITED), in EN and AR", async () => {
+    const coded = limited({ error: "Too many requests just now. This will clear in a moment.", code: "RATE_LIMITED" });
+    await i18n.changeLanguage("en");
+    expect(getErrorMessage(coded)).toBe(i18n.t("errors.tooManyRequests"));
+    await i18n.changeLanguage("ar");
+    const ar = getErrorMessage(coded);
+    expect(ar).toBe(i18n.t("errors.tooManyRequests"));
+    expect(ar).not.toMatch(/Too many|just now/);
+  });
+
+  // The export gate keeps its own code: too many exports, not too many requests.
+  it("words a throttled export (EXPORT_RATE_LIMITED) as too many exports, in EN and AR", async () => {
+    const exporting = limited({
+      error: "That is 10 exports in a minute. Give it a moment and try again — each one reads the whole filtered dataset.",
+      code: "EXPORT_RATE_LIMITED",
+    });
+    await i18n.changeLanguage("en");
+    const en = getErrorMessage(exporting);
+    expect(en).toBe(i18n.t("errors.codes.EXPORT_RATE_LIMITED"));
+    expect(en).toMatch(/exports/i);
+    expect(en).not.toBe(i18n.t("errors.tooManyRequests"));
+    await i18n.changeLanguage("ar");
+    const ar = getErrorMessage(exporting);
+    expect(ar).toBe(i18n.t("errors.codes.EXPORT_RATE_LIMITED"));
+    expect(ar).toMatch(/[؀-ۿ]/);
+    expect(ar).not.toMatch(/exports|That is/);
+    expect(ar).not.toBe(i18n.t("errors.tooManyRequests"));
   });
 
   it("is asked again a few times, later each time", () => {
