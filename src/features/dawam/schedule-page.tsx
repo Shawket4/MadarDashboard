@@ -142,7 +142,11 @@ export function SchedulePage() {
     if (ok) await run("publish", () => publish({ branch_id: branchId, week_start: week }), t("dawam.published", "Week published"));
   };
 
-  const holidays = (upcoming.data?.holidays ?? []).filter((h) => !h.decision);
+  // The next 45 days' holidays, and the viewed week's own (H2-D6: a holiday
+  // further out than that could never be decided, even with its week shown).
+  const holidays = [...(upcoming.data?.holidays ?? []), ...(view?.holidays ?? [])]
+    .filter((h, i, all) => !h.decision && all.findIndex((x) => x.on_date === h.on_date) === i)
+    .sort((a, b) => a.on_date.localeCompare(b.on_date));
 
   // A pattern suggestion changes the person's standing week, not one day: say so first.
   const decide = async (g: Suggestion, accept: boolean) => {
@@ -211,7 +215,12 @@ export function SchedulePage() {
         </p>
       ) : null}
 
-      {rosterQ.error ? (
+      {!branchId && branchesQ.error ? (
+        // H2-D2: with no branch the roster never loads; say why, never a skeleton for ever.
+        <ErrorState title={t("dawam.branchesLoadError", "Couldn't load the branches")} message={getErrorMessage(branchesQ.error)} onRetry={() => void branchesQ.refetch()} />
+      ) : !branchId && branchesQ.data ? (
+        <EmptyState icon={CalendarCheck} title={t("dawam.noBranchYet", "Add a branch first: the schedule is kept per branch.")} />
+      ) : rosterQ.error ? (
         <ErrorState title={t("staff.rosterLoadError", "Couldn't load the roster")} message={getErrorMessage(rosterQ.error)} onRetry={() => void rosterQ.refetch()} />
       ) : rosterQ.isLoading || !view ? (
         <Skeleton className="h-72 w-full rounded-2xl" />
@@ -314,7 +323,19 @@ export function SchedulePage() {
                               {blocksOn(templates, weekdayOf(d)).map((w) => {
                                 const at = blockTimesOn(w, weekdayOf(d));
                                 return (
-                                  <DropdownMenuItem key={w.id} onSelect={() => void run(`open|${d}`, () => postOpenShift({ branch_id: branchId, on_date: d, work_shift_id: w.id }), t("dawam.openPosted", "Open shift posted"))}>
+                                  <DropdownMenuItem
+                                    key={w.id}
+                                    onSelect={() =>
+                                      void run(
+                                        `open|${d}`,
+                                        () => postOpenShift({ branch_id: branchId, on_date: d, work_shift_id: w.id }),
+                                        // H2-D3: staff can't see or claim it until the week is published.
+                                        published
+                                          ? t("dawam.openPosted", "Open shift posted")
+                                          : t("dawam.openPostedUnpublished", "Open shift posted. Staff see it once you publish this week."),
+                                      )
+                                    }
+                                  >
                                     <span className="flex-1">{w.name}</span>
                                     <bdi className="font-mono text-xs text-muted-foreground tabular-nums">{at.start}–{at.end}</bdi>
                                   </DropdownMenuItem>
@@ -336,7 +357,10 @@ export function SchedulePage() {
       {canEdit ? (
         <section className="space-y-3">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground"><Sparkles className="size-4" />{t("dawam.suggestions", "Suggestions")}</h2>
-          {suggestionsQ.isLoading ? <Skeleton className="h-20 w-full rounded-2xl" /> : (suggestionsQ.data ?? []).length === 0 ? (
+          {suggestionsQ.error ? (
+            // H2-D1: a failed read is not "nothing to suggest".
+            <ErrorState title={t("dawam.suggestionsLoadError", "Couldn't load the suggestions")} message={getErrorMessage(suggestionsQ.error)} onRetry={() => void suggestionsQ.refetch()} />
+          ) : suggestionsQ.isLoading ? <Skeleton className="h-20 w-full rounded-2xl" /> : (suggestionsQ.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("dawam.noSuggestions", "Nothing to suggest for this week.")}</p>
           ) : (
             <ListCard>

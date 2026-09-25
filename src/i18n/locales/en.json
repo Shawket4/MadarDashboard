@@ -6329,7 +6329,12 @@
     "stopTitle": "Stop \"{{line}}\"?",
     "stopHint": "It stops from the month that is open now. Approved months keep it. The reason is kept in the audit log.",
     "approveDaysAhead_one": "1 day of this month is still to come; nobody can clock in on it after approval.",
-    "approveDaysAhead_other": "{{count}} days of this month are still to come; nobody can clock in on them after approval."
+    "approveDaysAhead_other": "{{count}} days of this month are still to come; nobody can clock in on them after approval.",
+    "branchesLoadError": "Couldn't load the branches",
+    "noBranchYet": "Add a branch first: the schedule is kept per branch.",
+    "openPostedUnpublished": "Open shift posted. Staff see it once you publish this week.",
+    "suggestionsLoadError": "Couldn't load the suggestions",
+    "coverageLoadError": "Couldn't load the coverage needs"
   },
   "legal": {
     "label": "Legal",
