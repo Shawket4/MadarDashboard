@@ -17,7 +17,8 @@ export interface Employee {
   /** May sign in to the staff app with a WhatsApp code. */
   app_access: boolean;
   /**
-     * `None` when the caller may not read this person's pay — see the module docs.
+     * `None` when the caller may not read this person's pay — see the module
+     * docs — or when no salary is set (`salary_set` tells the two apart).
      * @nullable
      */
   base_salary_piastres?: number | null;
@@ -94,6 +95,12 @@ export interface Employee {
      * @nullable
      */
   role?: string | null;
+  /**
+     * A salary is on file (owner decision D9): false = "not set" (someone a
+     * manager added or imported), shown as "—" and flagged by payroll.
+     * Never hidden: it says nothing about the amount.
+     */
+  salary_set: boolean;
   /** @nullable */
   termination_date?: string | null;
   updated_at: string;

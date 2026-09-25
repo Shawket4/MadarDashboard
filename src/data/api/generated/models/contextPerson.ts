@@ -14,7 +14,8 @@ export interface ContextPerson {
      */
   advance_within_cap: boolean;
   /**
-     * Only for people whose pay the caller may see.
+     * Only for people whose pay the caller may see (null too when no
+     * salary is set: `salary_set`).
      * @nullable
      */
   base_salary_piastres?: number | null;
@@ -42,6 +43,8 @@ export interface ContextPerson {
      * with no account is `employee`).
      */
   role: string;
+  /** A salary is on file (D9); false = "not set". Never hidden. */
+  salary_set: boolean;
   /**
      * Their Madar account, when they have one.
      * @nullable

@@ -251,6 +251,7 @@ export * from './decisionOutBaseline';
 export * from './decisionOutDetail';
 export * from './decisionOutImpact';
 export * from './deductionLogRow';
+export * from './deductionOverrideEvent';
 export * from './deductionOverridesAuditParams';
 export * from './deleteAddonIngredientParams';
 export * from './deleteBranchAddonOverrideParams';

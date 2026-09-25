@@ -35,8 +35,9 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { PHONE_RAW_MAX, canonicalPhone, isValidPhone } from "@/lib/phone";
 import { fmtMoney } from "@/lib/format";
 import { BranchChecklist } from "@/features/staff/branch-checklist";
-import { invalidateStaff } from "@/features/staff/util";
+import { invalidateStaff, todayIso } from "@/features/staff/util";
 import { readPounds } from "./money-dialogs";
+import { SalaryCalculator } from "./salary-calculator";
 import { parsePeople, readSheet, type NewPerson, type RowError } from "./people";
 
 function useBranches() {
@@ -52,7 +53,9 @@ export type EmployeeKind = "app" | "manual" | "linked";
  * - `manual`: records only — attendance and pay are entered for them.
  * - `linked`: an existing Madar user (a cashier, a manager) made an employee.
  * Creating an employee never creates a POS user. Salary is asked only of
- * someone who may set it (`hr.payroll.edit`); the server ignores it otherwise.
+ * someone who may set it (`hr.payroll.edit` at every branch); from anyone else
+ * the server stores it "not set" (owner decision 9), so no box is offered.
+ * The calculator beside it turns a day or hour rate into the monthly figure.
  */
 export function AddEmployeeDialog({
   onOpenChange,
@@ -65,7 +68,7 @@ export function AddEmployeeDialog({
   const { t } = useTranslation();
   const branches = useBranches();
   const authz = useAuthz();
-  const canSetSalary = authz.can(Cap.hrPayrollEdit);
+  const canSetSalary = authz.canEverywhere(Cap.hrPayrollEdit);
   const linkableQ = useLinkableUsers({ query: { staleTime: 30_000 } });
   const linkable = useMemo(() => linkableQ.data ?? [], [linkableQ.data]);
 
@@ -114,6 +117,7 @@ export function AddEmployeeDialog({
   });
   const kind = form.watch("kind");
   const pickedUser = form.watch("user_id");
+  const hireDate = form.watch("hire_date");
   const { isSubmitting } = form.formState;
 
   // One branch: nothing to choose.
@@ -293,8 +297,13 @@ export function AddEmployeeDialog({
                 name="salary"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("dawam.salaryEgp", "Monthly salary (EGP)")}</FormLabel>
-                    <FormControl><Input type="number" inputMode="decimal" {...field} /></FormControl>
+                    <SalaryCalculator
+                      id="add-salary"
+                      label={t("dawam.salaryEgp", "Monthly salary (EGP)")}
+                      monthly={field.value}
+                      onMonthly={(v) => form.setValue("salary", v, { shouldValidate: true, shouldDirty: true })}
+                      hireDate={hireDate || todayIso()}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -347,7 +356,7 @@ export function ImportPeopleDialog({ onOpenChange }: { onOpenChange: (o: boolean
   const branches = useBranches();
   // The server keeps a salary only from someone who may set pay
   // (hr.payroll.edit); anyone else is told, and the salaries aren't sent.
-  const canSetSalary = useAuthz().can(Cap.hrPayrollEdit);
+  const canSetSalary = useAuthz().canEverywhere(Cap.hrPayrollEdit);
   const [parsed, setParsed] = useState<{ people: NewPerson[]; errors: RowError[] } | null>(null);
   const [outcomes, setOutcomes] = useState<Record<number, Outcome>>({});
   const [busy, setBusy] = useState(false);

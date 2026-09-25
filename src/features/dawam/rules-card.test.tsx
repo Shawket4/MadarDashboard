@@ -64,8 +64,14 @@ describe("Dawam rules", () => {
         night_start: "22:00:00", night_end: "06:00:00",
         limit_day_hours: 8, limit_week_hours: 48, limit_presence_hours: 10, limit_rest_hours: 12, limit_overtime_day_hours: 2,
         orders_per_staff: 12,
+        // A server that doesn't send it yet means the default (D5).
+        cover_pay_mode: "minute_rate",
       },
     });
+    // D5: a business that pays a covered block as a full day keeps it.
+    const block = rulesFrom({ ...settings, cover_pay_mode: "full_block" } as typeof settings);
+    expect(block.coverPayMode).toBe("full_block");
+    expect((rulesRequest(block) as { ok: Record<string, unknown> }).ok.cover_pay_mode).toBe("full_block");
     // The gender mode only rides for someone who may change it (SC-12).
     expect((rulesRequest(r, true) as { ok: Record<string, unknown> }).ok.gender_mode).toBe("soft");
   });

@@ -8,6 +8,11 @@ import type { Payslip } from './payslip';
 export interface CurrentPayroll {
   /** Earlier periods, newest first. */
   history: PayrollPeriod[];
+  /**
+     * People on payroll with no salary set (D9): the preview rows with
+     * `salary_missing`; approval is refused until it is 0.
+     */
+  missing_salary_count: number;
   /** How many payslips are marked paid (a 'none' mark counts). */
   paid_count: number;
   /** The frozen payslips once it has been generated. */

@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/data/api/generated/api", () => ({
+  useCurrent: () => ({ data: undefined, isLoading: false }),
   useListEmployees: () => ({
     data: [
       { id: "e1", name: "Sara Ahmed", user_id: "u2" },
@@ -24,6 +25,7 @@ vi.mock("@/data/api/generated/api", () => ({
   reviewAdvance: vi.fn(),
 }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
+vi.mock("@/data/authz/use-authz", () => ({ useAuthz: () => ({ can: () => false, canAny: () => false }) }));
 
 Element.prototype.hasPointerCapture ??= () => false;
 Element.prototype.releasePointerCapture ??= () => {};

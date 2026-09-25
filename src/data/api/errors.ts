@@ -5,6 +5,9 @@ import { fmtDate, fmtTime } from "@/lib/format";
 
 const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
+/** The kinds the backend's AppError writes before its sentence. */
+const SERVER_KIND_PREFIX = /^(?:Unauthorized|Forbidden|Not found|Bad request|Conflict|Service unavailable|Database error): /;
+
 /**
  * A coded refusal's figures (`ErrorBody.vars`) ready for its sentence: a
  * date reads as a date, an instant as a time, weekdays and a status as
@@ -19,6 +22,8 @@ function codedVars(raw: unknown, t: TFunction): Record<string, unknown> {
     else if (k === "days" && Array.isArray(v))
       out[k] = v.map((d) => t(`staff.${WEEKDAY_KEYS[Number(d)] ?? ""}`, String(d))).join(t("common.listSeparator", ", "));
     else if (k === "status" && typeof v === "string") out[k] = t(`staff.req_${v}`, v);
+    // People named in a refusal (SALARY_MISSING, D9).
+    else if (k === "names" && Array.isArray(v)) out[k] = v.join(t("common.listSeparator", ", "));
     else if (k.endsWith("_at") && typeof v === "string") out[k] = fmtTime(v);
     else out[k] = v;
   }
@@ -76,13 +81,18 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
             ? `${code}_named`
             : code === "SHIFTS_OVERLAP" && typeof vars.a === "string"
               ? "SHIFTS_OVERLAP_named"
-              : code;
+              : // Over the cap with no amount: the caller may not see the salary it reveals (D7).
+                code === "ADVANCE_OVER_CAP" && vars.more_egp === undefined && vars.over_cap === true
+                ? "ADVANCE_OVER_CAP_owner"
+                : code;
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
     // A 403 the server didn't code is a missing right; its prose is English (B-ROTA-9).
     if (status === 403 && !code) return t("errors.unauthorized");
 
-    // Backend convention: { error: "..." } or { message: "..." }
-    if (typeof data?.error === "string") return data.error;
+    // Backend convention: { error: "..." } or { message: "..." }. The server
+    // prefixes the error's kind ("Conflict: …", AppError's Display); the
+    // reader wants the sentence (owner decision 43).
+    if (typeof data?.error === "string") return data.error.replace(SERVER_KIND_PREFIX, "");
     if (typeof data?.message === "string") return data.message;
 
     // Network / offline

@@ -134,3 +134,37 @@ export const currentMonthRange = (): { start: string; end: string; name: string 
     name: now.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
   };
 };
+
+/** The fields of an attendance record a cover is read from. */
+interface CoverRecord {
+  employee_id: string;
+  employee_name?: string | null;
+  business_date: string;
+  work_shift_id?: string | null;
+  covered_employee_id?: string | null;
+  cover_status?: string | null;
+}
+
+/**
+ * Who is covering `employeeId`'s shift on `date` (owner decision D1): a
+ * pending or confirmed cover by a colleague refuses every punch for the
+ * shift's owner (409 SHIFT_COVERED), so a punch isn't offered. A rejected
+ * cover blocks nothing. `workShiftId` narrows it to one shift; omitted, any
+ * of the day's shifts counts.
+ */
+export function coveredBy(
+  records: readonly CoverRecord[],
+  employeeId: string,
+  date: string,
+  workShiftId?: string | null,
+): string | null {
+  const c = records.find(
+    (r) =>
+      r.covered_employee_id === employeeId &&
+      r.employee_id !== employeeId &&
+      r.business_date === date &&
+      (r.cover_status === "pending" || r.cover_status === "confirmed") &&
+      (workShiftId === undefined || r.work_shift_id === workShiftId),
+  );
+  return c ? (c.employee_name ?? "—") : null;
+}

@@ -37,6 +37,8 @@ let scopeBranch: string | null = "b1";
 let weekHolidays: unknown[] = [];
 const refetchSuggestions = vi.fn();
 const refetchCoverage = vi.fn();
+/** Holidays in the 45-day read from today. */
+let holidaysList: unknown[] = [];
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
 vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const calls = {
@@ -96,8 +98,8 @@ vi.mock("@/data/api/generated/api", () => ({
     ],
     shifts: shiftsList,
     open_shifts: openShifts,
-    // The 45-day read from today carries one holiday; the viewed week's read its own.
-    holidays: p.to === addDays(todayIso(), 45) ? [{ on_date: addDays(todayIso(), 10), name_en: "Armed Forces Day", name_ar: "عيد القوات المسلحة", decision: null }] : weekHolidays,
+    // The 45-day read from today carries holidaysList; the viewed week's read its own.
+    holidays: p.to === addDays(todayIso(), 45) ? holidaysList : weekHolidays,
     warnings, limits_unconfirmed: true,
     // Sara's first day holds its own set; Omar's second is a day off by date.
     date_sets: [
@@ -160,6 +162,7 @@ beforeEach(() => {
   refetchSuggestions.mockClear();
   refetchCoverage.mockClear();
   toastMock.success.mockClear();
+  holidaysList = [{ on_date: addDays(todayIso(), 10), name_en: "Armed Forces Day", name_ar: "عيد القوات المسلحة", decision: null }];
   suggestionsList = [
     { id: "g1", date: addDays(week, 2), employee_id: "e4", employee_name: "Youssef Adel", shift_name: "Evening", work_shift_id: "zE", reason_key: "staff.sg_gap", reason_args: { shift: "Evening", short: 1 }, confidence: 72, by_default: true },
   ];
@@ -266,28 +269,45 @@ describe("SchedulePage", () => {
     await waitFor(() => expect(calls.postOpenShift).toHaveBeenCalledWith({ branch_id: "b1", on_date: addDays(week, 3), work_shift_id: "zE" }));
   });
 
-  it("accepts a suggestion and sets up a holiday (SC-13, RU-10)", async () => {
+  it("accepts a suggestion (SC-13)", async () => {
     const user = userEvent.setup();
     wrap(<SchedulePage />);
     expect(screen.getByText(/Evening is 1 short/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Accept" }));
     await waitFor(() => expect(calls.decideSuggestion).toHaveBeenCalledWith({ branch_id: "b1", id: "g1", accept: true }));
+  });
+
+  it("D3: the owner (rules right at every branch) sets up a holiday (RU-10)", async () => {
+    held = [...held, "hr.rules.edit"];
+    everywhere = ["hr.schedule.read", "hr.schedule.edit", "hr.schedule.publish", "hr.rules.edit"];
+    const user = userEvent.setup();
+    wrap(<SchedulePage />);
     await user.click(screen.getByRole("button", { name: "Make it a holiday" }));
     await waitFor(() => expect(calls.decideHoliday).toHaveBeenCalledWith(addDays(todayIso(), 10), { decision: "holiday" }));
   });
 
-  it("lets a branch manager who publishes decide a public holiday (R-B3, RU-10)", () => {
-    // Karim publishes Arkan's rota only; since R-B3 that is enough for a holiday.
+  it("D3: a branch manager who publishes sees public holidays read-only", () => {
+    // Karim publishes Arkan's rota; holidays are the owner's, like the rules (OWNER_ONLY).
     everywhere = ["hr.schedule.read"];
     wrap(<SchedulePage />);
-    expect(screen.getByRole("button", { name: "Make it a holiday" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Normal day" })).toBeInTheDocument();
+    expect(screen.getByText("Armed Forces Day")).toBeInTheDocument();
+    expect(screen.getByText("The owner decides public holidays.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Make it a holiday" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Normal day" })).not.toBeInTheDocument();
   });
 
-  it("offers no holiday decision without the publish right", () => {
-    held = ["hr.schedule.read", "hr.schedule.edit"];
+  it("D3: someone who only reads the schedule sees the holidays and how each was decided", () => {
+    held = ["hr.schedule.read"];
+    holidaysList = [
+      { on_date: addDays(todayIso(), 10), name_en: "Armed Forces Day", name_ar: "عيد القوات المسلحة", decision: null },
+      { on_date: addDays(todayIso(), 20), name_en: "Prophet's Birthday", name_ar: "المولد النبوي", decision: "holiday" },
+      { on_date: addDays(todayIso(), 30), name_en: "Coptic New Year", name_ar: "رأس السنة القبطية", decision: "dismissed" },
+    ];
     wrap(<SchedulePage />);
     expect(screen.getByText("Armed Forces Day")).toBeInTheDocument();
+    expect(screen.getByText("Not decided yet")).toBeInTheDocument();
+    expect(screen.getByText("Holiday")).toBeInTheDocument();
+    expect(screen.getByText("Normal day")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Make it a holiday" })).not.toBeInTheDocument();
   });
 
@@ -586,6 +606,15 @@ describe("SchedulePage", () => {
     const btn = screen.getByRole("button", { name: "Sara Ahmed's preferences" });
     expect(btn).toHaveClass("size-8");
     expect(btn).not.toHaveClass("size-6");
+  });
+
+  it("gives each Post-an-open-shift button a 32 px tap target on a phone (box verify)", () => {
+    wrap(<SchedulePage />);
+    for (const btn of screen.getAllByRole("button", { name: /Post an open shift on/ })) {
+      expect(btn).toHaveClass("size-8");
+      expect(btn).toHaveClass("sm:size-7");
+      expect(btn).not.toHaveClass("size-7");
+    }
   });
 });
 

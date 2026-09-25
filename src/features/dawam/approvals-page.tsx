@@ -31,11 +31,17 @@ import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
-import { ApproveWithPayDialog, ASKS_PAY, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds } from "@/features/staff/requests-inbox";
-import { fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
+import {
+  ApproveWithPayDialog, ASKS_PAY, confirmMissionOverPunches, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds,
+} from "@/features/staff/requests-inbox";
+import { fmtHours, fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
 import { dawamQuery } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
-import { ReviewAdvanceDialog } from "./money-dialogs";
+import { AdvanceCapNote, RejectDialog, ReviewAdvanceDialog } from "./money-dialogs";
+import { capView, warningsOf } from "./phase-d";
+
+/** An approval the approver backed out of: nothing was sent, nothing to say. */
+const BACKED_OUT = Symbol("backed out");
 
 export type Section = "all" | "requests" | "money" | "shifts";
 
@@ -55,7 +61,9 @@ export interface Pending {
   rejectOnly?: boolean;
   /** Its month is closed and nothing about it can be decided any more. */
   locked?: boolean;
-  reject: () => Promise<unknown>;
+  /** A rejection that must say why (money, D8): its reason goes to the server. */
+  reasonRequired?: boolean;
+  reject: (reason?: string) => Promise<unknown>;
 }
 
 export function ApprovalsPage() {
@@ -65,6 +73,7 @@ export function ApprovalsPage() {
   const [section, setSection] = useState<Section>("all");
   const [paying, setPaying] = useState<StaffRequest | null>(null);
   const [reviewing, setReviewing] = useState<Parameters<typeof ReviewAdvanceDialog>[0]["advance"]>(null);
+  const [rejecting, setRejecting] = useState<Pending | null>(null);
 
   const can = {
     requests: authz.canAny(Cap.hrLeaveEdit, Cap.hrAttendanceEdit),
@@ -74,6 +83,8 @@ export function ApprovalsPage() {
     overtime: authz.can(Cap.hrOvertimeApprove),
     payLines: authz.can(Cap.hrPayrollRun),
   };
+  // The owner (payroll run everywhere) may pass the advance cap; a manager can't (D7).
+  const mayPassCap = authz.canEverywhere(Cap.hrPayrollRun);
   const any = Object.values(can).some(Boolean);
   const from = isoDaysFromToday(-35);
 
@@ -117,8 +128,20 @@ export function ApprovalsPage() {
     try {
       const r = fn();
       if (r instanceof Promise) {
-        await r;
+        const out = await r;
+        if (out === BACKED_OUT) return;
         decided();
+        // A claim that makes a long day passes a labour limit: said, never blocked (RU-13, M26).
+        for (const w of warningsOf(out)) {
+          toast.warning(
+            t("dawam.limitWarning", {
+              limit: t(`dawam.warn_${w.kind}`, w.kind),
+              minutes: fmtHours(w.minutes),
+              cap: fmtHours(w.limit_minutes),
+              defaultValue: "{{limit}}: {{minutes}} of {{cap}}. Only a warning.",
+            }),
+          );
+        }
       }
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -143,14 +166,18 @@ export function ApprovalsPage() {
         who: r.employee_name ?? "—",
         kind: t(meta.labelKey, meta.fallback),
         badges: <RequestBadges r={r} mine={false} />,
-        detail: [describeWindow(r, t), r.reason].filter(Boolean).join(" · "),
+        detail: [describeWindow(r, t), r.title, r.reason].filter(Boolean).join(" · "),
         at: r.created_at,
-        approve: asksPay ? () => setPaying(r) : () => decideRequest(r.id, { status: "approved" }),
+        approve: asksPay
+          ? () => setPaying(r)
+          : async () => ((await confirmMissionOverPunches(r, confirm, t)) ? decideRequest(r.id, { status: "approved" }) : BACKED_OUT),
         rejectOnly: !!r.month_closed,
         reject: () => decideRequest(r.id, { status: "rejected" }),
       });
     }
     for (const a of can.advances ? (advancesQ.data ?? []).filter((x) => x.status === "pending") : []) {
+      // Over the cap, only the owner can approve: a manager may still reject (D7).
+      const overForMe = capView(a).within === false && !mayPassCap;
       out.push({
         key: `v|${a.id}`,
         section: "money",
@@ -159,8 +186,11 @@ export function ApprovalsPage() {
         kind: t("dawam.salaryAdvance", "Salary advance"),
         detail: [t("dawam.advanceMeta", { amount: fmtMoney(a.amount_piastres), count: a.installments }), a.reason].filter(Boolean).join(" · "),
         at: a.created_at,
+        badges: <AdvanceCapNote advance={a} mayPassCap={mayPassCap} />,
         approve: () => setReviewing(a),
-        reject: () => reviewAdvance(a.id, { approve: false }),
+        rejectOnly: overForMe,
+        reasonRequired: true,
+        reject: (reason) => reviewAdvance(a.id, { approve: false, reason }),
       });
     }
     for (const a of can.payLines ? payLinesQ.data ?? [] : []) {
@@ -173,7 +203,8 @@ export function ApprovalsPage() {
         detail: [a.percent_of_base != null ? `${a.percent_of_base}%` : fmtMoney(a.amount_piastres ?? 0), a.reason].join(" · "),
         at: a.created_at,
         approve: () => decideAdjustment(a.kind, a.id, { approve: true }),
-        reject: () => decideAdjustment(a.kind, a.id, { approve: false }),
+        reasonRequired: true,
+        reject: (reason) => decideAdjustment(a.kind, a.id, { approve: false, reason }),
       });
     }
     for (const s of can.roster ? swapsQ.data ?? [] : []) {
@@ -221,7 +252,7 @@ export function ApprovalsPage() {
           reject: () => decideCover(r.id, { approve: false }),
           // A closed month can't take a confirmed cover; rejecting one still goes through.
           rejectOnly: !!r.month_closed,
-          badges: r.month_closed ? <Badge variant="outline">{t("staff.monthClosedRejectOnly", "Month closed: reject only")}</Badge> : undefined,
+          badges: r.month_closed ? <ClosedMonthNote /> : undefined,
         });
       }
     }
@@ -237,15 +268,15 @@ export function ApprovalsPage() {
           at: r.check_out_at ?? r.created_at,
           approve: () => decideOvertime(r.id, { approve: true }),
           reject: () => decideOvertime(r.id, { approve: false }),
-          // The server refuses deciding overtime at all in a closed month.
-          locked: !!r.month_closed,
-          badges: r.month_closed ? <Badge variant="outline">{t("staff.monthClosed", "Month closed")}</Badge> : undefined,
+          // A closed month takes no new pay; rejecting moves none, so it goes through (owner decision 32).
+          rejectOnly: !!r.month_closed,
+          badges: r.month_closed ? <ClosedMonthNote /> : undefined,
         });
       }
     }
     return out.sort((a, b) => b.at.localeCompare(a.at));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestsQ.data, own, advancesQ.data, payLinesQ.data, swapsQ.data, claimsQ.data, coversQ.data, overtimeQ.data, t]);
+  }, [requestsQ.data, own, advancesQ.data, payLinesQ.data, swapsQ.data, claimsQ.data, coversQ.data, overtimeQ.data, t, mayPassCap]);
 
   if (authz.ready && !any) {
     return <Restricted title={t("dawam.approvals", "Approvals")} who={t("dawam.approvalsNoAccess", "Nothing here is yours to decide. The owner can give you access.")} />;
@@ -256,6 +287,11 @@ export function ApprovalsPage() {
   const label = (s: Section, text: string) => `${text} (${count(s)})`;
 
   const reject = async (i: Pending) => {
+    // Money says why it was refused (D8); the rest confirms.
+    if (i.reasonRequired) {
+      setRejecting(i);
+      return;
+    }
     const ok = await confirm({
       title: t("dawam.rejectTitle", { name: i.who, kind: i.kind, defaultValue: `Reject ${i.who}'s ${i.kind}?` }),
       // A rejected request leaves the day as if nothing was filed, so its
@@ -332,6 +368,28 @@ export function ApprovalsPage() {
       )}
       <ApproveWithPayDialog key={paying?.id} request={paying} onOpenChange={(o) => !o && setPaying(null)} />
       <ReviewAdvanceDialog key={reviewing?.id} advance={reviewing} onOpenChange={(o) => !o && setReviewing(null)} />
+      <RejectDialog
+        key={rejecting?.key}
+        open={!!rejecting}
+        onOpenChange={(o) => !o && setRejecting(null)}
+        title={rejecting ? t("dawam.rejectTitle", { name: rejecting.who, kind: rejecting.kind, defaultValue: `Reject ${rejecting.who}'s ${rejecting.kind}?` }) : ""}
+        description={t("dawam.rejectWhyHint", "They are told, with your reason, and nothing is paid for it. The reason is kept in the audit log.")}
+        onReject={(reason) => rejecting!.reject(reason)}
+      />
     </Page>
   );
 }
+
+/** A cover or overtime in an approved or paid month: reject it, or pay it as a line next month (owner decision 32). */
+function ClosedMonthNote() {
+  const { t } = useTranslation();
+  return (
+    <>
+      <Badge variant="outline">{t("staff.monthClosedRejectOnly", "Month closed: reject only")}</Badge>
+      <span className="basis-full text-xs font-normal text-muted-foreground">
+        {t("dawam.closedMonthNextLine", "To pay it, add it as a line in next month.")}
+      </span>
+    </>
+  );
+}
+

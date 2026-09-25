@@ -24,6 +24,10 @@ export interface PayLine {
   waivedId?: string;
   /** Waived (AD-8): shown struck through, and not in the net. */
   waived?: boolean;
+  /** Why it was waived, when the server says (AD-6, M29). */
+  waiveReason?: string;
+  /** Why a rule line's amount was overridden (AD-7, M29). */
+  overrideReason?: string;
 }
 
 type Breakdown = {
@@ -34,6 +38,10 @@ type Breakdown = {
   bonuses?: { id?: string | null; kind?: string; reason?: string; piastres?: number; source?: string }[];
   deductions?: {
     id?: string | null; kind?: string; reason?: string; piastres?: number; source?: string; waived?: boolean;
+    /** Why it was waived (M29); absent from an older server. */
+    waive_reason?: string | null;
+    /** Why its amount was overridden (M29). */
+    override_reason?: string | null;
     /** The server's own wording as a code (D-B2); null for a person's own words. */
     reason_code?: string | null;
     reason_vars?: Record<string, string | number> | null;
@@ -129,6 +137,8 @@ export function payslipLines(p: ComputedPayslip | Payslip): PayLine[] {
       deductionId: !carry && !manual && !l.waived && l.id ? l.id : undefined,
       waivedId: !carry && !manual && l.waived && l.id ? l.id : undefined,
       waived: l.waived || undefined,
+      waiveReason: l.waived && l.waive_reason ? l.waive_reason : undefined,
+      overrideReason: !l.waived && l.override_reason ? l.override_reason : undefined,
     });
   }
   // The deductions above are listed in full; what a payslip could not
