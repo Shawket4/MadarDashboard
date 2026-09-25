@@ -56,6 +56,8 @@ vi.mock("@/data/authz/use-authz", async () => {
   };
 });
 let scopeBranch: string | null = "b1";
+/** H3: the window's summary read fails with this. */
+let summaryError: unknown = null;
 vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: scopeBranch }) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o1" }));
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
@@ -68,7 +70,7 @@ let shifts: { id: string; name: string; branch_id: string | null }[] = [];
 vi.mock("@/data/api/generated/api", () => ({
   listAttendance: vi.fn(async () => []),
   useListAttendance: () => q(records),
-  useAttendanceSummary: () => q([]),
+  useAttendanceSummary: () => (summaryError ? { ...q(undefined), error: summaryError } : q([])),
   useListEmployees: () => q([
     { id: "e1", name: "Sara Ahmed", branch_ids: ["b1"] }, { id: "e2", name: "Omar Nabil", branch_ids: ["b1"] },
     { id: "e3", name: "Hana Adel", branch_ids: ["b1", "b2"] },
@@ -97,6 +99,20 @@ beforeEach(() => {
   createManualRecord.mockClear();
   held = ["hr.attendance.read", "hr.attendance.edit", "hr.attendance.create"];
   shifts = [];
+});
+
+describe("Attendance: a failed summary is no reassuring zero (H3)", () => {
+  it("the headline counts read '—' when the summary fails", () => {
+    summaryError = new Error("boom");
+    try {
+      wrap(<AttendancePage />);
+      const card = screen.getByText("Absent days").closest("div")!.parentElement!;
+      expect(card.textContent).toMatch(/—/);
+      expect(card.textContent).not.toMatch(/\b0\b/);
+    } finally {
+      summaryError = null;
+    }
+  });
 });
 
 describe("Attendance actions follow capabilities", () => {

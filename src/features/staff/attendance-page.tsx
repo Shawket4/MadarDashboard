@@ -304,11 +304,12 @@ export function AttendancePage() {
         }
       />
 
+      {/* A failed summary has no counts: a dash, never a reassuring 0 (H3, as the Team board). */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={CalendarCheck} label={t("staff.presentDays", "Present days")} value={totals.present} loading={summaryQ.isLoading} />
-        <StatCard icon={AlarmClock} label={t("staff.lateDays", "Late days")} value={totals.late} loading={summaryQ.isLoading} />
-        <StatCard icon={CalendarX} label={t("staff.absentDays", "Absent days")} value={totals.absent} loading={summaryQ.isLoading} />
-        <StatCard icon={Timer} label={t("staff.overtime", "Overtime")} value={fmtHours(totals.overtime)} loading={summaryQ.isLoading} />
+        <StatCard icon={CalendarCheck} label={t("staff.presentDays", "Present days")} value={summaryQ.error ? "—" : totals.present} loading={summaryQ.isLoading} />
+        <StatCard icon={AlarmClock} label={t("staff.lateDays", "Late days")} value={summaryQ.error ? "—" : totals.late} loading={summaryQ.isLoading} />
+        <StatCard icon={CalendarX} label={t("staff.absentDays", "Absent days")} value={summaryQ.error ? "—" : totals.absent} loading={summaryQ.isLoading} />
+        <StatCard icon={Timer} label={t("staff.overtime", "Overtime")} value={summaryQ.error ? "—" : fmtHours(totals.overtime)} loading={summaryQ.isLoading} />
       </div>
 
       <DataTable
