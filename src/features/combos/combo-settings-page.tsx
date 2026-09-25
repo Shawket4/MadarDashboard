@@ -207,7 +207,7 @@ export function ComboSettingsPage() {
                 max={99}
                 step={1}
                 dir="ltr"
-                className="w-28 font-mono"
+                className="w-36 font-mono"
                 placeholder={t("combos.settings.noWarning", "No warning")}
                 aria-invalid={!!marginError}
                 aria-describedby="combo-min-margin-hint"
