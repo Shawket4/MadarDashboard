@@ -71,5 +71,18 @@ describe("Phase D refusals", () => {
     // A sentence that merely contains a colon stays whole.
     expect(getErrorMessage(apiError({ error: "Time off: 3 days left" }))).toBe("Time off: 3 days left");
   });
+
+  it("box verify: the staff-app codes have dashboard words too (DEVICE_REVOKED, STAFF_APP_ONLY, MANAGER_ACCOUNT_NEEDED)", async () => {
+    for (const [code, status] of [["DEVICE_REVOKED", 401], ["STAFF_APP_ONLY", 403], ["MANAGER_ACCOUNT_NEEDED", 403]] as const) {
+      const err = apiError({ code, error: "SERVER ENGLISH" }, status);
+      await i18n.changeLanguage("en");
+      const en = getErrorMessage(err);
+      await i18n.changeLanguage("ar");
+      const ar = getErrorMessage(err);
+      expect(en).not.toBe("SERVER ENGLISH");
+      expect(ar).not.toMatch(/[A-Za-z]{3,}/);
+      expect(ar).not.toBe(en);
+    }
+  });
 });
 

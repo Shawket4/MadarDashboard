@@ -2276,7 +2276,10 @@
       "OWNER_ONLY": "Only the owner can do this.",
       "ADVANCE_OVER_CAP_owner": "That's over the advance cap. Only the owner can approve it.",
       "REASON_REQUIRED": "Say why: a rejection needs a reason.",
-      "SALARY_MISSING": "No salary is set for {{names}}. Set it, or mark them not on payroll, before approving."
+      "SALARY_MISSING": "No salary is set for {{names}}. Set it, or mark them not on payroll, before approving.",
+      "DEVICE_REVOKED": "This phone was signed out. Sign in again with your code.",
+      "STAFF_APP_ONLY": "This is for the Dawam app, signed in on your phone.",
+      "MANAGER_ACCOUNT_NEEDED": "Managing others needs a Madar account with those rights."
     }
   },
   "theme": {
