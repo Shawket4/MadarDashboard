@@ -55,6 +55,14 @@ const SHIFT_FIELD_LABELS: Record<string, [string, string]> = {
   ot_night_multiplier: ["staff.otNightMultiplier", "Night overtime rate"],
 };
 
+/** A payroll month's status as the Payroll page names it (PERIOD_* {status, from, to}, M43). */
+const PERIOD_STATUS_KEYS: Record<string, [string, string]> = {
+  draft: ["dawam.phase_open", "Open"],
+  generated: ["dawam.phase_approved", "Approved"],
+  paid: ["dawam.phase_paid", "Paid"],
+  closed: ["dawam.phase_closed", "Closed"],
+};
+
 /** Codes whose `status` picks the sentence rather than filling it in. */
 const STATUS_VARIANTS: Record<string, string[]> = {
   CANCEL_REASON_REQUIRED: ["approved"],
@@ -94,6 +102,11 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
     const vars = codedVars(data?.vars, t);
     // A value the client sent that the server didn't know reads as sent (STATUS_UNKNOWN).
     if (code === "STATUS_UNKNOWN") vars.status = rawVars.status;
+    if (code?.startsWith("PERIOD_"))
+      for (const k of ["status", "from", "to"]) {
+        const w = typeof rawVars[k] === "string" ? PERIOD_STATUS_KEYS[rawVars[k] as string] : undefined;
+        if (w) vars[k] = t(w[0], w[1]);
+      }
     const shiftField = code === "SHIFT_SETTING_INVALID" && typeof vars.field === "string" ? SHIFT_FIELD_LABELS[vars.field] : undefined;
     if (typeof vars.field === "string")
       vars.field = opts.fieldLabel?.(vars.field) ?? (shiftField ? t(shiftField[0], shiftField[1]) : vars.field);

@@ -34,6 +34,10 @@ const DAWAM_CODES = [
   "RANGE_REQUIRED", "EMPLOYEE_NOT_AT_BRANCH",
   // The hunt's coded refusals (H2-B9, HUNT-BACKEND "Codes a client must word").
   ...HUNT_CODES(),
+  // The last uncoded "Conflict:" refusals (M43).
+  "ALREADY_EMPLOYEE", "PHONE_TAKEN", "RULE_LINE_NOT_DELETED", "WAIVER_FINAL", "NOT_WAIVED", "PERIOD_OVERLAPS",
+  "PAYROLL_PAID_NO_REOPEN", "APPROVE_WITH_GENERATE", "PAID_BY_PAYSLIPS", "PERIOD_STATUS_MOVE",
+  "PERIOD_NOT_DRAFT_DELETE", "PERIOD_FROZEN", "PERIOD_NOT_GENERATED", "RECORD_EXISTS",
 ];
 
 function HUNT_CODES(): string[] {
@@ -176,5 +180,21 @@ describe("the backend fixes' refusal codes", () => {
       expect(isStaleRefusal(apiError({ code, error: "x" })), code).toBe(true);
     }
     expect(isStaleRefusal(apiError({ code: "REASON_REQUIRED", error: "x" }, 400))).toBe(false);
+  });
+
+  it("names a payroll month's status in the reader's words, and the phone taken (M43)", async () => {
+    const move = apiError({ code: "PERIOD_STATUS_MOVE", error: "x", vars: { from: "generated", to: "draft" } });
+    const del = apiError({ code: "PERIOD_NOT_DRAFT_DELETE", error: "x", vars: { status: "paid" } });
+    const frozen = apiError({ code: "PERIOD_FROZEN", error: "x", vars: { status: "closed" } });
+    const phone = apiError({ code: "PHONE_TAKEN", error: "x", vars: { phone: "+201001234567" } });
+    await i18n.changeLanguage("en");
+    expect(getErrorMessage(move)).toMatch(/Approved.*Open/);
+    expect(getErrorMessage(del)).toMatch(/Paid/);
+    expect(getErrorMessage(frozen)).toMatch(/Closed/);
+    expect(getErrorMessage(phone)).toMatch(/\+201001234567/);
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(move)).toMatch(new RegExp(`${i18n.t("dawam.phase_approved")}.*${i18n.t("dawam.phase_open")}`));
+    for (const e of [move, del, frozen]) expect(getErrorMessage(e)).not.toMatch(/generated|draft|paid|closed|\{\{/);
+    expect(getErrorMessage(phone)).toMatch(/\+201001234567/);
   });
 });

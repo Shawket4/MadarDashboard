@@ -2359,7 +2359,21 @@
       "PERIOD_NOT_FOUND": "That payroll month isn't there any more.",
       "PAYROLL_NOT_APPROVED": "Approve the payroll before paying it.",
       "PAYSLIP_ALREADY_PAID": "That payslip is already paid.",
-      "PERIOD_NOT_OPENED": "The payroll month couldn't be opened. Try again."
+      "PERIOD_NOT_OPENED": "The payroll month couldn't be opened. Try again.",
+      "ALREADY_EMPLOYEE": "They're already an employee here.",
+      "PHONE_TAKEN": "Someone here already signs in with {{phone}}.",
+      "RULE_LINE_NOT_DELETED": "A line made by the rules is never deleted: waive or override it, with a reason.",
+      "WAIVER_FINAL": "This deduction was waived, and a waiver is final.",
+      "NOT_WAIVED": "This deduction isn't waived.",
+      "PERIOD_OVERLAPS": "Those dates overlap a payroll month that already exists.",
+      "PAYROLL_PAID_NO_REOPEN": "Someone has already been paid, so this payroll can't be reopened.",
+      "APPROVE_WITH_GENERATE": "Approve the month with Approve payroll: it freezes the payslips.",
+      "PAID_BY_PAYSLIPS": "A month is paid once every payslip is marked paid, never by hand.",
+      "PERIOD_STATUS_MOVE": "A month that is {{from}} can't be moved to {{to}}.",
+      "PERIOD_NOT_DRAFT_DELETE": "This month is {{status}}, so it can't be deleted. Reopen it first (only before anyone is paid).",
+      "PERIOD_FROZEN": "This month is {{status}} and frozen. Reopen it (before anyone is paid) to approve it again.",
+      "PERIOD_NOT_GENERATED": "Approve the month before exporting it.",
+      "RECORD_EXISTS": "They already have a record for that day and shift. Correct it instead."
     }
   },
   "theme": {
@@ -6498,7 +6512,8 @@
     "unsettledOpen": "Open it",
     "viewingOlder": "You're looking at an earlier month: {{month}}.",
     "backToCurrent": "Back to this month",
-    "notFullyPaid": "Not fully paid yet"
+    "notFullyPaid": "Not fully paid yet",
+    "phase_closed": "Closed"
   },
   "legal": {
     "label": "Legal",
