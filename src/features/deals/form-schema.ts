@@ -9,8 +9,8 @@ import { z } from "zod";
 
 import { arOf } from "@/features/combos/types";
 import type { DealPoolEntry, DealRule, DealWrite } from "@/features/combos/types";
-import { newKey, windowFromWire, windowSchema, windowToWire } from "@/features/combos/form-schema";
-import { moneyIn, moneyOut } from "@/features/combos/util";
+import { E, newKey, windowFromWire, windowSchema, windowToWire } from "@/features/combos/form-schema";
+import { ALL_WEEKDAYS, hhmm, moneyIn, moneyOut } from "@/features/combos/util";
 
 export const DE = {
   required: "deals.errors.required",
@@ -88,6 +88,17 @@ export const dealSchema = z
       if (v.reward_pool.length === 0) ctx.addIssue({ code: "custom", path: ["reward_pool"], message: DE.rewardEmpty });
       checkTargets(v.reward_pool, "reward_pool");
     }
+    // The combo editor's window rules (the WindowsEditor shows them on the field).
+    v.windows.forEach((w, i) => {
+      if ((w.weekdays & ALL_WEEKDAYS) === 0) ctx.addIssue({ code: "custom", path: ["windows", i, "weekdays"], message: E.noDays });
+      const s = hhmm(w.starts_at);
+      const e = hhmm(w.ends_at);
+      if (!!s !== !!e) ctx.addIssue({ code: "custom", path: ["windows", i, "ends_at"], message: E.hoursPair });
+      else if (s && e && s === e) ctx.addIssue({ code: "custom", path: ["windows", i, "ends_at"], message: E.hoursSame });
+      if (w.valid_from && w.valid_to && w.valid_from > w.valid_to) {
+        ctx.addIssue({ code: "custom", path: ["windows", i, "valid_to"], message: E.datesOrder });
+      }
+    });
   });
 
 export type DealFormInput = z.input<typeof dealSchema>;
