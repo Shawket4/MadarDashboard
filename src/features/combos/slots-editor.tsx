@@ -97,6 +97,7 @@ function SlotCard({
     const ids = new Set<string>();
     const out: ItemOption[] = [];
     for (const c of slot?.choices ?? []) {
+      if (!c) continue; // a watched array can hold a hole while a row is added
       const list = c.target === "item" ? [menu.item(c.menu_item_id)].filter(Boolean) : c.category_id ? menu.itemsOfCategory(c.category_id) : [];
       for (const it of list as ItemOption[]) if (!ids.has(it.id)) (ids.add(it.id), out.push(it));
     }
@@ -107,7 +108,9 @@ function SlotCard({
   const fixedPick = Number(slot?.min) === Number(slot?.max);
 
   return (
-    <section aria-labelledby={`slot-${i}-title`} className="space-y-4 rounded-2xl border bg-card p-4 sm:p-5">
+    <section aria-labelledby={`slot-${i}-title`} className="rounded-2xl border bg-card p-4 sm:p-5">
+      {/* A disabled fieldset disables every control in the slot for a read-only viewer. */}
+      <fieldset disabled={disabled} className="min-w-0 space-y-4">
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 id={`slot-${i}-title`} className="truncate text-sm font-semibold">
@@ -245,6 +248,7 @@ function SlotCard({
           </div>
         ) : null}
       </div>
+      </fieldset>
     </section>
   );
 }

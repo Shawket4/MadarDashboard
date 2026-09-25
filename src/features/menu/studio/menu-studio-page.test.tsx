@@ -31,6 +31,7 @@ vi.mock("./section-steps", () => ({ SectionSteps: () => null }));
 vi.mock("./section-modifiers", () => ({ SectionModifiers: () => null }));
 vi.mock("./section-options", () => ({ SectionOptions: () => null }));
 vi.mock("./preview/preview-panel", () => ({ PreviewPanel: () => null }));
+vi.mock("./section-meal", () => ({ SectionMeal: () => null }));
 
 vi.mock("@/data/api/generated/api", () => ({
   getGetRecipeLinkQueryKey: (id: string) => ["link", id],

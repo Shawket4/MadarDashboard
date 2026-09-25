@@ -221,10 +221,10 @@ export function ComboEditorPage() {
   const ro = !canEdit;
   const errs = form.formState.errors;
   const fixed = isFixedShape(
-    (values.slots ?? []).map((s) => ({
+    (values.slots ?? []).filter(Boolean).map((s) => ({
       min: Number(s.min),
       max: Number(s.max),
-      choices: (s.choices ?? []).map((c) => ({ menu_item_id: c.target === "item" ? c.menu_item_id : null, category_id: c.target === "category" ? c.category_id : null })),
+      choices: (s.choices ?? []).filter(Boolean).map((c) => ({ menu_item_id: c.target === "item" ? c.menu_item_id : null, category_id: c.target === "category" ? c.category_id : null })),
     })),
   );
   const imageUrl = previewUrl ?? comboQ.data?.image_url ?? null;

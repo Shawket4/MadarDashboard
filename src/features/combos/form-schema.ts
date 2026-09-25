@@ -300,9 +300,11 @@ export function toWire(v: ComboFormValues): ComboWrite {
 export function toEconomicsBody(v: ComboFormInput): ComboWrite | null {
   const price = moneyIn(v.price);
   if (price === null || !Number.isFinite(price) || price < 0) return null;
+  // A watched form can hold holes for a moment (a row being added or removed).
   const slots = (v.slots ?? [])
+    .filter((s): s is NonNullable<typeof s> => !!s)
     .map((s, i) => {
-      const choices = (s.choices ?? []).filter((c) => (c.target === "item" ? !!c.menu_item_id : !!c.category_id));
+      const choices = (s.choices ?? []).filter((c) => !!c && (c.target === "item" ? !!c.menu_item_id : !!c.category_id));
       const min = Number(s.min);
       const max = Number(s.max);
       if (!choices.length || !Number.isInteger(min) || !Number.isInteger(max) || max < 1 || min > max) return null;
