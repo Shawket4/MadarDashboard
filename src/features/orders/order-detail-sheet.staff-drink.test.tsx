@@ -184,7 +184,7 @@ describe("OrderDetailSheet — a staff drink", () => {
     expect(screen.getByText("مشروب موظفين")).toBeInTheDocument();
     const box = screen.getByTestId("staff-line");
     expect(box).toHaveTextContent("السعر العادي بالإضافات");
-    expect(box).toHaveTextContent("مشروب موظفين · اتقدّم ببلاش");
+    expect(box).toHaveTextContent("مشروب موظفين · قُدّم مجانًا");
     expect(box).toHaveTextContent("المدفوع");
     expect(box.querySelectorAll("bdi")).toHaveLength(3);
     expect(screen.getByText("الأصناف بسعرها العادي")).toBeInTheDocument();

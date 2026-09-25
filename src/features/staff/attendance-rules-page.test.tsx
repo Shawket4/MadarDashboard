@@ -219,7 +219,7 @@ describe("Rules page for the owner", () => {
     await i18n.changeLanguage("ar");
     try {
       await user.click(screen.getByRole("button", { name: /حفظ/ }));
-      await waitFor(() => expect(toastError).toHaveBeenLastCalledWith("الوقت الإضافي: القيمة دي مش من الاختيارات المسموحة."));
+      await waitFor(() => expect(toastError).toHaveBeenLastCalledWith("الوقت الإضافي: هذه القيمة ليست من الخيارات المسموحة."));
     } finally {
       await i18n.changeLanguage("en");
     }

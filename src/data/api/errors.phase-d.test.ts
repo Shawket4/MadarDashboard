@@ -28,7 +28,7 @@ describe("Phase D refusals", () => {
     await i18n.changeLanguage("ar");
     const ar = getErrorMessage(err);
     expect(ar).toMatch(/Salma Adel/);
-    expect(ar).toMatch(/بيغطّي/);
+    expect(ar).toMatch(/يغطّي/);
   });
 
   it("D3: a holiday decided by someone who isn't the owner (OWNER_ONLY, 403, no vars)", async () => {
