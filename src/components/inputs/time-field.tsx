@@ -15,7 +15,11 @@ import { useLang } from "./use-lang";
 export interface TimeFieldProps {
   /** `HH:MM` (24-hour; API seconds are tolerated) or `""` for no time. */
   value: string | null | undefined;
-  /** Emits `HH:MM`, or `""` when cleared. Never emits an unreadable value. */
+  /**
+   * Emits `HH:MM`, or `""` when cleared. Text it can't read is emitted as
+   * typed (never swapped for the last good time), so the form's own time
+   * check refuses it; the field shows it in the invalid state.
+   */
   onChange: (value: string) => void;
   onBlur?: () => void;
   id?: string;
@@ -49,8 +53,9 @@ const nowMinutes = () => {
  * A time of day you can type or pick. Type it the way you'd say it (`930`,
  * `9:30p`, `21:30`, `٩:٣٠ م`) and it reads it back on the app's clock as you
  * go; or open the list of quarter hours, which scrolls to the current value or
- * to now. Something it can't read is never saved: the field keeps the last
- * good time and says what went wrong.
+ * to now. Something it can't read stays on show in the invalid state and
+ * reaches the form as typed, so a save refuses it instead of quietly keeping
+ * the last good time.
  *
  * Keyboard: ↓ opens the list and moves, ↑ moves back, PgUp/PgDn jump an hour,
  * Enter picks, Esc closes (a second Esc undoes the typing).
@@ -120,7 +125,13 @@ export function TimeField({
     }
     const parsed = parseTime(text);
     if (parsed) commit(parsed);
-    else { setBad(text); setDraft(null); }
+    else {
+      // Never leave the form holding the last good time: it gets the text as
+      // typed, which no time check accepts, and the text stays on show.
+      setBad(text);
+      setDraft(text);
+      if (text !== current) onChange(text);
+    }
   };
 
   const move = (delta: number) => {
@@ -168,7 +179,7 @@ export function TimeField({
     ? t("inputs.timeUnreadable", {
         text: bad,
         defaultValue: `Couldn't read "${bad}". Type it like 9:30, 930 or 9:30 pm.`,
-      }) + (current ? " " + t("inputs.timeKept", { time: shown, defaultValue: `Kept ${shown}.` }) : "")
+      })
     : null;
 
   return (

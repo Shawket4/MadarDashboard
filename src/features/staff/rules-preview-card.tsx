@@ -25,7 +25,7 @@ export function RulesPreview({
 }) {
   const { t } = useTranslation();
   const [late, setLate] = useState<number | null>(20);
-  const minutes = late ?? 0;
+  const minutes = late !== null && Number.isFinite(late) ? late : 0;
   const tier = selectTier(tiers, minutes);
   const amount = tier ? tierPiastres(tier, example) : 0;
   const index = tier ? tiers.indexOf(tier) : -1;
@@ -52,12 +52,12 @@ export function RulesPreview({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="preview-salary">{t("staff.previewSalary", "Example monthly salary")}</Label>
-            <MoneyField id="preview-salary" stepPounds={500} value={example.salary} onChange={(p) => onExample({ ...example, salary: p ?? 0 })} />
+            <MoneyField id="preview-salary" stepPounds={500} value={example.salary} onChange={(p) => p !== null && Number.isFinite(p) && onExample({ ...example, salary: p })} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="preview-shift">{t("staff.previewShift", "Shift length")}</Label>
             <DurationField id="preview-shift" unit="h" min={1} max={24} value={example.shiftMinutes / 60}
-              onChange={(h) => onExample({ ...example, shiftMinutes: Math.round((h ?? 8) * 60) })} />
+              onChange={(h) => h !== null && Number.isFinite(h) && h >= 1 && onExample({ ...example, shiftMinutes: Math.round(h * 60) })} />
           </div>
         </div>
 

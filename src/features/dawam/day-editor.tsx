@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { TimeRangeField } from "@/components/inputs";
+import { TimeRangeField, toHHMM } from "@/components/inputs";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -220,7 +220,7 @@ export function DayEditor({
                     ) : null}
                     <Button
                       size="sm"
-                      disabled={busy || !from || !to || from === to}
+                      disabled={busy || !toHHMM(from) || !toHHMM(to) || from === to}
                       onClick={() =>
                         void run(
                           () => putTimes({ employee_id: person.employee_id, on_date: date, work_shift_id: s.work_shift_id, start_time: `${from}:00`, end_time: `${to}:00` }),

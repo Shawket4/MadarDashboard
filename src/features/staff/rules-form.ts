@@ -105,7 +105,10 @@ export function tierProblem(tiers: Tier[]): { key: string; fallback: string; n?:
   const sorted = [...tiers].sort((a, b) => a.from_minutes - b.from_minutes);
   let previousEnd: number | null = null;
   for (const tier of sorted) {
-    if (!Number.isFinite(tier.from_minutes) || tier.from_minutes < 0) {
+    if (!Number.isFinite(tier.from_minutes) || (tier.to_minutes !== null && !Number.isFinite(tier.to_minutes))) {
+      return { key: "staff.tierNotANumber", fallback: "Type each rung's minutes as a number" };
+    }
+    if (tier.from_minutes < 0) {
       return { key: "staff.tierNegative", fallback: "Minutes cannot be negative" };
     }
     if (tier.to_minutes !== null && tier.to_minutes < tier.from_minutes) {

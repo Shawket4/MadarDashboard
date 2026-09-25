@@ -23,7 +23,7 @@ import { Cap } from "@/generated/capabilities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TimeField } from "@/components/inputs";
+import { TimeField, toHHMM } from "@/components/inputs";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -821,7 +821,7 @@ function NewRequestDialog({
                   id="nr-from"
                   value={v.from_time}
                   invalid={!!errors.from_time}
-                  onChange={(x) => form.setValue("from_time", x, { shouldValidate: form.formState.isSubmitted })}
+                  onChange={(x) => form.setValue("from_time", toHHMM(x), { shouldValidate: form.formState.isSubmitted })}
                 />
                 {err(errors.from_time?.message)}
               </div>
@@ -837,7 +837,7 @@ function NewRequestDialog({
                   id="nr-to"
                   value={v.to_time}
                   invalid={!!errors.to_time}
-                  onChange={(x) => form.setValue("to_time", x, { shouldValidate: form.formState.isSubmitted })}
+                  onChange={(x) => form.setValue("to_time", toHHMM(x), { shouldValidate: form.formState.isSubmitted })}
                 />
                 {err(errors.to_time?.message)}
               </div>

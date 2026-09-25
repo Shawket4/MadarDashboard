@@ -53,10 +53,11 @@ export const SHIFT_PRESETS: ShiftPreset[] = [
 const hhmm = (v: string | null | undefined) => (v ?? "").slice(0, 5);
 const wire = (v: string) => `${v}:00`;
 
-/** A number field that may be left empty ("" = none). */
-const optionalNumber = z.union([z.literal(""), z.coerce.number<string | number>()]);
-
 export function shiftSchema(t: (k: string, d: string) => string) {
+  /** A number, or a plain-language refusal (a field that refused its text hands the form NaN). */
+  const num = () => z.coerce.number<string | number>({ error: t("staff.errNumber", "Type a number") });
+  /** A number field that may be left empty ("" = none). */
+  const optionalNumber = z.union([z.literal(""), num()], { error: t("staff.errNumber", "Type a number") });
   const dayTime = z.object({ start: z.string(), end: z.string() });
   return z
     .object({
@@ -64,15 +65,15 @@ export function shiftSchema(t: (k: string, d: string) => string) {
       name: z.string().trim().min(1, t("staff.errShiftName", "Give the shift a name")),
       start_time: z.string().regex(/^\d{2}:\d{2}$/, t("staff.errTime", "Pick a time")),
       end_time: z.string().regex(/^\d{2}:\d{2}$/, t("staff.errTime", "Pick a time")),
-      grace_minutes: z.coerce.number<string | number>().int().min(0, t("staff.errNonNegative", "Can't be negative")),
-      break_minutes: z.coerce.number<string | number>().int().min(0, t("staff.errNonNegative", "Can't be negative")),
+      grace_minutes: num().int().min(0, t("staff.errNonNegative", "Can't be negative")),
+      break_minutes: num().int().min(0, t("staff.errNonNegative", "Can't be negative")),
       paid_break: z.boolean(),
       half_day_threshold_minutes: optionalNumber,
-      overtime_threshold_minutes: z.coerce.number<string | number>().int().min(0, t("staff.errNonNegative", "Can't be negative")),
-      overtime_multiplier: z.coerce.number<string | number>().gt(0, t("staff.errPositive", "Must be above 0")),
+      overtime_threshold_minutes: num().int().min(0, t("staff.errNonNegative", "Can't be negative")),
+      overtime_multiplier: num().gt(0, t("staff.errPositive", "Must be above 0")),
       ot_day_multiplier: optionalNumber,
       ot_night_multiplier: optionalNumber,
-      checkin_window_minutes: z.coerce.number<string | number>().int().gt(0, t("staff.errPositive", "Must be above 0")),
+      checkin_window_minutes: num().int().gt(0, t("staff.errPositive", "Must be above 0")),
       is_active: z.boolean(),
       valid_days: z.array(z.number().int().min(0).max(6)).min(1, t("staff.errNoDays", "Pick at least one day")),
       day_times: z.record(z.string(), dayTime),
@@ -92,6 +93,8 @@ export function shiftSchema(t: (k: string, d: string) => string) {
         if (!dt.start && !dt.end) continue;
         if (!dt.start || !dt.end) {
           ctx.addIssue({ code: "custom", path: ["day_times", dow], message: t("staff.errBothTimes", "Set both times, or neither") });
+        } else if (!/^\d{2}:\d{2}$/.test(dt.start) || !/^\d{2}:\d{2}$/.test(dt.end)) {
+          ctx.addIssue({ code: "custom", path: ["day_times", dow], message: t("staff.errTime", "Pick a time") });
         } else if (dt.start === dt.end) {
           ctx.addIssue({ code: "custom", path: ["day_times", dow], message: t("staff.errSameTime", "A shift can't start and end at the same time") });
         }
@@ -409,10 +412,10 @@ export function WorkShiftDialog({
             </Collapsible>
 
             {kitNumber("grace_minutes", t("staff.graceMinutesV2", "Grace before late"), (p) => (
-              <DurationField {...p} unit="min" max={240} presets={[0, 5, 10, 15, 30]} />
+              <DurationField {...p} unit="min" presets={[0, 5, 10, 15, 30]} />
             ), t("staff.graceHint", "Arriving within this is on time."))}
             {kitNumber("break_minutes", t("staff.breakMinutesV2", "Break"), (p) => (
-              <DurationField {...p} unit="min" max={480} presets={[0, 15, 30, 60]} />
+              <DurationField {...p} unit="min" presets={[0, 15, 30, 60]} />
             ))}
 
             <FormField control={form.control} name="paid_break" render={({ field }) => (
@@ -435,22 +438,22 @@ export function WorkShiftDialog({
               </CollapsibleTrigger>
               <CollapsibleContent className="grid gap-4 border-t p-3 sm:grid-cols-2">
                 {kitNumber("overtime_threshold_minutes", t("staff.otThreshold", "Overtime after (minutes)"), (p) => (
-                  <DurationField {...p} unit="min" max={600} presets={[0, 15, 30]} />
+                  <DurationField {...p} unit="min" presets={[0, 15, 30]} />
                 ), t("staff.otThresholdHint", "Staying less than this past the end isn't overtime."))}
                 {kitNumber("overtime_multiplier", t("staff.otMultiplier", "Overtime multiplier"), (p) => (
-                  <NumberField {...p} prefix="×" step={0.05} decimals={2} min={0.05} max={10} />
+                  <NumberField {...p} prefix="×" step={0.05} decimals={2} min={0} />
                 ))}
                 {kitNumber("ot_day_multiplier", t("staff.otDayMultiplier", "Day overtime rate"), (p) => (
-                  <NumberField {...p} prefix="×" step={0.05} decimals={2} min={0.05} max={10} allowEmpty emptyLabel={t("staff.branchRate", "Branch rules")} />
+                  <NumberField {...p} prefix="×" step={0.05} decimals={2} min={0} allowEmpty emptyLabel={t("staff.branchRate", "Branch rules")} />
                 ), t("staff.otRateHint", "Empty = the branch's rules."))}
                 {kitNumber("ot_night_multiplier", t("staff.otNightMultiplier", "Night overtime rate"), (p) => (
-                  <NumberField {...p} prefix="×" step={0.05} decimals={2} min={0.05} max={10} allowEmpty emptyLabel={t("staff.branchRate", "Branch rules")} />
+                  <NumberField {...p} prefix="×" step={0.05} decimals={2} min={0} allowEmpty emptyLabel={t("staff.branchRate", "Branch rules")} />
                 ), t("staff.otRateHint", "Empty = the branch's rules."))}
                 {kitNumber("half_day_threshold_minutes", t("staff.halfDayThreshold", "Half day below (minutes)"), (p) => (
-                  <DurationField {...p} unit="min" min={1} max={1440} step={30} allowEmpty emptyLabel={t("staff.halfDayDefault", "Half the shift")} />
+                  <DurationField {...p} unit="min" min={0} step={30} allowEmpty emptyLabel={t("staff.halfDayDefault", "Half the shift")} />
                 ))}
                 {kitNumber("checkin_window_minutes", t("staff.checkinWindow", "Check-in opens (minutes early)"), (p) => (
-                  <DurationField {...p} unit="min" min={1} max={720} step={15} presets={[30, 60, 120]} />
+                  <DurationField {...p} unit="min" min={0} step={15} presets={[30, 60, 120]} />
                 ))}
               </CollapsibleContent>
             </Collapsible>

@@ -40,6 +40,7 @@ export interface NumberFieldProps {
   name?: string;
   ref?: React.Ref<HTMLInputElement>;
   disabled?: boolean;
+  /** Marked invalid by a form: its message then speaks, not the field's own. */
   invalid?: boolean;
   align?: "start" | "center";
   className?: string;
@@ -67,6 +68,16 @@ export function NumberField({
 
   const [draft, setDraft] = React.useState<string | null>(null);
   const [problem, setProblem] = React.useState<string | null>(null);
+  // What this field last handed the form. A different value arriving from
+  // outside (a reset, a preset) replaces whatever refused text is on show.
+  const emitted = React.useRef<number | null | undefined>(value);
+  React.useEffect(() => {
+    if (!Object.is(value, emitted.current)) {
+      emitted.current = value;
+      setDraft(null);
+      setProblem(null);
+    }
+  }, [value]);
 
   const has = value !== null && value !== undefined && Number.isFinite(value);
   const u = unitWord ? ` ${unitWord}` : "";
@@ -76,10 +87,27 @@ export function NumberField({
       ? t("inputs.between", { min: fmtFigure(min), max: fmtFigure(max), unit: u, defaultValue: `Between ${fmtFigure(min)} and ${fmtFigure(max)}${u}` })
       : t("inputs.atLeast", { min: fmtFigure(min), unit: u, defaultValue: `${fmtFigure(min)}${u} or more` });
 
+  const emit = (n: number | null) => {
+    emitted.current = n;
+    if (!Object.is(n, value)) onChange(n);
+  };
+
   const accept = (n: number | null) => {
     setDraft(null);
     setProblem(null);
-    if (n !== value) onChange(n);
+    emit(n);
+  };
+
+  /**
+   * A refusal never leaves the form holding the last good number (a Save right
+   * after typing 30 where 12 is the most must not send 1). The typed text stays
+   * on show, the field says what's wrong, and the form gets something its own
+   * checks refuse: the number as typed when it is out of range (so a form's
+   * range message still applies), or NaN when there is no number at all.
+   */
+  const refuse = (message: string, n: number) => {
+    setProblem(message);
+    emit(n);
   };
 
   const settle = () => {
@@ -87,12 +115,12 @@ export function NumberField({
     const text = draft.trim();
     if (!text) {
       if (allowEmpty) accept(null);
-      else { setDraft(null); setProblem(t("inputs.required", "Needs a value")); }
+      else refuse(t("inputs.required", "Needs a value"), NaN);
       return;
     }
     const n = parseNumber(text);
-    if (n === null) { setDraft(null); setProblem(t("inputs.notANumber", { text, defaultValue: `"${text}" isn't a number` })); return; }
-    if (n < min || (max !== undefined && n > max)) { setDraft(null); setProblem(rangeText()); return; }
+    if (n === null) { refuse(t("inputs.notANumber", { text, defaultValue: `"${text}" isn't a number` }), NaN); return; }
+    if (n < min || (max !== undefined && n > max)) { refuse(rangeText(), roundTo(n, places)); return; }
     accept(roundTo(n, places));
   };
 
@@ -174,7 +202,7 @@ export function NumberField({
           ))}
         </div>
       ) : null}
-      {problem ? (
+      {problem && !invalid ? (
         <p id={errId} role="alert" className={errorTextClass}>{problem}</p>
       ) : hint ? (
         <p id={hintId} className="text-xs text-muted-foreground">{hint}</p>

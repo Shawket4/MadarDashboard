@@ -39,19 +39,23 @@ export interface DawamRules {
   coverPayMode: CoverPayMode;
 }
 
-/** How each number of the card is typed: its range, step and unit. */
+/**
+ * How each number of the card is typed: its step and unit, and the same range
+ * `rulesRequest` enforces (never a tighter one, so the field and the save
+ * always agree on what is refused).
+ */
 const NUM_FIELDS: Record<NumKey, { min: number; max?: number; step: number; decimals: number; unit?: "x" | "%" | "h" }> = {
-  otDay: { min: 1, max: 10, step: 0.05, decimals: 2, unit: "x" },
-  otNight: { min: 1, max: 10, step: 0.05, decimals: 2, unit: "x" },
-  holidayMult: { min: 1, max: 10, step: 0.25, decimals: 2, unit: "x" },
+  otDay: { min: 1, step: 0.05, decimals: 2, unit: "x" },
+  otNight: { min: 1, step: 0.05, decimals: 2, unit: "x" },
+  holidayMult: { min: 1, step: 0.25, decimals: 2, unit: "x" },
   advanceCap: { min: 0, max: 100, step: 5, decimals: 0, unit: "%" },
   periodStartDay: { min: 1, max: 28, step: 1, decimals: 0 },
-  limitDay: { min: 0, max: 24, step: 0.5, decimals: 2, unit: "h" },
+  limitDay: { min: 0, max: 168, step: 0.5, decimals: 2, unit: "h" },
   limitWeek: { min: 0, max: 168, step: 1, decimals: 2, unit: "h" },
-  limitPresence: { min: 0, max: 24, step: 0.5, decimals: 2, unit: "h" },
-  limitRest: { min: 0, max: 48, step: 0.5, decimals: 2, unit: "h" },
-  limitOtDay: { min: 0, max: 24, step: 0.5, decimals: 2, unit: "h" },
-  ordersPerStaff: { min: 1, max: 999, step: 1, decimals: 0 },
+  limitPresence: { min: 0, max: 168, step: 0.5, decimals: 2, unit: "h" },
+  limitRest: { min: 0, max: 168, step: 0.5, decimals: 2, unit: "h" },
+  limitOtDay: { min: 0, max: 168, step: 0.5, decimals: 2, unit: "h" },
+  ordersPerStaff: { min: 1, step: 1, decimals: 0 },
 };
 
 type NumKey = "otDay" | "otNight" | "holidayMult" | "advanceCap" | "periodStartDay" | "limitDay" | "limitWeek" | "limitPresence" | "limitRest" | "limitOtDay" | "ordersPerStaff";
@@ -150,7 +154,7 @@ export function DawamRulesCard({
         <Label htmlFor={`rule-${k}`}>{label}</Label>
         <NumberField
           id={`rule-${k}`}
-          value={Number.isFinite(n) ? n : null}
+          value={n}
           disabled={readOnly}
           min={f.min}
           max={f.max}

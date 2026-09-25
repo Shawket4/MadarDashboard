@@ -122,6 +122,17 @@ describe("the shift body", () => {
     // A night crossing midnight is a shift.
     expect(shiftSchema(tr).safeParse({ ...v, start_time: "18:00", end_time: "02:00" }).success).toBe(true);
   });
+
+  it("refuses what a kit field refused, never a stand-in: NaN numbers and times that aren't times", () => {
+    const v = valuesOf(evening);
+    const bad = (patch: object) => shiftSchema(tr).safeParse({ ...v, ...patch });
+    expect(bad({ grace_minutes: NaN }).success).toBe(false);
+    expect(bad({ overtime_multiplier: NaN }).success).toBe(false);
+    expect(bad({ ot_day_multiplier: NaN }).success).toBe(false);
+    expect(bad({ start_time: "9x" }).success).toBe(false);
+    expect(bad({ day_times: { ...v.day_times, "4": { start: "9x", end: "01:00" } } }).success).toBe(false);
+    expect(bad({ grace_minutes: NaN }).error?.issues[0].message).toBe("Type a number");
+  });
 });
 
 describe("WorkShiftsPage", () => {

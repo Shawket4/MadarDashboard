@@ -7,6 +7,10 @@ import { TimeField } from "./time-field";
 import { TimeRangeField, rangeProblem, type TimeRange } from "./time-range-field";
 import { DurationField } from "./duration-field";
 import { MoneyField } from "./money-field";
+import { NumberField } from "./number-field";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { WeekdayPicker } from "./weekday-picker";
 import { PhoneField } from "./phone-field";
 
@@ -50,21 +54,24 @@ describe("TimeField", () => {
     expect(screen.getByTestId("value")).toHaveTextContent("21:30");
   });
 
-  it("refuses what it can't read, keeps the last good time and says why", async () => {
+  it("refuses what it can't read out loud and hands the form the text, never the last good time", async () => {
     const onChange = vi.fn();
     render(<Time initial="08:00" onChange={onChange} />);
     const input = screen.getByLabelText("Start");
     await userEvent.clear(input);
     await userEvent.type(input, "9x");
     await userEvent.tab();
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenLastCalledWith("9x");
+    expect(onChange).not.toHaveBeenCalledWith("08:00");
     expect(screen.getByRole("alert")).toHaveTextContent(`Couldn't read "9x"`);
-    expect(screen.getByRole("alert")).toHaveTextContent("Kept 08:00 AM");
     expect(input).toHaveAttribute("aria-invalid", "true");
-    expect(input).toHaveValue("08:00 AM");
-    // Typing again clears the complaint.
-    await userEvent.type(input, "1");
+    expect(input).toHaveValue("9x");
+    // Typing again clears the complaint, and a good time goes through.
+    await userEvent.clear(input);
+    await userEvent.type(input, "10");
     expect(screen.queryByRole("alert")).toBeNull();
+    await userEvent.tab();
+    expect(onChange).toHaveBeenLastCalledWith("10:00");
   });
 
   it("a required time can't be emptied; a clearable one can", async () => {
@@ -202,21 +209,115 @@ describe("DurationField", () => {
     expect(input).toHaveValue("10");
   });
 
-  it("refuses a value past the limit and keeps the old one", async () => {
+  it("a value past the limit is refused out loud AND reaches the form as typed, never swapped for the old one", async () => {
     const onChange = vi.fn();
     render(<Dur onChange={onChange} />);
     const input = screen.getByRole("spinbutton", { name: "Grace" });
     await userEvent.clear(input);
     await userEvent.type(input, "500");
     await userEvent.tab();
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenLastCalledWith(500);
     expect(screen.getByRole("alert")).toHaveTextContent("Between 0 and 120 min");
-    expect(input).toHaveValue("15");
+    expect(input).toHaveValue("500");
+    expect(input).toHaveAttribute("aria-invalid", "true");
   });
 
   it("presets and the hours read-back", async () => {
     render(<DurationField aria-label="Break" unit="min" value={90} onChange={() => {}} />);
     expect(screen.getByText("= 1 h 30 min")).toBeInTheDocument();
+  });
+});
+
+describe("a refused number never reaches the form as a good one (P's installments bug)", () => {
+  function Num({ onChange = vi.fn(), allowEmpty = false, initial = 1 as number | null }) {
+    const [v, setV] = useState<number | null>(initial);
+    return (
+      <>
+        <NumberField aria-label="Installments" min={1} max={12} allowEmpty={allowEmpty} value={v} onChange={(n) => { setV(n); onChange(n); }} />
+        <button type="button" onClick={() => setV(3)}>reset to 3</button>
+      </>
+    );
+  }
+
+  it("unreadable text reaches the form as NaN, which every number check refuses", async () => {
+    const onChange = vi.fn();
+    render(<Num onChange={onChange} />);
+    const input = screen.getByRole("spinbutton", { name: "Installments" });
+    await userEvent.clear(input);
+    await userEvent.type(input, "12a");
+    await userEvent.tab();
+    expect(Number.isNaN(onChange.mock.lastCall?.[0])).toBe(true);
+    expect(input).toHaveValue("12a");
+    expect(screen.getByRole("alert")).toHaveTextContent(`"12a" isn't a number`);
+  });
+
+  it("an emptied required field reaches the form as NaN, not 0 and not the old value", async () => {
+    const onChange = vi.fn();
+    render(<Num onChange={onChange} />);
+    await userEvent.clear(screen.getByRole("spinbutton", { name: "Installments" }));
+    await userEvent.tab();
+    expect(Number.isNaN(onChange.mock.lastCall?.[0])).toBe(true);
+    expect(screen.getByRole("alert")).toHaveTextContent("Needs a value");
+  });
+
+  it("an emptied optional field is a plain empty", async () => {
+    const onChange = vi.fn();
+    render(<Num onChange={onChange} allowEmpty />);
+    await userEvent.clear(screen.getByRole("spinbutton", { name: "Installments" }));
+    await userEvent.tab();
+    expect(onChange).toHaveBeenLastCalledWith(null);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("a new value from the form replaces a refused draft", async () => {
+    render(<Num />);
+    const input = screen.getByRole("spinbutton", { name: "Installments" });
+    await userEvent.clear(input);
+    await userEvent.type(input, "30");
+    await userEvent.tab();
+    expect(input).toHaveValue("30");
+    await userEvent.click(screen.getByRole("button", { name: "reset to 3" }));
+    expect(input).toHaveValue("3");
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("in a zod form, Save right after typing 30 (max 12) refuses instead of sending the last good value", async () => {
+    const onSubmit = vi.fn();
+    const schema = z.object({ n: z.number({ error: "Type a number" }).int().min(1).max(12, "Up to 12 installments") });
+    function F() {
+      const form = useForm<{ n: number }>({ resolver: zodResolver(schema), defaultValues: { n: 1 } });
+      const n = form.watch("n");
+      return (
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <NumberField aria-label="Installments" min={1} max={12} value={n} onChange={(v) => form.setValue("n", v as number)} />
+          <p>{form.formState.errors.n?.message}</p>
+          <button type="submit">Save</button>
+        </form>
+      );
+    }
+    render(<F />);
+    const input = screen.getByRole("spinbutton", { name: "Installments" });
+    await userEvent.clear(input);
+    await userEvent.type(input, "30");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(await screen.findByText("Up to 12 installments")).toBeInTheDocument();
+    // Typing a good number and saving goes through with it.
+    await userEvent.clear(input);
+    await userEvent.type(input, "6");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).toHaveBeenCalledWith({ n: 6 }, expect.anything());
+  });
+
+  it("money out of range reaches the form in piastres as typed", async () => {
+    const onChange = vi.fn();
+    render(<MoneyField aria-label="Amount" value={5000} max={100000} onChange={onChange} />);
+    const input = screen.getByRole("spinbutton", { name: "Amount" });
+    await userEvent.clear(input);
+    await userEvent.type(input, "2500");
+    await userEvent.tab();
+    expect(onChange).toHaveBeenLastCalledWith(250000);
+    expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 });
 

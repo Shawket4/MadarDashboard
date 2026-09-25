@@ -135,10 +135,11 @@ function BranchPin({
   };
 
   const changed = !saved || !pin || pin.lat !== saved.lat || pin.lng !== saved.lng || radius !== branch.geo_radius_meters;
-  const canSave = canEdit && !!pin && !!radius && radius >= 10 && changed;
+  const radiusOk = radius !== null && Number.isFinite(radius) && radius >= 10 && radius <= 5000;
+  const canSave = canEdit && !!pin && radiusOk && changed;
 
   const save = async () => {
-    if (!pin || !radius) return;
+    if (!pin || !radiusOk || radius === null) return;
     setBusy(true);
     try {
       await patchBranch(branch.id, { latitude: pin.lat, longitude: pin.lng, geo_radius_meters: radius });

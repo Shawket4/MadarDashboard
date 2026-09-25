@@ -409,7 +409,6 @@ export function AttendanceRulesPage() {
                           step={tier.kind === "day_fraction" ? 0.25 : 5}
                           decimals={tier.kind === "day_fraction" ? 2 : 0}
                           min={0}
-                          max={tier.kind === "day_fraction" ? 31 : undefined}
                           disabled={readOnly}
                           value={tier.value}
                           onChange={(n) => patchTier(i, { value: n ?? 0 })}

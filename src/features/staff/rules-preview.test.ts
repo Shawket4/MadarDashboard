@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { EMPTY_VALUES, type Tier } from "./rules-form";
+import { EMPTY_VALUES, tierProblem, type Tier } from "./rules-form";
 import { changedRules, dayPiastres, selectTier, tierPiastres } from "./rules-preview";
 
 // The server's suggested ladder (attendance.rs `suggested_tiers`).
@@ -62,5 +62,14 @@ describe("changedRules", () => {
   });
   it("nothing changed, nothing named", () => {
     expect(changedRules(EMPTY_VALUES, EMPTY_VALUES, false)).toEqual([]);
+  });
+});
+
+describe("tierProblem refuses what a kit field refused", () => {
+  it("a rung whose minutes aren't a number is never saved as 'no limit'", () => {
+    expect(tierProblem([{ from_minutes: 1, to_minutes: NaN, kind: "minutes", value: 15 }])?.key).toBe("staff.tierNotANumber");
+    expect(tierProblem([{ from_minutes: NaN, to_minutes: 15, kind: "minutes", value: 15 }])?.key).toBe("staff.tierNotANumber");
+    expect(tierProblem([{ from_minutes: 1, to_minutes: 15, kind: "minutes", value: NaN }])?.key).toBe("staff.tierNegativeValue");
+    expect(tierProblem([{ from_minutes: 1, to_minutes: null, kind: "minutes", value: 15 }])).toBeNull();
   });
 });

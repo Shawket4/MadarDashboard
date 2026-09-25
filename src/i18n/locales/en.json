@@ -4759,7 +4759,9 @@
     "ladderPreviewTitle": "Try the ladder",
     "ladderPreviewHint": "An example only: payroll uses each person's own salary and shift. Minutes late count from the end of the shift's grace.",
     "noShiftsHintV2": "A shift is a block of time people are rostered on, like Morning 8 AM–4 PM or a night that ends after midnight. Start from a common one, then roster people onto it.",
-    "noShiftsNoAccess": "Nobody has made a shift yet. Making shifts needs the right to create schedules: ask the owner."
+    "noShiftsNoAccess": "Nobody has made a shift yet. Making shifts needs the right to create schedules: ask the owner.",
+    "errNumber": "Type a number",
+    "tierNotANumber": "Type each rung's minutes as a number"
   },
   "basira": {
     "title": "Basira",

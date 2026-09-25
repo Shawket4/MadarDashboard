@@ -139,3 +139,12 @@ describe("Dawam rules", () => {
     await waitFor(() => expect(put).toHaveBeenCalledWith(expect.objectContaining({ gender_mode: "hard" })));
   });
 });
+
+describe("rulesRequest refuses what a kit field refused", () => {
+  it("a number field's NaN and a time field's unreadable text never reach the PUT", () => {
+    expect(rulesRequest({ ...DEFAULT_RULES, limitDay: String(NaN) })).toEqual({ error: "dawam.rulesLimitRange" });
+    expect(rulesRequest({ ...DEFAULT_RULES, advanceCap: String(NaN) })).toEqual({ error: "dawam.rulesCapRange" });
+    expect(rulesRequest({ ...DEFAULT_RULES, otDay: String(NaN) })).toEqual({ error: "dawam.rulesRateLow" });
+    expect(rulesRequest({ ...DEFAULT_RULES, nightStart: "9x" })).toEqual({ error: "dawam.rulesNight" });
+  });
+});
