@@ -13,8 +13,10 @@ import { useTranslation } from "react-i18next";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { TimeRangeField } from "@/components/inputs";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { fmtWireTime } from "@/lib/format";
 import type { AttendanceSettings, PutAttendanceSettingsRequest } from "@/data/api/generated/models";
 import { coverPayOf, type CoverPayMode } from "./phase-d";
 
@@ -155,7 +157,7 @@ export function DawamRulesCard({
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           {num("otDay", t("dawam.otDay", "Day rate ×"))}
-          {num("otNight", t("dawam.otNight", "Night rate ×"), `${value.nightStart}–${value.nightEnd}`)}
+          {num("otNight", t("dawam.otNight", "Night rate ×"), `${fmtWireTime(value.nightStart)} – ${fmtWireTime(value.nightEnd)}`)}
           {num("holidayMult", t("dawam.holidayRate", "Holiday rate ×"))}
         </div>
         {branch ? null : (
@@ -176,15 +178,18 @@ export function DawamRulesCard({
             ]}
           />
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(["nightStart", "nightEnd"] as const).map((k) => (
-            <div key={k} className="space-y-1">
-              <Label htmlFor={`rule-${k}`}>{k === "nightStart" ? t("dawam.nightStart", "Night starts") : t("dawam.nightEnd", "Night ends")}</Label>
-              <Input id={`rule-${k}`} type="time" value={value[k]} disabled={readOnly} onChange={(e) => set(k, e.target.value)} />
-            </div>
-          ))}
+        <div className="space-y-1.5">
+          <TimeRangeField
+            id="rule-night"
+            aria-label={t("dawam.nightWindow", "Night hours")}
+            startLabel={t("dawam.nightStart", "Night starts")}
+            endLabel={t("dawam.nightEnd", "Night ends")}
+            value={{ start: value.nightStart, end: value.nightEnd }}
+            disabled={readOnly}
+            onChange={(r) => onChange({ ...value, nightStart: r.start, nightEnd: r.end })}
+          />
+          <p className="text-xs text-muted-foreground">{t("dawam.nightUnconfirmed", "Night hours for the night rate and for suggestions. Unconfirmed: check them with your lawyer.")}</p>
         </div>
-        <p className="text-xs text-muted-foreground">{t("dawam.nightUnconfirmed", "Night hours for the night rate and for suggestions. Unconfirmed: check them with your lawyer.")}</p>
         <CoverPayChoice
           value={branch && coverFollows ? "business" : value.coverPayMode}
           branch={branch}

@@ -23,6 +23,7 @@ import { Cap } from "@/generated/capabilities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TimeField } from "@/components/inputs";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -875,7 +876,12 @@ function NewRequestDialog({
                     ? t("staff.leavingAt", "Leaving at")
                     : t("staff.windowFrom", "From")}
                 </Label>
-                <Input id="nr-from" type="time" {...form.register("from_time")} />
+                <TimeField
+                  id="nr-from"
+                  value={v.from_time}
+                  invalid={!!errors.from_time}
+                  onChange={(x) => form.setValue("from_time", x, { shouldValidate: form.formState.isSubmitted })}
+                />
                 {err(errors.from_time?.message)}
               </div>
             ) : null}
@@ -886,7 +892,12 @@ function NewRequestDialog({
                     ? t("staff.arrivingBy", "Arriving by")
                     : t("staff.windowTo", "To")}
                 </Label>
-                <Input id="nr-to" type="time" {...form.register("to_time")} />
+                <TimeField
+                  id="nr-to"
+                  value={v.to_time}
+                  invalid={!!errors.to_time}
+                  onChange={(x) => form.setValue("to_time", x, { shouldValidate: form.formState.isSubmitted })}
+                />
                 {err(errors.to_time?.message)}
               </div>
             ) : null}

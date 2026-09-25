@@ -421,7 +421,9 @@ describe("SchedulePage", () => {
     const dialog = await screen.findByRole("dialog");
     await user.click(within(dialog).getByRole("button", { name: "Times of Morning" }));
     fireEvent.change(within(dialog).getByLabelText("From"), { target: { value: "18:00" } });
+    fireEvent.blur(within(dialog).getByLabelText("From"));
     fireEvent.change(within(dialog).getByLabelText("To"), { target: { value: "02:00" } });
+    fireEvent.blur(within(dialog).getByLabelText("To"));
     expect(within(dialog).getByText("Ends the next day")).toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Save times" }));
     await waitFor(() =>
