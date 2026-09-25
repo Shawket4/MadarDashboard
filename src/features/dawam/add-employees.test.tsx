@@ -107,6 +107,19 @@ describe("Add employee", () => {
     );
   });
 
+  it("a job title too long says why Add does nothing (H3 silent Save)", async () => {
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog onOpenChange={vi.fn()} />);
+    await user.click(screen.getByRole("radio", { name: "Records only" }));
+    await user.type(screen.getByLabelText("Name"), "Hassan");
+    await user.click(screen.getByRole("checkbox", { name: "Zamalek" }));
+    await user.click(screen.getByLabelText("Job title"));
+    await user.paste("j".repeat(121));
+    await user.click(screen.getByRole("button", { name: "Add employee" }));
+    expect(await screen.findByText("At most 120 characters")).toBeInTheDocument();
+    expect(createEmployee).not.toHaveBeenCalled();
+  });
+
   it("a staff-app person without a number is refused", async () => {
     const user = userEvent.setup();
     wrap(<AddEmployeeDialog onOpenChange={vi.fn()} />);

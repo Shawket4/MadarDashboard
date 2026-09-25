@@ -74,28 +74,29 @@ export function EmployeeDialog({
   const canSeeSalary = canEditSalary && salary !== "hidden";
 
   const schema = useMemo(
-    () =>
-      z
+    () => {
+      const atMost = (n: number) => t("common.atMostChars", { n, defaultValue: `At most ${n} characters` });
+      return z
         .object({
-          name: z.string().trim().min(1, t("dawam.nameRequired", "A name is needed")).max(120),
+          name: z.string().trim().min(1, t("dawam.nameRequired", "A name is needed")).max(120, atMost(120)),
           phone: z.string().max(PHONE_RAW_MAX),
           app_access: z.boolean(),
           branch_ids: z.array(z.string()).min(1, t("dawam.pickBranchError", "Pick at least one branch")),
           department_id: z.string(),
-          employee_code: z.string().max(64),
-          job_title: z.string().max(120),
+          employee_code: z.string().max(64, atMost(64)),
+          job_title: z.string().max(120, atMost(120)),
           hire_date: z.string(),
           employment_status: z.enum(["active", "suspended", "terminated"]),
           termination_date: z.string(),
           // Empty keeps a salary nobody set unset; a figure is above zero.
           base_salary_egp: z.string().refine((v) => v.trim() === "" || readPounds(v) !== null, t("dawam.badSalary", "Not an amount")),
-          national_id: z.string().max(64),
-          emergency_contact_name: z.string().max(120),
-          emergency_contact_phone: z.string().max(40),
-          notes: z.string().max(2000),
+          national_id: z.string().max(64, atMost(64)),
+          emergency_contact_name: z.string().max(120, atMost(120)),
+          emergency_contact_phone: z.string().max(40, atMost(40)),
+          notes: z.string().max(2000, atMost(2000)),
           gender: z.enum([NONE, "m", "f"]),
           pay_method: z.enum(["cash", "bank", "wallet"]),
-          pay_account: z.string().max(64),
+          pay_account: z.string().max(64, atMost(64)),
           on_payroll: z.boolean(),
         })
         // Mirrors the database CHECK: a terminated profile must say when, and a
@@ -111,7 +112,8 @@ export function EmployeeDialog({
         .refine((v) => !v.app_access || !!v.phone.trim(), {
           path: ["phone"],
           message: t("dawam.phoneForApp", "The staff app needs their WhatsApp number"),
-        }),
+        });
+    },
     [t],
   );
   type Values = z.infer<typeof schema>;
@@ -459,6 +461,7 @@ export function EmployeeDialog({
                     <FormLabel>{payMethod === "bank" ? t("dawam.iban", "Account (IBAN)") : t("dawam.walletNumber", "Wallet number")}</FormLabel>
                     <FormControl><Input dir="ltr" {...field} /></FormControl>
                     <FormDescription>{t("dawam.payAccountHint", "Goes on the bank and wallet lists when payroll is approved.")}</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

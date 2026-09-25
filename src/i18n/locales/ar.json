@@ -119,7 +119,8 @@
     "restrictedBody": "دي بتديرها مدار. كلّمنا لو محتاج تغيير هنا.",
     "searchTimezone": "دوّر على منطقة زمنية…",
     "selectTimezone": "اختار المنطقة الزمنية…",
-    "listSeparator": "، "
+    "listSeparator": "، ",
+    "atMostChars": "{{n}} حرفًا على الأكثر"
   },
   "nav": {
     "dashboard": "لوحة التحكم",

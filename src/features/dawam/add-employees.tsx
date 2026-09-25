@@ -73,16 +73,17 @@ export function AddEmployeeDialog({
   const linkable = useMemo(() => linkableQ.data ?? [], [linkableQ.data]);
 
   const schema = useMemo(
-    () =>
-      z
+    () => {
+      const atMost = (n: number) => t("common.atMostChars", { n, defaultValue: `At most ${n} characters` });
+      return z
         .object({
           kind: z.enum(["app", "manual", "linked"]),
           user_id: z.string(),
-          name: z.string().max(120),
+          name: z.string().max(120, atMost(120)),
           phone: z.string().max(PHONE_RAW_MAX),
           app_access: z.boolean(),
           branch_ids: z.array(z.string()).min(1, t("dawam.pickBranchError", "Pick at least one branch")),
-          job_title: z.string().max(120),
+          job_title: z.string().max(120, atMost(120)),
           hire_date: z.string(),
           salary: z.string().refine((v) => v.trim() === "" || readPounds(v) !== null, t("dawam.badSalary", "Not an amount")),
           gender: z.enum(["", "m", "f"]),
@@ -102,7 +103,8 @@ export function AddEmployeeDialog({
           if (needsPhone && !v.phone.trim()) {
             ctx.addIssue({ code: "custom", path: ["phone"], message: t("dawam.phoneForApp", "The staff app needs their WhatsApp number") });
           }
-        }),
+        });
+    },
     [t],
   );
   type Values = z.infer<typeof schema>;
@@ -277,6 +279,7 @@ export function AddEmployeeDialog({
                   <FormItem>
                     <FormLabel>{t("dawam.jobTitle", "Job title")}</FormLabel>
                     <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

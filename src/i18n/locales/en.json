@@ -119,7 +119,8 @@
     "restrictedBody": "This is managed by Madar. Get in touch if you need a change here.",
     "searchTimezone": "Search timezones…",
     "selectTimezone": "Select timezone…",
-    "listSeparator": ", "
+    "listSeparator": ", ",
+    "atMostChars": "At most {{n}} characters"
   },
   "nav": {
     "dashboard": "Dashboard",

@@ -67,6 +67,19 @@ describe("EmployeeDialog · Dawam", () => {
     );
   });
 
+  it("an account number too long says why Save does nothing (H3 silent Save)", async () => {
+    const user = userEvent.setup();
+    putEmployee.mockClear();
+    open(sara);
+    const iban = await screen.findByLabelText("Account (IBAN)");
+    await user.clear(iban);
+    await user.click(iban);
+    await user.paste("E".repeat(65));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("At most 64 characters")).toBeInTheDocument();
+    expect(putEmployee).not.toHaveBeenCalled();
+  });
+
   it("sends no account for someone paid in cash", async () => {
     const user = userEvent.setup();
     putEmployee.mockClear();
