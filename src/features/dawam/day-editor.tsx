@@ -8,7 +8,7 @@
  * server decides everything else (whether a time runs into the next day,
  * overlaps, labour warnings) and refuses what can't be rostered.
  */
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRightLeft, Clock, Moon, Plus, RotateCcw, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +26,8 @@ import type { DayBlock, LabourWarning, RosterPerson, RosterShift, WorkShiftBrief
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate } from "@/lib/format";
 import { fmtHours, invalidateStaff } from "@/features/staff/util";
+import { useConfirm } from "@/components/app/confirm-dialog";
+import { clashesWith, type TimedBlock } from "./schedule-checks";
 import { weekdayOf } from "./week";
 
 const hhmm = (v: string | null | undefined) => (v ?? "").slice(0, 5);
@@ -84,6 +86,9 @@ export function DayEditor({
   staff,
   ownSet,
   branchId,
+  shiftsOf,
+  published = false,
+  branchNames,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -97,8 +102,14 @@ export function DayEditor({
   ownSet: boolean;
   /** The board's branch: a business-wide block set here is worked here (H2-B8). */
   branchId: string;
+  /** A colleague's shifts that date: a move onto a clash is said before it is sent. */
+  shiftsOf?: (employeeId: string) => RosterShift[];
+  /** The week is published: the person is told about a change. */
+  published?: boolean;
+  branchNames?: Map<string, string>;
 }) {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [from, setFrom] = useState("");
@@ -108,6 +119,34 @@ export function DayEditor({
   const [adding, setAdding] = useState("");
   const weekday = weekdayOf(date);
   const offered = blocksOn(templates, weekday).filter((w) => !shifts.some((s) => s.work_shift_id === w.id));
+  const timed = (s: RosterShift): TimedBlock => ({ name: s.shift_name, start: hhmm(s.start_time), end: hhmm(s.end_time), branchId: s.branch_id });
+  /** What a block would clash with on this date, before anything is sent. */
+  const clashOfBlock = (w: WorkShiftBrief) => {
+    const at = blockTimesOn(w, weekday);
+    return clashesWith(shifts.map(timed), { name: w.name, start: at.start, end: at.end });
+  };
+  const addClash = adding ? clashOfBlock(offered.find((w) => w.id === adding) ?? ({} as WorkShiftBrief)) : [];
+  const editClash = editing && from && to
+    ? clashesWith(shifts.filter((x) => x.work_shift_id !== editing).map(timed), { name: "", start: from, end: to })
+    : [];
+  const moving_ = shifts.find((x) => x.work_shift_id === moving);
+  const moveClash = moving_ && moveTo && shiftsOf ? clashesWith(shiftsOf(moveTo).map(timed), timed(moving_)) : [];
+  const moveToName = staff.find((p) => p.employee_id === moveTo)?.name ?? "";
+  const elsewhere = shifts.filter((x) => x.branch_id && branchId && x.branch_id !== branchId);
+  const clashText = (list: TimedBlock[]) =>
+    list.map((b) => `${b.name} ${b.start}–${b.end}`).join(t("common.listSeparator", ", "));
+
+  const dayOff = async () => {
+    if (shifts.length > 0) {
+      const ok = await confirm({
+        title: t("dawamOps.dayOffTitle", { name: person.name, date: fmtDate(date), defaultValue: "Give {{name}} the day off on {{date}}?" }),
+        description: `${t("dawamOps.dayOffHint", { shifts: shifts.map((x) => x.shift_name).join(t("common.listSeparator", ", ")), defaultValue: "{{shifts}} come off this date only; the pattern stays as it is." })}${published ? ` ${t("dawamOps.toldPublished", "The week is published, so they are told.")}` : ""}`,
+        confirmLabel: t("dawam.dayOff", "Day off"),
+      });
+      if (!ok) return;
+    }
+    await setShifts([], t("dawam.dayChanged", "Day changed"));
+  };
 
   const warn = (warnings: LabourWarning[] | undefined) => {
     for (const w of warnings ?? []) {
@@ -155,8 +194,17 @@ export function DayEditor({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
             {t("dawam.dayEditorHint", "Changes this date only. Several shifts make a split day; an end at or before the start runs into the next day.")}
+            {published ? ` ${t("dawamOps.toldPublished", "The week is published, so they are told.")}` : ""}
           </DialogDescription>
         </DialogHeader>
+        {elsewhere.length > 0 ? (
+          <p role="note" className="rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+            {t("dawamOps.alsoElsewhere", {
+              shifts: elsewhere.map((x) => `${x.shift_name} (${branchNames?.get(x.branch_id) ?? t("dawamOps.otherBranch", "another branch")})`).join(t("common.listSeparator", ", ")),
+              defaultValue: "Also works at another branch that day: {{shifts}}.",
+            })}
+          </p>
+        ) : null}
 
         <ul className="space-y-2" aria-label={t("dawam.shiftsThatDay", "Shifts that day")}>
           {shifts.length === 0 ? (
@@ -217,6 +265,11 @@ export function DayEditor({
                     value={{ start: from, end: to }}
                     onChange={(r) => { setFrom(r.start); setTo(r.end); }}
                   />
+                  {editClash.length > 0 ? (
+                    <ClashNote className="col-span-2">
+                      {t("dawamOps.clashTimes", { with: clashText(editClash), defaultValue: "These times overlap {{with}}. Overlapping shifts are refused: change the times first." })}
+                    </ClashNote>
+                  ) : null}
                   <div className="col-span-2 flex flex-wrap justify-end gap-2">
                     {s.times_edited ? (
                       <Button
@@ -236,7 +289,7 @@ export function DayEditor({
                     ) : null}
                     <Button
                       size="sm"
-                      disabled={busy || !from || !to || from === to}
+                      disabled={busy || !from || !to || from === to || editClash.length > 0}
                       onClick={() =>
                         void run(
                           () => putTimes({ employee_id: person.employee_id, on_date: date, work_shift_id: s.work_shift_id, start_time: `${from}:00`, end_time: `${to}:00` }),
@@ -266,9 +319,14 @@ export function DayEditor({
                       </SelectContent>
                     </Select>
                   </div>
+                  {moveClash.length > 0 ? (
+                    <ClashNote className="basis-full">
+                      {t("dawamOps.clashMove", { name: moveToName, with: clashText(moveClash), defaultValue: "{{name}} already works {{with}} that day, which overlaps. Pick someone else." })}
+                    </ClashNote>
+                  ) : null}
                   <Button
                     size="sm"
-                    disabled={busy || !moveTo}
+                    disabled={busy || !moveTo || moveClash.length > 0}
                     onClick={() =>
                       void run(
                         () => moveShift({ employee_id: person.employee_id, to_employee_id: moveTo, on_date: date, work_shift_id: s.work_shift_id }),
@@ -294,19 +352,26 @@ export function DayEditor({
               <SelectContent>
                 {offered.map((w) => {
                   const at = blockTimesOn(w, weekday);
+                  const clash = clashOfBlock(w);
                   return (
                     <SelectItem key={w.id} value={w.id}>
                       {w.name} · <bdi className="font-mono tabular-nums">{at.start}–{at.end}</bdi>
+                      {clash.length ? <span className="text-xs text-muted-foreground"> · {t("dawamOps.overlaps", { with: clash.map((b) => b.name).join(", "), defaultValue: "overlaps {{with}}" })}</span> : null}
                     </SelectItem>
                   );
                 })}
               </SelectContent>
             </Select>
           </div>
+          {addClash.length > 0 ? (
+            <ClashNote className="basis-full">
+              {t("dawamOps.clashAdd", { with: clashText(addClash), defaultValue: "It overlaps {{with}} on this day. Overlapping shifts are refused: change that shift's times or pick another." })}
+            </ClashNote>
+          ) : null}
           <Button
             size="sm"
             variant="outline"
-            disabled={busy || !adding}
+            disabled={busy || !adding || addClash.length > 0}
             onClick={() =>
               void setShifts(
                 [...shifts.map(blockOf), { work_shift_id: adding, start_time: null, end_time: null }],
@@ -340,11 +405,21 @@ export function DayEditor({
           ) : (
             <span className="text-xs text-muted-foreground">{t("dawam.followsPattern", "Follows the standing pattern")}</span>
           )}
-          <Button variant="outline" disabled={busy} onClick={() => void setShifts([], t("dawam.dayChanged", "Day changed"))}>
+          <Button variant="outline" disabled={busy} onClick={() => void dayOff()}>
             {t("dawam.dayOff", "Day off")}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** A clash said before saving: the server would refuse it anyway, so the button waits. */
+function ClashNote({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <p role="alert" className={`flex items-start gap-1.5 text-xs font-medium text-[color-mix(in_oklab,var(--color-destructive)_55%,var(--color-foreground))] ${className ?? ""}`}>
+      <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+      <span>{children}</span>
+    </p>
   );
 }

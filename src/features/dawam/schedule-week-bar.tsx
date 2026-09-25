@@ -7,7 +7,7 @@
 import { useTranslation } from "react-i18next";
 import { CalendarCheck, CalendarClock, ChevronLeft, ChevronRight, Send } from "lucide-react";
 
-import { DatePicker } from "@/components/app/date-picker";
+import { DateField } from "@/components/inputs";
 import { StatusPill } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import { fmtDate } from "@/lib/format";
@@ -67,12 +67,13 @@ export function WeekBar({
             {t("dawamOps.backToThisWeek", "Back to this week")}
           </Button>
         ) : null}
-        <DatePicker
-          dateOnly
-          value={week}
-          onChange={(d) => onWeek(weekStartOf(d))}
+        {/* Any week, however far ahead: one pick, not N clicks on the arrow. */}
+        <DateField
+          value=""
+          onChange={(d) => { if (d) onWeek(weekStartOf(d)); }}
           placeholder={t("dawamOps.goToDate", "Go to a date")}
-          triggerClassName="h-8 w-auto"
+          aria-label={t("dawamOps.goToDate", "Go to a date")}
+          className="w-44"
         />
       </div>
 

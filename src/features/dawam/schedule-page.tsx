@@ -487,6 +487,9 @@ export function SchedulePage() {
           staff={view.staff}
           ownSet={dateSets.has(`${dayOpen.person.employee_id}|${dayOpen.date}`)}
           branchId={branchId}
+          shiftsOf={(id) => cell.get(`${id}|${dayOpen.date}`) ?? []}
+          published={published}
+          branchNames={branchNames}
         />
       ) : null}
       {prefsOf ? (

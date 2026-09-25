@@ -6054,7 +6054,15 @@
     "setSalaries": "Set salaries on Employees",
     "approveBlocked": "Set every salary first (listed below).",
     "markPaidAmount": "{{amount}} to {{name}}, recorded as handed over.",
-    "markPaidFirst": "This is the first payment: after it, this month can't be reopened."
+    "markPaidFirst": "This is the first payment: after it, this month can't be reopened.",
+    "dayOffTitle": "Give {{name}} the day off on {{date}}?",
+    "dayOffHint": "{{shifts}} come off this date only; the pattern stays as it is.",
+    "toldPublished": "The week is published, so they are told.",
+    "alsoElsewhere": "Also works at another branch that day: {{shifts}}.",
+    "clashTimes": "These times overlap {{with}}. Overlapping shifts are refused: change the times first.",
+    "clashMove": "{{name}} already works {{with}} that day, which overlaps. Pick someone else.",
+    "overlaps": "overlaps {{with}}",
+    "clashAdd": "It overlaps {{with}} on this day. Overlapping shifts are refused: change that shift's times or pick another."
   },
   "dawam": {
     "accept": "Accept",
