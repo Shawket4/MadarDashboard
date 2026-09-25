@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { FileSpreadsheet, Plus, Smartphone, Trash2, UserRound, UserX, Users } from "lucide-react";
+import { CircleAlert, FileSpreadsheet, Plus, Smartphone, Trash2, UserRound, UserX, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -209,7 +209,14 @@ export function EmployeesPage() {
         cell: ({ row }) => {
           const state = salaryState(row.original);
           // Nobody set one (owner decision 9): payroll won't approve until it is.
-          if (state === "not_set") return <Badge variant="outline">{t("dawam.notSet", "Not set")}</Badge>;
+          if (state === "not_set") {
+            return (
+              <Badge variant="outline" className="gap-1 border-warning/50 bg-warning/10 text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]" title={t("dawam.salaryNotSetHint", "No salary yet: payroll can't be approved until it's set, or they're marked not paid through Dawam.")}>
+                <CircleAlert aria-hidden className="size-3" />
+                {t("dawam.notSet", "Not set")}
+              </Badge>
+            );
+          }
           return state === "hidden" ? "—" : fmtMoney(row.original.base_salary_piastres);
         },
       });

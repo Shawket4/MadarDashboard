@@ -35,6 +35,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { PHONE_RAW_MAX, canonicalPhone, isValidPhone } from "@/lib/phone";
 import { fmtMoney } from "@/lib/format";
 import { BranchChecklist } from "@/features/staff/branch-checklist";
+import { PhoneField } from "@/components/inputs";
 import { invalidateStaff, todayIso } from "@/features/staff/util";
 import { readPounds } from "./money-dialogs";
 import { SalaryCalculator } from "./salary-calculator";
@@ -121,6 +122,15 @@ export function AddEmployeeDialog({
   const pickedUser = form.watch("user_id");
   const hireDate = form.watch("hire_date");
   const { isSubmitting } = form.formState;
+  // Say what the disabled Add button is waiting for, in the form's own words.
+  const v = form.watch();
+  const needsPhone = v.kind === "app" || (v.kind === "linked" && v.app_access);
+  const missing = [
+    v.kind === "linked" ? (!v.user_id ? t("dawam.needPerson", "pick a person") : null) : (!v.name.trim() ? t("dawam.needName", "a name") : null),
+    needsPhone && !v.phone.trim() ? t("dawam.needPhone", "their WhatsApp number") : null,
+    v.phone.trim() && !isValidPhone(v.phone) ? t("dawam.needGoodPhone", "a phone number that works") : null,
+    v.branch_ids.length === 0 ? t("dawam.needBranch", "at least one branch") : null,
+  ].filter((x): x is string => !!x);
 
   // One branch: nothing to choose.
   useEffect(() => {
@@ -237,10 +247,10 @@ export function AddEmployeeDialog({
             <FormField
               control={form.control}
               name="phone"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>{t("dawam.whatsapp", "WhatsApp number")}</FormLabel>
-                  <FormControl><Input type="tel" inputMode="tel" dir="ltr" {...field} /></FormControl>
+                  <FormControl><PhoneField {...field} invalid={!!fieldState.error} /></FormControl>
                   {kind === "manual" ? <FormDescription>{t("dawam.phoneOptional", "Optional. Only for reaching them.")}</FormDescription> : null}
                   <FormMessage />
                 </FormItem>
@@ -307,11 +317,18 @@ export function AddEmployeeDialog({
                       onMonthly={(v) => form.setValue("salary", v, { shouldValidate: true, shouldDirty: true })}
                       hireDate={hireDate || todayIso()}
                     />
+                    {!field.value.trim() ? (
+                      <FormDescription>{t("dawam.salaryEmptyHint", "Leave it empty to set it later: until then their salary shows \"Not set\" and their payroll can't be approved.")}</FormDescription>
+                    ) : null}
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            ) : null}
+            ) : (
+              <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+                {t("dawam.salaryNoAccessHint", "Their salary starts as \"Not set\": someone with payroll access sets it, and their payroll can't be approved until then.")}
+              </p>
+            )}
             <FormField
               control={form.control}
               name="gender"
@@ -330,6 +347,11 @@ export function AddEmployeeDialog({
                 </FormItem>
               )}
             />
+            {missing.length && !isSubmitting ? (
+              <p role="status" className="text-xs text-muted-foreground">
+                {t("dawam.addNeeds", { what: missing.join(", "), defaultValue: `To add them: ${missing.join(", ")}.` })}
+              </p>
+            ) : null}
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
               <Button type="submit" disabled={isSubmitting || !form.formState.isValid}>

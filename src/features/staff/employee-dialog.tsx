@@ -30,6 +30,7 @@ import { readPounds } from "@/features/dawam/money-dialogs";
 import { salaryState } from "@/features/dawam/phase-d";
 import { SalaryCalculator } from "@/features/dawam/salary-calculator";
 import { BranchChecklist } from "./branch-checklist";
+import { PhoneField } from "@/components/inputs";
 import { invalidateEmployees } from "./util";
 
 const NONE = "__none__";
@@ -244,10 +245,10 @@ export function EmployeeDialog({
             <FormField
               control={form.control}
               name="phone"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>{t("dawam.whatsapp", "WhatsApp number")}</FormLabel>
-                  <FormControl><Input type="tel" inputMode="tel" dir="ltr" {...field} /></FormControl>
+                  <FormControl><PhoneField {...field} invalid={!!fieldState.error} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}

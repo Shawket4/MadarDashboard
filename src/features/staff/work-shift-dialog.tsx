@@ -239,7 +239,7 @@ export function WorkShiftDialog({
     hint?: string,
   ) => (
     <FormField control={form.control} name={name} render={({ field, fieldState }) => (
-      <FormItem>
+      <FormItem className="content-start">
         <FormLabel>{label}</FormLabel>
         <FormControl>
           {render({
