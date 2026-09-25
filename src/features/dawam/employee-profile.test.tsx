@@ -163,7 +163,7 @@ describe("D9: a salary nobody set (owner decision 9)", () => {
     const user = userEvent.setup();
     open({ ...sara, base_salary_piastres: null, salary_set: false } as unknown as Employee);
     const field = await screen.findByLabelText("Base salary (monthly)");
-    expect(field).toHaveValue(null);
+    expect(field).toHaveValue("");
     expect(field).toHaveAttribute("placeholder", "Not set");
     expect(screen.getByText(/No salary yet/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Save" }));
@@ -177,7 +177,7 @@ describe("D9: a salary nobody set (owner decision 9)", () => {
     const user = userEvent.setup();
     open({ ...sara, base_salary_piastres: null, salary_set: false } as unknown as Employee);
     await user.type(await screen.findByLabelText("Daily rate (EGP)"), "250");
-    expect(screen.getByLabelText("Base salary (monthly)")).toHaveValue(6500);
+    expect(screen.getByLabelText("Base salary (monthly)")).toHaveValue("6500");
     await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(putEmployee).toHaveBeenCalledWith("e1", expect.objectContaining({ base_salary_piastres: 650_000 })));
   });
