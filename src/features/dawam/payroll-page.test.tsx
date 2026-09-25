@@ -70,12 +70,14 @@ let payslipsError: unknown = null;
 let payslipsById: Record<string, unknown[]> = {};
 let previewById: Record<string, unknown[]> = {};
 let previewError: unknown = null;
+/** Any other read that fails, by hook name (H3: a failed list read as "none"). */
+let failing: Record<string, unknown> = {};
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
   const opts = args.find((a) => typeof a === "object" && a !== null && "query" in (a as object)) as
     | { query?: { enabled?: boolean } }
     | undefined;
   (enabledSeen[name] ??= []).push(opts?.query?.enabled ?? true);
-  const error = name === "payslips" ? payslipsError : name === "preview" ? previewError : null;
+  const error = name === "payslips" ? payslipsError : name === "preview" ? previewError : (failing[name] ?? null);
   return { data: error ? undefined : data(), isLoading: false, isFetching: false, error, refetch: vi.fn() };
 };
 
@@ -159,6 +161,7 @@ beforeEach(() => {
   payslipsById = {};
   previewById = {};
   previewError = null;
+  failing = {};
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
   adjustments = [];
@@ -203,6 +206,21 @@ describe("PayrollPage history: never frozen when it wasn't (H2)", () => {
     await user.click(screen.getByRole("tab", { name: /History/ }));
     await user.click(await screen.findByText("26 Jul – 25 Aug 2026"));
     expect(await screen.findByText("Couldn't load this month's payslips")).toBeInTheDocument();
+  });
+});
+
+describe("PayrollPage: a failed list never reads as an empty one (H3)", () => {
+  it.each([
+    ["adjustments", /Bonuses & deductions/, "No bonuses or deductions"],
+    ["advances", /Salary advances/, "No salary advances"],
+    ["expenses", /Expense advances/, "Nothing logged"],
+  ])("%s", async (name, tab, emptyText) => {
+    failing = { [name]: new Error("boom") };
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: tab }));
+    expect(await screen.findByRole("button", { name: /Retry|Try again/ })).toBeInTheDocument();
+    expect(screen.queryByText(emptyText)).not.toBeInTheDocument();
   });
 });
 

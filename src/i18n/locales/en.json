@@ -6515,7 +6515,10 @@
     "viewingOlder": "You're looking at an earlier month: {{month}}.",
     "backToCurrent": "Back to this month",
     "notFullyPaid": "Not fully paid yet",
-    "phase_closed": "Closed"
+    "phase_closed": "Closed",
+    "payLinesLoadError": "Couldn't load the bonuses and deductions",
+    "advancesLoadError": "Couldn't load the salary advances",
+    "expensesLoadError": "Couldn't load the expense advances"
   },
   "legal": {
     "label": "Legal",

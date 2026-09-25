@@ -6716,7 +6716,10 @@
     "viewingOlder": "أنت تعرض شهرًا سابقًا: {{month}}.",
     "backToCurrent": "العودة إلى الشهر الحالي",
     "notFullyPaid": "لم يُصرف بالكامل بعد",
-    "phase_closed": "مغلق"
+    "phase_closed": "مغلق",
+    "payLinesLoadError": "تعذّر تحميل المكافآت والخصومات",
+    "advancesLoadError": "تعذّر تحميل سُلف الرواتب",
+    "expensesLoadError": "تعذّر تحميل عُهد المصروفات"
   },
   "legal": {
     "label": "قانوني",
