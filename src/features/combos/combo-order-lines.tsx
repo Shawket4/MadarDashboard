@@ -11,7 +11,7 @@ import { StatusPill } from "@/components/app/status-pill";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 
-import type { ComboLineFields, OrderDeal } from "./contract";
+import type { ComboLineFields, OrderDeal } from "./types";
 
 type HeaderLine = { id: string; item_name: string; name_translations?: unknown; quantity: number; notes?: string | null } & ComboLineFields;
 

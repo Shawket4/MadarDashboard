@@ -11,7 +11,7 @@
  * net — like the staff comp, the sheet only ADDS the cut back for one line so
  * the subtotal adds up from the prices shown.
  */
-import type { ComboLineFields, OrderDeal } from "./contract";
+import type { ComboLineFields, OrderDeal } from "./types";
 
 type Line = { id: string; line_total: number; addons?: { line_total: number }[] } & ComboLineFields;
 

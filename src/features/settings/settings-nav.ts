@@ -29,7 +29,6 @@ import {
 import type { OrgModule } from "@/config/nav";
 import type { Authz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
-import { ComboCap } from "@/features/combos/caps";
 
 export interface SettingsLeaf {
   to: string;
@@ -136,7 +135,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         descKey: "settings.combosDesc",
         desc: "Where combos and deals are sold, per channel and branch, and the margin that warns you.",
         icon: Sandwich,
-        caps: [Cap.orgSettingsRead, ComboCap.menuCombosEdit],
+        caps: [Cap.orgSettingsRead, Cap.menuCombosEdit],
       },
     ],
   },

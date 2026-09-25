@@ -24,17 +24,17 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { fmtMoney } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { setItemMeal, useCombo, useCombos } from "@/features/combos/api";
-import { ComboCap } from "@/features/combos/caps";
-import type { MealTarget } from "@/features/combos/contract";
+import type { MealTarget } from "@/features/combos/types";
 import { mealDelta, slotsAdmitting } from "@/features/combos/meal";
 import { useMenuOptions } from "@/features/combos/use-menu-options";
+import { Cap } from "@/generated/capabilities";
 
 const NONE = "__none__";
 
 export function SectionMeal({ itemId, categoryId }: { itemId: string; categoryId: string | null }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
-  const canEdit = useAuthz().can(ComboCap.menuCombosEdit);
+  const canEdit = useAuthz().can(Cap.menuCombosEdit);
 
   const itemQ = useGetMenuItem(itemId, { query: { enabled: !!itemId } });
   const current = ((itemQ.data as { meal?: MealTarget } | undefined)?.meal ?? null) as MealTarget;

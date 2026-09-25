@@ -41,7 +41,6 @@ import {
 } from "lucide-react";
 import type { Authz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
-import { ComboCap } from "@/features/combos/caps";
 
 export interface NavLeaf {
   to: string;
@@ -141,7 +140,7 @@ export const NAV: NavGroup[] = [
       { caps: [Cap.reportsLegal], to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
       { caps: [Cap.loyaltyMembersList], module: "pos", to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
       // Each combo and deal as its own line (C6): reports.bundles, owner and manager by default.
-      { caps: [ComboCap.reportsBundles], module: "pos", to: "/reports/bundles", labelKey: "nav.reportsBundles", fallback: "Bundles", icon: Shapes },
+      { caps: [Cap.reportsBundles], module: "pos", to: "/reports/bundles", labelKey: "nav.reportsBundles", fallback: "Bundles", icon: Shapes },
       { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
       // The day's staff drinks pool, per branch. Gated on the capability that
       // lets a person record one: if you can give a staff drink, you can see

@@ -15,7 +15,7 @@ import { fmtMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { useComboEconomics } from "./api";
-import type { ComboEconomics, ComboWrite } from "./contract";
+import type { ComboEconomics, ComboWrite } from "./types";
 import { fmtRate, rateOf, warningText, type WarningNames } from "./util";
 
 function Figure({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: "warning" | "success" }) {
@@ -41,7 +41,7 @@ function Figure({ label, value, hint, tone }: { label: string; value: string; hi
 export function EconomicsView({ econ, names }: { econ: ComboEconomics; names: WarningNames }) {
   const { t } = useTranslation();
   const min = rateOf(econ.min_margin);
-  const below = (r: string | null) => min !== null && rateOf(r) !== null && (rateOf(r) as number) < min;
+  const below = (r: string | null | undefined) => min !== null && rateOf(r) !== null && (rateOf(r) as number) < min;
   const range = econ.list_min !== econ.list_max ? t("combos.econ.range", { defaultValue: "{{min}} to {{max}}", min: fmtMoney(econ.list_min), max: fmtMoney(econ.list_max) }) : undefined;
 
   return (

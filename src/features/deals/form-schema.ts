@@ -7,7 +7,8 @@
  */
 import { z } from "zod";
 
-import type { DealPoolEntry, DealRule, DealWrite } from "@/features/combos/contract";
+import { arOf } from "@/features/combos/types";
+import type { DealPoolEntry, DealRule, DealWrite } from "@/features/combos/types";
 import { newKey, windowFromWire, windowSchema, windowToWire } from "@/features/combos/form-schema";
 import { moneyIn, moneyOut } from "@/features/combos/util";
 
@@ -136,8 +137,8 @@ const entryToWire = (e: PoolEntryForm): DealPoolEntry => ({
 export function dealFromWire(d: DealRule): DealFormValues {
   return {
     name: d.name,
-    name_ar: d.name_translations?.ar ?? "",
-    kind: d.kind,
+    name_ar: arOf(d.name_translations),
+    kind: d.kind === "buy_get" ? "buy_get" : "n_for_price",
     qty: String(d.qty),
     price: d.kind === "n_for_price" ? moneyOut(d.price) : "",
     get_qty: String(d.get_qty ?? 1),

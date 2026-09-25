@@ -22,8 +22,8 @@ import { usePageSearch } from "@/data/scope/use-page-search";
 import { Cap } from "@/generated/capabilities";
 import { getTranslatedName } from "@/lib/translation";
 import { deleteDeal, useDeals } from "@/features/combos/api";
-import { ComboCap } from "@/features/combos/caps";
-import type { DealRule } from "@/features/combos/contract";
+import { arOf } from "@/features/combos/types";
+import type { DealRule } from "@/features/combos/types";
 import { useMenuOptions } from "@/features/combos/use-menu-options";
 import { invalidateCombos, windowSummary } from "@/features/combos/util";
 
@@ -36,7 +36,7 @@ export function DealsPage() {
   const confirm = useConfirm();
   const authz = useAuthz();
   const canRead = authz.can(Cap.menuItemsRead);
-  const canEdit = authz.can(ComboCap.menuDealsEdit);
+  const canEdit = authz.can(Cap.menuDealsEdit);
 
   const q = useDeals({}, { enabled: canRead });
   const menu = useMenuOptions(canRead);
@@ -75,9 +75,9 @@ export function DealsPage() {
           return (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{d.name}</p>
-              {d.name_translations?.ar ? (
+              {arOf(d.name_translations) ? (
                 <p dir="rtl" className="truncate text-xs text-muted-foreground">
-                  {d.name_translations.ar}
+                  {arOf(d.name_translations)}
                 </p>
               ) : null}
             </div>

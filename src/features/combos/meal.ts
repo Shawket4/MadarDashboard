@@ -8,7 +8,7 @@
  * size isn't the included one (the owner's size surcharge, else the usual
  * difference, C9).
  */
-import type { Combo, ComboChoiceWrite, ComboSlotWrite } from "./contract";
+import type { Combo, ComboChoiceWrite, ComboSlotWrite } from "./types";
 import type { ItemOption } from "./use-menu-options";
 
 export interface MealItem {
@@ -31,11 +31,11 @@ const includedLabel = (c: ComboChoiceWrite, it: ItemOption | undefined): string 
   c.included_size_label ?? it?.sizes[0]?.label;
 
 /** What one pick of `it` through choice `c` at `sizeLabel` adds on top of the combo price. */
-function pickExtra(c: ComboChoiceWrite, it: ItemOption | undefined, sizeLabel: string | null): number {
+function pickExtra(c: ComboChoiceWrite, it: ItemOption | undefined, sizeLabel: string | null | undefined): number {
   const inc = includedLabel(c, it);
   let sizeExtra = 0;
   if (sizeLabel && inc && sizeLabel !== inc) {
-    const owner = c.size_surcharges.find((x) => x.size_label === sizeLabel);
+    const owner = (c.size_surcharges ?? []).find((x) => x.size_label === sizeLabel);
     if (owner) sizeExtra = owner.surcharge;
     else {
       const chosen = it?.sizes.find((s) => s.label === sizeLabel)?.price;
@@ -43,7 +43,7 @@ function pickExtra(c: ComboChoiceWrite, it: ItemOption | undefined, sizeLabel: s
       sizeExtra = chosen !== undefined && base !== undefined ? Math.max(0, chosen - base) : 0;
     }
   }
-  return c.surcharge + sizeExtra;
+  return (c.surcharge ?? 0) + sizeExtra;
 }
 
 /** A slot's default pick: its default item (or its first item choice), and that pick's extra. */

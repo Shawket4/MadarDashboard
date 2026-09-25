@@ -29,9 +29,10 @@ import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { cairoParts, fmtDate, fmtMoney, fmtNumber } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { useBundlesReport } from "@/features/combos/api";
-import { ComboCap } from "@/features/combos/caps";
-import type { BundleKind, BundlesReportRow } from "@/features/combos/contract";
+import type { BundleKind, BundlesReportRow } from "@/features/combos/types";
 import { fmtRate, rateOf } from "@/features/combos/util";
+
+import { Cap } from "@/generated/capabilities";
 
 import { MixDialog } from "./mix-dialog";
 
@@ -45,7 +46,7 @@ export function BundlesReportPage() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const authz = useAuthz();
-  const canSee = authz.can(ComboCap.reportsBundles);
+  const canSee = authz.can(Cap.reportsBundles);
   const { branchId, from, to } = useScope();
   const [kind, setKind] = useState<BundleKind>("combo");
   const [mixFor, setMixFor] = useState<BundlesReportRow | null>(null);

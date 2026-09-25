@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Skeleton } from "@/components/ui/skeleton";
 import { fmtMoney, fmtNumber, fmtShare } from "@/lib/format";
 import { useComboMix } from "@/features/combos/api";
-import type { BundlesReportParams } from "@/features/combos/contract";
+import type { BundlesReportParams } from "@/features/combos/types";
 import { sizeLabelText } from "@/features/combos/use-menu-options";
 
 export function MixDialog({

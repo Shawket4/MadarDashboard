@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { getErrorMessage } from "@/data/api/errors";
 import { createDeal, deleteDealBranch, putDealBranch, updateDeal } from "@/features/combos/api";
-import type { DealRule } from "@/features/combos/contract";
+import type { DealRule } from "@/features/combos/types";
 import type { MenuOptions } from "@/features/combos/use-menu-options";
 import { invalidateCombos, moneyIn } from "@/features/combos/util";
 import { WindowsEditor, type WindowErrors } from "@/features/combos/windows-editor";

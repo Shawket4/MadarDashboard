@@ -1,14 +1,38 @@
 /**
- * The combos, deals and Bundles-report data hooks, in one place.
- *
- * TEMPORARY SHAPE: until Builder A publishes the spec there is no generated
- * client for these endpoints, and this app never hand-writes a fetch. So each
- * hook here is a typed stub that fails with `NOT_GENERATED` (and the tests mock
- * this module). When `CONTRACT READY` lands, this file becomes a thin wrapper
- * over the Orval hooks with the same exported names, and the screens don't
- * change.
+ * The combos, deals and Bundles-report data hooks, in one place: thin
+ * wrappers over the Orval client (`src/data/api/generated`), under the names
+ * the screens and their tests use. Nothing here builds a request by hand.
  */
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+
+import {
+  bundlesReport as fetchBundlesReport,
+  comboEconomics,
+  comboMix as fetchComboMix,
+  createCombo as postCombo,
+  createDeal as postDeal,
+  deleteBranchChannels as delBranchChannels,
+  deleteDeal as delDeal,
+  deleteDealBranch as delDealBranch,
+  deleteMenuItem,
+  getCombo,
+  getGetComboQueryKey,
+  getGetSettingsQueryKey,
+  getListCombosQueryKey,
+  getListDealsQueryKey,
+  getSettings,
+  listCombos,
+  listDeals,
+  putBranchChannels as putBranch,
+  putDealBranch as putDealBranchApi,
+  putMeal,
+  putSettings,
+  updateCombo as putCombo,
+  updateDeal as putDeal,
+  uploadMenuItemImage,
+  getBundlesReportQueryKey,
+  getComboMixQueryKey,
+} from "@/data/api/generated/api";
 
 import type {
   BundlesReport,
@@ -16,6 +40,7 @@ import type {
   ChannelOverride,
   Combo,
   ComboEconomics,
+  ComboEconomicsRequest,
   ComboMix,
   ComboPage,
   ComboSettings,
@@ -25,86 +50,82 @@ import type {
   DealWrite,
   ListCombosParams,
   MealTarget,
-} from "./contract";
-
-export class NotGeneratedError extends Error {
-  constructor(what: string) {
-    super(`${what}: the combos API client is not generated yet`);
-    this.name = "NotGeneratedError";
-  }
-}
-
-const notYet = <T,>(what: string) => (): Promise<T> => Promise.reject(new NotGeneratedError(what));
+} from "./types";
 
 type Opts = { enabled?: boolean };
 
 // ── Combos ───────────────────────────────────────────────────────────────────
 
 export const useCombos = (params: ListCombosParams, opts: Opts = {}): UseQueryResult<ComboPage> =>
-  useQuery({ queryKey: ["/combos", params], queryFn: notYet<ComboPage>("GET /combos"), enabled: opts.enabled ?? true, retry: false });
+  useQuery({
+    queryKey: getListCombosQueryKey(params),
+    queryFn: ({ signal }) => listCombos(params, undefined, signal),
+    enabled: opts.enabled ?? true,
+  });
 
 export const useCombo = (id: string, params: { branch_id?: string } = {}, opts: Opts = {}): UseQueryResult<Combo> =>
-  useQuery({ queryKey: [`/combos/${id}`, params], queryFn: notYet<Combo>("GET /combos/{id}"), enabled: opts.enabled ?? true, retry: false });
+  useQuery({
+    queryKey: getGetComboQueryKey(id, params),
+    queryFn: ({ signal }) => getCombo(id, params, undefined, signal),
+    enabled: (opts.enabled ?? true) && !!id,
+  });
 
-export const createCombo = (_body: ComboWrite): Promise<Combo> => notYet<Combo>("POST /combos")();
-export const updateCombo = (_id: string, _body: ComboWrite): Promise<Combo> => notYet<Combo>("PUT /combos/{id}")();
+export const createCombo = (body: ComboWrite): Promise<Combo> => postCombo(body);
+export const updateCombo = (id: string, body: ComboWrite): Promise<Combo> => putCombo(id, body);
 /** A combo is a menu item: it is deleted, and its image uploaded, through the item endpoints. */
-export const deleteCombo = (_id: string): Promise<void> => notYet<void>("DELETE /menu-items/{id}")();
-export const uploadComboImage = (_id: string, _file: File): Promise<unknown> => notYet<unknown>("POST /menu-items/{id}/image")();
+export const deleteCombo = (id: string): Promise<void> => deleteMenuItem(id);
+export const uploadComboImage = (id: string, file: File): Promise<unknown> => uploadMenuItemImage(id, { image: file });
 
 /** The editor's live panel: nothing is saved. `body` null = not ready to ask. */
-export const useComboEconomics = (
-  body: (ComboWrite & { branch_id?: string | null }) | null,
-  opts: Opts = {},
-): UseQueryResult<ComboEconomics> =>
+export const useComboEconomics = (body: ComboEconomicsRequest | null, opts: Opts = {}): UseQueryResult<ComboEconomics> =>
   useQuery({
     queryKey: ["/combos/economics", body],
-    queryFn: notYet<ComboEconomics>("POST /combos/economics"),
+    queryFn: ({ signal }) => comboEconomics(body as ComboEconomicsRequest, undefined, signal),
     enabled: (opts.enabled ?? true) && body !== null,
     retry: false,
   });
 
-/** C14: point an item at a combo slot, or clear it. The pointer is read back on `GET /menu-items/{id}` (`meal`). */
-export const setItemMeal = (_itemId: string, _target: MealTarget): Promise<void> => notYet<void>("PUT /menu-items/{id}/meal")();
+/** C14: point an item at a combo slot, or clear it (both null). Read back on `GET /menu-items/{id}` (`meal`). */
+export const setItemMeal = (itemId: string, target: MealTarget): Promise<void> =>
+  putMeal(itemId, target ?? { combo_id: null, slot_id: null });
 
 // ── Settings (§11.1: org-wide channels, per-branch overrides, margin floor) ──
 
 export const useComboSettings = (opts: Opts = {}): UseQueryResult<ComboSettings> =>
-  useQuery({ queryKey: ["/settings/combos"], queryFn: notYet<ComboSettings>("GET /settings/combos"), enabled: opts.enabled ?? true, retry: false });
+  useQuery({ queryKey: getGetSettingsQueryKey(), queryFn: ({ signal }) => getSettings(undefined, signal), enabled: opts.enabled ?? true });
 
-export const saveComboSettings = (_body: ComboSettingsWrite): Promise<ComboSettings> =>
-  notYet<ComboSettings>("PUT /settings/combos")();
-export const putBranchChannels = (_branchId: string, _sell: ChannelOverride): Promise<void> =>
-  notYet<void>("PUT /settings/combos/branches/{branch_id}")();
-export const deleteBranchChannels = (_branchId: string): Promise<void> =>
-  notYet<void>("DELETE /settings/combos/branches/{branch_id}")();
+export const saveComboSettings = (body: ComboSettingsWrite): Promise<ComboSettings> => putSettings(body);
+export const putBranchChannels = (branchId: string, sell: ChannelOverride): Promise<void> => putBranch(branchId, sell);
+export const deleteBranchChannels = (branchId: string): Promise<void> => delBranchChannels(branchId);
 
 // ── Deals ────────────────────────────────────────────────────────────────────
 
 export const useDeals = (params: { is_active?: boolean } = {}, opts: Opts = {}): UseQueryResult<DealRule[]> =>
-  useQuery({ queryKey: ["/deals", params], queryFn: notYet<DealRule[]>("GET /deals"), enabled: opts.enabled ?? true, retry: false });
+  useQuery({
+    queryKey: getListDealsQueryKey(params),
+    queryFn: ({ signal }) => listDeals(params, undefined, signal),
+    enabled: opts.enabled ?? true,
+  });
 
-export const createDeal = (_body: DealWrite): Promise<DealRule> => notYet<DealRule>("POST /deals")();
-export const updateDeal = (_id: string, _body: DealWrite): Promise<DealRule> => notYet<DealRule>("PUT /deals/{id}")();
-export const deleteDeal = (_id: string): Promise<void> => notYet<void>("DELETE /deals/{id}")();
-export const putDealBranch = (_id: string, _branchId: string, _isActive: boolean): Promise<void> =>
-  notYet<void>("PUT /deals/{id}/branches/{branch_id}")();
-export const deleteDealBranch = (_id: string, _branchId: string): Promise<void> =>
-  notYet<void>("DELETE /deals/{id}/branches/{branch_id}")();
+export const createDeal = (body: DealWrite): Promise<DealRule> => postDeal(body);
+export const updateDeal = (id: string, body: DealWrite): Promise<DealRule> => putDeal(id, body);
+export const deleteDeal = (id: string): Promise<void> => delDeal(id);
+export const putDealBranch = (id: string, branchId: string, isActive: boolean): Promise<void> =>
+  putDealBranchApi(id, branchId, { is_active: isActive });
+export const deleteDealBranch = (id: string, branchId: string): Promise<void> => delDealBranch(id, branchId);
 
 // ── Bundles report ───────────────────────────────────────────────────────────
 
 export const useBundlesReport = (params: BundlesReportParams, opts: Opts = {}): UseQueryResult<BundlesReport> =>
-  useQuery({ queryKey: ["/reports/bundles", params], queryFn: notYet<BundlesReport>("GET /reports/bundles"), enabled: opts.enabled ?? true, retry: false });
-
-export const useComboMix = (
-  comboId: string,
-  params: Omit<BundlesReportParams, "kind">,
-  opts: Opts = {},
-): UseQueryResult<ComboMix> =>
   useQuery({
-    queryKey: [`/reports/bundles/combos/${comboId}/mix`, params],
-    queryFn: notYet<ComboMix>("GET /reports/bundles/combos/{id}/mix"),
+    queryKey: getBundlesReportQueryKey(params),
+    queryFn: ({ signal }) => fetchBundlesReport(params, undefined, signal),
     enabled: opts.enabled ?? true,
-    retry: false,
+  });
+
+export const useComboMix = (comboId: string, params: Omit<BundlesReportParams, "kind">, opts: Opts = {}): UseQueryResult<ComboMix> =>
+  useQuery({
+    queryKey: getComboMixQueryKey(comboId, params),
+    queryFn: ({ signal }) => fetchComboMix(comboId, params, undefined, signal),
+    enabled: (opts.enabled ?? true) && !!comboId,
   });

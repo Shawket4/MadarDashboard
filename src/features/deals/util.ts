@@ -4,7 +4,7 @@
  */
 import type { TFunction } from "i18next";
 
-import type { DealPoolEntry, DealRule } from "@/features/combos/contract";
+import type { DealPoolEntry, DealRule } from "@/features/combos/types";
 import type { MenuOptions } from "@/features/combos/use-menu-options";
 import { fmtMoney } from "@/lib/format";
 

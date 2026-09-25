@@ -43,7 +43,6 @@ import { Cap } from "@/generated/capabilities";
 import { useDebounced } from "@/lib/use-debounced";
 
 import { createCombo, deleteCombo, updateCombo, uploadComboImage, useCombo } from "./api";
-import { ComboCap } from "./caps";
 import { EconomicsPanel } from "./economics-panel";
 import {
   EMPTY_COMBO,
@@ -83,7 +82,7 @@ export function ComboEditorPage() {
   const confirm = useConfirm();
   const authz = useAuthz();
   const canRead = authz.can(Cap.menuItemsRead);
-  const canEdit = authz.can(ComboCap.menuCombosEdit);
+  const canEdit = authz.can(Cap.menuCombosEdit);
   const { branchId } = useScope();
 
   const comboQ = useCombo(comboId, {}, { enabled: !isNew && canRead });

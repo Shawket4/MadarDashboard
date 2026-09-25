@@ -10,7 +10,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Combo, ComboEconomics } from "./contract";
+import type { Combo, ComboEconomics } from "./types";
 import type { MenuOptions } from "./use-menu-options";
 
 // cmdk scrolls the active option into view; jsdom has no layout to scroll.
@@ -89,6 +89,8 @@ const saved = (): Combo => ({
   is_fixed: false,
   created_at: "",
   updated_at: "",
+  available_now: true,
+  description_translations: {},
   windows: [],
   slots: [
     {

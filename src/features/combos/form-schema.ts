@@ -11,7 +11,8 @@
  */
 import { z } from "zod";
 
-import type { Combo, ComboChoiceWrite, ComboSlotWrite, ComboWrite, SaleWindow } from "./contract";
+import { arOf } from "./types";
+import type { Combo, ComboChoiceWrite, ComboSlotWrite, ComboWrite, SaleWindow } from "./types";
 import { ALL_WEEKDAYS, hhmm, moneyIn, moneyOut } from "./util";
 
 /** Keys, not messages: the screens translate them (`combos.errors.*`). */
@@ -182,7 +183,7 @@ export const EMPTY_COMBO: ComboFormValues = {
   windows: [],
 };
 
-const ar = (tr: Record<string, string> | null | undefined): string => (tr && typeof tr.ar === "string" ? tr.ar : "");
+const ar = arOf;
 const trOf = (arName: string): Record<string, string> => (arName.trim() ? { ar: arName.trim() } : {});
 const orNull = (s: string): string | null => (s.trim() ? s.trim() : null);
 
@@ -190,7 +191,7 @@ export function windowFromWire(w: SaleWindow): WindowFormValues {
   return {
     key: newKey("w"),
     branch_id: w.branch_id ?? "",
-    weekdays: w.weekdays,
+    weekdays: w.weekdays ?? ALL_WEEKDAYS,
     starts_at: hhmm(w.starts_at) ?? "",
     ends_at: hhmm(w.ends_at) ?? "",
     valid_from: w.valid_from ?? "",

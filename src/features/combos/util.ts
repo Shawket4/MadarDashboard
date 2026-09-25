@@ -9,7 +9,7 @@ import type { TFunction } from "i18next";
 import { queryClient } from "@/data/api/query";
 import { egpToPiastres, fmtMoney, fmtPercent, piastresToEgp } from "@/lib/format";
 
-import type { ComboWarning, SaleWindow } from "./contract";
+import type { ComboWarning, SaleWindow } from "./types";
 
 // ── Weekdays (bit0 = Sunday … bit6 = Saturday) ───────────────────────────────
 
@@ -43,7 +43,7 @@ export function hhmm(v: string | null | undefined): string | null {
 
 /** A window in one line: days · hours · dates. */
 export function windowSummary(t: TFunction, w: SaleWindow, branchName?: (id: string) => string | undefined): string {
-  const parts = [weekdaysLabel(t, w.weekdays)];
+  const parts = [weekdaysLabel(t, w.weekdays ?? ALL_WEEKDAYS)];
   if (w.starts_at && w.ends_at) {
     parts.push(
       t("combos.windows.hoursRange", { defaultValue: "{{from}} to {{to}}", from: hhmm(w.starts_at), to: hhmm(w.ends_at) }),
@@ -121,7 +121,7 @@ export interface WarningNames {
 }
 
 export function warningText(t: TFunction, w: ComboWarning, names: WarningNames = {}): string {
-  const v = w.vars ?? {};
+  const v = (w.vars ?? {}) as Record<string, string | undefined>;
   switch (w.code) {
     case "MARGIN_BELOW_MIN":
       return t("combos.warnings.MARGIN_BELOW_MIN", {

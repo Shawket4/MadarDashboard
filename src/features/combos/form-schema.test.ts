@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import type { Combo } from "./contract";
+import type { Combo } from "./types";
 import {
   E,
   EMPTY_COMBO,
@@ -140,14 +140,28 @@ describe("combo form ↔ wire", () => {
   });
 
   it("reads a saved combo back into the same form (ids kept for the in-place diff)", () => {
+    const w = toWire(lunch());
     const saved: Combo = {
-      ...toWire(lunch()),
+      ...w,
+      name_translations: w.name_translations ?? {},
+      is_active: true,
+      windows: w.windows ?? [],
+      // The server answers with ids on every slot and choice.
+      slots: w.slots.map((s, i) => ({
+        ...s,
+        id: `slot-${i}`,
+        name_translations: s.name_translations ?? {},
+        sort: s.sort ?? i,
+        choices: s.choices.map((c, j) => ({ ...c, id: `ch-${i}-${j}`, surcharge: c.surcharge ?? 0, size_surcharges: c.size_surcharges ?? [], sort: c.sort ?? j })),
+      })),
       id: "combo-1",
       kind: "combo",
       image_url: null,
       is_fixed: false,
       created_at: "",
       updated_at: "",
+      available_now: true,
+      description_translations: {},
       economics: {
         branch_id: null,
         price: 15000,
@@ -163,7 +177,6 @@ describe("combo form ↔ wire", () => {
         warnings: [],
       },
     };
-    saved.slots = saved.slots.map((s, i) => ({ ...s, id: `slot-${i}`, choices: s.choices.map((c, j) => ({ ...c, id: `ch-${i}-${j}` })) }));
     const back = fromWire(saved);
     expect(back.price).toBe("150");
     expect(back.slots[2]).toMatchObject({ id: "slot-2", name_ar: "مشروب" });

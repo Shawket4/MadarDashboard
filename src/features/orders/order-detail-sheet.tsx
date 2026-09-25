@@ -29,7 +29,7 @@ import { discountAttribution } from "@/features/discounts/discount-attribution";
 import { canOpenPerson, peopleAccess } from "@/features/customers/access";
 import { CustomerDetailSheet } from "@/features/customers/customer-detail-sheet";
 import { ContactOverrideNote, CustomerLink } from "@/features/customers/customer-link";
-import type { ComboLineFields } from "@/features/combos/contract";
+import type { ComboLineFields } from "@/features/combos/types";
 import { dealsOf, orderDealsTotal, orderRows } from "@/features/combos/order-lines";
 import { ComboHeaderRow, ComboPartNote, DealLineNote } from "@/features/combos/combo-order-lines";
 import { orderRewards } from "./reward-lines";

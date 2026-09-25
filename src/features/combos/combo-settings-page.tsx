@@ -35,8 +35,7 @@ import { getTranslatedName } from "@/lib/translation";
 import { PaneHeader } from "@/features/settings/pane-header";
 
 import { deleteBranchChannels, putBranchChannels, saveComboSettings, useComboSettings } from "./api";
-import { ComboCap } from "./caps";
-import { COMBO_CHANNELS, type ChannelOverride, type ComboChannel, type ComboSettings } from "./contract";
+import { COMBO_CHANNELS, type ChannelOverride, type ComboChannel, type ComboSettings } from "./types";
 import { invalidateCombos, percentToRate, rateToPercent } from "./util";
 
 export const CHANNEL_META: Record<ComboChannel, { icon: LucideIcon; key: string; label: string; hintKey: string; hint: string }> = {
@@ -56,7 +55,14 @@ export const settingsSchema = z.object({
 });
 export type SettingsValues = z.infer<typeof settingsSchema>;
 
-const fromSettings = (s: ComboSettings): SettingsValues => ({ min_margin: rateToPercent(s.min_margin), sell: { ...s.sell } });
+/** The org's switches; a channel the server leaves out is on (C3: on by default). */
+const channelsOf = (s: ComboSettings): SettingsValues["sell"] => ({
+  pos: s.channels.pos ?? true,
+  qr: s.channels.qr ?? true,
+  online: s.channels.online ?? true,
+  delivery: s.channels.delivery ?? true,
+});
+const fromSettings = (s: ComboSettings): SettingsValues => ({ min_margin: rateToPercent(s.min_margin), sell: channelsOf(s) });
 
 type Tri = "inherit" | "on" | "off";
 const triOf = (v: boolean | null | undefined): Tri => (v === true ? "on" : v === false ? "off" : "inherit");
@@ -65,8 +71,8 @@ const boolOf = (v: Tri): boolean | null => (v === "on" ? true : v === "off" ? fa
 export function ComboSettingsPage() {
   const { t, i18n } = useTranslation();
   const authz = useAuthz();
-  const canRead = authz.canAny(Cap.orgSettingsRead, ComboCap.menuCombosEdit);
-  const canEdit = authz.can(ComboCap.menuCombosEdit);
+  const canRead = authz.canAny(Cap.orgSettingsRead, Cap.menuCombosEdit);
+  const canEdit = authz.can(Cap.menuCombosEdit);
   const orgId = useOrgId() ?? "";
 
   const q = useComboSettings({ enabled: canRead && !!orgId });
@@ -109,7 +115,7 @@ export function ComboSettingsPage() {
 
   const submit = async (v: SettingsValues) => {
     try {
-      await saveComboSettings({ min_margin: percentToRate(v.min_margin), sell: v.sell });
+      await saveComboSettings({ min_margin: percentToRate(v.min_margin), channels: v.sell });
       toast.success(t("combos.settings.saved", "Combo settings saved"));
       void invalidateCombos();
       await q.refetch();
@@ -139,7 +145,7 @@ export function ComboSettingsPage() {
 
   const marginError = form.formState.errors.min_margin?.message;
   // A branch follows what is SAVED for the org, not what is being typed above.
-  const orgOn = (c: ComboChannel) => settings.sell[c];
+  const orgOn = (c: ComboChannel) => channelsOf(settings)[c];
 
   return (
     <form onSubmit={form.handleSubmit(submit)} noValidate className="space-y-4">

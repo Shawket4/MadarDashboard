@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import type { Combo } from "./contract";
+import type { Combo } from "./types";
 import { choiceFor, mealDelta, slotsAdmitting } from "./meal";
 import type { ItemOption } from "./use-menu-options";
 
@@ -26,7 +26,8 @@ const items: Record<string, ItemOption> = {
 };
 const lookup = (id: string) => items[id];
 
-const choice = (p: Partial<Combo["slots"][number]["choices"][number]>) => ({
+const choice = (p: Partial<Combo["slots"][number]["choices"][number]>): Combo["slots"][number]["choices"][number] => ({
+  id: `ch-${Math.random().toString(36).slice(2)}`,
   menu_item_id: null,
   category_id: null,
   surcharge: 0,

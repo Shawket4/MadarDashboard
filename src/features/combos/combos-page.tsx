@@ -35,8 +35,8 @@ import { getTranslatedName } from "@/lib/translation";
 import { useDebounced } from "@/lib/use-debounced";
 
 import { deleteCombo, useCombos } from "./api";
-import { ComboCap } from "./caps";
-import type { ComboSummary } from "./contract";
+import { arOf } from "./types";
+import type { ComboSummary } from "./types";
 import { fmtRate, invalidateCombos } from "./util";
 
 const ALL = "__all__";
@@ -50,8 +50,8 @@ export function CombosPage() {
   const orgId = useOrgId();
   const authz = useAuthz();
   const canRead = authz.can(Cap.menuItemsRead);
-  const canEdit = authz.can(ComboCap.menuCombosEdit);
-  const canSettings = authz.canAny(Cap.orgSettingsRead, ComboCap.menuCombosEdit);
+  const canEdit = authz.can(Cap.menuCombosEdit);
+  const canSettings = authz.canAny(Cap.orgSettingsRead, Cap.menuCombosEdit);
 
   const [search, setSearch] = useState("");
   const q = useDebounced(search, 300);
@@ -74,7 +74,7 @@ export function CombosPage() {
   const categories = useListCategories({ org_id: orgId ?? "" }, { query: { enabled: canRead && !!orgId } });
   const categoryName = useMemo(() => {
     const m = new Map((categories.data ?? []).map((c) => [c.id, getTranslatedName(c, lang)]));
-    return (id: string | null) => (id ? (m.get(id) ?? "—") : "—");
+    return (id: string | null | undefined) => (id ? (m.get(id) ?? "—") : "—");
   }, [categories.data, lang]);
 
   const open = (id: string) => void navigate({ to: "/menu/combos/$comboId", params: { comboId: id } });
@@ -108,7 +108,7 @@ export function CombosPage() {
         meta: { phone: "title" },
         cell: ({ row }) => {
           const c = row.original;
-          const ar = c.name_translations?.ar;
+          const ar = arOf(c.name_translations);
           return (
             <div className="flex items-center gap-3">
               <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-secondary text-muted-foreground">
