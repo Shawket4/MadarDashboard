@@ -21,6 +21,8 @@ function codedVars(raw: unknown, t: TFunction): Record<string, unknown> {
     // Weekdays 0 = Sunday (SHIFT_DAYS_IN_USE); a request's status (REQUEST_ALREADY_DECIDED).
     else if (k === "days" && Array.isArray(v))
       out[k] = v.map((d) => t(`staff.${WEEKDAY_KEYS[Number(d)] ?? ""}`, String(d))).join(t("common.listSeparator", ", "));
+    // A block's day that has its own times but isn't one of its days (SHIFT_DAY_TIMES_OFF_DAY).
+    else if (k === "day_of_week" && typeof v === "number") out[k] = t(`staff.${WEEKDAY_KEYS[v] ?? ""}`, String(v));
     else if (k === "status" && typeof v === "string") out[k] = t(`staff.req_${v}`, v);
     // People named in a refusal (SALARY_MISSING, D9).
     else if (k === "names" && Array.isArray(v)) out[k] = v.join(t("common.listSeparator", ", "));
@@ -41,11 +43,32 @@ function settingKey(vars: Record<string, unknown>): string {
   return "SETTING_OUT_OF_RANGE";
 }
 
+/** A work shift's numbers as the shift dialog labels them (SHIFT_SETTING_INVALID {field}). */
+const SHIFT_FIELD_LABELS: Record<string, [string, string]> = {
+  grace_minutes: ["staff.graceMinutes", "Grace (minutes)"],
+  break_minutes: ["staff.breakMinutes", "Break (minutes)"],
+  overtime_threshold_minutes: ["staff.otThreshold", "Overtime after (minutes)"],
+  checkin_window_minutes: ["staff.checkinWindow", "Check-in opens (minutes early)"],
+  half_day_threshold_minutes: ["staff.halfDayThreshold", "Half day below (minutes)"],
+  overtime_multiplier: ["staff.otMultiplier", "Overtime multiplier"],
+  ot_day_multiplier: ["staff.otDayMultiplier", "Day overtime rate"],
+  ot_night_multiplier: ["staff.otNightMultiplier", "Night overtime rate"],
+};
+
+/** Codes whose `status` picks the sentence rather than filling it in. */
+const STATUS_VARIANTS: Record<string, string[]> = {
+  CANCEL_REASON_REQUIRED: ["approved"],
+  OPEN_SHIFT_CLOSED: ["filled", "cancelled"],
+};
+
 /** Refusals that mean the screen is stale: someone else decided, claimed or
  *  handled it first. The page refreshes so the list says what is true (H2-B2). */
 const STALE_CODES = new Set([
   "REQUEST_ALREADY_DECIDED", "ALREADY_DECIDED", "FLAG_HANDLED", "ALREADY_CLAIMED",
   "CLAIM_ALREADY_DECIDED", "NO_PENDING_CLAIM", "SWAP_STALE", "SUGGESTION_STALE",
+  // Nothing waiting any more: decided, withdrawn, filled or cancelled elsewhere (H2-B9).
+  "NO_CLAIM_WAITING", "NO_SWAP_WAITING", "NO_SWAP_TO_CANCEL", "OPEN_SHIFT_CLOSED",
+  "NO_COVER_WAITING", "NO_OVERTIME_WAITING", "PAYSLIP_ALREADY_PAID",
 ]);
 export const isStaleRefusal = (err: unknown): boolean => {
   if (!(err instanceof AxiosError)) return false;
@@ -67,10 +90,17 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
     // A stable `code` the UI knows reads in the user's language; anything else
     // falls back to the server's own message.
     const code = typeof data?.code === "string" ? data.code : undefined;
+    const rawVars = (data?.vars && typeof data.vars === "object" ? data.vars : {}) as Record<string, unknown>;
     const vars = codedVars(data?.vars, t);
-    if (typeof vars.field === "string") vars.field = opts.fieldLabel?.(vars.field) ?? vars.field;
+    // A value the client sent that the server didn't know reads as sent (STATUS_UNKNOWN).
+    if (code === "STATUS_UNKNOWN") vars.status = rawVars.status;
+    const shiftField = code === "SHIFT_SETTING_INVALID" && typeof vars.field === "string" ? SHIFT_FIELD_LABELS[vars.field] : undefined;
+    if (typeof vars.field === "string")
+      vars.field = opts.fieldLabel?.(vars.field) ?? (shiftField ? t(shiftField[0], shiftField[1]) : vars.field);
+    const variant =
+      code && typeof rawVars.status === "string" && STATUS_VARIANTS[code]?.includes(rawVars.status) ? `${code}_${rawVars.status}` : undefined;
     // A paid month can't be reopened, so it gets its own wording (PERIOD_CLOSED {paid}).
-    const key =
+    const key = variant ?? (
       code === "PERIOD_CLOSED" && vars.paid === true
         ? "PERIOD_CLOSED_paid"
         : code === "SETTING_OUT_OF_RANGE"
@@ -84,7 +114,7 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
               : // Over the cap with no amount: the caller may not see the salary it reveals (D7).
                 code === "ADVANCE_OVER_CAP" && vars.more_egp === undefined && vars.over_cap === true
                 ? "ADVANCE_OVER_CAP_owner"
-                : code;
+                : code);
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
     // A 403 the server didn't code is a missing right; its prose is English (B-ROTA-9).
     if (status === 403 && !code) return t("errors.unauthorized");
