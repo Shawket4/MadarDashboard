@@ -116,10 +116,11 @@ export function TeamPage() {
       />
       <RulesFirstBanner />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dawam.stateIn", "In")} value={p?.present ?? 0} formatType="number" icon={UsersRound} accent="success" loading={presenceQ.isLoading} />
-        <StatCard label={t("dawam.stateLate", "Late")} value={p?.late ?? 0} formatType="number" icon={Clock3} accent="warning" loading={presenceQ.isLoading} />
-        <StatCard label={t("dawam.stateAbsent", "Absent")} value={p?.absent ?? 0} formatType="number" icon={CircleAlert} accent="destructive" loading={presenceQ.isLoading} />
-        <StatCard label={t("dawam.openFlags", "Open flags")} value={flags.length} formatType="number" icon={ShieldAlert} loading={flagsQ.isLoading} />
+        {/* A failed load has no counts: a dash, never a reassuring 0 (box verify). */}
+        <StatCard label={t("dawam.stateIn", "In")} value={p ? p.present : "—"} formatType="number" icon={UsersRound} accent="success" loading={presenceQ.isLoading} />
+        <StatCard label={t("dawam.stateLate", "Late")} value={p ? p.late : "—"} formatType="number" icon={Clock3} accent="warning" loading={presenceQ.isLoading} />
+        <StatCard label={t("dawam.stateAbsent", "Absent")} value={p ? p.absent : "—"} formatType="number" icon={CircleAlert} accent="destructive" loading={presenceQ.isLoading} />
+        <StatCard label={t("dawam.openFlags", "Open flags")} value={flagsQ.error ? "—" : flags.length} formatType="number" icon={ShieldAlert} loading={flagsQ.isLoading} />
       </div>
 
       <section className="space-y-3">

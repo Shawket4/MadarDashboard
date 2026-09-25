@@ -117,6 +117,16 @@ describe("TeamPage", () => {
     expect(enabledSeen.presence.every((e) => e === false)).toBe(true);
   });
 
+  it("shows no counts while the team failed to load, never 0 / 0 / 0 (box verify)", () => {
+    failing.presence = new Error("Network Error");
+    wrap(<TeamPage />);
+    expect(screen.getByText("Couldn't load the team")).toBeInTheDocument();
+    for (const label of ["In", "Late", "Absent"]) {
+      const card = screen.getAllByText(label)[0].closest("[data-slot=card]") as HTMLElement;
+      expect(card.textContent).not.toMatch(/\d/);
+    }
+  });
+
   it("says the flags couldn't load, never 'No open flags', when their request fails", () => {
     // E2E: a 403 on /staff/flags drew "No open flags" beside the team's error.
     failing.flags = new Error("Forbidden: See attendance");
