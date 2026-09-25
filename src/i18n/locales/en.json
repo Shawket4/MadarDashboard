@@ -6076,7 +6076,9 @@
     "reportsSubtitle": "Attendance, labour cost, payroll and advances over the dates below. It opens on this pay period.",
     "rangeBackwards": "The end is before the start",
     "rangeBackwardsHint": "Pick an end on or after the start, or tap a quick range.",
-    "timeOfDay": "Time"
+    "timeOfDay": "Time",
+    "approveSelected": "Approve selected",
+    "lateEarly": "Late / left early"
   },
   "dawam": {
     "accept": "Accept",

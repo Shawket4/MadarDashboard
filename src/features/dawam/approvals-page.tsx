@@ -83,6 +83,9 @@ export function ApprovalsPage() {
   const [rejecting, setRejecting] = useState<Pending | null>(null);
   /** Rows ticked for a batch approval. */
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  /** Decided here and not yet gone from the refetched lists: never offered again (a batch sent one twice, 409). */
+  const [gone, setGone] = useState<Set<string>>(() => new Set());
+  const markGone = (keys: string[]) => setGone((prev) => new Set([...prev, ...keys]));
 
   const can = {
     requests: authz.canAny(Cap.hrLeaveEdit, Cap.hrAttendanceEdit),
@@ -139,6 +142,7 @@ export function ApprovalsPage() {
       if (r instanceof Promise) {
         const out = await r;
         if (out === BACKED_OUT) return;
+        markGone([key]);
         decided();
         // A claim that makes a long day passes a labour limit: said, never blocked (RU-13, M26).
         for (const w of warningsOf(out)) {
@@ -307,8 +311,9 @@ export function ApprovalsPage() {
     return <Restricted title={t("dawam.approvals", "Approvals")} who={t("dawam.approvalsNoAccess", "Nothing here is yours to decide. The owner can give you access.")} />;
   }
 
-  const count = (s: Section) => (s === "all" ? items.length : items.filter((i) => i.section === s).length);
-  const shown = section === "all" ? items : items.filter((i) => i.section === section);
+  const count = (s: Section) => (s === "all" ? live.length : live.filter((i) => i.section === s).length);
+  const live = items.filter((i) => !gone.has(i.key));
+  const shown = section === "all" ? live : live.filter((i) => i.section === section);
   const batchable = shown.filter((i) => i.bulk && !i.rejectOnly && !i.locked);
   const picked = batchable.filter((i) => selected.has(i.key));
   const toggle = (key: string, on: boolean) =>
@@ -335,10 +340,12 @@ export function ApprovalsPage() {
     setBusy("bulk");
     let done = 0;
     const failed: string[] = [];
+    const approved: string[] = [];
     for (const i of picked) {
       try {
         const out = await i.bulk!();
         done++;
+        approved.push(i.key);
         for (const w of warningsOf(out)) {
           toast.warning(t("dawam.limitWarning", {
             limit: t(`dawam.warn_${w.kind}`, w.kind), minutes: fmtHours(w.minutes), cap: fmtHours(w.limit_minutes),
@@ -351,9 +358,13 @@ export function ApprovalsPage() {
     }
     setBusy(null);
     setSelected(new Set());
+    markGone(approved);
     if (done) toast.success(t("dawamOps.bulkDone", { count: done, defaultValue: "{{count}} approved" }));
     if (failed.length) {
-      toast.error(t("dawamOps.bulkFailed", { count: failed.length, first: failed[0], defaultValue: "{{count}} not approved. {{first}}" }));
+      // Each one that failed, with why: they stay in the queue.
+      const head = t("dawamOps.bulkFailed", { count: failed.length, first: failed[0], defaultValue: "{{count}} not approved. {{first}}" });
+      if (failed.length > 1) toast.error(head, { description: failed.slice(1).join("\n"), duration: 10_000 });
+      else toast.error(head);
     }
     void invalidateStaff();
   };
@@ -428,7 +439,9 @@ export function ApprovalsPage() {
                 ) : null}
                 <Button size="sm" disabled={picked.length === 0 || !!busy} loading={busy === "bulk"} onClick={() => void approvePicked()}>
                   <Check className="size-4" />
-                  {t("dawamOps.approveCount", { count: picked.length, defaultValue: "Approve {{count}}" })}
+                  {picked.length === 0
+                    ? t("dawamOps.approveSelected", "Approve selected")
+                    : t("dawamOps.approveCount", { count: picked.length, defaultValue: "Approve {{count}}" })}
                 </Button>
               </span>
             </div>

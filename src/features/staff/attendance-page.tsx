@@ -239,40 +239,40 @@ export function AttendancePage() {
         cell: ({ row }) => fmtMinutes(row.original.worked_minutes),
       },
       {
+        // Late and left early in one column: both are time charged against the shift,
+        // each with what it is measured from (the branch's clock).
         id: "late",
-        header: t("staff.late", "Late"),
-        meta: { label: t("staff.late", "Late"), numeric: true },
-        cell: ({ row }) =>
-          row.original.late_minutes > 0 ? (
-            <span className="inline-flex flex-col items-end">
-              <span className="text-[color-mix(in_oklab,var(--color-warning)_55%,var(--color-foreground))]">{fmtMinutes(row.original.late_minutes)}</span>
-              {row.original.scheduled_start_at ? (
-                <span className="font-sans text-[11px] text-muted-foreground">
-                  {t("dawamOps.lateAfter", { time: fmtTime(row.original.scheduled_start_at, zones.get(row.original.branch_id)), defaultValue: "after {{time}}" })}
+        header: t("dawamOps.lateEarly", "Late / left early"),
+        meta: { label: t("dawamOps.lateEarly", "Late / left early"), numeric: true },
+        cell: ({ row }) => {
+          const r = row.original;
+          const zone = zones.get(r.branch_id);
+          if (!(r.late_minutes > 0) && !(r.early_leave_minutes > 0)) return "—";
+          return (
+            <span className="inline-flex flex-col items-end gap-0.5">
+              {r.late_minutes > 0 ? (
+                <span className="whitespace-nowrap">
+                  <span className="text-[color-mix(in_oklab,var(--color-warning)_55%,var(--color-foreground))]">{fmtMinutes(r.late_minutes)}</span>
+                  {r.scheduled_start_at ? (
+                    <span className="ms-1 font-sans text-[11px] text-muted-foreground">
+                      {t("dawamOps.lateAfter", { time: fmtTime(r.scheduled_start_at, zone), defaultValue: "after {{time}}" })}
+                    </span>
+                  ) : null}
+                </span>
+              ) : null}
+              {r.early_leave_minutes > 0 ? (
+                <span className="whitespace-nowrap">
+                  <span className="text-[color-mix(in_oklab,var(--color-warning)_55%,var(--color-foreground))]">{fmtMinutes(r.early_leave_minutes)}</span>
+                  {r.scheduled_end_at ? (
+                    <span className="ms-1 font-sans text-[11px] text-muted-foreground">
+                      {t("dawamOps.earlyBefore", { time: fmtTime(r.scheduled_end_at, zone), defaultValue: "before {{time}}" })}
+                    </span>
+                  ) : null}
                 </span>
               ) : null}
             </span>
-          ) : (
-            "—"
-          ),
-      },
-      {
-        id: "early",
-        header: t("dawamOps.leftEarly", "Left early"),
-        meta: { label: t("dawamOps.leftEarly", "Left early"), numeric: true },
-        cell: ({ row }) =>
-          row.original.early_leave_minutes > 0 ? (
-            <span className="inline-flex flex-col items-end">
-              <span className="text-[color-mix(in_oklab,var(--color-warning)_55%,var(--color-foreground))]">{fmtMinutes(row.original.early_leave_minutes)}</span>
-              {row.original.scheduled_end_at ? (
-                <span className="font-sans text-[11px] text-muted-foreground">
-                  {t("dawamOps.earlyBefore", { time: fmtTime(row.original.scheduled_end_at, zones.get(row.original.branch_id)), defaultValue: "before {{time}}" })}
-                </span>
-              ) : null}
-            </span>
-          ) : (
-            "—"
-          ),
+          );
+        },
       },
       {
         id: "overtime",
@@ -311,7 +311,7 @@ export function AttendancePage() {
           </>
         }
         below={
-          <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
+          <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
             <DateRangeField
               id="att"
               className="w-full max-w-md"
@@ -322,6 +322,7 @@ export function AttendancePage() {
               fromLabel={t("staff.from", "From")}
               toLabel={t("staff.to", "To")}
             />
+            <div className="flex flex-wrap items-center gap-3 sm:pt-[1.625rem]">
             <EmployeePicker
               className="w-52"
               aria-label={t("staff.employee", "Employee")}
@@ -343,6 +344,7 @@ export function AttendancePage() {
                 <SelectItem value="on_leave">{t("staff.att_on_leave", "On leave")}</SelectItem>
               </SelectContent>
             </Select>
+            </div>
           </div>
         }
       />

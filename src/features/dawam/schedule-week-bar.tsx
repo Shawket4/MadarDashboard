@@ -41,68 +41,61 @@ export function WeekBar({
     : n > 0 ? t("dawamOps.inWeeks", { count: n, defaultValue: "In {{count}} weeks" })
     : t("dawamOps.weeksAgo", { count: -n, defaultValue: "{{count}} weeks ago" });
 
-  return (
-    <section
-      aria-label={t("dawam.week", "Week")}
-      className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl border bg-card px-4 py-3"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        {/* The arrows and the range move as one: a wrapped toolbar never splits them (L-12). */}
-        <div role="group" aria-label={t("dawam.week", "Week")} className="flex flex-nowrap items-center gap-1">
-          <Button variant="outline" size="icon" aria-label={t("dawam.prevWeek", "Previous week")} onClick={() => onWeek(addDays(week, -7))}>
-            <ChevronLeft className="size-4 rtl:rotate-180" />
-          </Button>
-          <div className="min-w-[9.5rem] px-1 text-center">
-            <div className="text-sm font-semibold tabular-nums">
-              <bdi>{fmtDate(week)} – {fmtDate(addDays(week, 6))}</bdi>
-            </div>
-            <div className="text-xs text-muted-foreground">{when}</div>
-          </div>
-          <Button variant="outline" size="icon" aria-label={t("dawam.nextWeek", "Next week")} onClick={() => onWeek(addDays(week, 7))}>
-            <ChevronRight className="size-4 rtl:rotate-180" />
-          </Button>
-        </div>
-        {n !== 0 ? (
-          <Button variant="ghost" size="sm" onClick={() => onWeek(weekStartOf(todayIso()))}>
-            {t("dawamOps.backToThisWeek", "Back to this week")}
-          </Button>
-        ) : null}
-        {/* Any week, however far ahead: one pick, not N clicks on the arrow. */}
-        <DateField
-          value=""
-          onChange={(d) => { if (d) onWeek(weekStartOf(d)); }}
-          placeholder={t("dawamOps.goToDate", "Go to a date")}
-          aria-label={t("dawamOps.goToDate", "Go to a date")}
-          className="w-44"
-        />
-      </div>
+  const hint = published
+    ? changedCount > 0
+      ? t("dawamOps.publishedChanged", { count: changedCount, defaultValue: "Staff see it. {{count}} days changed since; the people affected were told." })
+      : t("dawamOps.publishedHint", "Staff see it. A change tells the people it affects.")
+    : canPublish
+      ? t("dawamOps.draftHint", "Staff can't see this week until you publish it.")
+      : t("dawamOps.draftHintNoRight", "Staff can't see this week until a manager with publish rights publishes it.");
 
-      <div className="flex flex-wrap items-center gap-2" role="status">
-        {published ? (
-          <>
+  return (
+    <section aria-label={t("dawam.week", "Week")} className="space-y-2.5 rounded-2xl border bg-card px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
+          {/* The arrows and the range move as one: a wrapped toolbar never splits them (L-12). */}
+          <div role="group" aria-label={t("dawam.week", "Week")} className="flex shrink-0 flex-nowrap items-center gap-1">
+            <Button variant="outline" size="icon" aria-label={t("dawam.prevWeek", "Previous week")} onClick={() => onWeek(addDays(week, -7))}>
+              <ChevronLeft className="size-4 rtl:rotate-180" />
+            </Button>
+            <div className="min-w-[10.5rem] px-1 text-center">
+              <div className="whitespace-nowrap text-sm font-semibold tabular-nums">
+                <bdi>{fmtDate(week)} – {fmtDate(addDays(week, 6))}</bdi>
+              </div>
+              <div className="text-xs text-muted-foreground">{when}</div>
+            </div>
+            <Button variant="outline" size="icon" aria-label={t("dawam.nextWeek", "Next week")} onClick={() => onWeek(addDays(week, 7))}>
+              <ChevronRight className="size-4 rtl:rotate-180" />
+            </Button>
+          </div>
+          {n !== 0 ? (
+            <Button variant="ghost" size="sm" onClick={() => onWeek(weekStartOf(todayIso()))}>
+              {t("dawamOps.backToThisWeek", "Back to this week")}
+            </Button>
+          ) : null}
+          {/* Any week, however far ahead: one pick, not N clicks on the arrow. */}
+          <DateField
+            value=""
+            onChange={(d) => { if (d) onWeek(weekStartOf(d)); }}
+            placeholder={t("dawamOps.goToDate", "Go to a date")}
+            aria-label={t("dawamOps.goToDate", "Go to a date")}
+            className="w-44 shrink-0"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {published ? (
             <StatusPill tone="success" icon={CalendarCheck}>{t("dawam.isPublished", "Published")}</StatusPill>
-            <span className="text-sm text-muted-foreground">
-              {changedCount > 0
-                ? t("dawamOps.publishedChanged", { count: changedCount, defaultValue: "Staff see it. {{count}} days changed since; the people affected were told." })
-                : t("dawamOps.publishedHint", "Staff see it. A change tells the people it affects.")}
-            </span>
-          </>
-        ) : (
-          <>
+          ) : (
             <StatusPill tone="warning" icon={CalendarClock}>{t("dawam.draft", "Draft")}</StatusPill>
-            <span className="text-sm text-muted-foreground">
-              {canPublish
-                ? t("dawamOps.draftHint", "Staff can't see this week until you publish it.")
-                : t("dawamOps.draftHintNoRight", "Staff can't see this week until a manager with publish rights publishes it.")}
-            </span>
-            {canPublish ? (
-              <Button size="sm" onClick={onPublish} disabled={publishing || !ready} loading={publishing}>
-                <Send className="size-4" />{t("dawamOps.publishWeek", "Publish this week")}
-              </Button>
-            ) : null}
-          </>
-        )}
+          )}
+          {!published && canPublish ? (
+            <Button size="sm" onClick={onPublish} disabled={publishing || !ready} loading={publishing}>
+              <Send className="size-4" />{t("dawamOps.publishWeek", "Publish this week")}
+            </Button>
+          ) : null}
+        </div>
       </div>
+      <p role="status" className="border-t pt-2.5 text-sm text-muted-foreground">{hint}</p>
     </section>
   );
 }

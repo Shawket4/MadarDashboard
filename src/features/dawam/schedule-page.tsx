@@ -532,7 +532,7 @@ function ScheduleLegend() {
       <span className="inline-flex items-center gap-1.5 font-medium text-foreground"><Info className="size-3.5" aria-hidden />{t("dawamOps.legend", "How to read it")}</span>
       {item(<span className="text-muted-foreground">{t("dawam.off", "Off")}</span>, t("dawamOps.legendOff", "a rest day in the pattern"))}
       {item(<span className="font-medium text-foreground">{t("dawam.dayOffSet", "Day off")}</span>, t("dawamOps.legendDayOff", "given off on this date"))}
-      {item(<NextDayMark />, t("staff.endsNextDay", "Ends the next day"))}
+      {item(<NextDayMark compact />, t("staff.endsNextDay", "Ends the next day"))}
       {item(<span className="font-medium text-primary">{t("dawam.edited", "Edited")}</span>, t("dawamOps.legendEdited", "its own times on this date"))}
       {item(<span className="size-1.5 rounded-full bg-foreground" aria-hidden />, t("dawam.changedAfterPublish", "Changed after publishing"))}
       {item(<TriangleAlert className="size-3.5 text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]" aria-hidden />, t("dawamOps.legendWarning", "past a labour limit (a warning only)"))}
@@ -587,7 +587,7 @@ function DayCell({
               </span>
             ) : null}
             <span className="flex items-center gap-1">
-              <ShiftTimes s={s} />
+              <ShiftTimes s={s} compact />
               {s.times_edited ? <span className="text-[10px] font-medium text-primary">{t("dawam.edited", "Edited")}</span> : null}
             </span>
           </span>

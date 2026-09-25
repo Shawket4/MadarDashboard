@@ -137,7 +137,7 @@ export function StaffReportsPage() {
         below={
           <DateRangeField
             id="reports"
-            className="max-w-md"
+            className="max-w-xl"
             value={shownRange}
             onChange={setRange}
             quick={["this_period", "last_period", "this_month", "last_month", "this_week"]}

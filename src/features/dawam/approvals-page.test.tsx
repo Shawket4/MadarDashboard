@@ -207,7 +207,8 @@ describe("ApprovalsPage", () => {
     await user.click(approve);
     expect(calls.decideClaim).toHaveBeenCalledTimes(1);
     finish({});
-    await waitFor(() => expect(approve).not.toBeDisabled());
+    // Decided: it leaves the queue at once, so nothing (a batch included) can send it again (UX-P).
+    await waitFor(() => expect(screen.queryByText("Laila Hassan")).toBeNull());
   });
 
   it("a decision someone made first says so and refreshes the queue (H2-B2)", async () => {

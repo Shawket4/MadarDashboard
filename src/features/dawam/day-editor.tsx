@@ -50,28 +50,31 @@ const blockOf = (s: RosterShift): DayBlock => ({
   end_time: s.times_edited ? s.end_time : null,
 });
 
-/** "+1 day": the shift ends the next day. Visible, and read out, never a bare "+1". */
-export function NextDayMark() {
+/** "+1 day": the shift ends the next day. Visible, and read out, never a bare "+1".
+ *  `compact` (a grid cell): the moon and "+1" only; the legend says what it means. */
+export function NextDayMark({ compact = false }: { compact?: boolean }) {
   const { t } = useTranslation();
   return (
     <span
-      className="inline-flex items-center gap-0.5 rounded bg-secondary px-1 font-sans text-[10px] font-semibold text-foreground"
+      className={compact
+        ? "inline-flex items-center gap-px font-sans text-[10px] font-semibold text-foreground"
+        : "inline-flex items-center gap-0.5 rounded bg-secondary px-1 font-sans text-[10px] font-semibold text-foreground"}
       title={t("staff.endsNextDay", "Ends the next day")}
     >
       <Moon className="size-2.5" aria-hidden />
-      <span aria-hidden>{t("dawamOps.plusOneDay", "+1 day")}</span>
+      <span aria-hidden>{compact ? "+1" : t("dawamOps.plusOneDay", "+1 day")}</span>
       <span className="sr-only">{t("staff.endsNextDay", "Ends the next day")}</span>
     </span>
   );
 }
 
-export function ShiftTimes({ s }: { s: Pick<RosterShift, "start_time" | "end_time" | "crosses_midnight"> }) {
+export function ShiftTimes({ s, compact = false }: { s: Pick<RosterShift, "start_time" | "end_time" | "crosses_midnight">; compact?: boolean }) {
   return (
-    <span className="inline-flex items-center gap-1">
-      <bdi className="font-mono text-[11px] tabular-nums text-muted-foreground">
+    <span className="inline-flex flex-wrap items-center justify-center gap-x-1">
+      <bdi className="whitespace-nowrap font-mono text-[11px] tabular-nums text-muted-foreground">
         {hhmm(s.start_time)}–{hhmm(s.end_time)}
       </bdi>
-      {s.crosses_midnight ? <NextDayMark /> : null}
+      {s.crosses_midnight ? <NextDayMark compact={compact} /> : null}
     </span>
   );
 }
