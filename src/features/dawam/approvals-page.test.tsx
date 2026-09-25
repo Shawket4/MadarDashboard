@@ -167,6 +167,19 @@ describe("ApprovalsPage", () => {
     });
   });
 
+  it("a decision goes once however fast Approve is tapped (H2-D10)", async () => {
+    let finish: (v: object) => void = () => {};
+    calls.decideClaim.mockImplementationOnce(() => new Promise<object>((r) => { finish = r; }));
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    const approve = within(approveIn("Laila Hassan")).getByRole("button", { name: "Approve" });
+    await user.click(approve);
+    await user.click(approve);
+    expect(calls.decideClaim).toHaveBeenCalledTimes(1);
+    finish({});
+    await waitFor(() => expect(approve).not.toBeDisabled());
+  });
+
   it("rejects a swap only after confirming", async () => {
     const user = userEvent.setup();
     wrap(<ApprovalsPage />);

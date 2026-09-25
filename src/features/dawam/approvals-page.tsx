@@ -105,12 +105,21 @@ export function ApprovalsPage() {
     toast.success(t("staff.decisionSaved", "Decision saved"));
     void invalidateStaff();
   };
-  const run = async (fn: () => Promise<unknown>) => {
+  /** The item being decided: its buttons wait, so a double click sends once (H2-D10). */
+  const [busy, setBusy] = useState<string | null>(null);
+  const run = async (key: string, fn: () => Promise<unknown> | void) => {
+    if (busy) return;
+    setBusy(key);
     try {
-      await fn();
-      decided();
+      const r = fn();
+      if (r instanceof Promise) {
+        await r;
+        decided();
+      }
     } catch (e) {
       toast.error(getErrorMessage(e));
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -249,7 +258,7 @@ export function ApprovalsPage() {
       confirmLabel: t("common.reject", "Reject"),
       destructive: true,
     });
-    if (ok) await run(i.reject);
+    if (ok) await run(i.key, i.reject);
   };
 
   return (
@@ -300,14 +309,11 @@ export function ApprovalsPage() {
               trailing={
                 i.locked ? undefined : <span className="flex items-center gap-1">
                   {i.rejectOnly ? null : (
-                    <Button size="sm" variant="outline" onClick={() => {
-                      const r = i.approve();
-                      if (r instanceof Promise) void run(() => r);
-                    }}>
+                    <Button size="sm" variant="outline" disabled={busy === i.key} onClick={() => void run(i.key, i.approve)}>
                       <Check className="size-4" />{t("common.approve", "Approve")}
                     </Button>
                   )}
-                  <Button size="sm" variant="ghost" aria-label={t("common.reject", "Reject")} onClick={() => void reject(i)}>
+                  <Button size="sm" variant="ghost" disabled={busy === i.key} aria-label={t("common.reject", "Reject")} onClick={() => void reject(i)}>
                     <X className="size-4" />
                   </Button>
                 </span>
