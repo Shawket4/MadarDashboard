@@ -461,7 +461,7 @@ describe("PayrollPage", () => {
     await user.click(within(sheet).getByRole("button", { name: "Override" }));
     const form = (await screen.findAllByRole("dialog")).at(-1)!;
     const amount = within(form).getByLabelText("New amount (EGP)");
-    expect(amount).toHaveValue(50);
+    expect(amount).toHaveValue("50.00");
     await user.clear(amount);
     await user.type(amount, "0");
     await user.type(within(form).getByLabelText("Reason"), "Covered by a colleague");

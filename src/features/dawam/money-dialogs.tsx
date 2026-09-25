@@ -37,6 +37,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
+import { DateField, MoneyField, NumberField } from "@/components/inputs";
 import type { SalaryAdvance } from "@/data/api/generated/models";
 import { capView } from "./phase-d";
 
@@ -165,18 +166,51 @@ function PersonField<V extends FieldValues>({ form, name, enabled, notSelf = fal
   );
 }
 
-function TextField<V extends FieldValues>({ form, name, label, type = "text", hint, step, min, max }: {
-  form: UseFormReturn<V>; name: Path<V>; label: string; type?: string; hint?: string; step?: string; min?: string; max?: string;
+/**
+ * One form field. `money` / `number` / `date` are the input kit's fields (Arabic
+ * digits, steps, a calendar that starts on Saturday); the form keeps its own
+ * values as before — pounds, a count, `YYYY-MM-DD` — so every schema is unchanged.
+ */
+function TextField<V extends FieldValues>({ form, name, label, type = "text", hint, step, min }: {
+  form: UseFormReturn<V>; name: Path<V>; label: string; type?: "text" | "number" | "money" | "date" | "month"; hint?: string; step?: string; min?: string;
 }) {
+  const num = (v: unknown): number | null => (v === "" || v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v));
   return (
     <FormField
       control={form.control}
       name={name}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input type={type} step={step} min={min} max={max} inputMode={type === "number" ? "decimal" : undefined} {...field} value={field.value ?? ""} />
+            {type === "money" ? (
+              <MoneyField
+                name={field.name}
+                invalid={!!fieldState.error}
+                value={num(field.value) === null ? null : Math.round(num(field.value)! * 100)}
+                onChange={(piastres) => field.onChange(piastres === null ? "" : String(piastres / 100))}
+                onBlur={field.onBlur}
+                allowEmpty
+              />
+            ) : type === "number" ? (
+              <NumberField
+                name={field.name}
+                invalid={!!fieldState.error}
+                value={num(field.value)}
+                onChange={(n) => field.onChange(n === null ? "" : String(n))}
+                onBlur={field.onBlur}
+                // The form's schema judges the range (its words, and no save): the field
+                // refusing on its own would keep the last good value and let Save send that.
+                min={min === undefined ? undefined : Math.min(0, Number(min))}
+                step={step === undefined ? 1 : Number(step)}
+                stepper
+                allowEmpty
+              />
+            ) : type === "date" ? (
+              <DateField value={field.value ?? ""} onChange={field.onChange} invalid={!!fieldState.error} />
+            ) : (
+              <Input type={type} {...field} value={field.value ?? ""} />
+            )}
           </FormControl>
           {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
           <FormMessage />
@@ -283,7 +317,7 @@ export function AdjustmentDialog({
           )}
         />
       ) : null}
-      <TextField form={form} name="amount" type="number" label={by === "percent" ? t("dawam.percent", "Percent") : t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={form} name="amount" type={by === "percent" ? "number" : "money"} step={by === "percent" ? "0.5" : undefined} label={by === "percent" ? t("dawam.percent", "Percent") : t("dawam.amountEgp", "Amount (EGP)")} />
       <TextField form={form} name="reason" label={t("staff.reason", "Reason")} hint={t("dawam.reasonShown", "The employee sees this reason on their payslip.")} />
       <TextField
         form={form}
@@ -341,8 +375,8 @@ export function RecordAdvanceDialog({ open, onOpenChange }: { open: boolean; onO
       }}
     >
       <PersonField form={form as unknown as UseFormReturn<Values>} name="employee_id" enabled={open} />
-      <TextField form={form as unknown as UseFormReturn<Values>} name="amount" type="number" step="0.01" label={t("dawam.amountEgp", "Amount (EGP)")} />
-      <TextField form={form as unknown as UseFormReturn<Values>} name="installments" type="number" min="1" max="24" label={t("dawam.installments", "Monthly installments")} hint={t("dawam.installmentsHint", "1 to 24 monthly installments")} />
+      <TextField form={form as unknown as UseFormReturn<Values>} name="amount" type="money" label={t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={form as unknown as UseFormReturn<Values>} name="installments" type="number" min="1" label={t("dawam.installments", "Monthly installments")} hint={t("dawam.installmentsHint", "1 to 24 monthly installments")} />
       <TextField form={form as unknown as UseFormReturn<Values>} name="reason" label={t("dawam.whatFor", "What for (optional)")} />
     </FormDialog>
   );
@@ -389,7 +423,7 @@ export function ExpenseAdvanceDialog({ open, onOpenChange }: { open: boolean; on
       }}
     >
       <PersonField form={f} name="employee_id" enabled={open} />
-      <TextField form={f} name="amount" type="number" step="0.01" label={t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={f} name="amount" type="money" label={t("dawam.amountEgp", "Amount (EGP)")} />
       <TextField form={f} name="purpose" label={t("dawam.purpose", "What it's for")} />
       <TextField form={f} name="given_on" type="date" label={t("dawam.givenOn", "Handed over on")} />
       <FormField
@@ -755,7 +789,7 @@ export function OverrideDialog({
         toast.success(t("dawam.overridden", "Deduction overridden"));
       }}
     >
-      <TextField form={f} name="amount" type="number" step="0.01" min="0" label={t("dawam.newAmount", "New amount (EGP)")} />
+      <TextField form={f} name="amount" type="money" label={t("dawam.newAmount", "New amount (EGP)")} />
       <TextField form={f} name="reason" label={t("staff.reason", "Reason")} />
     </FormDialog>
   );
@@ -800,8 +834,8 @@ export function ReviewAdvanceDialog({
         toast.success(t("staff.decisionSaved", "Decision saved"));
       }}
     >
-      <TextField form={f} name="amount" type="number" step="0.01" label={t("dawam.amountEgp", "Amount (EGP)")} />
-      <TextField form={f} name="installments" type="number" min="1" max="24" label={t("dawam.installments", "Monthly installments")} />
+      <TextField form={f} name="amount" type="money" label={t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={f} name="installments" type="number" min="1" label={t("dawam.installments", "Monthly installments")} />
       <TextField form={f} name="note" label={t("staff.note", "Note")} />
     </FormDialog>
   );

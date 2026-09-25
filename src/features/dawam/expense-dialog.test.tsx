@@ -30,7 +30,8 @@ describe("ExpenseAdvanceDialog", () => {
 
   it("asks when and where the cash was handed over, today by default (AV-7)", () => {
     render(<QueryClientProvider client={new QueryClient()}><ExpenseAdvanceDialog open onOpenChange={() => {}} /></QueryClientProvider>);
-    expect((screen.getByLabelText("Handed over on") as HTMLInputElement).value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // The kit's DateField (a calendar button) shows today's date, not a blank.
+    expect(screen.getByLabelText("Handed over on")).toHaveTextContent(/\d{4}/);
     expect(screen.getByRole("combobox", { name: "Handed over at" })).toBeInTheDocument();
   });
 });
