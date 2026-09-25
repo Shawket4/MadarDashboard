@@ -586,11 +586,16 @@ describe("PayrollPage", () => {
     current = { ...current!, period: period("generated"), payslips: [frozen("e1", "Sara Ahmed", 0), frozen("e4", "Youssef Adel", 745_000)] };
     excel.mockClear();
     wrap(<PayrollPage />);
-    await user.click(screen.getByRole("button", { name: /Bank & wallet lists/ }));
+    await user.click(screen.getByRole("button", { name: /Pay lists/ }));
     await waitFor(() => expect(excel).toHaveBeenCalled());
-    const cfg = excel.mock.calls[0][0] as { sheets: { rows: { employee_id: string }[] }[] };
+    const cfg = excel.mock.calls[0][0] as { sheets: { name: string; rows: { employee_id: string }[]; columns: { header: string }[] }[] };
     // Sara is paid by bank but has nothing to receive; Youssef is paid in cash.
-    expect(cfg.sheets.flatMap((sh) => sh.rows)).toEqual([]);
+    const [bank, wallet, cash] = cfg.sheets;
+    expect([...bank.rows, ...wallet.rows]).toEqual([]);
+    // M31: the cash list for pay envelopes, name and amount, nobody with nothing to pay.
+    expect(cash.name).toBe("Cash");
+    expect(cash.rows.map((r) => r.employee_id)).toEqual(["e4"]);
+    expect(cash.columns.map((c) => c.header)).toEqual(["Name", "Net"]);
   });
 
   it("lists expense advances for the scope bar's branch, or every branch (AV-9)", async () => {

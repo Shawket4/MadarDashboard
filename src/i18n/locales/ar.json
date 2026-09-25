@@ -6371,7 +6371,6 @@
     "teamSubtitle": "من الحاضر الآن، وما رصدته قراءات الموقع.",
     "thisDayOnly": "هذا اليوم فقط",
     "totalNet": "صافي الرواتب",
-    "transferLists": "قوائم البنوك والمحافظ",
     "unpaid": "لم يُصرف",
     "viaBank": "تحويل بنكي",
     "viaCash": "نقداً",
@@ -6586,7 +6585,9 @@
     "ruleSource_absence": "قاعدة · غياب",
     "ruleSource_left_mid_shift": "قاعدة · مغادرة أثناء الوردية",
     "ruleSource_excused_unpaid": "قاعدة · إذن غير مدفوع",
-    "ruleSource_carry": "مُرحَّل من الشهر السابق"
+    "ruleSource_carry": "مُرحَّل من الشهر السابق",
+    "cashList": "ظروف النقدية",
+    "payLists": "قوائم الصرف (بنك، محفظة، نقدًا)"
   },
   "legal": {
     "label": "قانوني",

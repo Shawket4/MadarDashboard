@@ -153,15 +153,16 @@ export function PayrollPage() {
     }
   };
 
-  // Bank-transfer people as a bank file, wallet people as numbers and amounts (PAY-8).
+  // Bank-transfer people as a bank file, wallet people as numbers and amounts
+  // (PAY-8), cash people as names and amounts for the pay envelopes (M31).
   const exportLists = async () => {
     setExporting(true);
     try {
       // Only what is actually transferred: a payslip with nothing to pay (a 0.00 net) is no transfer (PAY-8).
       const pick = (m: string) => rows.filter((r) => r.net_piastres > 0 && (people.get(r.employee_id)?.pay_method ?? "cash") === m);
-      const cols = (acct: string): ExcelColumn<Row>[] => [
+      const cols = (acct: string | null): ExcelColumn<Row>[] => [
         { header: t("staff.name", "Name"), accessor: (r) => r.employee_name, type: "text", width: 26 },
-        { header: acct, accessor: (r) => people.get(r.employee_id)?.pay_account ?? "", type: "text", width: 30 },
+        ...(acct ? [{ header: acct, accessor: (r: Row) => people.get(r.employee_id)?.pay_account ?? "", type: "text", width: 30 } as ExcelColumn<Row>] : []),
         { header: t("dawam.net", "Net"), accessor: (r) => r.net_piastres, type: "money", width: 16, total: true },
       ];
       await exportToExcel({
@@ -171,6 +172,7 @@ export function PayrollPage() {
         sheets: [
           { name: t("dawam.pay_bank", "Bank transfer"), title: t("dawam.bankList", "Bank transfers"), rows: pick("bank") as never, columns: cols(t("dawam.iban", "Account (IBAN)")) as never, totals: true },
           { name: t("dawam.pay_wallet", "Mobile wallet"), title: t("dawam.walletList", "Mobile wallets"), rows: pick("wallet") as never, columns: cols(t("dawam.walletNumber", "Wallet number")) as never, totals: true },
+          { name: t("dawam.pay_cash", "Cash"), title: t("dawam.cashList", "Cash envelopes"), rows: pick("cash") as never, columns: cols(null) as never, totals: true },
         ],
       });
     } catch (e) {
@@ -264,7 +266,7 @@ export function PayrollPage() {
             ) : null}
             {phase !== "open" ? (
               <>
-                <ExportButton onExport={() => void exportLists()} loading={exporting} label={t("dawam.transferLists", "Bank & wallet lists")} />
+                <ExportButton onExport={() => void exportLists()} loading={exporting} label={t("dawam.payLists", "Pay lists (bank, wallet, cash)")} />
                 <Button variant="ghost" onClick={() => void exportCsv()}>{t("dawam.csv", "CSV")}</Button>
               </>
             ) : null}

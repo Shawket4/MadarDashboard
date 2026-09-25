@@ -6178,7 +6178,6 @@
     "teamSubtitle": "Who's in right now, and what the location pings noticed.",
     "thisDayOnly": "This day only",
     "totalNet": "Net pay",
-    "transferLists": "Bank & wallet lists",
     "unpaid": "Not paid",
     "viaBank": "Bank transfer",
     "viaCash": "Cash",
@@ -6385,7 +6384,9 @@
     "ruleSource_absence": "Rule · absence",
     "ruleSource_left_mid_shift": "Rule · left mid-shift",
     "ruleSource_excused_unpaid": "Rule · unpaid excuse",
-    "ruleSource_carry": "Carried from last month"
+    "ruleSource_carry": "Carried from last month",
+    "cashList": "Cash envelopes",
+    "payLists": "Pay lists (bank, wallet, cash)"
   },
   "legal": {
     "label": "Legal",
