@@ -509,5 +509,14 @@ describe("SchedulePage", () => {
     expect(btn).toHaveClass("size-8");
     expect(btn).not.toHaveClass("size-6");
   });
+
+  it("gives each Post-an-open-shift button a 32 px tap target on a phone (box verify)", () => {
+    wrap(<SchedulePage />);
+    for (const btn of screen.getAllByRole("button", { name: /Post an open shift on/ })) {
+      expect(btn).toHaveClass("size-8");
+      expect(btn).toHaveClass("sm:size-7");
+      expect(btn).not.toHaveClass("size-7");
+    }
+  });
 });
 

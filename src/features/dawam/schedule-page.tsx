@@ -305,7 +305,7 @@ export function SchedulePage() {
                         {canEdit ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost" className="size-7" aria-label={t("dawam.postOpenOn", { date: fmtDate(d), defaultValue: `Post an open shift on ${fmtDate(d)}` })}>
+                              <Button size="icon" variant="ghost" className="size-8 sm:size-7" aria-label={t("dawam.postOpenOn", { date: fmtDate(d), defaultValue: `Post an open shift on ${fmtDate(d)}` })}>
                                 <CalendarPlus className="size-4" />
                               </Button>
                             </DropdownMenuTrigger>
