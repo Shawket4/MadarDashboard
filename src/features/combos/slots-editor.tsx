@@ -7,7 +7,7 @@
  * placeholder shows that difference so the owner sees what blank means.
  */
 import { useMemo } from "react";
-import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, FolderTree, Plus, Tag, Trash2 } from "lucide-react";
 
@@ -166,20 +166,25 @@ function SlotCard({
         <ul className="space-y-2">
           {choices.fields.map((cf, j) => (
             <li key={cf._k}>
-              <Controller
-                control={control}
-                name={`slots.${i}.choices.${j}`}
-                render={({ field }) => (
-                  <ChoiceRow
-                    value={field.value as ChoiceFormValues}
-                    onChange={field.onChange}
-                    onRemove={() => choices.remove(j)}
-                    menu={menu}
-                    disabled={disabled}
-                    errors={errs.choices?.[j]}
-                    idBase={`slot-${i}-c${j}`}
-                  />
-                )}
+              {/* Not a Controller: one registered over a field-array row gets
+                  dropped from the submitted values. Write the row's fields
+                  through setValue, which the field array tracks. */}
+              <ChoiceRow
+                value={(slot?.choices?.[j] ?? cf) as ChoiceFormValues}
+                onChange={(next) => {
+                  for (const [k, v] of Object.entries(next)) {
+                    if (k === "_k") continue;
+                    setValue(`slots.${i}.choices.${j}.${k as keyof ChoiceFormValues}`, v as never, {
+                      shouldDirty: true,
+                      shouldValidate: formState.isSubmitted,
+                    });
+                  }
+                }}
+                onRemove={() => choices.remove(j)}
+                menu={menu}
+                disabled={disabled}
+                errors={errs.choices?.[j]}
+                idBase={`slot-${i}-c${j}`}
               />
             </li>
           ))}
