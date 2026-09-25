@@ -91,6 +91,9 @@ vi.mock("@/data/authz/use-authz", async () => {
       }),
   };
 });
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ to, children, className }: { to: string; children: ReactNode; className?: string }) => <a href={to} className={className}>{children}</a>,
+}));
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
 const excel = vi.fn(async (_c: unknown) => {});
 vi.mock("@/lib/excel", () => ({ exportToExcel: (c: unknown) => excel(c) }));
@@ -346,10 +349,21 @@ describe("PayrollPage", () => {
     const user = userEvent.setup();
     wrap(<PayrollPage />);
     expect(screen.getAllByText("Sara Ahmed").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Estimate").length).toBe(2);
+    // Each row reads as an estimate, and so does the current step (UX-P).
+    expect(screen.getAllByText("Estimate").length).toBe(3);
+    expect(screen.getByRole("listitem", { current: "step" })).toHaveTextContent("Estimate");
     await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
     await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Approve payroll" }));
     await waitFor(() => expect(calls.generatePeriod).toHaveBeenCalledWith("p2"));
+  });
+
+  it("says what approving does to whom and for how much before it goes (UX-P)", async () => {
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByText(/people, .* net in total\. Every payslip is frozen/)).toBeInTheDocument();
+    expect(calls.generatePeriod).not.toHaveBeenCalled();
   });
 
   it("warns before approving a month whose last days are still to come (BC-3 decision a, Q-payroll-1)", async () => {
@@ -390,6 +404,8 @@ describe("PayrollPage", () => {
     await user.click(screen.getAllByRole("button", { name: "Mark paid" })[0]);
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("radio", { name: "Bank transfer" })).toHaveAttribute("aria-checked", "true");
+    // What is being recorded, and that the first payment ends reopening (UX-P).
+    expect(within(dialog).getByText(/to Sara Ahmed, recorded as handed over\. This is the first payment/)).toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Mark paid" }));
     await waitFor(() => expect(calls.markPaid).toHaveBeenCalledWith("p2", "e1", { method: "bank" }));
     unmount();
@@ -732,6 +748,9 @@ describe("PayrollPage", () => {
     expect(within(banner).getByText(/Youssef Adel/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Approve payroll/ })).toBeDisabled();
     expect(screen.getByText("Not set")).toBeInTheDocument();
+    // The fix is one click away, and the next step says to fix it first (UX-P).
+    expect(within(banner).getByRole("link", { name: "Set salaries on Employees" })).toHaveAttribute("href", "/staff/employees");
+    expect(screen.getByText(/Fix what is listed below, then approve/)).toBeInTheDocument();
   });
 
   describe("M39: correcting a till-tagged expense advance (owner decision 39)", () => {

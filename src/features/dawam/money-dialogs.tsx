@@ -500,11 +500,13 @@ export const PAY_METHOD_FALLBACK: Record<string, string> = { cash: "Cash", bank:
 
 /** Paid, per person, with how (PAY-7). */
 export function MarkPaidDialog({
-  periodId, person, onOpenChange,
+  periodId, person, onOpenChange, first = false,
 }: {
   periodId: string;
-  person: { employee_id: string; name: string; pay_method?: string } | null;
+  person: { employee_id: string; name: string; pay_method?: string; net?: number } | null;
   onOpenChange: (o: boolean) => void;
+  /** Nobody is paid yet: this payment is the one that ends reopening (PAY-6). */
+  first?: boolean;
 }) {
   const { t } = useTranslation();
   const schema = z.object({ method: z.enum(PAY_METHODS) });
@@ -519,7 +521,14 @@ export function MarkPaidDialog({
       onOpenChange={onOpenChange}
       form={form}
       title={t("dawam.markPaidTitle", { name: person?.name ?? "", defaultValue: `Mark ${person?.name ?? ""} paid` })}
-      description={t("dawam.markPaidHint", "Once anyone is paid, the month can't be reopened.")}
+      description={[
+        person?.net != null
+          ? t("dawamOps.markPaidAmount", { amount: fmtMoney(person.net), name: person.name, defaultValue: "{{amount}} to {{name}}, recorded as handed over." })
+          : null,
+        first
+          ? t("dawamOps.markPaidFirst", "This is the first payment: after it, this month can't be reopened.")
+          : t("dawam.markPaidHint", "Once anyone is paid, the month can't be reopened."),
+      ].filter(Boolean).join(" ")}
       saveLabel={t("dawam.markPaid", "Mark paid")}
       onSave={async (v) => {
         await markPaid(periodId, person!.employee_id, { method: v.method });
