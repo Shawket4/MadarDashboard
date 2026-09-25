@@ -127,7 +127,7 @@ vi.mock("@/data/api/generated/api", () => ({
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");
 const { ConfirmProvider } = await import("@/components/app/confirm-dialog");
-const { PayrollPage, periodPhase } = await import("./payroll-page");
+const { PayrollPage, periodPhase, monthLabel } = await import("./payroll-page");
 
 const wrap = (node: ReactNode) =>
   render(
@@ -208,6 +208,20 @@ describe("PayrollPage history: never frozen when it wasn't (H2)", () => {
     await user.click(screen.getByRole("tab", { name: /History/ }));
     await user.click(await screen.findByText("26 Jul – 25 Aug 2026"));
     expect(await screen.findByText("Couldn't load this month's payslips")).toBeInTheDocument();
+  });
+});
+
+describe("the unsettled month's name (A5)", () => {
+  afterEach(async () => {
+    await i18n.changeLanguage("en");
+  });
+  it("is the month and year only when the period is exactly a calendar month", async () => {
+    expect(monthLabel("2026-08-01", "2026-08-31")).toBe("Aug 2026");
+    expect(monthLabel("2026-02-01", "2026-02-28")).toBe("Feb 2026");
+    expect(monthLabel("2026-08-01", "2026-08-25")).toMatch(/→/);
+    expect(monthLabel("2026-07-26", "2026-08-25")).toMatch(/→/);
+    await i18n.changeLanguage("ar");
+    expect(monthLabel("2026-08-01", "2026-08-31")).toBe("أغسطس 2026");
   });
 });
 
@@ -477,6 +491,39 @@ describe("PayrollPage", () => {
     );
   });
 
+  it("a pay line refused for a paid month asks for an open month, not a day (A5)", async () => {
+    const { AxiosError, AxiosHeaders } = await import("axios");
+    calls.createAdjustment.mockImplementationOnce(async () => {
+      throw new AxiosError("x", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 409, statusText: "", headers: {}, config: { headers: new AxiosHeaders() }, data: { code: "PERIOD_CLOSED", error: "x", vars: { paid: true } },
+      });
+    });
+    const { toast } = await import("sonner");
+    const toastError = vi.spyOn(toast, "error");
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getAllByText("Youssef Adel")[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Bonus" }));
+    const form = (await screen.findAllByRole("dialog")).at(-1)!;
+    await user.type(within(form).getByLabelText("Amount (EGP)"), "100");
+    await user.type(within(form).getByLabelText("Reason"), "Eid");
+    await user.click(within(form).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(toastError).toHaveBeenCalled());
+    expect(toastError.mock.calls.at(-1)![0]).toMatch(/open month/);
+    expect(toastError.mock.calls.at(-1)![0]).not.toMatch(/day/);
+    toastError.mockRestore();
+  });
+
+  it("marks everyone paid from the first page: unpaid payslips come first (A5)", () => {
+    const frozen = (u: string, n: string, paid: string | null) =>
+      ({ ...slip(u, n), id: `s-${u}`, employee_name: n, paid_method: paid, payroll_period_id: "p2" }) as unknown as Payslip;
+    const names = ["Adel", "Basma", "Camilia", "Dina", "Emad", "Fady", "Gamal", "Hoda", "Islam", "Karim", "Laila", "Mona"];
+    // By name the two unpaid ones (Laila, Mona) would sit on page 2.
+    current = { ...current!, period: period("generated"), paid_count: 10, payslips: names.map((n, i) => frozen(`e${i}`, n, i < 10 ? "cash" : null)) };
+    wrap(<PayrollPage />);
+    expect(screen.getAllByRole("button", { name: "Mark paid" })).toHaveLength(2);
+  });
+
   it("waives a rule-made line and deletes only a manual one (AD-7)", async () => {
     const user = userEvent.setup();
     wrap(<PayrollPage />);
@@ -575,6 +622,31 @@ describe("PayrollPage", () => {
     await user.type(within(dialog).getByLabelText("Reason"), "Moved to the day shift");
     await user.click(within(dialog).getByRole("button", { name: "Stop" }));
     await waitFor(() => expect(calls.stopAdjustment).toHaveBeenCalledWith("bonus", "b7", { reason: "Moved to the day shift" }));
+  });
+
+  it("a Stop refused for want of a reason says why in the Stop's own words (A5)", async () => {
+    const { AxiosError, AxiosHeaders } = await import("axios");
+    calls.stopAdjustment.mockImplementationOnce(async () => {
+      throw new AxiosError("x", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 400, statusText: "", headers: {}, config: { headers: new AxiosHeaders() }, data: { code: "REASON_REQUIRED", error: "Stopping a monthly line needs a reason" },
+      });
+    });
+    const user = userEvent.setup();
+    adjustments = [{
+      id: "b7", kind: "bonus", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 30_000, percent_of_base: null,
+      value_piastres: 30_000, reason: "Meal allowance", effective_date: "2026-09-01", source: "manual", status: "approved",
+      recurring: true, ends_on: null,
+    }];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    await user.click(await screen.findByRole("button", { name: "Stop" }));
+    const dialog = await screen.findByRole("dialog");
+    const { toast } = await import("sonner");
+    const toastError = vi.spyOn(toast, "error");
+    await user.type(within(dialog).getByLabelText("Reason"), "x");
+    await user.click(within(dialog).getByRole("button", { name: "Stop" }));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(expect.stringMatching(/Say why this monthly line stops/)));
+    toastError.mockRestore();
   });
 
   it("D6: Stop says this month keeps the line, and a stopped line stays active until its month ends", async () => {

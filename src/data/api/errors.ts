@@ -1,7 +1,7 @@
 import { AxiosError } from "axios";
 import type { TFunction } from "i18next";
 import i18n from "@/i18n";
-import { fmtDate, fmtTime } from "@/lib/format";
+import { fmtDate, fmtDateTimeFull, fmtTime } from "@/lib/format";
 
 const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
@@ -26,6 +26,8 @@ function codedVars(raw: unknown, t: TFunction): Record<string, unknown> {
     else if (k === "status" && typeof v === "string") out[k] = t(`staff.req_${v}`, v);
     // People named in a refusal (SALARY_MISSING, D9).
     else if (k === "names" && Array.isArray(v)) out[k] = v.join(t("common.listSeparator", ", "));
+    // The instant an offline punch claims (PUNCH_IN_FUTURE, PUNCH_TOO_OLD): its date matters too.
+    else if (k === "at" && typeof v === "string") out[k] = fmtDateTimeFull(v);
     else if (k.endsWith("_at") && typeof v === "string") out[k] = fmtTime(v);
     else out[k] = v;
   }
@@ -91,7 +93,18 @@ export const isStaleRefusal = (err: unknown): boolean => {
  * Extract a human-readable message from any API / JS error. `fieldLabel`
  * names a refused field in the page's words (a coded refusal's `vars.field`).
  */
-export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: string) => string } = {}): string => {
+/** What a REASON_REQUIRED refusal was about: the caller knows, the server sends no vars (A5). */
+export type ReasonFor = "payLine" | "stopLine" | "punchFor" | "decline" | "correctAdvance";
+
+export const getErrorMessage = (
+  err: unknown,
+  opts: {
+    fieldLabel?: (field: string) => string;
+    reasonFor?: ReasonFor;
+    /** The form picks a month, not a day: a closed month says "pick an open month" (A5). */
+    monthForm?: boolean;
+  } = {},
+): string => {
   const t = i18n.getFixedT(null, "translation");
 
   if (err instanceof AxiosError) {
@@ -116,7 +129,13 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
     const variant =
       code && typeof rawVars.status === "string" && STATUS_VARIANTS[code]?.includes(rawVars.status) ? `${code}_${rawVars.status}` : undefined;
     // A paid month can't be reopened, so it gets its own wording (PERIOD_CLOSED {paid}).
-    const key = variant ?? (
+    const reasonKey =
+      code === "REASON_REQUIRED" && opts.reasonFor
+        ? `REASON_REQUIRED_${opts.reasonFor}`
+        : code === "PERIOD_CLOSED" && opts.monthForm
+          ? vars.paid === true ? "PERIOD_CLOSED_paid_month" : "PERIOD_CLOSED_month"
+          : undefined;
+    const key = reasonKey ?? variant ?? (
       code === "PERIOD_CLOSED" && vars.paid === true
         ? "PERIOD_CLOSED_paid"
         : code === "SETTING_OUT_OF_RANGE"

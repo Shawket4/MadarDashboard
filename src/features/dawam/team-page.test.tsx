@@ -329,6 +329,23 @@ describe("TeamPage", () => {
     await waitFor(() => expect(punchFor).toHaveBeenCalledWith({ employee_id: "e4", reason: "Phone died" }));
   });
 
+  it("a punch refused for want of a reason says why in the punch's own words (A5)", async () => {
+    const { AxiosError, AxiosHeaders } = await import("axios");
+    punchFor.mockImplementationOnce(async () => {
+      throw new AxiosError("x", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 400, statusText: "", headers: {}, config: { headers: new AxiosHeaders() }, data: { code: "REASON_REQUIRED", error: "A reason is required." },
+      });
+    });
+    toastMock.error.mockClear();
+    const user = userEvent.setup();
+    wrap(<TeamPage />);
+    await user.click(screen.getByRole("button", { name: /Punch in/ }));
+    const dialog = await screen.findByRole("dialog");
+    await user.type(within(dialog).getByLabelText("Reason"), " x");
+    await user.click(within(dialog).getByRole("button", { name: "Punch in" }));
+    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith(expect.stringMatching(/punching for them/)));
+  });
+
   it("D1: a shift a colleague is covering can't be punched, and says who covers it", () => {
     todayRecords = [
       { id: "c1", employee_id: "e7", employee_name: "Salma Adel", covered_employee_id: "e4", cover_status: "confirmed", business_date: "2026-09-22", work_shift_id: "w1" },

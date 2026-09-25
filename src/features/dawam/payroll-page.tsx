@@ -73,9 +73,17 @@ const PHASE_TONE = { open: "neutral", approved: "info", paid: "success" } as con
 /** An older month to settle; `paid_count` is unknown when it comes from history (an older server). */
 type Unsettled = Omit<UnsettledPeriod, "paid_count"> & { paid_count?: number };
 
-/** A month by its dates: "Aug 2026" when it is a calendar month, else its range. */
+/** The last day of `iso`'s month, as YYYY-MM-DD. */
+const monthEnd = (iso: string): string => {
+  const [y, m] = iso.split("-").map(Number);
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
+};
+
+/** A month by its dates: "Aug 2026" when it is exactly a calendar month (the 1st to its last day), else its range. */
 export const monthLabel = (start: string, end: string): string =>
-  start.endsWith("-01") ? fmtPeriod(`${start}T12:00:00Z`, "monthly") : `${fmtDate(start)} → ${fmtDate(end)}`;
+  start.endsWith("-01") && end === monthEnd(start)
+    ? fmtPeriod(`${start}T12:00:00Z`, "monthly")
+    : `${fmtDate(start)} → ${fmtDate(end)}`;
 
 /** Still to settle: a past month never approved (draft) or approved with someone unpaid (generated). */
 const isUnsettled = (status: string | undefined) => status === "draft" || status === "generated";
@@ -157,11 +165,14 @@ export function PayrollPage() {
     const source: Slip[] = older
       ? ((olderDraft ? olderPreviewQ.data : olderSlipsQ.data) ?? [])
       : frozen.length ? frozen : (cur?.preview ?? []);
-    return source.map((s) => ({
-      ...s,
-      employee_name: ("employee_name" in s && s.employee_name) || ("name" in s && s.name) || people.get(s.employee_id)?.name || "—",
-      paid_method: ("paid_method" in s && s.paid_method) || null,
-    }));
+    return source
+      .map((s) => ({
+        ...s,
+        employee_name: ("employee_name" in s && s.employee_name) || ("name" in s && s.name) || people.get(s.employee_id)?.name || "—",
+        paid_method: ("paid_method" in s && s.paid_method) || null,
+      }))
+      // Whoever is still to pay comes first, so every "Mark paid" is on the first page (A5); name order within.
+      .sort((a, b) => Number(!!a.paid_method) - Number(!!b.paid_method));
   }, [cur, older, olderDraft, olderPreviewQ.data, olderSlipsQ.data, people]);
 
   // The server adds the run up (AT-3): its totals and how many are paid. An

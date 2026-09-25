@@ -71,7 +71,7 @@ describe("getErrorMessage", () => {
     );
     expect(getErrorMessage(apiError({ code: "SHIFT_ENDED", error: "x", vars: { shift: "Evening" } }))).toBe("Evening has already ended.");
     await i18n.changeLanguage("ar");
-    expect(getErrorMessage(apiError({ code: "SHIFT_ENDED", error: "x", vars: { shift: "Evening" } }))).toBe("وردية Evening انتهت خلاص.");
+    expect(getErrorMessage(apiError({ code: "SHIFT_ENDED", error: "x", vars: { shift: "Evening" } }))).toBe("انتهت وردية Evening بالفعل.");
     await i18n.changeLanguage("en");
   });
 

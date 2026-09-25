@@ -371,7 +371,7 @@ function PunchDialog({ person, onOpenChange }: { person: PresenceRow | null; onO
       void invalidateStaff();
       onOpenChange(false);
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toast.error(getErrorMessage(e, { reasonFor: "punchFor" }));
     } finally {
       setBusy(false);
     }
