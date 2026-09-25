@@ -127,7 +127,7 @@ vi.mock("@/data/api/generated/api", () => ({
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");
 const { ConfirmProvider } = await import("@/components/app/confirm-dialog");
-const { PayrollPage, periodPhase } = await import("./payroll-page");
+const { PayrollPage, periodPhase, monthLabel } = await import("./payroll-page");
 
 const wrap = (node: ReactNode) =>
   render(
@@ -208,6 +208,20 @@ describe("PayrollPage history: never frozen when it wasn't (H2)", () => {
     await user.click(screen.getByRole("tab", { name: /History/ }));
     await user.click(await screen.findByText("26 Jul – 25 Aug 2026"));
     expect(await screen.findByText("Couldn't load this month's payslips")).toBeInTheDocument();
+  });
+});
+
+describe("the unsettled month's name (A5)", () => {
+  afterEach(async () => {
+    await i18n.changeLanguage("en");
+  });
+  it("is the month and year only when the period is exactly a calendar month", async () => {
+    expect(monthLabel("2026-08-01", "2026-08-31")).toBe("Aug 2026");
+    expect(monthLabel("2026-02-01", "2026-02-28")).toBe("Feb 2026");
+    expect(monthLabel("2026-08-01", "2026-08-25")).toMatch(/→/);
+    expect(monthLabel("2026-07-26", "2026-08-25")).toMatch(/→/);
+    await i18n.changeLanguage("ar");
+    expect(monthLabel("2026-08-01", "2026-08-31")).toBe("أغسطس 2026");
   });
 });
 

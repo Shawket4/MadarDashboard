@@ -73,9 +73,17 @@ const PHASE_TONE = { open: "neutral", approved: "info", paid: "success" } as con
 /** An older month to settle; `paid_count` is unknown when it comes from history (an older server). */
 type Unsettled = Omit<UnsettledPeriod, "paid_count"> & { paid_count?: number };
 
-/** A month by its dates: "Aug 2026" when it is a calendar month, else its range. */
+/** The last day of `iso`'s month, as YYYY-MM-DD. */
+const monthEnd = (iso: string): string => {
+  const [y, m] = iso.split("-").map(Number);
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
+};
+
+/** A month by its dates: "Aug 2026" when it is exactly a calendar month (the 1st to its last day), else its range. */
 export const monthLabel = (start: string, end: string): string =>
-  start.endsWith("-01") ? fmtPeriod(`${start}T12:00:00Z`, "monthly") : `${fmtDate(start)} → ${fmtDate(end)}`;
+  start.endsWith("-01") && end === monthEnd(start)
+    ? fmtPeriod(`${start}T12:00:00Z`, "monthly")
+    : `${fmtDate(start)} → ${fmtDate(end)}`;
 
 /** Still to settle: a past month never approved (draft) or approved with someone unpaid (generated). */
 const isUnsettled = (status: string | undefined) => status === "draft" || status === "generated";
