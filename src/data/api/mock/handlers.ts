@@ -7,6 +7,7 @@ import {
   mockStaffPoolToday,
 } from "./staff-pool";
 import { defaultsFor } from "@/data/authz/use-authz";
+import { comboHandlers } from "./combos";
 
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import {
@@ -228,7 +229,14 @@ const MOCK_TRACKING = {
  *  still open (so the "keep building" nudge shows), recipe coverage partial.
  *  Statefully flips to completed on /complete so the finish→dashboard flow
  *  (and the redirect gate) behave like the real backend. */
-let onboardingDone = false;
+// `localStorage["madar.mock.onboarded"] = "1"` starts past onboarding (scripted walkthroughs).
+let onboardingDone = (() => {
+  try {
+    return localStorage.getItem("madar.mock.onboarded") === "1";
+  } catch {
+    return false;
+  }
+})();
 const onboardingStatus = () => ({
   org_id: MOCK_ORG_ID,
   completed: onboardingDone,
@@ -298,6 +306,12 @@ export const handlers = [
   http.post("*/menu-items", echoCreated),
   http.patch("*/orgs/*", echoCreated),
   http.put("*/orgs/*/logo", () => HttpResponse.json({ id: MOCK_ORG_ID, logo_url: null })),
+
+  // The shell's module gate: without it every page fell through to the real API.
+  http.get("*/orgs/:id/modules", ({ params }) => HttpResponse.json({ org_id: params.id, modules: ["pos", "dawam"] })),
+
+  // ── Combos, deals, Bundles report (stateful; before the generic menu/orders reads) ──
+  ...comboHandlers,
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   http.post("*/auth/login", () =>
