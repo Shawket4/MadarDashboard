@@ -29,9 +29,9 @@ import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { invalidateAttendance } from "./util";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
-import { dawamQuery } from "@/features/dawam/live";
+import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
-import { DawamRulesCard } from "@/features/dawam/rules-card";
+import { DawamRulesCard, type CoverChoice } from "@/features/dawam/rules-card";
 import {
   branchBody, EMPTY_VALUES, fullBody, ruleLabel, rulesSchema, valuesFrom,
   type RulesValues, type Tier,
@@ -75,6 +75,9 @@ export function AttendanceRulesPage() {
   const [busy, setBusy] = useState(false);
   // Rules this branch hands back to the business on the next save.
   const [inherit, setInherit] = useState<string[]>([]);
+  // Cover pay a branch picked for itself though it followed the business (D5):
+  // saved as its own even at the value it runs on now.
+  const [coverOwnNew, setCoverOwnNew] = useState(false);
 
   const schema = useMemo(() => rulesSchema(t), [t]);
   const form = useForm<RulesValues>({ resolver: zodResolver(schema), defaultValues: EMPTY_VALUES, mode: "onChange" });
@@ -88,6 +91,7 @@ export function AttendanceRulesPage() {
     setLoaded(valuesFrom(s));
     form.reset(v);
     setInherit([]);
+    setCoverOwnNew(false);
   }, [query.data, branchId, canEdit, form]);
 
   const values = form.watch();
@@ -95,6 +99,20 @@ export function AttendanceRulesPage() {
   const errors = form.formState.errors;
   const tierError = errors.tiers?.message ?? errors.tiers?.root?.message;
   const overridden = branchId ? query.data?.overridden ?? [] : [];
+  const COVER = "cover_pay_mode";
+  const coverFollows = !coverOwnNew && (!overridden.includes(COVER) || inherit.includes(COVER));
+  const chooseCover = (c: CoverChoice) => {
+    if (c === "business") {
+      setCoverOwnNew(false);
+      if (overridden.includes(COVER) && !inherit.includes(COVER)) setInherit([...inherit, COVER]);
+      // Back to what it runs on now, so nothing is sent as a change.
+      form.setValue("dawam", { ...values.dawam, coverPayMode: loaded.dawam.coverPayMode }, { shouldDirty: true });
+      return;
+    }
+    setInherit(inherit.filter((n) => n !== COVER));
+    setCoverOwnNew(!overridden.includes(COVER));
+    form.setValue("dawam", { ...values.dawam, coverPayMode: c }, { shouldDirty: true, shouldValidate: true });
+  };
 
   const setTiers = (next: Tier[]) => form.setValue("tiers", next, { shouldDirty: true, shouldValidate: true });
   const addTier = () => {
@@ -107,7 +125,7 @@ export function AttendanceRulesPage() {
 
   const save = form.handleSubmit(
     async (v) => {
-      const body = branchId ? branchBody(branchId, v, loaded, inherit) : fullBody(v, canGender);
+      const body = branchId ? branchBody(branchId, v, loaded, inherit, coverOwnNew ? [COVER] : []) : fullBody(v, canGender);
       if (!body) {
         toast.info(t("staff.rulesNothingChanged", "Nothing changed"));
         return;
@@ -173,7 +191,7 @@ export function AttendanceRulesPage() {
     return (
       <Page width="reading">
         <PageHeader title={title} actions={<DawamRefreshButton />} below={branchSelect} />
-        {query.error ? (
+        {failedEmpty(query) ? (
           <ErrorState
             title={t("staff.rulesLoadError", "Couldn't load attendance rules")}
             message={getErrorMessage(query.error)}
@@ -455,6 +473,8 @@ export function AttendanceRulesPage() {
           canGender={canGender}
           readOnly={readOnly}
           branch={!!branchId}
+          coverFollows={coverFollows}
+          onCoverChoice={chooseCover}
         />
         {errors.dawam?.message ? <p className="text-sm text-destructive">{errors.dawam.message}</p> : null}
       </div>

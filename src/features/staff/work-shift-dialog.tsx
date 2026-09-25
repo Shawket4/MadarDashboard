@@ -29,7 +29,7 @@ import { createWorkShift, updateWorkShift } from "@/data/api/generated/api";
 import type { UpsertWorkShiftRequest, WorkShift } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { cn } from "@/lib/utils";
-import { invalidateWorkShifts, WEEKDAYS } from "./util";
+import { invalidateStaff, WEEKDAYS } from "./util";
 
 /** The week as the business reads it: Saturday first (Egypt). Wire values stay
  *  Postgres DOW, 0 = Sunday … 6 = Saturday. */
@@ -192,7 +192,8 @@ export function WorkShiftDialog({
       if (saved?.over_presence_cap) {
         toast.warning(t("staff.overPresenceCap", "Longer than the labour presence limit on some day. Only a warning: it is saved."));
       }
-      void invalidateWorkShifts();
+      // The Dawam roster lists the blocks too (H2-D13).
+      void invalidateStaff();
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));

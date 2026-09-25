@@ -25,7 +25,10 @@ import { PHONE_RAW_MAX, canonicalPhone, isValidPhone } from "@/lib/phone";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import type { Employee } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { egpToPiastres, fmtDate, piastresToEgp } from "@/lib/format";
+import { fmtDate, piastresToEgp } from "@/lib/format";
+import { readPounds } from "@/features/dawam/money-dialogs";
+import { salaryState } from "@/features/dawam/phase-d";
+import { SalaryCalculator } from "@/features/dawam/salary-calculator";
 import { BranchChecklist } from "./branch-checklist";
 import { invalidateEmployees } from "./util";
 
@@ -38,10 +41,14 @@ const NONE = "__none__";
  * user account (Users & Permissions). A new number, app access off, or any
  * status but active signs their phone out (RO-10).
  *
- * Salary is entered in EGP and sent in piastres. When the caller lacks
- * `payroll:read` the API returns `base_salary_piastres: null`; the field is
- * hidden rather than shown empty, because an empty box invites someone to type
- * a number the server will silently ignore.
+ * Salary is entered in EGP and sent in piastres, only by someone who may set
+ * it (`hr.payroll.edit` at every branch, the owner). When it is hidden from the
+ * caller the API returns `base_salary_piastres: null` with `salary_set` true;
+ * the field is hidden rather than shown empty, because an empty box invites
+ * someone to type a number the server will silently ignore. A salary nobody
+ * set (`salary_set` false, owner decision 9) shows an empty box marked "Not
+ * set", and stays unset unless a figure is typed. The calculator beside it
+ * turns a day or hour rate into the monthly figure.
  */
 export function EmployeeDialog({
   employee,
@@ -62,33 +69,34 @@ export function EmployeeDialog({
   const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: open && !!orgId } }).data ?? [];
   // Shown and sent only to someone who may set it (hr.payroll.edit): the
   // server ignores it from anyone else, and an ignored box is a lie.
-  const canEditSalary = authz.can(Cap.hrPayrollEdit);
-  const canSeeSalary = canEditSalary
-    && employee?.base_salary_piastres !== null
-    && employee?.base_salary_piastres !== undefined;
+  const canEditSalary = authz.canEverywhere(Cap.hrPayrollEdit);
+  const salary = employee ? salaryState(employee) : "hidden";
+  const canSeeSalary = canEditSalary && salary !== "hidden";
 
   const schema = useMemo(
-    () =>
-      z
+    () => {
+      const atMost = (n: number) => t("common.atMostChars", { n, defaultValue: `At most ${n} characters` });
+      return z
         .object({
-          name: z.string().trim().min(1, t("dawam.nameRequired", "A name is needed")).max(120),
+          name: z.string().trim().min(1, t("dawam.nameRequired", "A name is needed")).max(120, atMost(120)),
           phone: z.string().max(PHONE_RAW_MAX),
           app_access: z.boolean(),
           branch_ids: z.array(z.string()).min(1, t("dawam.pickBranchError", "Pick at least one branch")),
           department_id: z.string(),
-          employee_code: z.string().max(64),
-          job_title: z.string().max(120),
+          employee_code: z.string().max(64, atMost(64)),
+          job_title: z.string().max(120, atMost(120)),
           hire_date: z.string(),
           employment_status: z.enum(["active", "suspended", "terminated"]),
           termination_date: z.string(),
-          base_salary_egp: z.coerce.number<number>().min(0),
-          national_id: z.string().max(64),
-          emergency_contact_name: z.string().max(120),
-          emergency_contact_phone: z.string().max(40),
-          notes: z.string().max(2000),
+          // Empty keeps a salary nobody set unset; a figure is above zero.
+          base_salary_egp: z.string().refine((v) => v.trim() === "" || readPounds(v) !== null, t("dawam.badSalary", "Not an amount")),
+          national_id: z.string().max(64, atMost(64)),
+          emergency_contact_name: z.string().max(120, atMost(120)),
+          emergency_contact_phone: z.string().max(40, atMost(40)),
+          notes: z.string().max(2000, atMost(2000)),
           gender: z.enum([NONE, "m", "f"]),
           pay_method: z.enum(["cash", "bank", "wallet"]),
-          pay_account: z.string().max(64),
+          pay_account: z.string().max(64, atMost(64)),
           on_payroll: z.boolean(),
         })
         // Mirrors the database CHECK: a terminated profile must say when, and a
@@ -104,7 +112,8 @@ export function EmployeeDialog({
         .refine((v) => !v.app_access || !!v.phone.trim(), {
           path: ["phone"],
           message: t("dawam.phoneForApp", "The staff app needs their WhatsApp number"),
-        }),
+        });
+    },
     [t],
   );
   type Values = z.infer<typeof schema>;
@@ -114,7 +123,7 @@ export function EmployeeDialog({
     defaultValues: {
       name: "", phone: "", app_access: false, branch_ids: [],
       department_id: NONE, employee_code: "", job_title: "", hire_date: "",
-      employment_status: "active", termination_date: "", base_salary_egp: 0,
+      employment_status: "active", termination_date: "", base_salary_egp: "",
       national_id: "", emergency_contact_name: "", emergency_contact_phone: "", notes: "",
       gender: NONE, pay_method: "cash", pay_account: "", on_payroll: true,
     },
@@ -135,7 +144,7 @@ export function EmployeeDialog({
       hire_date: employee.hire_date ?? "",
       employment_status: (employee.employment_status as Values["employment_status"]) ?? "active",
       termination_date: employee.termination_date ?? "",
-      base_salary_egp: piastresToEgp(employee.base_salary_piastres ?? 0),
+      base_salary_egp: employee.base_salary_piastres == null ? "" : String(piastresToEgp(employee.base_salary_piastres)),
       national_id: employee.national_id ?? "",
       emergency_contact_name: employee.emergency_contact_name ?? "",
       emergency_contact_phone: employee.emergency_contact_phone ?? "",
@@ -185,7 +194,7 @@ export function EmployeeDialog({
         termination_date: v.employment_status === "terminated" ? v.termination_date : null,
         // Omitted entirely when the caller cannot see salary, so the server's
         // "keep the stored value" branch is what runs.
-        ...(canSeeSalary ? { base_salary_piastres: egpToPiastres(v.base_salary_egp) } : {}),
+        ...(canSeeSalary && v.base_salary_egp.trim() ? { base_salary_piastres: readPounds(v.base_salary_egp) } : {}),
         // Same gate as the salary (hr.payroll.edit everywhere): the server
         // ignores it from anyone else.
         ...(canEditSalary ? { on_payroll: v.on_payroll } : {}),
@@ -390,9 +399,19 @@ export function EmployeeDialog({
                 control={form.control}
                 name="base_salary_egp"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("staff.baseSalary", "Base salary (monthly)")}</FormLabel>
-                    <FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl>
+                  <FormItem className="sm:col-span-2">
+                    <SalaryCalculator
+                      id="edit-salary"
+                      label={t("staff.baseSalary", "Base salary (monthly)")}
+                      monthly={field.value ?? ""}
+                      onMonthly={(v) => form.setValue("base_salary_egp", v, { shouldValidate: true, shouldDirty: true })}
+                      placeholder={salary === "not_set" ? t("dawam.notSet", "Not set") : undefined}
+                      hireDate={form.watch("hire_date") || undefined}
+                      onlyOpenPeriod
+                    />
+                    {salary === "not_set" ? (
+                      <FormDescription>{t("dawam.salaryNotSetHint", "No salary yet: payroll can't be approved until it's set, or they're marked not paid through Dawam.")}</FormDescription>
+                    ) : null}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -442,6 +461,7 @@ export function EmployeeDialog({
                     <FormLabel>{payMethod === "bank" ? t("dawam.iban", "Account (IBAN)") : t("dawam.walletNumber", "Wallet number")}</FormLabel>
                     <FormControl><Input dir="ltr" {...field} /></FormControl>
                     <FormDescription>{t("dawam.payAccountHint", "Goes on the bank and wallet lists when payroll is approved.")}</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

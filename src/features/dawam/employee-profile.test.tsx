@@ -13,13 +13,14 @@ import type { Employee } from "@/data/api/generated/models";
 const putEmployee = vi.fn(async () => ({}));
 const revokeDevice = vi.fn(async () => ({}));
 let held = ["hr.staff.edit", "hr.payroll.edit"];
-vi.mock("@/data/authz/use-authz", () => ({ useAuthz: () => ({ can: (c: string) => held.includes(c) }) }));
+vi.mock("@/data/authz/use-authz", () => ({ useAuthz: () => ({ can: (c: string) => held.includes(c), canEverywhere: (c: string) => held.includes(c) }) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
 vi.mock("@/data/api/generated/api", () => ({
   useListDepartments: () => ({ data: [], isLoading: false }),
   useListBranches: () => ({ data: [{ id: "b1", name: "Zamalek" }, { id: "b2", name: "Maadi" }] }),
   putEmployee: (...a: unknown[]) => putEmployee(...(a as [])),
   revokeDevice: (...a: unknown[]) => revokeDevice(...(a as [])),
+  useGetAttendanceSettings: () => ({ data: { working_days_per_month: 26, limit_day_hours: 8, period_start_day: 1 }, isLoading: false }),
 }));
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
@@ -64,6 +65,19 @@ describe("EmployeeDialog · Dawam", () => {
     await waitFor(() =>
       expect(putEmployee).toHaveBeenCalledWith("e1", expect.objectContaining({ gender: "f", pay_method: "bank", pay_account: "EG99 1234" })),
     );
+  });
+
+  it("an account number too long says why Save does nothing (H3 silent Save)", async () => {
+    const user = userEvent.setup();
+    putEmployee.mockClear();
+    open(sara);
+    const iban = await screen.findByLabelText("Account (IBAN)");
+    await user.clear(iban);
+    await user.click(iban);
+    await user.paste("E".repeat(65));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("At most 64 characters")).toBeInTheDocument();
+    expect(putEmployee).not.toHaveBeenCalled();
   });
 
   it("sends no account for someone paid in cash", async () => {
@@ -141,3 +155,37 @@ describe("EmployeeDialog · Dawam", () => {
     expect(putEmployee).not.toHaveBeenCalled();
   });
 });
+
+describe("D9: a salary nobody set (owner decision 9)", () => {
+  it("the owner reads 'Not set', and saving without typing one keeps it unset", async () => {
+    held = ["hr.staff.edit", "hr.payroll.edit"];
+    putEmployee.mockClear();
+    const user = userEvent.setup();
+    open({ ...sara, base_salary_piastres: null, salary_set: false } as unknown as Employee);
+    const field = await screen.findByLabelText("Base salary (monthly)");
+    expect(field).toHaveValue(null);
+    expect(field).toHaveAttribute("placeholder", "Not set");
+    expect(screen.getByText(/No salary yet/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalled());
+    expect((putEmployee.mock.calls[0] as unknown[])[1]).not.toHaveProperty("base_salary_piastres");
+  });
+
+  it("the owner sets it from a day rate with the calculator", async () => {
+    held = ["hr.staff.edit", "hr.payroll.edit"];
+    putEmployee.mockClear();
+    const user = userEvent.setup();
+    open({ ...sara, base_salary_piastres: null, salary_set: false } as unknown as Employee);
+    await user.type(await screen.findByLabelText("Daily rate (EGP)"), "250");
+    expect(screen.getByLabelText("Base salary (monthly)")).toHaveValue(6500);
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalledWith("e1", expect.objectContaining({ base_salary_piastres: 650_000 })));
+  });
+
+  it("someone the salary is hidden from gets no field", () => {
+    held = ["hr.staff.edit"];
+    open({ ...sara, base_salary_piastres: null, salary_set: true } as unknown as Employee);
+    expect(screen.queryByLabelText("Base salary (monthly)")).toBeNull();
+  });
+});
+

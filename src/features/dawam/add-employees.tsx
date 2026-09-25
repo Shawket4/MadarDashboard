@@ -35,8 +35,9 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { PHONE_RAW_MAX, canonicalPhone, isValidPhone } from "@/lib/phone";
 import { fmtMoney } from "@/lib/format";
 import { BranchChecklist } from "@/features/staff/branch-checklist";
-import { invalidateStaff } from "@/features/staff/util";
+import { invalidateStaff, todayIso } from "@/features/staff/util";
 import { readPounds } from "./money-dialogs";
+import { SalaryCalculator } from "./salary-calculator";
 import { parsePeople, readSheet, type NewPerson, type RowError } from "./people";
 
 function useBranches() {
@@ -52,7 +53,9 @@ export type EmployeeKind = "app" | "manual" | "linked";
  * - `manual`: records only — attendance and pay are entered for them.
  * - `linked`: an existing Madar user (a cashier, a manager) made an employee.
  * Creating an employee never creates a POS user. Salary is asked only of
- * someone who may set it (`hr.payroll.edit`); the server ignores it otherwise.
+ * someone who may set it (`hr.payroll.edit` at every branch); from anyone else
+ * the server stores it "not set" (owner decision 9), so no box is offered.
+ * The calculator beside it turns a day or hour rate into the monthly figure.
  */
 export function AddEmployeeDialog({
   onOpenChange,
@@ -65,21 +68,22 @@ export function AddEmployeeDialog({
   const { t } = useTranslation();
   const branches = useBranches();
   const authz = useAuthz();
-  const canSetSalary = authz.can(Cap.hrPayrollEdit);
+  const canSetSalary = authz.canEverywhere(Cap.hrPayrollEdit);
   const linkableQ = useLinkableUsers({ query: { staleTime: 30_000 } });
   const linkable = useMemo(() => linkableQ.data ?? [], [linkableQ.data]);
 
   const schema = useMemo(
-    () =>
-      z
+    () => {
+      const atMost = (n: number) => t("common.atMostChars", { n, defaultValue: `At most ${n} characters` });
+      return z
         .object({
           kind: z.enum(["app", "manual", "linked"]),
           user_id: z.string(),
-          name: z.string().max(120),
+          name: z.string().max(120, atMost(120)),
           phone: z.string().max(PHONE_RAW_MAX),
           app_access: z.boolean(),
           branch_ids: z.array(z.string()).min(1, t("dawam.pickBranchError", "Pick at least one branch")),
-          job_title: z.string().max(120),
+          job_title: z.string().max(120, atMost(120)),
           hire_date: z.string(),
           salary: z.string().refine((v) => v.trim() === "" || readPounds(v) !== null, t("dawam.badSalary", "Not an amount")),
           gender: z.enum(["", "m", "f"]),
@@ -99,7 +103,8 @@ export function AddEmployeeDialog({
           if (needsPhone && !v.phone.trim()) {
             ctx.addIssue({ code: "custom", path: ["phone"], message: t("dawam.phoneForApp", "The staff app needs their WhatsApp number") });
           }
-        }),
+        });
+    },
     [t],
   );
   type Values = z.infer<typeof schema>;
@@ -114,6 +119,7 @@ export function AddEmployeeDialog({
   });
   const kind = form.watch("kind");
   const pickedUser = form.watch("user_id");
+  const hireDate = form.watch("hire_date");
   const { isSubmitting } = form.formState;
 
   // One branch: nothing to choose.
@@ -273,6 +279,7 @@ export function AddEmployeeDialog({
                   <FormItem>
                     <FormLabel>{t("dawam.jobTitle", "Job title")}</FormLabel>
                     <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -293,8 +300,13 @@ export function AddEmployeeDialog({
                 name="salary"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("dawam.salaryEgp", "Monthly salary (EGP)")}</FormLabel>
-                    <FormControl><Input type="number" inputMode="decimal" {...field} /></FormControl>
+                    <SalaryCalculator
+                      id="add-salary"
+                      label={t("dawam.salaryEgp", "Monthly salary (EGP)")}
+                      monthly={field.value}
+                      onMonthly={(v) => form.setValue("salary", v, { shouldValidate: true, shouldDirty: true })}
+                      hireDate={hireDate || todayIso()}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -347,7 +359,7 @@ export function ImportPeopleDialog({ onOpenChange }: { onOpenChange: (o: boolean
   const branches = useBranches();
   // The server keeps a salary only from someone who may set pay
   // (hr.payroll.edit); anyone else is told, and the salaries aren't sent.
-  const canSetSalary = useAuthz().can(Cap.hrPayrollEdit);
+  const canSetSalary = useAuthz().canEverywhere(Cap.hrPayrollEdit);
   const [parsed, setParsed] = useState<{ people: NewPerson[]; errors: RowError[] } | null>(null);
   const [outcomes, setOutcomes] = useState<Record<number, Outcome>>({});
   const [busy, setBusy] = useState(false);

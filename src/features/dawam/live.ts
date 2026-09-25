@@ -62,3 +62,10 @@ export function dawamFilters(prefixes: readonly string[] = [DAWAM_KEY_PREFIX]): 
     predicate: (q: Query) => keyUnder(q.queryKey, prefixes),
   };
 }
+
+/**
+ * A read that failed with nothing to show: the page's error state. A refresh
+ * that fails while the last data is on screen (a 429, say) keeps that data;
+ * the query cache says the refresh failed (`data/api/query.ts`).
+ */
+export const failedEmpty = (q: { error: unknown; data: unknown }): boolean => !!q.error && q.data === undefined;

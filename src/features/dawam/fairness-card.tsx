@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useFairness, useFairnessAudits } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate } from "@/lib/format";
-import { dawamQuery } from "./live";
+import { dawamQuery, failedEmpty } from "./live";
 
 export function FairnessCard({ month }: { month: string }) {
   const { t } = useTranslation();
@@ -29,7 +29,7 @@ export function FairnessCard({ month }: { month: string }) {
         <CardDescription>{t("dawam.fairnessHint", "This month's nights by gender, against who said they prefer evenings. Only you see this.")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {q.error ? (
+        {failedEmpty(q) ? (
           <p className="text-sm text-destructive">{getErrorMessage(q.error)}</p>
         ) : !v ? <Skeleton className="h-24 w-full" /> : (
           <>
@@ -97,7 +97,7 @@ export function FairnessCard({ month }: { month: string }) {
 
         <section className="space-y-1.5">
           <h3 className="text-sm font-semibold text-muted-foreground">{t("dawam.audits", "Monthly audits")}</h3>
-          {auditsQ.error ? (
+          {failedEmpty(auditsQ) ? (
             <p className="text-sm text-destructive">{getErrorMessage(auditsQ.error)}</p>
           ) : (auditsQ.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("dawam.noAudits", "The first audit runs at the start of next month.")}</p>

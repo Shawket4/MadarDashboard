@@ -68,8 +68,10 @@ vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateStaff: vi.fn(), invalidateEmployees: vi.fn(), invalidateDepartments: vi.fn() };
 });
+let employeeRows: unknown[] = EMPLOYEES;
 vi.mock("@/data/api/generated/api", () => ({
-  useListEmployees: q(EMPLOYEES),
+  useListEmployees: () => q(employeeRows)(),
+  useGetAttendanceSettings: q({ working_days_per_month: 26, limit_day_hours: 8, period_start_day: 1 }),
   useListDepartments: q([]),
   useListBranches: q([{ id: "b1", name: "Zamalek" }, { id: "b2", name: "Maadi" }]),
   useLinkableUsers: q([]),
@@ -96,6 +98,7 @@ const rowOf = (name: string) => screen.getAllByText(name)[0].closest("tr") as HT
 
 beforeEach(() => {
   everywhere = undefined;
+  employeeRows = EMPLOYEES;
   held = ["hr.staff.read", "hr.staff.create", "hr.staff.edit", "hr.staff.delete"];
   revokeDevice.mockClear();
   deleteEmployee.mockClear();
@@ -187,3 +190,30 @@ describe("EmployeesPage", () => {
     );
   });
 });
+
+describe("D9: salaries on the list", () => {
+  it("the owner reads 'Not set' for a salary nobody set, and the figure for the others", () => {
+    held = [...held, "hr.payroll.edit", "hr.payroll.read"];
+    employeeRows = [
+      { ...EMPLOYEES[0], base_salary_piastres: 900_000, salary_set: true },
+      { ...EMPLOYEES[1], base_salary_piastres: null, salary_set: false },
+    ];
+    wrap(<EmployeesPage />);
+    expect(within(rowOf("Sara Ahmed")).getByText("EGP 9,000.00")).toBeInTheDocument();
+    expect(within(rowOf("Hassan Ali")).getByText("Not set")).toBeInTheDocument();
+  });
+
+  it("the owner still sees the column when nobody has a salary yet", () => {
+    held = [...held, "hr.payroll.edit", "hr.payroll.read"];
+    employeeRows = [{ ...EMPLOYEES[1], base_salary_piastres: null, salary_set: false }];
+    wrap(<EmployeesPage />);
+    expect(within(rowOf("Hassan Ali")).getByText("Not set")).toBeInTheDocument();
+  });
+
+  it("a manager sees no salary column", () => {
+    employeeRows = [{ ...EMPLOYEES[1], base_salary_piastres: null, salary_set: false }];
+    wrap(<EmployeesPage />);
+    expect(screen.queryByText("Not set")).not.toBeInTheDocument();
+  });
+});
+

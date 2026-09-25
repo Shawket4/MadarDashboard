@@ -25,6 +25,7 @@ import {
   useListBranches, useListDepartments, useListEmployees,
 } from "@/data/api/generated/api";
 import { useAuthz } from "@/data/authz/use-authz";
+import { salaryState } from "@/features/dawam/phase-d";
 import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { AddEmployeeDialog, ImportPeopleDialog } from "@/features/dawam/add-employees";
@@ -72,10 +73,11 @@ export function EmployeesPage() {
   const employees = useMemo(() => employeesQ.data ?? [], [employeesQ.data]);
 
   // Redaction is per-caller, not per-row: if the first row hides salary, the
-  // whole column is hidden rather than rendered as a wall of dashes.
+  // whole column is hidden rather than rendered as a wall of dashes. Whoever
+  // sets pay (the owner) sees it even while nobody has a salary yet (D9).
   const showSalary = employees.some(
     (e) => e.base_salary_piastres !== null && e.base_salary_piastres !== undefined,
-  );
+  ) || authz.canEverywhere(Cap.hrPayrollEdit);
 
   // An employee with history is never deleted (AT-6): removing one ends
   // their employment, signs their phone out and keeps every record.
@@ -204,7 +206,12 @@ export function EmployeesPage() {
         id: "salary",
         header: t("staff.baseSalary", "Base salary (monthly)"),
         meta: { label: t("staff.baseSalary", "Base salary (monthly)"), numeric: true },
-        cell: ({ row }) => fmtMoney(row.original.base_salary_piastres),
+        cell: ({ row }) => {
+          const state = salaryState(row.original);
+          // Nobody set one (owner decision 9): payroll won't approve until it is.
+          if (state === "not_set") return <Badge variant="outline">{t("dawam.notSet", "Not set")}</Badge>;
+          return state === "hidden" ? "—" : fmtMoney(row.original.base_salary_piastres);
+        },
       });
     }
     return base;

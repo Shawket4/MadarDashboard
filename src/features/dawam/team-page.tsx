@@ -33,20 +33,21 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { punchFor, resolveFlag, useListAttendanceFlags, useTeamPresence } from "@/data/api/generated/api";
+import { punchFor, resolveFlag, useListAttendance, useListAttendanceFlags, useTeamPresence } from "@/data/api/generated/api";
 import type { AttendanceFlag, PresenceRow } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
+import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
 import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { fmtDateTime, fmtMoney, fmtTime } from "@/lib/format";
-import { fmtMinutes, invalidateStaff } from "@/features/staff/util";
+import { coveredBy, fmtMinutes, invalidateStaff } from "@/features/staff/util";
 import { AdjustmentDialog, ExpenseAdvanceDialog, readPounds } from "./money-dialogs";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
-import { dawamQuery } from "./live";
+import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { useOwnEmployeeIds } from "@/features/staff/requests-inbox";
+import { punchWindowOpen } from "./phase-d";
 
 const STATE_LABEL: Record<string, string> = {
   in: "In", late: "Late", absent: "Absent", on_leave: "On leave", off: "Off", done: "Done",
@@ -85,6 +86,15 @@ export function TeamPage() {
   const presenceQ = useTeamPresence({ branch_id: branchId ?? undefined }, { query: dawamQuery({ enabled: canRead, refetchInterval: 60_000 }) });
   const flagsQ = useListAttendanceFlags({ branch_id: branchId ?? undefined }, { query: dawamQuery({ enabled: canRead }) });
   const rows = useMemo(() => presenceQ.data?.rows ?? [], [presenceQ.data]);
+  // Today's records say whose shift a colleague is covering: that punch is refused (D1).
+  const today = presenceQ.data?.business_date;
+  const todayQ = useListAttendance(
+    { from: today ?? "", to: today ?? "", branch_id: branchId ?? undefined },
+    { query: { enabled: canPunch && !!today } },
+  );
+  const todayRecords = useMemo(() => todayQ.data ?? [], [todayQ.data]);
+  // Today is in an approved or paid month: nothing is written into it (BC-3 decision a), so no punch is offered.
+  const monthClosed = todayRecords.some((r) => r.month_closed);
   const flags = useMemo(() => (flagsQ.data ?? []).filter((f) => !f.resolution), [flagsQ.data]);
 
   if (authz.ready && !canRead) {
@@ -109,15 +119,16 @@ export function TeamPage() {
       />
       <RulesFirstBanner />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dawam.stateIn", "In")} value={p?.present ?? 0} formatType="number" icon={UsersRound} accent="success" loading={presenceQ.isLoading} />
-        <StatCard label={t("dawam.stateLate", "Late")} value={p?.late ?? 0} formatType="number" icon={Clock3} accent="warning" loading={presenceQ.isLoading} />
-        <StatCard label={t("dawam.stateAbsent", "Absent")} value={p?.absent ?? 0} formatType="number" icon={CircleAlert} accent="destructive" loading={presenceQ.isLoading} />
-        <StatCard label={t("dawam.openFlags", "Open flags")} value={flags.length} formatType="number" icon={ShieldAlert} loading={flagsQ.isLoading} />
+        {/* A failed load has no counts: a dash, never a reassuring 0 (box verify). */}
+        <StatCard label={t("dawam.stateIn", "In")} value={p ? p.present : "—"} formatType="number" icon={UsersRound} accent="success" loading={presenceQ.isLoading} />
+        <StatCard label={t("dawam.stateLate", "Late")} value={p ? p.late : "—"} formatType="number" icon={Clock3} accent="warning" loading={presenceQ.isLoading} />
+        <StatCard label={t("dawam.stateAbsent", "Absent")} value={p ? p.absent : "—"} formatType="number" icon={CircleAlert} accent="destructive" loading={presenceQ.isLoading} />
+        <StatCard label={t("dawam.openFlags", "Open flags")} value={failedEmpty(flagsQ) ? "—" : flags.length} formatType="number" icon={ShieldAlert} loading={flagsQ.isLoading} />
       </div>
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-muted-foreground">{t("dawam.flags", "Flags")}</h2>
-        {flagsQ.error ? (
+        {failedEmpty(flagsQ) ? (
           <ErrorState title={t("dawam.flagsLoadError", "Couldn't load the flags")} message={getErrorMessage(flagsQ.error)} onRetry={() => void flagsQ.refetch()} />
         ) : flagsQ.isLoading ? <Skeleton className="h-24 w-full rounded-2xl" /> : flags.length === 0 ? (
           <EmptyState icon={ShieldAlert} title={t("dawam.noFlags", "No open flags")} description={t("dawam.noFlagsHint", "Leaving mid-shift, spoofed locations and new phones show up here.")} />
@@ -144,7 +155,12 @@ export function TeamPage() {
         <h2 className="text-sm font-semibold text-muted-foreground">
           {t("dawam.rightNow", "Right now")}{p?.business_date ? ` · ${p.business_date}` : ""}
         </h2>
-        {presenceQ.error ? (
+        {canPunch && monthClosed ? (
+          <p className="text-sm text-muted-foreground">
+            {t("dawam.todayMonthClosed", "Today is in an approved payroll month, so nobody can be punched in or out. Reopen the month to change today.")}
+          </p>
+        ) : null}
+        {failedEmpty(presenceQ) ? (
           <ErrorState title={t("dawam.teamLoadError", "Couldn't load the team")} message={getErrorMessage(presenceQ.error)} onRetry={() => void presenceQ.refetch()} />
         ) : presenceQ.isLoading ? <Skeleton className="h-48 w-full rounded-2xl" /> : rows.length === 0 ? (
           <EmptyState icon={UsersRound} title={t("dawam.nobodyRostered", "Nobody is rostered today")} />
@@ -159,17 +175,24 @@ export function TeamPage() {
                   r.check_in_at ? t("dawam.inAt", { time: fmtTime(r.check_in_at), defaultValue: `in ${fmtTime(r.check_in_at)}` }) : null,
                   r.late_minutes > 0 ? t("dawam.lateBy", { m: fmtMinutes(r.late_minutes), defaultValue: `late ${fmtMinutes(r.late_minutes)}` }) : null,
                 ].filter(Boolean).join(" · ")}
-                trailing={
-                  <span className="flex items-center gap-2">
-                    <StatusPill tone={STATE_TONE[r.state] ?? "neutral"}>{t(`dawam.state_${r.state}`, STATE_LABEL[r.state] ?? r.state)}</StatusPill>
-                    {canPunch && ["in", "late", "absent"].includes(r.state) ? (
-                      <Button size="sm" variant="outline" onClick={() => setPunching(r)}>
-                        <LogIn className="size-4" />
-                        {r.check_in_at && !r.check_out_at ? t("dawam.punchOut", "Punch out") : t("dawam.punchIn", "Punch in")}
-                      </Button>
-                    ) : null}
-                  </span>
-                }
+                trailing={(() => {
+                  const out = !!r.check_in_at && !r.check_out_at;
+                  const coverer = !out && today ? coveredBy(todayRecords, r.employee_id, today) : null;
+                  return (
+                    <span className="flex flex-wrap items-center justify-end gap-2">
+                      <StatusPill tone={STATE_TONE[r.state] ?? "neutral"}>{t(`dawam.state_${r.state}`, STATE_LABEL[r.state] ?? r.state)}</StatusPill>
+                      {coverer ? (
+                        <span className="text-xs text-muted-foreground">{t("dawam.coveredBy", { name: coverer, defaultValue: `Covered by ${coverer}` })}</span>
+                      ) : null}
+                      {canPunch && !monthClosed && (["in", "late", "absent"].includes(r.state) || punchWindowOpen(r)) ? (
+                        <Button size="sm" variant="outline" disabled={!!coverer} onClick={() => setPunching(r)}>
+                          <LogIn className="size-4" />
+                          {out ? t("dawam.punchOut", "Punch out") : t("dawam.punchIn", "Punch in")}
+                        </Button>
+                      ) : null}
+                    </span>
+                  );
+                })()}
               />
             ))}
           </ListCard>
@@ -195,6 +218,10 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
   // hr.staff.edit. Handling the flag at all is hr.attendance.edit.
   const authz = useAuthz();
   const canDeduct = authz.can(Cap.hrDeductionsCreate) || authz.canAsk(Cap.hrDeductionsCreate);
+  // Above this, or only by asking, the deduction waits for the owner (AD-5, M33).
+  const deductLimit = authz.limitsOf(Cap.hrDeductionsCreate)?.max_amount ?? null;
+  const deductWaits = (piastres: number) =>
+    !authz.can(Cap.hrDeductionsCreate) || (deductLimit != null && piastres > deductLimit);
   const canConfirmCover = authz.can(Cap.hrShiftCoverConfirm);
   const canRevoke = authz.can(Cap.hrStaffEdit);
   // Nobody decides their own flag (server 403 OWN_DECISION): nothing is offered.
@@ -217,12 +244,26 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
     setBusy(true);
     try {
       // A deduction is a pay line the employee reads: it carries why (AD-9).
-      await resolveFlag(flag.id, { action, amount_piastres: amountPiastres ?? null, reason: action === "deduct" ? reason.trim() || null : null });
-      toast.success(t("dawam.flagHandled", "Flag handled"));
+      const handled = (await resolveFlag(flag.id, { action, amount_piastres: amountPiastres ?? null, reason: action === "deduct" ? reason.trim() || null : null })) as AttendanceFlag | undefined;
+      // The server says whether the deduction waits for the owner (M33); an
+      // older one doesn't, and then the limit does.
+      const waits = handled?.deduction_status != null
+        ? handled.deduction_status === "pending"
+        : action === "deduct" && amountPiastres != null && deductWaits(amountPiastres);
+      if (waits) {
+        toast.info(t("dawam.payLinePending", "Over your limit: it waits for the owner before it counts."));
+      } else {
+        toast.success(t("dawam.flagHandled", "Flag handled"));
+      }
       void invalidateStaff();
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
+      // Handled by someone else first: the board reads again (H2-B3).
+      if (isStaleRefusal(e)) {
+        void invalidateStaff();
+        onOpenChange(false);
+      }
     } finally {
       setBusy(false);
     }
@@ -279,10 +320,19 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
           {flag.kind === "new_phone" && canRevoke ? (
             <Button variant="destructive" disabled={busy} onClick={() => void send("revoke")}>{t("dawam.revokePhone", "Revoke this phone")}</Button>
           ) : null}
+          {/* A cover flag is confirmed or rejected, nothing else (H2-B3). */}
           {flag.kind === "cover" && canConfirmCover ? (
-            <Button disabled={busy} onClick={() => void send("confirm")}>{t("dawam.confirmCover", "Confirm the cover")}</Button>
+            <>
+              <Button variant="outline" disabled={busy} onClick={() => void send("reject")}>{t("dawam.rejectCover", "Reject the cover")}</Button>
+              <Button disabled={busy} onClick={() => void send("confirm")}>{t("dawam.confirmCover", "Confirm the cover")}</Button>
+            </>
           ) : null}
-          <Button variant="ghost" disabled={busy} onClick={() => void send("ignore")}>{t("dawam.ignore", "Ignore")}</Button>
+          {flag.kind === "cover" && !canConfirmCover ? (
+            <p className="text-xs text-muted-foreground">{t("dawam.coverNeedsRight", "Confirming or rejecting a cover needs the cover right. The owner can give it to you.")}</p>
+          ) : null}
+          {flag.kind === "cover" ? null : (
+            <Button variant="ghost" disabled={busy} onClick={() => void send("ignore")}>{t("dawam.ignore", "Ignore")}</Button>
+          )}
         </DialogFooter>}
       </DialogContent>
     </Dialog>

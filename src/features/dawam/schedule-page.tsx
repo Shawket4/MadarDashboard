@@ -42,7 +42,7 @@ import { fmtHours, invalidateStaff, todayIso, WEEKDAYS } from "@/features/staff/
 import { CoverageEditor } from "./coverage-editor";
 import { blockTimesOn, blocksOn, DayEditor, ShiftTimes } from "./day-editor";
 import { FairnessCard } from "./fairness-card";
-import { dawamQuery } from "./live";
+import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { PreferencesDialog } from "./preferences-dialog";
 import { weekDays, weekdayOf, weekStartOf, addDays } from "./week";
@@ -57,6 +57,9 @@ export function SchedulePage() {
   const canPublish = authz.can(Cap.hrSchedulePublish);
   const canSettings = authz.can(Cap.hrRosterSettings);
   const canStaffEdit = authz.can(Cap.hrStaffEdit);
+  // Public holidays are the owner's, like the rules (D3): the rules right at
+  // every branch decides them (else 403 OWNER_ONLY); everyone else reads them.
+  const canDecideHoliday = authz.canEverywhere(Cap.hrRulesEdit);
   const [dayOpen, setDayOpen] = useState<{ person: RosterPerson; date: string } | null>(null);
   const [prefsOf, setPrefsOf] = useState<RosterPerson | null>(null);
   const [showCoverage, setShowCoverage] = useState(false);
@@ -72,7 +75,7 @@ export function SchedulePage() {
   const suggestionsQ = useSuggestions({ branch_id: branchId, week_start: week }, { query: dawamQuery({ enabled: canEdit && !!branchId }) });
   const upcoming = useRoster(
     { branch_id: branchId, from: todayIso(), to: addDays(todayIso(), 45) },
-    { query: dawamQuery({ enabled: canEdit && !!branchId }) },
+    { query: dawamQuery({ enabled: canRead && !!branchId }) },
   );
 
   const view = rosterQ.data;
@@ -142,7 +145,12 @@ export function SchedulePage() {
     if (ok) await run("publish", () => publish({ branch_id: branchId, week_start: week }), t("dawam.published", "Week published"));
   };
 
-  const holidays = (upcoming.data?.holidays ?? []).filter((h) => !h.decision);
+  // The next 45 days' holidays, and the viewed week's own (H2-D6: a holiday
+  // further out than that could never be decided, even with its week shown).
+  // Decided ones stay listed with their decision (D3: managers read them).
+  const holidays = [...(upcoming.data?.holidays ?? []), ...(view?.holidays ?? [])]
+    .filter((h, i, all) => all.findIndex((x) => x.on_date === h.on_date) === i)
+    .sort((a, b) => a.on_date.localeCompare(b.on_date));
 
   // A pattern suggestion changes the person's standing week, not one day: say so first.
   const decide = async (g: Suggestion, accept: boolean) => {
@@ -211,7 +219,12 @@ export function SchedulePage() {
         </p>
       ) : null}
 
-      {rosterQ.error ? (
+      {!branchId && failedEmpty(branchesQ) ? (
+        // H2-D2: with no branch the roster never loads; say why, never a skeleton for ever.
+        <ErrorState title={t("dawam.branchesLoadError", "Couldn't load the branches")} message={getErrorMessage(branchesQ.error)} onRetry={() => void branchesQ.refetch()} />
+      ) : !branchId && branchesQ.data ? (
+        <EmptyState icon={CalendarCheck} title={t("dawam.noBranchYet", "Add a branch first: the schedule is kept per branch.")} />
+      ) : failedEmpty(rosterQ) ? (
         <ErrorState title={t("staff.rosterLoadError", "Couldn't load the roster")} message={getErrorMessage(rosterQ.error)} onRetry={() => void rosterQ.refetch()} />
       ) : rosterQ.isLoading || !view ? (
         <Skeleton className="h-72 w-full rounded-2xl" />
@@ -305,7 +318,7 @@ export function SchedulePage() {
                         {canEdit ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost" className="size-7" aria-label={t("dawam.postOpenOn", { date: fmtDate(d), defaultValue: `Post an open shift on ${fmtDate(d)}` })}>
+                              <Button size="icon" variant="ghost" className="size-8 sm:size-7" aria-label={t("dawam.postOpenOn", { date: fmtDate(d), defaultValue: `Post an open shift on ${fmtDate(d)}` })}>
                                 <CalendarPlus className="size-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -314,7 +327,19 @@ export function SchedulePage() {
                               {blocksOn(templates, weekdayOf(d)).map((w) => {
                                 const at = blockTimesOn(w, weekdayOf(d));
                                 return (
-                                  <DropdownMenuItem key={w.id} onSelect={() => void run(`open|${d}`, () => postOpenShift({ branch_id: branchId, on_date: d, work_shift_id: w.id }), t("dawam.openPosted", "Open shift posted"))}>
+                                  <DropdownMenuItem
+                                    key={w.id}
+                                    onSelect={() =>
+                                      void run(
+                                        `open|${d}`,
+                                        () => postOpenShift({ branch_id: branchId, on_date: d, work_shift_id: w.id }),
+                                        // H2-D3: staff can't see or claim it until the week is published.
+                                        published
+                                          ? t("dawam.openPosted", "Open shift posted")
+                                          : t("dawam.openPostedUnpublished", "Open shift posted. Staff see it once you publish this week."),
+                                      )
+                                    }
+                                  >
                                     <span className="flex-1">{w.name}</span>
                                     <bdi className="font-mono text-xs text-muted-foreground tabular-nums">{at.start}–{at.end}</bdi>
                                   </DropdownMenuItem>
@@ -336,7 +361,10 @@ export function SchedulePage() {
       {canEdit ? (
         <section className="space-y-3">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground"><Sparkles className="size-4" />{t("dawam.suggestions", "Suggestions")}</h2>
-          {suggestionsQ.isLoading ? <Skeleton className="h-20 w-full rounded-2xl" /> : (suggestionsQ.data ?? []).length === 0 ? (
+          {failedEmpty(suggestionsQ) ? (
+            // H2-D1: a failed read is not "nothing to suggest".
+            <ErrorState title={t("dawam.suggestionsLoadError", "Couldn't load the suggestions")} message={getErrorMessage(suggestionsQ.error)} onRetry={() => void suggestionsQ.refetch()} />
+          ) : suggestionsQ.isLoading ? <Skeleton className="h-20 w-full rounded-2xl" /> : (suggestionsQ.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("dawam.noSuggestions", "Nothing to suggest for this week.")}</p>
           ) : (
             <ListCard>
@@ -364,9 +392,12 @@ export function SchedulePage() {
         </section>
       ) : null}
 
-      {canEdit && holidays.length > 0 ? (
+      {holidays.length > 0 ? (
         <section className="space-y-3">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground"><PartyPopper className="size-4" />{t("dawam.holidays", "Public holidays")}</h2>
+          {canDecideHoliday ? null : (
+            <p className="text-sm text-muted-foreground">{t("dawam.holidaysOwnerOnly", "The owner decides public holidays.")}</p>
+          )}
           <ListCard>
             {holidays.map((h) => (
               <ListRow
@@ -375,11 +406,18 @@ export function SchedulePage() {
                 title={i18n.language.startsWith("ar") ? h.name_ar : h.name_en}
                 meta={t("dawam.holidayHint", { date: fmtDate(h.on_date), defaultValue: `${fmtDate(h.on_date)} · as a holiday nobody is marked absent, and working it pays extra` })}
                 trailing={
-                  // Publishing at any branch is enough to decide a public holiday (R-B3).
-                  !canPublish ? null : <span className="flex items-center gap-1">
-                    <Button size="sm" variant="outline" onClick={() => void run(`h|${h.on_date}`, () => decideHoliday(h.on_date, { decision: "holiday" }), t("dawam.holidaySet", "Set as a holiday"))}>{t("dawam.makeHoliday", "Make it a holiday")}</Button>
-                    <Button size="sm" variant="ghost" onClick={() => void run(`h|${h.on_date}`, () => decideHoliday(h.on_date, { decision: "dismissed" }), t("dawam.holidayDismissed", "Kept as a normal day"))}>{t("dawam.normalDay", "Normal day")}</Button>
-                  </span>
+                  h.decision ? (
+                    <StatusPill tone={h.decision === "holiday" ? "info" : "neutral"}>
+                      {h.decision === "holiday" ? t("dawam.holidayDecided", "Holiday") : t("dawam.normalDay", "Normal day")}
+                    </StatusPill>
+                  ) : !canDecideHoliday ? (
+                    <StatusPill tone="warning">{t("dawam.holidayUndecided", "Not decided yet")}</StatusPill>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      <Button size="sm" variant="outline" disabled={busy === `h|${h.on_date}`} onClick={() => void run(`h|${h.on_date}`, () => decideHoliday(h.on_date, { decision: "holiday" }), t("dawam.holidaySet", "Set as a holiday"))}>{t("dawam.makeHoliday", "Make it a holiday")}</Button>
+                      <Button size="sm" variant="ghost" disabled={busy === `h|${h.on_date}`} onClick={() => void run(`h|${h.on_date}`, () => decideHoliday(h.on_date, { decision: "dismissed" }), t("dawam.holidayDismissed", "Kept as a normal day"))}>{t("dawam.normalDay", "Normal day")}</Button>
+                    </span>
+                  )
                 }
               />
             ))}
@@ -398,6 +436,7 @@ export function SchedulePage() {
           templates={templates}
           staff={view.staff}
           ownSet={dateSets.has(`${dayOpen.person.employee_id}|${dayOpen.date}`)}
+          branchId={branchId}
         />
       ) : null}
       {prefsOf ? (

@@ -55,6 +55,7 @@ export const RULE_LABELS: Record<string, [string, string]> = {
   limit_rest_hours: ["dawam.limitRest", "Rest between shifts"],
   limit_overtime_day_hours: ["dawam.limitOtDay", "Overtime a day"],
   orders_per_staff: ["dawam.ordersPerStaff", "Orders an hour per person"],
+  cover_pay_mode: ["dawam.coverPay", "Cover pay"],
   // Business-only settings: never a branch chip, but a refusal can name them.
   advance_cap_percent: ["dawam.advanceCap", "Advance cap (% of salary)"],
   period_start_day: ["dawam.periodStartDay", "Pay period starts on day"],
@@ -183,20 +184,23 @@ const same = (a: unknown, b: unknown) => JSON.stringify(canonical(a)) === JSON.s
 /**
  * A branch's save: only the rules that differ from what the branch runs on
  * now (each one becomes an override), never a business-only setting, and the
- * rules handed back to the business. Null when there is nothing to send.
+ * rules handed back to the business. `force` names rules the branch makes its
+ * own even at the value it runs on now (it picked it explicitly, D5). Null
+ * when there is nothing to send.
  */
 export function branchBody(
   branchId: string,
   v: RulesValues,
   loaded: RulesValues,
   inherit: readonly string[],
+  force: readonly string[] = [],
 ): PutAttendanceSettingsRequest | null {
   const now = fullBody(v, false) as Record<string, unknown>;
   const before = fullBody(loaded, false) as Record<string, unknown>;
   const body: Record<string, unknown> = {};
   for (const [k, val] of Object.entries(now)) {
     if ((BUSINESS_ONLY as readonly string[]).includes(k) || inherit.includes(k)) continue;
-    if (!same(val, before[k])) body[k] = val;
+    if (!same(val, before[k]) || force.includes(k)) body[k] = val;
   }
   if (Object.keys(body).length === 0 && inherit.length === 0) return null;
   return {

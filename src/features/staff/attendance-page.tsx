@@ -32,11 +32,11 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
-import { dawamQuery } from "@/features/dawam/live";
+import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { CorrectRecordDialog, ManualRecordDialog } from "./attendance-dialogs";
 import {
-  ATTENDANCE_STATUS_TONE, fmtHours, fmtMinutes, isoDaysFromToday, todayIso,
+  ATTENDANCE_STATUS_TONE, coveredBy, fmtHours, fmtMinutes, isoDaysFromToday, todayIso,
 } from "./util";
 
 const ALL = "__all__";
@@ -74,6 +74,10 @@ export function AttendancePage() {
     () => new Map((branchesQ.data ?? []).map((b) => [b.id, b.timezone || undefined])),
     [branchesQ.data],
   );
+
+  // The owner's day of a shift a colleague covers: no punch goes on it (D1).
+  const coverer = (r: AttendanceRecord) =>
+    r.covered_employee_id || r.check_in_at ? null : coveredBy(records, r.employee_id, r.business_date, r.work_shift_id ?? null);
 
   // Roll the per-employee summary up to a headline for the window.
   const totals = useMemo(() => {
@@ -175,6 +179,10 @@ export function AttendancePage() {
             </StatusPill>
             {/* Its month is approved or paid: the server refuses a correction (PERIOD_CLOSED). */}
             {row.original.month_closed ? <Badge variant="outline">{t("staff.monthClosed", "Month closed")}</Badge> : null}
+            {/* A colleague covers this shift: the owner can't be punched in on it (D1). */}
+            {coverer(row.original) ? (
+              <Badge variant="outline">{t("dawam.coveredBy", { name: coverer(row.original), defaultValue: `Covered by ${coverer(row.original)}` })}</Badge>
+            ) : null}
           </span>
         ),
       },
@@ -247,7 +255,8 @@ export function AttendancePage() {
           ),
       },
     ],
-    [t, zones],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- coverer reads `records`
+    [t, zones, records],
   );
 
   return (
@@ -295,11 +304,12 @@ export function AttendancePage() {
         }
       />
 
+      {/* A failed summary has no counts: a dash, never a reassuring 0 (H3, as the Team board). */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={CalendarCheck} label={t("staff.presentDays", "Present days")} value={totals.present} loading={summaryQ.isLoading} />
-        <StatCard icon={AlarmClock} label={t("staff.lateDays", "Late days")} value={totals.late} loading={summaryQ.isLoading} />
-        <StatCard icon={CalendarX} label={t("staff.absentDays", "Absent days")} value={totals.absent} loading={summaryQ.isLoading} />
-        <StatCard icon={Timer} label={t("staff.overtime", "Overtime")} value={fmtHours(totals.overtime)} loading={summaryQ.isLoading} />
+        <StatCard icon={CalendarCheck} label={t("staff.presentDays", "Present days")} value={failedEmpty(summaryQ) ? "—" : totals.present} loading={summaryQ.isLoading} />
+        <StatCard icon={AlarmClock} label={t("staff.lateDays", "Late days")} value={failedEmpty(summaryQ) ? "—" : totals.late} loading={summaryQ.isLoading} />
+        <StatCard icon={CalendarX} label={t("staff.absentDays", "Absent days")} value={failedEmpty(summaryQ) ? "—" : totals.absent} loading={summaryQ.isLoading} />
+        <StatCard icon={Timer} label={t("staff.overtime", "Overtime")} value={failedEmpty(summaryQ) ? "—" : fmtHours(totals.overtime)} loading={summaryQ.isLoading} />
       </div>
 
       <DataTable
@@ -333,7 +343,7 @@ export function AttendancePage() {
       />
 
       <ManualRecordDialog open={manualOpen} onOpenChange={setManualOpen} branchId={branchId} />
-      <CorrectRecordDialog record={correcting} onOpenChange={(o) => !o && setCorrecting(null)} />
+      <CorrectRecordDialog record={correcting} coveredBy={correcting ? coverer(correcting) : null} onOpenChange={(o) => !o && setCorrecting(null)} />
     </Page>
   );
 }

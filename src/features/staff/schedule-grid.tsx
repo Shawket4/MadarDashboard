@@ -15,8 +15,8 @@ import {
 } from "@/data/api/generated/api";
 import type { ScheduleAssignment, WorkShift } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { dawamQuery } from "@/features/dawam/live";
-import { invalidateSchedules, WEEKDAYS } from "./util";
+import { dawamQuery, failedEmpty } from "@/features/dawam/live";
+import { invalidateStaff, WEEKDAYS } from "./util";
 
 /** Saturday first, as every other week view in Dawam reads (Egypt). */
 const WEEK_COLUMNS = [6, 0, 1, 2, 3, 4, 5].map((v) => WEEKDAYS.find((d) => d.value === v)!);
@@ -84,10 +84,13 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
           day_of_week: dayOfWeek,
         });
       }
-      await invalidateSchedules();
     } catch (e) {
       toast.error(getErrorMessage(e));
     } finally {
+      // Read again whatever happened (H2-D12): a replace whose new shift is
+      // refused has already dropped the old row on the server. The Dawam
+      // roster shows the pattern too, so all of /staff.
+      void invalidateStaff();
       setBusyCell(null);
     }
   };
@@ -104,7 +107,7 @@ export function ScheduleGrid({ shifts }: { shifts: WorkShift[] }) {
       <div className="overflow-hidden rounded-2xl border bg-card">
         {employeesQ.isLoading || assignmentsQ.isLoading ? (
           <div className="space-y-2 p-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-9 w-full" />)}</div>
-        ) : employeesQ.error || assignmentsQ.error ? (
+        ) : failedEmpty(employeesQ) || failedEmpty(assignmentsQ) ? (
           <ErrorState
             title={t("staff.rosterLoadError", "Couldn't load the roster")}
             onRetry={() => { void employeesQ.refetch(); void assignmentsQ.refetch(); }}

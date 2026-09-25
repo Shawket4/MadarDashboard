@@ -11,6 +11,8 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 let held: string[] = [];
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() }));
+vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const LEAVE = { id: "q1", employee_id: "e1", employee_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", created_at: "2026-09-22T07:00:00Z", reason: "Family wedding" };
 let requestRows: Record<string, unknown>[] = [LEAVE];
 const ATTENDANCE = [
@@ -18,6 +20,11 @@ const ATTENDANCE = [
   { id: "r6", employee_name: "Omar Khaled", overtime_status: "pending", overtime_minutes: 45, business_date: "2026-09-21", check_out_at: "2026-09-21T20:45:00Z", created_at: "2026-09-21T08:00:00Z" },
 ];
 let attendanceRows: Record<string, unknown>[] = ATTENDANCE;
+const ADVANCES = [
+  { id: "v1", employee_name: "Sara Ahmed", amount_piastres: 50_000, installments: 2, status: "pending", created_at: "2026-09-22T08:00:00Z", reason: "Rent" },
+  { id: "v0", employee_name: "Sara Ahmed", amount_piastres: 90_000, installments: 1, status: "approved", created_at: "2026-09-01T08:00:00Z" },
+];
+let advanceRows: Record<string, unknown>[] = ADVANCES;
 const enabledSeen: Record<string, boolean[]> = {};
 const paramsSeen: Record<string, unknown[]> = {};
 const calls = {
@@ -67,10 +74,7 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "e-me", name: "Karim Manager", user_id: "u-me" },
     { id: "e1", name: "Youssef Adel", user_id: null },
   ]),
-  useListAdvances: hook("advances", () => [
-    { id: "v1", employee_name: "Sara Ahmed", amount_piastres: 50_000, installments: 2, status: "pending", created_at: "2026-09-22T08:00:00Z", reason: "Rent" },
-    { id: "v0", employee_name: "Sara Ahmed", amount_piastres: 90_000, installments: 1, status: "approved", created_at: "2026-09-01T08:00:00Z" },
-  ]),
+  useListAdvances: hook("advances", () => advanceRows),
   useListSwaps: hook("swaps", () => [
     { id: "w1", requester_name: "Sara Ahmed", peer_name: "Youssef Adel", requester_shift_name: "Morning", peer_shift_name: "Evening", requester_date: "2026-09-26", peer_date: "2026-09-26", status: "pending", created_at: "2026-09-22T06:00:00Z" },
   ]),
@@ -79,6 +83,7 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "o2", shift_name: "Morning", on_date: "2026-09-28", status: "open" },
   ]),
   useListAttendance: hook("attendance", () => attendanceRows),
+  listAttendance: vi.fn(async () => [{ id: "a1", check_in_at: "2026-09-20T06:00:00Z" }]),
   useListAdjustments: hook("payLines", () => [
     { id: "a2", kind: "bonus", employee_name: "Sara Ahmed", amount_piastres: 150_000, reason: "Best month", status: "pending", created_at: "2026-09-22T09:00:00Z" },
   ]),
@@ -109,6 +114,7 @@ beforeEach(() => {
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
   requestRows = [LEAVE];
+  advanceRows = ADVANCES;
   held = [
     "hr.leave.edit", "hr.advances.decide", "hr.schedule.edit", "hr.shift_cover.confirm",
     "hr.overtime.approve", "hr.payroll.run",
@@ -167,6 +173,60 @@ describe("ApprovalsPage", () => {
     });
   });
 
+  it("M26: approving a claim says which labour limit it passes, and blocks nothing (RU-13)", async () => {
+    calls.decideClaim.mockResolvedValueOnce({
+      warnings: [{ employee_id: "e7", date: "2026-09-27", kind: "day_hours", minutes: 960, limit_minutes: 480 }],
+    } as never);
+    toastMock.warning.mockClear();
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    await user.click(within(approveIn("Laila Hassan")).getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(toastMock.warning).toHaveBeenCalledWith("Hours a day: 16h of 8h. Only a warning."));
+    expect(toastMock.success).toHaveBeenCalled();
+  });
+
+  it("M16: approving a mission over a worked day warns first", async () => {
+    requestRows = [{ id: "m1", employee_id: "e1", employee_name: "Youssef Adel", kind: "mission", status: "pending", on_date: "2026-09-20", created_at: "2026-09-22T09:00:00Z", can_decide: true }];
+    held = ["hr.leave.edit"];
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    await user.click(screen.getByRole("button", { name: "Approve" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByText(/already has punches/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: /Approve/ }));
+    await waitFor(() => expect(calls.decideRequest).toHaveBeenCalledWith("m1", { status: "approved" }));
+  });
+
+  it("a decision goes once however fast Approve is tapped (H2-D10)", async () => {
+    let finish: (v: object) => void = () => {};
+    calls.decideClaim.mockImplementationOnce(() => new Promise<object>((r) => { finish = r; }));
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    const approve = within(approveIn("Laila Hassan")).getByRole("button", { name: "Approve" });
+    await user.click(approve);
+    await user.click(approve);
+    expect(calls.decideClaim).toHaveBeenCalledTimes(1);
+    finish({});
+    await waitFor(() => expect(approve).not.toBeDisabled());
+  });
+
+  it("a decision someone made first says so and refreshes the queue (H2-B2)", async () => {
+    const { invalidateStaff } = await import("@/features/staff/util");
+    vi.mocked(invalidateStaff).mockClear();
+    const { AxiosError, AxiosHeaders } = await import("axios");
+    calls.decideOvertime.mockRejectedValueOnce(
+      new AxiosError("409", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 409, statusText: "", headers: {}, config: { headers: new AxiosHeaders() },
+        data: { error: "Conflict: Already decided", code: "ALREADY_DECIDED", vars: { status: "approved" } },
+      }),
+    );
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    await user.click(within(approveIn("Omar Khaled")).getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith("Someone already decided this: Approved. The list is up to date now."));
+    expect(invalidateStaff).toHaveBeenCalled();
+  });
+
   it("rejects a swap only after confirming", async () => {
     const user = userEvent.setup();
     wrap(<ApprovalsPage />);
@@ -192,6 +252,22 @@ describe("ApprovalsPage", () => {
     const { to } = paramsSeen.claims.at(-1) as { to: string };
     const days = (Date.parse(to) - Date.now()) / 86_400_000;
     expect(days).toBeGreaterThan(300);
+  });
+
+  it("asks for every pending cover and overtime, however old (H2-B5, H2-D11: -35 days lost them)", () => {
+    wrap(<ApprovalsPage />);
+    const asked = paramsSeen.attendance as Record<string, unknown>[];
+    expect(asked).toContainEqual({ cover_status: "pending" });
+    expect(asked).toContainEqual({ overtime_status: "pending" });
+    expect(asked.some((p) => "from" in p || "to" in p)).toBe(false);
+  });
+
+  it("asks for claims on open shifts a year back as well as a year ahead (H3: a -35-day window dropped older claims)", async () => {
+    const { isoDaysFromToday } = await import("@/features/staff/util");
+    wrap(<ApprovalsPage />);
+    const asked = paramsSeen.claims as { from: string; to: string }[];
+    expect(asked.length).toBeGreaterThan(0);
+    expect(asked.every((p) => p.from <= isoDaysFromToday(-365) && p.to >= isoDaysFromToday(365))).toBe(true);
   });
 
   it("approves leave as unpaid when the manager says so (RQ-2)", async () => {
@@ -254,20 +330,23 @@ describe("ApprovalsPage", () => {
     expect(screen.getByText("Month closed: reject only")).toBeInTheDocument();
   });
 
-  it("closed-month records: a cover offers Reject only, overtime offers nothing (AttendanceRecord.month_closed)", () => {
-    // The server refuses approving a cover, and deciding overtime at all, in an approved or paid month.
+  it("M32: closed-month cover and overtime offer Reject only, and point to next month's lines (month_closed)", async () => {
+    // Approving moves money into a closed month (refused); rejecting moves none (owner decision 32).
     attendanceRows = ATTENDANCE.map((r) => ({ ...r, month_closed: true }));
     requestRows = [];
     held = ["hr.shift_cover.confirm", "hr.overtime.approve"];
+    const user = userEvent.setup();
     wrap(<ApprovalsPage />);
     const rowOf = (text: string) => screen.getAllByText(text)[0].closest('[data-slot="list-card"] > div') as HTMLElement;
-    const cover = rowOf("Cover");
-    expect(within(cover).queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
-    expect(within(cover).getByRole("button", { name: "Reject" })).toBeInTheDocument();
-    const ot = rowOf("Omar Khaled");
-    expect(within(ot).queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
-    expect(within(ot).queryByRole("button", { name: "Reject" })).not.toBeInTheDocument();
-    expect(within(ot).getByText("Month closed")).toBeInTheDocument();
+    for (const row of [rowOf("Cover"), rowOf("Omar Khaled")]) {
+      expect(within(row).queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+      expect(within(row).getByRole("button", { name: "Reject" })).toBeInTheDocument();
+      expect(within(row).getByText("Month closed: reject only")).toBeInTheDocument();
+      expect(within(row).getByText(/add it as a line in next month/)).toBeInTheDocument();
+    }
+    await user.click(within(rowOf("Omar Khaled")).getByRole("button", { name: "Reject" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(calls.decideOvertime).toHaveBeenCalledWith("r6", { approve: false }));
     attendanceRows = ATTENDANCE;
   });
 
@@ -307,6 +386,9 @@ describe("ApprovalsPage", () => {
     let dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("switch")).not.toBeChecked();
     expect(within(dialog).getByText("The rule says unpaid.")).toBeInTheDocument();
+    // D2: only the minutes actually away count; paid never adds worked time.
+    expect(within(dialog).getByText(/Only the minutes they were actually away count/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/still count toward the day/)).not.toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Approve" }));
     await waitFor(() => expect(calls.decideRequest).toHaveBeenCalledWith("q4", { status: "approved", note: null }));
 
@@ -330,4 +412,60 @@ describe("ApprovalsPage", () => {
     await waitFor(() => expect(calls.decideRequest).toHaveBeenCalled());
     expect(screen.getByRole("button", { name: "Approve" })).toBeInTheDocument();
   });
+
+  describe("D7: the advance cap (owner decision 7)", () => {
+    const pending = { id: "v2", employee_name: "Omar Nabil", amount_piastres: 80_000, installments: 1, status: "pending", created_at: "2026-09-23T08:00:00Z", outstanding_piastres: 140_000 };
+
+    it("a manager sees an over-cap advance as the owner's to approve, with no cap figure", () => {
+      held = ["hr.advances.decide"];
+      advanceRows = [{ ...pending, cap_piastres: null, within_cap: false }];
+      wrap(<ApprovalsPage />);
+      expect(screen.getByText("Over the cap: only the owner can approve")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Reject" })).toBeInTheDocument();
+      expect(screen.queryByText(/1,400|cap EGP|of a/)).not.toBeInTheDocument();
+    });
+
+    it("a manager sees an advance within the cap as that, and may approve it", () => {
+      held = ["hr.advances.decide"];
+      advanceRows = [{ ...pending, cap_piastres: null, within_cap: true }];
+      wrap(<ApprovalsPage />);
+      expect(screen.getByText("Within cap")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Approve" })).toBeInTheDocument();
+    });
+
+    it("the owner sees the figures and may pass the cap", () => {
+      advanceRows = [{ ...pending, cap_piastres: 100_000, within_cap: false }];
+      wrap(<ApprovalsPage />);
+      expect(screen.getByText("Over cap")).toBeInTheDocument();
+      expect(screen.getByText(/Owes EGP 1,400\.00 of a EGP 1,000\.00 cap/)).toBeInTheDocument();
+      expect(within(approveIn("Salary advance")).getByRole("button", { name: "Approve" })).toBeInTheDocument();
+    });
+  });
+
+  describe("D8: a rejected advance or pay line says why (owner decision 8)", () => {
+    it("an advance is rejected only with a reason, which goes to the server", async () => {
+      const user = userEvent.setup();
+      wrap(<ApprovalsPage />);
+      await user.click(within(approveIn("Salary advance")).getByRole("button", { name: "Reject" }));
+      const dialog = await screen.findByRole("dialog");
+      await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+      expect(await within(dialog).findByText("A reason is needed")).toBeInTheDocument();
+      expect(calls.reviewAdvance).not.toHaveBeenCalled();
+      await user.type(within(dialog).getByLabelText("Reason"), "Asked too soon after the last one");
+      await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+      await waitFor(() => expect(calls.reviewAdvance).toHaveBeenCalledWith("v1", { approve: false, reason: "Asked too soon after the last one" }));
+    });
+
+    it("a pay line over the limit is rejected only with a reason", async () => {
+      const user = userEvent.setup();
+      wrap(<ApprovalsPage />);
+      await user.click(within(approveIn("Bonus over the limit")).getByRole("button", { name: "Reject" }));
+      const dialog = await screen.findByRole("dialog");
+      await user.type(within(dialog).getByLabelText("Reason"), "Not this month");
+      await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+      await waitFor(() => expect(calls.decideAdjustment).toHaveBeenCalledWith("bonus", "a2", { approve: false, reason: "Not this month" }));
+    });
+  });
 });
+

@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ComputedPayslip, CurrentPayroll, Employee, Payslip } from "@/data/api/generated/models";
 
@@ -27,11 +27,24 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 } as unknown as typeof ResizeObserver;
 
+// Radix Select asks for pointer capture and scrolls its options; jsdom has neither.
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.releasePointerCapture ??= () => {};
+Element.prototype.scrollIntoView ??= () => {};
+
 let held: string[] = [];
 let current: CurrentPayroll | undefined;
 let adjustments: unknown[] = [];
+let advances: unknown[] = [];
+let expenses: unknown[] = [];
+let isOwner = false;
+const expenseCalls = vi.hoisted(() => ({
+  clear: vi.fn(async (_id: string, _b: unknown) => ({})),
+  reassign: vi.fn(async (_id: string, _b: unknown) => ({})),
+}));
 let scopeBranch: string | null = null;
 const expenseParams: unknown[] = [];
+const decideAdjustment = vi.fn(async () => ({}));
 const enabledSeen: Record<string, boolean[]> = {};
 const calls = {
   generatePeriod: vi.fn(async () => ({})),
@@ -47,12 +60,24 @@ const calls = {
   stopAdjustment: vi.fn(async () => ({})),
 };
 
+/** H2: the history sheet's payslips read fails with this. */
+let payslipsError: unknown = null;
+/** H2-P1: an older month's own reads, by period id, and the preview read's failure. */
+let payslipsById: Record<string, unknown[]> = {};
+let previewById: Record<string, unknown[]> = {};
+let previewError: unknown = null;
+/** Any other read that fails, by hook name (H3: a failed list read as "none"). */
+let failing: Record<string, unknown> = {};
+/** A refetch that failed while the read still holds its last data (a 429, say). */
+let refetchFailing: Record<string, unknown> = {};
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
   const opts = args.find((a) => typeof a === "object" && a !== null && "query" in (a as object)) as
     | { query?: { enabled?: boolean } }
     | undefined;
   (enabledSeen[name] ??= []).push(opts?.query?.enabled ?? true);
-  return { data: data(), isLoading: false, isFetching: false, error: null, refetch: vi.fn() };
+  const error = name === "payslips" ? payslipsError : name === "preview" ? previewError : (failing[name] ?? null);
+  if (refetchFailing[name]) return { data: data(), isLoading: false, isFetching: false, error: refetchFailing[name], refetch: vi.fn() };
+  return { data: error ? undefined : data(), isLoading: false, isFetching: false, error, refetch: vi.fn() };
 };
 
 vi.mock("@/data/authz/use-authz", async () => {
@@ -61,7 +86,7 @@ vi.mock("@/data/authz/use-authz", async () => {
     ...real,
     useAuthz: () =>
       real.authzFrom({
-        user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
+        user_id: "u", epoch: 0, spec_version: 0, owner: isOwner, platform: false, role_kinds: [],
         capabilities: held as never, ask_manager: [], limits: {},
       }),
   };
@@ -84,12 +109,15 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "e4", name: "Youssef Adel", pay_method: "cash" },
   ] as Partial<Employee>[]),
   useListAdjustments: hook("adjustments", () => adjustments),
-  useListAdvances: hook("advances", () => []),
-  useListExpenseAdvances: (params: unknown, ...rest: unknown[]) => { expenseParams.push(params); return hook("expenses", () => [])(params, ...rest); },
-  useListPayslips: hook("payslips", () => []),
+  useListAdvances: hook("advances", () => advances),
+  useListExpenseAdvances: (params: unknown, ...rest: unknown[]) => { expenseParams.push(params); return hook("expenses", () => expenses)(params, ...rest); },
+  useListPayslips: (id: string, ...rest: unknown[]) => hook("payslips", () => payslipsById[id] ?? [])(id, ...rest),
+  usePreviewPeriod: (id: string, ...rest: unknown[]) => hook("preview", () => previewById[id] ?? [])(id, ...rest),
   useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
   exportPeriodCsv: vi.fn(),
-  decideAdjustment: vi.fn(),
+  clearExpenseAdvance: expenseCalls.clear,
+  reassignExpenseAdvance: expenseCalls.reassign,
+  decideAdjustment: (...a: unknown[]) => decideAdjustment(...(a as [])),
   createAdvanceAdmin: vi.fn(),
   reviewAdvance: vi.fn(),
   logExpenseAdvance: vi.fn(),
@@ -130,9 +158,19 @@ const period = (status: string) => ({
 });
 
 beforeEach(() => {
+  payslipsError = null;
+  payslipsById = {};
+  previewById = {};
+  previewError = null;
+  failing = {};
+  refetchFailing = {};
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
   adjustments = [];
+  expenses = [];
+  isOwner = false;
+  expenseCalls.clear.mockClear();
+  expenseCalls.reassign.mockClear();
   scopeBranch = null;
   expenseParams.length = 0;
   held = ["hr.payroll.read", "hr.payroll.run", "hr.adjustments.create", "hr.deductions.create"];
@@ -142,6 +180,144 @@ beforeEach(() => {
     payslips: [],
     history: [],
   } as unknown as CurrentPayroll;
+});
+
+describe("PayrollPage history: never frozen when it wasn't (H2)", () => {
+  const july = { ...period("draft"), id: "p1", name: "26 Jul – 25 Aug 2026", start_date: "2026-07-26", end_date: "2026-08-25" };
+
+  it("a past month never approved opens with its preview and Approve, not 'frozen' (H2-D14, H2-P1)", async () => {
+    current = { ...current!, history: [july] } as unknown as CurrentPayroll;
+    previewById = { p1: [slip("e1", "Sara Ahmed", { net_piastres: 700_000 })] };
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /History/ }));
+    await user.click(await screen.findByText("26 Jul – 25 Aug 2026"));
+    expect(screen.queryByText("Frozen when payroll was approved.")).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("tab", { name: /Payslips/ }));
+    expect(await screen.findByText("7,000.00", { exact: false })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Approve payroll" }));
+    await waitFor(() => expect(calls.generatePeriod).toHaveBeenCalledWith("p1"));
+  });
+
+  it("a month's payslips that fail to load say so (H2-D14)", async () => {
+    current = { ...current!, history: [{ ...july, status: "paid" }] } as unknown as CurrentPayroll;
+    payslipsError = new Error("boom");
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /History/ }));
+    await user.click(await screen.findByText("26 Jul – 25 Aug 2026"));
+    expect(await screen.findByText("Couldn't load this month's payslips")).toBeInTheDocument();
+  });
+});
+
+describe("PayrollPage: a failed list never reads as an empty one (H3)", () => {
+  it.each([
+    ["adjustments", /Bonuses & deductions/, "No bonuses or deductions"],
+    ["advances", /Salary advances/, "No salary advances"],
+    ["expenses", /Expense advances/, "Nothing logged"],
+  ])("%s", async (name, tab, emptyText) => {
+    failing = { [name]: new Error("boom") };
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: tab }));
+    expect(await screen.findByRole("button", { name: /Retry|Try again/ })).toBeInTheDocument();
+    expect(screen.queryByText(emptyText)).not.toBeInTheDocument();
+  });
+});
+
+describe("PayrollPage: a refresh that fails keeps what was on screen (429)", () => {
+  it("the payslips and the pay lines stay when their refetch is refused", async () => {
+    refetchFailing = { current: new Error("429"), adjustments: new Error("429") };
+    adjustments = [{ id: "a1", kind: "bonus", employee_id: "e1", employee_name: "Sara Ahmed", amount_piastres: 10_000, reason: "Extra hours", status: "approved", effective_date: "2026-09-10", created_at: "2026-09-10T08:00:00Z" }];
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    expect(screen.getAllByText("Sara Ahmed").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Couldn't load payroll")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(await screen.findByText(/Extra hours/)).toBeInTheDocument();
+    expect(screen.queryByText("Couldn't load the bonuses and deductions")).not.toBeInTheDocument();
+  });
+});
+
+describe("PayrollPage: an older month not fully paid (H2-P1)", () => {
+  const july = { ...period("draft"), id: "p1", name: "26 Jul – 25 Aug 2026", start_date: "2026-07-26", end_date: "2026-08-25" };
+  const unsettled = (status: string, paid = 0) => ({
+    period_id: "p1", starts_on: "2026-07-26", ends_on: "2026-08-25", status, net_total_piastres: 1_625_000, paid_count: paid, people: 2,
+  });
+  const frozen = (u: string, n: string, paid: string | null) =>
+    ({ ...slip(u, n), id: `s-${u}`, employee_name: n, paid_method: paid, payroll_period_id: "p1" }) as unknown as Payslip;
+  afterEach(async () => {
+    await i18n.changeLanguage("en");
+  });
+
+  it("a draft month left behind has a banner that opens it, and it is approved by its own id", async () => {
+    current = { ...current!, history: [july], unsettled: [unsettled("draft")] } as unknown as CurrentPayroll;
+    previewById = { p1: [slip("e1", "Sara Ahmed"), slip("e4", "Youssef Adel")] };
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    const banner = screen.getByRole("alert", { name: /isn't fully paid yet/ });
+    expect(within(banner).getByText(/never approved/)).toBeInTheDocument();
+    await user.click(within(banner).getByRole("button", { name: /Open/ }));
+    // The page now shows that month: its range, its preview, and Approve for it.
+    expect(screen.getByText(/You're looking at an earlier month/)).toBeInTheDocument();
+    expect(enabledSeen.preview.some(Boolean)).toBe(true);
+    await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Approve payroll" }));
+    await waitFor(() => expect(calls.generatePeriod).toHaveBeenCalledWith("p1"));
+    expect(calls.generatePeriod).not.toHaveBeenCalledWith("p2");
+    // And back to this month.
+    await user.click(screen.getByRole("button", { name: /Back to this month/ }));
+    expect(screen.queryByText(/You're looking at an earlier month/)).not.toBeInTheDocument();
+  });
+
+  it("an approved month someone is still owed from is marked paid, exported and reopened by its own id", async () => {
+    current = { ...current!, history: [{ ...july, status: "generated" }], unsettled: [unsettled("generated")] } as unknown as CurrentPayroll;
+    payslipsById = { p1: [frozen("e1", "Sara Ahmed", null), frozen("e4", "Youssef Adel", null)] };
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    const banner = screen.getByRole("alert", { name: /isn't fully paid yet/ });
+    expect(within(banner).getByText(/Paid 0 of 2/)).toBeInTheDocument();
+    await user.click(within(banner).getByRole("button", { name: /Open/ }));
+    expect(screen.getByRole("button", { name: /Reopen/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Pay lists/ })).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: "Mark paid" })[0]);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Mark paid" }));
+    await waitFor(() => expect(calls.markPaid).toHaveBeenCalledWith("p1", "e1", { method: "bank" }));
+  });
+
+  it("an older month's failed read says so, never an empty list", async () => {
+    current = { ...current!, history: [july], unsettled: [unsettled("draft")] } as unknown as CurrentPayroll;
+    previewError = new Error("boom");
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(within(screen.getByRole("alert", { name: /isn't fully paid yet/ })).getByRole("button", { name: /Open/ }));
+    expect(await screen.findByText("Couldn't load payroll")).toBeInTheDocument();
+    expect(screen.queryByText("Nobody on payroll yet")).not.toBeInTheDocument();
+  });
+
+  it("works on a server without `unsettled`: a past month still draft or approved is found in history", () => {
+    current = { ...current!, history: [{ ...july, status: "generated" }, { ...july, id: "p0", name: "Old", start_date: "2026-06-26", end_date: "2026-07-25", status: "paid" }] } as unknown as CurrentPayroll;
+    wrap(<PayrollPage />);
+    expect(screen.getAllByRole("alert", { name: /isn't fully paid yet/ })).toHaveLength(1);
+  });
+
+  it("shows no banner when every older month is paid", () => {
+    current = { ...current!, history: [{ ...july, status: "paid" }], unsettled: [] } as unknown as CurrentPayroll;
+    wrap(<PayrollPage />);
+    expect(screen.queryByRole("alert", { name: /isn't fully paid yet/ })).not.toBeInTheDocument();
+  });
+
+  it("says it in Arabic", async () => {
+    await i18n.changeLanguage("ar");
+    current = { ...current!, history: [july], unsettled: [unsettled("draft")] } as unknown as CurrentPayroll;
+    wrap(<PayrollPage />);
+    const banner = screen.getByRole("alert");
+    expect(banner.textContent).toMatch(/[؀-ۿ]/);
+    expect(banner.textContent).not.toMatch(/isn't|never approved|Open/);
+    await i18n.changeLanguage("en");
+  });
 });
 
 describe("PayrollPage", () => {
@@ -401,6 +577,173 @@ describe("PayrollPage", () => {
     await waitFor(() => expect(calls.stopAdjustment).toHaveBeenCalledWith("bonus", "b7", { reason: "Moved to the day shift" }));
   });
 
+  it("D6: Stop says this month keeps the line, and a stopped line stays active until its month ends", async () => {
+    const { todayIso, isoDaysFromToday } = await import("@/features/staff/util");
+    const { fmtDate } = await import("@/lib/format");
+    const user = userEvent.setup();
+    const line = {
+      kind: "bonus", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 30_000, percent_of_base: null,
+      value_piastres: 30_000, reason: "Meal allowance", effective_date: "2026-09-01", source: "manual", status: "approved", recurring: true,
+    };
+    const end = isoDaysFromToday(6);
+    adjustments = [
+      { ...line, id: "b1", ends_on: null },
+      // Stopped today: it still counts this month (owner decision 6).
+      { ...line, id: "b2", reason: "Transport", ends_on: end, stopped_at: `${todayIso()}T10:00:00Z`, stop_reason: "Moved nearby" },
+      { ...line, id: "b3", reason: "Old allowance", ends_on: "2026-06-25", stopped_at: "2026-06-10T10:00:00Z" },
+    ];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(screen.getAllByRole("button", { name: "Stop" })).toHaveLength(1);
+    expect(screen.getByText(`monthly until ${fmtDate(end)}`)).toBeInTheDocument();
+    expect(screen.getByText("stopped")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Stop" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/This month keeps it/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/stops from the month that is open now/)).not.toBeInTheDocument();
+  });
+
+  it("D7: a manager reads each person's advances as within or over the cap, never the cap", async () => {
+    const user = userEvent.setup();
+    held = ["hr.payroll.read", "hr.advances.decide"];
+    const adv = { employee_id: "e4", employee_name: "Youssef Adel", installments: 1, created_at: "2026-09-20T08:00:00Z", remaining_piastres: 0, monthly_installment_piastres: 0, org_id: "o", updated_at: "" };
+    advances = [
+      { ...adv, id: "v1", amount_piastres: 50_000, status: "approved", remaining_piastres: 50_000, outstanding_piastres: 50_000, cap_piastres: null, within_cap: true },
+      { ...adv, id: "v2", amount_piastres: 90_000, status: "pending", outstanding_piastres: 140_000, cap_piastres: null, within_cap: false },
+    ];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Salary advances/ }));
+    expect(screen.getByText("Within cap")).toBeInTheDocument();
+    expect(screen.getByText("Over the cap: only the owner can approve")).toBeInTheDocument();
+    expect(screen.queryByText(/Owes /)).not.toBeInTheDocument();
+    advances = [];
+  });
+
+  it("D8: the owner rejects a pending pay line only with a reason, and the list shows why", async () => {
+    const user = userEvent.setup();
+    held = ["hr.payroll.read", "hr.payroll.run", "hr.adjustments.create"];
+    const line = {
+      kind: "bonus", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 150_000, percent_of_base: null,
+      value_piastres: 150_000, reason: "Best month", effective_date: "2026-09-01", source: "manual", recurring: false, ends_on: null,
+    };
+    adjustments = [
+      { ...line, id: "a2", status: "pending" },
+      { ...line, id: "a3", status: "rejected", reason: "Extra shift", decision_note: "Already paid as overtime" },
+    ];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(screen.getByText(/Already paid as overtime/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Reject" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    expect(await within(dialog).findByText("A reason is needed")).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText("Reason"), "Not agreed");
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(decideAdjustment).toHaveBeenCalledWith("bonus", "a2", { approve: false, reason: "Not agreed" }));
+    adjustments = [];
+  });
+
+  it("D9: flags people on payroll with no salary, and won't approve until it's set", () => {
+    held = ["hr.payroll.read", "hr.payroll.run"];
+    current = {
+      ...current!,
+      preview: [
+        slip("e1", "Sara Ahmed"),
+        { ...slip("e4", "Youssef Adel", { base_piastres: 0, base_salary_piastres: 0, net_piastres: 0 }), salary_missing: true },
+      ],
+      missing_salary_count: 1,
+      totals: { ...current!.totals, missing_salary_count: 1 },
+    } as unknown as CurrentPayroll;
+    wrap(<PayrollPage />);
+    const banner = screen.getByRole("alert");
+    expect(within(banner).getByText(/1 person on payroll has no salary/)).toBeInTheDocument();
+    expect(within(banner).getByText(/Youssef Adel/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Approve payroll/ })).toBeDisabled();
+    expect(screen.getByText("Not set")).toBeInTheDocument();
+  });
+
+  describe("M39: correcting a till-tagged expense advance (owner decision 39)", () => {
+    const till = { id: "x1", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 20_000, purpose: "Milk", via: "till", given_on: "2026-09-20", branch_id: "b1", created_at: "", handed_by_name: "Karim" };
+    const safe = { ...till, id: "x2", via: "safe", purpose: "Cups" };
+
+    it("the owner clears a till tag with a reason; the pay-out stays", async () => {
+      isOwner = true;
+      expenses = [till, safe];
+      const user = userEvent.setup();
+      wrap(<PayrollPage />);
+      await user.click(screen.getByRole("tab", { name: /Expense advances/ }));
+      // Only the till-tagged one can be corrected here (a hand-logged one is the log itself).
+      expect(screen.getAllByRole("button", { name: "Correct the tag" })).toHaveLength(1);
+      await user.click(screen.getByRole("button", { name: "Correct the tag" }));
+      const dialog = await screen.findByRole("dialog");
+      expect(within(dialog).getByText(/The cash that left the till stays as it is/)).toBeInTheDocument();
+      await user.click(within(dialog).getByRole("radio", { name: "Clear the tag" }));
+      await user.click(within(dialog).getByRole("button", { name: "Save" }));
+      expect(await within(dialog).findByText("A reason is needed")).toBeInTheDocument();
+      expect(expenseCalls.clear).not.toHaveBeenCalled();
+      await user.type(within(dialog).getByLabelText("Reason"), "Not an advance: shop milk");
+      await user.click(within(dialog).getByRole("button", { name: "Save" }));
+      await waitFor(() => expect(expenseCalls.clear).toHaveBeenCalledWith("x1", { reason: "Not an advance: shop milk" }));
+    });
+
+    it("the owner reassigns a till tag to someone else, with a reason", async () => {
+      isOwner = true;
+      expenses = [till];
+      const user = userEvent.setup();
+      wrap(<PayrollPage />);
+      await user.click(screen.getByRole("tab", { name: /Expense advances/ }));
+      await user.click(screen.getByRole("button", { name: "Correct the tag" }));
+      const dialog = await screen.findByRole("dialog");
+      await user.click(within(dialog).getByRole("combobox", { name: "Employee" }));
+      await user.click(await screen.findByRole("option", { name: "Sara Ahmed" }));
+      await user.type(within(dialog).getByLabelText("Reason"), "Sara took it, not Youssef");
+      await user.click(within(dialog).getByRole("button", { name: "Save" }));
+      await waitFor(() => expect(expenseCalls.reassign).toHaveBeenCalledWith("x1", { employee_id: "e1", reason: "Sara took it, not Youssef" }));
+    });
+
+    it("a manager isn't offered it", async () => {
+      held = ["hr.payroll.read", "hr.expense_advances.log"];
+      expenses = [till];
+      const user = userEvent.setup();
+      wrap(<PayrollPage />);
+      await user.click(screen.getByRole("tab", { name: /Expense advances/ }));
+      expect(screen.getByText("Youssef Adel")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Correct the tag" })).not.toBeInTheDocument();
+    });
+  });
+
+  it("M30: rule-made lines say which rule made them, and the empty list doesn't claim only hand-made lines", async () => {
+    const user = userEvent.setup();
+    const base = { kind: "deduction", employee_id: "e4", employee_name: "Youssef Adel", percent_of_base: null, effective_date: "2026-09-18", status: "approved", recurring: false, ends_on: null, reason_code: null, reason_vars: null };
+    adjustments = [
+      { ...base, id: "d1", amount_piastres: 3_125, value_piastres: 3_125, reason: "Late by 24 minutes", source: "late_penalty" },
+      { ...base, id: "d2", amount_piastres: 20_000, value_piastres: 20_000, reason: "Absent", source: "absence" },
+      { ...base, id: "d3", amount_piastres: 5_000, value_piastres: 5_000, reason: "Broken glassware", source: "manual" },
+    ];
+    const { unmount } = wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(screen.getByText("Rule · late")).toBeInTheDocument();
+    expect(screen.getByText("Rule · absence")).toBeInTheDocument();
+    expect(screen.getAllByText(/^Rule · /)).toHaveLength(2);
+    unmount();
+    adjustments = [];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    expect(screen.queryByText(/Lines added by hand show here/)).not.toBeInTheDocument();
+    expect(screen.getByText(/the ones the rules make/)).toBeInTheDocument();
+  });
+
+  it("M27: after an early approval, a new line defaults to next month (the first open one)", async () => {
+    current = { ...current!, period: period("generated") } as unknown as CurrentPayroll;
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    await user.click(screen.getByRole("button", { name: /Add a bonus or deduction/ }));
+    const dialog = await screen.findByRole("dialog");
+    // The period 26 Aug – 25 Sep is approved: the line lands in the next one.
+    expect(within(dialog).getByLabelText("Counts in the month of")).toHaveValue("2026-10");
+  });
+
   it("leaves nothing-to-transfer payslips out of the bank and wallet lists (PAY-8)", async () => {
     // E2E payroll: a 0.00 net (deductions carried to next month) was listed as a bank transfer;
     // the server's bank/wallet CSV already lists only net > 0.
@@ -410,11 +753,16 @@ describe("PayrollPage", () => {
     current = { ...current!, period: period("generated"), payslips: [frozen("e1", "Sara Ahmed", 0), frozen("e4", "Youssef Adel", 745_000)] };
     excel.mockClear();
     wrap(<PayrollPage />);
-    await user.click(screen.getByRole("button", { name: /Bank & wallet lists/ }));
+    await user.click(screen.getByRole("button", { name: /Pay lists/ }));
     await waitFor(() => expect(excel).toHaveBeenCalled());
-    const cfg = excel.mock.calls[0][0] as { sheets: { rows: { employee_id: string }[] }[] };
+    const cfg = excel.mock.calls[0][0] as { sheets: { name: string; rows: { employee_id: string }[]; columns: { header: string }[] }[] };
     // Sara is paid by bank but has nothing to receive; Youssef is paid in cash.
-    expect(cfg.sheets.flatMap((sh) => sh.rows)).toEqual([]);
+    const [bank, wallet, cash] = cfg.sheets;
+    expect([...bank.rows, ...wallet.rows]).toEqual([]);
+    // M31: the cash list for pay envelopes, name and amount, nobody with nothing to pay.
+    expect(cash.name).toBe("Cash");
+    expect(cash.rows.map((r) => r.employee_id)).toEqual(["e4"]);
+    expect(cash.columns.map((c) => c.header)).toEqual(["Name", "Net"]);
   });
 
   it("lists expense advances for the scope bar's branch, or every branch (AV-9)", async () => {
@@ -463,8 +811,9 @@ describe("PayrollPage", () => {
           breakdown: {
             paid_days: 31, window_days: 31, bonuses: [], advances: [],
             deductions: [
-              { id: "d1", reason: "Late arrival", piastres: 5_000, source: "late_penalty", waived: true },
+              { id: "d1", reason: "Late arrival", piastres: 5_000, source: "late_penalty", waived: true, waive_reason: "Metro <stopped>" },
               { id: "d2", reason: "Broke <b>a</b> glass", piastres: 15_000, source: "manual" },
+              { id: "d5", reason: "Absent", piastres: 10_000, source: "absence", override_reason: "Half: he called in" },
             ],
           },
         }),
@@ -477,8 +826,11 @@ describe("PayrollPage", () => {
     await user.click(screen.getAllByText("Sara Ahmed")[0]);
     const sheet = await screen.findByRole("dialog");
     expect(within(sheet).getByText("Late arrival")).toHaveClass("line-through");
-    expect(within(sheet).getByText("Waived")).toBeInTheDocument();
-    expect(within(sheet).queryByRole("button", { name: "Waive" })).not.toBeInTheDocument();
+    // M29: why it was waived (AD-6).
+    expect(within(sheet).getByText("Waived: Metro <stopped>")).toBeInTheDocument();
+    expect(within(sheet).getByText("Overridden: Half: he called in")).toBeInTheDocument();
+    // Only the overridden (live) rule line can be waived; the waived one offers no second waiver.
+    expect(within(sheet).getAllByRole("button", { name: "Waive" })).toHaveLength(1);
 
     await user.click(within(sheet).getByRole("button", { name: /Download PDF/ }));
     expect(open).toHaveBeenCalled();
@@ -488,6 +840,7 @@ describe("PayrollPage", () => {
     expect(html).toContain("line-through");
     // A reason someone typed is text, never markup.
     expect(html).toContain("Broke &lt;b&gt;a&lt;/b&gt; glass");
+    expect(html).toContain("Waived: Metro &lt;stopped&gt;");
     await waitFor(() => expect(win.print).toHaveBeenCalled());
     open.mockRestore();
   });

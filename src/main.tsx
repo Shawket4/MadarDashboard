@@ -2,7 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { MotionConfig } from "motion/react";
 import * as Sentry from "@sentry/react";
 
@@ -48,6 +47,7 @@ import { ConfirmProvider } from "@/components/app/confirm-dialog";
 import { AppErrorBoundary } from "@/components/app/app-error-boundary";
 import { initSentry } from "@/lib/sentry";
 import { queryClient } from "@/data/api/query";
+import { DevTools } from "@/components/app/dev-tools";
 import { routeTree } from "./routeTree.gen";
 
 initDeviceTheme();
@@ -125,7 +125,7 @@ function render() {
                 <RouterProvider router={router} />
               </ConfirmProvider>
             </TooltipProvider>
-            {import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} /> : null}
+            <DevTools which="query" />
           </MotionConfig>
         </QueryClientProvider>
       </AppErrorBoundary>

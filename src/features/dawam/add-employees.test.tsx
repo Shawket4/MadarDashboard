@@ -27,11 +27,17 @@ vi.mock("@/features/staff/util", async () => {
   return { ...real, invalidateStaff: vi.fn() };
 });
 let caps: string[] = ["hr.payroll.edit"];
-vi.mock("@/data/authz/use-authz", () => ({ useAuthz: () => ({ can: (c: string) => caps.includes(c) }) }));
+/** Held at every branch; unset = the same as `caps`. */
+let everywhere: string[] | undefined;
+vi.mock("@/data/authz/use-authz", () => ({
+  useAuthz: () => ({ can: (c: string) => caps.includes(c), canEverywhere: (c: string) => (everywhere ?? caps).includes(c) }),
+}));
+let settings: Record<string, unknown> = { working_days_per_month: 26, limit_day_hours: 8, period_start_day: 1 };
 vi.mock("@/data/api/generated/api", () => ({
   useListBranches: () => ({ data: [{ id: "b1", name: "Zamalek" }, { id: "b2", name: "Maadi" }] }),
   useLinkableUsers: () => ({ data: [{ user_id: "u9", name: "Karim", role: "teller", phone: "201009998887" }] }),
   createEmployee: (b: unknown) => createEmployee(b),
+  useGetAttendanceSettings: () => ({ data: settings, isLoading: false }),
 }));
 
 const i18n = (await import("@/i18n")).default;
@@ -47,6 +53,8 @@ const conflict = (msg: string) =>
 beforeEach(() => {
   createEmployee.mockReset().mockResolvedValue({});
   caps = ["hr.payroll.edit"];
+  everywhere = undefined;
+  settings = { working_days_per_month: 26, limit_day_hours: 8, period_start_day: 1 };
 });
 
 describe("Add employee", () => {
@@ -97,6 +105,19 @@ describe("Add employee", () => {
         job_title: null, hire_date: "2026-09-01", gender: null,
       }),
     );
+  });
+
+  it("a job title too long says why Add does nothing (H3 silent Save)", async () => {
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog onOpenChange={vi.fn()} />);
+    await user.click(screen.getByRole("radio", { name: "Records only" }));
+    await user.type(screen.getByLabelText("Name"), "Hassan");
+    await user.click(screen.getByRole("checkbox", { name: "Zamalek" }));
+    await user.click(screen.getByLabelText("Job title"));
+    await user.paste("j".repeat(121));
+    await user.click(screen.getByRole("button", { name: "Add employee" }));
+    expect(await screen.findByText("At most 120 characters")).toBeInTheDocument();
+    expect(createEmployee).not.toHaveBeenCalled();
   });
 
   it("a staff-app person without a number is refused", async () => {
@@ -193,3 +214,53 @@ describe("Import from a spreadsheet", () => {
     expect(screen.queryByRole("status")).toBeNull();
   });
 });
+
+describe("D9: the salary calculator (owner decision 9)", () => {
+  it("a day rate fills the monthly salary and the hourly rate, from 26 days of 8 hours", async () => {
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog onOpenChange={() => {}} />);
+    await user.type(screen.getByLabelText("Daily rate (EGP)"), "250");
+    expect(screen.getByLabelText("Monthly salary (EGP)")).toHaveValue(6500);
+    expect(screen.getByLabelText("Hourly rate (EGP)")).toHaveValue(31.25);
+    expect(screen.getByText(/26 working days of 8 h/)).toBeInTheDocument();
+  });
+
+  it("an hourly rate fills the other two; typing the monthly again takes over", async () => {
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog onOpenChange={() => {}} />);
+    await user.type(screen.getByLabelText("Hourly rate (EGP)"), "31.25");
+    expect(screen.getByLabelText("Monthly salary (EGP)")).toHaveValue(6500);
+    expect(screen.getByLabelText("Daily rate (EGP)")).toHaveValue(250);
+    const monthly = screen.getByLabelText("Monthly salary (EGP)");
+    await user.clear(monthly);
+    await user.type(monthly, "7800");
+    expect(screen.getByLabelText("Daily rate (EGP)")).toHaveValue(300);
+    expect(screen.getByLabelText("Hourly rate (EGP)")).toHaveValue(37.5);
+  });
+
+  it("names the first pay, pro rata from the hire date to the period's end (310,000 × 16/31)", async () => {
+    const { fmtDate } = await import("@/lib/format");
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog onOpenChange={() => {}} />);
+    await user.type(screen.getByLabelText("Monthly salary (EGP)"), "3100");
+    await user.type(screen.getByLabelText("Hire date"), "2026-10-16");
+    expect(screen.getByText(`First pay (from ${fmtDate("2026-10-16")} to ${fmtDate("2026-10-31")}): EGP 1,600.00`)).toBeInTheDocument();
+  });
+
+  it("follows the rules' working days and day length", async () => {
+    settings = { working_days_per_month: 30, limit_day_hours: 9, period_start_day: 26 };
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog onOpenChange={() => {}} />);
+    await user.type(screen.getByLabelText("Monthly salary (EGP)"), "9000");
+    expect(screen.getByLabelText("Daily rate (EGP)")).toHaveValue(300);
+    expect(screen.getByLabelText("Hourly rate (EGP)")).toHaveValue(33.33);
+  });
+
+  it("a manager with the pay right at one branch only gets no salary field (the server would drop it)", () => {
+    everywhere = [];
+    wrap(<AddEmployeeDialog onOpenChange={() => {}} />);
+    expect(screen.queryByLabelText("Monthly salary (EGP)")).toBeNull();
+    expect(screen.queryByLabelText("Daily rate (EGP)")).toBeNull();
+  });
+});
+

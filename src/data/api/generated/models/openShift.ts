@@ -4,6 +4,11 @@
 export interface OpenShift {
   branch_id: string;
   /**
+     * When the live claim was made; null while open.
+     * @nullable
+     */
+  claimed_at?: string | null;
+  /**
      * The employee who claimed it.
      * @nullable
      */

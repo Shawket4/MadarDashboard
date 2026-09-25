@@ -8,6 +8,16 @@ export interface Adjustment {
   created_at: string;
   /** @nullable */
   created_by?: string | null;
+  /** @nullable */
+  decided_at?: string | null;
+  /**
+     * Who decided a line that waited for the owner, when, and why (a
+     * rejection always says why, D8).
+     * @nullable
+     */
+  decided_by?: string | null;
+  /** @nullable */
+  decision_note?: string | null;
   /** The month it lands in (the first day of a recurring line, AD-1/AD-3). */
   effective_date: string;
   employee_id: string;

@@ -67,6 +67,7 @@ export function DayEditor({
   templates,
   staff,
   ownSet,
+  branchId,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -78,6 +79,8 @@ export function DayEditor({
   /** The date holds its own set (GET /staff/roster date_sets): only then can
    *  it go back to the pattern. */
   ownSet: boolean;
+  /** The board's branch: a business-wide block set here is worked here (H2-B8). */
+  branchId: string;
 }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
@@ -121,7 +124,7 @@ export function DayEditor({
   };
 
   const setShifts = (blocks: DayBlock[], ok: string) =>
-    run(() => putDay({ employee_id: person.employee_id, on_date: date, shifts: blocks }), ok);
+    run(() => putDay({ employee_id: person.employee_id, on_date: date, shifts: blocks, branch_id: branchId }), ok);
 
   const title = t("dawam.dayEditorTitle", {
     name: person.name,

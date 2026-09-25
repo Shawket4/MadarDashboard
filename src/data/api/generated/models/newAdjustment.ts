@@ -6,7 +6,9 @@ export interface NewAdjustment {
   amount_piastres?: number | null;
   /**
      * The month it lands in (AD-1): any day of that month; the first month
-     * of a recurring line (AD-3). Defaults to today. Must be an open month.
+     * of a recurring line (AD-3). Defaults to today, or, when today's month
+     * is already approved, the first day of the next open month (M27).
+     * Given explicitly, it must be in an open month (409 PERIOD_CLOSED).
      * @nullable
      */
   effective_date?: string | null;

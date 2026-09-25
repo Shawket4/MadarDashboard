@@ -32,10 +32,10 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import {
   decideAdjustment, deleteBonus, deleteDeduction, exportPeriodCsv, generatePeriod,
   useCurrent, useListAdjustments, useListAdvances, useListEmployees,
-  useListExpenseAdvances, useListPayslips,
+  useListExpenseAdvances, useListPayslips, usePreviewPeriod,
 } from "@/data/api/generated/api";
 import type {
-  Adjustment, ComputedPayslip, Employee, ExpenseAdvance, PayrollPeriod, Payslip, SalaryAdvance,
+  Adjustment, ComputedPayslip, CurrentPayroll, Employee, ExpenseAdvance, PayrollPeriod, Payslip, SalaryAdvance, UnsettledPeriod,
 } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
@@ -45,16 +45,16 @@ import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useCurrentOrg } from "@/hooks/use-org-modules";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
-import { fmtDate, fmtMoney, fmtMoneySigned } from "@/lib/format";
+import { fmtDate, fmtMoney, fmtMoneySigned, fmtPeriod } from "@/lib/format";
 import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "@/features/staff/util";
 
 import { payslipLines, reasonText, type PayLine } from "./lines";
-import { dawamQuery } from "./live";
+import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { printPayslip } from "./payslip-print";
 import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
-  ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog,
+  ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote, RejectDialog, CorrectExpenseTagDialog,
 } from "./money-dialogs";
 
 type Slip = ComputedPayslip | Payslip;
@@ -69,6 +69,46 @@ export const periodPhase = (p: PayrollPeriod | undefined): "open" | "approved" |
   p?.status === "generated" ? "approved" : p?.status === "paid" || p?.status === "closed" ? "paid" : "open";
 
 const PHASE_TONE = { open: "neutral", approved: "info", paid: "success" } as const;
+
+/** An older month to settle; `paid_count` is unknown when it comes from history (an older server). */
+type Unsettled = Omit<UnsettledPeriod, "paid_count"> & { paid_count?: number };
+
+/** A month by its dates: "Aug 2026" when it is a calendar month, else its range. */
+export const monthLabel = (start: string, end: string): string =>
+  start.endsWith("-01") ? fmtPeriod(`${start}T12:00:00Z`, "monthly") : `${fmtDate(start)} → ${fmtDate(end)}`;
+
+/** Still to settle: a past month never approved (draft) or approved with someone unpaid (generated). */
+const isUnsettled = (status: string | undefined) => status === "draft" || status === "generated";
+
+/**
+ * The older months not fully paid (H2-P1), oldest first: the server's
+ * `unsettled`, or, from a server without it, the same months found in history.
+ */
+export const unsettledOf = (cur: CurrentPayroll | undefined): Unsettled[] => {
+  if (!cur) return [];
+  if (Array.isArray(cur.unsettled)) return cur.unsettled;
+  return (cur.history ?? [])
+    .filter((p) => isUnsettled(p.status))
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))
+    .map((p) => ({
+      period_id: p.id, starts_on: p.start_date, ends_on: p.end_date, status: p.status,
+      net_total_piastres: p.total_net_piastres, people: p.employee_count,
+    }));
+};
+
+/** An older month as a period: history's row, or one made from `unsettled` past history's reach. */
+const olderPeriod = (cur: CurrentPayroll | undefined, id: string | null): PayrollPeriod | undefined => {
+  if (!cur || !id) return undefined;
+  const fromHistory = (cur.history ?? []).find((p) => p.id === id);
+  if (fromHistory) return fromHistory;
+  const u = unsettledOf(cur).find((x) => x.period_id === id);
+  return u
+    ? ({
+        id: u.period_id, name: monthLabel(u.starts_on, u.ends_on), start_date: u.starts_on, end_date: u.ends_on, status: u.status,
+        total_net_piastres: u.net_total_piastres, employee_count: u.people,
+      } as PayrollPeriod)
+    : undefined;
+};
 
 export function PayrollPage() {
   const { t } = useTranslation();
@@ -90,33 +130,66 @@ export function PayrollPage() {
   const [logging, setLogging] = useState(false);
   const [reopening, setReopening] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  // An older month opened from its banner or from History (H2-P1); null = the month covering today.
+  const [viewId, setViewId] = useState<string | null>(null);
   const confirm = useConfirm();
   const logoUrl = useExportLogo();
 
   const currentQ = useCurrent({ query: dawamQuery({ enabled: canRead }) });
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: dawamQuery({ enabled: canRead }) });
-  const period = currentQ.data?.period;
+  const cur = currentQ.data as CurrentPayroll | undefined;
+  const unsettled = unsettledOf(cur);
+  // Every action below goes by `period.id`, so an older month settles like this one.
+  const older = olderPeriod(cur, viewId);
+  const olderDraft = older?.status === "draft";
+  const olderPreviewQ = usePreviewPeriod(older?.id ?? "", { query: dawamQuery({ enabled: canRead && !!older && olderDraft }) });
+  const olderSlipsQ = useListPayslips(older?.id ?? "", { query: dawamQuery({ enabled: canRead && !!older && !olderDraft }) });
+  const olderQ = olderDraft ? olderPreviewQ : olderSlipsQ;
+  const shownQ = older ? olderQ : currentQ;
+  const period = older ?? cur?.period;
   const phase = periodPhase(period);
   const people = useMemo(() => new Map((employeesQ.data ?? []).map((e) => [e.id, e])), [employeesQ.data]);
 
   // After approval the frozen payslips are the truth; before, the live preview.
   const rows: Row[] = useMemo(() => {
-    const frozen = currentQ.data?.payslips ?? [];
-    const source: Slip[] = frozen.length ? frozen : (currentQ.data?.preview ?? []);
+    const frozen = cur?.payslips ?? [];
+    const source: Slip[] = older
+      ? ((olderDraft ? olderPreviewQ.data : olderSlipsQ.data) ?? [])
+      : frozen.length ? frozen : (cur?.preview ?? []);
     return source.map((s) => ({
       ...s,
       employee_name: ("employee_name" in s && s.employee_name) || ("name" in s && s.name) || people.get(s.employee_id)?.name || "—",
       paid_method: ("paid_method" in s && s.paid_method) || null,
     }));
-  }, [currentQ.data, people]);
+  }, [cur, older, olderDraft, olderPreviewQ.data, olderSlipsQ.data, people]);
 
-  // The server adds the run up (AT-3): its totals and how many are paid.
-  const totals = {
-    net: currentQ.data?.totals?.net_piastres ?? 0,
-    deductions: currentQ.data?.totals?.deductions_piastres ?? 0,
-    advances: currentQ.data?.totals?.advances_piastres ?? 0,
-    people: currentQ.data?.totals?.people ?? rows.length,
-    paid: currentQ.data?.paid_count ?? 0,
+  // The server adds the run up (AT-3): its totals and how many are paid. An
+  // older month's are added up here from its own payslips.
+  const sum = (f: (r: Row) => number) => rows.reduce((a, r) => a + f(r), 0);
+  const totals = older
+    ? {
+        net: sum((r) => r.net_piastres),
+        deductions: sum((r) => r.deductions_piastres),
+        advances: sum((r) => r.advance_installment_piastres),
+        people: rows.length,
+        paid: rows.filter((r) => r.paid_method).length,
+      }
+    : {
+        net: cur?.totals?.net_piastres ?? 0,
+        deductions: cur?.totals?.deductions_piastres ?? 0,
+        advances: cur?.totals?.advances_piastres ?? 0,
+        people: cur?.totals?.people ?? rows.length,
+        paid: cur?.paid_count ?? 0,
+      };
+
+  // On payroll with no salary (owner decision 9): approval is refused until
+  // each is set or marked not paid through Dawam (409 SALARY_MISSING).
+  const missing = rows.filter((r) => (r as ComputedPayslip).salary_missing);
+  const missingCount = older ? missing.length : (cur?.missing_salary_count ?? cur?.totals?.missing_salary_count ?? missing.length);
+  const openMonth = (id: string | null) => {
+    setViewId(id);
+    setTab("payslips");
   };
 
   // Reopen closes once a PERSON is paid (PAY-6). A zero-net payslip settled at
@@ -148,15 +221,16 @@ export function PayrollPage() {
     }
   };
 
-  // Bank-transfer people as a bank file, wallet people as numbers and amounts (PAY-8).
+  // Bank-transfer people as a bank file, wallet people as numbers and amounts
+  // (PAY-8), cash people as names and amounts for the pay envelopes (M31).
   const exportLists = async () => {
     setExporting(true);
     try {
       // Only what is actually transferred: a payslip with nothing to pay (a 0.00 net) is no transfer (PAY-8).
       const pick = (m: string) => rows.filter((r) => r.net_piastres > 0 && (people.get(r.employee_id)?.pay_method ?? "cash") === m);
-      const cols = (acct: string): ExcelColumn<Row>[] => [
+      const cols = (acct: string | null): ExcelColumn<Row>[] => [
         { header: t("staff.name", "Name"), accessor: (r) => r.employee_name, type: "text", width: 26 },
-        { header: acct, accessor: (r) => people.get(r.employee_id)?.pay_account ?? "", type: "text", width: 30 },
+        ...(acct ? [{ header: acct, accessor: (r: Row) => people.get(r.employee_id)?.pay_account ?? "", type: "text", width: 30 } as ExcelColumn<Row>] : []),
         { header: t("dawam.net", "Net"), accessor: (r) => r.net_piastres, type: "money", width: 16, total: true },
       ];
       await exportToExcel({
@@ -166,6 +240,7 @@ export function PayrollPage() {
         sheets: [
           { name: t("dawam.pay_bank", "Bank transfer"), title: t("dawam.bankList", "Bank transfers"), rows: pick("bank") as never, columns: cols(t("dawam.iban", "Account (IBAN)")) as never, totals: true },
           { name: t("dawam.pay_wallet", "Mobile wallet"), title: t("dawam.walletList", "Mobile wallets"), rows: pick("wallet") as never, columns: cols(t("dawam.walletNumber", "Wallet number")) as never, totals: true },
+          { name: t("dawam.pay_cash", "Cash"), title: t("dawam.cashList", "Cash envelopes"), rows: pick("cash") as never, columns: cols(null) as never, totals: true },
         ],
       });
     } catch (e) {
@@ -195,7 +270,15 @@ export function PayrollPage() {
       meta: { label: t("staff.name", "Name"), phone: "title" },
       cell: ({ row }) => <span className="font-medium">{row.original.employee_name}</span>,
     },
-    { id: "base", header: t("dawam.salary", "Salary"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(payslipLines(row.original)[0].amount) },
+    {
+      id: "base",
+      header: t("dawam.salary", "Salary"),
+      meta: { numeric: true, align: "end" },
+      cell: ({ row }) =>
+        (row.original as ComputedPayslip).salary_missing
+          ? <Badge variant="outline" className="border-warning/60">{t("dawam.notSet", "Not set")}</Badge>
+          : fmtMoney(payslipLines(row.original)[0].amount),
+    },
     { id: "ot", header: t("dawam.overtime", "Overtime"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(row.original.overtime_piastres) },
     { id: "bonuses", header: t("dawam.bonuses", "Bonuses"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(row.original.bonuses_piastres) },
     { id: "deductions", header: t("dawam.deductions", "Deductions"), meta: { numeric: true, align: "end" }, cell: ({ row }) => fmtMoney(-row.original.deductions_piastres) },
@@ -243,14 +326,16 @@ export function PayrollPage() {
             <DawamRefreshButton />
             {period ? <StatusPill tone={PHASE_TONE[phase]}>{t(`dawam.phase_${phase}`, phase)}</StatusPill> : null}
             {canRun && phase === "open" && period ? (
-              <Button onClick={() => void approve()}><BadgeCheck className="size-4" />{t("dawam.approve", "Approve payroll")}</Button>
+              <Button onClick={() => void approve()} disabled={missingCount > 0} aria-describedby={missingCount > 0 ? "salary-missing" : undefined}>
+                <BadgeCheck className="size-4" />{t("dawam.approve", "Approve payroll")}
+              </Button>
             ) : null}
             {canRun && phase === "approved" && paidByHand === 0 ? (
               <Button variant="outline" onClick={() => setReopening(true)}><RotateCcw className="size-4" />{t("dawam.reopen", "Reopen")}</Button>
             ) : null}
             {phase !== "open" ? (
               <>
-                <ExportButton onExport={() => void exportLists()} loading={exporting} label={t("dawam.transferLists", "Bank & wallet lists")} />
+                <ExportButton onExport={() => void exportLists()} loading={exporting} label={t("dawam.payLists", "Pay lists (bank, wallet, cash)")} />
                 <Button variant="ghost" onClick={() => void exportCsv()}>{t("dawam.csv", "CSV")}</Button>
               </>
             ) : null}
@@ -258,12 +343,53 @@ export function PayrollPage() {
         }
       />
       <RulesFirstBanner />
+      {older ? (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-muted/40 p-4 text-sm">
+          <p className="font-medium">
+            {t("dawam.viewingOlder", { month: monthLabel(older.start_date, older.end_date), defaultValue: `You're looking at an earlier month: ${monthLabel(older.start_date, older.end_date)}.` })}
+          </p>
+          <Button size="sm" variant="outline" onClick={() => openMonth(null)}>{t("dawam.backToCurrent", "Back to this month")}</Button>
+        </div>
+      ) : null}
+      {unsettled.filter((u) => u.period_id !== older?.id).map((u) => {
+        const month = monthLabel(u.starts_on, u.ends_on);
+        return (
+          <div key={u.period_id} role="alert" aria-labelledby={`unsettled-${u.period_id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
+            <div>
+              <p id={`unsettled-${u.period_id}`} className="font-medium">
+                {t("dawam.unsettledTitle", { month, defaultValue: `${month} isn't fully paid yet` })}
+              </p>
+              <p className="text-muted-foreground">
+                {u.status === "draft"
+                  ? t("dawam.unsettledDraft", "It was never approved. Open it to approve it and pay everyone.")
+                  : u.paid_count === undefined
+                    ? t("dawam.unsettledApprovedNoCount", "Approved, but not everyone is paid yet. Open it to mark the rest paid.")
+                    : t("dawam.unsettledApproved", { paid: u.paid_count, people: u.people, defaultValue: `Approved. Paid ${u.paid_count} of ${u.people}: open it to mark the rest paid.` })}
+                {" · "}
+                <span className="tabular-nums">{fmtMoney(u.net_total_piastres)}</span>
+              </p>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => openMonth(u.period_id)}>{t("dawam.unsettledOpen", "Open it")}</Button>
+          </div>
+        );
+      })}
+      {phase === "open" && missingCount > 0 ? (
+        <div id="salary-missing" role="alert" className="rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
+          <p className="font-medium">
+            {t("dawam.salaryMissingTitle", { count: missingCount, defaultValue: "{{count}} people on payroll have no salary" })}
+          </p>
+          <p className="text-muted-foreground">
+            {missing.length ? `${missing.map((r) => r.employee_name).join(t("common.listSeparator", ", "))}. ` : ""}
+            {t("dawam.salaryMissingHint", "Set their salary on Employees, or mark them not paid through Dawam. Payroll can't be approved until then.")}
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dawam.totalNet", "Net pay")} value={totals.net} formatType="money" icon={CircleDollarSign} loading={currentQ.isLoading} />
-        <StatCard label={t("dawam.people", "People")} value={totals.people} formatType="number" icon={UsersRound} loading={currentQ.isLoading} hint={phase === "open" ? undefined : t("dawam.paidCount", { paid: totals.paid, people: totals.people, defaultValue: `Paid ${totals.paid} of ${totals.people}` })} />
-        <StatCard label={t("dawam.deductions", "Deductions")} value={totals.deductions} formatType="money" icon={ReceiptText} loading={currentQ.isLoading} />
-        <StatCard label={t("dawam.advancesCollected", "Advances collected")} value={totals.advances} formatType="money" icon={HandCoins} loading={currentQ.isLoading} />
+        <StatCard label={t("dawam.totalNet", "Net pay")} value={totals.net} formatType="money" icon={CircleDollarSign} loading={shownQ.isLoading} />
+        <StatCard label={t("dawam.people", "People")} value={totals.people} formatType="number" icon={UsersRound} loading={shownQ.isLoading} hint={phase === "open" ? undefined : t("dawam.paidCount", { paid: totals.paid, people: totals.people, defaultValue: `Paid ${totals.paid} of ${totals.people}` })} />
+        <StatCard label={t("dawam.deductions", "Deductions")} value={totals.deductions} formatType="money" icon={ReceiptText} loading={shownQ.isLoading} />
+        <StatCard label={t("dawam.advancesCollected", "Advances collected")} value={totals.advances} formatType="money" icon={HandCoins} loading={shownQ.isLoading} />
       </div>
 
       <Tabs value={tab} onValueChange={setTab} className="gap-6">
@@ -276,13 +402,13 @@ export function PayrollPage() {
         </PageTabsList>
 
         <TabsContent value="payslips">
-          {currentQ.error ? (
-            <ErrorState title={t("dawam.payrollLoadError", "Couldn't load payroll")} message={getErrorMessage(currentQ.error)} onRetry={() => void currentQ.refetch()} />
+          {failedEmpty(shownQ) ? (
+            <ErrorState title={t("dawam.payrollLoadError", "Couldn't load payroll")} message={getErrorMessage(shownQ.error)} onRetry={() => void shownQ.refetch()} />
           ) : (
             <DataTable
               columns={columns}
               data={rows}
-              loading={currentQ.isLoading}
+              loading={shownQ.isLoading}
               getRowId={(r) => r.employee_id}
               onRowClick={(r) => setPersonId(r.employee_id)}
               emptyState={<EmptyState icon={Banknote} title={t("dawam.noPayslips", "Nobody on payroll yet")} description={t("dawam.noPayslipsHint", "Active employees with a salary show here.")} />}
@@ -300,15 +426,15 @@ export function PayrollPage() {
           <ExpensesTab canLog={canExpense} onLog={() => setLogging(true)} />
         </TabsContent>
         <TabsContent value="history">
-          <HistoryTab periods={currentQ.data?.history ?? []} people={people} />
+          <HistoryTab periods={cur?.history ?? []} people={people} onOpenMonth={openMonth} />
         </TabsContent>
       </Tabs>
 
       <PayslipSheet
         row={rows.find((r) => r.employee_id === personId) ?? null}
         onOpenChange={(o) => !o && setPersonId(null)}
-        editable={phase === "open" && canAdjust}
-        canDeduct={phase === "open" && canDeduct}
+        editable={!older && phase === "open" && canAdjust}
+        canDeduct={!older && phase === "open" && canDeduct}
         phase={phase}
         period={period ?? null}
       />
@@ -330,6 +456,13 @@ export function PayrollPage() {
 
 function lineLabel(l: PayLine, t: (k: string, o?: Record<string, unknown>) => string) {
   return l.labelKey ? t(l.labelKey, { ...l.vars, defaultValue: l.label }) : l.label;
+}
+
+/** "Waived", with why when the server says (AD-6, M29). */
+function waivedText(l: PayLine, t: (k: string, o?: Record<string, unknown>) => string) {
+  return l.waiveReason
+    ? t("dawam.lineWaivedWhy", { reason: l.waiveReason, defaultValue: `Waived: ${l.waiveReason}` })
+    : t("dawam.lineWaived", { defaultValue: "Waived" });
 }
 
 /** One person's payslip, every line with its reason (AD-6), and what can change on it. */
@@ -379,7 +512,7 @@ function PayslipSheet({
       company: org?.name ?? "",
       period,
       person: row.employee_name,
-      lines: lines.map((l) => ({ label: lineLabel(l, t), line: l })),
+      lines: lines.map((l) => ({ label: lineLabel(l, t), line: l, waivedNote: l.waived ? waivedText(l, t) : undefined })),
       net: row.net_piastres,
       carryOut: row.carry_out_piastres,
       labels: {
@@ -412,7 +545,13 @@ function PayslipSheet({
                 key={l.key}
                 variant="ledger"
                 title={<span className={l.waived ? "text-muted-foreground line-through" : undefined}>{lineLabel(l, t)}</span>}
-                meta={l.waived ? t("dawam.lineWaived", "Waived") : l.rule ? t("dawam.ruleLine", "From the rules") : l.manual ? t("dawam.manualLine", "Added by hand") : undefined}
+                meta={
+                  l.waived
+                    ? waivedText(l, t)
+                    : l.overrideReason
+                      ? t("dawam.lineOverriddenWhy", { reason: l.overrideReason, defaultValue: `Overridden: ${l.overrideReason}` })
+                      : l.rule ? t("dawam.ruleLine", "From the rules") : l.manual ? t("dawam.manualLine", "Added by hand") : undefined
+                }
                 trailing={
                   <span className="flex items-center gap-1">
                     <span className={l.waived ? "text-muted-foreground line-through tabular-nums" : l.amount < 0 ? "text-destructive tabular-nums" : "tabular-nums"}>{fmtMoneySigned(l.amount)}</span>
@@ -473,6 +612,15 @@ function PayslipSheet({
   );
 }
 
+/** Which rule made a line (payroll_deductions.source), as its label. */
+const RULE_SOURCE: Record<string, [string, string]> = {
+  late_penalty: ["dawam.ruleSource_late", "Rule · late"],
+  absence: ["dawam.ruleSource_absence", "Rule · absence"],
+  left_mid_shift: ["dawam.ruleSource_left_mid_shift", "Rule · left mid-shift"],
+  excused_unpaid: ["dawam.ruleSource_excused_unpaid", "Rule · unpaid excuse"],
+  carry: ["dawam.ruleSource_carry", "Carried from last month"],
+};
+
 const ADJ_TONE: Record<string, "warning" | "success" | "danger" | "neutral"> = {
   pending: "warning", approved: "success", rejected: "danger",
 };
@@ -481,6 +629,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
   const { t } = useTranslation();
   const q = useListAdjustments({}, { query: dawamQuery() });
   const [stopping, setStopping] = useState<Adjustment | null>(null);
+  const [rejecting, setRejecting] = useState<Adjustment | null>(null);
   const act = async (fn: () => Promise<unknown>, ok: string) => {
     try {
       await fn();
@@ -494,12 +643,17 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
   return (
     <div className="space-y-3">
       {canAdjust ? <Button onClick={onAdd}><Plus className="size-4" />{t("dawam.addPayLine", "Add a bonus or deduction")}</Button> : null}
-      {q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
-        <EmptyState icon={ReceiptText} title={t("dawam.noPayLines", "No bonuses or deductions")} description={t("dawam.noPayLinesHint", "Lines added by hand show here, with who added them and why.")} />
+      {failedEmpty(q) ? (
+        <ErrorState title={t("dawam.payLinesLoadError", "Couldn't load the bonuses and deductions")} message={getErrorMessage(q.error)} onRetry={() => void q.refetch()} />
+      ) : q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
+        <EmptyState icon={ReceiptText} title={t("dawam.noPayLines", "No bonuses or deductions")} description={t("dawam.noPayLinesHint", "Lines added by hand and the ones the rules make (lateness, absence) show here, with why. Rule-made ones are waived from the payslip.")} />
       ) : (
         <ListCard>
           {rows.map((a: Adjustment) => {
-            const stopped = !!a.ends_on;
+            // Stop ends a monthly line at the end of the open month, which keeps it (D6):
+            // until then it still counts, and it can't be stopped twice.
+            const endsOn = a.ends_on ?? null;
+            const stopped = !!endsOn && endsOn < todayIso();
             const value = a.percent_of_base != null ? `${a.percent_of_base}%` : fmtMoney(a.kind === "bonus" ? (a.amount_piastres ?? 0) : -(a.amount_piastres ?? 0));
             return (
               <ListRow
@@ -508,10 +662,27 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="truncate">{a.employee_name}</span>
                     <Badge variant="secondary">{a.kind === "bonus" ? t("dawam.bonus", "Bonus") : t("dawam.deduction", "Deduction")}</Badge>
-                    {a.recurring ? <Badge variant="outline">{stopped ? t("dawam.stopped", "stopped") : t("dawam.monthly", "monthly")}</Badge> : null}
+                    {/* Made by a rule, not by hand: waived on the payslip, never deleted (AD-7, M30). */}
+                    {RULE_SOURCE[a.source] ? <Badge variant="outline">{t(RULE_SOURCE[a.source][0], RULE_SOURCE[a.source][1])}</Badge> : null}
+                    {a.recurring ? (
+                      <Badge variant="outline">
+                        {stopped
+                          ? t("dawam.stopped", "stopped")
+                          : endsOn
+                            ? t("dawam.monthlyUntil", { date: fmtDate(endsOn), defaultValue: `monthly until ${fmtDate(endsOn)}` })
+                            : t("dawam.monthly", "monthly")}
+                      </Badge>
+                    ) : null}
                   </span>
                 }
-                meta={[reasonText(t, a.reason_code, a.reason_vars as Record<string, unknown> | null, a.reason), fmtDate(a.effective_date)].join(" · ")}
+                meta={[
+                  reasonText(t, a.reason_code, a.reason_vars as Record<string, unknown> | null, a.reason),
+                  fmtDate(a.effective_date),
+                  // Why the owner refused it (D8).
+                  a.status === "rejected" && a.decision_note
+                    ? t("dawam.rejectedWhy", { reason: a.decision_note, defaultValue: `Rejected: ${a.decision_note}` })
+                    : null,
+                ].filter(Boolean).join(" · ")}
                 trailing={
                   <span className="flex items-center gap-2">
                     <span className="tabular-nums">{value}</span>
@@ -519,10 +690,10 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                     {owner && a.status === "pending" ? (
                       <>
                         <Button size="sm" variant="outline" onClick={() => void act(() => decideAdjustment(a.kind, a.id, { approve: true }), t("staff.decisionSaved", "Decision saved"))}>{t("common.approve", "Approve")}</Button>
-                        <Button size="sm" variant="ghost" aria-label={t("common.reject", "Reject")} onClick={() => void act(() => decideAdjustment(a.kind, a.id, { approve: false }), t("staff.decisionSaved", "Decision saved"))}><X className="size-4" /></Button>
+                        <Button size="sm" variant="ghost" aria-label={t("common.reject", "Reject")} onClick={() => setRejecting(a)}><X className="size-4" /></Button>
                       </>
                     ) : null}
-                    {canAdjust && a.recurring && !stopped && a.status === "approved" ? (
+                    {canAdjust && a.recurring && !endsOn && a.status === "approved" ? (
                       <Button size="sm" variant="ghost" onClick={() => setStopping(a)}>{t("dawam.stop", "Stop")}</Button>
                     ) : null}
                   </span>
@@ -533,19 +704,32 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
         </ListCard>
       )}
       <StopDialog key={`stop-${stopping?.id}`} line={stopping} onOpenChange={(o) => !o && setStopping(null)} />
+      <RejectDialog
+        key={`reject-${rejecting?.id}`}
+        open={!!rejecting}
+        onOpenChange={(o) => !o && setRejecting(null)}
+        title={t("dawam.rejectLineTitle", { name: rejecting?.employee_name ?? "", defaultValue: `Reject ${rejecting?.employee_name ?? ""}'s line?` })}
+        description={t("dawam.rejectWhyHint", "They are told, with your reason, and nothing is paid for it. The reason is kept in the audit log.")}
+        onReject={(reason) => decideAdjustment(rejecting!.kind, rejecting!.id, { approve: false, reason })}
+      />
     </div>
   );
 }
 
 function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: () => void }) {
   const { t } = useTranslation();
+  const authz = useAuthz();
+  // The owner may pass the cap and sees its figures; a manager reads within / over only (D7).
+  const mayPassCap = authz.canEverywhere(Cap.hrPayrollRun);
   const q = useListAdvances({}, { query: dawamQuery() });
   const [reviewing, setReviewing] = useState<SalaryAdvance | null>(null);
   const rows = q.data ?? [];
   return (
     <div className="space-y-3">
       {canAdvance ? <Button onClick={onRecord}><Plus className="size-4" />{t("dawam.recordAdvance", "Record a salary advance")}</Button> : null}
-      {q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
+      {failedEmpty(q) ? (
+        <ErrorState title={t("dawam.advancesLoadError", "Couldn't load the salary advances")} message={getErrorMessage(q.error)} onRetry={() => void q.refetch()} />
+      ) : q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
         <EmptyState icon={HandCoins} title={t("dawam.noAdvances", "No salary advances")} description={t("dawam.noAdvancesHint", "Advances asked for in the app, or recorded here, and what is left to pay back.")} />
       ) : (
         <ListCard>
@@ -558,7 +742,8 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
                 a.reason,
               ].filter(Boolean).join(" · ")}
               trailing={
-                <span className="flex items-center gap-2">
+                <span className="flex flex-wrap items-center justify-end gap-2">
+                  {a.status === "pending" || a.status === "approved" ? <AdvanceCapNote advance={a} mayPassCap={mayPassCap} /> : null}
                   {a.status === "approved" ? (
                     <span className="text-sm tabular-nums text-muted-foreground">{t("dawam.remaining", { amount: fmtMoney(a.remaining_piastres), defaultValue: `${fmtMoney(a.remaining_piastres)} left` })}</span>
                   ) : null}
@@ -579,6 +764,9 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
 
 function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) {
   const { t } = useTranslation();
+  // The owner (payroll run at every branch) corrects a till tag here, since the POS has no correction screen (owner decision 39).
+  const canCorrectTag = useAuthz().canEverywhere(Cap.hrPayrollRun);
+  const [correcting, setCorrecting] = useState<ExpenseAdvance | null>(null);
   // The scope bar's branch (the expense's own branch, AV-9); every branch when none is picked.
   const { branchId } = useScope();
   const q = useListExpenseAdvances(branchId ? { branch_id: branchId } : {}, { query: dawamQuery() });
@@ -587,7 +775,9 @@ function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) 
     <div className="space-y-3">
       {canLog ? <Button onClick={onLog}><Plus className="size-4" />{t("dawam.logExpense", "Log an expense advance")}</Button> : null}
       <p className="text-sm text-muted-foreground">{t("dawam.expenseNever", "Expense advances are a log: never deducted, never settled, never on a payslip.")}</p>
-      {q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
+      {failedEmpty(q) ? (
+        <ErrorState title={t("dawam.expensesLoadError", "Couldn't load the expense advances")} message={getErrorMessage(q.error)} onRetry={() => void q.refetch()} />
+      ) : q.isLoading ? <Skeleton className="h-40 w-full rounded-2xl" /> : rows.length === 0 ? (
         <EmptyState icon={Wallet} title={t("dawam.noExpenses", "Nothing logged")} description={t("dawam.noExpensesHint", "Cash handed over for the shop shows here, per person and branch.")} />
       ) : (
         <ListCard>
@@ -596,16 +786,31 @@ function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) 
               key={x.id}
               title={x.employee_name}
               meta={[x.purpose, fmtDate(x.given_on), t(`dawam.via_${x.via}`, x.via), x.handed_by_name].filter(Boolean).join(" · ")}
-              trailing={<span className="tabular-nums">{fmtMoney(x.amount_piastres)}</span>}
+              trailing={
+                <span className="flex items-center gap-2">
+                  <span className="tabular-nums">{fmtMoney(x.amount_piastres)}</span>
+                  {canCorrectTag && x.via === "till" ? (
+                    <Button size="sm" variant="ghost" onClick={() => setCorrecting(x)}>{t("dawam.correctTag", "Correct the tag")}</Button>
+                  ) : null}
+                </span>
+              }
             />
           ))}
         </ListCard>
       )}
+      <CorrectExpenseTagDialog key={correcting?.id} expense={correcting} onOpenChange={(o) => !o && setCorrecting(null)} />
     </div>
   );
 }
 
-function HistoryTab({ periods, people }: { periods: PayrollPeriod[]; people: Map<string, Employee> }) {
+function HistoryTab({
+  periods, people, onOpenMonth,
+}: {
+  periods: PayrollPeriod[];
+  people: Map<string, Employee>;
+  /** A month still to settle opens in the page with its actions (H2-P1). */
+  onOpenMonth: (id: string) => void;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState<PayrollPeriod | null>(null);
   const slipsQ = useListPayslips(open?.id ?? "", { query: dawamQuery({ enabled: !!open }) });
@@ -620,8 +825,8 @@ function HistoryTab({ periods, people }: { periods: PayrollPeriod[]; people: Map
             key={p.id}
             variant="nav"
             title={p.name}
-            meta={`${fmtDate(p.start_date)} → ${fmtDate(p.end_date)}`}
-            onClick={() => setOpen(p)}
+            meta={`${fmtDate(p.start_date)} → ${fmtDate(p.end_date)}${isUnsettled(p.status) ? ` · ${t("dawam.notFullyPaid", "Not fully paid yet")}` : ""}`}
+            onClick={() => (isUnsettled(p.status) ? onOpenMonth(p.id) : setOpen(p))}
             trailing={
               <span className="flex items-center gap-2">
                 <span className="tabular-nums">{fmtMoney(p.total_net_piastres)}</span>
@@ -635,10 +840,17 @@ function HistoryTab({ periods, people }: { periods: PayrollPeriod[]; people: Map
         <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>{open?.name}</SheetTitle>
-            <SheetDescription>{t("dawam.frozenHint", "Frozen when payroll was approved.")}</SheetDescription>
+            {/* H2-D14: a month that was never approved is not "frozen". */}
+            <SheetDescription>
+              {open && periodPhase(open) === "open"
+                ? t("dawam.neverApproved", "This month was never approved, so it has no payslips yet.")
+                : t("dawam.frozenHint", "Frozen when payroll was approved.")}
+            </SheetDescription>
           </SheetHeader>
           <div className="px-4 pb-6">
-            {slipsQ.isLoading ? <Skeleton className="h-40 w-full" /> : (
+            {failedEmpty(slipsQ) ? (
+              <ErrorState title={t("dawam.payslipsLoadError", "Couldn't load this month's payslips")} message={getErrorMessage(slipsQ.error)} onRetry={() => void slipsQ.refetch()} />
+            ) : slipsQ.isLoading ? <Skeleton className="h-40 w-full" /> : (
               <ListCard>
                 {(slipsQ.data ?? []).map((s) => (
                   <ListRow

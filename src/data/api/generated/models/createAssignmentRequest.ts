@@ -3,6 +3,13 @@
 
 export interface CreateAssignmentRequest {
   /**
+     * The branch whose board sets the pattern: a business-wide block is
+     * worked there every week (one of the person's branches, else 400
+     * `EMPLOYEE_NOT_AT_BRANCH`). Omitted = the person's first branch.
+     * @nullable
+     */
+  branch_id?: string | null;
+  /**
      * 0 = Sunday … 6 = Saturday. Omit for "every day".
      * @nullable
      */
