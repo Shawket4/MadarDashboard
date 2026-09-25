@@ -375,6 +375,30 @@ describe("M16: a mission over days already worked", () => {
     await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("m1", { status: "approved" }));
   });
 
+  it("reads the worked days from the request when the server sends them, and names them", async () => {
+    const { fmtDate } = await import("@/lib/format");
+    rows = [{ ...MISSION, worked_dates: ["2026-09-20"] }];
+    listAttendance.mockClear();
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Approve/ }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByText(new RegExp(fmtDate("2026-09-20")))).toBeInTheDocument();
+    expect(listAttendance).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole("button", { name: /Approve/ }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("m1", { status: "approved" }));
+  });
+
+  it("warns in the pay dialog when leave covers a worked day", async () => {
+    const { fmtDate } = await import("@/lib/format");
+    rows = [{ ...LEAVE, can_decide: true, worked_dates: ["2026-09-25"] }];
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Approve/ }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(new RegExp(`already clocked in on ${fmtDate("2026-09-25")}`))).toBeInTheDocument();
+  });
+
   it("approves in one click when no day was worked", async () => {
     rows = [MISSION];
     listAttendance.mockResolvedValueOnce([]);

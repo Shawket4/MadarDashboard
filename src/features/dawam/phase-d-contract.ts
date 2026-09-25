@@ -6,7 +6,7 @@
  * client is regenerated with them.
  */
 import { customInstance } from "@/data/api/custom-instance";
-import type { AttendanceSettings, Employee, LabourWarning, PresenceRow, SalaryAdvance } from "@/data/api/generated/models";
+import type { AttendanceSettings, Employee, LabourWarning, PresenceRow, SalaryAdvance, StaffRequest } from "@/data/api/generated/models";
 
 /** How a confirmed cover is paid (D5): the coverer's plain minute rate, or the covered block as a full day. */
 export type CoverPayMode = "minute_rate" | "full_block";
@@ -63,3 +63,7 @@ export const clearExpenseAdvance = (id: string, params: { reason: string }) =>
   customInstance<unknown>({ url: `/staff/expense-advances/${id}`, method: "DELETE", params });
 export const reassignExpenseAdvance = (id: string, body: { employee_id: string; reason: string }) =>
   customInstance<unknown>({ url: `/staff/expense-advances/${id}`, method: "PATCH", headers: { "Content-Type": "application/json" }, data: body });
+
+/** A leave or mission (M16): the days of its span the person already clocked in on; absent from an older server. */
+export type StaffRequestD = StaffRequest & { worked_dates?: string[] };
+

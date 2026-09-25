@@ -37,6 +37,7 @@ import {
   useListEmployees, useListRequests,
 } from "@/data/api/generated/api";
 import type { StaffRequest } from "@/data/api/generated/models";
+import type { StaffRequestD } from "@/features/dawam/phase-d-contract";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { invalidateRequests, REQUEST_STATUS_TONE, todayIso } from "./util";
@@ -67,24 +68,32 @@ export const ASKS_PAY = ["leave", "excuse", "early_departure"];
  * If the days can't be read, the approval goes ahead as before.
  */
 export async function confirmMissionOverPunches(
-  r: StaffRequest,
+  r: StaffRequestD,
   confirm: (o: { title: string; description: string; confirmLabel: string }) => Promise<boolean>,
   t: TFunction,
 ): Promise<boolean> {
   if (r.kind !== "mission") return true;
-  let worked = 0;
-  try {
-    const days = await listAttendance({ from: r.on_date, to: r.end_date ?? r.on_date, employee_id: r.employee_id });
-    worked = days.filter((a) => a.check_in_at).length;
-  } catch {
-    return true;
+  // The server names the worked days on the request; an older one doesn't, so read them.
+  let worked: string[] = r.worked_dates ?? [];
+  if (!r.worked_dates) {
+    try {
+      const days = await listAttendance({ from: r.on_date, to: r.end_date ?? r.on_date, employee_id: r.employee_id });
+      worked = days.filter((a) => a.check_in_at).map((a) => a.business_date);
+    } catch {
+      return true;
+    }
   }
-  if (worked === 0) return true;
+  if (worked.length === 0) return true;
   return confirm({
     title: t("staff.missionOverPunchesTitle", { name: r.employee_name, defaultValue: `${r.employee_name} already has punches on those days` }),
-    description: t("staff.missionOverPunchesHint", "Approving makes them mission days: paid, with no penalty. The punches are kept."),
+    description: `${workedDaysText(worked, t)} ${t("staff.missionOverPunchesHint", "Approving makes them mission days: paid, with no penalty. The punches are kept.")}`,
     confirmLabel: t("common.approve", "Approve"),
   });
+}
+
+/** "Clocked in on 20 Sept 2026, 21 Sept 2026." */
+function workedDaysText(dates: string[], t: TFunction): string {
+  return t("staff.workedOn", { dates: dates.map((d) => fmtDate(d)).join(t("common.listSeparator", ", ")), defaultValue: "Clocked in on {{dates}}." });
 }
 
 /**
@@ -461,6 +470,16 @@ export function ApproveWithPayDialog({
                       "Only the minutes they were actually away count. On, those minutes are forgiven; off, they are docked. Worked time is never more than real presence.",
                     )}
               </p>
+              {isLeave && (request as StaffRequestD | null)?.worked_dates?.length ? (
+                // Leave over a worked day turns it into leave; the punches stay (M16).
+                <p className="text-xs font-medium text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]">
+                  {t("staff.leaveOverPunches", {
+                    name: request!.employee_name,
+                    dates: (request as StaffRequestD).worked_dates!.map((d) => fmtDate(d)).join(t("common.listSeparator", ", ")),
+                    defaultValue: "{{name}} already clocked in on {{dates}}. Approving makes those days leave; the punches are kept.",
+                  })}
+                </p>
+              ) : null}
               {!isLeave && request?.paid_default != null ? (
                 <p className="text-xs text-muted-foreground">
                   {request.paid_default

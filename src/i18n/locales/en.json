@@ -4599,7 +4599,9 @@
     "correctionOutSet": "out {{to}}",
     "dayMonthClosed": "That day is in an approved payroll month: nothing can be added to it. Pick a day in an open month, or add a pay line in the next one.",
     "missionOverPunchesTitle": "{{name}} already has punches on those days",
-    "missionOverPunchesHint": "Approving makes them mission days: paid, with no penalty. The punches are kept."
+    "missionOverPunchesHint": "Approving makes them mission days: paid, with no penalty. The punches are kept.",
+    "workedOn": "Clocked in on {{dates}}.",
+    "leaveOverPunches": "{{name}} already clocked in on {{dates}}. Approving makes those days leave; the punches are kept."
   },
   "basira": {
     "title": "Basira",
