@@ -1,8 +1,8 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useTranslation } from "react-i18next";
 import { Direction } from "radix-ui";
 import { Toaster } from "@/components/ui/sonner";
+import { DevTools } from "@/components/app/dev-tools";
 
 export const Route = createRootRoute({
   component: RootLayout,
@@ -18,7 +18,7 @@ function RootLayout() {
     <Direction.Provider dir={dir}>
       <Outlet />
       <Toaster position="top-center" richColors closeButton />
-      {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-right" /> : null}
+      <DevTools which="router" />
     </Direction.Provider>
   );
 }
