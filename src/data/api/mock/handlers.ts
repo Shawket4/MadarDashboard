@@ -7,6 +7,7 @@ import {
   mockStaffPoolToday,
 } from "./staff-pool";
 import { defaultsFor } from "@/data/authz/use-authz";
+import { comboHandlers } from "./combos";
 
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import {
@@ -18,8 +19,6 @@ import {
   MOCK_BRANCH_SALES,
   MOCK_BRANCH_STOCK,
   MOCK_BRANCHES,
-  MOCK_BUNDLE_PERFORMANCE,
-  MOCK_BUNDLES,
   MOCK_CATEGORIES,
   MOCK_COMBINED_ITEM_SALES,
   MOCK_COMPARISON,
@@ -57,7 +56,6 @@ import {
   MOCK_TIMESERIES,
   MOCK_TOKEN,
   MOCK_USER,
-  bundlesPage,
   mockCreateDecision,
   mockDecisions,
   mockMarginTargets,
@@ -231,7 +229,14 @@ const MOCK_TRACKING = {
  *  still open (so the "keep building" nudge shows), recipe coverage partial.
  *  Statefully flips to completed on /complete so the finish→dashboard flow
  *  (and the redirect gate) behave like the real backend. */
-let onboardingDone = false;
+// `localStorage["madar.mock.onboarded"] = "1"` starts past onboarding (scripted walkthroughs).
+let onboardingDone = (() => {
+  try {
+    return localStorage.getItem("madar.mock.onboarded") === "1";
+  } catch {
+    return false;
+  }
+})();
 const onboardingStatus = () => ({
   org_id: MOCK_ORG_ID,
   completed: onboardingDone,
@@ -301,6 +306,12 @@ export const handlers = [
   http.post("*/menu-items", echoCreated),
   http.patch("*/orgs/*", echoCreated),
   http.put("*/orgs/*/logo", () => HttpResponse.json({ id: MOCK_ORG_ID, logo_url: null })),
+
+  // The shell's module gate: without it every page fell through to the real API.
+  http.get("*/orgs/:id/modules", ({ params }) => HttpResponse.json({ org_id: params.id, modules: ["pos", "dawam"] })),
+
+  // ── Combos, deals, Bundles report (stateful; before the generic menu/orders reads) ──
+  ...comboHandlers,
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   http.post("*/auth/login", () =>
@@ -403,20 +414,6 @@ export const handlers = [
   http.get("*/costing/catalog", () => HttpResponse.json(MOCK_MENU_CATALOG)),
   http.get("*/addon-items/catalog", () => HttpResponse.json(MOCK_ADDON_CATALOG)),
   http.get("*/addon-items", () => HttpResponse.json(MOCK_ADDON_ITEMS)),
-
-  // ── Bundles ───────────────────────────────────────────────────────────────
-  http.get("*/bundles/:id/performance", ({ params }) =>
-    HttpResponse.json(
-      MOCK_BUNDLE_PERFORMANCE[params.id as string] ?? {
-        sales_volume: 0, gross_revenue: 0, net_profit: 0, component_popularity: [],
-      },
-    ),
-  ),
-  http.get("*/bundles/available", () => HttpResponse.json(MOCK_BUNDLES)),
-  http.get("*/bundles", ({ request }) => {
-    const status = new URL(request.url).searchParams.get("status");
-    return HttpResponse.json(bundlesPage(status));
-  }),
 
   // ── Branch overrides ──────────────────────────────────────────────────────
   http.get("*/branch-menu-overrides", () => HttpResponse.json(MOCK_BRANCH_MENU_OVERRIDES)),

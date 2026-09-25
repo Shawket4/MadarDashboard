@@ -3,7 +3,7 @@
 
 export interface PosMetricsItem {
   /**
-     * The menu item or bundle; null for a line with neither.
+     * The menu item; null for a line with none.
      * @nullable
      */
   item_id?: string | null;

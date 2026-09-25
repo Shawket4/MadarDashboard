@@ -20,7 +20,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 const storageKey = (orgId: string) => `madar.excluded-line-items.${orgId}`;
 
 /**
- * Menu item / bundle ids excluded from the "Items Sold" KPIs, persisted
+ * Menu item ids excluded from the "Items Sold" KPIs, persisted
  * per-org so the preference survives sessions. Server-side the exclusion
  * touches ONLY the units-sold aggregates — never revenue or order counts.
  */

@@ -304,7 +304,14 @@ export const MOCK_MENU_ITEMS = ITEM_SEEDS.map((s) => ({
   category_id: s.cat,
   image_url: null,
   is_active: true,
-  sizes: [],
+  // The latte has sizes, so the combo editor's per-size surcharge grid shows under mock.
+  sizes:
+    s.id === "mi_latte"
+      ? [
+          { label: "Regular", price_override: 6_000, is_active: true },
+          { label: "Large", price_override: 7_500, is_active: true },
+        ]
+      : [],
   recipes: [],
   sku_costs: [],
 }));
@@ -678,20 +685,20 @@ export const MOCK_INVENTORY_SETTINGS = { stocktake_variance_threshold_pct: 5 };
 
 // ── Analytics: item & addon sales, teller stats ───────────────────────────────
 
-/** CombinedItemSalesRow[] — standalone + bundle quantities per item. */
+/** CombinedItemSalesRow[] — units sold per item. */
 export const MOCK_COMBINED_ITEM_SALES = [
-  { item_id: "mi_latte", item_name: "Latte", item_name_translations: { ar: "لاتيه" }, standalone_qty: 142, bundle_qty: 24, total_qty: 166 },
-  { item_id: "mi_cappuccino", item_name: "Cappuccino", item_name_translations: { ar: "كابوتشينو" }, standalone_qty: 98, bundle_qty: 18, total_qty: 116 },
-  { item_id: "mi_americano", item_name: "Americano", item_name_translations: { ar: "أمريكانو" }, standalone_qty: 89, bundle_qty: 7, total_qty: 96 },
-  { item_id: "mi_espresso", item_name: "Espresso", item_name_translations: { ar: "إسبريسو" }, standalone_qty: 76, bundle_qty: 4, total_qty: 80 },
-  { item_id: "mi_frappuccino", item_name: "Frappuccino", item_name_translations: { ar: "فرابيتشينو" }, standalone_qty: 67, bundle_qty: 9, total_qty: 76 },
-  { item_id: "mi_cheesecake", item_name: "Cheesecake", item_name_translations: { ar: "تشيز كيك" }, standalone_qty: 62, bundle_qty: 31, total_qty: 93 },
-  { item_id: "mi_icedlatte", item_name: "Iced Latte", item_name_translations: { ar: "لاتيه مثلج" }, standalone_qty: 58, bundle_qty: 12, total_qty: 70 },
-  { item_id: "mi_flatwhite", item_name: "Flat White", item_name_translations: { ar: "فلات وايت" }, standalone_qty: 54, bundle_qty: 5, total_qty: 59 },
-  { item_id: "mi_coldbrew", item_name: "Cold Brew", item_name_translations: { ar: "كولد برو" }, standalone_qty: 41, bundle_qty: 2, total_qty: 43 },
-  { item_id: "mi_matcha", item_name: "Matcha Latte", item_name_translations: { ar: "ماتشا لاتيه" }, standalone_qty: 34, bundle_qty: 6, total_qty: 40 },
-  { item_id: "mi_croissant", item_name: "Croissant", item_name_translations: { ar: "كرواسان" }, standalone_qty: 28, bundle_qty: 22, total_qty: 50 },
-  { item_id: "mi_icedmatcha", item_name: "Iced Matcha", item_name_translations: { ar: "ماتشا مثلجة" }, standalone_qty: 22, bundle_qty: 3, total_qty: 25 },
+  { item_id: "mi_latte", item_name: "Latte", item_name_translations: { ar: "لاتيه" }, standalone_qty: 142, total_qty: 142 },
+  { item_id: "mi_cappuccino", item_name: "Cappuccino", item_name_translations: { ar: "كابوتشينو" }, standalone_qty: 98, total_qty: 98 },
+  { item_id: "mi_americano", item_name: "Americano", item_name_translations: { ar: "أمريكانو" }, standalone_qty: 89, total_qty: 89 },
+  { item_id: "mi_espresso", item_name: "Espresso", item_name_translations: { ar: "إسبريسو" }, standalone_qty: 76, total_qty: 76 },
+  { item_id: "mi_frappuccino", item_name: "Frappuccino", item_name_translations: { ar: "فرابيتشينو" }, standalone_qty: 67, total_qty: 67 },
+  { item_id: "mi_cheesecake", item_name: "Cheesecake", item_name_translations: { ar: "تشيز كيك" }, standalone_qty: 62, total_qty: 62 },
+  { item_id: "mi_icedlatte", item_name: "Iced Latte", item_name_translations: { ar: "لاتيه مثلج" }, standalone_qty: 58, total_qty: 58 },
+  { item_id: "mi_flatwhite", item_name: "Flat White", item_name_translations: { ar: "فلات وايت" }, standalone_qty: 54, total_qty: 54 },
+  { item_id: "mi_coldbrew", item_name: "Cold Brew", item_name_translations: { ar: "كولد برو" }, standalone_qty: 41, total_qty: 41 },
+  { item_id: "mi_matcha", item_name: "Matcha Latte", item_name_translations: { ar: "ماتشا لاتيه" }, standalone_qty: 34, total_qty: 34 },
+  { item_id: "mi_croissant", item_name: "Croissant", item_name_translations: { ar: "كرواسان" }, standalone_qty: 28, total_qty: 28 },
+  { item_id: "mi_icedmatcha", item_name: "Iced Matcha", item_name_translations: { ar: "ماتشا مثلجة" }, standalone_qty: 22, total_qty: 22 },
 ];
 
 /** AddonSalesRow[] — add-on attach volume + revenue (piastres). */
@@ -712,77 +719,6 @@ export const MOCK_TELLER_STATS = [
   { teller_id: "tel_nour", teller_name: "Nour El-Sayed", orders: 134, revenue: 1_058_600, avg_order_value: 7_900, voided: 2, shifts: 15 },
   { teller_id: "tel_hossam", teller_name: "Hossam Ali", orders: 98, revenue: 740_900, avg_order_value: 7_560, voided: 5, shifts: 12 },
 ];
-
-// ── Menu Advisor ──────────────────────────────────────────────────────────────
-
-interface BundleSeed {
-  id: string; name: string; name_ar: string; desc: string; status: "active" | "draft" | "archived";
-  price: number; components: Array<{ item_id: string; item_name: string; qty: number; price: number; cost: number }>;
-}
-
-const BUNDLE_SEEDS: BundleSeed[] = [
-  {
-    id: "bnd_morning", name: "Morning Set", name_ar: "وجبة الصباح", desc: "Latte + fresh croissant — the regular's go-to.", status: "active", price: 9_500,
-    components: [
-      { item_id: "mi_latte", item_name: "Latte", qty: 1, price: 6_000, cost: 1_620 },
-      { item_id: "mi_croissant", item_name: "Croissant", qty: 1, price: 4_500, cost: 1_900 },
-    ],
-  },
-  {
-    id: "bnd_afternoon", name: "Afternoon Treat", name_ar: "حلوى العصر", desc: "Frappuccino + a slice of cheesecake.", status: "active", price: 15_500,
-    components: [
-      { item_id: "mi_frappuccino", item_name: "Frappuccino", qty: 1, price: 8_500, cost: 2_900 },
-      { item_id: "mi_cheesecake", item_name: "Cheesecake", qty: 1, price: 9_000, cost: 3_400 },
-    ],
-  },
-  {
-    id: "bnd_duo", name: "Espresso Duo", name_ar: "ثنائي الإسبريسو", desc: "Two espressos for sharing.", status: "active", price: 6_000,
-    components: [
-      { item_id: "mi_espresso", item_name: "Espresso", qty: 2, price: 3_500, cost: 740 },
-    ],
-  },
-  {
-    id: "bnd_worker", name: "Remote Worker", name_ar: "العامل عن بُعد", desc: "Cold brew + cheesecake for a long session.", status: "draft", price: 14_000,
-    components: [
-      { item_id: "mi_coldbrew", item_name: "Cold Brew", qty: 1, price: 7_000, cost: 1_540 },
-      { item_id: "mi_cheesecake", item_name: "Cheesecake", qty: 1, price: 9_000, cost: 3_400 },
-    ],
-  },
-  {
-    id: "bnd_winter", name: "Winter Warmer", name_ar: "دفء الشتاء", desc: "Seasonal cappuccino pairing (off-menu).", status: "archived", price: 10_000,
-    components: [
-      { item_id: "mi_cappuccino", item_name: "Cappuccino", qty: 1, price: 5_500, cost: 1_480 },
-      { item_id: "mi_croissant", item_name: "Croissant", qty: 1, price: 4_500, cost: 1_900 },
-    ],
-  },
-];
-
-export const MOCK_BUNDLES = BUNDLE_SEEDS.map((b, idx) => ({
-  id: b.id, org_id: MOCK_ORG_ID, name: b.name, name_translations: { ar: b.name_ar },
-  description: b.desc, description_translations: { ar: b.desc }, image_url: null,
-  price: b.price, status: b.status, created_by: "usr_demo_admin",
-  available_from_date: null, available_from_time: null, available_until_date: null, available_until_time: null,
-  created_at: `2026-0${idx < 4 ? "5" : "4"}-1${idx}T09:00:00Z`, updated_at: NOW_ISO,
-  branch_ids: ["br_zamalek", "br_newcairo"],
-  computed_cost: b.components.reduce((s, c) => s + c.cost * c.qty, 0),
-  components: b.components.map((c, ci) => ({
-    id: `${b.id}_c${ci}`, bundle_id: b.id, item_id: c.item_id, item_name: c.item_name,
-    item_price: c.price, item_cost: c.cost, quantity: c.qty, position: ci,
-  })),
-}));
-
-/** Per-bundle performance (BundlePerformanceResponse), keyed by bundle id. */
-export const MOCK_BUNDLE_PERFORMANCE: Record<string, Record<string, unknown>> = {
-  bnd_morning: { sales_volume: 312, gross_revenue: 2_964_000, net_profit: 1_865_600, component_popularity: [{ item_id: "mi_latte", item_name: "Latte", quantity_sold: 312 }, { item_id: "mi_croissant", item_name: "Croissant", quantity_sold: 312 }] },
-  bnd_afternoon: { sales_volume: 188, gross_revenue: 2_914_000, net_profit: 1_729_600, component_popularity: [{ item_id: "mi_frappuccino", item_name: "Frappuccino", quantity_sold: 188 }, { item_id: "mi_cheesecake", item_name: "Cheesecake", quantity_sold: 188 }] },
-  bnd_duo: { sales_volume: 96, gross_revenue: 576_000, net_profit: 433_900, component_popularity: [{ item_id: "mi_espresso", item_name: "Espresso", quantity_sold: 192 }] },
-};
-
-/** PaginatedBundles for a given status filter (or all). */
-export function bundlesPage(status: string | null) {
-  const data = status ? MOCK_BUNDLES.filter((b) => b.status === status) : MOCK_BUNDLES;
-  return { data, total: data.length, page: 1, per_page: 20, total_pages: 1 };
-}
 
 // ── Branch overrides ────────────────────────────────────────────────────────────
 

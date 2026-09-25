@@ -80,8 +80,6 @@ export function AnalyticsExportButton({
     ]);
     const itemCols: ExcelColumn<CombinedItemSalesRow>[] = [
       { header: t("common.name", "Name"), accessor: (r) => tName(r.item_name, r.item_name_translations, lang), type: "text", width: 32 },
-      { header: t("analytics.standalone", "Standalone"), accessor: (r) => r.standalone_qty, type: "number", width: 14, total: true },
-      { header: t("analytics.inBundles", "In bundles"), accessor: (r) => r.bundle_qty, type: "number", width: 14, total: true },
       { header: t("analytics.totalSold", "Total sold"), accessor: (r) => r.total_qty, type: "number", width: 14, total: true },
     ];
     const addonCols: ExcelColumn<AddonSalesRow>[] = [

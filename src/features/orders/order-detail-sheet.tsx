@@ -29,8 +29,12 @@ import { discountAttribution } from "@/features/discounts/discount-attribution";
 import { canOpenPerson, peopleAccess } from "@/features/customers/access";
 import { CustomerDetailSheet } from "@/features/customers/customer-detail-sheet";
 import { ContactOverrideNote, CustomerLink } from "@/features/customers/customer-link";
+import type { ComboLineFields } from "@/features/combos/types";
+import { dealsOf, orderDealsTotal, orderRows } from "@/features/combos/order-lines";
+import { ComboHeaderRow, ComboPartNote, DealLineNote } from "@/features/combos/combo-order-lines";
 import { orderRewards } from "./reward-lines";
 import { addonNormalTotal, orderStaffComp, staffDrinkLine } from "./staff-drink-lines";
+import { ONE_SIZE } from "@/features/menu/util";
 
 interface Deduction {
   ingredient_name: string;
@@ -105,6 +109,10 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
   const items = order?.items ?? [];
   // What the staff pool gave free on this sale. Already off every stored total.
   const staffComp = orderStaffComp(items);
+  // Combos (header + indented parts) and deals (cuts already off the lines), §3.2.
+  const rows = orderRows(items as (OrderFull["items"][number] & ComboLineFields)[]);
+  const deals = dealsOf(order);
+  const dealsTotal = orderDealsTotal(deals);
   const isDelivery = order?.order_type === "delivery";
   const delivery = order?.delivery ?? null;
   const channelLabel = (channel: string) =>
@@ -326,19 +334,25 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                     <p className="text-sm font-semibold">
                       {t("menu.items", "Items")}
                     </p>
-                    {items.map((it) => {
+                    {rows.map((row) => {
+                      if (row.kind === "combo") {
+                        return <ComboHeaderRow key={row.line.id} line={row.line} total={row.total} lang={lang} />;
+                      }
+                      const it = row.line;
                       const deductions = (Array.isArray(it.deductions_snapshot) ? it.deductions_snapshot : []) as Deduction[];
                       const staff = staffDrinkLine(it);
                       return (
-                        <div key={it.id} className="space-y-1 border-b py-2 last:border-0">
+                        <div
+                          key={it.id}
+                          data-line-kind={it.line_kind ?? "item"}
+                          className={cn("space-y-1 border-b py-2 last:border-0", row.part && "ms-3 border-s ps-3")}
+                        >
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
                               <p className="flex flex-wrap items-center gap-1 text-sm font-semibold">
                                 {getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, lang)}
-                                {it.size_label ? <span className="text-muted-foreground">({it.size_label})</span> : null}
-                                {it.bundle_id ? (
-                                  <Badge className="px-1 py-0 text-xs uppercase">{t("orders.combo", "Combo")}</Badge>
-                                ) : null}
+                                {/* A combo part of a single-size item carries "one_size": not a size anyone chose. */}
+                                {it.size_label && it.size_label !== ONE_SIZE ? <span className="text-muted-foreground">({it.size_label})</span> : null}
                                 {rewards.lines.has(it.id) ? (
                                   <StatusPill tone="success" size="sm">
                                     {t("orders.reward", "Reward")}
@@ -362,6 +376,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                               <p className="text-xs text-muted-foreground tabular">
                                 <bdi>× {fmtNumber(it.quantity)} · {fmtMoney(it.unit_price)}</bdi>
                               </p>
+                              {row.part ? <ComboPartNote line={it} /> : <DealLineNote line={it} deals={deals} lang={lang} />}
 
                               {it.addons.length > 0 ? (
                                 <div className="mt-1 space-y-0.5 ps-2">
@@ -404,35 +419,15 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                                 </div>
                               ) : null}
 
-                              {it.bundle_components?.length ? (
-                                <div className="mt-2 space-y-2 border-s-2 border-muted ps-3">
-                                  {it.bundle_components.map((c, ci) => (
-                                    <div key={ci} className="space-y-0.5">
-                                      <p className="text-xs font-semibold">
-                                        – {getTranslatedName({ name: c.item_name, name_translations: c.name_translations }, lang)}
-                                        {c.size_label ? <span className="text-muted-foreground"> ({c.size_label})</span> : null}
-                                        <span className="ms-1 text-muted-foreground tabular">× {c.quantity * it.quantity}</span>
-                                      </p>
-                                      {c.addons?.length ? (
-                                        <div className="space-y-0.5 ps-2">
-                                          {c.addons.map((a) => (
-                                            <p key={a.id} className="text-xs text-muted-foreground">
-                                              + {getTranslatedName({ name: a.addon_name, name_translations: a.name_translations }, lang)}
-                                              {a.unit_price > 0 ? ` (${fmtMoney(a.unit_price * a.quantity)})` : ""}
-                                            </p>
-                                          ))}
-                                        </div>
-                                      ) : null}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : null}
 
                               {it.notes ? <p className="mt-1 text-xs italic text-muted-foreground">{it.notes}</p> : null}
                             </div>
 
                             <div className="shrink-0 text-end">
-                              <span className="block font-mono text-sm font-semibold tabular-nums">{fmtMoney(it.line_total)}</span>
+                              {/* A part's figure is its share of the combo, already inside the header's total. */}
+                              <span className={cn("block font-mono text-sm font-semibold tabular-nums", row.part && "font-normal text-muted-foreground")}>
+                                {fmtMoney(it.line_total)}
+                              </span>
                               <span className="text-xs text-muted-foreground tabular">
                                 {t("orders.cost", "Cost")}: {fmtMoney(it.line_cost)}
                                 {it.cost_missing ? ` · ${t("orders.costMissing", "cost missing")}` : ""}
@@ -493,18 +488,28 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
 
               <Card className="py-0 shadow-none">
                 <CardContent className="p-4 pt-2 text-sm">
-                  {staffComp > 0 ? (
-                    // The subtotal is stored net of the comp. Put it back for one
-                    // line so the sheet adds up from the prices shown above.
+                  {staffComp > 0 || dealsTotal > 0 ? (
+                    // The subtotal is stored net of the comp and of every deal
+                    // (§3.2). Put them back for one line and take each off
+                    // under it, so the sheet adds up from the prices shown above.
                     <>
                       <SummaryLine
                         label={t("orders.beforeStaffDrinks", "Items at normal price")}
-                        value={fmtMoney(order.subtotal + staffComp)}
+                        value={fmtMoney(order.subtotal + staffComp + dealsTotal)}
                       />
-                      <SummaryLine
-                        label={t("orders.staffDrinksGiven", "Staff drinks · given free")}
-                        value={fmtMoney(-staffComp)}
-                      />
+                      {staffComp > 0 ? (
+                        <SummaryLine
+                          label={t("orders.staffDrinksGiven", "Staff drinks · given free")}
+                          value={fmtMoney(-staffComp)}
+                        />
+                      ) : null}
+                      {deals.map((d) => (
+                        <SummaryLine
+                          key={d.id}
+                          label={getTranslatedName({ name: d.name, name_translations: d.name_translations }, lang)}
+                          value={fmtMoney(-d.discount)}
+                        />
+                      ))}
                     </>
                   ) : null}
                   <SummaryLine label={t("common.subtotal", "Subtotal")} value={fmtMoney(order.subtotal)} />
