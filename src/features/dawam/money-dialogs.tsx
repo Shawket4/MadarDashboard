@@ -37,6 +37,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
+import { DateField, MoneyField, NumberField } from "@/components/inputs";
 import type { SalaryAdvance } from "@/data/api/generated/models";
 import { capView } from "./phase-d";
 
@@ -165,18 +166,51 @@ function PersonField<V extends FieldValues>({ form, name, enabled, notSelf = fal
   );
 }
 
-function TextField<V extends FieldValues>({ form, name, label, type = "text", hint, step, min, max }: {
-  form: UseFormReturn<V>; name: Path<V>; label: string; type?: string; hint?: string; step?: string; min?: string; max?: string;
+/**
+ * One form field. `money` / `number` / `date` are the input kit's fields (Arabic
+ * digits, steps, a calendar that starts on Saturday); the form keeps its own
+ * values as before — pounds, a count, `YYYY-MM-DD` — so every schema is unchanged.
+ */
+function TextField<V extends FieldValues>({ form, name, label, type = "text", hint, step, min }: {
+  form: UseFormReturn<V>; name: Path<V>; label: string; type?: "text" | "number" | "money" | "date" | "month"; hint?: string; step?: string; min?: string;
 }) {
+  const num = (v: unknown): number | null => (v === "" || v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v));
   return (
     <FormField
       control={form.control}
       name={name}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input type={type} step={step} min={min} max={max} inputMode={type === "number" ? "decimal" : undefined} {...field} value={field.value ?? ""} />
+            {type === "money" ? (
+              <MoneyField
+                name={field.name}
+                invalid={!!fieldState.error}
+                value={num(field.value) === null ? null : Math.round(num(field.value)! * 100)}
+                onChange={(piastres) => field.onChange(piastres === null ? "" : String(piastres / 100))}
+                onBlur={field.onBlur}
+                allowEmpty
+              />
+            ) : type === "number" ? (
+              <NumberField
+                name={field.name}
+                invalid={!!fieldState.error}
+                value={num(field.value)}
+                onChange={(n) => field.onChange(n === null ? "" : String(n))}
+                onBlur={field.onBlur}
+                // The form's schema judges the range (its words, and no save): the field
+                // refusing on its own would keep the last good value and let Save send that.
+                min={min === undefined ? undefined : Math.min(0, Number(min))}
+                step={step === undefined ? 1 : Number(step)}
+                stepper
+                allowEmpty
+              />
+            ) : type === "date" ? (
+              <DateField value={field.value ?? ""} onChange={field.onChange} invalid={!!fieldState.error} />
+            ) : (
+              <Input type={type} {...field} value={field.value ?? ""} />
+            )}
           </FormControl>
           {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
           <FormMessage />
@@ -283,7 +317,7 @@ export function AdjustmentDialog({
           )}
         />
       ) : null}
-      <TextField form={form} name="amount" type="number" label={by === "percent" ? t("dawam.percent", "Percent") : t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={form} name="amount" type={by === "percent" ? "number" : "money"} step={by === "percent" ? "0.5" : undefined} label={by === "percent" ? t("dawam.percent", "Percent") : t("dawam.amountEgp", "Amount (EGP)")} />
       <TextField form={form} name="reason" label={t("staff.reason", "Reason")} hint={t("dawam.reasonShown", "The employee sees this reason on their payslip.")} />
       <TextField
         form={form}
@@ -341,8 +375,8 @@ export function RecordAdvanceDialog({ open, onOpenChange }: { open: boolean; onO
       }}
     >
       <PersonField form={form as unknown as UseFormReturn<Values>} name="employee_id" enabled={open} />
-      <TextField form={form as unknown as UseFormReturn<Values>} name="amount" type="number" step="0.01" label={t("dawam.amountEgp", "Amount (EGP)")} />
-      <TextField form={form as unknown as UseFormReturn<Values>} name="installments" type="number" min="1" max="24" label={t("dawam.installments", "Monthly installments")} hint={t("dawam.installmentsHint", "1 to 24 monthly installments")} />
+      <TextField form={form as unknown as UseFormReturn<Values>} name="amount" type="money" label={t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={form as unknown as UseFormReturn<Values>} name="installments" type="number" min="1" label={t("dawam.installments", "Monthly installments")} hint={t("dawam.installmentsHint", "1 to 24 monthly installments")} />
       <TextField form={form as unknown as UseFormReturn<Values>} name="reason" label={t("dawam.whatFor", "What for (optional)")} />
     </FormDialog>
   );
@@ -389,7 +423,7 @@ export function ExpenseAdvanceDialog({ open, onOpenChange }: { open: boolean; on
       }}
     >
       <PersonField form={f} name="employee_id" enabled={open} />
-      <TextField form={f} name="amount" type="number" step="0.01" label={t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={f} name="amount" type="money" label={t("dawam.amountEgp", "Amount (EGP)")} />
       <TextField form={f} name="purpose" label={t("dawam.purpose", "What it's for")} />
       <TextField form={f} name="given_on" type="date" label={t("dawam.givenOn", "Handed over on")} />
       <FormField
@@ -500,11 +534,13 @@ export const PAY_METHOD_FALLBACK: Record<string, string> = { cash: "Cash", bank:
 
 /** Paid, per person, with how (PAY-7). */
 export function MarkPaidDialog({
-  periodId, person, onOpenChange,
+  periodId, person, onOpenChange, first = false,
 }: {
   periodId: string;
-  person: { employee_id: string; name: string; pay_method?: string } | null;
+  person: { employee_id: string; name: string; pay_method?: string; net?: number } | null;
   onOpenChange: (o: boolean) => void;
+  /** Nobody is paid yet: this payment is the one that ends reopening (PAY-6). */
+  first?: boolean;
 }) {
   const { t } = useTranslation();
   const schema = z.object({ method: z.enum(PAY_METHODS) });
@@ -519,7 +555,14 @@ export function MarkPaidDialog({
       onOpenChange={onOpenChange}
       form={form}
       title={t("dawam.markPaidTitle", { name: person?.name ?? "", defaultValue: `Mark ${person?.name ?? ""} paid` })}
-      description={t("dawam.markPaidHint", "Once anyone is paid, the month can't be reopened.")}
+      description={[
+        person?.net != null
+          ? t("dawamOps.markPaidAmount", { amount: fmtMoney(person.net), name: person.name, defaultValue: "{{amount}} to {{name}}, recorded as handed over." })
+          : null,
+        first
+          ? t("dawamOps.markPaidFirst", "This is the first payment: after it, this month can't be reopened.")
+          : t("dawam.markPaidHint", "Once anyone is paid, the month can't be reopened."),
+      ].filter(Boolean).join(" ")}
       saveLabel={t("dawam.markPaid", "Mark paid")}
       onSave={async (v) => {
         await markPaid(periodId, person!.employee_id, { method: v.method });
@@ -543,7 +586,7 @@ export function MarkPaidDialog({
 
 /** A one-field reason form shared by waive, un-waive and reopen. */
 function ReasonDialog({
-  open, onOpenChange, title, description, saveLabel, destructive, onSave, done, reasonFor,
+  open, onOpenChange, title, description, saveLabel, destructive, onSave, done, reasonFor, optional = false, hint, children,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -554,9 +597,19 @@ function ReasonDialog({
   onSave: (reason: string) => Promise<unknown>;
   done: string;
   reasonFor?: ReasonFor;
+  /** The reason may be left empty (a request's rejection note; the server takes none as none). */
+  optional?: boolean;
+  /** Under the reason: who reads it. */
+  hint?: string;
+  /** What the decision does, above the reason. */
+  children?: ReactNode;
 }) {
   const { t } = useTranslation();
-  const schema = z.object({ reason: nonEmpty(t, ["dawam.reasonRequired", "A reason is needed"]).max(500) });
+  const schema = z.object({
+    reason: optional
+      ? z.string().trim().max(500, t("staff.noteTooLong", "Keep the note under 500 characters"))
+      : nonEmpty(t, ["dawam.reasonRequired", "A reason is needed"]).max(500),
+  });
   type Values = z.infer<typeof schema>;
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { reason: "" } });
   return (
@@ -574,20 +627,29 @@ function ReasonDialog({
         toast.success(done);
       }}
     >
-      <TextField form={form} name="reason" label={t("staff.reason", "Reason")} />
+      {children}
+      <TextField
+        form={form}
+        name="reason"
+        label={optional ? t("dawamOps.reasonOptional", "Reason (optional)") : t("staff.reason", "Reason")}
+        hint={hint}
+      />
     </FormDialog>
   );
 }
 
 /** Reject an advance or a pay line, with why (owner decision 8, AD-9): the server refuses one without (REASON_REQUIRED). */
 export function RejectDialog({
-  open, onOpenChange, title, description, onReject,
+  open, onOpenChange, title, description, onReject, optional, children,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   title: string;
   description: string;
   onReject: (reason: string) => Promise<unknown>;
+  /** A request's reason is optional (sent as its note); money's is required (D8). */
+  optional?: boolean;
+  children?: ReactNode;
 }) {
   const { t } = useTranslation();
   return (
@@ -600,8 +662,12 @@ export function RejectDialog({
       destructive
       onSave={onReject}
       reasonFor="decline"
+      optional={optional}
+      hint={t("dawamOps.reasonSeen", "They see it with the decision.")}
       done={t("staff.decisionSaved", "Decision saved")}
-    />
+    >
+      {children}
+    </ReasonDialog>
   );
 }
 
@@ -723,7 +789,7 @@ export function OverrideDialog({
         toast.success(t("dawam.overridden", "Deduction overridden"));
       }}
     >
-      <TextField form={f} name="amount" type="number" step="0.01" min="0" label={t("dawam.newAmount", "New amount (EGP)")} />
+      <TextField form={f} name="amount" type="money" label={t("dawam.newAmount", "New amount (EGP)")} />
       <TextField form={f} name="reason" label={t("staff.reason", "Reason")} />
     </FormDialog>
   );
@@ -768,8 +834,8 @@ export function ReviewAdvanceDialog({
         toast.success(t("staff.decisionSaved", "Decision saved"));
       }}
     >
-      <TextField form={f} name="amount" type="number" step="0.01" label={t("dawam.amountEgp", "Amount (EGP)")} />
-      <TextField form={f} name="installments" type="number" min="1" max="24" label={t("dawam.installments", "Monthly installments")} />
+      <TextField form={f} name="amount" type="money" label={t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={f} name="installments" type="number" min="1" label={t("dawam.installments", "Monthly installments")} />
       <TextField form={f} name="note" label={t("staff.note", "Note")} />
     </FormDialog>
   );

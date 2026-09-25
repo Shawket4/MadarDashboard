@@ -74,6 +74,9 @@ vi.mock("@/data/authz/use-authz", async () => {
       }),
   };
 });
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ to, children, className }: { to: string; children: ReactNode; className?: string }) => <a href={to} className={className}>{children}</a>,
+}));
 vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: scopeBranch }) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
 vi.mock("@/features/staff/util", async () => {
@@ -244,6 +247,11 @@ describe("SchedulePage", () => {
     wrap(<SchedulePage />);
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Day off" }));
+    // Taking a worked day away is said first, with what comes off (UX-P).
+    const sure = await screen.findByRole("alertdialog");
+    expect(within(sure).getByText(/come off this date only; the pattern stays as it is/)).toBeInTheDocument();
+    expect(calls.putDay).not.toHaveBeenCalled();
+    await user.click(within(sure).getByRole("button", { name: "Day off" }));
     await waitFor(() => expect(calls.putDay).toHaveBeenCalledWith({ employee_id: "e1", on_date: week, shifts: [], branch_id: "b1" }));
   });
 
@@ -411,6 +419,34 @@ describe("SchedulePage", () => {
     );
   });
 
+  it("says an added shift overlaps before sending it, and waits (UX-P)", async () => {
+    shiftsList = [{ ...(shiftsList[0] as object), start_time: "10:00:00", end_time: "18:00:00", times_edited: true }];
+    const user = userEvent.setup();
+    wrap(<SchedulePage />);
+    await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("combobox", { name: "Add a shift" }));
+    const [evening] = await screen.findAllByRole("option");
+    expect(evening).toHaveTextContent("overlaps Morning");
+    await user.click(evening);
+    expect(within(dialog).getByRole("alert")).toHaveTextContent("It overlaps Morning 10:00–18:00 on this day.");
+    expect(within(dialog).getByRole("button", { name: "Add" })).toBeDisabled();
+    expect(calls.putDay).not.toHaveBeenCalled();
+  });
+
+  it("shows a week far past the seeded ones from one date pick, and says how far it is (UX-P)", async () => {
+    const { weeksFromNow } = await import("./schedule-week-bar");
+    expect(weeksFromNow(addDays(week, 42))).toBe(6);
+    expect(weeksFromNow(addDays(week, -7))).toBe(-1);
+    const user = userEvent.setup();
+    wrap(<SchedulePage />);
+    for (let i = 0; i < 6; i++) await user.click(screen.getByRole("button", { name: "Next week" }));
+    expect(screen.getByText("In 6 weeks")).toBeInTheDocument();
+    expect(screen.getByText("Staff can't see this week until you publish it.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Back to this week" }));
+    expect(screen.getAllByText("This week").length).toBeGreaterThan(0);
+  });
+
   it("gives one assignment its own times across midnight, and back (owner, 2026-09-23)", async () => {
     const user = userEvent.setup();
     wrap(<SchedulePage />);
@@ -484,12 +520,14 @@ describe("SchedulePage", () => {
     wrap(<SchedulePage />);
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Day off" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Day off" }));
     await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith("Those shifts would overlap (a night shift runs into the next morning)."));
     // The dialog stays open on a refusal.
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
     calls.putDay.mockResolvedValueOnce({ warnings: [{ employee_id: "e1", date: week, kind: "day_hours", minutes: 600, limit_minutes: 480 }] });
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Day off" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Day off" }));
     await waitFor(() => expect(toastMock.warning).toHaveBeenCalledWith("Hours a day: 10h of 8h. Only a warning."));
   });
 

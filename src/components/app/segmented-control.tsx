@@ -13,15 +13,18 @@ export function SegmentedControl<V extends string>({
   options,
   className,
   disabled,
+  "aria-label": ariaLabel,
 }: {
   value: V;
   onChange: (value: V) => void;
   options: SegmentedOption<V>[];
   className?: string;
   disabled?: boolean;
+  /** Names the group for a screen reader ("Status", "View"). */
+  "aria-label"?: string;
 }) {
   return (
-    <div role="radiogroup" className={cn("flex w-fit max-w-full overflow-x-auto rounded-[10px] bg-secondary p-[3px] no-scrollbar", className)}>
+    <div role="radiogroup" aria-label={ariaLabel} className={cn("flex w-fit max-w-full overflow-x-auto rounded-[10px] bg-secondary p-[3px] no-scrollbar", className)}>
       {options.map((opt) => (
         <button
           key={opt.value}

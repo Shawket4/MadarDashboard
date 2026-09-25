@@ -32,6 +32,8 @@ import { getActiveTz } from "@/lib/format";
 import { fromZonedInput, toZonedInput } from "@/lib/zoned-input";
 
 import { coveredBy, invalidateAttendance, todayIso } from "./util";
+import { DateField } from "@/components/inputs";
+import { DateTimeField } from "./date-time-field";
 
 const NONE = "__none__";
 /** "From the times": the server derives the status (no override). */
@@ -241,7 +243,7 @@ export function ManualRecordDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("staff.date", "Date")}</FormLabel>
-                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormControl><DateField value={field.value ?? ""} onChange={field.onChange} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -341,7 +343,7 @@ function TimesFields({ tz }: { tz: string }) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("staff.checkIn", "In")}</FormLabel>
-              <FormControl><Input type="datetime-local" {...field} /></FormControl>
+              <FormControl><DateTimeField value={field.value} onChange={field.onChange} onBlur={field.onBlur} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -351,7 +353,7 @@ function TimesFields({ tz }: { tz: string }) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("staff.checkOut", "Out")}</FormLabel>
-              <FormControl><Input type="datetime-local" {...field} /></FormControl>
+              <FormControl><DateTimeField value={field.value} onChange={field.onChange} onBlur={field.onBlur} /></FormControl>
               <FormMessage />
             </FormItem>
           )}

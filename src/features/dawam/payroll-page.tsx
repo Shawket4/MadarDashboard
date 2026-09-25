@@ -7,6 +7,7 @@
  */
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   BadgeCheck, Banknote, CircleDollarSign, FileDown, HandCoins, History, PencilLine, Plus, ReceiptText, RotateCcw, Trash2, Undo2,
@@ -52,6 +53,7 @@ import { payslipLines, reasonText, type PayLine } from "./lines";
 import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { printPayslip } from "./payslip-print";
+import { PayrollSteps } from "./payroll-steps";
 import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
   ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote, RejectDialog, CorrectExpenseTagDialog,
@@ -214,7 +216,7 @@ export function PayrollPage() {
   const approve = async () => {
     // Nothing is written into an approved month (BC-3 decision a), so its days still to come lose their clock-ins.
     const ahead = period ? daysStillToCome(period.end_date, todayIso()) : 0;
-    const hint = t("dawam.approveHint", "Every payslip is frozen with the lines behind it, and people can see theirs. You can reopen until anyone is marked paid.");
+    const hint = `${t("dawamOps.approveTotals", { people: totals.people, net: fmtMoney(totals.net), defaultValue: "{{people}} people, {{net}} net in total." })} ${t("dawam.approveHint", "Every payslip is frozen with the lines behind it, and people can see theirs. You can reopen until anyone is marked paid.")}`;
     const ok = await confirm({
       title: t("dawam.approveTitle", "Approve this month's payroll?"),
       description: ahead > 0
@@ -337,7 +339,12 @@ export function PayrollPage() {
             <DawamRefreshButton />
             {period ? <StatusPill tone={PHASE_TONE[phase]}>{t(`dawam.phase_${phase}`, phase)}</StatusPill> : null}
             {canRun && phase === "open" && period ? (
-              <Button onClick={() => void approve()} disabled={missingCount > 0} aria-describedby={missingCount > 0 ? "salary-missing" : undefined}>
+              <Button
+                onClick={() => void approve()}
+                disabled={missingCount > 0}
+                aria-describedby={missingCount > 0 ? "salary-missing" : undefined}
+                title={missingCount > 0 ? t("dawamOps.approveBlocked", "Set every salary first (listed below).") : undefined}
+              >
                 <BadgeCheck className="size-4" />{t("dawam.approve", "Approve payroll")}
               </Button>
             ) : null}
@@ -384,15 +391,21 @@ export function PayrollPage() {
           </div>
         );
       })}
+      {period ? <PayrollSteps phase={phase} blockers={phase === "open" ? missingCount : 0} paid={totals.paid} people={totals.people} /> : null}
       {phase === "open" && missingCount > 0 ? (
-        <div id="salary-missing" role="alert" className="rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
-          <p className="font-medium">
-            {t("dawam.salaryMissingTitle", { count: missingCount, defaultValue: "{{count}} people on payroll have no salary" })}
-          </p>
-          <p className="text-muted-foreground">
-            {missing.length ? `${missing.map((r) => r.employee_name).join(t("common.listSeparator", ", "))}. ` : ""}
-            {t("dawam.salaryMissingHint", "Set their salary on Employees, or mark them not paid through Dawam. Payroll can't be approved until then.")}
-          </p>
+        <div id="salary-missing" role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
+          <div>
+            <p className="font-medium">
+              {t("dawam.salaryMissingTitle", { count: missingCount, defaultValue: "{{count}} people on payroll have no salary" })}
+            </p>
+            <p className="text-muted-foreground">
+              {missing.length ? `${missing.map((r) => r.employee_name).join(t("common.listSeparator", ", "))}. ` : ""}
+              {t("dawam.salaryMissingHint", "Set their salary on Employees, or mark them not paid through Dawam. Payroll can't be approved until then.")}
+            </p>
+          </div>
+          <Button asChild size="sm" variant="outline">
+            <Link to="/staff/employees">{t("dawamOps.setSalaries", "Set salaries on Employees")}</Link>
+          </Button>
         </div>
       ) : null}
 
@@ -454,7 +467,8 @@ export function PayrollPage() {
         <MarkPaidDialog
           key={paying?.employee_id}
           periodId={period.id}
-          person={paying ? { employee_id: paying.employee_id, name: paying.employee_name, pay_method: people.get(paying.employee_id)?.pay_method } : null}
+          person={paying ? { employee_id: paying.employee_id, name: paying.employee_name, pay_method: people.get(paying.employee_id)?.pay_method, net: paying.net_piastres } : null}
+          first={paidByHand === 0}
           onOpenChange={(o) => !o && setPaying(null)}
         />
       ) : null}

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { AlarmClock, CalendarCheck, CalendarClock, CalendarX, MapPin, PencilLine, Plus, Timer } from "lucide-react";
+import { AlarmClock, CalendarCheck, CalendarClock, CalendarX, Info, MapPin, PencilLine, Plus, Timer } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -14,13 +14,12 @@ import { StatusPill } from "@/components/app/status-pill";
 import { RowAction } from "@/features/users/row-action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { DateRangeField, EmployeePicker } from "@/components/inputs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  listAttendance, useAttendanceSummary, useListAttendance, useListBranches,
+  listAttendance, useAttendanceSummary, useListAttendance, useListBranches, useListEmployees,
 } from "@/data/api/generated/api";
 import type { AttendanceRecord } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -31,7 +30,8 @@ import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
-import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
+import { fmtDate, fmtDateTime, fmtNumber, fmtTime } from "@/lib/format";
+import { usePeriodStartDay } from "@/features/dawam/period";
 import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { CorrectRecordDialog, ManualRecordDialog } from "./attendance-dialogs";
@@ -47,6 +47,10 @@ export function AttendancePage() {
   const [from, setFrom] = useState(isoDaysFromToday(-6));
   const [to, setTo] = useState(todayIso());
   const [status, setStatus] = useState(ALL);
+  /** One person's days, or everyone's. */
+  const [person, setPerson] = useState(ALL);
+  const periodStartDay = usePeriodStartDay();
+  const employeesQ = useListEmployees({}, { query: dawamQuery() });
   const [manualOpen, setManualOpen] = useState(false);
   const [correcting, setCorrecting] = useState<AttendanceRecord | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -62,6 +66,7 @@ export function AttendancePage() {
     to,
     branch_id: branchId ?? undefined,
     status: status === ALL ? undefined : status,
+    employee_id: person === ALL ? undefined : person,
   };
   const recordsQ = useListAttendance(params, { query: dawamQuery() });
   const summaryQ = useAttendanceSummary(params, { query: dawamQuery() });
@@ -124,6 +129,7 @@ export function AttendancePage() {
         { header: t("staff.outReasonColumn", "Why punched out"), accessor: (r) => r.check_out_reason ?? "", type: "text", width: 24 },
         { header: t("staff.workedMinutes", "Worked (minutes)"), accessor: (r) => r.worked_minutes, type: "integer", width: 16, total: true },
         { header: t("staff.lateMinutes", "Late (minutes)"), accessor: (r) => r.late_minutes, type: "integer", width: 16, total: true },
+        { header: t("dawamOps.leftEarlyMinutes", "Left early (minutes)"), accessor: (r) => r.early_leave_minutes, type: "integer", width: 18, total: true },
         { header: t("staff.overtimeMinutes", "Overtime (minutes)"), accessor: (r) => r.overtime_minutes, type: "integer", width: 18, total: true },
       ];
       const title = t("staff.attendance", "Attendance");
@@ -233,15 +239,40 @@ export function AttendancePage() {
         cell: ({ row }) => fmtMinutes(row.original.worked_minutes),
       },
       {
+        // Late and left early in one column: both are time charged against the shift,
+        // each with what it is measured from (the branch's clock).
         id: "late",
-        header: t("staff.late", "Late"),
-        meta: { label: t("staff.late", "Late"), numeric: true },
-        cell: ({ row }) =>
-          row.original.late_minutes > 0 ? (
-            <span className="text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]">{fmtMinutes(row.original.late_minutes)}</span>
-          ) : (
-            "—"
-          ),
+        header: t("dawamOps.lateEarly", "Late / left early"),
+        meta: { label: t("dawamOps.lateEarly", "Late / left early"), numeric: true },
+        cell: ({ row }) => {
+          const r = row.original;
+          const zone = zones.get(r.branch_id);
+          if (!(r.late_minutes > 0) && !(r.early_leave_minutes > 0)) return "—";
+          return (
+            <span className="inline-flex flex-col items-end gap-0.5">
+              {r.late_minutes > 0 ? (
+                <span className="whitespace-nowrap">
+                  <span className="text-[color-mix(in_oklab,var(--color-warning)_55%,var(--color-foreground))]">{fmtMinutes(r.late_minutes)}</span>
+                  {r.scheduled_start_at ? (
+                    <span className="ms-1 font-sans text-[11px] text-muted-foreground">
+                      {t("dawamOps.lateAfter", { time: fmtTime(r.scheduled_start_at, zone), defaultValue: "after {{time}}" })}
+                    </span>
+                  ) : null}
+                </span>
+              ) : null}
+              {r.early_leave_minutes > 0 ? (
+                <span className="whitespace-nowrap">
+                  <span className="text-[color-mix(in_oklab,var(--color-warning)_55%,var(--color-foreground))]">{fmtMinutes(r.early_leave_minutes)}</span>
+                  {r.scheduled_end_at ? (
+                    <span className="ms-1 font-sans text-[11px] text-muted-foreground">
+                      {t("dawamOps.earlyBefore", { time: fmtTime(r.scheduled_end_at, zone), defaultValue: "before {{time}}" })}
+                    </span>
+                  ) : null}
+                </span>
+              ) : null}
+            </span>
+          );
+        },
       },
       {
         id: "overtime",
@@ -280,17 +311,30 @@ export function AttendancePage() {
           </>
         }
         below={
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2">
-              <Label className="text-muted-foreground" htmlFor="att-from">{t("staff.from", "From")}</Label>
-              <Input id="att-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="text-muted-foreground" htmlFor="att-to">{t("staff.to", "To")}</Label>
-              <Input id="att-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" />
-            </div>
+          <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+            <DateRangeField
+              id="att"
+              className="w-full max-w-md"
+              value={{ from, to }}
+              onChange={(r) => { setFrom(r.from); setTo(r.to); }}
+              quick={["this_week", "last_week", "this_period", "last_period"]}
+              periodStartDay={periodStartDay}
+              fromLabel={t("staff.from", "From")}
+              toLabel={t("staff.to", "To")}
+            />
+            <div className="flex flex-wrap items-center gap-3 sm:pt-[1.625rem]">
+            <EmployeePicker
+              className="w-52"
+              aria-label={t("staff.employee", "Employee")}
+              value={person}
+              onChange={setPerson}
+              items={[
+                { id: ALL, name: t("dawamOps.everyone", "Everyone") },
+                ...(employeesQ.data ?? []).map((e) => ({ id: e.id, name: e.name })),
+              ]}
+            />
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-40" aria-label={t("staff.attendanceStatus", "Status")}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>{t("staff.allStatuses", "All statuses")}</SelectItem>
                 <SelectItem value="present">{t("staff.att_present", "Present")}</SelectItem>
@@ -300,6 +344,7 @@ export function AttendancePage() {
                 <SelectItem value="on_leave">{t("staff.att_on_leave", "On leave")}</SelectItem>
               </SelectContent>
             </Select>
+            </div>
           </div>
         }
       />
@@ -311,6 +356,7 @@ export function AttendancePage() {
         <StatCard icon={CalendarX} label={t("staff.absentDays", "Absent days")} value={failedEmpty(summaryQ) ? "—" : totals.absent} loading={summaryQ.isLoading} />
         <StatCard icon={Timer} label={t("staff.overtime", "Overtime")} value={failedEmpty(summaryQ) ? "—" : fmtHours(totals.overtime)} loading={summaryQ.isLoading} />
       </div>
+      <AttendanceWords />
 
       <DataTable
         columns={columns}
@@ -388,5 +434,32 @@ function PunchReason({ text }: { text?: string | null }) {
     <span className="min-w-0 basis-full font-sans text-xs break-words whitespace-normal text-muted-foreground" title={text}>
       <bdi>{text}</bdi>
     </span>
+  );
+}
+
+/** What late, left early and absent mean here: said once, above the rows that use them. */
+function AttendanceWords() {
+  const { t } = useTranslation();
+  const words: [string, string][] = [
+    [t("staff.late", "Late"), t("dawamOps.wordLate", "clocked in after the shift's start (after the grace minutes, if any). Charged unless a request covers it.")],
+    [t("dawamOps.leftEarly", "Left early"), t("dawamOps.wordEarly", "clocked out before the shift's end: the time away is charged unless a request covers it.")],
+    [t("staff.att_absent", "Absent"), t("dawamOps.wordAbsent", "rostered, never clocked in, and no approved leave or mission for the day.")],
+    [t("staff.att_half_day", "Half day"), t("dawamOps.wordHalf", "worked less than the rules' half-day line.")],
+  ];
+  return (
+    <details className="group rounded-xl border bg-card px-4 py-2.5 text-sm">
+      <summary className="flex cursor-pointer list-none items-center gap-2 font-medium [&::-webkit-details-marker]:hidden">
+        <Info className="size-4 text-muted-foreground" aria-hidden />
+        {t("dawamOps.wordsTitle", "What late, left early and absent mean")}
+      </summary>
+      <dl className="mt-2 grid gap-x-4 gap-y-1.5 text-muted-foreground sm:grid-cols-[auto_1fr]">
+        {words.map(([term, def]) => (
+          <div key={term} className="contents">
+            <dt className="font-medium text-foreground">{term}</dt>
+            <dd>{def}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
   );
 }

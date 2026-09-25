@@ -51,6 +51,17 @@ vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateRequests: vi.fn(), invalidateStaff: vi.fn(), todayIso: () => "2026-09-23" };
 });
+// The kit's DateField is a calendar button (tested in its own suite); here the
+// form's own logic (From/To following, refusals) is driven through a plain input.
+vi.mock("@/components/inputs", async () => {
+  const real = await vi.importActual<typeof import("@/components/inputs")>("@/components/inputs");
+  return {
+    ...real,
+    DateField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+      <input id={id} type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+    ),
+  };
+});
 vi.mock("sonner", () => ({
   toast: { success: (m: string) => toastSuccess(m), info: vi.fn(), error: (m: string) => toastError(m) },
 }));
@@ -269,6 +280,24 @@ describe("Requests inbox", () => {
     const dialog = await screen.findByRole("dialog");
     await user.click(within(dialog).getByRole("button", { name: "Cancel request" }));
     await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("q2", { status: "cancelled", note: null }));
+  });
+
+  it("rejects with an optional reason the requester reads, and says what approving would do (UX-P)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    expect(within(rowOf("Youssef Adel")).getByText(/Approving: they're off on these days/)).toBeInTheDocument();
+    await user.click(within(rowOf("Youssef Adel")).getByRole("button", { name: "Reject" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/any lateness or absence penalty applies/)).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText("Reason (optional)"), "We are short that day");
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("q1", { status: "rejected", note: "We are short that day" }));
+  });
+
+  it("says nothing is waiting, not 'no match', when the pending queue is empty (UX-P)", () => {
+    rows = [];
+    renderPage();
+    expect(screen.getByText("Nothing is waiting for a decision")).toBeInTheDocument();
   });
 
   it("shows the server's refusal of a decision", async () => {
