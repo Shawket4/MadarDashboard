@@ -1,7 +1,7 @@
 import { AxiosError } from "axios";
 import type { TFunction } from "i18next";
 import i18n from "@/i18n";
-import { fmtDate, fmtTime } from "@/lib/format";
+import { fmtDate, fmtDateTimeFull, fmtTime } from "@/lib/format";
 
 const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
@@ -26,6 +26,8 @@ function codedVars(raw: unknown, t: TFunction): Record<string, unknown> {
     else if (k === "status" && typeof v === "string") out[k] = t(`staff.req_${v}`, v);
     // People named in a refusal (SALARY_MISSING, D9).
     else if (k === "names" && Array.isArray(v)) out[k] = v.join(t("common.listSeparator", ", "));
+    // The instant an offline punch claims (PUNCH_IN_FUTURE, PUNCH_TOO_OLD): its date matters too.
+    else if (k === "at" && typeof v === "string") out[k] = fmtDateTimeFull(v);
     else if (k.endsWith("_at") && typeof v === "string") out[k] = fmtTime(v);
     else out[k] = v;
   }

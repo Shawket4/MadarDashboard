@@ -2402,7 +2402,9 @@
       "REASON_REQUIRED_stopLine": "اذكر سبب إيقاف هذا البند الشهري.",
       "REASON_REQUIRED_punchFor": "اذكر سبب تسجيل الحضور أو الانصراف نيابةً عنه.",
       "REASON_REQUIRED_decline": "اذكر سبب الرفض.",
-      "REASON_REQUIRED_correctAdvance": "اذكر سبب تصحيح هذه العهدة."
+      "REASON_REQUIRED_correctAdvance": "اذكر سبب تصحيح هذه العهدة.",
+      "PUNCH_IN_FUTURE": "لا يمكن تسجيل حضور بتاريخ لاحق: {{at}} لم يحن بعد. تحقّق من ساعة الهاتف.",
+      "PUNCH_TOO_OLD": "هذا التسجيل ({{at}}) أقدم من أن يُسجَّل: {{max_days}} أيام على الأكثر. صحّح سجل الحضور بدلًا من ذلك."
     },
     "tooManyRequests": "طلبات كثيرة في الوقت الحالي. حاول مرة أخرى بعد لحظات."
   },

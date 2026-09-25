@@ -38,6 +38,8 @@ const DAWAM_CODES = [
   "ALREADY_EMPLOYEE", "PHONE_TAKEN", "RULE_LINE_NOT_DELETED", "WAIVER_FINAL", "NOT_WAIVED", "PERIOD_OVERLAPS",
   "PAYROLL_PAID_NO_REOPEN", "APPROVE_WITH_GENERATE", "PAID_BY_PAYSLIPS", "PERIOD_STATUS_MOVE",
   "PERIOD_NOT_DRAFT_DELETE", "PERIOD_FROZEN", "PERIOD_NOT_GENERATED", "RECORD_EXISTS",
+  // An offline punch replayed too late or dated ahead (A5).
+  "PUNCH_IN_FUTURE", "PUNCH_TOO_OLD",
 ];
 
 function HUNT_CODES(): string[] {
@@ -217,5 +219,18 @@ describe("the backend fixes' refusal codes", () => {
     }
     await i18n.changeLanguage("en");
     expect(getErrorMessage(err)).not.toMatch(/rejection/);
+  });
+
+  it("names the punch's time and the limit on an offline punch refused (PUNCH_IN_FUTURE, PUNCH_TOO_OLD)", async () => {
+    const future = apiError({ code: "PUNCH_IN_FUTURE", error: "x", vars: { at: "2026-09-30T06:05:00Z" } }, 400);
+    const old = apiError({ code: "PUNCH_TOO_OLD", error: "x", vars: { at: "2026-08-01T06:05:00Z", max_days: 7 } }, 400);
+    for (const lang of ["en", "ar"]) {
+      await i18n.changeLanguage(lang);
+      for (const e of [future, old]) {
+        expect(getErrorMessage(e)).not.toMatch(/T06:05|2026-0|\{\{/);
+        expect(getErrorMessage(e)).toMatch(/2026/);
+      }
+      expect(getErrorMessage(old)).toMatch(/7/);
+    }
   });
 });
