@@ -35,7 +35,7 @@ import {
   useListExpenseAdvances, useListPayslips, usePreviewPeriod,
 } from "@/data/api/generated/api";
 import type {
-  Adjustment, ComputedPayslip, Employee, ExpenseAdvance, PayrollPeriod, Payslip, SalaryAdvance,
+  Adjustment, ComputedPayslip, CurrentPayroll, Employee, ExpenseAdvance, PayrollPeriod, Payslip, SalaryAdvance, UnsettledPeriod,
 } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
@@ -49,7 +49,6 @@ import { fmtDate, fmtMoney, fmtMoneySigned, fmtPeriod } from "@/lib/format";
 import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "@/features/staff/util";
 
 import { payslipLines, reasonText, type PayLine } from "./lines";
-import type { CurrentPayrollD, UnsettledPeriodD } from "./phase-d-contract";
 import { dawamQuery } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { printPayslip } from "./payslip-print";
@@ -71,6 +70,9 @@ export const periodPhase = (p: PayrollPeriod | undefined): "open" | "approved" |
 
 const PHASE_TONE = { open: "neutral", approved: "info", paid: "success" } as const;
 
+/** An older month to settle; `paid_count` is unknown when it comes from history (an older server). */
+type Unsettled = Omit<UnsettledPeriod, "paid_count"> & { paid_count?: number };
+
 /** A month by its dates: "Aug 2026" when it is a calendar month, else its range. */
 export const monthLabel = (start: string, end: string): string =>
   start.endsWith("-01") ? fmtPeriod(`${start}T12:00:00Z`, "monthly") : `${fmtDate(start)} → ${fmtDate(end)}`;
@@ -82,7 +84,7 @@ const isUnsettled = (status: string | undefined) => status === "draft" || status
  * The older months not fully paid (H2-P1), oldest first: the server's
  * `unsettled`, or, from a server without it, the same months found in history.
  */
-export const unsettledOf = (cur: CurrentPayrollD | undefined): UnsettledPeriodD[] => {
+export const unsettledOf = (cur: CurrentPayroll | undefined): Unsettled[] => {
   if (!cur) return [];
   if (Array.isArray(cur.unsettled)) return cur.unsettled;
   return (cur.history ?? [])
@@ -95,7 +97,7 @@ export const unsettledOf = (cur: CurrentPayrollD | undefined): UnsettledPeriodD[
 };
 
 /** An older month as a period: history's row, or one made from `unsettled` past history's reach. */
-const olderPeriod = (cur: CurrentPayrollD | undefined, id: string | null): PayrollPeriod | undefined => {
+const olderPeriod = (cur: CurrentPayroll | undefined, id: string | null): PayrollPeriod | undefined => {
   if (!cur || !id) return undefined;
   const fromHistory = (cur.history ?? []).find((p) => p.id === id);
   if (fromHistory) return fromHistory;
@@ -136,7 +138,7 @@ export function PayrollPage() {
 
   const currentQ = useCurrent({ query: dawamQuery({ enabled: canRead }) });
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: dawamQuery({ enabled: canRead }) });
-  const cur = currentQ.data as CurrentPayrollD | undefined;
+  const cur = currentQ.data as CurrentPayroll | undefined;
   const unsettled = unsettledOf(cur);
   // Every action below goes by `period.id`, so an older month settles like this one.
   const older = olderPeriod(cur, viewId);

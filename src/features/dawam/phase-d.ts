@@ -1,7 +1,6 @@
 /**
  * How the dashboard reads the owner's Phase D decisions (24 Sep 2026): the
- * same reading on every screen. Pure helpers over the generated types; the
- * fields the backend's spec doesn't carry yet live in phase-d-contract.ts.
+ * same reading on every screen. Pure helpers over the generated types.
  */
 import type { AttendanceSettings, Employee, LabourWarning, PresenceRow, SalaryAdvance } from "@/data/api/generated/models";
 

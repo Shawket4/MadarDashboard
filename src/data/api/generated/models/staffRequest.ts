@@ -129,4 +129,11 @@ export interface StaffRequest {
      * @nullable
      */
   work_shift_id?: string | null;
+  /**
+     * For a leave or mission: the days it covers that the person already
+     * clocked in on. Approving turns those worked days into leave (the
+     * punches are kept), so the approver is warned first (minor default
+     * M16). Empty for every other kind.
+     */
+  worked_dates?: string[];
 }

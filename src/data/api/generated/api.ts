@@ -125,6 +125,8 @@ import type {
   ChannelOverrideInput,
   CheckInRequest,
   CheckOutRequest,
+  ClaimDecision,
+  ClearExpenseAdvanceParams,
   ClearTableRequest,
   ClientSeen,
   CloseShiftResponse,
@@ -524,6 +526,7 @@ import type {
   QrResponse,
   QuoteResponse,
   ReadNotifications,
+  ReassignExpenseAdvance,
   ReceivePurchaseOrderRequest,
   RecipeBaseOut,
   RecipeBaseSaveResult,
@@ -36281,6 +36284,145 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 /**
+ * @summary Clear an expense advance (a till pay-out's "expense advance to" tag, or
+a logged one) with a reason: the record goes, a till's cash movement
+stays exactly as it is (AV-10, minor default M39). Owner only.
+ */
+export const clearExpenseAdvance = (
+    id: string,
+    params?: ClearExpenseAdvanceParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/staff/expense-advances/${id}`, method: 'DELETE',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getClearExpenseAdvanceMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearExpenseAdvance>>, TError,{id: string;params?: ClearExpenseAdvanceParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof clearExpenseAdvance>>, TError,{id: string;params?: ClearExpenseAdvanceParams}, TContext> => {
+
+const mutationKey = ['clearExpenseAdvance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof clearExpenseAdvance>>, {id: string;params?: ClearExpenseAdvanceParams}> = (props) => {
+          const {id,params} = props ?? {};
+
+          return  clearExpenseAdvance(id,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClearExpenseAdvanceMutationResult = NonNullable<Awaited<ReturnType<typeof clearExpenseAdvance>>>
+
+    export type ClearExpenseAdvanceMutationError = ErrorBody
+
+    /**
+ * @summary Clear an expense advance (a till pay-out's "expense advance to" tag, or
+a logged one) with a reason: the record goes, a till's cash movement
+stays exactly as it is (AV-10, minor default M39). Owner only.
+ */
+export const useClearExpenseAdvance = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearExpenseAdvance>>, TError,{id: string;params?: ClearExpenseAdvanceParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof clearExpenseAdvance>>,
+        TError,
+        {id: string;params?: ClearExpenseAdvanceParams},
+        TContext
+      > => {
+      return useMutation(getClearExpenseAdvanceMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Give an expense advance to the person who really received the cash, with
+a reason; a till's cash movement stays as it is (minor default M39).
+Owner only.
+ */
+export const reassignExpenseAdvance = (
+    id: string,
+    reassignExpenseAdvance: ReassignExpenseAdvance,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ExpenseAdvance>(
+      {url: `/staff/expense-advances/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: reassignExpenseAdvance, signal
+    },
+      options);
+    }
+
+
+
+
+export const getReassignExpenseAdvanceMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reassignExpenseAdvance>>, TError,{id: string;data: ReassignExpenseAdvance}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof reassignExpenseAdvance>>, TError,{id: string;data: ReassignExpenseAdvance}, TContext> => {
+
+const mutationKey = ['reassignExpenseAdvance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reassignExpenseAdvance>>, {id: string;data: ReassignExpenseAdvance}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reassignExpenseAdvance(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReassignExpenseAdvanceMutationResult = NonNullable<Awaited<ReturnType<typeof reassignExpenseAdvance>>>
+    export type ReassignExpenseAdvanceMutationBody = ReassignExpenseAdvance
+    export type ReassignExpenseAdvanceMutationError = ErrorBody
+
+    /**
+ * @summary Give an expense advance to the person who really received the cash, with
+a reason; a till's cash movement stays as it is (minor default M39).
+Owner only.
+ */
+export const useReassignExpenseAdvance = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reassignExpenseAdvance>>, TError,{id: string;data: ReassignExpenseAdvance}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reassignExpenseAdvance>>,
+        TError,
+        {id: string;data: ReassignExpenseAdvance},
+        TContext
+      > => {
+      return useMutation(getReassignExpenseAdvanceMutationOptions(options), queryClient);
+    }
+
+/**
  * @summary The flags a manager should look at, for their branches (RO-6).
  */
 export const listAttendanceFlags = (
@@ -38939,7 +39081,7 @@ export const decideClaim = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<ClaimDecision>(
       {url: `/staff/open-shifts/${id}/decision`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: decideRoster, signal

@@ -15621,7 +15621,7 @@ and waits for the owner (AD-5). Bonuses and deductions have separate limits.
  */
 export const CreateAdjustmentBody = zod.object({
   "amount_piastres": zod.number().nullish(),
-  "effective_date": zod.iso.date().nullish().describe('The month it lands in (AD-1): any day of that month; the first month\nof a recurring line (AD-3). Defaults to today. Must be an open month.'),
+  "effective_date": zod.iso.date().nullish().describe('The month it lands in (AD-1): any day of that month; the first month\nof a recurring line (AD-3). Defaults to today, or, when today\'s month\nis already approved, the first day of the next open month (M27).\nGiven explicitly, it must be in an open month (409 PERIOD_CLOSED).'),
   "employee_id": zod.uuid(),
   "kind": zod.string().describe('`bonus` · `deduction`'),
   "percent_of_base": zod.number().nullish().describe('A bonus may be a % of salary.'),
@@ -16886,6 +16886,51 @@ export const LogExpenseAdvanceResponse = zod.object({
 
 
 /**
+ * @summary Clear an expense advance (a till pay-out's "expense advance to" tag, or
+a logged one) with a reason: the record goes, a till's cash movement
+stays exactly as it is (AV-10, minor default M39). Owner only.
+ */
+export const ClearExpenseAdvanceParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ClearExpenseAdvanceQueryParams = zod.object({
+  "reason": zod.string().optional()
+})
+
+export const ClearExpenseAdvanceResponse = zod.void()
+
+
+/**
+ * @summary Give an expense advance to the person who really received the cash, with
+a reason; a till's cash movement stays as it is (minor default M39).
+Owner only.
+ */
+export const ReassignExpenseAdvanceParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ReassignExpenseAdvanceBody = zod.object({
+  "employee_id": zod.uuid().describe('Who really received the cash.'),
+  "reason": zod.string().nullish().describe('Why (required).')
+})
+
+export const ReassignExpenseAdvanceResponse = zod.object({
+  "amount_piastres": zod.number(),
+  "branch_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "employee_id": zod.uuid(),
+  "employee_name": zod.string(),
+  "given_on": zod.iso.date(),
+  "handed_by": zod.uuid().nullish(),
+  "handed_by_name": zod.string().nullish(),
+  "id": zod.uuid(),
+  "purpose": zod.string(),
+  "via": zod.string().describe('`safe` · `bank` · `till`')
+})
+
+
+/**
  * @summary The flags a manager should look at, for their branches (RO-6).
  */
 export const ListAttendanceFlagsQueryParams = zod.object({
@@ -16896,6 +16941,8 @@ export const ListAttendanceFlagsQueryParams = zod.object({
 export const ListAttendanceFlagsResponseItem = zod.object({
   "attendance_record_id": zod.uuid().nullish(),
   "branch_id": zod.uuid().nullish(),
+  "deduction_id": zod.uuid().nullish().describe('The deduction the flag was handled with (a deduct or an unpaid\nexcuse), and its status: `approved`, or `pending` = over the\nmanager\'s limit, it waits for the owner (minor default M33).'),
+  "deduction_status": zod.string().nullish(),
   "detected_at": zod.iso.datetime({"offset":true}),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -16925,6 +16972,8 @@ export const ResolveFlagBody = zod.object({
 export const ResolveFlagResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish(),
   "branch_id": zod.uuid().nullish(),
+  "deduction_id": zod.uuid().nullish().describe('The deduction the flag was handled with (a deduct or an unpaid\nexcuse), and its status: `approved`, or `pending` = over the\nmanager\'s limit, it waits for the owner (minor default M33).'),
+  "deduction_status": zod.string().nullish(),
   "detected_at": zod.iso.datetime({"offset":true}),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -17222,6 +17271,7 @@ export const MyContextResponse = zod.object({
   "caps_everywhere": zod.array(zod.string()).describe('The capabilities I hold at EVERY branch: the list `GET \/authz\/me`\nputs in `everywhere`, for the business-wide acts (the rules, payroll,\npublic holidays: `hr.rules.edit`, D3). Empty without a Madar account.'),
   "deduction_limit_piastres": zod.number().nullish().describe('My ceiling on a deduction (AD-5: separate from the bonus limit).'),
   "employee_id": zod.uuid().describe('Who is signed in: the employee.'),
+  "first_open_date": zod.iso.date().describe('The first day (from my today) not inside an approved or paid month:\nwhere a new bonus or deduction lands by default (\"lands in October\'s\npay\", minor default M27).'),
   "modules": zod.array(zod.string()).describe('The org\'s modules (`pos`, `dawam`); POS on means till punches (CL-13).'),
   "name": zod.string(),
   "org_id": zod.uuid(),
@@ -17576,7 +17626,8 @@ export const MyRequestsResponseItem = zod.object({
   "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
   "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).'),
+  "worked_dates": zod.array(zod.iso.date()).optional().describe('For a leave or mission: the days it covers that the person already\nclocked in on. Approving turns those worked days into leave (the\npunches are kept), so the approver is warned first (minor default\nM16). Empty for every other kind.')
 })
 export const MyRequestsResponse = zod.array(MyRequestsResponseItem)
 
@@ -17636,7 +17687,8 @@ export const CreateMyRequestResponse = zod.object({
   "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
   "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).'),
+  "worked_dates": zod.array(zod.iso.date()).optional().describe('For a leave or mission: the days it covers that the person already\nclocked in on. Approving turns those worked days into leave (the\npunches are kept), so the approver is warned first (minor default\nM16). Empty for every other kind.')
 })
 
 
@@ -18068,7 +18120,16 @@ export const DecideClaimBody = zod.object({
   "approve": zod.boolean()
 })
 
-export const DecideClaimResponse = zod.void()
+export const DecideClaimResponse = zod.object({
+  "status": zod.string().describe('`approved` · `rejected`'),
+  "warnings": zod.array(zod.object({
+  "date": zod.iso.date().describe('The day (or, for a week\'s limit, the Saturday it starts).'),
+  "employee_id": zod.uuid(),
+  "kind": zod.string().describe('`day_hours` · `week_hours` · `presence` · `rest` · `weekly_rest` · `overtime_day`'),
+  "limit_minutes": zod.number(),
+  "minutes": zod.number()
+}).describe('A roster past a labour limit. Warns, never blocks (RU-13).'))
+}).describe('A claim decision: the labour limits the approved day now breaks (a long\nday, a short rest). A warning, never a block (RU-13, minor default M26).')
 
 
 /**
@@ -18318,7 +18379,16 @@ export const CurrentResponse = zod.object({
   "net_piastres": zod.number(),
   "overtime_piastres": zod.number(),
   "people": zod.number()
-}).describe('The run added up by the server (AT-3).')
+}).describe('The run added up by the server (AT-3).'),
+  "unsettled": zod.array(zod.object({
+  "ends_on": zod.iso.date(),
+  "net_total_piastres": zod.number().describe('The month\'s net pay: live for a draft, the frozen payslips once\napproved.'),
+  "paid_count": zod.number().describe('Payslips marked paid (a \'none\' mark counts); 0 for a draft.'),
+  "people": zod.number().describe('People on the month\'s payroll.'),
+  "period_id": zod.uuid(),
+  "starts_on": zod.iso.date(),
+  "status": zod.string().describe('`draft` (never approved) · `generated` (approved, someone unpaid)')
+}).describe('An older month still to settle (hunt H2-P1).')).describe('Older months that aren\'t fully paid, oldest first (hunt H2-P1): a\nmonth that rolled over while still a draft, or approved with someone\nunpaid. Each is settled by its id (approve, mark paid, reopen,\nexport); a paid or closed month isn\'t listed.')
 })
 
 
@@ -18519,7 +18589,7 @@ export const ExportPeriodCsvParams = zod.object({
 })
 
 export const ExportPeriodCsvQueryParams = zod.object({
-  "method": zod.string().optional().describe('`bank` (a transfer file: name, account, amount) · `wallet` (numbers\nand amounts) · `cash`; omitted = everyone, every figure (PAY-8).')
+  "method": zod.string().optional().describe('`bank` (a transfer file: name, account, amount) · `wallet` (numbers\nand amounts) · `cash` (the envelope list: name and amount, nobody with\n0 to pay); omitted = everyone, every figure (PAY-8).')
 })
 
 export const ExportPeriodCsvResponse = zod.unknown()
@@ -18830,7 +18900,8 @@ export const ListRequestsResponseItem = zod.object({
   "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
   "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).'),
+  "worked_dates": zod.array(zod.iso.date()).optional().describe('For a leave or mission: the days it covers that the person already\nclocked in on. Approving turns those worked days into leave (the\npunches are kept), so the approver is warned first (minor default\nM16). Empty for every other kind.')
 })
 export const ListRequestsResponse = zod.array(ListRequestsResponseItem)
 
@@ -18890,7 +18961,8 @@ export const CreateRequestAdminResponse = zod.object({
   "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
   "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).'),
+  "worked_dates": zod.array(zod.iso.date()).optional().describe('For a leave or mission: the days it covers that the person already\nclocked in on. Approving turns those worked days into leave (the\npunches are kept), so the approver is warned first (minor default\nM16). Empty for every other kind.')
 })
 
 
@@ -18941,7 +19013,8 @@ export const DecideRequestResponse = zod.object({
   "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
   "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).'),
+  "worked_dates": zod.array(zod.iso.date()).optional().describe('For a leave or mission: the days it covers that the person already\nclocked in on. Approving turns those worked days into leave (the\npunches are kept), so the approver is warned first (minor default\nM16). Empty for every other kind.')
 })
 
 
@@ -19207,6 +19280,7 @@ export const ListAssignmentsQueryParams = zod.object({
 })
 
 export const ListAssignmentsResponseItem = zod.object({
+  "branch_id": zod.uuid().nullish().describe('Where a business-wide block is worked (hunt H2-B8b); null = the\nblock\'s own branch, else the person\'s first.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "day_of_week": zod.number().nullish().describe('Postgres `EXTRACT(DOW)` convention: 0 = Sunday … 6 = Saturday.\n`None` = every day of the week.'),
   "effective_from": zod.iso.date(),
@@ -19221,6 +19295,7 @@ export const ListAssignmentsResponse = zod.array(ListAssignmentsResponseItem)
 
 
 export const CreateAssignmentBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch whose board sets the pattern: a business-wide block is\nworked there every week (one of the person\'s branches, else 400\n`EMPLOYEE_NOT_AT_BRANCH`). Omitted = the person\'s first branch.'),
   "day_of_week": zod.number().nullish().describe('0 = Sunday … 6 = Saturday. Omit for \"every day\".'),
   "effective_from": zod.iso.date().nullish(),
   "effective_to": zod.iso.date().nullish(),
@@ -19229,6 +19304,7 @@ export const CreateAssignmentBody = zod.object({
 })
 
 export const CreateAssignmentResponse = zod.object({
+  "branch_id": zod.uuid().nullish().describe('Where a business-wide block is worked (hunt H2-B8b); null = the\nblock\'s own branch, else the person\'s first.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "day_of_week": zod.number().nullish().describe('Postgres `EXTRACT(DOW)` convention: 0 = Sunday … 6 = Saturday.\n`None` = every day of the week.'),
   "effective_from": zod.iso.date(),
@@ -19609,6 +19685,7 @@ export const TeamPresenceResponse = zod.object({
   "employee_name": zod.string(),
   "job_title": zod.string().nullish(),
   "late_minutes": zod.number(),
+  "punch_opens_at": zod.iso.datetime({"offset":true}).nullish().describe('When a punch for them opens: the next shift of their today (not yet\nended; else the first) less its check-in window (CL-3). Null when not\nrostered. The dashboard offers Punch from then, as the app does\n(minor default M15).'),
   "scheduled_minutes": zod.number().describe('Minutes this person is rostered for today — the denominator of the\nlabour-vs-plan bar.'),
   "state": zod.string().describe('`in` | `late` | `absent` | `on_leave` | `off` | `done`.'),
   "worked_minutes": zod.number()

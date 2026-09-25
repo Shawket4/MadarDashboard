@@ -37,7 +37,6 @@ import {
   useListEmployees, useListRequests,
 } from "@/data/api/generated/api";
 import type { StaffRequest } from "@/data/api/generated/models";
-import type { StaffRequestD } from "@/features/dawam/phase-d-contract";
 import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { dawamQuery } from "@/features/dawam/live";
@@ -70,7 +69,7 @@ export const ASKS_PAY = ["leave", "excuse", "early_departure"];
  * If the days can't be read, the approval goes ahead as before.
  */
 export async function confirmMissionOverPunches(
-  r: StaffRequestD,
+  r: StaffRequest,
   confirm: (o: { title: string; description: string; confirmLabel: string }) => Promise<boolean>,
   t: TFunction,
 ): Promise<boolean> {
@@ -487,12 +486,12 @@ export function ApproveWithPayDialog({
                       "Only the minutes they were actually away count. On, those minutes are forgiven; off, they are docked. Worked time is never more than real presence.",
                     )}
               </p>
-              {isLeave && (request as StaffRequestD | null)?.worked_dates?.length ? (
+              {isLeave && (request as StaffRequest | null)?.worked_dates?.length ? (
                 // Leave over a worked day turns it into leave; the punches stay (M16).
                 <p className="text-xs font-medium text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]">
                   {t("staff.leaveOverPunches", {
                     name: request!.employee_name,
-                    dates: (request as StaffRequestD).worked_dates!.map((d) => fmtDate(d)).join(t("common.listSeparator", ", ")),
+                    dates: (request as StaffRequest).worked_dates!.map((d) => fmtDate(d)).join(t("common.listSeparator", ", ")),
                     defaultValue: "{{name}} already clocked in on {{dates}}. Approving makes those days leave; the punches are kept.",
                   })}
                 </p>

@@ -26,7 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { StatusPill } from "@/components/app/status-pill";
 import {
-  createAdjustment, logExpenseAdvance, markPaid, overrideDeduction, recordAdvance, reviewAdvance,
+  clearExpenseAdvance, createAdjustment, logExpenseAdvance, reassignExpenseAdvance, markPaid, overrideDeduction, recordAdvance, reviewAdvance,
   setPeriodStatus, stopAdjustment, unwaiveDeduction, useCurrent, useListBranches, useListEmployees, waiveDeduction,
 } from "@/data/api/generated/api";
 import type { PayrollPeriod } from "@/data/api/generated/models";
@@ -39,7 +39,6 @@ import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
 import type { SalaryAdvance } from "@/data/api/generated/models";
 import { capView } from "./phase-d";
-import { clearExpenseAdvance, reassignExpenseAdvance } from "./phase-d-contract";
 
 /** Pounds as typed → piastres; null when it isn't a positive amount. */
 export const readPounds = (s: string): number | null => {

@@ -36,6 +36,12 @@ export interface StaffContext {
   deduction_limit_piastres?: number | null;
   /** Who is signed in: the employee. */
   employee_id: string;
+  /**
+     * The first day (from my today) not inside an approved or paid month:
+     * where a new bonus or deduction lands by default ("lands in October's
+     * pay", minor default M27).
+     */
+  first_open_date: string;
   /** The org's modules (`pos`, `dawam`); POS on means till punches (CL-13). */
   modules: string[];
   name: string;

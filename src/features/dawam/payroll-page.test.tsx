@@ -42,10 +42,6 @@ const expenseCalls = vi.hoisted(() => ({
   clear: vi.fn(async (_id: string, _b: unknown) => ({})),
   reassign: vi.fn(async (_id: string, _b: unknown) => ({})),
 }));
-vi.mock("./phase-d-contract", async () => {
-  const real = await vi.importActual<typeof import("./phase-d-contract")>("./phase-d-contract");
-  return { ...real, clearExpenseAdvance: expenseCalls.clear, reassignExpenseAdvance: expenseCalls.reassign };
-});
 let scopeBranch: string | null = null;
 const expenseParams: unknown[] = [];
 const decideAdjustment = vi.fn(async () => ({}));
@@ -116,6 +112,8 @@ vi.mock("@/data/api/generated/api", () => ({
   usePreviewPeriod: (id: string, ...rest: unknown[]) => hook("preview", () => previewById[id] ?? [])(id, ...rest),
   useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
   exportPeriodCsv: vi.fn(),
+  clearExpenseAdvance: expenseCalls.clear,
+  reassignExpenseAdvance: expenseCalls.reassign,
   decideAdjustment: (...a: unknown[]) => decideAdjustment(...(a as [])),
   createAdvanceAdmin: vi.fn(),
   reviewAdvance: vi.fn(),

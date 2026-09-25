@@ -48,7 +48,6 @@ import { dawamQuery } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { useOwnEmployeeIds } from "@/features/staff/requests-inbox";
 import { punchWindowOpen } from "./phase-d";
-import type { AttendanceFlagD } from "./phase-d-contract";
 
 const STATE_LABEL: Record<string, string> = {
   in: "In", late: "Late", absent: "Absent", on_leave: "On leave", off: "Off", done: "Done",
@@ -245,7 +244,7 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
     setBusy(true);
     try {
       // A deduction is a pay line the employee reads: it carries why (AD-9).
-      const handled = (await resolveFlag(flag.id, { action, amount_piastres: amountPiastres ?? null, reason: action === "deduct" ? reason.trim() || null : null })) as AttendanceFlagD | undefined;
+      const handled = (await resolveFlag(flag.id, { action, amount_piastres: amountPiastres ?? null, reason: action === "deduct" ? reason.trim() || null : null })) as AttendanceFlag | undefined;
       // The server says whether the deduction waits for the owner (M33); an
       // older one doesn't, and then the limit does.
       const waits = handled?.deduction_status != null
