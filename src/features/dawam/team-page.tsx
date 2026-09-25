@@ -91,6 +91,8 @@ export function TeamPage() {
     { query: { enabled: canPunch && !!today } },
   );
   const todayRecords = useMemo(() => todayQ.data ?? [], [todayQ.data]);
+  // Today is in an approved or paid month: nothing is written into it (BC-3 decision a), so no punch is offered.
+  const monthClosed = todayRecords.some((r) => r.month_closed);
   const flags = useMemo(() => (flagsQ.data ?? []).filter((f) => !f.resolution), [flagsQ.data]);
 
   if (authz.ready && !canRead) {
@@ -152,6 +154,11 @@ export function TeamPage() {
         <h2 className="text-sm font-semibold text-muted-foreground">
           {t("dawam.rightNow", "Right now")}{p?.business_date ? ` · ${p.business_date}` : ""}
         </h2>
+        {canPunch && monthClosed ? (
+          <p className="text-sm text-muted-foreground">
+            {t("dawam.todayMonthClosed", "Today is in an approved payroll month, so nobody can be punched in or out. Reopen the month to change today.")}
+          </p>
+        ) : null}
         {presenceQ.error ? (
           <ErrorState title={t("dawam.teamLoadError", "Couldn't load the team")} message={getErrorMessage(presenceQ.error)} onRetry={() => void presenceQ.refetch()} />
         ) : presenceQ.isLoading ? <Skeleton className="h-48 w-full rounded-2xl" /> : rows.length === 0 ? (
@@ -176,7 +183,7 @@ export function TeamPage() {
                       {coverer ? (
                         <span className="text-xs text-muted-foreground">{t("dawam.coveredBy", { name: coverer, defaultValue: `Covered by ${coverer}` })}</span>
                       ) : null}
-                      {canPunch && (["in", "late", "absent"].includes(r.state) || punchWindowOpen(r as PresenceRowD)) ? (
+                      {canPunch && !monthClosed && (["in", "late", "absent"].includes(r.state) || punchWindowOpen(r as PresenceRowD)) ? (
                         <Button size="sm" variant="outline" disabled={!!coverer} onClick={() => setPunching(r)}>
                           <LogIn className="size-4" />
                           {out ? t("dawam.punchOut", "Punch out") : t("dawam.punchIn", "Punch in")}

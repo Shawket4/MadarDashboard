@@ -4593,7 +4593,8 @@
     "outReasonColumn": "Why punched out",
     "halfDayUnsaid": "½ day",
     "correctionInSet": "in {{to}}",
-    "correctionOutSet": "out {{to}}"
+    "correctionOutSet": "out {{to}}",
+    "dayMonthClosed": "That day is in an approved payroll month: nothing can be added to it. Pick a day in an open month, or add a pay line in the next one."
   },
   "basira": {
     "title": "Basira",
@@ -6389,7 +6390,8 @@
     "ruleSource_excused_unpaid": "Rule · unpaid excuse",
     "ruleSource_carry": "Carried from last month",
     "cashList": "Cash envelopes",
-    "payLists": "Pay lists (bank, wallet, cash)"
+    "payLists": "Pay lists (bank, wallet, cash)",
+    "todayMonthClosed": "Today is in an approved payroll month, so nobody can be punched in or out. Reopen the month to change today."
   },
   "legal": {
     "label": "Legal",

@@ -319,6 +319,13 @@ describe("TeamPage", () => {
     expect(within(row("Rana Adel")).queryByRole("button", { name: /Punch/ })).toBeNull();
   });
 
+  it("offers no punch when today is in an approved month (box verify, BC-3 decision a)", () => {
+    todayRecords = [{ id: "r1", employee_id: "e1", employee_name: "Sara Ahmed", business_date: "2026-09-22", month_closed: true }];
+    wrap(<TeamPage />);
+    expect(screen.queryByRole("button", { name: /Punch/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/Today is in an approved payroll month/)).toBeInTheDocument();
+  });
+
   it("hides punching from someone without the right", () => {
     held = ["hr.attendance.read"];
     wrap(<TeamPage />);

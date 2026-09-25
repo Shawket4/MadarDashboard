@@ -123,12 +123,16 @@ export function ManualRecordDialog({
   // clock-in for its owner (D1, 409 SHIFT_COVERED).
   const [pickedEmployee, pickedDate, pickedShift, typedIn] = form.watch(["employee_id", "business_date", "work_shift_id", "check_in"]);
   const validDate = /^\d{4}-\d{2}-\d{2}$/.test(pickedDate ?? "");
-  const dayQ = useListAttendance(
-    { from: pickedDate, to: pickedDate },
-    { query: { enabled: open && validDate && !!pickedEmployee && pickedShift !== NONE } },
+  // The picked day and the weeks after it: a record there in an approved or
+  // paid month means the day's month is closed too (months close in order),
+  // and nothing is written into it (BC-3 decision a).
+  const aheadQ = useListAttendance(
+    { from: pickedDate, to: validDate ? addDaysIso(pickedDate, 40) : pickedDate },
+    { query: { enabled: open && validDate } },
   );
+  const monthClosed = (aheadQ.data ?? []).some((r) => r.month_closed && r.business_date >= pickedDate);
   const coverer = pickedEmployee && validDate && pickedShift !== NONE
-    ? coveredBy(dayQ.data ?? [], pickedEmployee, pickedDate, pickedShift)
+    ? coveredBy(aheadQ.data ?? [], pickedEmployee, pickedDate, pickedShift)
     : null;
   const coverBlocks = !!coverer && !!typedIn;
 
@@ -241,6 +245,11 @@ export function ManualRecordDialog({
             />
             <TimesFields tz={tz} />
             {coverer ? <CoveredNote name={coverer} /> : null}
+            {monthClosed ? (
+              <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+                {t("staff.dayMonthClosed", "That day is in an approved payroll month: nothing can be added to it. Pick a day in an open month, or add a pay line in the next one.")}
+              </p>
+            ) : null}
             <FormField
               control={form.control}
               name="reason"
@@ -256,7 +265,7 @@ export function ManualRecordDialog({
             />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-              <Button type="submit" disabled={busy || coverBlocks}>{t("common.save", "Save")}</Button>
+              <Button type="submit" disabled={busy || coverBlocks || monthClosed}>{t("common.save", "Save")}</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -264,6 +273,13 @@ export function ManualRecordDialog({
     </Dialog>
   );
 }
+
+/** `yyyy-mm-dd` plus `n` days. */
+const addDaysIso = (iso: string, n: number) => {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+};
 
 /** A colleague covers this shift, so its owner can't be clocked in on it (D1). */
 function CoveredNote({ name }: { name: string }) {

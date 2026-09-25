@@ -275,3 +275,20 @@ describe("D1: a shift a colleague covers", () => {
     records = [record];
   });
 });
+
+describe("A closed month (box verify, BC-3 decision a)", () => {
+  it("Add record says the day is in an approved month and won't save", async () => {
+    records = [{ ...record, month_closed: true }];
+    const user = userEvent.setup();
+    wrap(<AttendancePage />);
+    await user.click(screen.getByRole("button", { name: /add record/i }));
+    const dialog = await screen.findByRole("dialog");
+    const date = within(dialog).getByLabelText("Date");
+    await user.clear(date);
+    await user.type(date, "2026-09-20");
+    expect(await within(dialog).findByText(/That day is in an approved payroll month/)).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Save" })).toBeDisabled();
+    records = [record];
+  });
+});
+
