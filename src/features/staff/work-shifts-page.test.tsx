@@ -201,7 +201,7 @@ describe("WorkShiftsPage", () => {
     await i18n.changeLanguage("ar");
     try {
       wrap(<WorkShiftsPage />);
-      await user.click(screen.getAllByRole("button", { name: "جدول عمل جديد" })[0]);
+      await user.click(screen.getAllByRole("button", { name: "وردية جديدة" })[0]);
       const dialog = await screen.findByRole("dialog");
       expect(within(dialog).getByRole("group", { name: "أيام العمل بها" })).toBeInTheDocument();
       expect(within(dialog).getByLabelText("معدل الإضافي الليلي")).toBeInTheDocument();
