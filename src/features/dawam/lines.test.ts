@@ -99,6 +99,18 @@ describe("payslipLines", () => {
     expect(lines.find((l) => l.key === "d|d3")?.waiveReason).toBeUndefined();
   });
 
+  it("M29: carries why a rule line was overridden", () => {
+    const lines = payslipLines(
+      slip({
+        breakdown: {
+          paid_days: 31, window_days: 31, bonuses: [], advances: [],
+          deductions: [{ id: "d4", reason: "Absent", piastres: 10_000, source: "absence", override_reason: "Half: he called in" }],
+        },
+      }),
+    );
+    expect(lines.find((l) => l.key === "d|d4")?.overrideReason).toBe("Half: he called in");
+  });
+
   it("names the capped part so the lines add up to a net of zero (PAY-12)", () => {
     const lines = payslipLines(
       slip({

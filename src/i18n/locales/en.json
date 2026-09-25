@@ -6398,7 +6398,8 @@
     "ruleSource_carry": "Carried from last month",
     "cashList": "Cash envelopes",
     "payLists": "Pay lists (bank, wallet, cash)",
-    "todayMonthClosed": "Today is in an approved payroll month, so nobody can be punched in or out. Reopen the month to change today."
+    "todayMonthClosed": "Today is in an approved payroll month, so nobody can be punched in or out. Reopen the month to change today.",
+    "lineOverriddenWhy": "Overridden: {{reason}}"
   },
   "legal": {
     "label": "Legal",

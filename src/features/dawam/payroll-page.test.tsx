@@ -658,6 +658,7 @@ describe("PayrollPage", () => {
             deductions: [
               { id: "d1", reason: "Late arrival", piastres: 5_000, source: "late_penalty", waived: true, waive_reason: "Metro <stopped>" },
               { id: "d2", reason: "Broke <b>a</b> glass", piastres: 15_000, source: "manual" },
+              { id: "d5", reason: "Absent", piastres: 10_000, source: "absence", override_reason: "Half: he called in" },
             ],
           },
         }),
@@ -672,7 +673,9 @@ describe("PayrollPage", () => {
     expect(within(sheet).getByText("Late arrival")).toHaveClass("line-through");
     // M29: why it was waived (AD-6).
     expect(within(sheet).getByText("Waived: Metro <stopped>")).toBeInTheDocument();
-    expect(within(sheet).queryByRole("button", { name: "Waive" })).not.toBeInTheDocument();
+    expect(within(sheet).getByText("Overridden: Half: he called in")).toBeInTheDocument();
+    // Only the overridden (live) rule line can be waived; the waived one offers no second waiver.
+    expect(within(sheet).getAllByRole("button", { name: "Waive" })).toHaveLength(1);
 
     await user.click(within(sheet).getByRole("button", { name: /Download PDF/ }));
     expect(open).toHaveBeenCalled();

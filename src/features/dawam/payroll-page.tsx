@@ -445,7 +445,13 @@ function PayslipSheet({
                 key={l.key}
                 variant="ledger"
                 title={<span className={l.waived ? "text-muted-foreground line-through" : undefined}>{lineLabel(l, t)}</span>}
-                meta={l.waived ? waivedText(l, t) : l.rule ? t("dawam.ruleLine", "From the rules") : l.manual ? t("dawam.manualLine", "Added by hand") : undefined}
+                meta={
+                  l.waived
+                    ? waivedText(l, t)
+                    : l.overrideReason
+                      ? t("dawam.lineOverriddenWhy", { reason: l.overrideReason, defaultValue: `Overridden: ${l.overrideReason}` })
+                      : l.rule ? t("dawam.ruleLine", "From the rules") : l.manual ? t("dawam.manualLine", "Added by hand") : undefined
+                }
                 trailing={
                   <span className="flex items-center gap-1">
                     <span className={l.waived ? "text-muted-foreground line-through tabular-nums" : l.amount < 0 ? "text-destructive tabular-nums" : "tabular-nums"}>{fmtMoneySigned(l.amount)}</span>
