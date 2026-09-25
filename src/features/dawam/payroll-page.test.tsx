@@ -577,6 +577,31 @@ describe("PayrollPage", () => {
     await waitFor(() => expect(calls.stopAdjustment).toHaveBeenCalledWith("bonus", "b7", { reason: "Moved to the day shift" }));
   });
 
+  it("a Stop refused for want of a reason says why in the Stop's own words (A5)", async () => {
+    const { AxiosError, AxiosHeaders } = await import("axios");
+    calls.stopAdjustment.mockImplementationOnce(async () => {
+      throw new AxiosError("x", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 400, statusText: "", headers: {}, config: { headers: new AxiosHeaders() }, data: { code: "REASON_REQUIRED", error: "Stopping a monthly line needs a reason" },
+      });
+    });
+    const user = userEvent.setup();
+    adjustments = [{
+      id: "b7", kind: "bonus", employee_id: "e4", employee_name: "Youssef Adel", amount_piastres: 30_000, percent_of_base: null,
+      value_piastres: 30_000, reason: "Meal allowance", effective_date: "2026-09-01", source: "manual", status: "approved",
+      recurring: true, ends_on: null,
+    }];
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    await user.click(await screen.findByRole("button", { name: "Stop" }));
+    const dialog = await screen.findByRole("dialog");
+    const { toast } = await import("sonner");
+    const toastError = vi.spyOn(toast, "error");
+    await user.type(within(dialog).getByLabelText("Reason"), "x");
+    await user.click(within(dialog).getByRole("button", { name: "Stop" }));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(expect.stringMatching(/Say why this monthly line stops/)));
+    toastError.mockRestore();
+  });
+
   it("D6: Stop says this month keeps the line, and a stopped line stays active until its month ends", async () => {
     const { todayIso, isoDaysFromToday } = await import("@/features/staff/util");
     const { fmtDate } = await import("@/lib/format");

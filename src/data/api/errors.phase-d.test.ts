@@ -50,7 +50,9 @@ describe("Phase D refusals", () => {
 
   it("D8: a rejection with no reason (REASON_REQUIRED, 400, no vars)", async () => {
     const err = apiError({ code: "REASON_REQUIRED", error: "A reason is required." }, 400);
-    expect(getErrorMessage(err)).toBe("Say why: a rejection needs a reason.");
+    // A rejection is worded as one by its dialog (reasonFor "decline", A5); bare, it is generic.
+    expect(getErrorMessage(err, { reasonFor: "decline" })).toBe("Say why you're declining.");
+    expect(getErrorMessage(err)).toBe("Say why: this needs a reason.");
     await i18n.changeLanguage("ar");
     expect(getErrorMessage(err)).not.toMatch(/[A-Za-z]/);
   });

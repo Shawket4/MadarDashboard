@@ -32,7 +32,7 @@ import {
 import type { PayrollPeriod } from "@/data/api/generated/models";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
-import { getErrorMessage } from "@/data/api/errors";
+import { getErrorMessage, type ReasonFor } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
@@ -78,7 +78,7 @@ const pounds = (t: (k: string, d: string) => string) =>
 const nonEmpty = (t: (k: string, d: string) => string, msg: [string, string]) => z.string().trim().min(1, t(msg[0], msg[1]));
 
 function FormDialog<V extends FieldValues>({
-  open, onOpenChange, title, description, children, form, onSave, saveLabel, destructive,
+  open, onOpenChange, title, description, children, form, onSave, saveLabel, destructive, reasonFor,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -89,6 +89,8 @@ function FormDialog<V extends FieldValues>({
   onSave: (values: V) => Promise<void>;
   saveLabel?: string;
   destructive?: boolean;
+  /** Which situation a REASON_REQUIRED refusal is worded for (A5). */
+  reasonFor?: ReasonFor;
 }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
@@ -101,7 +103,7 @@ function FormDialog<V extends FieldValues>({
       onOpenChange(false);
     } catch (e) {
       // The server's words: over the limit, an approved month, the cap.
-      toast.error(getErrorMessage(e));
+      toast.error(getErrorMessage(e, { reasonFor }));
     } finally {
       setBusy(false);
     }
@@ -229,6 +231,7 @@ export function AdjustmentDialog({
       open={open}
       onOpenChange={onOpenChange}
       form={form}
+      reasonFor="payLine"
       title={t("dawam.addPayLine", "Add a bonus or deduction")}
       description={t("dawam.addPayLineHint", "Over your limit, it waits for the owner before it counts.")}
       onSave={async (v) => {
@@ -456,6 +459,7 @@ export function CorrectExpenseTagDialog({
       open={!!expense}
       onOpenChange={onOpenChange}
       form={form}
+      reasonFor="correctAdvance"
       title={t("dawam.correctTagTitle", { name: expense?.employee_name ?? "", defaultValue: `Correct ${expense?.employee_name ?? ""}'s till tag` })}
       description={t("dawam.correctTagHint", "The cash that left the till stays as it is. Only who it is logged against changes, and the reason is kept in the audit log.")}
       onSave={async (v) => {
@@ -536,7 +540,7 @@ export function MarkPaidDialog({
 
 /** A one-field reason form shared by waive, un-waive and reopen. */
 function ReasonDialog({
-  open, onOpenChange, title, description, saveLabel, destructive, onSave, done,
+  open, onOpenChange, title, description, saveLabel, destructive, onSave, done, reasonFor,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -546,6 +550,7 @@ function ReasonDialog({
   destructive?: boolean;
   onSave: (reason: string) => Promise<unknown>;
   done: string;
+  reasonFor?: ReasonFor;
 }) {
   const { t } = useTranslation();
   const schema = z.object({ reason: nonEmpty(t, ["dawam.reasonRequired", "A reason is needed"]).max(500) });
@@ -560,6 +565,7 @@ function ReasonDialog({
       description={description}
       saveLabel={saveLabel}
       destructive={destructive}
+      reasonFor={reasonFor}
       onSave={async (v) => {
         await onSave(v.reason.trim());
         toast.success(done);
@@ -590,6 +596,7 @@ export function RejectDialog({
       saveLabel={t("common.reject", "Reject")}
       destructive
       onSave={onReject}
+      reasonFor="decline"
       done={t("staff.decisionSaved", "Decision saved")}
     />
   );
@@ -656,6 +663,7 @@ export function StopDialog({
       saveLabel={t("dawam.stop", "Stop")}
       destructive
       onSave={(reason) => stopAdjustment(line!.kind, line!.id, { reason })}
+      reasonFor="stopLine"
       done={t("dawam.stoppedToast", "Stopped from next month")}
     />
   );

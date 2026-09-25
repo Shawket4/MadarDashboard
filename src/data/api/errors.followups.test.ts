@@ -197,4 +197,25 @@ describe("the backend fixes' refusal codes", () => {
     for (const e of [move, del, frozen]) expect(getErrorMessage(e)).not.toMatch(/generated|draft|paid|closed|\{\{/);
     expect(getErrorMessage(phone)).toMatch(/\+201001234567/);
   });
+
+  it("words REASON_REQUIRED for the situation it came from (A5)", async () => {
+    const err = apiError({ code: "REASON_REQUIRED", error: "A reason is required" }, 400);
+    const want = {
+      payLine: /adding this line/,
+      stopLine: /monthly line stops/,
+      punchFor: /punching for them/,
+      decline: /declining/,
+      correctAdvance: /correcting this advance/,
+    } as const;
+    for (const [ctx, re] of Object.entries(want)) {
+      await i18n.changeLanguage("en");
+      expect(getErrorMessage(err, { reasonFor: ctx as keyof typeof want }), ctx).toMatch(re);
+      await i18n.changeLanguage("ar");
+      const ar = getErrorMessage(err, { reasonFor: ctx as keyof typeof want });
+      expect(ar, ctx).toMatch(/[؀-ۿ]/);
+      expect(ar, ctx).not.toBe(getErrorMessage(err));
+    }
+    await i18n.changeLanguage("en");
+    expect(getErrorMessage(err)).not.toMatch(/rejection/);
+  });
 });

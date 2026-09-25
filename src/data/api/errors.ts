@@ -91,7 +91,13 @@ export const isStaleRefusal = (err: unknown): boolean => {
  * Extract a human-readable message from any API / JS error. `fieldLabel`
  * names a refused field in the page's words (a coded refusal's `vars.field`).
  */
-export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: string) => string } = {}): string => {
+/** What a REASON_REQUIRED refusal was about: the caller knows, the server sends no vars (A5). */
+export type ReasonFor = "payLine" | "stopLine" | "punchFor" | "decline" | "correctAdvance";
+
+export const getErrorMessage = (
+  err: unknown,
+  opts: { fieldLabel?: (field: string) => string; reasonFor?: ReasonFor } = {},
+): string => {
   const t = i18n.getFixedT(null, "translation");
 
   if (err instanceof AxiosError) {
@@ -116,7 +122,8 @@ export const getErrorMessage = (err: unknown, opts: { fieldLabel?: (field: strin
     const variant =
       code && typeof rawVars.status === "string" && STATUS_VARIANTS[code]?.includes(rawVars.status) ? `${code}_${rawVars.status}` : undefined;
     // A paid month can't be reopened, so it gets its own wording (PERIOD_CLOSED {paid}).
-    const key = variant ?? (
+    const reasonKey = code === "REASON_REQUIRED" && opts.reasonFor ? `REASON_REQUIRED_${opts.reasonFor}` : undefined;
+    const key = reasonKey ?? variant ?? (
       code === "PERIOD_CLOSED" && vars.paid === true
         ? "PERIOD_CLOSED_paid"
         : code === "SETTING_OUT_OF_RANGE"
