@@ -6,6 +6,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { quickRange } from "@/components/inputs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 globalThis.IntersectionObserver ??= class {
@@ -47,6 +48,7 @@ vi.mock("@/data/scope/use-scope", () => ({
   useScope: () => ({ branchId: "b1", from: "2026-09-01T10:00:00Z", to: "2026-09-21T10:00:00Z" }),
 }));
 vi.mock("@/data/api/generated/api", () => ({
+  useGetAttendanceSettings: () => ({ data: { period_start_day: 26 } }),
   useListBranches: hook("branches", [{ id: "b1", name: "Zamalek" }]),
   useAttendanceSummary: hook("attendance", [
     { employee_id: "e1", employee_name: "Sara Ahmed", present_days: 18, late_days: 2, absent_days: 1, leave_days: 0, half_days: 0, total_late_minutes: 35, total_overtime_minutes: 120, total_worked_minutes: 8_640 },
@@ -83,7 +85,8 @@ describe("StaffReportsPage", () => {
       "Attendance & discipline", "Labour vs sales", "Overtime & payroll", "Salary advances",
     ]);
     expect(screen.getAllByText("Sara Ahmed").length).toBeGreaterThan(0);
-    expect(seen.attendance[0]).toEqual({ from: expect.stringMatching(/^2026-09-01$/), to: "2026-09-21", branch_id: "b1" });
+    // It opens on this pay period (the business's start day), not the scope bar's window (UX-P).
+    expect(seen.attendance[0]).toEqual({ ...quickRange("this_period", { periodStartDay: 26 }), branch_id: "b1" });
   });
 
   it("counts a month's worked time in hours, never days (E2E: 'Worked 7d 00h')", () => {
@@ -105,7 +108,7 @@ describe("StaffReportsPage", () => {
     await user.click(screen.getByRole("tab", { name: /Labour vs sales/ }));
     expect(screen.getAllByText("20.0%").length).toBeGreaterThan(0);
     await user.click(screen.getByRole("tab", { name: /Overtime & payroll/ }));
-    expect(seen.payroll[0]).toMatchObject({ from: "2026-09-01", to: "2026-09-21" });
+    expect(seen.payroll[0]).toMatchObject(quickRange("this_period", { periodStartDay: 26 }));
     expect(screen.getAllByText("Paid").length).toBeGreaterThan(0);
     await user.click(screen.getByRole("tab", { name: /Salary advances/ }));
     expect(screen.getAllByText("Youssef Adel").length).toBeGreaterThan(0);

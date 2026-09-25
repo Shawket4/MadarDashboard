@@ -6062,7 +6062,20 @@
     "clashTimes": "These times overlap {{with}}. Overlapping shifts are refused: change the times first.",
     "clashMove": "{{name}} already works {{with}} that day, which overlaps. Pick someone else.",
     "overlaps": "overlaps {{with}}",
-    "clashAdd": "It overlaps {{with}} on this day. Overlapping shifts are refused: change that shift's times or pick another."
+    "clashAdd": "It overlaps {{with}} on this day. Overlapping shifts are refused: change that shift's times or pick another.",
+    "lateAfter": "after {{time}}",
+    "earlyBefore": "before {{time}}",
+    "leftEarly": "Left early",
+    "leftEarlyMinutes": "Left early (minutes)",
+    "everyone": "Everyone",
+    "wordsTitle": "What late, left early and absent mean",
+    "wordLate": "clocked in after the shift's start (after the grace minutes, if any). Charged unless a request covers it.",
+    "wordEarly": "clocked out before the shift's end: the time away is charged unless a request covers it.",
+    "wordAbsent": "rostered, never clocked in, and no approved leave or mission for the day.",
+    "wordHalf": "worked less than the rules' half-day line.",
+    "reportsSubtitle": "Attendance, labour cost, payroll and advances over the dates below. It opens on this pay period.",
+    "rangeBackwards": "The end is before the start",
+    "rangeBackwardsHint": "Pick an end on or after the start, or tap a quick range."
   },
   "dawam": {
     "accept": "Accept",

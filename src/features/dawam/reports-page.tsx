@@ -1,5 +1,7 @@
 /**
- * Dawam reports (DSH-3), over the period and branch in the scope bar:
+ * Dawam reports (DSH-3), over the branch in the scope bar and the dates on
+ * the page — opening on this pay period (the month payroll pays), with one
+ * tap to the last one, a month, or a week:
  * attendance & discipline, labour cost against sales (only with POS on —
  * there are no sales without it, DSH-4), payroll history with overtime, and
  * advances — salary advances with what's left, and the expense log (`via` =
@@ -29,16 +31,12 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useOrgModules } from "@/hooks/use-org-modules";
 import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";
-import { cairoParts, fmtDate, fmtMoney } from "@/lib/format";
+import { fmtDate, fmtMoney } from "@/lib/format";
+import { DateRangeField, quickRange, type DateRange } from "@/components/inputs";
 import { fmtHours } from "@/features/staff/util";
 import { dawamQuery } from "./live";
+import { usePeriodStartDay } from "./period";
 import { DawamRefreshButton } from "./refresh-button";
-
-/** A scope instant → the calendar day the backend's date params want, in the active zone. */
-const localDate = (iso: string) => {
-  const { y, m, d } = cairoParts(iso);
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-};
 
 /** One column: what the table shows and what the CSV gets. */
 interface Col<R> {
@@ -107,7 +105,11 @@ export function StaffReportsPage() {
   const { t } = useTranslation();
   const authz = useAuthz();
   const modules = useOrgModules();
-  const { branchId, from, to } = useScope();
+  const { branchId } = useScope();
+  const periodStartDay = usePeriodStartDay();
+  /** Picked by hand; until then, this pay period. */
+  const [range, setRange] = useState<DateRange | null>(null);
+  const shownRange = range ?? quickRange("this_period", { periodStartDay });
   const canAttendance = authz.can(Cap.hrAttendanceRead);
   const canPay = authz.can(Cap.hrPayrollRead);
   const hasPos = modules.includes("pos");
@@ -123,14 +125,25 @@ export function StaffReportsPage() {
   if (authz.ready && tabs.length === 0) {
     return <Restricted title={t("dawam.reports", "Reports")} who={t("dawam.reportsNoAccess", "Reports need attendance or payroll rights. The owner can give you access.")} />;
   }
-  const params = { from: localDate(from), to: localDate(to), branch_id: branchId ?? undefined };
+  const backwards = shownRange.to < shownRange.from;
+  const params = { from: shownRange.from, to: shownRange.to, branch_id: branchId ?? undefined };
 
   return (
     <Page>
       <PageHeader
         title={t("dawam.reports", "Reports")}
-        description={t("dawam.reportsSubtitle", "Attendance, labour cost, payroll and advances over the period above.")}
+        description={t("dawamOps.reportsSubtitle", "Attendance, labour cost, payroll and advances over the dates below. It opens on this pay period.")}
         actions={<DawamRefreshButton />}
+        below={
+          <DateRangeField
+            id="reports"
+            className="max-w-md"
+            value={shownRange}
+            onChange={setRange}
+            quick={["this_period", "last_period", "this_month", "last_month", "this_week"]}
+            periodStartDay={periodStartDay}
+          />
+        }
       />
       <Tabs value={tab} onValueChange={setPicked} className="gap-6">
         <PageTabsList>
@@ -139,10 +152,13 @@ export function StaffReportsPage() {
           {tabs.includes("payroll") ? <PageTabsTrigger value="payroll"><Banknote className="size-4" />{t("dawam.rPayroll", "Overtime & payroll")}</PageTabsTrigger> : null}
           {tabs.includes("advances") ? <PageTabsTrigger value="advances"><HandCoins className="size-4" />{t("dawam.salaryAdvances", "Salary advances")}</PageTabsTrigger> : null}
         </PageTabsList>
-        <TabsContent value="attendance">{tab === "attendance" ? <AttendanceTab params={params} /> : null}</TabsContent>
-        <TabsContent value="labour">{tab === "labour" ? <LabourTab params={params} /> : null}</TabsContent>
-        <TabsContent value="payroll">{tab === "payroll" ? <PayrollTab params={params} /> : null}</TabsContent>
-        <TabsContent value="advances">{tab === "advances" ? <AdvancesTab params={params} /> : null}</TabsContent>
+        {backwards ? (
+          <EmptyState icon={CalendarClock} title={t("dawamOps.rangeBackwards", "The end is before the start")} description={t("dawamOps.rangeBackwardsHint", "Pick an end on or after the start, or tap a quick range.")} />
+        ) : null}
+        <TabsContent value="attendance">{tab === "attendance" && !backwards ? <AttendanceTab params={params} /> : null}</TabsContent>
+        <TabsContent value="labour">{tab === "labour" && !backwards ? <LabourTab params={params} /> : null}</TabsContent>
+        <TabsContent value="payroll">{tab === "payroll" && !backwards ? <PayrollTab params={params} /> : null}</TabsContent>
+        <TabsContent value="advances">{tab === "advances" && !backwards ? <AdvancesTab params={params} /> : null}</TabsContent>
       </Tabs>
     </Page>
   );

@@ -165,11 +165,12 @@ export const fmtDate = (iso: string | Date | null | undefined): string => {
   ).format(new Date(iso));
 };
 
-export const fmtTime = (iso: string | Date | null | undefined): string => {
+/** `tz`: the zone to read the instant in (a record's branch); else the active one. */
+export const fmtTime = (iso: string | Date | null | undefined, tz?: string | null): string => {
   if (!iso) return "—";
   return upMeridiem(new Intl.DateTimeFormat(
     getLocale(),
-    withTZ({ hour: "2-digit", minute: "2-digit" }),
+    withTZ({ hour: "2-digit", minute: "2-digit" }, tz ?? undefined),
   ).format(new Date(iso)));
 };
 

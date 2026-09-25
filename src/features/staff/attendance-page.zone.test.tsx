@@ -32,6 +32,7 @@ const rows = [
 
 const q = (data: unknown) => () => ({ data, isLoading: false, isFetching: false, error: null, refetch: vi.fn() });
 vi.mock("@/data/api/generated/api", () => ({
+  useGetAttendanceSettings: () => ({ data: { period_start_day: 1 } }),
   useListAttendance: q(rows),
   useAttendanceSummary: q([]),
   useListEmployees: q([]),
