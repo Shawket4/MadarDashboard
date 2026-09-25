@@ -4,7 +4,8 @@
  * two follow, from the rules' working days per month and day length (26 days
  * of 8 hours unless the rules say otherwise). With a hire date it also names
  * the first pay, pro rata by calendar days (PAY-13). Only the monthly figure
- * is saved; the other two are a reading of it.
+ * is saved; the other two are a reading of it. The boxes are text, not
+ * number inputs, so Arabic digits (٩٬٠٠٠٫٥٠) are read instead of dropped.
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -68,10 +69,8 @@ export function SalaryCalculator({
           <Label htmlFor={id}>{label}</Label>
           <Input
             id={id}
-            type="number"
+            type="text"
             inputMode="decimal"
-            step="0.01"
-            min="0"
             dir="ltr"
             placeholder={placeholder}
             value={monthly}
@@ -83,11 +82,11 @@ export function SalaryCalculator({
         </div>
         <div className="space-y-1">
           <Label htmlFor={`${id}-daily`}>{t("dawam.dailyRateEgp", "Daily rate (EGP)")}</Label>
-          <Input id={`${id}-daily`} type="number" inputMode="decimal" step="0.01" min="0" dir="ltr" value={dailyText} onChange={(e) => fromRate("daily", e.target.value)} />
+          <Input id={`${id}-daily`} type="text" inputMode="decimal" dir="ltr" value={dailyText} onChange={(e) => fromRate("daily", e.target.value)} />
         </div>
         <div className="space-y-1">
           <Label htmlFor={`${id}-hourly`}>{t("dawam.hourlyRateEgp", "Hourly rate (EGP)")}</Label>
-          <Input id={`${id}-hourly`} type="number" inputMode="decimal" step="0.01" min="0" dir="ltr" value={hourlyText} onChange={(e) => fromRate("hourly", e.target.value)} />
+          <Input id={`${id}-hourly`} type="text" inputMode="decimal" dir="ltr" value={hourlyText} onChange={(e) => fromRate("hourly", e.target.value)} />
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
