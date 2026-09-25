@@ -27,7 +27,7 @@ import type { Employee } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate, piastresToEgp } from "@/lib/format";
 import { readPounds } from "@/features/dawam/money-dialogs";
-import { salaryState } from "@/features/dawam/phase-d-contract";
+import { salaryState } from "@/features/dawam/phase-d";
 import { SalaryCalculator } from "@/features/dawam/salary-calculator";
 import { BranchChecklist } from "./branch-checklist";
 import { invalidateEmployees } from "./util";

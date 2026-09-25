@@ -38,7 +38,8 @@ import { useAuthStore } from "@/data/stores/auth.store";
 import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
 import type { SalaryAdvance } from "@/data/api/generated/models";
-import { capView, clearExpenseAdvance, reassignExpenseAdvance } from "./phase-d-contract";
+import { capView } from "./phase-d";
+import { clearExpenseAdvance, reassignExpenseAdvance } from "./phase-d-contract";
 
 /** Pounds as typed → piastres; null when it isn't a positive amount. */
 export const readPounds = (s: string): number | null => {

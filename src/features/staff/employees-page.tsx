@@ -25,7 +25,7 @@ import {
   useListBranches, useListDepartments, useListEmployees,
 } from "@/data/api/generated/api";
 import { useAuthz } from "@/data/authz/use-authz";
-import { salaryState } from "@/features/dawam/phase-d-contract";
+import { salaryState } from "@/features/dawam/phase-d";
 import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { AddEmployeeDialog, ImportPeopleDialog } from "@/features/dawam/add-employees";

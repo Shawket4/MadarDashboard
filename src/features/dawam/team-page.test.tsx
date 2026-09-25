@@ -219,6 +219,26 @@ describe("TeamPage", () => {
     expect(toastMock.info).not.toHaveBeenCalled();
   });
 
+  it("M33: the server's deduction_status wins over the limit when it is sent", async () => {
+    // No limit known here, but the server says the line waits for the owner.
+    resolveFlag.mockResolvedValueOnce({ deduction_status: "pending" } as never);
+    const user = userEvent.setup();
+    const { unmount } = wrap(<TeamPage />);
+    await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Deduct" }));
+    await waitFor(() => expect(toastMock.info).toHaveBeenCalledWith("Over your limit: it waits for the owner before it counts."));
+    unmount();
+    // Over the limit by /authz/me, but the server counted it (the owner raised it since).
+    toastMock.info.mockClear();
+    limits = { "hr.deductions.create": { max_amount: 100 } };
+    resolveFlag.mockResolvedValueOnce({ deduction_status: "approved" } as never);
+    wrap(<TeamPage />);
+    await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Deduct" }));
+    await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith("Flag handled"));
+    expect(toastMock.info).not.toHaveBeenCalled();
+  });
+
   it("refuses a deduction of nothing, and sends nothing", async () => {
     const user = userEvent.setup();
     wrap(<TeamPage />);

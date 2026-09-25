@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { AttendanceSettings, PutAttendanceSettingsRequest } from "@/data/api/generated/models";
-import { coverPayOf, type CoverPayMode } from "./phase-d-contract";
+import { coverPayOf, type CoverPayMode } from "./phase-d";
 
 export interface DawamRules {
   overtimeMode: "off" | "automatic" | "approval";

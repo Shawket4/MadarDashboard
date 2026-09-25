@@ -45,7 +45,8 @@ import { coveredBy, fmtMinutes, invalidateStaff } from "@/features/staff/util";
 import { AdjustmentDialog, ExpenseAdvanceDialog, readPounds } from "./money-dialogs";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
 import { useOwnEmployeeIds } from "@/features/staff/requests-inbox";
-import { punchWindowOpen, type PresenceRowD } from "./phase-d-contract";
+import { punchWindowOpen } from "./phase-d";
+import type { AttendanceFlagD } from "./phase-d-contract";
 
 const STATE_LABEL: Record<string, string> = {
   in: "In", late: "Late", absent: "Absent", on_leave: "On leave", off: "Off", done: "Done",
@@ -183,7 +184,7 @@ export function TeamPage() {
                       {coverer ? (
                         <span className="text-xs text-muted-foreground">{t("dawam.coveredBy", { name: coverer, defaultValue: `Covered by ${coverer}` })}</span>
                       ) : null}
-                      {canPunch && !monthClosed && (["in", "late", "absent"].includes(r.state) || punchWindowOpen(r as PresenceRowD)) ? (
+                      {canPunch && !monthClosed && (["in", "late", "absent"].includes(r.state) || punchWindowOpen(r)) ? (
                         <Button size="sm" variant="outline" disabled={!!coverer} onClick={() => setPunching(r)}>
                           <LogIn className="size-4" />
                           {out ? t("dawam.punchOut", "Punch out") : t("dawam.punchIn", "Punch in")}
@@ -243,9 +244,13 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
     setBusy(true);
     try {
       // A deduction is a pay line the employee reads: it carries why (AD-9).
-      await resolveFlag(flag.id, { action, amount_piastres: amountPiastres ?? null, reason: action === "deduct" ? reason.trim() || null : null });
-      // The flag's reply doesn't say, but the limit does: over it, the line waits for the owner.
-      if (action === "deduct" && amountPiastres != null && deductWaits(amountPiastres)) {
+      const handled = (await resolveFlag(flag.id, { action, amount_piastres: amountPiastres ?? null, reason: action === "deduct" ? reason.trim() || null : null })) as AttendanceFlagD | undefined;
+      // The server says whether the deduction waits for the owner (M33); an
+      // older one doesn't, and then the limit does.
+      const waits = handled?.deduction_status != null
+        ? handled.deduction_status === "pending"
+        : action === "deduct" && amountPiastres != null && deductWaits(amountPiastres);
+      if (waits) {
         toast.info(t("dawam.payLinePending", "Over your limit: it waits for the owner before it counts."));
       } else {
         toast.success(t("dawam.flagHandled", "Flag handled"));

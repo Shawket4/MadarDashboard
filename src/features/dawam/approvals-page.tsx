@@ -39,7 +39,7 @@ import {
 const BACKED_OUT = Symbol("backed out");
 import { fmtHours, fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
 import { AdvanceCapNote, RejectDialog, ReviewAdvanceDialog } from "./money-dialogs";
-import { capView, warningsOf } from "./phase-d-contract";
+import { capView, warningsOf } from "./phase-d";
 
 export type Section = "all" | "requests" | "money" | "shifts";
 
