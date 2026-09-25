@@ -71,6 +71,7 @@ import { SectionSteps } from "./section-steps";
 import { SectionModifiers } from "./section-modifiers";
 import { SectionOptions } from "./section-options";
 import { PreviewPanel } from "./preview/preview-panel";
+import { SectionMeal } from "./section-meal";
 
 // NOTE: the route file is `items_.$itemId.tsx` (trailing underscore = un-nested
 // from the items LIST route), so the route id carries the underscore too.
@@ -708,6 +709,18 @@ export function MenuStudioPage() {
             catalogById={catalogById}
             ingredientOptions={ingredientOptions}
           />
+        </SectionShell>
+
+        <SectionShell
+          id="studio-section-meal"
+          title={t("combos.meal.title", "Make it a meal")}
+          description={t(
+            "combos.meal.desc",
+            "Offer this item as a combo on the till: the customer taps \"Make it a meal\" and the item fills its slot.",
+          )}
+          dirty={false}
+        >
+          <SectionMeal itemId={itemId} categoryId={studio.category_id ?? null} />
         </SectionShell>
 
         {canPreview ? (

@@ -20,12 +20,15 @@ import {
   LayoutDashboard,
   Package,
   Receipt,
+  Sandwich,
   Scale,
   Settings,
   Settings2,
   SlidersHorizontal,
   Star,
   ShoppingCart,
+  Shapes,
+  TicketPercent,
   // MessagesSquare, // unused while AI analytics is disabled (see below)
   Store,
   Trash2,
@@ -38,6 +41,7 @@ import {
 } from "lucide-react";
 import type { Authz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
+import { ComboCap } from "@/features/combos/caps";
 
 export interface NavLeaf {
   to: string;
@@ -106,6 +110,10 @@ export const NAV: NavGroup[] = [
         children: [
           { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/items", labelKey: "nav.items", fallback: "Items", icon: CupSoda },
           { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/groups", labelKey: "nav.choiceGroups", fallback: "Choice groups", icon: ListChecks },
+          // Combos are menu items (kind combo) and deals are rules over the cart;
+          // both are read with menu.items.read and written with their own capability.
+          { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/combos", labelKey: "nav.combos", fallback: "Combos", icon: Sandwich },
+          { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/deals", labelKey: "nav.deals", fallback: "Deals", icon: TicketPercent },
           { caps: [Cap.menuItemsEdit], module: "pos", to: "/menu/pricing", labelKey: "nav.pricingAvailability", fallback: "Pricing & Availability", icon: SlidersHorizontal },
           { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/bases", labelKey: "nav.recipeBases", fallback: "Recipe bases", icon: Layers },
           { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/packaging", labelKey: "nav.packagingRules", fallback: "Packaging rules", icon: Package },
@@ -132,6 +140,8 @@ export const NAV: NavGroup[] = [
       // Tax and the audit trail: reports.legal, owner and manager by default, a manager's own branches.
       { caps: [Cap.reportsLegal], to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
       { caps: [Cap.loyaltyMembersList], module: "pos", to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
+      // Each combo and deal as its own line (C6): reports.bundles, owner and manager by default.
+      { caps: [ComboCap.reportsBundles], module: "pos", to: "/reports/bundles", labelKey: "nav.reportsBundles", fallback: "Bundles", icon: Shapes },
       { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
       // The day's staff drinks pool, per branch. Gated on the capability that
       // lets a person record one: if you can give a staff drink, you can see

@@ -24,10 +24,12 @@ import {
   Star,
   Truck,
   Utensils,
+  Sandwich,
 } from "lucide-react";
 import type { OrgModule } from "@/config/nav";
 import type { Authz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
+import { ComboCap } from "@/features/combos/caps";
 
 export interface SettingsLeaf {
   to: string;
@@ -117,6 +119,24 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         descKey: "settings.qrDesc",
         desc: "The codes on your tables, counters and receipts.",
         icon: QrCode,
+      },
+    ],
+  },
+  {
+    labelKey: "settings.groupMenu",
+    fallback: "Menu",
+    items: [
+      {
+        // Where combos and deals are sold: one switch per channel for the whole
+        // org, with branch exceptions (owner answer §11.1), and the margin floor.
+        to: "/settings/combos",
+        module: "pos",
+        labelKey: "nav.combosSettings",
+        fallback: "Combos and deals",
+        descKey: "settings.combosDesc",
+        desc: "Where combos and deals are sold, per channel and branch, and the margin that warns you.",
+        icon: Sandwich,
+        caps: [Cap.orgSettingsRead, ComboCap.menuCombosEdit],
       },
     ],
   },
