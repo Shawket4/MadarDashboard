@@ -336,9 +336,6 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                               <p className="flex flex-wrap items-center gap-1 text-sm font-semibold">
                                 {getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, lang)}
                                 {it.size_label ? <span className="text-muted-foreground">({it.size_label})</span> : null}
-                                {it.bundle_id ? (
-                                  <Badge className="px-1 py-0 text-xs uppercase">{t("orders.combo", "Combo")}</Badge>
-                                ) : null}
                                 {rewards.lines.has(it.id) ? (
                                   <StatusPill tone="success" size="sm">
                                     {t("orders.reward", "Reward")}
@@ -404,29 +401,6 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                                 </div>
                               ) : null}
 
-                              {it.bundle_components?.length ? (
-                                <div className="mt-2 space-y-2 border-s-2 border-muted ps-3">
-                                  {it.bundle_components.map((c, ci) => (
-                                    <div key={ci} className="space-y-0.5">
-                                      <p className="text-xs font-semibold">
-                                        – {getTranslatedName({ name: c.item_name, name_translations: c.name_translations }, lang)}
-                                        {c.size_label ? <span className="text-muted-foreground"> ({c.size_label})</span> : null}
-                                        <span className="ms-1 text-muted-foreground tabular">× {c.quantity * it.quantity}</span>
-                                      </p>
-                                      {c.addons?.length ? (
-                                        <div className="space-y-0.5 ps-2">
-                                          {c.addons.map((a) => (
-                                            <p key={a.id} className="text-xs text-muted-foreground">
-                                              + {getTranslatedName({ name: a.addon_name, name_translations: a.name_translations }, lang)}
-                                              {a.unit_price > 0 ? ` (${fmtMoney(a.unit_price * a.quantity)})` : ""}
-                                            </p>
-                                          ))}
-                                        </div>
-                                      ) : null}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : null}
 
                               {it.notes ? <p className="mt-1 text-xs italic text-muted-foreground">{it.notes}</p> : null}
                             </div>

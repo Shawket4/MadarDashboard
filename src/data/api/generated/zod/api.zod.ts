@@ -2157,716 +2157,6 @@ export const TableQrResponse = zod.object({
 }).describe('JSON returned from every QR-generation endpoint.')
 
 
-export const ListBundlesQueryParams = zod.object({
-  "org_id": zod.uuid().optional(),
-  "status": zod.enum(['draft', 'active', 'archived']).optional(),
-  "branch_id": zod.uuid().optional(),
-  "search": zod.string().optional(),
-  "page": zod.number().optional(),
-  "per_page": zod.number().optional(),
-  "sort": zod.string().optional().describe('Sort: name_asc | name_desc | price_asc | price_desc | created_asc |\ncreated_desc (default).')
-})
-
-export const ListBundlesResponse = zod.object({
-  "data": zod.array(zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))),
-  "page": zod.number(),
-  "per_page": zod.number(),
-  "total": zod.number(),
-  "total_pages": zod.number()
-})
-
-
-export const CreateBundleBody = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "branch_ids": zod.array(zod.uuid()).nullish(),
-  "components": zod.array(zod.object({
-  "item_id": zod.uuid(),
-  "position": zod.number().nullish(),
-  "quantity": zod.number()
-})),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown().optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown().optional(),
-  "org_id": zod.uuid(),
-  "price": zod.number()
-})
-
-export const CreateBundleResponse = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-
-
-export const AvailableBundlesQueryParams = zod.object({
-  "branch_id": zod.uuid(),
-  "at": zod.iso.datetime({"offset":true}).optional()
-})
-
-export const AvailableBundlesResponseItem = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-export const AvailableBundlesResponse = zod.array(AvailableBundlesResponseItem)
-
-
-/**
- * @summary Suggest menu items frequently ordered alongside the given item set, to help
-a manager pick the next component while building a bundle. Anchors on
-whichever items are already added: an item is suggested if it co-occurred,
-on the same order, with at least one anchor item at least `min_count`
-times across the org's branches in the given window.
- */
-export const SuggestedComponentsQueryParams = zod.object({
-  "org_id": zod.uuid(),
-  "item_ids": zod.string().describe('Comma-separated menu item IDs already added to the in-progress bundle.'),
-  "start_date": zod.iso.datetime({"offset":true}).optional(),
-  "end_date": zod.iso.datetime({"offset":true}).optional(),
-  "limit": zod.number().optional().describe('Max suggestions to return. Default 10.'),
-  "min_count": zod.number().optional().describe('Minimum number of orders an item must co-occur with the anchor set in\nto be suggested. Default 3.')
-})
-
-export const SuggestedComponentsResponseItem = zod.object({
-  "co_occurrence_count": zod.number().describe('Number of orders (across the anchor items\' order set) this item appeared in.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string()
-})
-export const SuggestedComponentsResponse = zod.array(SuggestedComponentsResponseItem)
-
-
-export const GetBundleParams = zod.object({
-  "id": zod.uuid().describe('Bundle ID')
-})
-
-export const GetBundleResponse = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-
-
-export const DeleteBundleParams = zod.object({
-  "id": zod.uuid().describe('Bundle ID')
-})
-
-export const DeleteBundleResponse = zod.unknown()
-
-
-export const UpdateBundleParams = zod.object({
-  "id": zod.uuid().describe('Bundle ID')
-})
-
-export const UpdateBundleBody = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish().describe('`null`  → clear the field (no start time restriction)\nomitted → keep the existing value\na value → set to that time'),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "branch_ids": zod.array(zod.uuid()).nullish(),
-  "components": zod.array(zod.object({
-  "item_id": zod.uuid(),
-  "position": zod.number().nullish(),
-  "quantity": zod.number()
-})).nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown().optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string().nullish(),
-  "name_translations": zod.unknown().optional(),
-  "price": zod.number().nullish()
-})
-
-export const UpdateBundleResponse = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-
-
-export const ActivateBundleParams = zod.object({
-  "id": zod.uuid().describe('Bundle ID')
-})
-
-export const ActivateBundleResponse = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-
-
-export const ArchiveBundleParams = zod.object({
-  "id": zod.uuid().describe('Bundle ID')
-})
-
-export const ArchiveBundleResponse = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-
-
-export const BundlePerformanceParams = zod.object({
-  "id": zod.uuid()
-})
-
-export const BundlePerformanceQueryParams = zod.object({
-  "start_date": zod.iso.datetime({"offset":true}).optional(),
-  "end_date": zod.iso.datetime({"offset":true}).optional()
-})
-
-export const BundlePerformanceResponse = zod.object({
-  "component_popularity": zod.array(zod.object({
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "quantity_sold": zod.number()
-})),
-  "gross_revenue": zod.number(),
-  "net_profit": zod.number(),
-  "sales_volume": zod.number()
-})
-
-
 export const CatalogSyncQueryParams = zod.object({
   "branch_id": zod.uuid().describe('Branch whose resolved prices\/availability to return'),
   "channel": zod.string().optional().describe('delivery_channel: in_mall | outside | umbrella | pickup — omit for branch-only resolution (in-store POS)'),
@@ -7746,11 +7036,7 @@ export const DuplicateItemResponse = zod.object({
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
-}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
-  "used_in_bundles": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "name": zod.string()
-}))
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
 
 
@@ -7931,11 +7217,7 @@ export const PutModifierGroupsResponse = zod.object({
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
-}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
-  "used_in_bundles": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "name": zod.string()
-}))
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
 
 
@@ -8400,11 +7682,7 @@ export const PutSizesResponse = zod.object({
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
-}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
-  "used_in_bundles": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "name": zod.string()
-}))
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
 
 
@@ -8600,11 +7878,7 @@ export const GetStudioResponse = zod.object({
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
-}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
-  "used_in_bundles": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "name": zod.string()
-}))
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
 
 
@@ -9146,20 +8420,8 @@ export const CreateOpenTicketBody = zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "bundle_components": zod.array(zod.object({
-  "addons": zod.array(zod.object({
-  "addon_item_id": zod.uuid(),
-  "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
-})).optional(),
-  "item_id": zod.uuid(),
-  "optional_field_ids": zod.array(zod.uuid()).optional(),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
-  "bundle_id": zod.uuid().nullish(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -9170,7 +8432,7 @@ export const CreateOpenTicketBody = zod.object({
   "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
   "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
   "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
-}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })).describe('Client-priced items (same shape as a POS order line) — recorded verbatim.'),
   "notes": zod.string().nullish(),
@@ -9369,20 +8631,8 @@ export const AddRoundBody = zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "bundle_components": zod.array(zod.object({
-  "addons": zod.array(zod.object({
-  "addon_item_id": zod.uuid(),
-  "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
-})).optional(),
-  "item_id": zod.uuid(),
-  "optional_field_ids": zod.array(zod.uuid()).optional(),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
-  "bundle_id": zod.uuid().nullish(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -9393,7 +8643,7 @@ export const AddRoundBody = zod.object({
   "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
   "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
   "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
-}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 }))
 })
@@ -9705,8 +8955,8 @@ export const ListOrdersQueryParams = zod.object({
   "to": zod.iso.datetime({"offset":true}).optional(),
   "order_type": zod.string().optional().describe('Filter by order origin: \"dine_in\" or \"delivery\".'),
   "channel": zod.string().optional().describe('Filter delivery orders by channel: \"in_mall\" or \"outside\".'),
-  "include_items": zod.boolean().optional().describe('When true, each order in `data` embeds its full line items\n(addons\/optionals\/bundle components) — the response shape becomes\n[PaginatedOrdersFull]. Lets offline-first clients cache complete\norders in one round trip instead of fetching each order separately.'),
-  "exclude_items": zod.string().optional().describe('Comma-separated menu_item\/bundle UUIDs left out of the summary\'s\n`line_items` count (units sold) — e.g. water bottles or service\npseudo-items that inflate it. Affects ONLY that KPI: revenue, order\ncounts, and the order rows themselves are untouched.')
+  "include_items": zod.boolean().optional().describe('When true, each order in `data` embeds its full line items\n(addons\/optionals) — the response shape becomes\n[PaginatedOrdersFull]. Lets offline-first clients cache complete\norders in one round trip instead of fetching each order separately.'),
+  "exclude_items": zod.string().optional().describe('Comma-separated menu_item UUIDs left out of the summary\'s\n`line_items` count (units sold) — e.g. water bottles or service\npseudo-items that inflate it. Affects ONLY that KPI: revenue, order\ncounts, and the order rows themselves are untouched.')
 })
 
 export const ListOrdersResponse = zod.object({
@@ -9833,20 +9083,8 @@ export const CreateOrderBody = zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "bundle_components": zod.array(zod.object({
-  "addons": zod.array(zod.object({
-  "addon_item_id": zod.uuid(),
-  "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
-})).optional(),
-  "item_id": zod.uuid(),
-  "optional_field_ids": zod.array(zod.uuid()).optional(),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
-  "bundle_id": zod.uuid().nullish(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -9857,7 +9095,7 @@ export const CreateOrderBody = zod.object({
   "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
   "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
   "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
-}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })),
   "live_approval": zod.union([zod.null(),zod.object({
@@ -9982,14 +9220,12 @@ export const CreateOrderResponse = zod.object({
   "zone_name": zod.string().nullish().describe('Name of the matched delivery zone ring, when an outside order matched one.')
 }).describe('Delivery context (customer phone, address, channel, zone), populated\nonly on the single-order detail endpoint and only when the order\noriginated from a delivery order. `null`\/absent for dine-in orders.')]).optional(),
   "items": zod.array(zod.object({
-  "bundle_id": zod.uuid().nullish(),
-  "bundle_unit_price": zod.number().nullish(),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
   "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
-  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
+  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals).\n`null` ⟺ unknown.'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
   "name_translations": zod.looseObject({
@@ -10003,7 +9239,7 @@ export const CreateOrderResponse = zod.object({
   "size_label": zod.string().nullish(),
   "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
   "staff_drink_id": zod.uuid().nullish().describe('The `staff_drinks` row this line is (`GET \/staff-pool\/drinks`).'),
-  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
+  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown.'),
   "unit_price": zod.number()
 }).and(zod.object({
   "addons": zod.array(zod.object({
@@ -10020,39 +9256,6 @@ export const CreateOrderResponse = zod.object({
   "staff_comp_minor": zod.number().optional().describe('The part of a staff drink\'s comp this pick absorbed (whole line), already\ntaken off `line_total`. 0 everywhere else.'),
   "unit_price": zod.number()
 })),
-  "bundle_components": zod.array(zod.object({
-  "addons": zod.array(zod.object({
-  "addon_item_id": zod.uuid(),
-  "addon_name": zod.string(),
-  "component_item_id": zod.uuid(),
-  "id": zod.uuid(),
-  "line_total": zod.number(),
-  "name_translations": zod.looseObject({
-
-}),
-  "order_line_id": zod.uuid(),
-  "quantity": zod.number(),
-  "unit_price": zod.number()
-})),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optionals": zod.array(zod.object({
-  "component_item_id": zod.uuid(),
-  "field_name": zod.string(),
-  "id": zod.uuid(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optional_field_id": zod.uuid().nullish(),
-  "order_line_id": zod.uuid(),
-  "price": zod.number()
-})),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
   "optionals": zod.array(zod.object({
   "cost": zod.number().nullish().describe('Ingredient cost per parent-item unit in piastres. `null` ⟺ unknown or\nno ingredient linked.'),
   "field_name": zod.string(),
@@ -10160,14 +9363,12 @@ export const ExportOrdersResponse = zod.object({
   "waiter_name": zod.string().nullish()
 }).and(zod.object({
   "items": zod.array(zod.object({
-  "bundle_id": zod.uuid().nullish(),
-  "bundle_unit_price": zod.number().nullish(),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
   "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
-  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
+  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals).\n`null` ⟺ unknown.'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
   "name_translations": zod.looseObject({
@@ -10181,7 +9382,7 @@ export const ExportOrdersResponse = zod.object({
   "size_label": zod.string().nullish(),
   "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
   "staff_drink_id": zod.uuid().nullish().describe('The `staff_drinks` row this line is (`GET \/staff-pool\/drinks`).'),
-  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
+  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown.'),
   "unit_price": zod.number()
 }).and(zod.object({
   "addons": zod.array(zod.object({
@@ -10198,39 +9399,6 @@ export const ExportOrdersResponse = zod.object({
   "staff_comp_minor": zod.number().optional().describe('The part of a staff drink\'s comp this pick absorbed (whole line), already\ntaken off `line_total`. 0 everywhere else.'),
   "unit_price": zod.number()
 })),
-  "bundle_components": zod.array(zod.object({
-  "addons": zod.array(zod.object({
-  "addon_item_id": zod.uuid(),
-  "addon_name": zod.string(),
-  "component_item_id": zod.uuid(),
-  "id": zod.uuid(),
-  "line_total": zod.number(),
-  "name_translations": zod.looseObject({
-
-}),
-  "order_line_id": zod.uuid(),
-  "quantity": zod.number(),
-  "unit_price": zod.number()
-})),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optionals": zod.array(zod.object({
-  "component_item_id": zod.uuid(),
-  "field_name": zod.string(),
-  "id": zod.uuid(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optional_field_id": zod.uuid().nullish(),
-  "order_line_id": zod.uuid(),
-  "price": zod.number()
-})),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
   "optionals": zod.array(zod.object({
   "cost": zod.number().nullish().describe('Ingredient cost per parent-item unit in piastres. `null` ⟺ unknown or\nno ingredient linked.'),
   "field_name": zod.string(),
@@ -10391,14 +9559,12 @@ export const GetOrderResponse = zod.object({
   "zone_name": zod.string().nullish().describe('Name of the matched delivery zone ring, when an outside order matched one.')
 }).describe('Delivery context (customer phone, address, channel, zone), populated\nonly on the single-order detail endpoint and only when the order\noriginated from a delivery order. `null`\/absent for dine-in orders.')]).optional(),
   "items": zod.array(zod.object({
-  "bundle_id": zod.uuid().nullish(),
-  "bundle_unit_price": zod.number().nullish(),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
   "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
-  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
+  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals).\n`null` ⟺ unknown.'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
   "name_translations": zod.looseObject({
@@ -10412,7 +9578,7 @@ export const GetOrderResponse = zod.object({
   "size_label": zod.string().nullish(),
   "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
   "staff_drink_id": zod.uuid().nullish().describe('The `staff_drinks` row this line is (`GET \/staff-pool\/drinks`).'),
-  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
+  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown.'),
   "unit_price": zod.number()
 }).and(zod.object({
   "addons": zod.array(zod.object({
@@ -10429,39 +9595,6 @@ export const GetOrderResponse = zod.object({
   "staff_comp_minor": zod.number().optional().describe('The part of a staff drink\'s comp this pick absorbed (whole line), already\ntaken off `line_total`. 0 everywhere else.'),
   "unit_price": zod.number()
 })),
-  "bundle_components": zod.array(zod.object({
-  "addons": zod.array(zod.object({
-  "addon_item_id": zod.uuid(),
-  "addon_name": zod.string(),
-  "component_item_id": zod.uuid(),
-  "id": zod.uuid(),
-  "line_total": zod.number(),
-  "name_translations": zod.looseObject({
-
-}),
-  "order_line_id": zod.uuid(),
-  "quantity": zod.number(),
-  "unit_price": zod.number()
-})),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optionals": zod.array(zod.object({
-  "component_item_id": zod.uuid(),
-  "field_name": zod.string(),
-  "id": zod.uuid(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optional_field_id": zod.uuid().nullish(),
-  "order_line_id": zod.uuid(),
-  "price": zod.number()
-})),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
   "optionals": zod.array(zod.object({
   "cost": zod.number().nullish().describe('Ingredient cost per parent-item unit in piastres. `null` ⟺ unknown or\nno ingredient linked.'),
   "field_name": zod.string(),
@@ -11748,7 +10881,7 @@ export const CreateDeliveryOrderBody = zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
   "menu_item_id": zod.uuid(),
   "notes": zod.string().nullish(),
@@ -12293,20 +11426,8 @@ export const PublicTableOrderBody = zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "bundle_components": zod.array(zod.object({
-  "addons": zod.array(zod.object({
-  "addon_item_id": zod.uuid(),
-  "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
-})).optional(),
-  "item_id": zod.uuid(),
-  "optional_field_ids": zod.array(zod.uuid()).optional(),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
-  "bundle_id": zod.uuid().nullish(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -12317,7 +11438,7 @@ export const PublicTableOrderBody = zod.object({
   "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
   "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
   "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
-}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })).describe('What they want. Named, never priced — see the module docs.'),
   "table_id": zod.uuid()
@@ -13480,25 +12601,6 @@ export const BranchAddonSalesResponseItem = zod.object({
 export const BranchAddonSalesResponse = zod.array(BranchAddonSalesResponseItem)
 
 
-export const BranchBundleSalesParams = zod.object({
-  "branch_id": zod.uuid()
-})
-
-export const BranchBundleSalesQueryParams = zod.object({
-  "from": zod.iso.datetime({"offset":true}).optional(),
-  "to": zod.iso.datetime({"offset":true}).optional(),
-  "limit": zod.number().optional()
-})
-
-export const BranchBundleSalesResponseItem = zod.object({
-  "bundle_id": zod.uuid().nullish(),
-  "bundle_name": zod.string(),
-  "quantity_sold": zod.number(),
-  "revenue": zod.number()
-})
-export const BranchBundleSalesResponse = zod.array(BranchBundleSalesResponseItem)
-
-
 export const BranchChannelBreakdownParams = zod.object({
   "branch_id": zod.uuid().describe('Branch ID')
 })
@@ -13598,13 +12700,12 @@ export const BranchCombinedItemSalesQueryParams = zod.object({
 })
 
 export const BranchCombinedItemSalesResponseItem = zod.object({
-  "bundle_qty": zod.number(),
-  "item_id": zod.uuid().nullish(),
+  "item_id": zod.uuid(),
   "item_name": zod.string(),
   "item_name_translations": zod.looseObject({
 
 }),
-  "standalone_qty": zod.number(),
+  "standalone_qty": zod.number().describe('Equal to `total_qty` since combos were removed (it used to exclude\nunits sold inside a combo). Kept so dashboards built before still render.'),
   "total_qty": zod.number()
 })
 export const BranchCombinedItemSalesResponse = zod.array(BranchCombinedItemSalesResponseItem)
@@ -13712,7 +12813,7 @@ export const BranchPosMetricsResponse = zod.object({
   "timezone": zod.string().describe('The IANA zone the days were cut in.'),
   "to": zod.iso.date(),
   "top_items": zod.array(zod.object({
-  "item_id": zod.uuid().nullish().describe('The menu item or bundle; null for a line with neither.'),
+  "item_id": zod.uuid().nullish().describe('The menu item; null for a line with none.'),
   "item_name": zod.string(),
   "quantity": zod.number(),
   "revenue": zod.number().describe('Σ line totals (before refunds), as `branch_sales.top_items.revenue`.')
@@ -13732,7 +12833,7 @@ export const BranchSalesQueryParams = zod.object({
   "from": zod.iso.datetime({"offset":true}).optional(),
   "to": zod.iso.datetime({"offset":true}).optional(),
   "limit": zod.number().optional(),
-  "exclude_items": zod.string().optional().describe('Comma-separated menu_item\/bundle UUIDs left out of `total_line_items`\n(units sold) ONLY — revenue, top items, and categories are untouched.')
+  "exclude_items": zod.string().optional().describe('Comma-separated menu_item UUIDs left out of `total_line_items`\n(units sold) ONLY — revenue, top items, and categories are untouched.')
 })
 
 export const BranchSalesResponse = zod.object({
@@ -21002,21 +20103,6 @@ of truth: DB enum → this endpoint → select options).
  */
 export const ListTimezonesResponseItem = zod.string()
 export const ListTimezonesResponse = zod.array(ListTimezonesResponseItem)
-
-
-export const UploadBundleImageParams = zod.object({
-  "bundle_id": zod.uuid().describe('Bundle ID')
-})
-
-export const UploadBundleImageBody = zod.object({
-  "image": zod.instanceof(File)
-})
-
-export const UploadBundleImageResponse = zod.object({
-  "asset_job_id": zod.uuid(),
-  "image_url": zod.string().nullish(),
-  "status": zod.string().describe('`processing`')
-}).describe('Upload accepted: the picture is converted by the background asset worker.\n`image_url` is the row\'s current legacy URL (unchanged until the job is\ndone); poll `GET \/assets\/jobs\/{asset_job_id}`.')
 
 
 export const UploadCategoryImageParams = zod.object({

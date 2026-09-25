@@ -75,7 +75,6 @@ const baseStudio = {
   options: [],
   recipe_steps: [],
   sizes: [],
-  used_in_bundles: [],
 };
 
 describe("MenuStudioPage item image", () => {

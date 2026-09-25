@@ -3,10 +3,6 @@
 import type { OrderItemNameTranslations } from './orderItemNameTranslations';
 
 export interface OrderItem {
-  /** @nullable */
-  bundle_id?: string | null;
-  /** @nullable */
-  bundle_unit_price?: number | null;
   /** True when any cost component could not be resolved. */
   cost_missing: boolean;
   deductions_snapshot: unknown;
@@ -18,7 +14,7 @@ export interface OrderItem {
   is_reward?: boolean;
   item_name: string;
   /**
-     * Full line COGS in piastres (recipe + addons + optionals + components).
+     * Full line COGS in piastres (recipe + addons + optionals).
      * `null` ⟺ unknown.
      * @nullable
      */
@@ -50,8 +46,7 @@ export interface OrderItem {
      */
   staff_drink_id?: string | null;
   /**
-     * Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown
-     * or bundle line.
+     * Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown.
      * @nullable
      */
   unit_cost?: number | null;

@@ -5,16 +5,14 @@ import { useTranslation } from "react-i18next";
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useQueries } from "@tanstack/react-query";
-import { ArrowRight, Boxes, Copy } from "lucide-react";
+import { ArrowRight, Copy } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { assetOf } from "@/components/app/asset-image";
 import { StatusPill } from "@/components/app/status-pill";
 import { ErrorState } from "@/components/app/empty-state";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import {
   duplicateItem,
@@ -574,28 +572,9 @@ export function MenuStudioPage() {
         back={{ onClick: goBack }}
         title={name || t("menu.studio.untitled", "Untitled item")}
         subtitle={
-          !studio.is_active || studio.used_in_bundles.length > 0 ? (
+          !studio.is_active ? (
             <span className="mt-1 flex flex-wrap items-center gap-2">
-              {!studio.is_active ? <StatusPill tone="neutral" size="sm">{t("common.inactive", "Inactive")}</StatusPill> : null}
-              {studio.used_in_bundles.length > 0 ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className="gap-1 font-normal">
-                      <Boxes className="size-3.5" aria-hidden="true" />
-                      {t("menu.studio.usedInBundlesN", "Used in {{count}} bundles", {
-                        count: studio.used_in_bundles.length,
-                      })}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <ul className="space-y-0.5">
-                      {studio.used_in_bundles.map((b) => (
-                        <li key={b.bundle_id}>{b.name}</li>
-                      ))}
-                    </ul>
-                  </TooltipContent>
-                </Tooltip>
-              ) : null}
+              <StatusPill tone="neutral" size="sm">{t("common.inactive", "Inactive")}</StatusPill>
             </span>
           ) : undefined
         }

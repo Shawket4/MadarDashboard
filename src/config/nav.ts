@@ -111,7 +111,6 @@ export const NAV: NavGroup[] = [
           { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/packaging", labelKey: "nav.packagingRules", fallback: "Packaging rules", icon: Package },
         ],
       },
-      { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/bundles", labelKey: "nav.bundles", fallback: "Bundles", icon: Layers },
       { caps: [Cap.discountsRead], module: "pos", to: "/discounts", labelKey: "nav.discounts", fallback: "Discounts", icon: BadgePercent },
     ],
   },

@@ -18,8 +18,6 @@ import {
   MOCK_BRANCH_SALES,
   MOCK_BRANCH_STOCK,
   MOCK_BRANCHES,
-  MOCK_BUNDLE_PERFORMANCE,
-  MOCK_BUNDLES,
   MOCK_CATEGORIES,
   MOCK_COMBINED_ITEM_SALES,
   MOCK_COMPARISON,
@@ -57,7 +55,6 @@ import {
   MOCK_TIMESERIES,
   MOCK_TOKEN,
   MOCK_USER,
-  bundlesPage,
   mockCreateDecision,
   mockDecisions,
   mockMarginTargets,
@@ -403,20 +400,6 @@ export const handlers = [
   http.get("*/costing/catalog", () => HttpResponse.json(MOCK_MENU_CATALOG)),
   http.get("*/addon-items/catalog", () => HttpResponse.json(MOCK_ADDON_CATALOG)),
   http.get("*/addon-items", () => HttpResponse.json(MOCK_ADDON_ITEMS)),
-
-  // ── Bundles ───────────────────────────────────────────────────────────────
-  http.get("*/bundles/:id/performance", ({ params }) =>
-    HttpResponse.json(
-      MOCK_BUNDLE_PERFORMANCE[params.id as string] ?? {
-        sales_volume: 0, gross_revenue: 0, net_profit: 0, component_popularity: [],
-      },
-    ),
-  ),
-  http.get("*/bundles/available", () => HttpResponse.json(MOCK_BUNDLES)),
-  http.get("*/bundles", ({ request }) => {
-    const status = new URL(request.url).searchParams.get("status");
-    return HttpResponse.json(bundlesPage(status));
-  }),
 
   // ── Branch overrides ──────────────────────────────────────────────────────
   http.get("*/branch-menu-overrides", () => HttpResponse.json(MOCK_BRANCH_MENU_OVERRIDES)),

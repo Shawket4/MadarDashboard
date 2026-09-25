@@ -75,7 +75,6 @@ import { Route as AppMenuPackagingRouteImport } from './routes/_app/menu/packagi
 import { Route as AppMenuOverridesRouteImport } from './routes/_app/menu/overrides'
 import { Route as AppMenuItemsRouteImport } from './routes/_app/menu/items'
 import { Route as AppMenuGroupsRouteImport } from './routes/_app/menu/groups'
-import { Route as AppMenuBundlesRouteImport } from './routes/_app/menu/bundles'
 import { Route as AppMenuBasesRouteImport } from './routes/_app/menu/bases'
 import { Route as AppKitchenStationsRouteImport } from './routes/_app/kitchen/stations'
 import { Route as AppKitchenRoutingRouteImport } from './routes/_app/kitchen/routing'
@@ -436,11 +435,6 @@ const AppMenuGroupsRoute = AppMenuGroupsRouteImport.update({
   path: '/groups',
   getParentRoute: () => AppMenuRouteRoute,
 } as any)
-const AppMenuBundlesRoute = AppMenuBundlesRouteImport.update({
-  id: '/bundles',
-  path: '/bundles',
-  getParentRoute: () => AppMenuRouteRoute,
-} as any)
 const AppMenuBasesRoute = AppMenuBasesRouteImport.update({
   id: '/bases',
   path: '/bases',
@@ -623,7 +617,6 @@ export interface FileRoutesByFullPath {
   '/kitchen/routing': typeof AppKitchenRoutingRoute
   '/kitchen/stations': typeof AppKitchenStationsRoute
   '/menu/bases': typeof AppMenuBasesRoute
-  '/menu/bundles': typeof AppMenuBundlesRoute
   '/menu/groups': typeof AppMenuGroupsRoute
   '/menu/items': typeof AppMenuItemsRoute
   '/menu/overrides': typeof AppMenuOverridesRoute
@@ -712,7 +705,6 @@ export interface FileRoutesByTo {
   '/kitchen/routing': typeof AppKitchenRoutingRoute
   '/kitchen/stations': typeof AppKitchenStationsRoute
   '/menu/bases': typeof AppMenuBasesRoute
-  '/menu/bundles': typeof AppMenuBundlesRoute
   '/menu/groups': typeof AppMenuGroupsRoute
   '/menu/items': typeof AppMenuItemsRoute
   '/menu/overrides': typeof AppMenuOverridesRoute
@@ -808,7 +800,6 @@ export interface FileRoutesById {
   '/_app/kitchen/routing': typeof AppKitchenRoutingRoute
   '/_app/kitchen/stations': typeof AppKitchenStationsRoute
   '/_app/menu/bases': typeof AppMenuBasesRoute
-  '/_app/menu/bundles': typeof AppMenuBundlesRoute
   '/_app/menu/groups': typeof AppMenuGroupsRoute
   '/_app/menu/items': typeof AppMenuItemsRoute
   '/_app/menu/overrides': typeof AppMenuOverridesRoute
@@ -904,7 +895,6 @@ export interface FileRouteTypes {
     | '/kitchen/routing'
     | '/kitchen/stations'
     | '/menu/bases'
-    | '/menu/bundles'
     | '/menu/groups'
     | '/menu/items'
     | '/menu/overrides'
@@ -993,7 +983,6 @@ export interface FileRouteTypes {
     | '/kitchen/routing'
     | '/kitchen/stations'
     | '/menu/bases'
-    | '/menu/bundles'
     | '/menu/groups'
     | '/menu/items'
     | '/menu/overrides'
@@ -1088,7 +1077,6 @@ export interface FileRouteTypes {
     | '/_app/kitchen/routing'
     | '/_app/kitchen/stations'
     | '/_app/menu/bases'
-    | '/_app/menu/bundles'
     | '/_app/menu/groups'
     | '/_app/menu/items'
     | '/_app/menu/overrides'
@@ -1607,13 +1595,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMenuGroupsRouteImport
       parentRoute: typeof AppMenuRouteRoute
     }
-    '/_app/menu/bundles': {
-      id: '/_app/menu/bundles'
-      path: '/bundles'
-      fullPath: '/menu/bundles'
-      preLoaderRoute: typeof AppMenuBundlesRouteImport
-      parentRoute: typeof AppMenuRouteRoute
-    }
     '/_app/menu/bases': {
       id: '/_app/menu/bases'
       path: '/bases'
@@ -1865,7 +1846,6 @@ const AppInventoryRouteRouteWithChildren =
 
 interface AppMenuRouteRouteChildren {
   AppMenuBasesRoute: typeof AppMenuBasesRoute
-  AppMenuBundlesRoute: typeof AppMenuBundlesRoute
   AppMenuGroupsRoute: typeof AppMenuGroupsRoute
   AppMenuItemsRoute: typeof AppMenuItemsRoute
   AppMenuOverridesRoute: typeof AppMenuOverridesRoute
@@ -1878,7 +1858,6 @@ interface AppMenuRouteRouteChildren {
 
 const AppMenuRouteRouteChildren: AppMenuRouteRouteChildren = {
   AppMenuBasesRoute: AppMenuBasesRoute,
-  AppMenuBundlesRoute: AppMenuBundlesRoute,
   AppMenuGroupsRoute: AppMenuGroupsRoute,
   AppMenuItemsRoute: AppMenuItemsRoute,
   AppMenuOverridesRoute: AppMenuOverridesRoute,

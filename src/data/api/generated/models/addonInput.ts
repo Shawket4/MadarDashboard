@@ -7,7 +7,7 @@ export interface AddonInput {
   /**
      * Charged unit price (piastres) the POS applied for this addon. When present
      * it is RECORDED as the addon's unit_price; absent → the server's expected
-     * (catalog) price is used. Bundle-component addons ignore this (server-priced).
+     * (catalog) price is used.
      * @nullable
      */
   unit_price?: number | null;
