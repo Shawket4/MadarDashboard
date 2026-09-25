@@ -4590,7 +4590,8 @@
     "paid": "Paid",
     "unpaid": "Unpaid",
     "inReasonColumn": "Why punched in",
-    "outReasonColumn": "Why punched out"
+    "outReasonColumn": "Why punched out",
+    "halfDayUnsaid": "½ day"
   },
   "basira": {
     "title": "Basira",

@@ -303,3 +303,17 @@ describe("Filing for someone", () => {
     });
   });
 });
+
+describe("Owner decisions 18 and 43: small wording", () => {
+  it("M18: a half-day leave with no half picked reads '½ day', not 'first half'", () => {
+    rows = [
+      { ...LEAVE, id: "h1", employee_name: "Old Seed", is_half_day: true, leave_half: null, end_date: null },
+      { ...LEAVE, id: "h2", employee_name: "New Filing", is_half_day: true, leave_half: "second", end_date: null },
+    ];
+    renderPage();
+    expect(screen.getByText("½ day")).toBeInTheDocument();
+    expect(screen.getByText("½ day · second half")).toBeInTheDocument();
+    expect(screen.queryByText("½ day · first half")).not.toBeInTheDocument();
+  });
+});
+

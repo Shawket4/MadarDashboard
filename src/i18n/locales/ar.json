@@ -4723,7 +4723,8 @@
     "paid": "مدفوعة",
     "unpaid": "غير مدفوعة",
     "inReasonColumn": "سبب تسجيل الحضور",
-    "outReasonColumn": "سبب تسجيل الانصراف"
+    "outReasonColumn": "سبب تسجيل الانصراف",
+    "halfDayUnsaid": "½ يوم"
   },
   "basira": {
     "title": "بصيرة",

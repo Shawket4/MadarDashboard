@@ -301,7 +301,12 @@ export function RequestBadges({ r, mine }: { r: StaffRequest; mine: boolean }) {
       {r.is_paid === false ? <Badge variant="outline">{t("staff.unpaidBadge", "unpaid")}</Badge> : null}
       {r.kind === "leave" && r.is_half_day ? (
         <Badge variant="outline">
-          {r.leave_half === "second" ? t("staff.halfSecond", "½ day · second half") : t("staff.halfFirst", "½ day · first half")}
+          {r.leave_half === "second"
+            ? t("staff.halfSecond", "½ day · second half")
+            : r.leave_half === "first"
+              ? t("staff.halfFirst", "½ day · first half")
+              : // No half picked (old seed data): say only what is known (M18).
+                t("staff.halfDayUnsaid", "½ day")}
         </Badge>
       ) : null}
       {mine ? <Badge variant="outline">{t("staff.yourRequest", "Yours — decided above you")}</Badge> : null}
