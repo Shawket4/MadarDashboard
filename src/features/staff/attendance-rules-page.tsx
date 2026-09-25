@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, GripVertical, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
+import { Eye, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -14,7 +14,6 @@ import { RowAction } from "@/features/users/row-action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -25,15 +24,18 @@ import {
   deleteBranchRules, putAttendanceSettings, useGetAttendanceSettings, useListBranchRules,
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
-import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
+import { fmtMoney, fmtWireTime } from "@/lib/format";
 import { invalidateAttendance } from "./util";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { DawamRulesCard, type CoverChoice } from "@/features/dawam/rules-card";
+import { MoneyField, NumberField } from "@/components/inputs";
+import { RulesPreview } from "./rules-preview-card";
+import { changedRules, dayPiastres, tierPiastres, type PayExample, type RuleChange } from "./rules-preview";
 import {
-  branchBody, EMPTY_VALUES, fullBody, ruleLabel, rulesSchema, valuesFrom,
+  BUSINESS_ONLY, branchBody, EMPTY_VALUES, fullBody, ruleLabel, rulesSchema, valuesFrom,
   type RulesValues, type Tier,
 } from "./rules-form";
 
@@ -73,6 +75,7 @@ export function AttendanceRulesPage() {
     { query: dawamQuery({ enabled: canView, refetchOnWindowFocus: readOnly }) },
   );
   const [busy, setBusy] = useState(false);
+  const [exampleIn, setExample] = useState<PayExample>({ salary: 1200000, workingDays: 30, shiftMinutes: 480 });
   // Rules this branch hands back to the business on the next save.
   const [inherit, setInherit] = useState<string[]>([]);
   // Cover pay a branch picked for itself though it followed the business (D5):
@@ -95,6 +98,8 @@ export function AttendanceRulesPage() {
   }, [query.data, branchId, canEdit, form]);
 
   const values = form.watch();
+  // The worked examples divide by the working days being edited, as payroll will.
+  const example: PayExample = { ...exampleIn, workingDays: Number(values.workingDays) || 0 };
   const tiers = values.tiers;
   const errors = form.formState.errors;
   const tierError = errors.tiers?.message ?? errors.tiers?.root?.message;
@@ -114,6 +119,8 @@ export function AttendanceRulesPage() {
     form.setValue("dawam", { ...values.dawam, coverPayMode: c }, { shouldDirty: true, shouldValidate: true });
   };
 
+  const branchName = branchesQ.data?.find((b) => b.branch_id === branchId)?.branch_name ?? "";
+  const dirty = form.formState.isDirty || inherit.length > 0;
   const setTiers = (next: Tier[]) => form.setValue("tiers", next, { shouldDirty: true, shouldValidate: true });
   const addTier = () => {
     const last = tiers[tiers.length - 1];
@@ -123,6 +130,37 @@ export function AttendanceRulesPage() {
   const patchTier = (i: number, patch: Partial<Tier>) =>
     setTiers(tiers.map((tier, index) => (index === i ? { ...tier, ...patch } : tier)));
 
+  /** Rules already in force change people's pay: say exactly what changes first. */
+  const confirmChanges = async (v: RulesValues): Promise<boolean> => {
+    if (!query.data?.rules_saved_at && !branchId) return true; // the first save sets them up
+    const changes = changedRules(v, loaded, canGender).filter((c) => !branchId || !BUSINESS_ONLY.includes(c.name as never));
+    if (changes.length === 0 && inherit.length === 0) return true;
+    return confirm({
+      title: branchId
+        ? t("staff.rulesConfirmBranchTitle", { name: branchName, defaultValue: `Change ${branchName}'s rules?` })
+        : t("staff.rulesConfirmTitle", "Change the rules for everyone?"),
+      description: (
+        <span className="block space-y-2">
+          <span className="block">{t("staff.rulesConfirmHint", "From the next clock-in, these change what people are charged and paid:")}</span>
+          <span className="block space-y-1">
+            {changes.map((c) => (
+              <span key={c.name} className="flex flex-wrap items-baseline gap-x-2 text-foreground">
+                <span className="font-medium">{ruleLabel(c.name, t)}</span>
+                <span className="text-muted-foreground tabular-nums">{describeChange(c, t)}</span>
+              </span>
+            ))}
+            {inherit.map((n) => (
+              <span key={n} className="block text-foreground">
+                {t("staff.rulesConfirmInherit", { rule: ruleLabel(n, t), defaultValue: `${ruleLabel(n, t)}: back to the business's` })}
+              </span>
+            ))}
+          </span>
+        </span>
+      ),
+      confirmLabel: t("staff.rulesConfirmSave", "Save the changes"),
+    });
+  };
+
   const save = form.handleSubmit(
     async (v) => {
       const body = branchId ? branchBody(branchId, v, loaded, inherit, coverOwnNew ? [COVER] : []) : fullBody(v, canGender);
@@ -130,6 +168,7 @@ export function AttendanceRulesPage() {
         toast.info(t("staff.rulesNothingChanged", "Nothing changed"));
         return;
       }
+      if (!(await confirmChanges(v))) return;
       setBusy(true);
       try {
         await putAttendanceSettings(body);
@@ -149,7 +188,7 @@ export function AttendanceRulesPage() {
 
   const followBusiness = async () => {
     if (!branchId) return;
-    const name = branchesQ.data?.find((b) => b.branch_id === branchId)?.branch_name ?? "";
+    const name = branchName;
     const ok = await confirm({
       title: t("staff.rulesFollowBusinessTitle", { name, defaultValue: `${name} follows the business's rules?` }),
       description: t("staff.rulesFollowBusinessHint", "Every rule this branch sets itself goes back to the business's value."),
@@ -216,17 +255,7 @@ export function AttendanceRulesPage() {
           "staff.rulesSubtitle",
           "What lateness and absence cost. These are the rules the system charges against — an approved request waives them for that day.",
         )}
-        actions={
-          <>
-            <DawamRefreshButton />
-            {readOnly ? null : (
-              <Button onClick={() => void save()} disabled={busy || !!tierError}>
-                <Save className="size-4" />
-                {t("common.save", "Save")}
-              </Button>
-            )}
-          </>
-        }
+        actions={<DawamRefreshButton />}
         below={branchSelect}
       />
 
@@ -314,88 +343,98 @@ export function AttendanceRulesPage() {
               {t("staff.noTiers", "No penalties — lateness is recorded but never charged.")}
             </p>
           ) : (
-            tiers.map((tier, i) => (
-              <div key={i} className="flex flex-wrap items-end gap-2 rounded-lg border p-3">
-                <GripVertical className="mb-2 size-4 shrink-0 text-muted-foreground" />
-                <div className="space-y-1">
-                  <Label className="text-xs">{t("staff.fromMinutes", "From (min)")}</Label>
-                  <Input
-                    aria-label={t("staff.fromMinutes", "From (min)")}
-                    type="number"
-                    min="0"
-                    className="w-24"
-                    disabled={readOnly}
-                    value={tier.from_minutes}
-                    onChange={(e) => patchTier(i, { from_minutes: Number(e.target.value) })}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">{t("staff.toMinutes", "To (min)")}</Label>
-                  <Input
-                    aria-label={t("staff.toMinutes", "To (min)")}
-                    type="number"
-                    min="0"
-                    className="w-24"
-                    disabled={readOnly}
-                    placeholder={t("staff.noLimit", "no limit")}
-                    value={tier.to_minutes ?? ""}
-                    onChange={(e) =>
-                      patchTier(i, {
-                        to_minutes: e.target.value === "" ? null : Number(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">{t("staff.deduct", "Deduct")}</Label>
-                  <Select
-                    value={tier.kind}
-                    disabled={readOnly}
-                    onValueChange={(v) => patchTier(i, { kind: v as Tier["kind"] })}
-                  >
-                    <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="minutes">{t("staff.kindMinutes", "Minutes of pay")}</SelectItem>
-                      <SelectItem value="day_fraction">{t("staff.kindDayFraction", "Fraction of a day")}</SelectItem>
-                      <SelectItem value="piastres">{t("staff.kindFixed", "Fixed amount")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">{t("staff.amount", "Amount")}</Label>
-                  <Input
-                    aria-label={t("staff.amount", "Amount")}
-                    type="number"
-                    step={tier.kind === "day_fraction" ? "0.25" : "1"}
-                    min="0"
-                    className="w-28"
-                    disabled={readOnly}
-                    value={tier.kind === "piastres" ? piastresToEgp(tier.value) : tier.value}
-                    onChange={(e) =>
-                      patchTier(i, {
-                        value:
-                          tier.kind === "piastres"
-                            ? egpToPiastres(Number(e.target.value))
-                            : Number(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <p className="mb-2 flex-1 text-xs text-muted-foreground">
-                  {describeTier(tier, t)}
-                </p>
-                {readOnly ? null : (
-                  <RowAction
-                    destructive
-                    label={t("staff.removeTier", "Remove rung")}
-                    className="mb-1"
-                    onClick={() => setTiers(tiers.filter((_, index) => index !== i))}
-                  >
-                    <Trash2 className="size-4" />
-                  </RowAction>
-                )}
-              </div>
-            ))
+            <ol className="space-y-2">
+              {tiers.map((tier, i) => (
+                <li key={i} className="grid gap-3 rounded-lg border p-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-start">
+                  <span aria-hidden className="hidden size-7 place-items-center rounded-full bg-secondary text-xs font-semibold tabular-nums md:grid">{i + 1}</span>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`tier-${i}-from`} className="text-xs">{t("staff.fromMinutes", "From (min)")}</Label>
+                      <NumberField
+                        id={`tier-${i}-from`}
+                        aria-label={t("staff.fromMinutes", "From (min)")}
+                        suffix={t("inputs.unitMin", "min")}
+                        min={0}
+                        disabled={readOnly}
+                        invalid={!!tierError}
+                        value={tier.from_minutes}
+                        onChange={(n) => patchTier(i, { from_minutes: n ?? 0 })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`tier-${i}-to`} className="text-xs">{t("staff.toMinutes", "To (min)")}</Label>
+                      <NumberField
+                        id={`tier-${i}-to`}
+                        aria-label={t("staff.toMinutes", "To (min)")}
+                        suffix={t("inputs.unitMin", "min")}
+                        min={0}
+                        allowEmpty
+                        emptyLabel={t("staff.noLimit", "no limit")}
+                        disabled={readOnly}
+                        invalid={!!tierError}
+                        value={tier.to_minutes}
+                        onChange={(n) => patchTier(i, { to_minutes: n })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t("staff.deduct", "Deduct")}</Label>
+                      <Select
+                        value={tier.kind}
+                        disabled={readOnly}
+                        onValueChange={(v) => patchTier(i, { kind: v as Tier["kind"], value: defaultTierValue(v as Tier["kind"]) })}
+                      >
+                        <SelectTrigger className="w-full" aria-label={t("staff.deduct", "Deduct")}><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="minutes">{t("staff.kindMinutes", "Minutes of pay")}</SelectItem>
+                          <SelectItem value="day_fraction">{t("staff.kindDayFraction", "Fraction of a day")}</SelectItem>
+                          <SelectItem value="piastres">{t("staff.kindFixed", "Fixed amount")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`tier-${i}-amount`} className="text-xs">{t("staff.amount", "Amount")}</Label>
+                      {tier.kind === "piastres" ? (
+                        <MoneyField
+                          id={`tier-${i}-amount`}
+                          aria-label={t("staff.amount", "Amount")}
+                          disabled={readOnly}
+                          value={tier.value}
+                          onChange={(p) => patchTier(i, { value: p ?? 0 })}
+                        />
+                      ) : (
+                        <NumberField
+                          id={`tier-${i}-amount`}
+                          aria-label={t("staff.amount", "Amount")}
+                          suffix={tier.kind === "minutes" ? t("inputs.unitMin", "min") : t("staff.ofADay", "of a day")}
+                          step={tier.kind === "day_fraction" ? 0.25 : 5}
+                          decimals={tier.kind === "day_fraction" ? 2 : 0}
+                          min={0}
+                          max={tier.kind === "day_fraction" ? 31 : undefined}
+                          disabled={readOnly}
+                          value={tier.value}
+                          onChange={(n) => patchTier(i, { value: n ?? 0 })}
+                        />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-4">
+                      {describeTier(tier, t)}
+                      {tier.kind !== "piastres" ? (
+                        <span className="tabular-nums"> · {t("staff.tierExample", { amount: fmtMoney(tierPiastres(tier, example)), defaultValue: `about ${fmtMoney(tierPiastres(tier, example))} on the example salary` })}</span>
+                      ) : null}
+                    </p>
+                  </div>
+                  {readOnly ? null : (
+                    <RowAction
+                      destructive
+                      label={t("staff.removeTier", "Remove rung")}
+                      onClick={() => setTiers(tiers.filter((_, index) => index !== i))}
+                    >
+                      <Trash2 className="size-4" />
+                    </RowAction>
+                  )}
+                </li>
+              ))}
+            </ol>
           )}
 
           {tierError ? <p className="text-sm text-destructive">{tierError}</p> : null}
@@ -409,6 +448,8 @@ export function AttendanceRulesPage() {
         </CardContent>
       </Card>
 
+      <RulesPreview tiers={tiers} example={example} onExample={setExample} />
+
       <div className="space-y-4">
         <Card>
           <CardHeader>
@@ -421,19 +462,41 @@ export function AttendanceRulesPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="ar-days">{t("staff.workingDays", "Working days per month")}</Label>
-              <Input id="ar-days" type="number" min="1" step="0.5" disabled={readOnly} {...form.register("workingDays")} />
+              <NumberField
+                id="ar-days"
+                step={0.5} decimals={2} suffix={t("staff.daysUnit", "days")}
+                disabled={readOnly}
+                invalid={!!errors.workingDays}
+                value={values.workingDays.trim() === "" ? null : Number(values.workingDays)}
+                onChange={(n) => form.setValue("workingDays", n === null ? "" : String(n), { shouldDirty: true, shouldValidate: true })}
+              />
               {errors.workingDays ? <p className="text-xs text-destructive">{errors.workingDays.message}</p> : null}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="ar-absence">{t("staff.absenceDays", "Days docked per absence")}</Label>
-              <Input id="ar-absence" type="number" min="0" step="0.25" disabled={readOnly} {...form.register("absenceDays")} />
+              <NumberField
+                id="ar-absence"
+                step={0.25} decimals={2} suffix={t("staff.daysUnit", "days")}
+                hint={t("staff.absenceExample", { amount: fmtMoney(dayPiastres(example, Number(values.absenceDays) || 0)), defaultValue: `An absence docks about ${fmtMoney(dayPiastres(example, Number(values.absenceDays) || 0))} on the example salary.` })}
+                disabled={readOnly}
+                invalid={!!errors.absenceDays}
+                value={values.absenceDays.trim() === "" ? null : Number(values.absenceDays)}
+                onChange={(n) => form.setValue("absenceDays", n === null ? "" : String(n), { shouldDirty: true, shouldValidate: true })}
+              />
               {errors.absenceDays ? <p className="text-xs text-destructive">{errors.absenceDays.message}</p> : null}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="ar-buffer">{t("staff.autoBuffer", "Auto-close after (min)")}</Label>
-              <Input id="ar-buffer" type="number" min="0" disabled={readOnly} {...form.register("autoBuffer")} />
+              <NumberField
+                id="ar-buffer"
+                step={15} suffix={t("inputs.unitMin", "min")}
+                disabled={readOnly}
+                invalid={!!errors.autoBuffer}
+                value={values.autoBuffer.trim() === "" ? null : Number(values.autoBuffer)}
+                onChange={(n) => form.setValue("autoBuffer", n === null ? "" : String(n), { shouldDirty: true, shouldValidate: true })}
+              />
               {errors.autoBuffer ? <p className="text-xs text-destructive">{errors.autoBuffer.message}</p> : null}
             </div>
           </CardContent>
@@ -478,6 +541,33 @@ export function AttendanceRulesPage() {
         />
         {errors.dawam?.message ? <p className="text-sm text-destructive">{errors.dawam.message}</p> : null}
       </div>
+
+      {readOnly ? null : (
+        <div className="sticky bottom-0 z-20 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-t-xl border border-b-0 bg-card/95 px-4 py-3 shadow-[0_-4px_12px_-8px_rgb(0_0_0/0.2)] backdrop-blur supports-[backdrop-filter]:bg-card/85">
+          <p role="status" className="text-sm">
+            {tierError || Object.keys(errors).length ? (
+              <span className="text-destructive">{t("staff.rulesFixFirst", "Fix the highlighted rules to save.")}</span>
+            ) : dirty ? (
+              <span className="font-medium">{t("staff.rulesUnsaved", "Unsaved changes")}</span>
+            ) : !branchId && query.data && !query.data.rules_saved_at ? (
+              <span className="font-medium">{t("staff.rulesNotSavedYet", "Not saved yet: nobody can clock in until you save.")}</span>
+            ) : (
+              <span className="text-muted-foreground">{t("staff.rulesAllSaved", "Everything is saved.")}</span>
+            )}
+          </p>
+          <div className="flex gap-2">
+            {dirty ? (
+              <Button variant="ghost" onClick={() => { form.reset(valuesFrom(query.data!, { suggest: !branchId && canEdit })); setInherit([]); setCoverOwnNew(false); }}>
+                {t("staff.rulesDiscard", "Discard changes")}
+              </Button>
+            ) : null}
+            <Button onClick={() => void save()} loading={busy} disabled={!!tierError}>
+              <Save className="size-4" />
+              {t("common.save", "Save")}
+            </Button>
+          </div>
+        </div>
+      )}
     </Page>
   );
 }
@@ -499,4 +589,22 @@ function describeTier(tier: Tier, t: TFunction): string {
         ? t("staff.tierCostDay", "{{n}} of a day's pay", { n: tier.value })
         : fmtMoney(tier.value);
   return `${range} → ${cost}`;
+}
+
+/** A new rung's amount when its kind changes: a sensible start, never a leftover from another unit. */
+function defaultTierValue(kind: Tier["kind"]): number {
+  return kind === "minutes" ? 15 : kind === "day_fraction" ? 0.25 : 5000;
+}
+
+/** One changed rule, before → after, in words. */
+function describeChange(c: RuleChange, t: TFunction): string {
+  const show = (v: unknown): string => {
+    if (v === null || v === undefined || v === "") return t("staff.changeNone", "none");
+    if (typeof v === "boolean") return v ? t("common.yes", "Yes") : t("common.no", "No");
+    if (Array.isArray(v)) return t("staff.changeRungs", { count: v.length, defaultValue: `${v.length} rungs` });
+    if (typeof v === "string" && /^\d{2}:\d{2}(:\d{2})?$/.test(v)) return fmtWireTime(v);
+    return String(v);
+  };
+  if (Array.isArray(c.after)) return `${show(c.before)} → ${show(c.after)}${Array.isArray(c.before) && c.before.length === c.after.length ? ` (${t("staff.changeEdited", "edited")})` : ""}`;
+  return `${show(c.before)} → ${show(c.after)}`;
 }

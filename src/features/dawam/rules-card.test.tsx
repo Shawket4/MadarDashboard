@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -48,6 +48,14 @@ const { ConfirmProvider } = await import("@/components/app/confirm-dialog");
 const renderPage = () =>
   render(<QueryClientProvider client={new QueryClient()}><ConfirmProvider><AttendanceRulesPage /></ConfirmProvider></QueryClientProvider>);
 
+/** Save, and answer the "you're changing…" question the page asks for rules already in force. */
+async function saveAndConfirm(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getAllByRole("button", { name: /Save/ }).at(-1)!);
+  const dialog = await screen.findByRole("alertdialog");
+  await user.click(within(dialog).getByRole("button", { name: "Save the changes" }));
+}
+
+
 beforeEach(() => {
   put.mockClear();
   held = ["hr.rules.edit"];
@@ -93,7 +101,7 @@ describe("Dawam rules", () => {
     const day = screen.getByLabelText("Hours a day");
     await user.clear(day);
     await user.type(day, "7.5");
-    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalled());
     const body = (put.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     expect(body).toMatchObject({
@@ -112,6 +120,7 @@ describe("Dawam rules", () => {
     renderPage();
     expect(screen.queryByText("Require location to clock in")).not.toBeInTheDocument();
     expect(screen.getByText(/always checks the phone is inside the branch's radius/)).toBeInTheDocument();
+    // Nothing changed, so nothing to confirm.
     await user.click(screen.getByRole("button", { name: /Save/ }));
     await waitFor(() => expect(put).toHaveBeenCalled());
     expect((put.mock.calls[0] as unknown[])[0]).not.toHaveProperty("require_geofence");
@@ -126,7 +135,7 @@ describe("Dawam rules", () => {
     renderPage();
     const rule = screen.getAllByRole("radio", { name: "A rule" }).find((b) => !(b as HTMLButtonElement).disabled)!;
     await user.click(rule);
-    await user.click(screen.getAllByRole("button", { name: /Save/ }).at(-1)!);
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalledWith(expect.objectContaining({ gender_mode: "hard" })));
   });
 });

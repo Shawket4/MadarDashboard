@@ -12,8 +12,7 @@ import { useTranslation } from "react-i18next";
 
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { TimeRangeField } from "@/components/inputs";
+import { NumberField, TimeRangeField } from "@/components/inputs";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { fmtWireTime } from "@/lib/format";
@@ -39,6 +38,21 @@ export interface DawamRules {
   ordersPerStaff: string;
   coverPayMode: CoverPayMode;
 }
+
+/** How each number of the card is typed: its range, step and unit. */
+const NUM_FIELDS: Record<NumKey, { min: number; max?: number; step: number; decimals: number; unit?: "x" | "%" | "h" }> = {
+  otDay: { min: 1, max: 10, step: 0.05, decimals: 2, unit: "x" },
+  otNight: { min: 1, max: 10, step: 0.05, decimals: 2, unit: "x" },
+  holidayMult: { min: 1, max: 10, step: 0.25, decimals: 2, unit: "x" },
+  advanceCap: { min: 0, max: 100, step: 5, decimals: 0, unit: "%" },
+  periodStartDay: { min: 1, max: 28, step: 1, decimals: 0 },
+  limitDay: { min: 0, max: 24, step: 0.5, decimals: 2, unit: "h" },
+  limitWeek: { min: 0, max: 168, step: 1, decimals: 2, unit: "h" },
+  limitPresence: { min: 0, max: 24, step: 0.5, decimals: 2, unit: "h" },
+  limitRest: { min: 0, max: 48, step: 0.5, decimals: 2, unit: "h" },
+  limitOtDay: { min: 0, max: 24, step: 0.5, decimals: 2, unit: "h" },
+  ordersPerStaff: { min: 1, max: 999, step: 1, decimals: 0 },
+};
 
 type NumKey = "otDay" | "otNight" | "holidayMult" | "advanceCap" | "periodStartDay" | "limitDay" | "limitWeek" | "limitPresence" | "limitRest" | "limitOtDay" | "ordersPerStaff";
 
@@ -128,13 +142,30 @@ export function DawamRulesCard({
 }) {
   const { t } = useTranslation();
   const set = <K extends keyof DawamRules>(k: K, v: DawamRules[K]) => onChange({ ...value, [k]: v });
-  const num = (k: NumKey, label: string, hint?: string) => (
-    <div className="space-y-1">
-      <Label htmlFor={`rule-${k}`}>{label}</Label>
-      <Input id={`rule-${k}`} type="number" inputMode="decimal" value={value[k]} disabled={readOnly} onChange={(e) => set(k, e.target.value)} />
-      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
-    </div>
-  );
+  const num = (k: NumKey, label: string, hint?: string) => {
+    const f = NUM_FIELDS[k];
+    const n = value[k].trim() === "" ? null : Number(value[k]);
+    return (
+      <div className="space-y-1.5">
+        <Label htmlFor={`rule-${k}`}>{label}</Label>
+        <NumberField
+          id={`rule-${k}`}
+          value={Number.isFinite(n) ? n : null}
+          disabled={readOnly}
+          min={f.min}
+          max={f.max}
+          step={f.step}
+          decimals={f.decimals}
+          prefix={f.unit === "x" ? "×" : undefined}
+          suffix={f.unit === "%" ? "%" : f.unit === "h" ? t("inputs.unitHour", "h") : undefined}
+          hint={hint}
+          onChange={(v) => set(k, v === null ? "" : String(v))}
+        />
+      </div>
+    );
+  };
+  const rate = (k: "otDay" | "otNight" | "holidayMult") =>
+    t("dawam.rateExample", { n: value[k] || "—", defaultValue: `1 h pays ${value[k] || "—"} h` });
   return (
     <Card>
       <CardHeader>
@@ -156,9 +187,9 @@ export function DawamRulesCard({
           />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          {num("otDay", t("dawam.otDay", "Day rate ×"))}
-          {num("otNight", t("dawam.otNight", "Night rate ×"), `${fmtWireTime(value.nightStart)} – ${fmtWireTime(value.nightEnd)}`)}
-          {num("holidayMult", t("dawam.holidayRate", "Holiday rate ×"))}
+          {num("otDay", t("dawam.otDay", "Day rate ×"), rate("otDay"))}
+          {num("otNight", t("dawam.otNight", "Night rate ×"), `${rate("otNight")} · ${fmtWireTime(value.nightStart)} – ${fmtWireTime(value.nightEnd)}`)}
+          {num("holidayMult", t("dawam.holidayRate", "Holiday rate ×"), rate("holidayMult"))}
         </div>
         {branch ? null : (
           <div className="grid gap-3 sm:grid-cols-2">
