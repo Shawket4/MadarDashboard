@@ -31,7 +31,12 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
-import { ApproveWithPayDialog, ASKS_PAY, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds } from "@/features/staff/requests-inbox";
+import {
+  ApproveWithPayDialog, ASKS_PAY, confirmMissionOverPunches, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds,
+} from "@/features/staff/requests-inbox";
+
+/** An approval the approver backed out of: nothing was sent, nothing to say. */
+const BACKED_OUT = Symbol("backed out");
 import { fmtHours, fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
 import { AdvanceCapNote, RejectDialog, ReviewAdvanceDialog } from "./money-dialogs";
 import { capView, warningsOf } from "./phase-d-contract";
@@ -112,6 +117,7 @@ export function ApprovalsPage() {
   const run = async (fn: () => Promise<unknown>) => {
     try {
       const out = await fn();
+      if (out === BACKED_OUT) return;
       decided();
       // A claim that makes a long day passes a labour limit: said, never blocked (RU-13, M26).
       for (const w of warningsOf(out)) {
@@ -145,7 +151,9 @@ export function ApprovalsPage() {
         badges: <RequestBadges r={r} mine={false} />,
         detail: [describeWindow(r, t), r.title, r.reason].filter(Boolean).join(" · "),
         at: r.created_at,
-        approve: asksPay ? () => setPaying(r) : () => decideRequest(r.id, { status: "approved" }),
+        approve: asksPay
+          ? () => setPaying(r)
+          : async () => ((await confirmMissionOverPunches(r, confirm, t)) ? decideRequest(r.id, { status: "approved" }) : BACKED_OUT),
         rejectOnly: !!r.month_closed,
         reject: () => decideRequest(r.id, { status: "rejected" }),
       });

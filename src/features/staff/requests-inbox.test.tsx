@@ -17,6 +17,8 @@ Element.prototype.scrollIntoView ??= () => {};
 const decideRequest = vi.fn(async (_id: string, _body: unknown) => ({}));
 const createRequestAdmin = vi.fn(async (_body: unknown) => ({ status: "pending" }));
 const toastError = vi.fn();
+/** The days' records a mission's approval checks for punches (M16). */
+const listAttendance = vi.fn(async (_p: unknown) => [] as unknown[]);
 const toastSuccess = vi.fn();
 
 const LEAVE = { id: "q1", employee_id: "e1", employee_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", end_date: "2026-09-26", is_half_day: false, created_at: "2026-09-22T07:00:00Z" };
@@ -34,6 +36,7 @@ vi.mock("@/data/api/generated/api", () => ({
   }),
   decideRequest: (id: string, body: unknown) => decideRequest(id, body),
   createRequestAdmin: (body: unknown) => createRequestAdmin(body),
+  listAttendance: (params: unknown) => listAttendance(params),
 }));
 let held = ["hr.leave.create", "hr.leave.edit", "hr.attendance.edit"];
 vi.mock("@/data/authz/use-authz", async () => {
@@ -352,6 +355,34 @@ describe("Owner decisions 18 and 43: small wording", () => {
     const meta = screen.getByText(/out /);
     expect(meta.textContent).not.toMatch(/→/);
     expect(meta.textContent).toMatch(/out 0?5:45\s?PM/i);
+  });
+});
+
+describe("M16: a mission over days already worked", () => {
+  const MISSION = { id: "m1", employee_id: "e1", employee_name: "Youssef Adel", kind: "mission", status: "pending", on_date: "2026-09-20", end_date: "2026-09-21", title: "Supplier visit", is_half_day: false, created_at: "2026-09-19T08:00:00Z", can_decide: true };
+
+  it("warns before approving when a day already has punches, and approves once confirmed", async () => {
+    rows = [MISSION];
+    listAttendance.mockResolvedValueOnce([{ id: "a1", employee_id: "e1", business_date: "2026-09-20", check_in_at: "2026-09-20T06:00:00Z" }]);
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Approve/ }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(listAttendance).toHaveBeenCalledWith({ from: "2026-09-20", to: "2026-09-21", employee_id: "e1" });
+    expect(within(dialog).getByText(/already has punches/)).toBeInTheDocument();
+    expect(decideRequest).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole("button", { name: /Approve/ }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("m1", { status: "approved" }));
+  });
+
+  it("approves in one click when no day was worked", async () => {
+    rows = [MISSION];
+    listAttendance.mockResolvedValueOnce([]);
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Approve/ }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("m1", { status: "approved" }));
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 });
 

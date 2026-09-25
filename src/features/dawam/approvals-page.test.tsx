@@ -83,6 +83,7 @@ vi.mock("@/data/api/generated/api", () => ({
     { id: "o2", shift_name: "Morning", on_date: "2026-09-28", status: "open" },
   ]),
   useListAttendance: hook("attendance", () => attendanceRows),
+  listAttendance: vi.fn(async () => [{ id: "a1", check_in_at: "2026-09-20T06:00:00Z" }]),
   useListAdjustments: hook("payLines", () => [
     { id: "a2", kind: "bonus", employee_name: "Sara Ahmed", amount_piastres: 150_000, reason: "Best month", status: "pending", created_at: "2026-09-22T09:00:00Z" },
   ]),
@@ -182,6 +183,18 @@ describe("ApprovalsPage", () => {
     await user.click(within(approveIn("Laila Hassan")).getByRole("button", { name: "Approve" }));
     await waitFor(() => expect(toastMock.warning).toHaveBeenCalledWith("Hours a day: 16h of 8h. Only a warning."));
     expect(toastMock.success).toHaveBeenCalled();
+  });
+
+  it("M16: approving a mission over a worked day warns first", async () => {
+    requestRows = [{ id: "m1", employee_id: "e1", employee_name: "Youssef Adel", kind: "mission", status: "pending", on_date: "2026-09-20", created_at: "2026-09-22T09:00:00Z", can_decide: true }];
+    held = ["hr.leave.edit"];
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    await user.click(screen.getByRole("button", { name: "Approve" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByText(/already has punches/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: /Approve/ }));
+    await waitFor(() => expect(calls.decideRequest).toHaveBeenCalledWith("m1", { status: "approved" }));
   });
 
   it("rejects a swap only after confirming", async () => {

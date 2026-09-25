@@ -33,7 +33,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  createRequestAdmin, decideRequest,
+  createRequestAdmin, decideRequest, listAttendance,
   useListEmployees, useListRequests,
 } from "@/data/api/generated/api";
 import type { StaffRequest } from "@/data/api/generated/models";
@@ -59,6 +59,33 @@ export const kindMeta = (kind: string) => KINDS.find((k) => k.value === kind) ??
 
 /** Kinds whose approval carries a paid/unpaid call (RQ-2, RQ-7). */
 export const ASKS_PAY = ["leave", "excuse", "early_departure"];
+
+/**
+ * A mission approved over days the person already worked turns them into
+ * mission days: paid, with no penalty, and the punches are kept (owner
+ * decision 16). The approver is told first; false means they backed out.
+ * If the days can't be read, the approval goes ahead as before.
+ */
+export async function confirmMissionOverPunches(
+  r: StaffRequest,
+  confirm: (o: { title: string; description: string; confirmLabel: string }) => Promise<boolean>,
+  t: TFunction,
+): Promise<boolean> {
+  if (r.kind !== "mission") return true;
+  let worked = 0;
+  try {
+    const days = await listAttendance({ from: r.on_date, to: r.end_date ?? r.on_date, employee_id: r.employee_id });
+    worked = days.filter((a) => a.check_in_at).length;
+  } catch {
+    return true;
+  }
+  if (worked === 0) return true;
+  return confirm({
+    title: t("staff.missionOverPunchesTitle", { name: r.employee_name, defaultValue: `${r.employee_name} already has punches on those days` }),
+    description: t("staff.missionOverPunchesHint", "Approving makes them mission days: paid, with no penalty. The punches are kept."),
+    confirmLabel: t("common.approve", "Approve"),
+  });
+}
 
 /**
  * The employee records linked to the signed-in user. Their own requests are
@@ -133,6 +160,7 @@ export function RequestsInboxPage() {
       setDeciding(r);
       return;
     }
+    if (next === "approved" && !(await confirmMissionOverPunches(r, confirm, t))) return;
     if (next === "rejected") {
       const ok = await confirm({
         title: t("staff.rejectRequestTitle", { name: r.employee_name, defaultValue: `Reject ${r.employee_name}'s request?` }),
