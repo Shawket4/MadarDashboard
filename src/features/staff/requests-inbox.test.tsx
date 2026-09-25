@@ -315,5 +315,22 @@ describe("Owner decisions 18 and 43: small wording", () => {
     expect(screen.getByText("½ day · second half")).toBeInTheDocument();
     expect(screen.queryByText("½ day · first half")).not.toBeInTheDocument();
   });
+
+  it("M43: a mission shows its title in the list and in Approvals' detail", () => {
+    rows = [APPROVED];
+    renderPage();
+    expect(screen.getByText(/Supplier visit/)).toBeInTheDocument();
+  });
+
+  it("M43: an approved correction shows the time it set once, not 'out 05:45 PM → 05:45 PM'", () => {
+    rows = [{
+      id: "c1", employee_id: "e1", employee_name: "Youssef Adel", kind: "correction", status: "approved", on_date: "2026-09-21",
+      to_time: "17:45:00", record_check_out_at: "2026-09-21T14:45:00Z", is_half_day: false, created_at: "2026-09-21T18:00:00Z",
+    }];
+    renderPage();
+    const meta = screen.getByText(/out /);
+    expect(meta.textContent).not.toMatch(/→/);
+    expect(meta.textContent).toMatch(/out 0?5:45\s?PM/i);
+  });
 });
 

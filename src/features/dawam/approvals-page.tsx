@@ -143,7 +143,7 @@ export function ApprovalsPage() {
         who: r.employee_name ?? "—",
         kind: t(meta.labelKey, meta.fallback),
         badges: <RequestBadges r={r} mine={false} />,
-        detail: [describeWindow(r, t), r.reason].filter(Boolean).join(" · "),
+        detail: [describeWindow(r, t), r.title, r.reason].filter(Boolean).join(" · "),
         at: r.created_at,
         approve: asksPay ? () => setPaying(r) : () => decideRequest(r.id, { status: "approved" }),
         rejectOnly: !!r.month_closed,

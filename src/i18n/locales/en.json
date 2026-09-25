@@ -4591,7 +4591,9 @@
     "unpaid": "Unpaid",
     "inReasonColumn": "Why punched in",
     "outReasonColumn": "Why punched out",
-    "halfDayUnsaid": "½ day"
+    "halfDayUnsaid": "½ day",
+    "correctionInSet": "in {{to}}",
+    "correctionOutSet": "out {{to}}"
   },
   "basira": {
     "title": "Basira",

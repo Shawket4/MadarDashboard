@@ -241,7 +241,8 @@ export function RequestsInboxPage() {
                 // Who decided and who cancelled must stay readable on a phone.
                 wrapMeta
                 meta={[
-                  describeWindow(r, t), r.reason,
+                  // A mission's title says what it is (M43).
+                  describeWindow(r, t), r.title, r.reason,
                   // Who decided, with their note; a cancel keeps both and names its own author (AT-10, B-TEAM-3, RQ-F6).
                   r.decided_by_name && r.status !== "pending"
                     ? t("staff.decidedBy", { name: r.decided_by_name, defaultValue: "Decided by {{name}}" })
@@ -344,11 +345,16 @@ export function describeWindow(r: StaffRequest, t: TFunction): string {
     case "correction": {
       // What changes: the record's punch now → the proposed time (branch-local).
       const parts = [fmtDate(r.on_date)];
+      // Once approved, the punch already reads the new time: say it once (M43).
       if (r.from_time) {
-        parts.push(t("staff.correctionIn", "in {{now}} → {{to}}", { now: fmtTime(r.record_check_in_at), to: time(r.from_time) }));
+        const now = fmtTime(r.record_check_in_at);
+        const to = time(r.from_time);
+        parts.push(now === to ? t("staff.correctionInSet", "in {{to}}", { to }) : t("staff.correctionIn", "in {{now}} → {{to}}", { now, to }));
       }
       if (r.to_time) {
-        parts.push(t("staff.correctionOut", "out {{now}} → {{to}}", { now: fmtTime(r.record_check_out_at), to: time(r.to_time) }));
+        const now = fmtTime(r.record_check_out_at);
+        const to = time(r.to_time);
+        parts.push(now === to ? t("staff.correctionOutSet", "out {{to}}", { to }) : t("staff.correctionOut", "out {{now}} → {{to}}", { now, to }));
       }
       return parts.join(" · ");
     }

@@ -4724,7 +4724,9 @@
     "unpaid": "غير مدفوعة",
     "inReasonColumn": "سبب تسجيل الحضور",
     "outReasonColumn": "سبب تسجيل الانصراف",
-    "halfDayUnsaid": "½ يوم"
+    "halfDayUnsaid": "½ يوم",
+    "correctionInSet": "حضور {{to}}",
+    "correctionOutSet": "انصراف {{to}}"
   },
   "basira": {
     "title": "بصيرة",
