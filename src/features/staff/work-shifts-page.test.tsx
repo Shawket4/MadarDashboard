@@ -90,6 +90,12 @@ beforeEach(() => {
   me = { owner: true, caps: OWNER_CAPS };
 });
 
+/** Type a time into a kit TimeField and leave it, as a person would. */
+const setTime = (el: HTMLElement, value: string) => {
+  fireEvent.change(el, { target: { value } });
+  fireEvent.blur(el);
+};
+
 describe("the shift body", () => {
   const tr = (_k: string, d: string) => d;
   it("sends empty rates as null, keeps day times only on valid days, and a whole-business block has no branch", () => {
@@ -125,16 +131,18 @@ describe("WorkShiftsPage", () => {
     await user.click(screen.getAllByRole("button", { name: "New shift" })[0]);
     const dialog = await screen.findByRole("dialog");
     await user.type(within(dialog).getByLabelText("Name"), "Evening");
-    fireEvent.change(within(dialog).getByLabelText("Start"), { target: { value: "16:00" } });
-    fireEvent.change(within(dialog).getByLabelText("End"), { target: { value: "00:00" } });
+    setTime(within(dialog).getByLabelText("Start"), "16:00");
+    setTime(within(dialog).getByLabelText("End"), "00:00");
     expect(within(dialog).getAllByText("Ends the next day").length).toBeGreaterThan(0);
     await user.click(within(dialog).getByRole("combobox", { name: "Branch" }));
     await user.click(await screen.findByRole("option", { name: "Zamalek" }));
     // Not a Friday shift.
-    await user.click(within(dialog).getByRole("button", { name: "Fri", pressed: true }));
+    await user.click(within(dialog).getByRole("button", { name: "Friday", pressed: true }));
+    await user.click(within(dialog).getByRole("button", { name: /Its own times on some days/ }));
     expect(within(dialog).queryByLabelText("Fri start")).not.toBeInTheDocument();
-    fireEvent.change(within(dialog).getByLabelText("Thu start"), { target: { value: "16:00" } });
-    fireEvent.change(within(dialog).getByLabelText("Thu end"), { target: { value: "01:00" } });
+    setTime(within(dialog).getByLabelText("Thu start"), "16:00");
+    setTime(within(dialog).getByLabelText("Thu end"), "01:00");
+    await user.click(within(dialog).getByRole("button", { name: /Overtime and check-in/ }));
     await user.type(within(dialog).getByLabelText("Day overtime rate"), "1.75");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() => expect(calls.createWorkShift).toHaveBeenCalledTimes(1));
@@ -152,10 +160,11 @@ describe("WorkShiftsPage", () => {
     await user.click(screen.getAllByRole("button", { name: "New shift" })[0]);
     const dialog = await screen.findByRole("dialog");
     await user.type(within(dialog).getByLabelText("Name"), "Day");
-    fireEvent.change(within(dialog).getByLabelText("Mon start"), { target: { value: "09:00" } });
+    await user.click(within(dialog).getByRole("button", { name: /Its own times on some days/ }));
+    setTime(within(dialog).getByLabelText("Mon start"), "09:00");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     expect(await within(dialog).findByText("Set both times, or neither")).toBeInTheDocument();
-    for (const d of ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]) {
+    for (const d of ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]) {
       await user.click(within(dialog).getByRole("button", { name: d }));
     }
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
@@ -173,7 +182,7 @@ describe("WorkShiftsPage", () => {
     await user.click(screen.getByRole("button", { name: "Edit" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("status")).toHaveTextContent(/presence limit/);
-    expect(within(dialog).getByLabelText("Thu end")).toHaveValue("01:00");
+    expect(within(dialog).getByLabelText("Thu end")).toHaveValue("01:00 AM");
     await user.clear(within(dialog).getByLabelText("Night overtime rate"));
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() => expect(calls.updateWorkShift).toHaveBeenCalledTimes(1));
@@ -225,7 +234,11 @@ describe("WorkShiftsPage", () => {
       await user.click(screen.getAllByRole("button", { name: "وردية جديدة" })[0]);
       const dialog = await screen.findByRole("dialog");
       expect(within(dialog).getByRole("group", { name: "أيام العمل بها" })).toBeInTheDocument();
+      await user.click(within(dialog).getByRole("button", { name: /الإضافي وتسجيل الحضور/ }));
       expect(within(dialog).getByLabelText("معدل الإضافي الليلي")).toBeInTheDocument();
+      // Weekday chips name the day in Arabic, and times read ص/م with Latin digits.
+      expect(within(dialog).getByRole("button", { name: "الجمعة" })).toBeInTheDocument();
+      expect(within(dialog).getByLabelText("البداية")).toHaveValue("09:00 ص");
     } finally {
       await i18n.changeLanguage("en");
     }

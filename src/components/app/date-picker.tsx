@@ -43,6 +43,12 @@ interface Props {
   /** Override the past-date warning text. */
   warningText?: string;
   disabled?: boolean;
+  /** The trigger's id, so a `<label htmlFor>` points at it. */
+  id?: string;
+  /** Marked invalid by a form. */
+  invalid?: boolean;
+  "aria-label"?: string;
+  "aria-describedby"?: string;
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -61,6 +67,7 @@ export const partsIn = (iso: string, tz: string): DayParts => {
 export function DatePicker({
   value, onChange, dateOnly = false, placeholder, align = "start", triggerClassName,
   disableFuture = false, disablePast = false, warnPast = false, warningText, disabled = false,
+  id, invalid, "aria-label": ariaLabel, "aria-describedby": describedBy,
 }: Props) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("ar") ? "ar-EG" : "en-GB";
@@ -127,7 +134,7 @@ export function DatePicker({
     <div className="w-full">
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" disabled={disabled} className={cn("h-8 justify-start gap-2 font-normal", !value && "text-muted-foreground", pastSelected && "border-warning/60", triggerClassName)}>
+        <Button id={id} aria-label={ariaLabel} aria-describedby={describedBy} aria-invalid={invalid || undefined} variant="outline" size="sm" disabled={disabled} className={cn("h-8 justify-start gap-2 font-normal", !value && "text-muted-foreground", pastSelected && "border-warning/60", triggerClassName)}>
           <CalendarIcon className={cn("size-4 text-muted-foreground", pastSelected && "text-warning")} />
           <span className="truncate">{value ? display(value) : (placeholder ?? t("datePicker.pickDate", "Pick a date"))}</span>
         </Button>
