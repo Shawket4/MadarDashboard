@@ -23,7 +23,7 @@ import { Cap } from "@/generated/capabilities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TimeField } from "@/components/inputs";
+import { DateField, TimeField } from "@/components/inputs";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -859,13 +859,23 @@ function NewRequestDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="nr-date">{isSpan ? t("staff.from", "From") : t("staff.date", "Date")}</Label>
-              <Input id="nr-date" type="date" {...form.register("on_date", { onChange: (e) => followFrom(e.target.value) })} />
+              <DateField
+                id="nr-date"
+                value={v.on_date}
+                invalid={!!errors.on_date}
+                onChange={(d) => { form.setValue("on_date", d, { shouldValidate: form.formState.isSubmitted }); followFrom(d); }}
+              />
               {err(errors.on_date?.message)}
             </div>
             {isSpan ? (
               <div className="space-y-1">
                 <Label htmlFor="nr-end">{t("staff.to", "To")}</Label>
-                <Input id="nr-end" type="date" {...form.register("end_date", { onChange: () => { endByHand.current = true; } })} />
+                <DateField
+                  id="nr-end"
+                  value={v.end_date}
+                  invalid={!!errors.end_date}
+                  onChange={(d) => { endByHand.current = true; form.setValue("end_date", d, { shouldValidate: form.formState.isSubmitted }); }}
+                />
                 {err(errors.end_date?.message)}
               </div>
             ) : null}

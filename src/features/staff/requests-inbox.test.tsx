@@ -51,6 +51,17 @@ vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateRequests: vi.fn(), invalidateStaff: vi.fn(), todayIso: () => "2026-09-23" };
 });
+// The kit's DateField is a calendar button (tested in its own suite); here the
+// form's own logic (From/To following, refusals) is driven through a plain input.
+vi.mock("@/components/inputs", async () => {
+  const real = await vi.importActual<typeof import("@/components/inputs")>("@/components/inputs");
+  return {
+    ...real,
+    DateField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+      <input id={id} type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+    ),
+  };
+});
 vi.mock("sonner", () => ({
   toast: { success: (m: string) => toastSuccess(m), info: vi.fn(), error: (m: string) => toastError(m) },
 }));

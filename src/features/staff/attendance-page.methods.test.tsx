@@ -33,6 +33,22 @@ const rows = [
 ];
 
 const q = (data: unknown) => () => ({ data, isLoading: false, isFetching: false, error: null, refetch: vi.fn() });
+// The kit's fields are calendar buttons and a typed time (tested in their own
+// suites); the dialogs' logic (branch clock, only-what-changed) runs through plain inputs.
+vi.mock("@/components/inputs", async () => {
+  const real = await vi.importActual<typeof import("@/components/inputs")>("@/components/inputs");
+  return {
+    ...real,
+    DateField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+      <input id={id} type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+    ),
+  };
+});
+vi.mock("./date-time-field", () => ({
+  DateTimeField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+    <input id={id} type="datetime-local" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+  ),
+}));
 vi.mock("@/data/api/generated/api", () => ({
   useGetAttendanceSettings: () => ({ data: { period_start_day: 1 } }),
   useListAttendance: q(rows),

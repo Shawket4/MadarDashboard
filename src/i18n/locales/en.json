@@ -6075,7 +6075,8 @@
     "wordHalf": "worked less than the rules' half-day line.",
     "reportsSubtitle": "Attendance, labour cost, payroll and advances over the dates below. It opens on this pay period.",
     "rangeBackwards": "The end is before the start",
-    "rangeBackwardsHint": "Pick an end on or after the start, or tap a quick range."
+    "rangeBackwardsHint": "Pick an end on or after the start, or tap a quick range.",
+    "timeOfDay": "Time"
   },
   "dawam": {
     "accept": "Accept",
