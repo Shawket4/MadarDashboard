@@ -348,9 +348,15 @@ export function ComboEditorPage() {
                       <p className="text-xs text-muted-foreground">{t("combos.categoryHint", "Where the combo shows on the till and the menus.")}</p>
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="combo-description">{t("combos.description", "Description")}</Label>
-                    <Textarea id="combo-description" rows={2} {...form.register("description")} />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="combo-description">{t("combos.description", "Description")}</Label>
+                      <Textarea id="combo-description" rows={2} {...form.register("description")} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="combo-description-ar">{t("combos.descriptionAr", "Description (Arabic)")}</Label>
+                      <Textarea id="combo-description-ar" dir="rtl" rows={2} {...form.register("description_ar")} />
+                    </div>
                   </div>
                   <Controller
                     control={form.control}

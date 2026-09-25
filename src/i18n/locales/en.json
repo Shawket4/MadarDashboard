@@ -767,7 +767,8 @@
       "retryFailed": "Retry failed",
       "nameRequired": "Name required",
       "priceInvalid": "Invalid price",
-      "categoryUnknown": "Category must match an existing category"
+      "categoryUnknown": "Category must match an existing category",
+      "comboEditor": "Open combo editor (slots, availability)"
     },
     "editor": {
       "newHint": "Everything in one place — category, pricing, sizes and the recipe. You can fill the recipe later too.",
@@ -6745,7 +6746,8 @@
       "upgrade": "+{{amount}} upgrade",
       "aDeal": "Deal",
       "dealCut": "{{deal}} · {{amount}}"
-    }
+    },
+    "descriptionAr": "Description (Arabic)"
   },
   "deals": {
     "title": "Deals",

@@ -767,7 +767,8 @@
       "retryFailed": "إعادة المحاولة",
       "nameRequired": "الاسم مطلوب",
       "priceInvalid": "سعر غير صالح",
-      "categoryUnknown": "القسم لازم يطابق قسماً موجوداً"
+      "categoryUnknown": "القسم لازم يطابق قسماً موجوداً",
+      "comboEditor": "افتح محرر الكومبو (الخانات والتوفر)"
     },
     "editor": {
       "newHint": "كل شيء في مكان واحد — القسم والتسعير والمقاسات والوصفة. تقدر تكمل الوصفة لاحقاً.",
@@ -6959,7 +6960,8 @@
     "warningCount_two": "تنبيهان",
     "warningCount_few": "{{count}} تنبيهات",
     "warningCount_many": "{{count}} تنبيهًا",
-    "warningCount_other": "{{count}} تنبيه"
+    "warningCount_other": "{{count}} تنبيه",
+    "descriptionAr": "الوصف (بالعربية)"
   },
   "deals": {
     "title": "العروض",

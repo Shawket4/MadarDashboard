@@ -157,7 +157,11 @@ export function MenuItemsPage() {
     void queryClient.prefetchQuery(getGetMenuItemQueryOptions(id));
     void queryClient.prefetchQuery(getGetStudioQueryOptions(id));
   };
-  const openStudio = (id: string) => void navigate({ to: "/menu/items/$itemId", params: { itemId: id }, search: {} });
+  // A combo is a menu item of kind "combo": its slots live in the combo editor, not the studio.
+  const openStudio = (id: string, kind?: string) =>
+    void (kind === "combo"
+      ? navigate({ to: "/menu/combos/$comboId", params: { comboId: id } })
+      : navigate({ to: "/menu/items/$itemId", params: { itemId: id }, search: {} }));
   const prefetchNextItemsPage = () => {
     if (itemsPage + 1 >= itemsPageCount) return;
     void queryClient.prefetchQuery(getListMenuCatalogQueryOptions({ ...itemsParams, page: itemsPage + 2 }));
@@ -459,12 +463,20 @@ export function MenuItemsPage() {
             }}
             actions={(m) => (
               <>
-                <DropdownMenuItem onClick={() => openStudio(m.id)} onMouseEnter={() => prefetchItem(m.id)}>
-                  <Pencil className="size-4" /> {t("menu.grid.fullEditor", "Full editor")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => void duplicate(m)}>
-                  <Copy className="size-4" /> {t("menu.grid.duplicate", "Duplicate")}
-                </DropdownMenuItem>
+                {m.kind === "combo" ? (
+                  <DropdownMenuItem onClick={() => openStudio(m.id, m.kind)}>
+                    <Pencil className="size-4" /> {t("menu.grid.comboEditor", "Open combo editor (slots, availability)")}
+                  </DropdownMenuItem>
+                ) : (
+                  <>
+                    <DropdownMenuItem onClick={() => openStudio(m.id)} onMouseEnter={() => prefetchItem(m.id)}>
+                      <Pencil className="size-4" /> {t("menu.grid.fullEditor", "Full editor")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => void duplicate(m)}>
+                      <Copy className="size-4" /> {t("menu.grid.duplicate", "Duplicate")}
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => confirmDelete(m.name, t("menu.deleteItemConsequence", "It leaves the POS menu at every branch, with its sizes, recipe and branch prices. Past orders keep their lines."), () => delItem.mutate({ id: m.id }))}>
                   <Trash2 className="size-4" /> {t("common.delete", "Delete")}
                 </DropdownMenuItem>
