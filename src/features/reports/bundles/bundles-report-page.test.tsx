@@ -196,6 +196,14 @@ describe("Bundles report · the table", () => {
     expect(screen.getByText(fmtNumber(15))).toBeInTheDocument();
     expect(screen.getAllByText(fmtMoney(270000)).length).toBeGreaterThan(0);
     expect(screen.getByText(fmtMoney(51000))).toBeInTheDocument();
+    // "Family box" has an unknown cost, so the total cost is only a floor: no margin.
+    expect(screen.queryByText("67.6%")).not.toBeInTheDocument();
+  });
+
+  it("shows the period margin once every row's cost is known", () => {
+    const f = fixture();
+    report = { ...f, rows: f.rows.map((r) => ({ ...r, cost_missing: false })) };
+    render(<BundlesReportPage />);
     // (270000 − 87540) / 270000 = 0.6758 → 67.6%
     expect(screen.getByText("67.6%")).toBeInTheDocument();
   });

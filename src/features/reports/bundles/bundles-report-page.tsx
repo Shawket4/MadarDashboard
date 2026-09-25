@@ -170,7 +170,11 @@ export function BundlesReportPage() {
     {
       key: "margin",
       label: t("reports.bundles.col.margin", "Margin"),
-      value: totals && totals.revenue > 0 ? fmtRate((totals.revenue - totals.cost) / totals.revenue) : "—",
+      // A row with an unknown cost makes the total cost a floor, not a figure: no margin, as on the rows.
+      value:
+        totals && totals.revenue > 0 && !rows.some((r) => r.cost_missing)
+          ? fmtRate((totals.revenue - totals.cost) / totals.revenue)
+          : "—",
       loading: q.isLoading,
     },
   ];

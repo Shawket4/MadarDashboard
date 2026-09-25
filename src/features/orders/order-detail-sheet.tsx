@@ -34,6 +34,7 @@ import { dealsOf, orderDealsTotal, orderRows } from "@/features/combos/order-lin
 import { ComboHeaderRow, ComboPartNote, DealLineNote } from "@/features/combos/combo-order-lines";
 import { orderRewards } from "./reward-lines";
 import { addonNormalTotal, orderStaffComp, staffDrinkLine } from "./staff-drink-lines";
+import { ONE_SIZE } from "@/features/menu/util";
 
 interface Deduction {
   ingredient_name: string;
@@ -350,7 +351,8 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                             <div className="min-w-0">
                               <p className="flex flex-wrap items-center gap-1 text-sm font-semibold">
                                 {getTranslatedName({ name: it.item_name, name_translations: it.name_translations }, lang)}
-                                {it.size_label ? <span className="text-muted-foreground">({it.size_label})</span> : null}
+                                {/* A combo part of a single-size item carries "one_size": not a size anyone chose. */}
+                                {it.size_label && it.size_label !== ONE_SIZE ? <span className="text-muted-foreground">({it.size_label})</span> : null}
                                 {rewards.lines.has(it.id) ? (
                                   <StatusPill tone="success" size="sm">
                                     {t("orders.reward", "Reward")}
