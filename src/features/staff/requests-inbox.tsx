@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { useForm } from "react-hook-form";
@@ -604,10 +604,20 @@ function NewRequestDialog({
   const form = useForm<NewRequestValues>({ resolver: zodResolver(schema), defaultValues: blank });
   const errors = form.formState.errors;
   const v = form.watch();
+  // "To" follows "From" until it is set by hand, and never sits before it (box verify).
+  const endByHand = useRef(false);
   useEffect(() => {
-    if (open) form.reset({ ...blank, on_date: todayIso(), end_date: todayIso() });
+    if (open) {
+      form.reset({ ...blank, on_date: todayIso(), end_date: todayIso() });
+      endByHand.current = false;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+  const followFrom = (from: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) return;
+    const end = form.getValues("end_date");
+    if (!endByHand.current || !end || end < from) form.setValue("end_date", from, { shouldValidate: true });
+  };
 
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: open } });
   const authz = useAuthz();
@@ -724,12 +734,12 @@ function NewRequestDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="nr-date">{isSpan ? t("staff.from", "From") : t("staff.date", "Date")}</Label>
-              <Input id="nr-date" type="date" {...form.register("on_date")} />
+              <Input id="nr-date" type="date" {...form.register("on_date", { onChange: (e) => followFrom(e.target.value) })} />
             </div>
             {isSpan ? (
               <div className="space-y-1">
                 <Label htmlFor="nr-end">{t("staff.to", "To")}</Label>
-                <Input id="nr-end" type="date" {...form.register("end_date")} />
+                <Input id="nr-end" type="date" {...form.register("end_date", { onChange: () => { endByHand.current = true; } })} />
                 {err(errors.end_date?.message)}
               </div>
             ) : null}

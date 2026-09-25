@@ -235,6 +235,27 @@ describe("Filing for someone", () => {
     expect(body).not.toHaveProperty("leave_type_id");
   });
 
+  it("'To' follows 'From' until it is set on its own, and never sits before it (box verify)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /New request/ }));
+    const dialog = await screen.findByRole("dialog");
+    await pick(user, "Kind", "Mission");
+    const from = within(dialog).getByLabelText("From");
+    const to = within(dialog).getByLabelText("To");
+    await user.clear(from);
+    await user.type(from, "2026-10-05");
+    expect(to).toHaveValue("2026-10-05");
+    await user.clear(to);
+    await user.type(to, "2026-10-07");
+    await user.clear(from);
+    await user.type(from, "2026-10-06");
+    expect(to).toHaveValue("2026-10-07");
+    await user.clear(from);
+    await user.type(from, "2026-10-09");
+    expect(to).toHaveValue("2026-10-09");
+  });
+
   it("files a mission with only a note, and refuses one with neither title nor note", async () => {
     const user = userEvent.setup();
     renderPage();
