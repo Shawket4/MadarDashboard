@@ -185,11 +185,12 @@ function BranchPin({
             <div className="space-y-1.5">
               <Label htmlFor={`paste-${branch.id}`}>{t("dawam.pastePin", "Or paste a Google Maps link or coordinates")}</Label>
               <div className="relative">
-                <ClipboardPaste aria-hidden className="pointer-events-none absolute start-2.5 top-2.5 size-4 text-muted-foreground" />
+                {/* The link reads left to right in both languages, so the icon sits on its physical left. */}
+                <ClipboardPaste aria-hidden className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
                 <Input
                   id={`paste-${branch.id}`}
                   dir="ltr"
-                  className="ps-8"
+                  className="pl-8"
                   disabled={!canEdit}
                   placeholder="https://www.google.com/maps/… · 30.0444, 31.2357"
                   value={paste}
