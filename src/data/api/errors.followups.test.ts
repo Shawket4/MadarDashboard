@@ -233,4 +233,16 @@ describe("the backend fixes' refusal codes", () => {
       expect(getErrorMessage(old)).toMatch(/7/);
     }
   });
+
+  it("on a month form, a closed month asks for an open month, not a day (A5)", async () => {
+    for (const vars of [{}, { paid: true }]) {
+      const err = apiError({ code: "PERIOD_CLOSED", error: "x", vars }, 409);
+      await i18n.changeLanguage("en");
+      expect(getErrorMessage(err, { monthForm: true })).toMatch(/open month/);
+      expect(getErrorMessage(err, { monthForm: true })).not.toMatch(/day/);
+      expect(getErrorMessage(err)).toMatch(/day/);
+      await i18n.changeLanguage("ar");
+      expect(getErrorMessage(err, { monthForm: true })).not.toMatch(/يومًا/);
+    }
+  });
 });

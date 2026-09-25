@@ -98,7 +98,12 @@ export type ReasonFor = "payLine" | "stopLine" | "punchFor" | "decline" | "corre
 
 export const getErrorMessage = (
   err: unknown,
-  opts: { fieldLabel?: (field: string) => string; reasonFor?: ReasonFor } = {},
+  opts: {
+    fieldLabel?: (field: string) => string;
+    reasonFor?: ReasonFor;
+    /** The form picks a month, not a day: a closed month says "pick an open month" (A5). */
+    monthForm?: boolean;
+  } = {},
 ): string => {
   const t = i18n.getFixedT(null, "translation");
 
@@ -124,7 +129,12 @@ export const getErrorMessage = (
     const variant =
       code && typeof rawVars.status === "string" && STATUS_VARIANTS[code]?.includes(rawVars.status) ? `${code}_${rawVars.status}` : undefined;
     // A paid month can't be reopened, so it gets its own wording (PERIOD_CLOSED {paid}).
-    const reasonKey = code === "REASON_REQUIRED" && opts.reasonFor ? `REASON_REQUIRED_${opts.reasonFor}` : undefined;
+    const reasonKey =
+      code === "REASON_REQUIRED" && opts.reasonFor
+        ? `REASON_REQUIRED_${opts.reasonFor}`
+        : code === "PERIOD_CLOSED" && opts.monthForm
+          ? vars.paid === true ? "PERIOD_CLOSED_paid_month" : "PERIOD_CLOSED_month"
+          : undefined;
     const key = reasonKey ?? variant ?? (
       code === "PERIOD_CLOSED" && vars.paid === true
         ? "PERIOD_CLOSED_paid"

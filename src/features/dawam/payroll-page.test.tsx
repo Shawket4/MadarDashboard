@@ -491,6 +491,39 @@ describe("PayrollPage", () => {
     );
   });
 
+  it("a pay line refused for a paid month asks for an open month, not a day (A5)", async () => {
+    const { AxiosError, AxiosHeaders } = await import("axios");
+    calls.createAdjustment.mockImplementationOnce(async () => {
+      throw new AxiosError("x", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 409, statusText: "", headers: {}, config: { headers: new AxiosHeaders() }, data: { code: "PERIOD_CLOSED", error: "x", vars: { paid: true } },
+      });
+    });
+    const { toast } = await import("sonner");
+    const toastError = vi.spyOn(toast, "error");
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getAllByText("Youssef Adel")[0]);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Bonus" }));
+    const form = (await screen.findAllByRole("dialog")).at(-1)!;
+    await user.type(within(form).getByLabelText("Amount (EGP)"), "100");
+    await user.type(within(form).getByLabelText("Reason"), "Eid");
+    await user.click(within(form).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(toastError).toHaveBeenCalled());
+    expect(toastError.mock.calls.at(-1)![0]).toMatch(/open month/);
+    expect(toastError.mock.calls.at(-1)![0]).not.toMatch(/day/);
+    toastError.mockRestore();
+  });
+
+  it("marks everyone paid from the first page: unpaid payslips come first (A5)", () => {
+    const frozen = (u: string, n: string, paid: string | null) =>
+      ({ ...slip(u, n), id: `s-${u}`, employee_name: n, paid_method: paid, payroll_period_id: "p2" }) as unknown as Payslip;
+    const names = ["Adel", "Basma", "Camilia", "Dina", "Emad", "Fady", "Gamal", "Hoda", "Islam", "Karim", "Laila", "Mona"];
+    // By name the two unpaid ones (Laila, Mona) would sit on page 2.
+    current = { ...current!, period: period("generated"), paid_count: 10, payslips: names.map((n, i) => frozen(`e${i}`, n, i < 10 ? "cash" : null)) };
+    wrap(<PayrollPage />);
+    expect(screen.getAllByRole("button", { name: "Mark paid" })).toHaveLength(2);
+  });
+
   it("waives a rule-made line and deletes only a manual one (AD-7)", async () => {
     const user = userEvent.setup();
     wrap(<PayrollPage />);

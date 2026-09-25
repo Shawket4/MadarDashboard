@@ -78,7 +78,7 @@ const pounds = (t: (k: string, d: string) => string) =>
 const nonEmpty = (t: (k: string, d: string) => string, msg: [string, string]) => z.string().trim().min(1, t(msg[0], msg[1]));
 
 function FormDialog<V extends FieldValues>({
-  open, onOpenChange, title, description, children, form, onSave, saveLabel, destructive, reasonFor,
+  open, onOpenChange, title, description, children, form, onSave, saveLabel, destructive, reasonFor, monthForm,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -91,6 +91,8 @@ function FormDialog<V extends FieldValues>({
   destructive?: boolean;
   /** Which situation a REASON_REQUIRED refusal is worded for (A5). */
   reasonFor?: ReasonFor;
+  /** Its date is a month picker (the pay-line form). */
+  monthForm?: boolean;
 }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
@@ -103,7 +105,7 @@ function FormDialog<V extends FieldValues>({
       onOpenChange(false);
     } catch (e) {
       // The server's words: over the limit, an approved month, the cap.
-      toast.error(getErrorMessage(e, { reasonFor }));
+      toast.error(getErrorMessage(e, { reasonFor, monthForm }));
     } finally {
       setBusy(false);
     }
@@ -232,6 +234,7 @@ export function AdjustmentDialog({
       onOpenChange={onOpenChange}
       form={form}
       reasonFor="payLine"
+      monthForm
       title={t("dawam.addPayLine", "Add a bonus or deduction")}
       description={t("dawam.addPayLineHint", "Over your limit, it waits for the owner before it counts.")}
       onSave={async (v) => {

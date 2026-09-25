@@ -2381,7 +2381,9 @@
       "REASON_REQUIRED_decline": "Say why you're declining.",
       "REASON_REQUIRED_correctAdvance": "Say why you're correcting this advance.",
       "PUNCH_IN_FUTURE": "A punch can't be dated ahead: {{at}} hasn't come yet. Check the phone's clock.",
-      "PUNCH_TOO_OLD": "That punch ({{at}}) is too old to record: at most {{max_days}} days back. Correct the attendance record instead."
+      "PUNCH_TOO_OLD": "That punch ({{at}}) is too old to record: at most {{max_days}} days back. Correct the attendance record instead.",
+      "PERIOD_CLOSED_month": "That payroll month is closed. Reopen it first, or pick an open month.",
+      "PERIOD_CLOSED_paid_month": "That month is paid, so it can't change. Pick an open month."
     },
     "tooManyRequests": "Too many requests just now. Try again in a moment."
   },

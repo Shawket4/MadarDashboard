@@ -165,11 +165,14 @@ export function PayrollPage() {
     const source: Slip[] = older
       ? ((olderDraft ? olderPreviewQ.data : olderSlipsQ.data) ?? [])
       : frozen.length ? frozen : (cur?.preview ?? []);
-    return source.map((s) => ({
-      ...s,
-      employee_name: ("employee_name" in s && s.employee_name) || ("name" in s && s.name) || people.get(s.employee_id)?.name || "—",
-      paid_method: ("paid_method" in s && s.paid_method) || null,
-    }));
+    return source
+      .map((s) => ({
+        ...s,
+        employee_name: ("employee_name" in s && s.employee_name) || ("name" in s && s.name) || people.get(s.employee_id)?.name || "—",
+        paid_method: ("paid_method" in s && s.paid_method) || null,
+      }))
+      // Whoever is still to pay comes first, so every "Mark paid" is on the first page (A5); name order within.
+      .sort((a, b) => Number(!!a.paid_method) - Number(!!b.paid_method));
   }, [cur, older, olderDraft, olderPreviewQ.data, olderSlipsQ.data, people]);
 
   // The server adds the run up (AT-3): its totals and how many are paid. An
