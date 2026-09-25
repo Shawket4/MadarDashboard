@@ -20,9 +20,12 @@ import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
-import { invalidateStaff, WEEKDAYS } from "./util";
+import { invalidateStaff } from "./util";
 import { ScheduleGrid } from "./schedule-grid";
-import { WEEK_ORDER, WorkShiftDialog } from "./work-shift-dialog";
+import { WorkShiftDialog } from "./work-shift-dialog";
+import { endsNextDay, formatSpan, spanMinutes, summarizeDays } from "@/components/inputs";
+import { useLang } from "@/components/inputs/use-lang";
+import { fmtWireTime } from "@/lib/format";
 
 export function WorkShiftsPage() {
   const { t } = useTranslation();
@@ -44,12 +47,10 @@ export function WorkShiftsPage() {
   const branches = useMemo(() => branchesQ.data ?? [], [branchesQ.data]);
   const branchName = (id: string | null | undefined) =>
     id ? (branches.find((b) => b.id === id)?.name ?? "") : t("staff.wholeBusiness", "Every branch");
+  const { lang } = useLang();
+  // "Sat – Wed", "Thu, Fri", "Every day": a run of days reads as a range.
   const dayList = (days: number[]) =>
-    days.length === 7
-      ? t("staff.everyDay", "Every day")
-      : WEEK_ORDER.filter((d) => days.includes(d))
-          .map((d) => { const w = WEEKDAYS.find((x) => x.value === d)!; return t(w.labelKey, w.fallback); })
-          .join(" ");
+    summarizeDays(days, lang, t("staff.everyDay", "Every day"), t("inputs.noDays", "No days"));
   const [editing, setEditing] = useState<WorkShift | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -118,11 +119,12 @@ export function WorkShiftsPage() {
         <EmptyState
           icon={Clock}
           title={t("staff.noShifts", "No work shifts yet")}
-          description={t(
-            "staff.noShiftsHint",
-            "Create a shift with its start and end time, then roster people onto it.",
-          )}
-          action={canCreate ? <Button onClick={() => setCreating(true)}>{t("staff.newShift", "New shift")}</Button> : undefined}
+          description={
+            canCreate
+              ? t("staff.noShiftsHintV2", "A shift is a block of time people are rostered on, like Morning 8 AM–4 PM or a night that ends after midnight. Start from a common one, then roster people onto it.")
+              : t("staff.noShiftsNoAccess", "Nobody has made a shift yet. Making shifts needs the right to create schedules: ask the owner.")
+          }
+          action={canCreate ? <Button onClick={() => setCreating(true)}><Plus className="size-4" />{t("staff.newShift", "New shift")}</Button> : undefined}
         />
       ) : (
         <ListCard>
@@ -134,8 +136,9 @@ export function WorkShiftsPage() {
               title={s.name}
               meta={
                 <>
-                  <bdi className="font-mono tabular-nums">{s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}</bdi>
-                  {s.crosses_midnight ? ` · ${t("staff.crossesMidnight", "Runs past midnight")}` : ""}
+                  <bdi className="tabular-nums">{fmtWireTime(s.start_time)} – {fmtWireTime(s.end_time)}</bdi>
+                  {(() => { const n = spanMinutes(s.start_time, s.end_time); return n ? ` (${formatSpan(n, lang)})` : ""; })()}
+                  {s.crosses_midnight || endsNextDay(s.start_time, s.end_time) ? ` · ${t("inputs.endsNextDay", "Ends the next day")}` : ""}
                   {" · "}
                   {t("staff.graceBadge", "{{n}} min grace", { n: s.grace_minutes })}
                   {" · "}

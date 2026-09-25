@@ -163,7 +163,11 @@ export function TeamPage() {
         {failedEmpty(presenceQ) ? (
           <ErrorState title={t("dawam.teamLoadError", "Couldn't load the team")} message={getErrorMessage(presenceQ.error)} onRetry={() => void presenceQ.refetch()} />
         ) : presenceQ.isLoading ? <Skeleton className="h-48 w-full rounded-2xl" /> : rows.length === 0 ? (
-          <EmptyState icon={UsersRound} title={t("dawam.nobodyRostered", "Nobody is rostered today")} />
+          <EmptyState
+            icon={UsersRound}
+            title={t("dawam.nobodyRostered", "Nobody is rostered today")}
+            description={t("dawam.nobodyRosteredHint", "Put people on today's roster in Schedule and they show up here as they clock in, late or absent.")}
+          />
         ) : (
           <ListCard>
             {rows.map((r) => (
@@ -185,7 +189,13 @@ export function TeamPage() {
                         <span className="text-xs text-muted-foreground">{t("dawam.coveredBy", { name: coverer, defaultValue: `Covered by ${coverer}` })}</span>
                       ) : null}
                       {canPunch && !monthClosed && (["in", "late", "absent"].includes(r.state) || punchWindowOpen(r)) ? (
-                        <Button size="sm" variant="outline" disabled={!!coverer} onClick={() => setPunching(r)}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!!coverer}
+                          title={coverer ? t("dawam.punchCoveredWhy", { name: coverer, defaultValue: `${coverer} is covering this shift, so it's theirs to punch.` }) : undefined}
+                          onClick={() => setPunching(r)}
+                        >
                           <LogIn className="size-4" />
                           {out ? t("dawam.punchOut", "Punch out") : t("dawam.punchIn", "Punch in")}
                         </Button>
@@ -392,6 +402,23 @@ function PunchDialog({ person, onOpenChange }: { person: PresenceRow | null; onO
                 <FormItem>
                   <FormLabel>{t("staff.reason", "Reason")}</FormLabel>
                   <FormControl><Input placeholder={t("dawam.punchReasonPlaceholder", "Phone died")} {...field} /></FormControl>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      t("dawam.reasonPhoneDied", "Phone died"),
+                      t("dawam.reasonNoSignal", "No signal inside"),
+                      t("dawam.reasonForgotPhone", "Forgot their phone"),
+                    ].map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => form.setValue("reason", r, { shouldValidate: true })}
+                        className="h-7 rounded-full border px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                  {!field.value.trim() ? <FormDescription>{t("dawam.punchReasonNeeded", "A reason is needed: it's shown to them and kept with the punch.")}</FormDescription> : null}
                   <FormMessage />
                 </FormItem>
               )}

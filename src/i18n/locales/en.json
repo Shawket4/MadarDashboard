@@ -4757,7 +4757,9 @@
     "previewDocks": "docks {{amount}}",
     "previewNoRung": "no rung covers this, so nothing is docked",
     "ladderPreviewTitle": "Try the ladder",
-    "ladderPreviewHint": "An example only: payroll uses each person's own salary and shift. Minutes late count from the end of the shift's grace."
+    "ladderPreviewHint": "An example only: payroll uses each person's own salary and shift. Minutes late count from the end of the shift's grace.",
+    "noShiftsHintV2": "A shift is a block of time people are rostered on, like Morning 8 AM–4 PM or a night that ends after midnight. Start from a common one, then roster people onto it.",
+    "noShiftsNoAccess": "Nobody has made a shift yet. Making shifts needs the right to create schedules: ask the owner."
   },
   "basira": {
     "title": "Basira",
@@ -6653,7 +6655,13 @@
     "needName": "a name",
     "needPhone": "their WhatsApp number",
     "needGoodPhone": "a phone number that works",
-    "needBranch": "at least one branch"
+    "needBranch": "at least one branch",
+    "nobodyRosteredHint": "Put people on today's roster in Schedule and they show up here as they clock in, late or absent.",
+    "punchCoveredWhy": "{{name}} is covering this shift, so it's theirs to punch.",
+    "reasonPhoneDied": "Phone died",
+    "reasonNoSignal": "No signal inside",
+    "reasonForgotPhone": "Forgot their phone",
+    "punchReasonNeeded": "A reason is needed: it's shown to them and kept with the punch."
   },
   "legal": {
     "label": "Legal",
