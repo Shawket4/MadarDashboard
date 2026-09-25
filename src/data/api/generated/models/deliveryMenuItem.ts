@@ -4,6 +4,8 @@ import type { DeliveryMenuItemNameTranslations } from './deliveryMenuItemNameTra
 import type { DeliveryMenuSize } from './deliveryMenuSize';
 import type { DeliveryModifierGroup } from './deliveryModifierGroup';
 import type { DeliveryOptionalField } from './deliveryOptionalField';
+import type { MealLink } from './mealLink';
+import type { PublicCombo } from './publicCombo';
 
 export interface DeliveryMenuItem {
   /**
@@ -14,6 +16,7 @@ export interface DeliveryMenuItem {
   allowed_addon_ids: string[];
   /** @nullable */
   category_id?: string | null;
+  combo?: null | PublicCombo;
   /**
      * The item's base/default milk: the `milk_type` addon whose ingredient
      * matches the item recipe's milk ingredient. The online customizer
@@ -27,6 +30,9 @@ export interface DeliveryMenuItem {
   id: string;
   /** @nullable */
   image_url?: string | null;
+  /** `item` | `combo` (combos module). Additive. */
+  kind: string;
+  meal?: null | MealLink;
   /**
      * The item's modifier groups (unified model), channel-effective. Empty ⇒
      * the customizer falls back to `addons` + `allowed_addon_ids`.

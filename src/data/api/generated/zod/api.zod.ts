@@ -2175,7 +2175,58 @@ export const CatalogSyncResponse = zod.object({
 }).describe('An org ingredient referenced by a returned option recipe.')).optional(),
   "items": zod.array(zod.object({
   "category_id": zod.uuid().nullish(),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "sell": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org\'s channel toggles, resolved for the requested branch.'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
   "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).describe('Only the windows for this branch or for every branch.')
+}).describe('A kind=combo row: its slots, windows and resolved channel toggles.')]).optional(),
+  "id": zod.uuid(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). Additive.'),
+  "meal": zod.union([zod.null(),zod.object({
+  "combo_id": zod.uuid(),
+  "slot_id": zod.uuid()
+}).describe('A kind=item row: its \"make it a meal\" upsell (C14).')]).optional(),
   "modifier_groups": zod.array(zod.object({
   "effect": zod.string().optional().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "group_id": zod.uuid(),
@@ -2512,6 +2563,449 @@ export const UpdateCategoryResponse = zod.object({
 })
 
 
+export const ListCombosQueryParams = zod.object({
+  "q": zod.string().optional().describe('Name search (EN or AR).'),
+  "category_id": zod.uuid().optional(),
+  "is_active": zod.boolean().optional(),
+  "page": zod.number().optional(),
+  "per_page": zod.number().optional()
+})
+
+export const ListCombosResponse = zod.object({
+  "data": zod.array(zod.object({
+  "available_now": zod.boolean().describe('Org-level: active, a window open now (org time zone), POS channel on.'),
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "is_fixed": zod.boolean(),
+  "margin_default": zod.string().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "price": zod.number(),
+  "slot_count": zod.number(),
+  "warning_count": zod.number(),
+  "window_count": zod.number()
+}).describe('One row of `GET \/combos`.')),
+  "page": zod.number(),
+  "per_page": zod.number(),
+  "total": zod.number(),
+  "total_pages": zod.number()
+})
+
+
+export const CreateComboBody = zod.object({
+  "category_id": zod.uuid().nullish(),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}).optional(),
+  "is_active": zod.boolean().optional(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "price": zod.number().describe('P, piastres: the combo\'s `one_size` price (its `base_price`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid().nullish().describe('The choice\'s id, to keep it on an edit; omit for a new choice.'),
+  "included_size_label": zod.string().nullish().describe('The size the combo price covers; `null` = the item\'s cheapest active size.'),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')).optional(),
+  "sort": zod.number().optional(),
+  "surcharge": zod.number().optional().describe('Per pick unit, piastres (C9 \"per-choice surcharge\").')
+}).describe('What a slot allows: exactly one of `menu_item_id` (an item) or\n`category_id` (every kind=item item of that category).')),
+  "default_item_id": zod.uuid().nullish().describe('Pre-selected on the till and used for unpicked replays; must be one of\nthe slot\'s choices (by id, or by its category).'),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('The slot\'s id, to keep it on an edit; omit for a new slot.'),
+  "max": zod.number().describe('Picks allowed (1–10, ≥ min).'),
+  "min": zod.number().describe('Picks required (0–10). 0 = optional slot.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "sort": zod.number().optional()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).optional()
+}).describe('`POST \/combos`, `PUT \/combos\/{id}`, `POST \/combos\/economics`.')
+
+export const CreateComboResponse = zod.object({
+  "available_now": zod.boolean().describe('Sellable right now on the till at the requested branch (or anywhere,\norg-level): active, the POS channel on, a window open, every required\nslot with an available choice.'),
+  "category_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}),
+  "economics": zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "cost_default": zod.number().nullish().describe('`null` when any cost involved is unknown.'),
+  "cost_max": zod.number().nullish(),
+  "list_default": zod.number().describe('À la carte value of the default picks at their included sizes.'),
+  "list_max": zod.number(),
+  "list_min": zod.number().describe('The cheapest and dearest valid pick sets, at their included sizes.'),
+  "margin_default": zod.string().nullish().describe('Fractions as strings (\"0.5933\"); `null` when the cost is unknown or P is 0.'),
+  "margin_worst": zod.string().nullish(),
+  "min_margin": zod.string().nullish(),
+  "price": zod.number().describe('P at this branch.'),
+  "saving_default": zod.number().describe('`list_default − price`.'),
+  "warnings": zod.array(zod.object({
+  "code": zod.string(),
+  "vars": zod.looseObject({
+
+}).optional()
+}).describe('A margin\/saving warning (C11). Never a refusal: a combo saves with any.\nCodes: `MARGIN_BELOW_MIN {margin, min}`, `NO_SAVING`,\n`COST_UNKNOWN {menu_item_id}`, `SLOT_EMPTY_NOW {slot_id}`,\n`CHOICE_INACTIVE {menu_item_id}`.'))
+}).describe('The editor\'s live panel: list value, cost, margin and saving of a combo at\na branch (or the org\'s catalogue prices when `branch_id` is null).'),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "is_fixed": zod.boolean().describe('C1\'s fixed bundle: every slot has exactly one item choice with min == max.'),
+  "kind": zod.string().describe('Always `combo`.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "price": zod.number().describe('P, piastres (the catalogue price; branch prices live in `\/menu\/pricing`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('`GET \/combos\/{id}`, `POST \/combos`, `PUT \/combos\/{id}`.')
+
+
+export const ComboEconomicsBody = zod.object({
+  "category_id": zod.uuid().nullish(),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}).optional(),
+  "is_active": zod.boolean().optional(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "price": zod.number().describe('P, piastres: the combo\'s `one_size` price (its `base_price`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid().nullish().describe('The choice\'s id, to keep it on an edit; omit for a new choice.'),
+  "included_size_label": zod.string().nullish().describe('The size the combo price covers; `null` = the item\'s cheapest active size.'),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')).optional(),
+  "sort": zod.number().optional(),
+  "surcharge": zod.number().optional().describe('Per pick unit, piastres (C9 \"per-choice surcharge\").')
+}).describe('What a slot allows: exactly one of `menu_item_id` (an item) or\n`category_id` (every kind=item item of that category).')),
+  "default_item_id": zod.uuid().nullish().describe('Pre-selected on the till and used for unpicked replays; must be one of\nthe slot\'s choices (by id, or by its category).'),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('The slot\'s id, to keep it on an edit; omit for a new slot.'),
+  "max": zod.number().describe('Picks allowed (1–10, ≥ min).'),
+  "min": zod.number().describe('Picks required (0–10). 0 = optional slot.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "sort": zod.number().optional()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).optional()
+}).describe('`POST \/combos`, `PUT \/combos\/{id}`, `POST \/combos\/economics`.').and(zod.object({
+  "branch_id": zod.uuid().nullish()
+})).describe('`POST \/combos\/economics`: a draft, priced for a branch (or the org).')
+
+export const ComboEconomicsResponse = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "cost_default": zod.number().nullish().describe('`null` when any cost involved is unknown.'),
+  "cost_max": zod.number().nullish(),
+  "list_default": zod.number().describe('À la carte value of the default picks at their included sizes.'),
+  "list_max": zod.number(),
+  "list_min": zod.number().describe('The cheapest and dearest valid pick sets, at their included sizes.'),
+  "margin_default": zod.string().nullish().describe('Fractions as strings (\"0.5933\"); `null` when the cost is unknown or P is 0.'),
+  "margin_worst": zod.string().nullish(),
+  "min_margin": zod.string().nullish(),
+  "price": zod.number().describe('P at this branch.'),
+  "saving_default": zod.number().describe('`list_default − price`.'),
+  "warnings": zod.array(zod.object({
+  "code": zod.string(),
+  "vars": zod.looseObject({
+
+}).optional()
+}).describe('A margin\/saving warning (C11). Never a refusal: a combo saves with any.\nCodes: `MARGIN_BELOW_MIN {margin, min}`, `NO_SAVING`,\n`COST_UNKNOWN {menu_item_id}`, `SLOT_EMPTY_NOW {slot_id}`,\n`CHOICE_INACTIVE {menu_item_id}`.'))
+}).describe('The editor\'s live panel: list value, cost, margin and saving of a combo at\na branch (or the org\'s catalogue prices when `branch_id` is null).')
+
+
+export const GetComboParams = zod.object({
+  "id": zod.uuid().describe('The combo\'s menu item id')
+})
+
+export const GetComboQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Price the economics for this branch; omitted = the org\'s catalogue.')
+})
+
+export const GetComboResponse = zod.object({
+  "available_now": zod.boolean().describe('Sellable right now on the till at the requested branch (or anywhere,\norg-level): active, the POS channel on, a window open, every required\nslot with an available choice.'),
+  "category_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}),
+  "economics": zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "cost_default": zod.number().nullish().describe('`null` when any cost involved is unknown.'),
+  "cost_max": zod.number().nullish(),
+  "list_default": zod.number().describe('À la carte value of the default picks at their included sizes.'),
+  "list_max": zod.number(),
+  "list_min": zod.number().describe('The cheapest and dearest valid pick sets, at their included sizes.'),
+  "margin_default": zod.string().nullish().describe('Fractions as strings (\"0.5933\"); `null` when the cost is unknown or P is 0.'),
+  "margin_worst": zod.string().nullish(),
+  "min_margin": zod.string().nullish(),
+  "price": zod.number().describe('P at this branch.'),
+  "saving_default": zod.number().describe('`list_default − price`.'),
+  "warnings": zod.array(zod.object({
+  "code": zod.string(),
+  "vars": zod.looseObject({
+
+}).optional()
+}).describe('A margin\/saving warning (C11). Never a refusal: a combo saves with any.\nCodes: `MARGIN_BELOW_MIN {margin, min}`, `NO_SAVING`,\n`COST_UNKNOWN {menu_item_id}`, `SLOT_EMPTY_NOW {slot_id}`,\n`CHOICE_INACTIVE {menu_item_id}`.'))
+}).describe('The editor\'s live panel: list value, cost, margin and saving of a combo at\na branch (or the org\'s catalogue prices when `branch_id` is null).'),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "is_fixed": zod.boolean().describe('C1\'s fixed bundle: every slot has exactly one item choice with min == max.'),
+  "kind": zod.string().describe('Always `combo`.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "price": zod.number().describe('P, piastres (the catalogue price; branch prices live in `\/menu\/pricing`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('`GET \/combos\/{id}`, `POST \/combos`, `PUT \/combos\/{id}`.')
+
+
+export const UpdateComboParams = zod.object({
+  "id": zod.uuid().describe('The combo\'s menu item id')
+})
+
+export const UpdateComboBody = zod.object({
+  "category_id": zod.uuid().nullish(),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}).optional(),
+  "is_active": zod.boolean().optional(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "price": zod.number().describe('P, piastres: the combo\'s `one_size` price (its `base_price`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid().nullish().describe('The choice\'s id, to keep it on an edit; omit for a new choice.'),
+  "included_size_label": zod.string().nullish().describe('The size the combo price covers; `null` = the item\'s cheapest active size.'),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')).optional(),
+  "sort": zod.number().optional(),
+  "surcharge": zod.number().optional().describe('Per pick unit, piastres (C9 \"per-choice surcharge\").')
+}).describe('What a slot allows: exactly one of `menu_item_id` (an item) or\n`category_id` (every kind=item item of that category).')),
+  "default_item_id": zod.uuid().nullish().describe('Pre-selected on the till and used for unpicked replays; must be one of\nthe slot\'s choices (by id, or by its category).'),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('The slot\'s id, to keep it on an edit; omit for a new slot.'),
+  "max": zod.number().describe('Picks allowed (1–10, ≥ min).'),
+  "min": zod.number().describe('Picks required (0–10). 0 = optional slot.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "sort": zod.number().optional()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).optional()
+}).describe('`POST \/combos`, `PUT \/combos\/{id}`, `POST \/combos\/economics`.')
+
+export const UpdateComboResponse = zod.object({
+  "available_now": zod.boolean().describe('Sellable right now on the till at the requested branch (or anywhere,\norg-level): active, the POS channel on, a window open, every required\nslot with an available choice.'),
+  "category_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}),
+  "economics": zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "cost_default": zod.number().nullish().describe('`null` when any cost involved is unknown.'),
+  "cost_max": zod.number().nullish(),
+  "list_default": zod.number().describe('À la carte value of the default picks at their included sizes.'),
+  "list_max": zod.number(),
+  "list_min": zod.number().describe('The cheapest and dearest valid pick sets, at their included sizes.'),
+  "margin_default": zod.string().nullish().describe('Fractions as strings (\"0.5933\"); `null` when the cost is unknown or P is 0.'),
+  "margin_worst": zod.string().nullish(),
+  "min_margin": zod.string().nullish(),
+  "price": zod.number().describe('P at this branch.'),
+  "saving_default": zod.number().describe('`list_default − price`.'),
+  "warnings": zod.array(zod.object({
+  "code": zod.string(),
+  "vars": zod.looseObject({
+
+}).optional()
+}).describe('A margin\/saving warning (C11). Never a refusal: a combo saves with any.\nCodes: `MARGIN_BELOW_MIN {margin, min}`, `NO_SAVING`,\n`COST_UNKNOWN {menu_item_id}`, `SLOT_EMPTY_NOW {slot_id}`,\n`CHOICE_INACTIVE {menu_item_id}`.'))
+}).describe('The editor\'s live panel: list value, cost, margin and saving of a combo at\na branch (or the org\'s catalogue prices when `branch_id` is null).'),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "is_fixed": zod.boolean().describe('C1\'s fixed bundle: every slot has exactly one item choice with min == max.'),
+  "kind": zod.string().describe('Always `combo`.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "price": zod.number().describe('P, piastres (the catalogue price; branch prices live in `\/menu\/pricing`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('`GET \/combos\/{id}`, `POST \/combos`, `PUT \/combos\/{id}`.')
+
+
 export const ListAddonCostsQueryParams = zod.object({
   "org_id": zod.uuid(),
   "branch_id": zod.uuid().nullish().describe('Optional: resolve costs at this branch\'s actual cost (falling back to the\norg default per ingredient). Omit for the org default \/ standard cost.')
@@ -2603,6 +3097,7 @@ export const ListMenuCatalogResponse = zod.object({
 })]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). A combo\'s price is its `one_size`\nrow like any item; its slots are on `GET \/combos\/{id}`. Additive.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -2933,6 +3428,254 @@ export const MergeCustomerResponse = zod.object({
 })),
   "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
 })
+
+
+export const ListDealsQueryParams = zod.object({
+  "is_active": zod.boolean().optional()
+})
+
+export const ListDealsResponseItem = zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "is_active": zod.boolean()
+})),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "get_percent": zod.number().nullish(),
+  "get_qty": zod.number().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price: the price of `qty` units, piastres.'),
+  "qty": zod.number(),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).describe('buy_get only; `[]` = the rewarded units come from `pool`.'),
+  "sell": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('Feed rows only: the branch\'s channel toggles (§11.1). Absent elsewhere.')]).optional(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('A deal rule. `n_for_price`: any `qty` units of the pool for `price`.\n`buy_get`: buy `qty`, get `get_qty` at `get_percent`% off (100 = free),\nthe rewarded units drawn from `reward_pool` (or the pool when empty).\nA deal covers the item\'s size price only; add-ons always pay.\n\nAlso the `deal_rule` feed row of `\/sync\/pull`, where `is_active` is\nresolved for the device\'s branch and `sell` carries the branch\'s channel\ntoggles.')
+export const ListDealsResponse = zod.array(ListDealsResponseItem)
+
+
+export const CreateDealBody = zod.object({
+  "get_percent": zod.number().nullish().describe('buy_get only (1–100; 100 = free).'),
+  "get_qty": zod.number().nullish().describe('buy_get only (1–20).'),
+  "is_active": zod.boolean().optional(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price only.'),
+  "qty": zod.number().describe('N (n_for_price, 2–20) or the \"buy\" count (buy_get, 1–20).'),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).optional(),
+  "sort": zod.number().optional(),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).optional()
+}).describe('`POST \/deals`, `PUT \/deals\/{id}`.')
+
+export const CreateDealResponse = zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "is_active": zod.boolean()
+})),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "get_percent": zod.number().nullish(),
+  "get_qty": zod.number().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price: the price of `qty` units, piastres.'),
+  "qty": zod.number(),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).describe('buy_get only; `[]` = the rewarded units come from `pool`.'),
+  "sell": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('Feed rows only: the branch\'s channel toggles (§11.1). Absent elsewhere.')]).optional(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('A deal rule. `n_for_price`: any `qty` units of the pool for `price`.\n`buy_get`: buy `qty`, get `get_qty` at `get_percent`% off (100 = free),\nthe rewarded units drawn from `reward_pool` (or the pool when empty).\nA deal covers the item\'s size price only; add-ons always pay.\n\nAlso the `deal_rule` feed row of `\/sync\/pull`, where `is_active` is\nresolved for the device\'s branch and `sell` carries the branch\'s channel\ntoggles.')
+
+
+export const UpdateDealParams = zod.object({
+  "id": zod.uuid().describe('Deal rule ID')
+})
+
+export const UpdateDealBody = zod.object({
+  "get_percent": zod.number().nullish().describe('buy_get only (1–100; 100 = free).'),
+  "get_qty": zod.number().nullish().describe('buy_get only (1–20).'),
+  "is_active": zod.boolean().optional(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price only.'),
+  "qty": zod.number().describe('N (n_for_price, 2–20) or the \"buy\" count (buy_get, 1–20).'),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).optional(),
+  "sort": zod.number().optional(),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).optional()
+}).describe('`POST \/deals`, `PUT \/deals\/{id}`.')
+
+export const UpdateDealResponse = zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "is_active": zod.boolean()
+})),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "get_percent": zod.number().nullish(),
+  "get_qty": zod.number().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price: the price of `qty` units, piastres.'),
+  "qty": zod.number(),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).describe('buy_get only; `[]` = the rewarded units come from `pool`.'),
+  "sell": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('Feed rows only: the branch\'s channel toggles (§11.1). Absent elsewhere.')]).optional(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('A deal rule. `n_for_price`: any `qty` units of the pool for `price`.\n`buy_get`: buy `qty`, get `get_qty` at `get_percent`% off (100 = free),\nthe rewarded units drawn from `reward_pool` (or the pool when empty).\nA deal covers the item\'s size price only; add-ons always pay.\n\nAlso the `deal_rule` feed row of `\/sync\/pull`, where `is_active` is\nresolved for the device\'s branch and `sell` carries the branch\'s channel\ntoggles.')
+
+
+export const DeleteDealParams = zod.object({
+  "id": zod.uuid().describe('Deal rule ID')
+})
+
+export const DeleteDealResponse = zod.void()
+
+
+export const PutDealBranchParams = zod.object({
+  "id": zod.uuid().describe('Deal rule ID'),
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const PutDealBranchBody = zod.object({
+  "is_active": zod.boolean()
+}).describe('`PUT \/deals\/{id}\/branches\/{branch_id}`.')
+
+export const PutDealBranchResponse = zod.void()
+
+
+export const DeleteDealBranchParams = zod.object({
+  "id": zod.uuid().describe('Deal rule ID'),
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const DeleteDealBranchResponse = zod.void()
 
 
 export const ListDeliveryOrdersQueryParams = zod.object({
@@ -6352,6 +7095,7 @@ export const ListMenuItemsResponseItem = zod.object({
 })]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). A combo\'s price is its `one_size`\nrow like any item; its slots are on `GET \/combos\/{id}`. Additive.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -6438,6 +7182,7 @@ export const CreateMenuItemResponse = zod.object({
 })]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). A combo\'s price is its `one_size`\nrow like any item; its slots are on `GET \/combos\/{id}`. Additive.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -6466,6 +7211,56 @@ export const CreateMenuItemResponse = zod.object({
   "price_override": zod.number()
 })).optional().describe('Every size row, INCLUDING the synthetic `one_size` one. Additive: this is\nwhere price actually lives, and it is what the dashboard\'s size editor\nand new POS builds read. An item always has at least one entry.'),
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist. Empty = no restriction (use org catalog).'),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "sell": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org\'s channel toggles, resolved for the requested branch.'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).describe('Only the windows for this branch or for every branch.')
+}).describe('A kind=combo row: its slots, windows and channel toggles for the\nrequested branch; `null` for an item. Combo rows are served only to a\nclient that can sell them (a browser, POS ≥ 0.9.0, the KDS).')]).optional(),
+  "meal": zod.union([zod.null(),zod.object({
+  "combo_id": zod.uuid(),
+  "slot_id": zod.uuid()
+}).describe('A kind=item row: its \"make it a meal\" upsell (C14), or `null`.')]).optional(),
   "optional_fields": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
@@ -6582,6 +7377,7 @@ export const GetMenuItemResponse = zod.object({
 })]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). A combo\'s price is its `one_size`\nrow like any item; its slots are on `GET \/combos\/{id}`. Additive.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -6610,6 +7406,56 @@ export const GetMenuItemResponse = zod.object({
   "price_override": zod.number()
 })).optional().describe('Every size row, INCLUDING the synthetic `one_size` one. Additive: this is\nwhere price actually lives, and it is what the dashboard\'s size editor\nand new POS builds read. An item always has at least one entry.'),
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist. Empty = no restriction (use org catalog).'),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "sell": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org\'s channel toggles, resolved for the requested branch.'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).describe('Only the windows for this branch or for every branch.')
+}).describe('A kind=combo row: its slots, windows and channel toggles for the\nrequested branch; `null` for an item. Combo rows are served only to a\nclient that can sell them (a browser, POS ≥ 0.9.0, the KDS).')]).optional(),
+  "meal": zod.union([zod.null(),zod.object({
+  "combo_id": zod.uuid(),
+  "slot_id": zod.uuid()
+}).describe('A kind=item row: its \"make it a meal\" upsell (C14), or `null`.')]).optional(),
   "optional_fields": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
@@ -6748,6 +7594,7 @@ export const UpdateMenuItemResponse = zod.object({
 })]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). A combo\'s price is its `one_size`\nrow like any item; its slots are on `GET \/combos\/{id}`. Additive.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -7038,6 +7885,18 @@ export const DuplicateItemResponse = zod.object({
   "sort": zod.number()
 }).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
+
+
+export const PutMealParams = zod.object({
+  "id": zod.uuid().describe('A kind=item menu item')
+})
+
+export const PutMealBody = zod.object({
+  "combo_id": zod.uuid().nullish(),
+  "slot_id": zod.uuid().nullish()
+}).describe('`PUT \/menu-items\/{id}\/meal`. Both set = link; both `null` (or a JSON\n`null` body) = unlink.')
+
+export const PutMealResponse = zod.void()
 
 
 export const PutModifierGroupsParams = zod.object({
@@ -8422,6 +9281,23 @@ export const CreateOpenTicketBody = zod.object({
   "quantity": zod.number().optional(),
   "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -8633,6 +9509,23 @@ export const AddRoundBody = zod.object({
   "quantity": zod.number().optional(),
   "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -9068,6 +9961,15 @@ export const CreateOrderBody = zod.object({
   "created_at": zod.iso.datetime({"offset":true}).nullish(),
   "customer_id": zod.uuid().nullish().describe('A manual customer (phase 6), attached when the actor holds\n`customers.attach`. A merged id resolves; an unknown one is ignored —\na sale is never refused over its customer.'),
   "customer_name": zod.string().nullish(),
+  "deals": zod.array(zod.object({
+  "deal_rule_id": zod.uuid(),
+  "discount": zod.number().nullish().describe('Replay only: what the till took off, piastres.'),
+  "lines": zod.array(zod.object({
+  "line_index": zod.number().describe('Index into the order\'s `items[]`.'),
+  "units": zod.number()
+}).describe('Units of one order line a deal takes.')),
+  "times": zod.number()
+}).describe('An applied deal on an order (the till\'s teller applied it). Live, the\nserver re-prices it exactly over these units (`409 DEAL_NOT_ELIGIBLE` when\nthey don\'t satisfy the rule; `orders.deals.apply` required). On replay the\ntill\'s `discount` is kept and the server\'s verdict stored beside it.')).optional().describe('Deals the teller applied (combos module, C8). Each names order lines\nby index and the units it takes. Needs `orders.deals.apply`. Additive.'),
   "device_code": zod.string().nullish().describe('The device\'s code; with `device_id` + `order_number` the number is stored verbatim.'),
   "device_id": zod.uuid().nullish().describe('The device ringing the order (else `X-Madar-Device`).'),
   "discount_amount": zod.number().nullish(),
@@ -9085,6 +9987,23 @@ export const CreateOrderBody = zod.object({
   "quantity": zod.number().optional(),
   "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -9205,6 +10124,22 @@ export const CreateOrderResponse = zod.object({
   "waiter_id": zod.uuid().nullish().describe('The WAITER who opened this order\'s ticket (`open_tickets.opened_by`),\nstamped server-side at settle time. `null` for direct teller sales and\ndelivery orders (they never pass through a waiter\'s ticket).'),
   "waiter_name": zod.string().nullish()
 }).and(zod.object({
+  "deals": zod.array(zod.object({
+  "deal_rule_id": zod.uuid(),
+  "discount": zod.number().describe('What came off the lines (the till\'s figure on a replay).'),
+  "discount_server": zod.number().nullish().describe('The server\'s verdict; equals `discount` live; `null` when not computable.'),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "discount": zod.number(),
+  "order_item_id": zod.uuid(),
+  "units": zod.number()
+})),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "times": zod.number()
+}).describe('An applied deal as stored: `OrderFull.deals[]`.')).optional().describe('The deals applied to this sale (combos module). Additive.'),
   "delivery": zod.union([zod.null(),zod.object({
   "address_line": zod.string().nullish(),
   "channel": zod.string().describe('\"in_mall\" or \"outside\".'),
@@ -9220,12 +10155,20 @@ export const CreateOrderResponse = zod.object({
   "zone_name": zod.string().nullish().describe('Name of the matched delivery zone ring, when an outside order matched one.')
 }).describe('Delivery context (customer phone, address, channel, zone), populated\nonly on the single-order detail endpoint and only when the order\noriginated from a delivery order. `null`\/absent for dine-in orders.')]).optional(),
   "items": zod.array(zod.object({
+  "combo_line_id": zod.uuid().nullish().describe('A part: its header\'s `id`.'),
+  "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
+  "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
+  "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
+  "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
+  "deal_minor": zod.number().optional().describe('A plain line: what an applied deal took off it, already out of\n`line_total` (print it as a line discount, never subtract it again).'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
   "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
   "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals).\n`null` ⟺ unknown.'),
+  "line_kind": zod.string().optional().describe('Combos (additive). `item` = a plain line; `combo` = a combo\'s HEADER\n(its `menu_item_id` is the combo; it carries no money: `unit_price` and\n`line_total` are 0, P is in `combo_unit_price`); `combo_part` = one\nchosen item of a combo, a real line of that item whose `line_total` is\n`combo_share + combo_surcharge` and whose `unit_price` stays the item\'s\nnormal price at its size. Lines come header first, then its parts in\nslot order.'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
   "name_translations": zod.looseObject({
@@ -9363,12 +10306,20 @@ export const ExportOrdersResponse = zod.object({
   "waiter_name": zod.string().nullish()
 }).and(zod.object({
   "items": zod.array(zod.object({
+  "combo_line_id": zod.uuid().nullish().describe('A part: its header\'s `id`.'),
+  "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
+  "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
+  "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
+  "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
+  "deal_minor": zod.number().optional().describe('A plain line: what an applied deal took off it, already out of\n`line_total` (print it as a line discount, never subtract it again).'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
   "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
   "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals).\n`null` ⟺ unknown.'),
+  "line_kind": zod.string().optional().describe('Combos (additive). `item` = a plain line; `combo` = a combo\'s HEADER\n(its `menu_item_id` is the combo; it carries no money: `unit_price` and\n`line_total` are 0, P is in `combo_unit_price`); `combo_part` = one\nchosen item of a combo, a real line of that item whose `line_total` is\n`combo_share + combo_surcharge` and whose `unit_price` stays the item\'s\nnormal price at its size. Lines come header first, then its parts in\nslot order.'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
   "name_translations": zod.looseObject({
@@ -9544,6 +10495,22 @@ export const GetOrderResponse = zod.object({
   "waiter_id": zod.uuid().nullish().describe('The WAITER who opened this order\'s ticket (`open_tickets.opened_by`),\nstamped server-side at settle time. `null` for direct teller sales and\ndelivery orders (they never pass through a waiter\'s ticket).'),
   "waiter_name": zod.string().nullish()
 }).and(zod.object({
+  "deals": zod.array(zod.object({
+  "deal_rule_id": zod.uuid(),
+  "discount": zod.number().describe('What came off the lines (the till\'s figure on a replay).'),
+  "discount_server": zod.number().nullish().describe('The server\'s verdict; equals `discount` live; `null` when not computable.'),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "discount": zod.number(),
+  "order_item_id": zod.uuid(),
+  "units": zod.number()
+})),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "times": zod.number()
+}).describe('An applied deal as stored: `OrderFull.deals[]`.')).optional().describe('The deals applied to this sale (combos module). Additive.'),
   "delivery": zod.union([zod.null(),zod.object({
   "address_line": zod.string().nullish(),
   "channel": zod.string().describe('\"in_mall\" or \"outside\".'),
@@ -9559,12 +10526,20 @@ export const GetOrderResponse = zod.object({
   "zone_name": zod.string().nullish().describe('Name of the matched delivery zone ring, when an outside order matched one.')
 }).describe('Delivery context (customer phone, address, channel, zone), populated\nonly on the single-order detail endpoint and only when the order\noriginated from a delivery order. `null`\/absent for dine-in orders.')]).optional(),
   "items": zod.array(zod.object({
+  "combo_line_id": zod.uuid().nullish().describe('A part: its header\'s `id`.'),
+  "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
+  "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
+  "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
+  "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
+  "deal_minor": zod.number().optional().describe('A plain line: what an applied deal took off it, already out of\n`line_total` (print it as a line discount, never subtract it again).'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
   "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
   "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals).\n`null` ⟺ unknown.'),
+  "line_kind": zod.string().optional().describe('Combos (additive). `item` = a plain line; `combo` = a combo\'s HEADER\n(its `menu_item_id` is the combo; it carries no money: `unit_price` and\n`line_total` are 0, P is in `combo_unit_price`); `combo_part` = one\nchosen item of a combo, a real line of that item whose `line_total` is\n`combo_share + combo_surcharge` and whose `unit_price` stays the item\'s\nnormal price at its size. Lines come header first, then its parts in\nslot order.'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
   "name_translations": zod.looseObject({
@@ -10754,6 +11729,96 @@ export const BookingSlotsResponse = zod.object({
 })
 
 
+/**
+ * @summary Price an online (storefront) cart at a branch, deals applied.
+ */
+export const PublicBranchCartQuoteParams = zod.object({
+  "id": zod.uuid().describe('Branch ID')
+})
+
+export const PublicBranchCartQuoteBody = zod.object({
+  "channel": zod.string().nullish().describe('Online only: the delivery sub-channel whose prices apply\n(`in_mall` | `outside` | `umbrella` | `pickup`); default `pickup`.'),
+  "items": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
+  "menu_item_id": zod.uuid().nullish(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish(),
+  "staff_drink": zod.union([zod.null(),zod.object({
+  "comp_minor": zod.number().nullish().describe('What the TILL comped on this line (whole line, minor units). Read ONLY\nwhen a queued offline sale is replayed; live, the server prices the comp\nand this is ignored.'),
+  "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
+  "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
+  "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
+  "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
+}))
+}).describe('`POST \/public\/branches\/{id}\/cart-quote` (online) and\n`POST \/public\/tables\/{id}\/cart-quote` (QR): the cart priced by the server\nexactly as the order will be, with the best deals applied automatically.')
+
+export const PublicBranchCartQuoteResponse = zod.object({
+  "deal_discount": zod.number().describe('Σ deals\' discount.'),
+  "deals": zod.array(zod.object({
+  "deal_rule_id": zod.uuid(),
+  "discount": zod.number(),
+  "lines": zod.array(zod.object({
+  "line_index": zod.number().describe('Index into the order\'s `items[]`.'),
+  "units": zod.number()
+}).describe('Units of one order line a deal takes.')),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "times": zod.number()
+}).describe('A deal the server applied to the cart.')),
+  "items_total": zod.number().describe('Σ line_total, before deals.'),
+  "lines": zod.array(zod.object({
+  "combo": zod.union([zod.null(),zod.object({
+  "parts": zod.array(zod.object({
+  "addons_total": zod.number().describe('Its add-ons and optional fields, whole line.'),
+  "combo_share": zod.number(),
+  "combo_surcharge": zod.number(),
+  "line_total": zod.number().describe('`combo_share + combo_surcharge`.'),
+  "menu_item_id": zod.uuid(),
+  "quantity": zod.number(),
+  "size_label": zod.string(),
+  "slot_id": zod.uuid(),
+  "unit_price": zod.number().describe('The item\'s normal price at this size.')
+}).describe('One part of a quoted combo line.')),
+  "price": zod.number().describe('P per combo unit.'),
+  "saving_unit": zod.number().describe('À la carte value of one combo minus `unit_total` (may be ≤ 0).'),
+  "unit_total": zod.number().describe('One combo with its surcharges and add-ons.')
+})]).optional(),
+  "deal_minor": zod.number().describe('What the applied deals took off this line.'),
+  "index": zod.number().describe('Index into the request\'s `items[]`.'),
+  "line_total": zod.number().describe('The whole line with its add-ons, before deals.'),
+  "quantity": zod.number(),
+  "unit_price": zod.number().describe('The size price per unit (a combo: 0; see `combo`).')
+})),
+  "total_after_deals": zod.number().describe('`items_total − deal_discount` (before the channel discount, tax and fees).')
+})
+
+
 export const DeliveryQuoteParams = zod.object({
   "id": zod.uuid()
 })
@@ -10805,6 +11870,52 @@ export const PublicMenuResponse = zod.object({
 
 })
 })),
+  "deals": zod.array(zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "is_active": zod.boolean()
+})),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "get_percent": zod.number().nullish(),
+  "get_qty": zod.number().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price: the price of `qty` units, piastres.'),
+  "qty": zod.number(),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).describe('buy_get only; `[]` = the rewarded units come from `pool`.'),
+  "sell": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('Feed rows only: the branch\'s channel toggles (§11.1). Absent elsewhere.')]).optional(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('A deal rule. `n_for_price`: any `qty` units of the pool for `price`.\n`buy_get`: buy `qty`, get `get_qty` at `get_percent`% off (100 = free),\nthe rewarded units drawn from `reward_pool` (or the pool when empty).\nA deal covers the item\'s size price only; add-ons always pay.\n\nAlso the `deal_rule` feed row of `\/sync\/pull`, where `is_active` is\nresolved for the device\'s branch and `sell` carries the branch\'s channel\ntoggles.')).describe('The deals on offer on this channel now (§11.2): checkout applies the\nbest ones automatically (`POST …\/cart-quote` shows them). Additive.'),
   "discount": zod.union([zod.null(),zod.object({
   "dtype": zod.string().describe('\"percentage\" | \"fixed\".'),
   "id": zod.uuid(),
@@ -10818,10 +11929,46 @@ export const PublicMenuResponse = zod.object({
   "items": zod.array(zod.object({
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist (IDs from `menu_item_allowed_addons`).\nWhen non-empty the customizer filters the global catalog to these IDs by\ndefault, with a \"show all\" escape hatch. Empty = no restriction.'),
   "category_id": zod.uuid().nullish(),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "base_price": zod.number().describe('The included size\'s channel price (what the split weighs it by).'),
+  "image_url": zod.string().nullish(),
+  "included_size_label": zod.string(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sizes": zod.array(zod.object({
+  "extra": zod.number().describe('What picking it adds inside the combo (the owner\'s surcharge, else the\ndifference over the included size, floored at 0; 0 for the included size).'),
+  "label": zod.string(),
+  "price": zod.number().describe('Its normal channel price.')
+}).describe('A size of a public combo choice.')),
+  "surcharge": zod.number().describe('The choice\'s own surcharge, per pick unit.')
+}).describe('One concrete item a public combo slot offers (categories expanded to the\nitems available on this channel and branch).')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+}))
+}).describe('A kind=combo row: its slots with every choice priced for this channel\n(categories expanded to their available items). The server still\nprices the order.')]).optional(),
   "default_milk_addon_id": zod.uuid().nullish().describe('The item\'s base\/default milk: the `milk_type` addon whose ingredient\nmatches the item recipe\'s milk ingredient. The online customizer\npre-selects it (mirrors the POS default-milk selection). `None` when the\nitem has no milk in its recipe or no matching milk addon exists.'),
   "description": zod.string().nullish(),
   "id": zod.uuid(),
   "image_url": zod.string().nullish(),
+  "kind": zod.string().describe('`item` | `combo` (combos module). Additive.'),
+  "meal": zod.union([zod.null(),zod.object({
+  "combo_id": zod.uuid(),
+  "slot_id": zod.uuid()
+}).describe('A kind=item row: its \"make it a meal\" upsell (C14), when that combo is\non this menu.')]).optional(),
   "modifier_groups": zod.array(zod.object({
   "addon_type": zod.string().nullish().describe('The group\'s legacy addon type (`milk_type` \/ `coffee_type` \/ `extra` \/\ncustom) — the swap-family hint the customizer keys its delta-price\nestimate on. `None` for groups with no legacy lineage.'),
   "group_id": zod.uuid(),
@@ -10883,6 +12030,23 @@ export const CreateDeliveryOrderBody = zod.object({
   "quantity": zod.number().optional(),
   "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A combo line\'s picks (§3.1); the server prices every part. Additive.')]).optional(),
   "menu_item_id": zod.uuid(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -11428,6 +12592,23 @@ export const PublicTableOrderBody = zod.object({
   "quantity": zod.number().optional(),
   "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -11525,6 +12706,96 @@ export const PublicTableResponse = zod.object({
 
 
 /**
+ * @summary Price a QR table cart, deals applied.
+ */
+export const PublicTableCartQuoteParams = zod.object({
+  "id": zod.uuid().describe('Table ID, from the QR')
+})
+
+export const PublicTableCartQuoteBody = zod.object({
+  "channel": zod.string().nullish().describe('Online only: the delivery sub-channel whose prices apply\n(`in_mall` | `outside` | `umbrella` | `pickup`); default `pickup`.'),
+  "items": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
+  "menu_item_id": zod.uuid().nullish(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish(),
+  "staff_drink": zod.union([zod.null(),zod.object({
+  "comp_minor": zod.number().nullish().describe('What the TILL comped on this line (whole line, minor units). Read ONLY\nwhen a queued offline sale is replayed; live, the server prices the comp\nand this is ignored.'),
+  "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
+  "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
+  "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
+  "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
+}))
+}).describe('`POST \/public\/branches\/{id}\/cart-quote` (online) and\n`POST \/public\/tables\/{id}\/cart-quote` (QR): the cart priced by the server\nexactly as the order will be, with the best deals applied automatically.')
+
+export const PublicTableCartQuoteResponse = zod.object({
+  "deal_discount": zod.number().describe('Σ deals\' discount.'),
+  "deals": zod.array(zod.object({
+  "deal_rule_id": zod.uuid(),
+  "discount": zod.number(),
+  "lines": zod.array(zod.object({
+  "line_index": zod.number().describe('Index into the order\'s `items[]`.'),
+  "units": zod.number()
+}).describe('Units of one order line a deal takes.')),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "times": zod.number()
+}).describe('A deal the server applied to the cart.')),
+  "items_total": zod.number().describe('Σ line_total, before deals.'),
+  "lines": zod.array(zod.object({
+  "combo": zod.union([zod.null(),zod.object({
+  "parts": zod.array(zod.object({
+  "addons_total": zod.number().describe('Its add-ons and optional fields, whole line.'),
+  "combo_share": zod.number(),
+  "combo_surcharge": zod.number(),
+  "line_total": zod.number().describe('`combo_share + combo_surcharge`.'),
+  "menu_item_id": zod.uuid(),
+  "quantity": zod.number(),
+  "size_label": zod.string(),
+  "slot_id": zod.uuid(),
+  "unit_price": zod.number().describe('The item\'s normal price at this size.')
+}).describe('One part of a quoted combo line.')),
+  "price": zod.number().describe('P per combo unit.'),
+  "saving_unit": zod.number().describe('À la carte value of one combo minus `unit_total` (may be ≤ 0).'),
+  "unit_total": zod.number().describe('One combo with its surcharges and add-ons.')
+})]).optional(),
+  "deal_minor": zod.number().describe('What the applied deals took off this line.'),
+  "index": zod.number().describe('Index into the request\'s `items[]`.'),
+  "line_total": zod.number().describe('The whole line with its add-ons, before deals.'),
+  "quantity": zod.number(),
+  "unit_price": zod.number().describe('The size price per unit (a combo: 0; see `combo`).')
+})),
+  "total_after_deals": zod.number().describe('`items_total − deal_discount` (before the channel discount, tax and fees).')
+})
+
+
+/**
  * The DINE-IN menu — branch prices, the whole catalogue, no channel discount
  * — because a table's order settles as a dine-in bill. Quoting a customer the
  * in-mall delivery menu and then charging them the till's prices is the same
@@ -11555,6 +12826,52 @@ export const PublicTableMenuResponse = zod.object({
 
 })
 })),
+  "deals": zod.array(zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "is_active": zod.boolean()
+})),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "get_percent": zod.number().nullish(),
+  "get_qty": zod.number().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price: the price of `qty` units, piastres.'),
+  "qty": zod.number(),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).describe('buy_get only; `[]` = the rewarded units come from `pool`.'),
+  "sell": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('Feed rows only: the branch\'s channel toggles (§11.1). Absent elsewhere.')]).optional(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('A deal rule. `n_for_price`: any `qty` units of the pool for `price`.\n`buy_get`: buy `qty`, get `get_qty` at `get_percent`% off (100 = free),\nthe rewarded units drawn from `reward_pool` (or the pool when empty).\nA deal covers the item\'s size price only; add-ons always pay.\n\nAlso the `deal_rule` feed row of `\/sync\/pull`, where `is_active` is\nresolved for the device\'s branch and `sell` carries the branch\'s channel\ntoggles.')).describe('The deals on offer on this channel now (§11.2): checkout applies the\nbest ones automatically (`POST …\/cart-quote` shows them). Additive.'),
   "discount": zod.union([zod.null(),zod.object({
   "dtype": zod.string().describe('\"percentage\" | \"fixed\".'),
   "id": zod.uuid(),
@@ -11568,10 +12885,46 @@ export const PublicTableMenuResponse = zod.object({
   "items": zod.array(zod.object({
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist (IDs from `menu_item_allowed_addons`).\nWhen non-empty the customizer filters the global catalog to these IDs by\ndefault, with a \"show all\" escape hatch. Empty = no restriction.'),
   "category_id": zod.uuid().nullish(),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "base_price": zod.number().describe('The included size\'s channel price (what the split weighs it by).'),
+  "image_url": zod.string().nullish(),
+  "included_size_label": zod.string(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sizes": zod.array(zod.object({
+  "extra": zod.number().describe('What picking it adds inside the combo (the owner\'s surcharge, else the\ndifference over the included size, floored at 0; 0 for the included size).'),
+  "label": zod.string(),
+  "price": zod.number().describe('Its normal channel price.')
+}).describe('A size of a public combo choice.')),
+  "surcharge": zod.number().describe('The choice\'s own surcharge, per pick unit.')
+}).describe('One concrete item a public combo slot offers (categories expanded to the\nitems available on this channel and branch).')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+}))
+}).describe('A kind=combo row: its slots with every choice priced for this channel\n(categories expanded to their available items). The server still\nprices the order.')]).optional(),
   "default_milk_addon_id": zod.uuid().nullish().describe('The item\'s base\/default milk: the `milk_type` addon whose ingredient\nmatches the item recipe\'s milk ingredient. The online customizer\npre-selects it (mirrors the POS default-milk selection). `None` when the\nitem has no milk in its recipe or no matching milk addon exists.'),
   "description": zod.string().nullish(),
   "id": zod.uuid(),
   "image_url": zod.string().nullish(),
+  "kind": zod.string().describe('`item` | `combo` (combos module). Additive.'),
+  "meal": zod.union([zod.null(),zod.object({
+  "combo_id": zod.uuid(),
+  "slot_id": zod.uuid()
+}).describe('A kind=item row: its \"make it a meal\" upsell (C14), when that combo is\non this menu.')]).optional(),
   "modifier_groups": zod.array(zod.object({
   "addon_type": zod.string().nullish().describe('The group\'s legacy addon type (`milk_type` \/ `coffee_type` \/ `extra` \/\ncustom) — the swap-family hint the customizer keys its delta-price\nestimate on. `None` for groups with no legacy lineage.'),
   "group_id": zod.uuid(),
@@ -13130,6 +14483,73 @@ export const BranchWasteReportResponseItem = zod.object({
 export const BranchWasteReportResponse = zod.array(BranchWasteReportResponseItem)
 
 
+export const BundlesReportQueryParams = zod.object({
+  "from": zod.iso.date().describe('Business date, inclusive.'),
+  "to": zod.iso.date().describe('Business date, inclusive.'),
+  "branch_id": zod.uuid().optional(),
+  "kind": zod.string().optional().describe('`combo` | `deal`; omitted = both.')
+})
+
+export const BundlesReportResponse = zod.object({
+  "from": zod.iso.date(),
+  "rows": zod.array(zod.object({
+  "cost": zod.number(),
+  "cost_missing": zod.boolean().describe('True when any line\'s cost was unknown (`cost` then counts the known part).'),
+  "id": zod.uuid().describe('The combo\'s menu item id, or the deal rule\'s id.'),
+  "kind": zod.string().describe('`combo` | `deal`.'),
+  "list_value": zod.number().describe('The same lines at their normal prices.'),
+  "margin": zod.string().nullish().describe('`(revenue − cost) \/ revenue` as a fraction string; `null` when revenue is 0.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "orders": zod.number(),
+  "revenue": zod.number().describe('A combo: Σ its parts\' line_total + their add-ons. A deal: Σ the\nconsumed lines\' line_total (after the deal).'),
+  "saving": zod.number().describe('`list_value − revenue`.'),
+  "sold": zod.number().describe('Combo units (Σ header quantity, refunds netted) or deal applications (Σ times).')
+}).describe('One combo or deal over the period.')),
+  "to": zod.iso.date(),
+  "totals": zod.object({
+  "cost": zod.number(),
+  "list_value": zod.number(),
+  "revenue": zod.number(),
+  "saving": zod.number(),
+  "sold": zod.number()
+})
+})
+
+
+export const ComboMixParams = zod.object({
+  "id": zod.uuid().describe('The combo\'s menu item id')
+})
+
+export const ComboMixQueryParams = zod.object({
+  "from": zod.iso.date(),
+  "to": zod.iso.date(),
+  "branch_id": zod.uuid().optional()
+})
+
+export const ComboMixResponse = zod.object({
+  "combo_id": zod.uuid(),
+  "from": zod.iso.date(),
+  "slots": zod.array(zod.object({
+  "name": zod.string(),
+  "picks": zod.array(zod.object({
+  "count": zod.number().describe('Units picked (Σ part quantity, refunds netted).'),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "size_label": zod.string().nullish(),
+  "surcharge_total": zod.number()
+})),
+  "slot_id": zod.uuid().nullish().describe('`null` for parts whose slot was deleted since.')
+})),
+  "to": zod.iso.date()
+}).describe('What customers picked in each slot of one combo.')
+
+
 export const AttendanceCorrectionsAuditParams = zod.object({
   "org_id": zod.uuid()
 })
@@ -14065,6 +15485,89 @@ export const TillSummaryResponse = zod.object({
   "total_tips": zod.number().optional().describe('Tips, standalone — matches `total_tips` on `GET \/shifts\/{id}\/report`.'),
   "voided_orders": zod.number()
 })
+
+
+export const GetSettingsResponse = zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "effective": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org\'s toggles with this override applied.'),
+  "sell": zod.object({
+  "delivery": zod.boolean().nullish(),
+  "online": zod.boolean().nullish(),
+  "pos": zod.boolean().nullish(),
+  "qr": zod.boolean().nullish()
+}).describe('A branch\'s override of the org\'s toggles. `null` (or absent) inherits.')
+}).describe('One branch\'s override, with what it resolves to.')).describe('Every branch that overrides at least one toggle.'),
+  "channels": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org-wide toggles.'),
+  "min_margin": zod.string().nullish().describe('The owner\'s minimum margin as a decimal fraction string (\"0.5500\");\n`null` = no margin warning.')
+}).describe('`GET \/settings\/combos`: the minimum margin (C11) and the channel toggles\n(§11.1) that gate every combo and every deal.')
+
+
+export const PutSettingsBody = zod.object({
+  "channels": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The four sale channels\' toggles, resolved: `pos` (the till), `qr` (the\ntable QR menu), `online` (the storefront, all four delivery sub-channels)\nand `delivery` (aggregator apps; stored and returned, honoured by the\nfuture menu push). Every channel is on until the owner switches it off.')]).optional(),
+  "min_margin": zod.string().nullish().describe('A fraction between \"0\" and \"1\", e.g. \"0.55\".')
+}).describe('`PUT \/settings\/combos`. `min_margin` is replaced (omitted or `null` = no\nwarning); `channels`, when present, replaces the org-wide toggles.')
+
+export const PutSettingsResponse = zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "effective": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org\'s toggles with this override applied.'),
+  "sell": zod.object({
+  "delivery": zod.boolean().nullish(),
+  "online": zod.boolean().nullish(),
+  "pos": zod.boolean().nullish(),
+  "qr": zod.boolean().nullish()
+}).describe('A branch\'s override of the org\'s toggles. `null` (or absent) inherits.')
+}).describe('One branch\'s override, with what it resolves to.')).describe('Every branch that overrides at least one toggle.'),
+  "channels": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org-wide toggles.'),
+  "min_margin": zod.string().nullish().describe('The owner\'s minimum margin as a decimal fraction string (\"0.5500\");\n`null` = no margin warning.')
+}).describe('`GET \/settings\/combos`: the minimum margin (C11) and the channel toggles\n(§11.1) that gate every combo and every deal.')
+
+
+export const PutBranchChannelsParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const PutBranchChannelsBody = zod.object({
+  "delivery": zod.boolean().nullish(),
+  "online": zod.boolean().nullish(),
+  "pos": zod.boolean().nullish(),
+  "qr": zod.boolean().nullish()
+}).describe('A branch\'s override of the org\'s toggles. `null` (or absent) inherits.')
+
+export const PutBranchChannelsResponse = zod.void()
+
+
+export const DeleteBranchChannelsParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const DeleteBranchChannelsResponse = zod.void()
 
 
 export const ListShiftsParams = zod.object({

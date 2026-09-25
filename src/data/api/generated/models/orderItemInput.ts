@@ -1,10 +1,12 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { AddonInput } from './addonInput';
+import type { ComboInput } from './comboInput';
 import type { StaffDrinkLine } from './staffDrinkLine';
 
 export interface OrderItemInput {
   addons?: AddonInput[];
+  combo?: null | ComboInput;
   /** @nullable */
   menu_item_id?: string | null;
   /** @nullable */
