@@ -543,7 +543,7 @@ export function MarkPaidDialog({
 
 /** A one-field reason form shared by waive, un-waive and reopen. */
 function ReasonDialog({
-  open, onOpenChange, title, description, saveLabel, destructive, onSave, done, reasonFor,
+  open, onOpenChange, title, description, saveLabel, destructive, onSave, done, reasonFor, optional = false, hint, children,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -554,9 +554,19 @@ function ReasonDialog({
   onSave: (reason: string) => Promise<unknown>;
   done: string;
   reasonFor?: ReasonFor;
+  /** The reason may be left empty (a request's rejection note; the server takes none as none). */
+  optional?: boolean;
+  /** Under the reason: who reads it. */
+  hint?: string;
+  /** What the decision does, above the reason. */
+  children?: ReactNode;
 }) {
   const { t } = useTranslation();
-  const schema = z.object({ reason: nonEmpty(t, ["dawam.reasonRequired", "A reason is needed"]).max(500) });
+  const schema = z.object({
+    reason: optional
+      ? z.string().trim().max(500, t("staff.noteTooLong", "Keep the note under 500 characters"))
+      : nonEmpty(t, ["dawam.reasonRequired", "A reason is needed"]).max(500),
+  });
   type Values = z.infer<typeof schema>;
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { reason: "" } });
   return (
@@ -574,20 +584,29 @@ function ReasonDialog({
         toast.success(done);
       }}
     >
-      <TextField form={form} name="reason" label={t("staff.reason", "Reason")} />
+      {children}
+      <TextField
+        form={form}
+        name="reason"
+        label={optional ? t("dawamOps.reasonOptional", "Reason (optional)") : t("staff.reason", "Reason")}
+        hint={hint}
+      />
     </FormDialog>
   );
 }
 
 /** Reject an advance or a pay line, with why (owner decision 8, AD-9): the server refuses one without (REASON_REQUIRED). */
 export function RejectDialog({
-  open, onOpenChange, title, description, onReject,
+  open, onOpenChange, title, description, onReject, optional, children,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   title: string;
   description: string;
   onReject: (reason: string) => Promise<unknown>;
+  /** A request's reason is optional (sent as its note); money's is required (D8). */
+  optional?: boolean;
+  children?: ReactNode;
 }) {
   const { t } = useTranslation();
   return (
@@ -600,8 +619,12 @@ export function RejectDialog({
       destructive
       onSave={onReject}
       reasonFor="decline"
+      optional={optional}
+      hint={t("dawamOps.reasonSeen", "They see it with the decision.")}
       done={t("staff.decisionSaved", "Decision saved")}
-    />
+    >
+      {children}
+    </ReasonDialog>
   );
 }
 

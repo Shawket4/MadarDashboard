@@ -271,6 +271,24 @@ describe("Requests inbox", () => {
     await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("q2", { status: "cancelled", note: null }));
   });
 
+  it("rejects with an optional reason the requester reads, and says what approving would do (UX-P)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    expect(within(rowOf("Youssef Adel")).getByText(/Approving: they're off on these days/)).toBeInTheDocument();
+    await user.click(within(rowOf("Youssef Adel")).getByRole("button", { name: "Reject" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/any lateness or absence penalty applies/)).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText("Reason (optional)"), "We are short that day");
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("q1", { status: "rejected", note: "We are short that day" }));
+  });
+
+  it("says nothing is waiting, not 'no match', when the pending queue is empty (UX-P)", () => {
+    rows = [];
+    renderPage();
+    expect(screen.getByText("Nothing is waiting for a decision")).toBeInTheDocument();
+  });
+
   it("shows the server's refusal of a decision", async () => {
     decideRequest.mockRejectedValueOnce(new Error("This month is closed"));
     rows = [{ ...LEAVE, kind: "late_arrival", to_time: "10:00:00" }];

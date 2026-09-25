@@ -21,6 +21,7 @@ import { Restricted } from "@/components/app/restricted";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   decideAdjustment, decideClaim, decideCover, decideOvertime, decideRequest, decideSwap, reviewAdvance,
@@ -32,7 +33,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
 import {
-  ApproveWithPayDialog, ASKS_PAY, confirmMissionOverPunches, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds,
+  ApproveWithPayDialog, approveMeans, ASKS_PAY, confirmMissionOverPunches, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds,
 } from "@/features/staff/requests-inbox";
 import { fmtHours, fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
 import { dawamQuery, failedEmpty } from "./live";
@@ -63,7 +64,13 @@ export interface Pending {
   locked?: boolean;
   /** A rejection that must say why (money, D8): its reason goes to the server. */
   reasonRequired?: boolean;
+  /** A rejection that may say why (a request's note, shown to the requester). */
+  reasonOptional?: boolean;
   reject: (reason?: string) => Promise<unknown>;
+  /** What approving does, in plain words. */
+  effect?: string;
+  /** Approved in one step with nothing to ask, so it can go in a batch. */
+  bulk?: () => Promise<unknown>;
 }
 
 export function ApprovalsPage() {
@@ -74,6 +81,8 @@ export function ApprovalsPage() {
   const [paying, setPaying] = useState<StaffRequest | null>(null);
   const [reviewing, setReviewing] = useState<Parameters<typeof ReviewAdvanceDialog>[0]["advance"]>(null);
   const [rejecting, setRejecting] = useState<Pending | null>(null);
+  /** Rows ticked for a batch approval. */
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
 
   const can = {
     requests: authz.canAny(Cap.hrLeaveEdit, Cap.hrAttendanceEdit),
@@ -172,7 +181,11 @@ export function ApprovalsPage() {
           ? () => setPaying(r)
           : async () => ((await confirmMissionOverPunches(r, confirm, t)) ? decideRequest(r.id, { status: "approved" }) : BACKED_OUT),
         rejectOnly: !!r.month_closed,
-        reject: () => decideRequest(r.id, { status: "rejected" }),
+        reasonOptional: true,
+        reject: (reason) => decideRequest(r.id, { status: "rejected", note: reason?.trim() || null }),
+        effect: approveMeans(r, t),
+        // A pay question or a mission over worked days needs its own look: never batched.
+        bulk: asksPay || r.kind === "mission" || r.month_closed ? undefined : () => decideRequest(r.id, { status: "approved" }),
       });
     }
     for (const a of can.advances ? (advancesQ.data ?? []).filter((x) => x.status === "pending") : []) {
@@ -191,6 +204,7 @@ export function ApprovalsPage() {
         rejectOnly: overForMe,
         reasonRequired: true,
         reject: (reason) => reviewAdvance(a.id, { approve: false, reason }),
+        effect: t("dawamOps.meansAdvance", "Approving: you set the amount and installments; it is paid back from salary."),
       });
     }
     for (const a of can.payLines ? payLinesQ.data ?? [] : []) {
@@ -205,6 +219,9 @@ export function ApprovalsPage() {
         approve: () => decideAdjustment(a.kind, a.id, { approve: true }),
         reasonRequired: true,
         reject: (reason) => decideAdjustment(a.kind, a.id, { approve: false, reason }),
+        effect: a.kind === "bonus"
+          ? t("dawamOps.meansBonus", "Approving: the bonus goes on their payslip.")
+          : t("dawamOps.meansDeduction", "Approving: the deduction comes off their payslip."),
       });
     }
     for (const s of can.roster ? swapsQ.data ?? [] : []) {
@@ -218,6 +235,8 @@ export function ApprovalsPage() {
         at: s.created_at,
         approve: () => decideSwap(s.id, { approve: true }),
         reject: () => decideSwap(s.id, { approve: false }),
+        effect: t("dawamOps.meansSwap", "Approving: the two swap these shifts on the schedule, and both are told."),
+        bulk: () => decideSwap(s.id, { approve: true }),
       });
     }
     for (const o of can.roster ? (claimsQ.data ?? []).filter((x) => x.status === "claimed") : []) {
@@ -231,6 +250,8 @@ export function ApprovalsPage() {
         at: o.on_date,
         approve: () => decideClaim(o.id, { approve: true }),
         reject: () => decideClaim(o.id, { approve: false }),
+        effect: t("dawamOps.meansClaim", "Approving: the open shift goes on their schedule."),
+        bulk: () => decideClaim(o.id, { approve: true }),
       });
     }
     for (const r of can.covers ? coversQ.data ?? [] : []) {
@@ -250,6 +271,8 @@ export function ApprovalsPage() {
           at: r.check_in_at ?? r.created_at,
           approve: () => decideCover(r.id, { approve: true }),
           reject: () => decideCover(r.id, { approve: false }),
+          effect: t("dawamOps.meansCover", "Approving: they are paid for covering this shift."),
+          bulk: r.month_closed ? undefined : () => decideCover(r.id, { approve: true }),
           // A closed month can't take a confirmed cover; rejecting one still goes through.
           rejectOnly: !!r.month_closed,
           badges: r.month_closed ? <ClosedMonthNote /> : undefined,
@@ -268,6 +291,8 @@ export function ApprovalsPage() {
           at: r.check_out_at ?? r.created_at,
           approve: () => decideOvertime(r.id, { approve: true }),
           reject: () => decideOvertime(r.id, { approve: false }),
+          effect: t("dawamOps.meansOvertime", "Approving: this overtime is paid with the month."),
+          bulk: r.month_closed ? undefined : () => decideOvertime(r.id, { approve: true }),
           // A closed month takes no new pay; rejecting moves none, so it goes through (owner decision 32).
           rejectOnly: !!r.month_closed,
           badges: r.month_closed ? <ClosedMonthNote /> : undefined,
@@ -284,11 +309,59 @@ export function ApprovalsPage() {
 
   const count = (s: Section) => (s === "all" ? items.length : items.filter((i) => i.section === s).length);
   const shown = section === "all" ? items : items.filter((i) => i.section === section);
+  const batchable = shown.filter((i) => i.bulk && !i.rejectOnly && !i.locked);
+  const picked = batchable.filter((i) => selected.has(i.key));
+  const toggle = (key: string, on: boolean) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+
+  /**
+   * Approve what was ticked, one by one: only kinds that ask nothing more
+   * (no pay choice, no money review, no mission over worked days). Each
+   * failure is said with its reason and stays in the queue.
+   */
+  const approvePicked = async () => {
+    if (busy || picked.length === 0) return;
+    const ok = await confirm({
+      title: t("dawamOps.bulkTitle", { count: picked.length, defaultValue: "Approve {{count}} items?" }),
+      description: `${picked.map((i) => `${i.who} · ${i.kind}`).join(t("common.listSeparator", ", "))}. ${t("dawamOps.bulkHint", "Each person is told. Anything that fails stays in the queue and says why.")}`,
+      confirmLabel: t("dawamOps.approveCount", { count: picked.length, defaultValue: "Approve {{count}}" }),
+    });
+    if (!ok) return;
+    setBusy("bulk");
+    let done = 0;
+    const failed: string[] = [];
+    for (const i of picked) {
+      try {
+        const out = await i.bulk!();
+        done++;
+        for (const w of warningsOf(out)) {
+          toast.warning(t("dawam.limitWarning", {
+            limit: t(`dawam.warn_${w.kind}`, w.kind), minutes: fmtHours(w.minutes), cap: fmtHours(w.limit_minutes),
+            defaultValue: "{{limit}}: {{minutes}} of {{cap}}. Only a warning.",
+          }));
+        }
+      } catch (e) {
+        failed.push(`${i.who}: ${getErrorMessage(e)}`);
+      }
+    }
+    setBusy(null);
+    setSelected(new Set());
+    if (done) toast.success(t("dawamOps.bulkDone", { count: done, defaultValue: "{{count}} approved" }));
+    if (failed.length) {
+      toast.error(t("dawamOps.bulkFailed", { count: failed.length, first: failed[0], defaultValue: "{{count}} not approved. {{first}}" }));
+    }
+    void invalidateStaff();
+  };
   const label = (s: Section, text: string) => `${text} (${count(s)})`;
 
   const reject = async (i: Pending) => {
-    // Money says why it was refused (D8); the rest confirms.
-    if (i.reasonRequired) {
+    // Money says why it was refused (D8); a request may say why (its note); the rest confirms.
+    if (i.reasonRequired || i.reasonOptional) {
       setRejecting(i);
       return;
     }
@@ -337,34 +410,83 @@ export function ApprovalsPage() {
       ) : shown.length === 0 ? (
         <EmptyState icon={Inbox} title={t("dawam.nothingWaiting", "Nothing is waiting on you")} description={t("dawam.nothingWaitingHint", "New requests, covers, swaps and claims land here.")} />
       ) : (
-        <ListCard>
-          {shown.map((i) => (
-            <ListRow
-              key={i.key}
-              icon={i.icon}
-              title={
-                <span className="flex flex-wrap items-center gap-2">
-                  <span className="truncate">{i.who}</span>
-                  <Badge variant="secondary">{i.kind}</Badge>
-                  {i.badges}
+        <div className="space-y-2">
+          {batchable.length > 1 ? (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card px-4 py-2 sm:px-5">
+              <label className="flex items-center gap-3 text-sm">
+                <Checkbox
+                  checked={picked.length === batchable.length ? true : picked.length > 0 ? "indeterminate" : false}
+                  onCheckedChange={(on) => setSelected(on === true ? new Set(batchable.map((i) => i.key)) : new Set())}
+                />
+                <span>
+                  {t("dawamOps.selectAll", { count: batchable.length, defaultValue: "Select the {{count}} that need no extra answer" })}
                 </span>
-              }
-              meta={i.detail}
-              trailing={
-                i.locked ? undefined : <span className="flex items-center gap-1">
-                  {i.rejectOnly ? null : (
-                    <Button size="sm" variant="outline" disabled={busy === i.key} onClick={() => void run(i.key, i.approve)}>
-                      <Check className="size-4" />{t("common.approve", "Approve")}
-                    </Button>
-                  )}
-                  <Button size="sm" variant="ghost" disabled={busy === i.key} aria-label={t("common.reject", "Reject")} onClick={() => void reject(i)}>
-                    <X className="size-4" />
-                  </Button>
-                </span>
-              }
-            />
-          ))}
-        </ListCard>
+              </label>
+              <span className="flex items-center gap-2">
+                {picked.length === 0 ? (
+                  <span className="text-xs text-muted-foreground">{t("dawamOps.pickToBatch", "Tick items to approve them together.")}</span>
+                ) : null}
+                <Button size="sm" disabled={picked.length === 0 || !!busy} loading={busy === "bulk"} onClick={() => void approvePicked()}>
+                  <Check className="size-4" />
+                  {t("dawamOps.approveCount", { count: picked.length, defaultValue: "Approve {{count}}" })}
+                </Button>
+              </span>
+            </div>
+          ) : null}
+          <ListCard>
+            {shown.map((i) => {
+              const canBatch = batchable.length > 1 && batchable.includes(i);
+              return (
+                <ListRow
+                  key={i.key}
+                  icon={i.icon}
+                  leading={batchable.length > 1 ? (
+                    <span className="flex shrink-0 items-center gap-3">
+                      {canBatch ? (
+                        <Checkbox
+                          checked={selected.has(i.key)}
+                          onCheckedChange={(on) => toggle(i.key, on === true)}
+                          aria-label={t("dawamOps.selectItem", { name: i.who, kind: i.kind, defaultValue: "Select {{name}}'s {{kind}}" })}
+                        />
+                      ) : (
+                        <span className="size-4" aria-hidden />
+                      )}
+                      <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-secondary text-muted-foreground">
+                        <i.icon className="size-4" />
+                      </span>
+                    </span>
+                  ) : undefined}
+                  title={
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="truncate">{i.who}</span>
+                      <Badge variant="secondary">{i.kind}</Badge>
+                      {i.badges}
+                    </span>
+                  }
+                  wrapMeta
+                  meta={
+                    <>
+                      {i.detail}
+                      {i.effect && !i.rejectOnly ? <span className="mt-0.5 block text-xs text-foreground/80">{i.effect}</span> : null}
+                    </>
+                  }
+                  trailing={
+                    i.locked ? undefined : <span className="flex items-center gap-1">
+                      {i.rejectOnly ? null : (
+                        <Button size="sm" variant="outline" disabled={!!busy} onClick={() => void run(i.key, i.approve)}>
+                          <Check className="size-4" />{t("common.approve", "Approve")}
+                        </Button>
+                      )}
+                      <Button size="sm" variant="ghost" disabled={!!busy} aria-label={t("common.reject", "Reject")} onClick={() => void reject(i)}>
+                        <X className="size-4" /><span className="hidden sm:inline">{t("common.reject", "Reject")}</span>
+                      </Button>
+                    </span>
+                  }
+                />
+              );
+            })}
+          </ListCard>
+        </div>
       )}
       <ApproveWithPayDialog key={paying?.id} request={paying} onOpenChange={(o) => !o && setPaying(null)} />
       <ReviewAdvanceDialog key={reviewing?.id} advance={reviewing} onOpenChange={(o) => !o && setReviewing(null)} />
@@ -373,7 +495,10 @@ export function ApprovalsPage() {
         open={!!rejecting}
         onOpenChange={(o) => !o && setRejecting(null)}
         title={rejecting ? t("dawam.rejectTitle", { name: rejecting.who, kind: rejecting.kind, defaultValue: `Reject ${rejecting.who}'s ${rejecting.kind}?` }) : ""}
-        description={t("dawam.rejectWhyHint", "They are told, with your reason, and nothing is paid for it. The reason is kept in the audit log.")}
+        description={rejecting?.section === "requests"
+          ? t("staff.rejectRequestHint", "The day is treated as if no request was filed, so any lateness or absence penalty applies.")
+          : t("dawam.rejectWhyHint", "They are told, with your reason, and nothing is paid for it. The reason is kept in the audit log.")}
+        optional={!!rejecting?.reasonOptional}
         onReject={(reason) => rejecting!.reject(reason)}
       />
     </Page>

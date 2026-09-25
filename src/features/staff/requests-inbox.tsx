@@ -41,6 +41,7 @@ import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
+import { RejectDialog } from "@/features/dawam/money-dialogs";
 import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "./util";
 
 const ALL = "__all__";
@@ -143,6 +144,8 @@ export function RequestsInboxPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [deciding, setDeciding] = useState<StaffRequest | null>(null);
   const [cancelling, setCancelling] = useState<StaffRequest | null>(null);
+  /** Rejected with an optional reason the requester reads (D8 wording). */
+  const [rejecting, setRejecting] = useState<StaffRequest | null>(null);
   /** The request being decided in one click: its buttons wait (H2-D8). */
   const [busy, setBusy] = useState<string | null>(null);
   const own = useOwnEmployeeIds();
@@ -177,13 +180,8 @@ export function RequestsInboxPage() {
     }
     if (next === "approved" && !(await confirmMissionOverPunches(r, confirm, t))) return;
     if (next === "rejected") {
-      const ok = await confirm({
-        title: t("staff.rejectRequestTitle", { name: r.employee_name, defaultValue: `Reject ${r.employee_name}'s request?` }),
-        description: t("staff.rejectRequestHint", "The day is treated as if no request was filed, so any lateness or absence penalty applies."),
-        confirmLabel: t("common.reject", "Reject"),
-        destructive: true,
-      });
-      if (!ok) return;
+      setRejecting(r);
+      return;
     }
     if (busy) return;
     setBusy(r.id);
@@ -222,19 +220,22 @@ export function RequestsInboxPage() {
           </>
         }
         below={
-          <div className="flex flex-wrap gap-2">
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>{t("staff.allStatuses", "All statuses")}</SelectItem>
-                <SelectItem value="pending">{t("staff.req_pending", "Pending")}</SelectItem>
-                <SelectItem value="approved">{t("staff.req_approved", "Approved")}</SelectItem>
-                <SelectItem value="rejected">{t("staff.req_rejected", "Rejected")}</SelectItem>
-                <SelectItem value="cancelled">{t("staff.req_cancelled", "Cancelled")}</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* The queue first: what waits on a decision is one tap, never hidden in a menu. */}
+            <SegmentedControl
+              value={status}
+              onChange={setStatus}
+              aria-label={t("common.status", "Status")}
+              options={[
+                { value: "pending", label: t("staff.req_pending", "Pending") },
+                { value: "approved", label: t("staff.req_approved", "Approved") },
+                { value: "rejected", label: t("staff.req_rejected", "Rejected") },
+                { value: "cancelled", label: t("staff.req_cancelled", "Cancelled") },
+                { value: ALL, label: t("dawam.all", "All") },
+              ]}
+            />
             <Select value={kind} onValueChange={setKind}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-48" aria-label={t("staff.kind", "Kind")}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>{t("staff.allKinds", "All kinds")}</SelectItem>
                 {KINDS.map((k) => (
@@ -263,14 +264,27 @@ export function RequestsInboxPage() {
           retrying={requestsQ.isFetching}
         />
       ) : rows.length === 0 ? (
-        <EmptyState
-          icon={CalendarOff}
-          title={t("staff.noRequestsTitle", "No requests match these filters")}
-          description={t(
-            "staff.noRequestsHint",
-            "Requests filed from the staff app land here for a decision.",
-          )}
-        />
+        status === "pending" && kind === ALL ? (
+          <EmptyState
+            icon={Check}
+            title={t("dawamOps.noPendingTitle", "Nothing is waiting for a decision")}
+            description={t("dawamOps.noPendingHint", "Requests filed from the staff app land here. To file one for someone who called in, use New request.")}
+          />
+        ) : (
+          <EmptyState
+            icon={CalendarOff}
+            title={t("staff.noRequestsTitle", "No requests match these filters")}
+            description={t(
+              "staff.noRequestsHint",
+              "Requests filed from the staff app land here for a decision.",
+            )}
+            action={
+              <Button variant="outline" size="sm" onClick={() => { setStatus("pending"); setKind(ALL); }}>
+                {t("dawamOps.showPending", "Show what's pending")}
+              </Button>
+            }
+          />
+        )
       ) : (
         <ListCard>
           {rows.map((r) => {
@@ -293,7 +307,7 @@ export function RequestsInboxPage() {
                 }
                 // Who decided and who cancelled must stay readable on a phone.
                 wrapMeta
-                meta={[
+                meta={<>{[
                   // A mission's title says what it is (M43).
                   describeWindow(r, t), r.title, r.reason,
                   // Who decided, with their note; a cancel keeps both and names its own author (AT-10, B-TEAM-3, RQ-F6).
@@ -303,6 +317,10 @@ export function RequestsInboxPage() {
                   r.decision_note,
                   cancelWords(r),
                 ].filter(Boolean).join(" · ")}
+                {mayDecide(r, own) && !r.month_closed ? (
+                  <span className="mt-0.5 block text-xs text-foreground/80">{approveMeans(r, t)}</span>
+                ) : null}
+                </>}
                 trailing={
                   <>
                     <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
@@ -336,6 +354,23 @@ export function RequestsInboxPage() {
 
       <NewRequestDialog open={addOpen} onOpenChange={setAddOpen} />
       <ApproveWithPayDialog key={deciding?.id} request={deciding} onOpenChange={(o) => !o && setDeciding(null)} />
+      <RejectDialog
+        key={`reject-${rejecting?.id}`}
+        open={!!rejecting}
+        onOpenChange={(o) => !o && setRejecting(null)}
+        title={t("staff.rejectRequestTitle", { name: rejecting?.employee_name ?? "", defaultValue: `Reject ${rejecting?.employee_name ?? ""}'s request?` })}
+        description={t("staff.rejectRequestHint", "The day is treated as if no request was filed, so any lateness or absence penalty applies.")}
+        optional
+        onReject={async (reason) => {
+          try {
+            await decideRequest(rejecting!.id, { status: "rejected", note: reason.trim() || null });
+          } catch (e) {
+            // Decided by someone else first: the list reads again (H2-B2).
+            if (isStaleRefusal(e)) void invalidateStaff();
+            throw e;
+          }
+        }}
+      />
       <CancelRequestDialog
         key={cancelling?.id}
         request={cancelling}
@@ -422,6 +457,30 @@ export function describeWindow(r: StaffRequest, t: TFunction): string {
       return r.end_date && r.end_date !== r.on_date
         ? `${fmtDate(r.on_date)} → ${fmtDate(r.end_date)}`
         : fmtDate(r.on_date);
+  }
+}
+
+/**
+ * What approving a request DOES, in plain words: the queue says it before the
+ * click, so nobody approves a "Permission" without knowing it forgives time.
+ */
+export function approveMeans(r: StaffRequest, t: TFunction): string {
+  const time = (s?: string | null) => (s ? fmtWireTime(s.slice(0, 5)) : "");
+  switch (r.kind) {
+    case "leave":
+      return t("dawamOps.meansLeave", "Approving: they're off on these days, paid or unpaid as you choose, and no absence is charged.");
+    case "late_arrival":
+      return t("dawamOps.meansLate", { time: time(r.to_time), defaultValue: "Approving: arriving by {{time}} isn't charged as late." });
+    case "early_departure":
+      return t("dawamOps.meansEarly", { time: time(r.from_time), defaultValue: "Approving: leaving at {{time}} isn't charged as leaving early; you choose if the time is paid." });
+    case "excuse":
+      return t("dawamOps.meansExcuse", "Approving: the time away is excused; you choose if it is paid.");
+    case "mission":
+      return t("dawamOps.meansMission", "Approving: those days count as worked on a mission, paid and with no penalty.");
+    case "correction":
+      return t("dawamOps.meansCorrection", "Approving: the punch changes to the proposed time and lateness is worked out again.");
+    default:
+      return "";
   }
 }
 
