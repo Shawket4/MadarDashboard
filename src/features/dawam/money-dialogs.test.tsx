@@ -15,11 +15,13 @@ const calls = {
   reviewAdvance: vi.fn(async () => ({})),
 };
 vi.mock("@/data/api/generated/api", () => ({
+  useCurrent: () => ({ data: undefined, isLoading: false }),
   useListEmployees: () => ({ data: [{ id: "e1", name: "Sara Ahmed" }], isLoading: false }),
   useListBranches: () => ({ data: [], isLoading: false }),
   ...calls,
 }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
+vi.mock("@/data/authz/use-authz", () => ({ useAuthz: () => ({ can: () => false, canAny: () => false }) }));
 const toast = { success: vi.fn(), info: vi.fn(), error: vi.fn(), warning: vi.fn() };
 vi.mock("sonner", () => ({ toast }));
 vi.mock("@/features/staff/util", async () => {
@@ -34,7 +36,7 @@ Element.prototype.scrollIntoView ??= () => {};
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");
-const { AdjustmentDialog, RecordAdvanceDialog, ReviewAdvanceDialog, monthToDate } = await import("./money-dialogs");
+const { AdjustmentDialog, RecordAdvanceDialog, ReviewAdvanceDialog, firstOpenMonth, monthToDate } = await import("./money-dialogs");
 
 const wrap = (node: React.ReactNode) => render(<QueryClientProvider client={new QueryClient()}>{node}</QueryClientProvider>);
 
@@ -125,3 +127,21 @@ describe("ReviewAdvanceDialog", () => {
     await waitFor(() => expect(calls.reviewAdvance).toHaveBeenLastCalledWith("v1", { approve: true, amount_piastres: 100_000, installments: 2, note: null }));
   });
 });
+
+describe("M27: a new line lands in the first open month", () => {
+  const period = (status: string, end_date: string) => ({ status, end_date }) as never;
+  it("the open period's month while it is open", () => {
+    expect(firstOpenMonth(period("draft", "2026-09-25"), "2026-09-20")).toBe("2026-09");
+    expect(firstOpenMonth(period("draft", "2026-09-30"), "2026-09-20")).toBe("2026-09");
+  });
+
+  it("the next month once it is approved or paid, across a year", () => {
+    expect(firstOpenMonth(period("generated", "2026-09-25"), "2026-09-20")).toBe("2026-10");
+    expect(firstOpenMonth(period("paid", "2026-12-31"), "2026-12-31")).toBe("2027-01");
+  });
+
+  it("this month when the period isn't known (no payroll right)", () => {
+    expect(firstOpenMonth(undefined, "2026-09-20")).toBe("2026-09");
+  });
+});
+

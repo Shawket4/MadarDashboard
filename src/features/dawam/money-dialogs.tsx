@@ -7,7 +7,7 @@
  * owner, AD-5), the open month (AD-10) and the cap (AV-5), and answers in
  * words, which the toast shows. React Hook Form + Zod on every form.
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm, type UseFormReturn, type FieldValues, type Path } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -27,8 +27,11 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { StatusPill } from "@/components/app/status-pill";
 import {
   createAdjustment, logExpenseAdvance, markPaid, overrideDeduction, recordAdvance, reviewAdvance,
-  setPeriodStatus, stopAdjustment, unwaiveDeduction, useListBranches, useListEmployees, waiveDeduction,
+  setPeriodStatus, stopAdjustment, unwaiveDeduction, useCurrent, useListBranches, useListEmployees, waiveDeduction,
 } from "@/data/api/generated/api";
+import type { PayrollPeriod } from "@/data/api/generated/models";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
@@ -44,9 +47,30 @@ export const readPounds = (s: string): number | null => {
 
 /** Today in the active (branch) zone, as `YYYY-MM-DD` / `YYYY-MM`. */
 const isoToday = () => cairoNow().toISOString().slice(0, 10);
-const isoMonth = () => isoToday().slice(0, 7);
 /** A month picker's `YYYY-MM` → the first day the server files the line under. */
 export const monthToDate = (m: string) => `${m}-01`;
+
+/**
+ * The first month that can still take a line (AD-10, owner decision 27): the
+ * open period's month, or the next one once it is approved or paid (an early
+ * approval leaves no room this month). Today's month when the period is
+ * unknown (no payroll right).
+ */
+export function firstOpenMonth(period: Pick<PayrollPeriod, "status" | "end_date"> | undefined, today: string): string {
+  if (!period) return today.slice(0, 7);
+  const [y, m] = period.end_date.split("-").map(Number);
+  if (period.status === "draft") return period.end_date.slice(0, 7);
+  const next = new Date(Date.UTC(y, m, 1)); // month is 1-based here, so this is the month after
+  return next.toISOString().slice(0, 7);
+}
+
+/** The first open month, from the payroll run when this person may read it. */
+function useFirstOpenMonth(enabled: boolean): string {
+  const authz = useAuthz();
+  const canRead = authz.canAny(Cap.hrPayrollRead, Cap.hrPayrollRun);
+  const q = useCurrent({ query: { enabled: enabled && canRead } });
+  return firstOpenMonth(canRead ? q.data?.period : undefined, isoToday());
+}
 
 const pounds = (t: (k: string, d: string) => string) =>
   z.coerce.number<number>({ message: t("dawam.amountRequired", "Type an amount") }).positive(t("dawam.amountRequired", "Type an amount"));
@@ -182,12 +206,19 @@ export function AdjustmentDialog({
       message: t("dawam.amountRequired", "Type an amount"),
     });
   type Values = z.infer<typeof schema>;
+  // Lands in the first open month, not a closed one (owner decision 27).
+  const openMonth = useFirstOpenMonth(open);
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
-      employee_id: fixedUser ?? "", kind: initialBonus ? "bonus" : "deduction", by: "amount", amount: "", reason: "", recurring: false, month: isoMonth(),
+      employee_id: fixedUser ?? "", kind: initialBonus ? "bonus" : "deduction", by: "amount", amount: "", reason: "", recurring: false, month: openMonth,
     },
   });
+  // The run may arrive after the form: follow it until the month is touched.
+  const monthTouched = form.formState.dirtyFields.month;
+  useEffect(() => {
+    if (!monthTouched && form.getValues("month") !== openMonth) form.setValue("month", openMonth);
+  }, [openMonth, monthTouched, form]);
   const kind = form.watch("kind");
   const recurring = form.watch("recurring");
   // A deduction is always an amount (AD-2); only a bonus can be a % of salary.

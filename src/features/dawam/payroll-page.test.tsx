@@ -577,6 +577,17 @@ describe("PayrollPage", () => {
     expect(screen.getByText(/the ones the rules make/)).toBeInTheDocument();
   });
 
+  it("M27: after an early approval, a new line defaults to next month (the first open one)", async () => {
+    current = { ...current!, period: period("generated") } as unknown as CurrentPayroll;
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
+    await user.click(screen.getByRole("button", { name: /Add a bonus or deduction/ }));
+    const dialog = await screen.findByRole("dialog");
+    // The period 26 Aug – 25 Sep is approved: the line lands in the next one.
+    expect(within(dialog).getByLabelText("Counts in the month of")).toHaveValue("2026-10");
+  });
+
   it("leaves nothing-to-transfer payslips out of the bank and wallet lists (PAY-8)", async () => {
     // E2E payroll: a 0.00 net (deductions carried to next month) was listed as a bank transfer;
     // the server's bank/wallet CSV already lists only net > 0.
