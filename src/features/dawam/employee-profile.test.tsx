@@ -116,11 +116,53 @@ describe("EmployeeDialog · Dawam", () => {
     await user.type(screen.getByLabelText("WhatsApp number"), "0111 222 3333");
     await user.click(screen.getByRole("checkbox", { name: "Maadi" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
+    // A new number signs the phone in use out: said first (T4).
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Save and sign it out" }));
     await waitFor(() =>
       expect(putEmployee).toHaveBeenCalledWith("e1", expect.objectContaining({
         name: "Sara Ahmed", phone: "201112223333", app_access: true, branch_ids: ["b1", "b2"],
       })),
     );
+  });
+
+  it("T4: a new number with a phone signed in says the phone is signed out; Cancel sends nothing", async () => {
+    const user = userEvent.setup();
+    putEmployee.mockClear();
+    open(sara);
+    await user.clear(screen.getByLabelText("WhatsApp number"));
+    await user.type(screen.getByLabelText("WhatsApp number"), "0111 222 3333");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    const ask = await screen.findByRole("alertdialog");
+    expect(within(ask).getByText(/Galaxy A54/)).toBeInTheDocument();
+    await user.click(within(ask).getByRole("button", { name: "Cancel" }));
+    expect(putEmployee).not.toHaveBeenCalled();
+  });
+
+  it("T4: turning app access off with a phone signed in asks first too", async () => {
+    const user = userEvent.setup();
+    putEmployee.mockClear();
+    open(sara);
+    await user.click(screen.getByRole("checkbox", { name: "May sign in to the staff app" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Save and sign it out" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalledWith("e1", expect.objectContaining({ app_access: false })));
+  });
+
+  it("T4: no phone signed in, or the same number: nothing to ask", async () => {
+    const user = userEvent.setup();
+    putEmployee.mockClear();
+    const { unmount } = open({ ...sara, device_model: null } as Employee);
+    await user.clear(screen.getByLabelText("WhatsApp number"));
+    await user.type(screen.getByLabelText("WhatsApp number"), "0111 222 3333");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    unmount();
+    putEmployee.mockClear();
+    open(sara);
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
   it("flips 'paid through Dawam' only for someone with hr.payroll.edit (owner decision, PAY-3)", async () => {
