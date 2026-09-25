@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ComputedPayslip, CurrentPayroll, Employee, Payslip } from "@/data/api/generated/models";
 
@@ -66,12 +66,16 @@ const calls = {
 
 /** H2: the history sheet's payslips read fails with this. */
 let payslipsError: unknown = null;
+/** H2-P1: an older month's own reads, by period id, and the preview read's failure. */
+let payslipsById: Record<string, unknown[]> = {};
+let previewById: Record<string, unknown[]> = {};
+let previewError: unknown = null;
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
   const opts = args.find((a) => typeof a === "object" && a !== null && "query" in (a as object)) as
     | { query?: { enabled?: boolean } }
     | undefined;
   (enabledSeen[name] ??= []).push(opts?.query?.enabled ?? true);
-  const error = name === "payslips" ? payslipsError : null;
+  const error = name === "payslips" ? payslipsError : name === "preview" ? previewError : null;
   return { data: error ? undefined : data(), isLoading: false, isFetching: false, error, refetch: vi.fn() };
 };
 
@@ -106,7 +110,8 @@ vi.mock("@/data/api/generated/api", () => ({
   useListAdjustments: hook("adjustments", () => adjustments),
   useListAdvances: hook("advances", () => advances),
   useListExpenseAdvances: (params: unknown, ...rest: unknown[]) => { expenseParams.push(params); return hook("expenses", () => expenses)(params, ...rest); },
-  useListPayslips: hook("payslips", () => []),
+  useListPayslips: (id: string, ...rest: unknown[]) => hook("payslips", () => payslipsById[id] ?? [])(id, ...rest),
+  usePreviewPeriod: (id: string, ...rest: unknown[]) => hook("preview", () => previewById[id] ?? [])(id, ...rest),
   useListBranches: hook("branches", () => [{ id: "b1", name: "Zamalek" }]),
   exportPeriodCsv: vi.fn(),
   decideAdjustment: (...a: unknown[]) => decideAdjustment(...(a as [])),
@@ -151,6 +156,9 @@ const period = (status: string) => ({
 
 beforeEach(() => {
   payslipsError = null;
+  payslipsById = {};
+  previewById = {};
+  previewError = null;
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
   adjustments = [];
@@ -172,14 +180,19 @@ beforeEach(() => {
 describe("PayrollPage history: never frozen when it wasn't (H2)", () => {
   const july = { ...period("draft"), id: "p1", name: "26 Jul – 25 Aug 2026", start_date: "2026-07-26", end_date: "2026-08-25" };
 
-  it("a past month never approved says so, not 'frozen' (H2-D14)", async () => {
+  it("a past month never approved opens with its preview and Approve, not 'frozen' (H2-D14, H2-P1)", async () => {
     current = { ...current!, history: [july] } as unknown as CurrentPayroll;
+    previewById = { p1: [slip("e1", "Sara Ahmed", { net_piastres: 700_000 })] };
     const user = userEvent.setup();
     wrap(<PayrollPage />);
     await user.click(screen.getByRole("tab", { name: /History/ }));
     await user.click(await screen.findByText("26 Jul – 25 Aug 2026"));
-    expect(await screen.findByText("This month was never approved, so it has no payslips yet.")).toBeInTheDocument();
     expect(screen.queryByText("Frozen when payroll was approved.")).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("tab", { name: /Payslips/ }));
+    expect(await screen.findByText("7,000.00", { exact: false })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Approve payroll" }));
+    await waitFor(() => expect(calls.generatePeriod).toHaveBeenCalledWith("p1"));
   });
 
   it("a month's payslips that fail to load say so (H2-D14)", async () => {
@@ -190,6 +203,86 @@ describe("PayrollPage history: never frozen when it wasn't (H2)", () => {
     await user.click(screen.getByRole("tab", { name: /History/ }));
     await user.click(await screen.findByText("26 Jul – 25 Aug 2026"));
     expect(await screen.findByText("Couldn't load this month's payslips")).toBeInTheDocument();
+  });
+});
+
+describe("PayrollPage: an older month not fully paid (H2-P1)", () => {
+  const july = { ...period("draft"), id: "p1", name: "26 Jul – 25 Aug 2026", start_date: "2026-07-26", end_date: "2026-08-25" };
+  const unsettled = (status: string, paid = 0) => ({
+    period_id: "p1", starts_on: "2026-07-26", ends_on: "2026-08-25", status, net_total_piastres: 1_625_000, paid_count: paid, people: 2,
+  });
+  const frozen = (u: string, n: string, paid: string | null) =>
+    ({ ...slip(u, n), id: `s-${u}`, employee_name: n, paid_method: paid, payroll_period_id: "p1" }) as unknown as Payslip;
+  afterEach(async () => {
+    await i18n.changeLanguage("en");
+  });
+
+  it("a draft month left behind has a banner that opens it, and it is approved by its own id", async () => {
+    current = { ...current!, history: [july], unsettled: [unsettled("draft")] } as unknown as CurrentPayroll;
+    previewById = { p1: [slip("e1", "Sara Ahmed"), slip("e4", "Youssef Adel")] };
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    const banner = screen.getByRole("alert", { name: /isn't fully paid yet/ });
+    expect(within(banner).getByText(/never approved/)).toBeInTheDocument();
+    await user.click(within(banner).getByRole("button", { name: /Open/ }));
+    // The page now shows that month: its range, its preview, and Approve for it.
+    expect(screen.getByText(/You're looking at an earlier month/)).toBeInTheDocument();
+    expect(enabledSeen.preview.some(Boolean)).toBe(true);
+    await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Approve payroll" }));
+    await waitFor(() => expect(calls.generatePeriod).toHaveBeenCalledWith("p1"));
+    expect(calls.generatePeriod).not.toHaveBeenCalledWith("p2");
+    // And back to this month.
+    await user.click(screen.getByRole("button", { name: /Back to this month/ }));
+    expect(screen.queryByText(/You're looking at an earlier month/)).not.toBeInTheDocument();
+  });
+
+  it("an approved month someone is still owed from is marked paid, exported and reopened by its own id", async () => {
+    current = { ...current!, history: [{ ...july, status: "generated" }], unsettled: [unsettled("generated")] } as unknown as CurrentPayroll;
+    payslipsById = { p1: [frozen("e1", "Sara Ahmed", null), frozen("e4", "Youssef Adel", null)] };
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    const banner = screen.getByRole("alert", { name: /isn't fully paid yet/ });
+    expect(within(banner).getByText(/Paid 0 of 2/)).toBeInTheDocument();
+    await user.click(within(banner).getByRole("button", { name: /Open/ }));
+    expect(screen.getByRole("button", { name: /Reopen/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Pay lists/ })).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: "Mark paid" })[0]);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Mark paid" }));
+    await waitFor(() => expect(calls.markPaid).toHaveBeenCalledWith("p1", "e1", { method: "bank" }));
+  });
+
+  it("an older month's failed read says so, never an empty list", async () => {
+    current = { ...current!, history: [july], unsettled: [unsettled("draft")] } as unknown as CurrentPayroll;
+    previewError = new Error("boom");
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(within(screen.getByRole("alert", { name: /isn't fully paid yet/ })).getByRole("button", { name: /Open/ }));
+    expect(await screen.findByText("Couldn't load payroll")).toBeInTheDocument();
+    expect(screen.queryByText("Nobody on payroll yet")).not.toBeInTheDocument();
+  });
+
+  it("works on a server without `unsettled`: a past month still draft or approved is found in history", () => {
+    current = { ...current!, history: [{ ...july, status: "generated" }, { ...july, id: "p0", name: "Old", start_date: "2026-06-26", end_date: "2026-07-25", status: "paid" }] } as unknown as CurrentPayroll;
+    wrap(<PayrollPage />);
+    expect(screen.getAllByRole("alert", { name: /isn't fully paid yet/ })).toHaveLength(1);
+  });
+
+  it("shows no banner when every older month is paid", () => {
+    current = { ...current!, history: [{ ...july, status: "paid" }], unsettled: [] } as unknown as CurrentPayroll;
+    wrap(<PayrollPage />);
+    expect(screen.queryByRole("alert", { name: /isn't fully paid yet/ })).not.toBeInTheDocument();
+  });
+
+  it("says it in Arabic", async () => {
+    await i18n.changeLanguage("ar");
+    current = { ...current!, history: [july], unsettled: [unsettled("draft")] } as unknown as CurrentPayroll;
+    wrap(<PayrollPage />);
+    const banner = screen.getByRole("alert");
+    expect(banner.textContent).toMatch(/[؀-ۿ]/);
+    expect(banner.textContent).not.toMatch(/isn't|never approved|Open/);
+    await i18n.changeLanguage("en");
   });
 });
 

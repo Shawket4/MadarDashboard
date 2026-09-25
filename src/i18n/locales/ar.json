@@ -6691,7 +6691,15 @@
     "cashList": "ظروف النقدية",
     "payLists": "قوائم الصرف (بنك، محفظة، نقدًا)",
     "todayMonthClosed": "اليوم ضمن شهر رواتب معتمد، فلا يمكن تسجيل حضور أو انصراف لأحد. أعد فتح الشهر لتغيير اليوم.",
-    "lineOverriddenWhy": "اتعدّل: {{reason}}"
+    "lineOverriddenWhy": "اتعدّل: {{reason}}",
+    "unsettledTitle": "لم تُصرف رواتب {{month}} بالكامل بعد",
+    "unsettledDraft": "لم يُعتمد هذا الشهر. افتحه لاعتماده وصرف الرواتب للجميع.",
+    "unsettledApproved": "معتمد. صُرف لـ {{paid}} من {{people}}: افتحه لتسجيل صرف الباقين.",
+    "unsettledApprovedNoCount": "معتمد، لكن لم يُصرف للجميع بعد. افتحه لتسجيل صرف الباقين.",
+    "unsettledOpen": "فتح الشهر",
+    "viewingOlder": "أنت تعرض شهرًا سابقًا: {{month}}.",
+    "backToCurrent": "العودة إلى الشهر الحالي",
+    "notFullyPaid": "لم يُصرف بالكامل بعد"
   },
   "legal": {
     "label": "قانوني",

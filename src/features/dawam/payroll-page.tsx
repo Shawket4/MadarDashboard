@@ -32,7 +32,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import {
   decideAdjustment, deleteBonus, deleteDeduction, exportPeriodCsv, generatePeriod,
   useCurrent, useListAdjustments, useListAdvances, useListEmployees,
-  useListExpenseAdvances, useListPayslips,
+  useListExpenseAdvances, useListPayslips, usePreviewPeriod,
 } from "@/data/api/generated/api";
 import type {
   Adjustment, ComputedPayslip, Employee, ExpenseAdvance, PayrollPeriod, Payslip, SalaryAdvance,
@@ -45,10 +45,11 @@ import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useCurrentOrg } from "@/hooks/use-org-modules";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
-import { fmtDate, fmtMoney, fmtMoneySigned } from "@/lib/format";
+import { fmtDate, fmtMoney, fmtMoneySigned, fmtPeriod } from "@/lib/format";
 import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "@/features/staff/util";
 
 import { payslipLines, reasonText, type PayLine } from "./lines";
+import type { CurrentPayrollD, UnsettledPeriodD } from "./phase-d-contract";
 import { dawamQuery } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { printPayslip } from "./payslip-print";
@@ -70,6 +71,43 @@ export const periodPhase = (p: PayrollPeriod | undefined): "open" | "approved" |
 
 const PHASE_TONE = { open: "neutral", approved: "info", paid: "success" } as const;
 
+/** A month by its dates: "Aug 2026" when it is a calendar month, else its range. */
+export const monthLabel = (start: string, end: string): string =>
+  start.endsWith("-01") ? fmtPeriod(`${start}T12:00:00Z`, "monthly") : `${fmtDate(start)} → ${fmtDate(end)}`;
+
+/** Still to settle: a past month never approved (draft) or approved with someone unpaid (generated). */
+const isUnsettled = (status: string | undefined) => status === "draft" || status === "generated";
+
+/**
+ * The older months not fully paid (H2-P1), oldest first: the server's
+ * `unsettled`, or, from a server without it, the same months found in history.
+ */
+export const unsettledOf = (cur: CurrentPayrollD | undefined): UnsettledPeriodD[] => {
+  if (!cur) return [];
+  if (Array.isArray(cur.unsettled)) return cur.unsettled;
+  return (cur.history ?? [])
+    .filter((p) => isUnsettled(p.status))
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))
+    .map((p) => ({
+      period_id: p.id, starts_on: p.start_date, ends_on: p.end_date, status: p.status,
+      net_total_piastres: p.total_net_piastres, people: p.employee_count,
+    }));
+};
+
+/** An older month as a period: history's row, or one made from `unsettled` past history's reach. */
+const olderPeriod = (cur: CurrentPayrollD | undefined, id: string | null): PayrollPeriod | undefined => {
+  if (!cur || !id) return undefined;
+  const fromHistory = (cur.history ?? []).find((p) => p.id === id);
+  if (fromHistory) return fromHistory;
+  const u = unsettledOf(cur).find((x) => x.period_id === id);
+  return u
+    ? ({
+        id: u.period_id, name: monthLabel(u.starts_on, u.ends_on), start_date: u.starts_on, end_date: u.ends_on, status: u.status,
+        total_net_piastres: u.net_total_piastres, employee_count: u.people,
+      } as PayrollPeriod)
+    : undefined;
+};
+
 export function PayrollPage() {
   const { t } = useTranslation();
   const authz = useAuthz();
@@ -90,40 +128,67 @@ export function PayrollPage() {
   const [logging, setLogging] = useState(false);
   const [reopening, setReopening] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  // An older month opened from its banner or from History (H2-P1); null = the month covering today.
+  const [viewId, setViewId] = useState<string | null>(null);
   const confirm = useConfirm();
   const logoUrl = useExportLogo();
 
   const currentQ = useCurrent({ query: dawamQuery({ enabled: canRead }) });
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: dawamQuery({ enabled: canRead }) });
-  const period = currentQ.data?.period;
+  const cur = currentQ.data as CurrentPayrollD | undefined;
+  const unsettled = unsettledOf(cur);
+  // Every action below goes by `period.id`, so an older month settles like this one.
+  const older = olderPeriod(cur, viewId);
+  const olderDraft = older?.status === "draft";
+  const olderPreviewQ = usePreviewPeriod(older?.id ?? "", { query: dawamQuery({ enabled: canRead && !!older && olderDraft }) });
+  const olderSlipsQ = useListPayslips(older?.id ?? "", { query: dawamQuery({ enabled: canRead && !!older && !olderDraft }) });
+  const olderQ = olderDraft ? olderPreviewQ : olderSlipsQ;
+  const shownQ = older ? olderQ : currentQ;
+  const period = older ?? cur?.period;
   const phase = periodPhase(period);
   const people = useMemo(() => new Map((employeesQ.data ?? []).map((e) => [e.id, e])), [employeesQ.data]);
 
   // After approval the frozen payslips are the truth; before, the live preview.
   const rows: Row[] = useMemo(() => {
-    const frozen = currentQ.data?.payslips ?? [];
-    const source: Slip[] = frozen.length ? frozen : (currentQ.data?.preview ?? []);
+    const frozen = cur?.payslips ?? [];
+    const source: Slip[] = older
+      ? ((olderDraft ? olderPreviewQ.data : olderSlipsQ.data) ?? [])
+      : frozen.length ? frozen : (cur?.preview ?? []);
     return source.map((s) => ({
       ...s,
       employee_name: ("employee_name" in s && s.employee_name) || ("name" in s && s.name) || people.get(s.employee_id)?.name || "—",
       paid_method: ("paid_method" in s && s.paid_method) || null,
     }));
-  }, [currentQ.data, people]);
+  }, [cur, older, olderDraft, olderPreviewQ.data, olderSlipsQ.data, people]);
 
-  // The server adds the run up (AT-3): its totals and how many are paid.
-  const totals = {
-    net: currentQ.data?.totals?.net_piastres ?? 0,
-    deductions: currentQ.data?.totals?.deductions_piastres ?? 0,
-    advances: currentQ.data?.totals?.advances_piastres ?? 0,
-    people: currentQ.data?.totals?.people ?? rows.length,
-    paid: currentQ.data?.paid_count ?? 0,
-  };
+  // The server adds the run up (AT-3): its totals and how many are paid. An
+  // older month's are added up here from its own payslips.
+  const sum = (f: (r: Row) => number) => rows.reduce((a, r) => a + f(r), 0);
+  const totals = older
+    ? {
+        net: sum((r) => r.net_piastres),
+        deductions: sum((r) => r.deductions_piastres),
+        advances: sum((r) => r.advance_installment_piastres),
+        people: rows.length,
+        paid: rows.filter((r) => r.paid_method).length,
+      }
+    : {
+        net: cur?.totals?.net_piastres ?? 0,
+        deductions: cur?.totals?.deductions_piastres ?? 0,
+        advances: cur?.totals?.advances_piastres ?? 0,
+        people: cur?.totals?.people ?? rows.length,
+        paid: cur?.paid_count ?? 0,
+      };
 
   // On payroll with no salary (owner decision 9): approval is refused until
   // each is set or marked not paid through Dawam (409 SALARY_MISSING).
   const missing = rows.filter((r) => (r as ComputedPayslip).salary_missing);
-  const cur = currentQ.data;
-  const missingCount = cur?.missing_salary_count ?? cur?.totals?.missing_salary_count ?? missing.length;
+  const missingCount = older ? missing.length : (cur?.missing_salary_count ?? cur?.totals?.missing_salary_count ?? missing.length);
+  const openMonth = (id: string | null) => {
+    setViewId(id);
+    setTab("payslips");
+  };
 
   // Reopen closes once a PERSON is paid (PAY-6). A zero-net payslip settled at
   // approval (method "none", PAY-7) isn't anyone being paid; the server allows it.
@@ -276,6 +341,36 @@ export function PayrollPage() {
         }
       />
       <RulesFirstBanner />
+      {older ? (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-muted/40 p-4 text-sm">
+          <p className="font-medium">
+            {t("dawam.viewingOlder", { month: monthLabel(older.start_date, older.end_date), defaultValue: `You're looking at an earlier month: ${monthLabel(older.start_date, older.end_date)}.` })}
+          </p>
+          <Button size="sm" variant="outline" onClick={() => openMonth(null)}>{t("dawam.backToCurrent", "Back to this month")}</Button>
+        </div>
+      ) : null}
+      {unsettled.filter((u) => u.period_id !== older?.id).map((u) => {
+        const month = monthLabel(u.starts_on, u.ends_on);
+        return (
+          <div key={u.period_id} role="alert" aria-labelledby={`unsettled-${u.period_id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
+            <div>
+              <p id={`unsettled-${u.period_id}`} className="font-medium">
+                {t("dawam.unsettledTitle", { month, defaultValue: `${month} isn't fully paid yet` })}
+              </p>
+              <p className="text-muted-foreground">
+                {u.status === "draft"
+                  ? t("dawam.unsettledDraft", "It was never approved. Open it to approve it and pay everyone.")
+                  : u.paid_count === undefined
+                    ? t("dawam.unsettledApprovedNoCount", "Approved, but not everyone is paid yet. Open it to mark the rest paid.")
+                    : t("dawam.unsettledApproved", { paid: u.paid_count, people: u.people, defaultValue: `Approved. Paid ${u.paid_count} of ${u.people}: open it to mark the rest paid.` })}
+                {" · "}
+                <span className="tabular-nums">{fmtMoney(u.net_total_piastres)}</span>
+              </p>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => openMonth(u.period_id)}>{t("dawam.unsettledOpen", "Open it")}</Button>
+          </div>
+        );
+      })}
       {phase === "open" && missingCount > 0 ? (
         <div id="salary-missing" role="alert" className="rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
           <p className="font-medium">
@@ -289,10 +384,10 @@ export function PayrollPage() {
       ) : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dawam.totalNet", "Net pay")} value={totals.net} formatType="money" icon={CircleDollarSign} loading={currentQ.isLoading} />
-        <StatCard label={t("dawam.people", "People")} value={totals.people} formatType="number" icon={UsersRound} loading={currentQ.isLoading} hint={phase === "open" ? undefined : t("dawam.paidCount", { paid: totals.paid, people: totals.people, defaultValue: `Paid ${totals.paid} of ${totals.people}` })} />
-        <StatCard label={t("dawam.deductions", "Deductions")} value={totals.deductions} formatType="money" icon={ReceiptText} loading={currentQ.isLoading} />
-        <StatCard label={t("dawam.advancesCollected", "Advances collected")} value={totals.advances} formatType="money" icon={HandCoins} loading={currentQ.isLoading} />
+        <StatCard label={t("dawam.totalNet", "Net pay")} value={totals.net} formatType="money" icon={CircleDollarSign} loading={shownQ.isLoading} />
+        <StatCard label={t("dawam.people", "People")} value={totals.people} formatType="number" icon={UsersRound} loading={shownQ.isLoading} hint={phase === "open" ? undefined : t("dawam.paidCount", { paid: totals.paid, people: totals.people, defaultValue: `Paid ${totals.paid} of ${totals.people}` })} />
+        <StatCard label={t("dawam.deductions", "Deductions")} value={totals.deductions} formatType="money" icon={ReceiptText} loading={shownQ.isLoading} />
+        <StatCard label={t("dawam.advancesCollected", "Advances collected")} value={totals.advances} formatType="money" icon={HandCoins} loading={shownQ.isLoading} />
       </div>
 
       <Tabs value={tab} onValueChange={setTab} className="gap-6">
@@ -305,13 +400,13 @@ export function PayrollPage() {
         </PageTabsList>
 
         <TabsContent value="payslips">
-          {currentQ.error ? (
-            <ErrorState title={t("dawam.payrollLoadError", "Couldn't load payroll")} message={getErrorMessage(currentQ.error)} onRetry={() => void currentQ.refetch()} />
+          {shownQ.error ? (
+            <ErrorState title={t("dawam.payrollLoadError", "Couldn't load payroll")} message={getErrorMessage(shownQ.error)} onRetry={() => void shownQ.refetch()} />
           ) : (
             <DataTable
               columns={columns}
               data={rows}
-              loading={currentQ.isLoading}
+              loading={shownQ.isLoading}
               getRowId={(r) => r.employee_id}
               onRowClick={(r) => setPersonId(r.employee_id)}
               emptyState={<EmptyState icon={Banknote} title={t("dawam.noPayslips", "Nobody on payroll yet")} description={t("dawam.noPayslipsHint", "Active employees with a salary show here.")} />}
@@ -329,15 +424,15 @@ export function PayrollPage() {
           <ExpensesTab canLog={canExpense} onLog={() => setLogging(true)} />
         </TabsContent>
         <TabsContent value="history">
-          <HistoryTab periods={currentQ.data?.history ?? []} people={people} />
+          <HistoryTab periods={cur?.history ?? []} people={people} onOpenMonth={openMonth} />
         </TabsContent>
       </Tabs>
 
       <PayslipSheet
         row={rows.find((r) => r.employee_id === personId) ?? null}
         onOpenChange={(o) => !o && setPersonId(null)}
-        editable={phase === "open" && canAdjust}
-        canDeduct={phase === "open" && canDeduct}
+        editable={!older && phase === "open" && canAdjust}
+        canDeduct={!older && phase === "open" && canDeduct}
         phase={phase}
         period={period ?? null}
       />
@@ -700,7 +795,14 @@ function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) 
   );
 }
 
-function HistoryTab({ periods, people }: { periods: PayrollPeriod[]; people: Map<string, Employee> }) {
+function HistoryTab({
+  periods, people, onOpenMonth,
+}: {
+  periods: PayrollPeriod[];
+  people: Map<string, Employee>;
+  /** A month still to settle opens in the page with its actions (H2-P1). */
+  onOpenMonth: (id: string) => void;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState<PayrollPeriod | null>(null);
   const slipsQ = useListPayslips(open?.id ?? "", { query: dawamQuery({ enabled: !!open }) });
@@ -715,8 +817,8 @@ function HistoryTab({ periods, people }: { periods: PayrollPeriod[]; people: Map
             key={p.id}
             variant="nav"
             title={p.name}
-            meta={`${fmtDate(p.start_date)} → ${fmtDate(p.end_date)}`}
-            onClick={() => setOpen(p)}
+            meta={`${fmtDate(p.start_date)} → ${fmtDate(p.end_date)}${isUnsettled(p.status) ? ` · ${t("dawam.notFullyPaid", "Not fully paid yet")}` : ""}`}
+            onClick={() => (isUnsettled(p.status) ? onOpenMonth(p.id) : setOpen(p))}
             trailing={
               <span className="flex items-center gap-2">
                 <span className="tabular-nums">{fmtMoney(p.total_net_piastres)}</span>

@@ -6490,7 +6490,15 @@
     "cashList": "Cash envelopes",
     "payLists": "Pay lists (bank, wallet, cash)",
     "todayMonthClosed": "Today is in an approved payroll month, so nobody can be punched in or out. Reopen the month to change today.",
-    "lineOverriddenWhy": "Overridden: {{reason}}"
+    "lineOverriddenWhy": "Overridden: {{reason}}",
+    "unsettledTitle": "{{month}} isn't fully paid yet",
+    "unsettledDraft": "It was never approved. Open it to approve it and pay everyone.",
+    "unsettledApproved": "Approved. Paid {{paid}} of {{people}}: open it to mark the rest paid.",
+    "unsettledApprovedNoCount": "Approved, but not everyone is paid yet. Open it to mark the rest paid.",
+    "unsettledOpen": "Open it",
+    "viewingOlder": "You're looking at an earlier month: {{month}}.",
+    "backToCurrent": "Back to this month",
+    "notFullyPaid": "Not fully paid yet"
   },
   "legal": {
     "label": "Legal",
