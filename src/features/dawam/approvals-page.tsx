@@ -86,15 +86,15 @@ export function ApprovalsPage() {
   // The owner (payroll run everywhere) may pass the advance cap; a manager can't (D7).
   const mayPassCap = authz.canEverywhere(Cap.hrPayrollRun);
   const any = Object.values(can).some(Boolean);
-  const from = isoDaysFromToday(-35);
 
   const requestsQ = useListRequests({ status: "pending" }, { query: dawamQuery({ enabled: can.requests }) });
   // A manager's own requests are decided above them (RQ-5): not in their queue.
   const own = useOwnEmployeeIds(can.requests);
   const advancesQ = useListAdvances({}, { query: dawamQuery({ enabled: can.advances }) });
   const swapsQ = useListSwaps({ status: "pending" }, { query: dawamQuery({ enabled: can.roster }) });
-  // A claim can sit on any published week, however far ahead (O-8).
-  const claimsQ = useListOpenShifts({ from, to: isoDaysFromToday(366) }, { query: dawamQuery({ enabled: can.roster }) });
+  // A claim can sit on any published week, however far ahead (O-8), and one
+  // left undecided past its day stays in the queue too (a -35-day window lost it).
+  const claimsQ = useListOpenShifts({ from: isoDaysFromToday(-366), to: isoDaysFromToday(366) }, { query: dawamQuery({ enabled: can.roster }) });
   // Every pending cover and overtime, however old (H2-B5): a 35-day window
   // dropped older ones out of every queue.
   const coversQ = useListAttendance({ cover_status: "pending" }, { query: dawamQuery({ enabled: can.covers }) });

@@ -262,6 +262,14 @@ describe("ApprovalsPage", () => {
     expect(asked.some((p) => "from" in p || "to" in p)).toBe(false);
   });
 
+  it("asks for claims on open shifts a year back as well as a year ahead (H3: a -35-day window dropped older claims)", async () => {
+    const { isoDaysFromToday } = await import("@/features/staff/util");
+    wrap(<ApprovalsPage />);
+    const asked = paramsSeen.claims as { from: string; to: string }[];
+    expect(asked.length).toBeGreaterThan(0);
+    expect(asked.every((p) => p.from <= isoDaysFromToday(-365) && p.to >= isoDaysFromToday(365))).toBe(true);
+  });
+
   it("approves leave as unpaid when the manager says so (RQ-2)", async () => {
     const user = userEvent.setup();
     wrap(<ApprovalsPage />);
