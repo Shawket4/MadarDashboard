@@ -126,6 +126,15 @@ describe("Dawam rules", () => {
     expect((put.mock.calls[0] as unknown[])[0]).not.toHaveProperty("require_geofence");
   });
 
+  it("T4: never says overtime is off while it is on; says so once it is turned off", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    expect(screen.queryByText(/Overtime is off until you turn it on/)).toBeNull();
+    expect(screen.getByText(/Rates follow Egypt's labour law/)).toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: "Off" }));
+    expect(screen.getByText(/Overtime is off until you turn it on/)).toBeInTheDocument();
+  });
+
   it("let only the owner's capability change the gender mode (SC-12)", async () => {
     const user = userEvent.setup();
     renderPage();

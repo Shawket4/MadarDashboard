@@ -6257,6 +6257,7 @@
     "rulesFirstHint": "Lateness, overtime, pay day and labour limits. Until they are saved, the app refuses every clock-in.",
     "rulesFirstTitle": "Save the rules before anyone can clock in",
     "rulesHint": "Overtime is off until you turn it on. Rates follow Egypt's labour law as read so far — check them with your lawyer.",
+    "rulesHintRates": "Rates follow Egypt's labour law as read so far — check them with your lawyer.",
     "rulesLimitRange": "Labour limits are hours between 0 and 168",
     "rulesNight": "Set when night starts and ends",
     "rulesOrdersPerStaff": "Orders per person is a whole number, 1 or more",
