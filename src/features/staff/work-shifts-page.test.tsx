@@ -15,6 +15,7 @@ import type { WorkShift } from "@/data/api/generated/models";
 
 let shifts: WorkShift[] = [];
 let employees: { id: string; name: string; branch_ids: string[] }[] = [];
+let assignments: unknown[] = [];
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
 vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const calls = {
@@ -44,13 +45,13 @@ vi.mock("@/data/authz/use-authz", async () => {
 const OWNER_CAPS = ["hr.schedule.read", "hr.schedule.edit", "hr.schedule.create", "hr.schedule.delete"];
 vi.mock("./util", async () => {
   const real = await vi.importActual<typeof import("./util")>("./util");
-  return { ...real, invalidateWorkShifts: vi.fn(), invalidateSchedules: vi.fn() };
+  return { ...real, invalidateWorkShifts: vi.fn(), invalidateSchedules: vi.fn(), invalidateStaff: vi.fn() };
 });
 vi.mock("@/data/api/generated/api", () => ({
   useListWorkShifts: hook(() => shifts),
   useListBranches: hook(() => [{ id: "b1", name: "Zamalek" }, { id: "b2", name: "Maadi" }]),
   useListEmployees: hook(() => employees),
-  useListAssignments: hook(() => []),
+  useListAssignments: hook(() => assignments),
   ...calls,
 }));
 
@@ -194,6 +195,26 @@ describe("WorkShiftsPage", () => {
     await user.click(cells[7]);
     const fri = await screen.findAllByRole("menuitem");
     expect(fri.map((m) => m.textContent)).toEqual(["Evening16:00–01:00", "Rest day"]);
+  });
+
+  it("a replaced slot whose new shift is refused still refreshes, and says why (H2-D12)", async () => {
+    const { invalidateStaff } = await import("./util");
+    vi.mocked(invalidateStaff).mockClear();
+    const user = userEvent.setup();
+    shifts = [evening, { ...evening, id: "w2", name: "Brunch", start_time: "10:00:00", end_time: "14:00:00", crosses_midnight: false, valid_days: [6, 0, 1, 2, 3, 4], day_times: [] }];
+    assignments = [{ id: "a1", employee_id: employees[0].id, work_shift_id: "w1", day_of_week: 6 }];
+    calls.createAssignment.mockRejectedValueOnce(new Error("Brunch overlaps"));
+    wrap(<WorkShiftsPage />);
+    const row = within(screen.getByRole("table")).getByText(employees[0].name).closest("tr")!;
+    // Saturday: the first weekday column, after "Every day".
+    await user.click(within(row).getAllByRole("button")[1]);
+    await user.click(await screen.findByRole("menuitem", { name: /^Brunch/ }));
+    await waitFor(() => expect(calls.deleteAssignment).toHaveBeenCalledWith("a1"));
+    await waitFor(() => expect(toastMock.error).toHaveBeenCalled());
+    // The old row is gone on the server: the grid must read it again, and so
+    // must the Dawam roster that shows the pattern (H2-D12).
+    expect(invalidateStaff).toHaveBeenCalled();
+    assignments = [];
   });
 
   it("reads in Arabic", async () => {

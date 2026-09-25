@@ -20,7 +20,7 @@ import { dawamQuery } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
-import { invalidateWorkShifts, WEEKDAYS } from "./util";
+import { invalidateStaff, WEEKDAYS } from "./util";
 import { ScheduleGrid } from "./schedule-grid";
 import { WEEK_ORDER, WorkShiftDialog } from "./work-shift-dialog";
 
@@ -69,7 +69,8 @@ export function WorkShiftsPage() {
     try {
       await deleteWorkShift(shift.id);
       toast.success(t("staff.shiftDeleted", "Work shift deleted"));
-      void invalidateWorkShifts();
+      // The Dawam roster lists the blocks too (H2-D13).
+      void invalidateStaff();
     } catch (e) {
       toast.error(getErrorMessage(e));
     }
