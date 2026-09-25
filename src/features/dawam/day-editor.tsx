@@ -10,7 +10,7 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRightLeft, Clock, Plus, RotateCcw, Trash2, TriangleAlert } from "lucide-react";
+import { ArrowRightLeft, Clock, Moon, Plus, RotateCcw, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -48,13 +48,29 @@ const blockOf = (s: RosterShift): DayBlock => ({
   end_time: s.times_edited ? s.end_time : null,
 });
 
-export function ShiftTimes({ s }: { s: Pick<RosterShift, "start_time" | "end_time" | "crosses_midnight"> }) {
+/** "+1 day": the shift ends the next day. Visible, and read out, never a bare "+1". */
+export function NextDayMark() {
   const { t } = useTranslation();
   return (
-    <bdi className="font-mono text-[11px] tabular-nums text-muted-foreground">
-      {hhmm(s.start_time)}–{hhmm(s.end_time)}
-      {s.crosses_midnight ? <span title={t("staff.endsNextDay", "Ends the next day")}> +1</span> : null}
-    </bdi>
+    <span
+      className="inline-flex items-center gap-0.5 rounded bg-secondary px-1 font-sans text-[10px] font-semibold text-foreground"
+      title={t("staff.endsNextDay", "Ends the next day")}
+    >
+      <Moon className="size-2.5" aria-hidden />
+      <span aria-hidden>{t("dawamOps.plusOneDay", "+1 day")}</span>
+      <span className="sr-only">{t("staff.endsNextDay", "Ends the next day")}</span>
+    </span>
+  );
+}
+
+export function ShiftTimes({ s }: { s: Pick<RosterShift, "start_time" | "end_time" | "crosses_midnight"> }) {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <bdi className="font-mono text-[11px] tabular-nums text-muted-foreground">
+        {hhmm(s.start_time)}–{hhmm(s.end_time)}
+      </bdi>
+      {s.crosses_midnight ? <NextDayMark /> : null}
+    </span>
   );
 }
 
