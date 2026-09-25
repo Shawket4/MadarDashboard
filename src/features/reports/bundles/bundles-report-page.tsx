@@ -129,7 +129,8 @@ export function BundlesReportPage() {
       const cols: ExcelColumn<R>[] = [
         { header: kind === "combo" ? t("reports.bundles.col.combo", "Combo") : t("reports.bundles.col.deal", "Deal"), accessor: (r) => name(r), type: "text", width: 30 },
         { header: kind === "combo" ? t("reports.bundles.col.sold", "Sold") : t("reports.bundles.col.applied", "Applied"), accessor: (r) => r.sold, type: "integer", width: 10, total: true },
-        { header: t("reports.bundles.col.orders", "Orders"), accessor: (r) => r.orders, type: "integer", width: 10, total: true },
+        // Not totalled: one order can hold several combos or deals, so the rows overlap.
+        { header: t("reports.bundles.col.orders", "Orders"), accessor: (r) => r.orders, type: "integer", width: 10 },
         { header: t("reports.bundles.col.revenue", "Revenue"), accessor: (r) => r.revenue, type: "money", width: 16, total: true },
         { header: t("reports.bundles.col.listValue", "Separately"), accessor: (r) => r.list_value, type: "money", width: 16, total: true },
         { header: t("reports.bundles.col.saving", "Saving given"), accessor: (r) => r.saving, type: "money", width: 16, total: true },
