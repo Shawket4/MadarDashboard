@@ -635,10 +635,17 @@ function HistoryTab({ periods, people }: { periods: PayrollPeriod[]; people: Map
         <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>{open?.name}</SheetTitle>
-            <SheetDescription>{t("dawam.frozenHint", "Frozen when payroll was approved.")}</SheetDescription>
+            {/* H2-D14: a month that was never approved is not "frozen". */}
+            <SheetDescription>
+              {open && periodPhase(open) === "open"
+                ? t("dawam.neverApproved", "This month was never approved, so it has no payslips yet.")
+                : t("dawam.frozenHint", "Frozen when payroll was approved.")}
+            </SheetDescription>
           </SheetHeader>
           <div className="px-4 pb-6">
-            {slipsQ.isLoading ? <Skeleton className="h-40 w-full" /> : (
+            {slipsQ.error ? (
+              <ErrorState title={t("dawam.payslipsLoadError", "Couldn't load this month's payslips")} message={getErrorMessage(slipsQ.error)} onRetry={() => void slipsQ.refetch()} />
+            ) : slipsQ.isLoading ? <Skeleton className="h-40 w-full" /> : (
               <ListCard>
                 {(slipsQ.data ?? []).map((s) => (
                   <ListRow

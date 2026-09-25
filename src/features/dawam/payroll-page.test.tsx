@@ -47,12 +47,15 @@ const calls = {
   stopAdjustment: vi.fn(async () => ({})),
 };
 
+/** H2: the history sheet's payslips read fails with this. */
+let payslipsError: unknown = null;
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
   const opts = args.find((a) => typeof a === "object" && a !== null && "query" in (a as object)) as
     | { query?: { enabled?: boolean } }
     | undefined;
   (enabledSeen[name] ??= []).push(opts?.query?.enabled ?? true);
-  return { data: data(), isLoading: false, isFetching: false, error: null, refetch: vi.fn() };
+  const error = name === "payslips" ? payslipsError : null;
+  return { data: error ? undefined : data(), isLoading: false, isFetching: false, error, refetch: vi.fn() };
 };
 
 vi.mock("@/data/authz/use-authz", async () => {
@@ -130,6 +133,7 @@ const period = (status: string) => ({
 });
 
 beforeEach(() => {
+  payslipsError = null;
   for (const k of Object.keys(enabledSeen)) delete enabledSeen[k];
   for (const f of Object.values(calls)) f.mockClear();
   adjustments = [];
@@ -142,6 +146,30 @@ beforeEach(() => {
     payslips: [],
     history: [],
   } as unknown as CurrentPayroll;
+});
+
+describe("PayrollPage history: never frozen when it wasn't (H2)", () => {
+  const july = { ...period("draft"), id: "p1", name: "26 Jul – 25 Aug 2026", start_date: "2026-07-26", end_date: "2026-08-25" };
+
+  it("a past month never approved says so, not 'frozen' (H2-D14)", async () => {
+    current = { ...current!, history: [july] } as unknown as CurrentPayroll;
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /History/ }));
+    await user.click(await screen.findByText("26 Jul – 25 Aug 2026"));
+    expect(await screen.findByText("This month was never approved, so it has no payslips yet.")).toBeInTheDocument();
+    expect(screen.queryByText("Frozen when payroll was approved.")).not.toBeInTheDocument();
+  });
+
+  it("a month's payslips that fail to load say so (H2-D14)", async () => {
+    current = { ...current!, history: [{ ...july, status: "paid" }] } as unknown as CurrentPayroll;
+    payslipsError = new Error("boom");
+    const user = userEvent.setup();
+    wrap(<PayrollPage />);
+    await user.click(screen.getByRole("tab", { name: /History/ }));
+    await user.click(await screen.findByText("26 Jul – 25 Aug 2026"));
+    expect(await screen.findByText("Couldn't load this month's payslips")).toBeInTheDocument();
+  });
 });
 
 describe("PayrollPage", () => {

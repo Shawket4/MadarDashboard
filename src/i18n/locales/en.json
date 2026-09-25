@@ -6335,7 +6335,9 @@
     "noBranchYet": "Add a branch first: the schedule is kept per branch.",
     "openPostedUnpublished": "Open shift posted. Staff see it once you publish this week.",
     "suggestionsLoadError": "Couldn't load the suggestions",
-    "coverageLoadError": "Couldn't load the coverage needs"
+    "coverageLoadError": "Couldn't load the coverage needs",
+    "neverApproved": "This month was never approved, so it has no payslips yet.",
+    "payslipsLoadError": "Couldn't load this month's payslips"
   },
   "legal": {
     "label": "Legal",
