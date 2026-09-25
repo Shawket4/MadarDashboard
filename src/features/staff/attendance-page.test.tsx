@@ -67,7 +67,24 @@ vi.mock("./util", async () => {
 });
 /** Blocks at the record's branch (b1), another branch (b2), and the whole business. */
 let shifts: { id: string; name: string; branch_id: string | null }[] = [];
+// The kit's fields are calendar buttons and a typed time (tested in their own
+// suites); the dialogs' logic (branch clock, only-what-changed) runs through plain inputs.
+vi.mock("@/components/inputs", async () => {
+  const real = await vi.importActual<typeof import("@/components/inputs")>("@/components/inputs");
+  return {
+    ...real,
+    DateField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+      <input id={id} type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+    ),
+  };
+});
+vi.mock("./date-time-field", () => ({
+  DateTimeField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+    <input id={id} type="datetime-local" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+  ),
+}));
 vi.mock("@/data/api/generated/api", () => ({
+  useGetAttendanceSettings: () => ({ data: { period_start_day: 1 } }),
   listAttendance: vi.fn(async () => []),
   useListAttendance: () => q(records),
   useAttendanceSummary: () => (summaryError ? { ...q(undefined), error: summaryError } : q([])),
@@ -112,6 +129,28 @@ describe("Attendance: a failed summary is no reassuring zero (H3)", () => {
     } finally {
       summaryError = null;
     }
+  });
+});
+
+describe("Attendance reads plainly (UX-P)", () => {
+  it("says what late and left early are measured from, and explains the words", async () => {
+    records = [{ ...record, scheduled_start_at: "2026-09-22T06:00:00Z", scheduled_end_at: "2026-09-22T14:30:00Z", early_leave_minutes: 30 }];
+    try {
+      wrap(<AttendancePage />);
+      // 09:00 and 17:30 on the Cairo branch's clock, not the browser's UTC.
+      expect(screen.getAllByText("after 09:00 AM").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("before 05:30 PM").length).toBeGreaterThan(0);
+      expect(screen.getByText("What late, left early and absent mean")).toBeInTheDocument();
+    } finally {
+      records = [record];
+    }
+  });
+
+  it("offers one-tap ranges, the pay period among them", () => {
+    wrap(<AttendancePage />);
+    const quick = screen.getByRole("group", { name: "Quick ranges" });
+    expect(within(quick).getByRole("button", { name: "This pay period" })).toBeInTheDocument();
+    expect(within(quick).getByRole("button", { name: "This week" })).toBeInTheDocument();
   });
 });
 

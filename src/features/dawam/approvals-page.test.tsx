@@ -207,7 +207,8 @@ describe("ApprovalsPage", () => {
     await user.click(approve);
     expect(calls.decideClaim).toHaveBeenCalledTimes(1);
     finish({});
-    await waitFor(() => expect(approve).not.toBeDisabled());
+    // Decided: it leaves the queue at once, so nothing (a batch included) can send it again (UX-P).
+    await waitFor(() => expect(screen.queryByText("Laila Hassan")).toBeNull());
   });
 
   it("a decision someone made first says so and refreshes the queue (H2-B2)", async () => {
@@ -242,9 +243,60 @@ describe("ApprovalsPage", () => {
     const user = userEvent.setup();
     wrap(<ApprovalsPage />);
     await user.click(screen.getByRole("button", { name: "Reject" }));
-    const dialog = await screen.findByRole("alertdialog");
+    const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText(/any lateness or absence penalty applies/)).toBeInTheDocument();
     expect(within(dialog).queryByText(/nothing is paid or changed/)).toBeNull();
+  });
+
+  it("rejects a request with an optional reason the requester sees (D8, UX-P)", async () => {
+    requestRows = [{ ...LEAVE, can_decide: true }];
+    held = ["hr.leave.edit"];
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    await user.click(screen.getByRole("button", { name: "Reject" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.type(within(dialog).getByLabelText("Reason (optional)"), "Short staffed that week");
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(calls.decideRequest).toHaveBeenCalledWith("q1", { status: "rejected", note: "Short staffed that week" }));
+  });
+
+  it("rejects a request with no reason as no note", async () => {
+    requestRows = [{ ...LEAVE, can_decide: true }];
+    held = ["hr.leave.edit"];
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    await user.click(screen.getByRole("button", { name: "Reject" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(calls.decideRequest).toHaveBeenCalledWith("q1", { status: "rejected", note: null }));
+  });
+
+  it("says in plain words what approving each kind does (UX-P)", () => {
+    requestRows = [{ ...LEAVE, can_decide: true }];
+    wrap(<ApprovalsPage />);
+    expect(screen.getByText(/Approving: they're off on these days/)).toBeInTheDocument();
+    expect(screen.getByText(/Approving: the two swap these shifts/)).toBeInTheDocument();
+    expect(screen.getByText(/Approving: this overtime is paid/)).toBeInTheDocument();
+  });
+
+  it("approves the simple ones together after confirming, and says which failed and why (UX-P)", async () => {
+    requestRows = [{ ...LEAVE, can_decide: true }];
+    calls.decideClaim.mockRejectedValueOnce(Object.assign(new Error("x"), { response: { status: 409, data: { message: "Already decided" } } }));
+    const user = userEvent.setup();
+    wrap(<ApprovalsPage />);
+    // Leave asks paid/unpaid and money is reviewed: never batched.
+    expect(screen.queryByRole("checkbox", { name: /Youssef Adel's Leave/ })).toBeNull();
+    expect(screen.queryByRole("checkbox", { name: /Salary advance/ })).toBeNull();
+    await user.click(screen.getByRole("checkbox", { name: /Select the 4 that need no extra answer/ }));
+    await user.click(screen.getByRole("button", { name: "Approve 4" }));
+    const dialog = await screen.findByRole("alertdialog");
+    await user.click(within(dialog).getByRole("button", { name: "Approve 4" }));
+    await waitFor(() => expect(calls.decideOvertime).toHaveBeenCalledWith("r6", { approve: true }));
+    expect(calls.decideSwap).toHaveBeenCalledWith("w1", { approve: true });
+    expect(calls.decideCover).toHaveBeenCalledWith("r5", { approve: true });
+    expect(calls.decideClaim).toHaveBeenCalledWith("o1", { approve: true });
+    expect(toastMock.success).toHaveBeenCalledWith("3 approved");
+    expect(toastMock.error).toHaveBeenCalledWith(expect.stringMatching(/^1 not approved\. Laila Hassan: /));
   });
 
   it("asks for claims however far ahead the week is published (O-8; E2E, team: a claim 40 days out never showed)", () => {

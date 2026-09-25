@@ -9,17 +9,21 @@
  * presence cap (a warning, never a refusal — RU-13), and whether a weekday can
  * be taken away while people are still rostered on it (SHIFT_DAYS_IN_USE).
  */
+import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { TriangleAlert } from "lucide-react";
+import { ChevronDown, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { DurationField, NumberField, TimeRangeField, WeekdayPicker } from "@/components/inputs";
+import { fmtWireTime } from "@/lib/format";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -37,13 +41,23 @@ export const WEEK_ORDER = [6, 0, 1, 2, 3, 4, 5] as const;
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 const WHOLE_BUSINESS = "__all__";
 
+/** Common shifts to start a new one from; each fills the name (if empty) and both times. */
+export interface ShiftPreset { key: string; labelKey: string; fallback: string; start: string; end: string }
+export const SHIFT_PRESETS: ShiftPreset[] = [
+  { key: "morning", labelKey: "staff.presetMorning", fallback: "Morning", start: "08:00", end: "16:00" },
+  { key: "day", labelKey: "staff.presetDay", fallback: "Day", start: "09:00", end: "17:00" },
+  { key: "evening", labelKey: "staff.presetEvening", fallback: "Evening", start: "16:00", end: "00:00" },
+  { key: "night", labelKey: "staff.presetNight", fallback: "Night", start: "22:00", end: "06:00" },
+];
+
 const hhmm = (v: string | null | undefined) => (v ?? "").slice(0, 5);
 const wire = (v: string) => `${v}:00`;
 
-/** A number field that may be left empty ("" = none). */
-const optionalNumber = z.union([z.literal(""), z.coerce.number<string | number>()]);
-
 export function shiftSchema(t: (k: string, d: string) => string) {
+  /** A number, or a plain-language refusal (a field that refused its text hands the form NaN). */
+  const num = () => z.coerce.number<string | number>({ error: t("staff.errNumber", "Type a number") });
+  /** A number field that may be left empty ("" = none). */
+  const optionalNumber = z.union([z.literal(""), num()], { error: t("staff.errNumber", "Type a number") });
   const dayTime = z.object({ start: z.string(), end: z.string() });
   return z
     .object({
@@ -51,15 +65,15 @@ export function shiftSchema(t: (k: string, d: string) => string) {
       name: z.string().trim().min(1, t("staff.errShiftName", "Give the shift a name")),
       start_time: z.string().regex(/^\d{2}:\d{2}$/, t("staff.errTime", "Pick a time")),
       end_time: z.string().regex(/^\d{2}:\d{2}$/, t("staff.errTime", "Pick a time")),
-      grace_minutes: z.coerce.number<string | number>().int().min(0, t("staff.errNonNegative", "Can't be negative")),
-      break_minutes: z.coerce.number<string | number>().int().min(0, t("staff.errNonNegative", "Can't be negative")),
+      grace_minutes: num().int().min(0, t("staff.errNonNegative", "Can't be negative")),
+      break_minutes: num().int().min(0, t("staff.errNonNegative", "Can't be negative")),
       paid_break: z.boolean(),
       half_day_threshold_minutes: optionalNumber,
-      overtime_threshold_minutes: z.coerce.number<string | number>().int().min(0, t("staff.errNonNegative", "Can't be negative")),
-      overtime_multiplier: z.coerce.number<string | number>().gt(0, t("staff.errPositive", "Must be above 0")),
+      overtime_threshold_minutes: num().int().min(0, t("staff.errNonNegative", "Can't be negative")),
+      overtime_multiplier: num().gt(0, t("staff.errPositive", "Must be above 0")),
       ot_day_multiplier: optionalNumber,
       ot_night_multiplier: optionalNumber,
-      checkin_window_minutes: z.coerce.number<string | number>().int().gt(0, t("staff.errPositive", "Must be above 0")),
+      checkin_window_minutes: num().int().gt(0, t("staff.errPositive", "Must be above 0")),
       is_active: z.boolean(),
       valid_days: z.array(z.number().int().min(0).max(6)).min(1, t("staff.errNoDays", "Pick at least one day")),
       day_times: z.record(z.string(), dayTime),
@@ -79,6 +93,8 @@ export function shiftSchema(t: (k: string, d: string) => string) {
         if (!dt.start && !dt.end) continue;
         if (!dt.start || !dt.end) {
           ctx.addIssue({ code: "custom", path: ["day_times", dow], message: t("staff.errBothTimes", "Set both times, or neither") });
+        } else if (!/^\d{2}:\d{2}$/.test(dt.start) || !/^\d{2}:\d{2}$/.test(dt.end)) {
+          ctx.addIssue({ code: "custom", path: ["day_times", dow], message: t("staff.errTime", "Pick a time") });
         } else if (dt.start === dt.end) {
           ctx.addIssue({ code: "custom", path: ["day_times", dow], message: t("staff.errSameTime", "A shift can't start and end at the same time") });
         }
@@ -144,8 +160,6 @@ export function bodyOf(v: ShiftValues): UpsertWorkShiftRequest {
   };
 }
 
-/** Display only: an end at or before the start reads "ends next day". */
-const endsNextDay = (start: string, end: string) => !!start && !!end && end <= start;
 
 export function WorkShiftDialog({
   shift,
@@ -207,33 +221,61 @@ export function WorkShiftDialog({
     return t(w.labelKey, w.fallback);
   };
 
-  const numberField = (
+  const errors = form.formState.errors;
+  const dayTimeErrors = errors.day_times as Record<string, { message?: string }> | undefined;
+  const ownDays = WEEK_ORDER.filter((d) => validDays.includes(d) && (dayTimes[String(d)]?.start || dayTimes[String(d)]?.end));
+  const [dayTimesOpen, setDayTimesOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const v = valuesOf(shift);
+    setDayTimesOpen(Object.values(v.day_times).some((d) => d.start || d.end));
+    setMoreOpen(v.ot_day_multiplier !== "" || v.ot_night_multiplier !== "" || v.half_day_threshold_minutes !== "");
+  }, [open, shift]);
+
+  /** A number field of the form on the kit: empty is "" in the form, `null` in the field. */
+  const kitNumber = (
     name: "grace_minutes" | "break_minutes" | "overtime_threshold_minutes" | "overtime_multiplier" | "checkin_window_minutes"
       | "half_day_threshold_minutes" | "ot_day_multiplier" | "ot_night_multiplier",
     label: string,
-    opts: { step?: string; placeholder?: string; hint?: string } = {},
+    render: (p: { value: number | null; onChange: (n: number | null) => void; onBlur: () => void; invalid: boolean; id?: string }) => React.ReactNode,
+    hint?: string,
   ) => (
-    <FormField control={form.control} name={name} render={({ field }) => (
-      <FormItem>
+    <FormField control={form.control} name={name} render={({ field, fieldState }) => (
+      <FormItem className="content-start">
         <FormLabel>{label}</FormLabel>
         <FormControl>
-          <Input
-            type="number"
-            inputMode="decimal"
-            step={opts.step ?? "1"}
-            placeholder={opts.placeholder}
-            name={field.name}
-            ref={field.ref}
-            onBlur={field.onBlur}
-            value={field.value === undefined || field.value === null ? "" : String(field.value)}
-            onChange={(e) => field.onChange(e.target.value)}
-          />
+          {render({
+            value: field.value === "" || field.value === undefined || field.value === null ? null : Number(field.value),
+            onChange: (n) => field.onChange(n === null ? "" : n),
+            onBlur: field.onBlur,
+            invalid: !!fieldState.error,
+          })}
         </FormControl>
-        {opts.hint ? <FormDescription>{opts.hint}</FormDescription> : null}
+        {hint ? <FormDescription>{hint}</FormDescription> : null}
         <FormMessage />
       </FormItem>
     )} />
   );
+
+  const applyPreset = (p: ShiftPreset) => {
+    const name = form.getValues("name");
+    if (!name.trim() || SHIFT_PRESETS.some((x) => t(x.labelKey, x.fallback) === name)) {
+      form.setValue("name", t(p.labelKey, p.fallback), { shouldDirty: true });
+    }
+    form.setValue("start_time", p.start, { shouldDirty: true, shouldValidate: form.formState.isSubmitted });
+    form.setValue("end_time", p.end, { shouldDirty: true, shouldValidate: form.formState.isSubmitted });
+  };
+
+  // A refused save opens whatever section holds the problem, so it's never hidden.
+  const onInvalid = (errs: typeof errors) => {
+    if (errs.day_times) setDayTimesOpen(true);
+    if (errs.overtime_threshold_minutes || errs.overtime_multiplier || errs.ot_day_multiplier || errs.ot_night_multiplier
+      || errs.half_day_threshold_minutes || errs.checkin_window_minutes) setMoreOpen(true);
+    toast.error(t("staff.fixShiftErrors", "Some fields need a fix before this can be saved."));
+  };
+
+  const rangeError = errors.start_time?.message ?? errors.end_time?.message;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -241,7 +283,7 @@ export function WorkShiftDialog({
         <DialogHeader>
           <DialogTitle>{shift ? t("staff.editShift", "Edit work shift") : t("staff.newShift", "New shift")}</DialogTitle>
           <DialogDescription>
-            {t("staff.shiftDialogHint", "An end time at or before the start marks the shift as running past midnight; checkout then lands on the next day.")}
+            {t("staff.shiftDialogHintV2", "A block of time people are rostered on. An end before the start runs past midnight, and check-out lands on the next day.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -253,11 +295,37 @@ export function WorkShiftDialog({
         ) : null}
 
         <Form {...form}>
-          <form id="shift-form" onSubmit={form.handleSubmit(submit)} className="grid gap-3 sm:grid-cols-2">
+          <form id="shift-form" onSubmit={form.handleSubmit(submit, onInvalid)} className="grid gap-4 sm:grid-cols-2">
+            {!shift ? (
+              <div className="space-y-1.5 sm:col-span-2">
+                <p className="text-sm font-medium">{t("staff.startFrom", "Start from a common shift")}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {SHIFT_PRESETS.map((p) => {
+                    const on = start === p.start && end === p.end;
+                    return (
+                      <button
+                        key={p.key}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => applyPreset(p)}
+                        className={cn(
+                          "flex h-auto flex-col items-start rounded-md border px-3 py-1.5 text-start transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                          on ? "border-primary bg-primary/5" : "hover:bg-accent",
+                        )}
+                      >
+                        <span className="text-sm font-medium">{t(p.labelKey, p.fallback)}</span>
+                        <span className="text-xs tabular-nums text-muted-foreground">{fmtWireTime(p.start)} – {fmtWireTime(p.end)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem className="sm:col-span-2">
                 <FormLabel>{t("staff.shiftName", "Name")}</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
+                <FormControl><Input {...field} placeholder={t("staff.shiftNamePlaceholder", "e.g. Morning, Evening")} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -277,95 +345,78 @@ export function WorkShiftDialog({
                 <FormMessage />
               </FormItem>
             )} />
-            <FormField control={form.control} name="start_time" render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("staff.startTime", "Start")}</FormLabel>
-                <FormControl><Input type="time" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="end_time" render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("staff.endTime", "End")}</FormLabel>
-                <FormControl><Input type="time" {...field} /></FormControl>
-                {endsNextDay(start, end) ? <FormDescription>{t("staff.endsNextDay", "Ends the next day")}</FormDescription> : null}
-                <FormMessage />
-              </FormItem>
-            )} />
 
-            <FormField control={form.control} name="valid_days" render={({ field }) => (
+            <TimeRangeField
+              id="shift-times"
+              className="sm:col-span-2"
+              startLabel={t("staff.startTime", "Start")}
+              endLabel={t("staff.endTime", "End")}
+              value={{ start, end }}
+              error={rangeError}
+              onChange={(r) => {
+                const opts = { shouldDirty: true, shouldValidate: form.formState.isSubmitted };
+                if (r.start !== start) form.setValue("start_time", r.start, opts);
+                if (r.end !== end) form.setValue("end_time", r.end, opts);
+              }}
+            />
+
+            <FormField control={form.control} name="valid_days" render={({ field, fieldState }) => (
               <FormItem className="sm:col-span-2">
                 <FormLabel>{t("staff.validDays", "Days it runs")}</FormLabel>
-                <div role="group" aria-label={t("staff.validDays", "Days it runs")} className="flex flex-wrap gap-1.5">
-                  {WEEK_ORDER.map((dow) => {
-                    const on = field.value.includes(dow);
-                    return (
-                      <button
-                        key={dow}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() => field.onChange(on ? field.value.filter((d) => d !== dow) : [...field.value, dow])}
-                        className={cn(
-                          "h-8 rounded-full border px-3 text-xs font-medium transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-                          on ? "border-transparent bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent",
-                        )}
-                      >
-                        {dayLabel(dow)}
-                      </button>
-                    );
-                  })}
-                </div>
+                <WeekdayPicker
+                  aria-label={t("staff.validDays", "Days it runs")}
+                  value={field.value}
+                  invalid={!!fieldState.error}
+                  onChange={field.onChange}
+                />
                 <FormMessage />
               </FormItem>
             )} />
 
-            <fieldset className="space-y-2 rounded-lg border p-3 sm:col-span-2">
-              <legend className="px-1 text-sm font-medium">{t("staff.dayTimes", "Its own times on some days")}</legend>
-              <p className="text-xs text-muted-foreground">
-                {t("staff.dayTimesHint", "Leave a day empty to use the times above. An end at or before the start runs into the next day.")}
-              </p>
-              {WEEK_ORDER.filter((d) => validDays.includes(d)).map((dow) => {
-                const k = String(dow);
-                const dt = dayTimes[k] ?? { start: "", end: "" };
-                const err = (form.formState.errors.day_times as Record<string, { message?: string }> | undefined)?.[k]?.message;
-                return (
-                  <div key={dow} className="grid grid-cols-[4rem_1fr_1fr] items-center gap-2">
-                    <span className="text-sm">{dayLabel(dow)}</span>
-                    <Input
-                      type="time"
-                      aria-label={t("staff.dayStart", { day: dayLabel(dow), defaultValue: `${dayLabel(dow)} start` })}
-                      value={dt.start}
-                      onChange={(e) => form.setValue(`day_times.${k}.start`, e.target.value, { shouldDirty: true })}
-                    />
-                    <Input
-                      type="time"
-                      aria-label={t("staff.dayEnd", { day: dayLabel(dow), defaultValue: `${dayLabel(dow)} end` })}
-                      value={dt.end}
-                      onChange={(e) => form.setValue(`day_times.${k}.end`, e.target.value, { shouldDirty: true })}
-                    />
-                    {endsNextDay(dt.start, dt.end) ? (
-                      <span className="col-start-2 col-end-4 text-xs text-muted-foreground">{t("staff.endsNextDay", "Ends the next day")}</span>
-                    ) : null}
-                    {err ? <span role="alert" className="col-start-2 col-end-4 text-xs text-destructive">{err}</span> : null}
-                  </div>
-                );
-              })}
-            </fieldset>
+            <Collapsible open={dayTimesOpen} onOpenChange={setDayTimesOpen} className="rounded-lg border sm:col-span-2">
+              <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 rounded-lg p-3 text-start hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                <span>
+                  <span className="block text-sm font-medium">{t("staff.dayTimes", "Its own times on some days")}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {ownDays.length
+                      ? t("staff.dayTimesSome", { days: ownDays.map(dayLabel).join(", "), defaultValue: `Different on ${ownDays.map(dayLabel).join(", ")}` })
+                      : t("staff.dayTimesNone", "Same times every day. Open to change a day, e.g. later on Thursday.")}
+                  </span>
+                </span>
+                <ChevronDown aria-hidden className={cn("size-4 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none", dayTimesOpen && "rotate-180")} />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-3 border-t p-3">
+                <p className="text-xs text-muted-foreground">
+                  {t("staff.dayTimesHintV2", "Leave a day empty to use the times above.")}
+                </p>
+                {WEEK_ORDER.filter((d) => validDays.includes(d)).map((dow) => {
+                  const k = String(dow);
+                  const dt = dayTimes[k] ?? { start: "", end: "" };
+                  return (
+                    <div key={dow} className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-2">
+                      <span className="pt-2 text-sm font-medium">{dayLabel(dow)}</span>
+                      <TimeRangeField
+                        id={`day-${k}`}
+                        optional
+                        hideLabels
+                        startLabel={t("staff.dayStart", { day: dayLabel(dow), defaultValue: `${dayLabel(dow)} start` })}
+                        endLabel={t("staff.dayEnd", { day: dayLabel(dow), defaultValue: `${dayLabel(dow)} end` })}
+                        value={dt}
+                        error={dayTimeErrors?.[k]?.message}
+                        onChange={(r) => form.setValue(`day_times.${k}`, r, { shouldDirty: true, shouldValidate: form.formState.isSubmitted })}
+                      />
+                    </div>
+                  );
+                })}
+              </CollapsibleContent>
+            </Collapsible>
 
-            {numberField("grace_minutes", t("staff.graceMinutes", "Grace (minutes)"))}
-            {numberField("break_minutes", t("staff.breakMinutes", "Break (minutes)"))}
-            {numberField("overtime_threshold_minutes", t("staff.otThreshold", "Overtime after (minutes)"))}
-            {numberField("overtime_multiplier", t("staff.otMultiplier", "Overtime multiplier"), { step: "0.05" })}
-            {numberField("ot_day_multiplier", t("staff.otDayMultiplier", "Day overtime rate"), {
-              step: "0.05", placeholder: t("staff.branchRate", "Branch rules"), hint: t("staff.otRateHint", "Empty = the branch's rules."),
-            })}
-            {numberField("ot_night_multiplier", t("staff.otNightMultiplier", "Night overtime rate"), {
-              step: "0.05", placeholder: t("staff.branchRate", "Branch rules"), hint: t("staff.otRateHint", "Empty = the branch's rules."),
-            })}
-            {numberField("half_day_threshold_minutes", t("staff.halfDayThreshold", "Half day below (minutes)"), {
-              placeholder: t("staff.halfDayDefault", "Half the shift"),
-            })}
-            {numberField("checkin_window_minutes", t("staff.checkinWindow", "Check-in opens (minutes early)"))}
+            {kitNumber("grace_minutes", t("staff.graceMinutesV2", "Grace before late"), (p) => (
+              <DurationField {...p} unit="min" presets={[0, 5, 10, 15, 30]} />
+            ), t("staff.graceHint", "Arriving within this is on time."))}
+            {kitNumber("break_minutes", t("staff.breakMinutesV2", "Break"), (p) => (
+              <DurationField {...p} unit="min" presets={[0, 15, 30, 60]} />
+            ))}
 
             <FormField control={form.control} name="paid_break" render={({ field }) => (
               <FormItem className="flex items-center justify-between gap-3 rounded-lg border p-3 sm:col-span-2">
@@ -376,9 +427,43 @@ export function WorkShiftDialog({
                 <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
               </FormItem>
             )} />
+
+            <Collapsible open={moreOpen} onOpenChange={setMoreOpen} className="rounded-lg border sm:col-span-2">
+              <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 rounded-lg p-3 text-start hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                <span>
+                  <span className="block text-sm font-medium">{t("staff.moreShiftSettings", "Overtime and check-in")}</span>
+                  <span className="block text-xs text-muted-foreground">{t("staff.moreShiftSettingsHint", "Most shifts keep these as they are.")}</span>
+                </span>
+                <ChevronDown aria-hidden className={cn("size-4 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none", moreOpen && "rotate-180")} />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="grid gap-4 border-t p-3 sm:grid-cols-2">
+                {kitNumber("overtime_threshold_minutes", t("staff.otThreshold", "Overtime after (minutes)"), (p) => (
+                  <DurationField {...p} unit="min" presets={[0, 15, 30]} />
+                ), t("staff.otThresholdHint", "Staying less than this past the end isn't overtime."))}
+                {kitNumber("overtime_multiplier", t("staff.otMultiplier", "Overtime multiplier"), (p) => (
+                  <NumberField {...p} prefix="×" step={0.05} decimals={2} min={0} />
+                ))}
+                {kitNumber("ot_day_multiplier", t("staff.otDayMultiplier", "Day overtime rate"), (p) => (
+                  <NumberField {...p} prefix="×" step={0.05} decimals={2} min={0} allowEmpty emptyLabel={t("staff.branchRate", "Branch rules")} />
+                ), t("staff.otRateHint", "Empty = the branch's rules."))}
+                {kitNumber("ot_night_multiplier", t("staff.otNightMultiplier", "Night overtime rate"), (p) => (
+                  <NumberField {...p} prefix="×" step={0.05} decimals={2} min={0} allowEmpty emptyLabel={t("staff.branchRate", "Branch rules")} />
+                ), t("staff.otRateHint", "Empty = the branch's rules."))}
+                {kitNumber("half_day_threshold_minutes", t("staff.halfDayThreshold", "Half day below (minutes)"), (p) => (
+                  <DurationField {...p} unit="min" min={0} step={30} allowEmpty emptyLabel={t("staff.halfDayDefault", "Half the shift")} />
+                ))}
+                {kitNumber("checkin_window_minutes", t("staff.checkinWindow", "Check-in opens (minutes early)"), (p) => (
+                  <DurationField {...p} unit="min" min={0} step={15} presets={[30, 60, 120]} />
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+
             <FormField control={form.control} name="is_active" render={({ field }) => (
               <FormItem className="flex items-center justify-between gap-3 rounded-lg border p-3 sm:col-span-2">
-                <FormLabel>{t("staff.active", "Active")}</FormLabel>
+                <div>
+                  <FormLabel>{t("staff.active", "Active")}</FormLabel>
+                  <FormDescription>{t("staff.activeShiftHint", "An inactive shift stays on past rosters but can't be rostered again.")}</FormDescription>
+                </div>
                 <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
               </FormItem>
             )} />
@@ -387,7 +472,7 @@ export function WorkShiftDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
-          <Button type="submit" form="shift-form" disabled={busy}>{t("common.save", "Save")}</Button>
+          <Button type="submit" form="shift-form" loading={busy}>{t("common.save", "Save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

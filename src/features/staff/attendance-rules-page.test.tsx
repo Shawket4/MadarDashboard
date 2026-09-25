@@ -90,6 +90,14 @@ const renderPage = () =>
     </QueryClientProvider>,
   );
 
+/** Save, and answer the "you're changing…" question the page asks for rules already in force. */
+async function saveAndConfirm(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getAllByRole("button", { name: /Save/ }).at(-1)!);
+  const dialog = await screen.findByRole("alertdialog");
+  await user.click(within(dialog).getByRole("button", { name: "Save the changes" }));
+}
+
+
 const pickBranch = async (user: ReturnType<typeof userEvent.setup>, name: RegExp) => {
   await user.click(screen.getByRole("combobox", { name: "Rules for" }));
   await user.click(await screen.findByRole("option", { name }));
@@ -183,6 +191,7 @@ describe("Rules page for the owner", () => {
     const from = screen.getAllByLabelText("From (min)").at(-1)!;
     await user.clear(from);
     await user.type(from, "10");
+    await user.tab();
     expect(await screen.findByText("Rungs overlap at 10 minutes")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Save/ })).toBeDisabled();
     await user.click(screen.getAllByRole("button", { name: "Remove rung" }).at(-1)!);
@@ -237,7 +246,7 @@ describe("Rules page for the owner", () => {
     const day = screen.getByLabelText("Hours a day");
     await user.clear(day);
     await user.type(day, "7");
-    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalled());
     expect(put.mock.calls[0][0]).toEqual({ branch_id: "b1", limit_day_hours: 7 });
   });
@@ -259,7 +268,7 @@ describe("Rules page for the owner", () => {
     const absence = screen.getByLabelText("Days docked per absence");
     await user.clear(absence);
     await user.type(absence, "1.5");
-    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalled());
     expect(put.mock.calls[0][0]).toEqual({ branch_id: "b2", absence_deduction_days: 1.5 });
   });
@@ -269,7 +278,7 @@ describe("Rules page for the owner", () => {
     renderPage();
     await pickBranch(user, /Arkan/);
     await user.click(screen.getByRole("button", { name: "Use the business's Overtime" }));
-    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalled());
     expect(put.mock.calls[0][0]).toEqual({ branch_id: "b1", inherit: ["overtime_mode"] });
   });
@@ -312,7 +321,7 @@ describe("D5: cover pay (owner decision 5)", () => {
     expect(within(group).getByText(/Pay the covered minutes at the coverer's own minute rate/)).toBeInTheDocument();
     expect(within(group).getByText(/Pay a covered block as a full day/)).toBeInTheDocument();
     await user.click(within(group).getByRole("radio", { name: /A full day for the block/ }));
-    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalled());
     expect(put.mock.calls[0][0]).toMatchObject({ cover_pay_mode: "full_block" });
   });
@@ -340,7 +349,7 @@ describe("D5: cover pay (owner decision 5)", () => {
     const group = screen.getByRole("radiogroup", { name: "Cover pay" });
     expect(within(group).getByRole("radio", { name: /A full day for the block/ })).toHaveAttribute("aria-checked", "true");
     await user.click(within(group).getByRole("radio", { name: /Use the business setting/ }));
-    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalled());
     expect(put.mock.calls[0][0]).toEqual({ branch_id: "b1", inherit: ["cover_pay_mode"] });
   });

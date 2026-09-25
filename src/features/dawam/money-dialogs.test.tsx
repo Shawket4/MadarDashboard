@@ -62,7 +62,7 @@ describe("RecordAdvanceDialog", () => {
     await user.clear(n);
     await user.type(n, "30");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
-    // The hint, and now the refusal too.
+    // The hint, and now the refusal too: 30 is refused by the form, never swapped for another number.
     expect(await within(dialog).findAllByText("1 to 24 monthly installments")).toHaveLength(2);
     expect(calls.recordAdvance).not.toHaveBeenCalled();
 
