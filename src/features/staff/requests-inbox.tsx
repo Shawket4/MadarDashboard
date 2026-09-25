@@ -550,7 +550,7 @@ export function CancelRequestDialog({
   const schema = useMemo(
     () =>
       z.object({
-        note: z.string().trim().max(500).refine((s) => !noteRequired || s.length > 0, {
+        note: z.string().trim().max(500, t("staff.noteTooLong", "Keep the note under 500 characters")).refine((s) => !noteRequired || s.length > 0, {
           message: t("staff.cancelNoteRequired", "Say why it is cancelled"),
         }),
       }),
@@ -611,8 +611,8 @@ const newRequestSchema = (t: TFunction) =>
       leave_half: z.enum(["first", "second"]),
       /** Paid or unpaid — asked when the leave is approved as it is filed. */
       pay: z.enum(["", "paid", "unpaid"]),
-      title: z.string().max(200),
-      reason: z.string().max(500),
+      title: z.string().max(200, t("staff.titleTooLong", "Keep the title under 200 characters")),
+      reason: z.string().max(500, t("staff.reasonTooLong", "Keep the reason under 500 characters")),
     })
     .superRefine((v, ctx) => {
       const span = v.kind === "mission" || (v.kind === "leave" && !v.half_day);
@@ -841,6 +841,7 @@ function NewRequestDialog({
           <div className="space-y-1">
             <Label htmlFor="nr-reason">{t("staff.reason", "Reason")}</Label>
             <Input id="nr-reason" {...form.register("reason")} />
+            {err(errors.reason?.message)}
           </div>
         </form>
 

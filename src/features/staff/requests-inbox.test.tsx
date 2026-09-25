@@ -102,6 +102,48 @@ describe("Requests inbox: nothing fails in silence (H2)", () => {
     expect(createRequestAdmin).not.toHaveBeenCalled();
   });
 
+  it("a leave with its From date emptied says why Save does nothing (H3-4)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /New request/ }));
+    const dialog = await screen.findByRole("dialog");
+    await pick(user, "Kind", "Leave");
+    await pick(user, "Employee", "Youssef Adel");
+    await user.clear(within(dialog).getByLabelText("From"));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    expect(await within(dialog).findByText("Pick a date")).toBeInTheDocument();
+    expect(createRequestAdmin).not.toHaveBeenCalled();
+  });
+
+  it("a reason or a mission title too long says so, in the reader's words (H3 silent Save)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /New request/ }));
+    const dialog = await screen.findByRole("dialog");
+    await pick(user, "Kind", "Mission");
+    await pick(user, "Employee", "Youssef Adel");
+    await user.click(within(dialog).getByLabelText("Reason"));
+    await user.paste("x".repeat(501));
+    await user.click(within(dialog).getByLabelText("Title (optional)"));
+    await user.paste("t".repeat(201));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    expect(await within(dialog).findByText("Keep the reason under 500 characters")).toBeInTheDocument();
+    expect(within(dialog).getByText("Keep the title under 200 characters")).toBeInTheDocument();
+    expect(createRequestAdmin).not.toHaveBeenCalled();
+  });
+
+  it("a cancel note too long says so (H3 silent Save)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getAllByRole("button", { name: "Cancel request" }).at(-1)!);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByLabelText("Why"));
+    await user.paste("x".repeat(501));
+    await user.click(within(dialog).getByRole("button", { name: "Cancel request" }));
+    expect(await within(dialog).findByText("Keep the note under 500 characters")).toBeInTheDocument();
+    expect(decideRequest).not.toHaveBeenCalled();
+  });
+
   it("a note too long to approve with says so (H2-D7)", async () => {
     const user = userEvent.setup();
     renderPage();

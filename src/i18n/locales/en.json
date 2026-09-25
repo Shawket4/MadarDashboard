@@ -4697,7 +4697,9 @@
     "missionOverPunchesHint": "Approving makes them mission days: paid, with no penalty. The punches are kept.",
     "workedOn": "Clocked in on {{dates}}.",
     "leaveOverPunches": "{{name}} already clocked in on {{dates}}. Approving makes those days leave; the punches are kept.",
-    "req_declined": "Declined"
+    "req_declined": "Declined",
+    "titleTooLong": "Keep the title under 200 characters",
+    "reasonTooLong": "Keep the reason under 500 characters"
   },
   "basira": {
     "title": "Basira",
