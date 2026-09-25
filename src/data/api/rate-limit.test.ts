@@ -57,6 +57,25 @@ describe("a rate-limited answer (429)", () => {
     expect(ar).not.toMatch(/Too many|just now/);
   });
 
+  // The export gate keeps its own code: too many exports, not too many requests.
+  it("words a throttled export (EXPORT_RATE_LIMITED) as too many exports, in EN and AR", async () => {
+    const exporting = limited({
+      error: "That is 10 exports in a minute. Give it a moment and try again — each one reads the whole filtered dataset.",
+      code: "EXPORT_RATE_LIMITED",
+    });
+    await i18n.changeLanguage("en");
+    const en = getErrorMessage(exporting);
+    expect(en).toBe(i18n.t("errors.codes.EXPORT_RATE_LIMITED"));
+    expect(en).toMatch(/exports/i);
+    expect(en).not.toBe(i18n.t("errors.tooManyRequests"));
+    await i18n.changeLanguage("ar");
+    const ar = getErrorMessage(exporting);
+    expect(ar).toBe(i18n.t("errors.codes.EXPORT_RATE_LIMITED"));
+    expect(ar).toMatch(/[؀-ۿ]/);
+    expect(ar).not.toMatch(/exports|That is/);
+    expect(ar).not.toBe(i18n.t("errors.tooManyRequests"));
+  });
+
   it("is asked again a few times, later each time", () => {
     const e = limited();
     expect(queryRetry(0, e)).toBe(true);
