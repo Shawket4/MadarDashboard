@@ -37,7 +37,7 @@ export function SectionMeal({ itemId, categoryId }: { itemId: string; categoryId
   const canEdit = useAuthz().can(Cap.menuCombosEdit);
 
   const itemQ = useGetMenuItem(itemId, { query: { enabled: !!itemId } });
-  const current = ((itemQ.data as { meal?: MealTarget } | undefined)?.meal ?? null) as MealTarget;
+  const current: MealTarget = itemQ.data?.meal ?? null;
   const combosQ = useCombos({ per_page: 200 });
   const menu = useMenuOptions();
   const item = menu.item(itemId);
@@ -74,6 +74,21 @@ export function SectionMeal({ itemId, categoryId }: { itemId: string; categoryId
       setBusy(false);
     }
   };
+
+  // A combo can't be "made a meal" (COMBO_NESTED); its slots live in the combo editor.
+  if (itemQ.data?.kind === "combo") {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed p-4 text-sm">
+        <span className="text-muted-foreground">{t("combos.meal.isCombo", "This item is a combo. Its slots and prices are set in the combo editor.")}</span>
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/menu/combos/$comboId" params={{ comboId: itemId }}>
+            {t("combos.meal.openEditor", "Open the combo editor")}
+            <ArrowRight aria-hidden className="size-3.5 rtl:rotate-180" />
+          </Link>
+        </Button>
+      </div>
+    );
+  }
 
   if (!combosQ.isLoading && combos.length === 0) {
     return (

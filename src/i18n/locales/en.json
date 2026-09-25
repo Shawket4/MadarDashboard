@@ -6738,7 +6738,9 @@
       "apply": "Apply",
       "turnOff": "Turn off",
       "saved": "Make it a meal is set",
-      "cleared": "Make it a meal is off"
+      "cleared": "Make it a meal is off",
+      "isCombo": "This item is a combo. Its slots and prices are set in the combo editor.",
+      "openEditor": "Open the combo editor"
     },
     "order": {
       "combo": "Combo",
