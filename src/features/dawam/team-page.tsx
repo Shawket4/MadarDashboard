@@ -209,6 +209,10 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
   // hr.staff.edit. Handling the flag at all is hr.attendance.edit.
   const authz = useAuthz();
   const canDeduct = authz.can(Cap.hrDeductionsCreate) || authz.canAsk(Cap.hrDeductionsCreate);
+  // Above this, or only by asking, the deduction waits for the owner (AD-5, M33).
+  const deductLimit = authz.limitsOf(Cap.hrDeductionsCreate)?.max_amount ?? null;
+  const deductWaits = (piastres: number) =>
+    !authz.can(Cap.hrDeductionsCreate) || (deductLimit != null && piastres > deductLimit);
   const canConfirmCover = authz.can(Cap.hrShiftCoverConfirm);
   const canRevoke = authz.can(Cap.hrStaffEdit);
   // Nobody decides their own flag (server 403 OWN_DECISION): nothing is offered.
@@ -232,7 +236,12 @@ function FlagDialog({ flag, onOpenChange }: { flag: AttendanceFlag | null; onOpe
     try {
       // A deduction is a pay line the employee reads: it carries why (AD-9).
       await resolveFlag(flag.id, { action, amount_piastres: amountPiastres ?? null, reason: action === "deduct" ? reason.trim() || null : null });
-      toast.success(t("dawam.flagHandled", "Flag handled"));
+      // The flag's reply doesn't say, but the limit does: over it, the line waits for the owner.
+      if (action === "deduct" && amountPiastres != null && deductWaits(amountPiastres)) {
+        toast.info(t("dawam.payLinePending", "Over your limit: it waits for the owner before it counts."));
+      } else {
+        toast.success(t("dawam.flagHandled", "Flag handled"));
+      }
       void invalidateStaff();
       onOpenChange(false);
     } catch (e) {

@@ -20,6 +20,10 @@ globalThis.IntersectionObserver ??= class {
 } as unknown as typeof IntersectionObserver;
 
 let held: string[] = [];
+/** `/authz/me` limits (a manager's deduction limit, AD-5). */
+let limits: Record<string, unknown> = {};
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() }));
+vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const enabledSeen: Record<string, boolean[]> = {};
 const resolveFlag = vi.fn(async () => ({}));
 const punchFor = vi.fn(async () => ({}));
@@ -47,7 +51,7 @@ vi.mock("@/data/authz/use-authz", async () => {
     useAuthz: () =>
       real.authzFrom({
         user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
-        capabilities: held as never, ask_manager: [], limits: {},
+        capabilities: held as never, ask_manager: [], limits: limits as never,
       }),
   };
 });
@@ -95,6 +99,9 @@ beforeEach(() => {
   punchFor.mockClear();
   todayRecords = [];
   extraRows = [];
+  limits = {};
+  toastMock.success.mockClear();
+  toastMock.info.mockClear();
   held = [
     "hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others",
     "hr.deductions.create", "hr.staff.edit", "hr.shift_cover.confirm",
@@ -175,6 +182,30 @@ describe("TeamPage", () => {
     await user.type(within(dialog).getByLabelText("Reason (the employee sees it)"), "Left for two hours");
     await user.click(within(dialog).getByRole("button", { name: "Deduct" }));
     await waitFor(() => expect(resolveFlag).toHaveBeenCalledWith("f1", { action: "deduct", amount_piastres: 4_000, reason: "Left for two hours" }));
+  });
+
+  it("M33: a deduction over the manager's limit says it waits for the owner", async () => {
+    limits = { "hr.deductions.create": { max_amount: 100_000 } };
+    const user = userEvent.setup();
+    wrap(<TeamPage />);
+    await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
+    const dialog = await screen.findByRole("dialog");
+    const amount = within(dialog).getByLabelText("Deduct (EGP)");
+    await user.clear(amount);
+    await user.type(amount, "1500");
+    await user.click(within(dialog).getByRole("button", { name: "Deduct" }));
+    await waitFor(() => expect(toastMock.info).toHaveBeenCalledWith("Over your limit: it waits for the owner before it counts."));
+    expect(toastMock.success).not.toHaveBeenCalledWith("Flag handled");
+  });
+
+  it("M33: a deduction within the limit is just handled", async () => {
+    limits = { "hr.deductions.create": { max_amount: 100_000 } };
+    const user = userEvent.setup();
+    wrap(<TeamPage />);
+    await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Deduct" }));
+    await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith("Flag handled"));
+    expect(toastMock.info).not.toHaveBeenCalled();
   });
 
   it("refuses a deduction of nothing, and sends nothing", async () => {
