@@ -10,6 +10,8 @@ export interface PayrollTotals {
   bonuses_piastres: number;
   carry_out_piastres: number;
   deductions_piastres: number;
+  /** People on payroll with no salary set (D9); approval waits for them. */
+  missing_salary_count?: number;
   net_piastres: number;
   overtime_piastres: number;
   people: number;

@@ -33665,7 +33665,8 @@ export const useDecideAdjustment = <TError = ErrorBody,
     }
 
 /**
- * @summary Stop a monthly line from the next period on; past payslips keep it (AD-3).
+ * @summary Stop a monthly line from the next period on: the open month and past
+payslips keep it (AD-3, owner decision D6).
  */
 export const stopAdjustment = (
     kind: string,
@@ -33718,7 +33719,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type StopAdjustmentMutationError = ErrorBody
 
     /**
- * @summary Stop a monthly line from the next period on; past payslips keep it (AD-3).
+ * @summary Stop a monthly line from the next period on: the open month and past
+payslips keep it (AD-3, owner decision D6).
  */
 export const useStopAdjustment = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopAdjustment>>, TError,{kind: string;id: string;data: StopAdjustment}, TContext>, request?: SecondParameter<typeof customInstance>}

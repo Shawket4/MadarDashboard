@@ -14074,6 +14074,21 @@ export const AttendanceCorrectionsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14176,6 +14191,21 @@ export const DeductionOverridesAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14227,6 +14257,21 @@ export const DiscountsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14316,6 +14361,21 @@ export const LoyaltyAdjustmentsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14367,6 +14427,21 @@ export const ManualDeductionsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14467,6 +14542,21 @@ export const PriceOverridesResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14518,6 +14608,21 @@ export const RefundsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14635,6 +14740,21 @@ export const VoidsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14686,6 +14806,21 @@ export const WaiversAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -15452,6 +15587,9 @@ export const ListAdjustmentsResponseItem = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided a line that waited for the owner, when, and why (a\nrejection always says why, D8).'),
+  "decision_note": zod.string().nullish(),
   "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -15495,6 +15633,9 @@ export const CreateAdjustmentResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided a line that waited for the owner, when, and why (a\nrejection always says why, D8).'),
+  "decision_note": zod.string().nullish(),
   "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -15529,13 +15670,17 @@ export const DecideAdjustmentParams = zod.object({
 })
 
 export const DecideAdjustmentBody = zod.object({
-  "approve": zod.boolean()
+  "approve": zod.boolean(),
+  "reason": zod.string().nullish().describe('Why. Required to reject (400 `REASON_REQUIRED`, D8); optional to\napprove.')
 })
 
 export const DecideAdjustmentResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided a line that waited for the owner, when, and why (a\nrejection always says why, D8).'),
+  "decision_note": zod.string().nullish(),
   "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -15561,7 +15706,8 @@ export const DecideAdjustmentResponse = zod.object({
 
 
 /**
- * @summary Stop a monthly line from the next period on; past payslips keep it (AD-3).
+ * @summary Stop a monthly line from the next period on: the open month and past
+payslips keep it (AD-3, owner decision D6).
  */
 export const StopAdjustmentParams = zod.object({
   "kind": zod.string(),
@@ -15576,6 +15722,9 @@ export const StopAdjustmentResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided a line that waited for the owner, when, and why (a\nrejection always says why, D8).'),
+  "decision_note": zod.string().nullish(),
   "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -15614,7 +15763,7 @@ export const RecordAdvanceBody = zod.object({
 
 export const RecordAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -15629,7 +15778,8 @@ export const RecordAdvanceResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
@@ -15645,12 +15795,13 @@ export const ReviewAdvanceBody = zod.object({
   "amount_piastres": zod.number().nullish().describe('Approve a different amount than asked.'),
   "approve": zod.boolean(),
   "installments": zod.number().nullish(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish().describe('Why (kept as the decision note). Required to reject: `note` or\n`reason`, `reason` wins (400 `REASON_REQUIRED`, D8).'),
+  "reason": zod.string().nullish()
 })
 
 export const ReviewAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -15665,7 +15816,8 @@ export const ReviewAdvanceResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
@@ -15849,6 +16001,7 @@ export const GetAttendanceSettingsResponse = zod.object({
   "advance_cap_percent": zod.number().describe('Salary advances owed may reach this share of monthly salary (AV-5).'),
   "auto_checkout_buffer_minutes": zod.number(),
   "branch_id": zod.uuid().nullish(),
+  "cover_pay_mode": zod.string().describe('How a confirmed cover is paid (owner decision D5): `minute_rate` (the\ncoverer\'s day rate ÷ 8 h × the minutes covered, CV-4; the default) or\n`full_block` (the covered block as a full day). A branch may override\nit (listed in `overridden`).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "default_overtime_multiplier": zod.number(),
   "excused_time_paid_default": zod.boolean().describe('Whether an approved mid-shift permission or early departure is PAID by\ndefault. The approver may override it on any individual request.'),
@@ -15889,6 +16042,7 @@ export const PutAttendanceSettingsBody = zod.object({
   "advance_cap_percent": zod.number().nullish(),
   "auto_checkout_buffer_minutes": zod.number().nullish(),
   "branch_id": zod.uuid().nullish().describe('`None` = the org-wide default row.'),
+  "cover_pay_mode": zod.string().nullish().describe('`minute_rate` · `full_block` (D5). On a branch: its own override;\n`inherit: [\"cover_pay_mode\"]` goes back to the business\'s.'),
   "default_overtime_multiplier": zod.number().nullish(),
   "excused_time_paid_default": zod.boolean().nullish(),
   "gender_mode": zod.string().nullish().describe('`off` · `soft` · `hard`; owner only (`hr.roster.settings`).'),
@@ -15922,6 +16076,7 @@ export const PutAttendanceSettingsResponse = zod.object({
   "advance_cap_percent": zod.number().describe('Salary advances owed may reach this share of monthly salary (AV-5).'),
   "auto_checkout_buffer_minutes": zod.number(),
   "branch_id": zod.uuid().nullish(),
+  "cover_pay_mode": zod.string().describe('How a confirmed cover is paid (owner decision D5): `minute_rate` (the\ncoverer\'s day rate ÷ 8 h × the minutes covered, CV-4; the default) or\n`full_block` (the covered block as a full day). A branch may override\nit (listed in `overridden`).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "default_overtime_multiplier": zod.number(),
   "excused_time_paid_default": zod.boolean().describe('Whether an approved mid-shift permission or early departure is PAID by\ndefault. The approver may override it on any individual request.'),
@@ -16360,8 +16515,9 @@ export const ListEmployeesQueryParams = zod.object({
 
 export const ListEmployeesResponseItem = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
-  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
+  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module\ndocs — or when no salary is set (`salary_set` tells the two apart).'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
   "cant_work_days": zod.array(zod.number()).describe('Days they can\'t work: 0 = Sunday … 6 = Saturday.'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16391,6 +16547,7 @@ export const ListEmployeesResponseItem = zod.object({
   "photo_url": zod.string().nullish(),
   "pref_time": zod.string().nullish().describe('`morning` · `evening` · null'),
   "role": zod.string().nullish().describe('The linked user\'s POS role; null for an unlinked employee.'),
+  "salary_set": zod.boolean().describe('A salary is on file (owner decision D9): false = \"not set\" (someone a\nmanager added or imported), shown as \"—\" and flagged by payroll.\nNever hidden: it says nothing about the amount.'),
   "termination_date": zod.iso.date().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid().nullish().describe('The linked Madar user, when this employee is one (a cashier, a manager,\nthe owner). Null for someone who is only on payroll.')
@@ -16420,8 +16577,9 @@ export const CreateEmployeeBody = zod.object({
 
 export const CreateEmployeeResponse = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
-  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
+  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module\ndocs — or when no salary is set (`salary_set` tells the two apart).'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
   "cant_work_days": zod.array(zod.number()).describe('Days they can\'t work: 0 = Sunday … 6 = Saturday.'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16451,6 +16609,7 @@ export const CreateEmployeeResponse = zod.object({
   "photo_url": zod.string().nullish(),
   "pref_time": zod.string().nullish().describe('`morning` · `evening` · null'),
   "role": zod.string().nullish().describe('The linked user\'s POS role; null for an unlinked employee.'),
+  "salary_set": zod.boolean().describe('A salary is on file (owner decision D9): false = \"not set\" (someone a\nmanager added or imported), shown as \"—\" and flagged by payroll.\nNever hidden: it says nothing about the amount.'),
   "termination_date": zod.iso.date().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid().nullish().describe('The linked Madar user, when this employee is one (a cashier, a manager,\nthe owner). Null for someone who is only on payroll.')
@@ -16477,8 +16636,9 @@ export const GetEmployeeParams = zod.object({
 
 export const GetEmployeeResponse = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
-  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
+  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module\ndocs — or when no salary is set (`salary_set` tells the two apart).'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
   "cant_work_days": zod.array(zod.number()).describe('Days they can\'t work: 0 = Sunday … 6 = Saturday.'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16508,6 +16668,7 @@ export const GetEmployeeResponse = zod.object({
   "photo_url": zod.string().nullish(),
   "pref_time": zod.string().nullish().describe('`morning` · `evening` · null'),
   "role": zod.string().nullish().describe('The linked user\'s POS role; null for an unlinked employee.'),
+  "salary_set": zod.boolean().describe('A salary is on file (owner decision D9): false = \"not set\" (someone a\nmanager added or imported), shown as \"—\" and flagged by payroll.\nNever hidden: it says nothing about the amount.'),
   "termination_date": zod.iso.date().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid().nullish().describe('The linked Madar user, when this employee is one (a cashier, a manager,\nthe owner). Null for someone who is only on payroll.')
@@ -16543,8 +16704,9 @@ export const PutEmployeeBody = zod.object({
 
 export const PutEmployeeResponse = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
-  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
+  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module\ndocs — or when no salary is set (`salary_set` tells the two apart).'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
   "cant_work_days": zod.array(zod.number()).describe('Days they can\'t work: 0 = Sunday … 6 = Saturday.'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16574,6 +16736,7 @@ export const PutEmployeeResponse = zod.object({
   "photo_url": zod.string().nullish(),
   "pref_time": zod.string().nullish().describe('`morning` · `evening` · null'),
   "role": zod.string().nullish().describe('The linked user\'s POS role; null for an unlinked employee.'),
+  "salary_set": zod.boolean().describe('A salary is on file (owner decision D9): false = \"not set\" (someone a\nmanager added or imported), shown as \"—\" and flagged by payroll.\nNever hidden: it says nothing about the amount.'),
   "termination_date": zod.iso.date().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid().nullish().describe('The linked Madar user, when this employee is one (a cashier, a manager,\nthe owner). Null for someone who is only on payroll.')
@@ -16794,6 +16957,9 @@ export const MyAdjustmentsResponseItem = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided a line that waited for the owner, when, and why (a\nrejection always says why, D8).'),
+  "decision_note": zod.string().nullish(),
   "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -16821,7 +16987,7 @@ export const MyAdjustmentsResponse = zod.array(MyAdjustmentsResponseItem)
 
 export const MyAdvancesResponseItem = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -16836,7 +17002,8 @@ export const MyAdvancesResponseItem = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 export const MyAdvancesResponse = zod.array(MyAdvancesResponseItem)
 
@@ -16850,7 +17017,7 @@ export const CreateMyAdvanceBody = zod.object({
 
 export const CreateMyAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -16865,7 +17032,8 @@ export const CreateMyAdvanceResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
@@ -17049,6 +17217,7 @@ export const MyContextResponse = zod.object({
   "timezone": zod.string()
 })),
   "caps": zod.array(zod.string()).describe('The HR capabilities I hold (`hr.\*` keys) — through my Madar account;\nempty for an employee with none. The app gates tabs on these (PM-4).'),
+  "caps_everywhere": zod.array(zod.string()).describe('The capabilities I hold at EVERY branch: the list `GET \/authz\/me`\nputs in `everywhere`, for the business-wide acts (the rules, payroll,\npublic holidays: `hr.rules.edit`, D3). Empty without a Madar account.'),
   "deduction_limit_piastres": zod.number().nullish().describe('My ceiling on a deduction (AD-5: separate from the bonus limit).'),
   "employee_id": zod.uuid().describe('Who is signed in: the employee.'),
   "modules": zod.array(zod.string()).describe('The org\'s modules (`pos`, `dawam`); POS on means till punches (CL-13).'),
@@ -17057,7 +17226,8 @@ export const MyContextResponse = zod.object({
   "org_name": zod.string(),
   "people": zod.array(zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('Their salary-advance cap, decided by the server (AV-5, AT-3); shown\nunder the same visibility as the salary.'),
-  "base_salary_piastres": zod.number().nullish().describe('Only for people whose pay the caller may see.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances is within the cap; never hidden, so\na manager sees \"within cap\" \/ \"over cap\" without the figure (D7).'),
+  "base_salary_piastres": zod.number().nullish().describe('Only for people whose pay the caller may see (null too when no\nsalary is set: `salary_set`).'),
   "branch_ids": zod.array(zod.uuid()),
   "cant_work_days": zod.array(zod.number()),
   "device_model": zod.string().nullish(),
@@ -17071,6 +17241,7 @@ export const MyContextResponse = zod.object({
   "phone": zod.string().nullish(),
   "pref_time": zod.string().nullish(),
   "role": zod.string().describe('`owner` · `manager` · `employee` (from the linked account; an employee\nwith no account is `employee`).'),
+  "salary_set": zod.boolean().describe('A salary is on file (D9); false = \"not set\". Never hidden.'),
   "user_id": zod.uuid().nullish().describe('Their Madar account, when they have one.')
 })),
   "privacy_accepted_at": zod.iso.datetime({"offset":true}).nullish().describe('When THIS phone accepted the location notice; null = show it before\nany location is taken (AT-5). A new phone, or a restored session on\none that never accepted, starts null.'),
@@ -17084,7 +17255,8 @@ export const MyContextResponse = zod.object({
   "overtime_mode": zod.string(),
   "overtime_night_multiplier": zod.number(),
   "period_start_day": zod.number(),
-  "rules_saved": zod.boolean().describe('The business saved its rules; nobody clocks in before (RU-1, DSH-6).')
+  "rules_saved": zod.boolean().describe('The business saved its rules; nobody clocks in before (RU-1, DSH-6).'),
+  "rules_saved_at": zod.iso.datetime({"offset":true}).nullish().describe('When the rules were first saved; null until then. The sweep never\nmarks absent (or charges) a shift that started before it (B-SETUP-5),\nso neither does the app (B-ONB-1).')
 }),
   "user_id": zod.uuid().nullish().describe('Their Madar account, when they have one; manager acts go through it.'),
   "work_shifts": zod.array(zod.object({
@@ -17267,6 +17439,7 @@ export const MyEstimateResponse = zod.object({
   "net_piastres": zod.number(),
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
+  "salary_missing": zod.boolean().optional().describe('On payroll with no salary set (owner decision D9): everything prices\nat 0, and approval is refused (409 SALARY_MISSING) until the owner\nsets it or marks them not on payroll.'),
   "worked_days": zod.number()
 }).describe('So far this period, from the same engine payroll uses (PAY-9). Null\nfor someone not on payroll.')]).optional()
 })
@@ -17889,7 +18062,7 @@ export const ListAdvancesQueryParams = zod.object({
 
 export const ListAdvancesResponseItem = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -17904,7 +18077,8 @@ export const ListAdvancesResponseItem = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 export const ListAdvancesResponse = zod.array(ListAdvancesResponseItem)
 
@@ -17923,7 +18097,7 @@ export const CreateAdvanceAdminBody = zod.object({
 
 export const CreateAdvanceAdminResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -17938,7 +18112,8 @@ export const CreateAdvanceAdminResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
@@ -18024,6 +18199,7 @@ export const CurrentResponse = zod.object({
   "total_net_piastres": zod.number(),
   "updated_at": zod.iso.datetime({"offset":true})
 })).describe('Earlier periods, newest first.'),
+  "missing_salary_count": zod.number().describe('People on payroll with no salary set (D9): the preview rows with\n`salary_missing`; approval is refused until it is 0.'),
   "paid_count": zod.number().describe('How many payslips are marked paid (a \'none\' mark counts).'),
   "payslips": zod.array(zod.object({
   "absent_days": zod.number(),
@@ -18086,6 +18262,7 @@ export const CurrentResponse = zod.object({
   "net_piastres": zod.number(),
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
+  "salary_missing": zod.boolean().optional().describe('On payroll with no salary set (owner decision D9): everything prices\nat 0, and approval is refused (409 SALARY_MISSING) until the owner\nsets it or marks them not on payroll.'),
   "worked_days": zod.number()
 }).describe('One employee\'s pay for a period, computed but not yet written.\n\nPREVIEW AND GENERATE SHARE THIS. The preview endpoint exists so a manager can\nsee what payroll is about to do — a figure that would be worthless if it came\nfrom a second implementation that could drift from the real one. So the\ngenerator computes these first and then persists them, and the preview\ncomputes exactly the same values and persists nothing.')).describe('A live computation while the period is still a draft.'),
   "totals": zod.object({
@@ -18094,6 +18271,7 @@ export const CurrentResponse = zod.object({
   "bonuses_piastres": zod.number(),
   "carry_out_piastres": zod.number(),
   "deductions_piastres": zod.number(),
+  "missing_salary_count": zod.number().optional().describe('People on payroll with no salary set (D9); approval waits for them.'),
   "net_piastres": zod.number(),
   "overtime_piastres": zod.number(),
   "people": zod.number()
@@ -18444,6 +18622,7 @@ export const PreviewPeriodResponseItem = zod.object({
   "net_piastres": zod.number(),
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
+  "salary_missing": zod.boolean().optional().describe('On payroll with no salary set (owner decision D9): everything prices\nat 0, and approval is refused (409 SALARY_MISSING) until the owner\nsets it or marks them not on payroll.'),
   "worked_days": zod.number()
 }).describe('One employee\'s pay for a period, computed but not yet written.\n\nPREVIEW AND GENERATE SHARE THIS. The preview endpoint exists so a manager can\nsee what payroll is about to do — a figure that would be worthless if it came\nfrom a second implementation that could drift from the real one. So the\ngenerator computes these first and then persists them, and the preview\ncomputes exactly the same values and persists nothing.')
 export const PreviewPeriodResponse = zod.array(PreviewPeriodResponseItem)
