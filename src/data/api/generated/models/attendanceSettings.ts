@@ -9,6 +9,13 @@ export interface AttendanceSettings {
   auto_checkout_buffer_minutes: number;
   /** @nullable */
   branch_id?: string | null;
+  /**
+     * How a confirmed cover is paid (owner decision D5): `minute_rate` (the
+     * coverer's day rate ÷ 8 h × the minutes covered, CV-4; the default) or
+     * `full_block` (the covered block as a full day). A branch may override
+     * it (listed in `overridden`).
+     */
+  cover_pay_mode: string;
   created_at: string;
   default_overtime_multiplier: number;
   /**

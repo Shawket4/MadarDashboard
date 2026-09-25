@@ -9,6 +9,11 @@ export interface Employee {
      * @nullable
      */
   advance_cap_piastres?: number | null;
+  /**
+     * What they owe in salary advances (pending ones counted) is within the
+     * cap. Never hidden: what a manager sees instead of the cap (D7).
+     */
+  advance_within_cap: boolean;
   /** May sign in to the staff app with a WhatsApp code. */
   app_access: boolean;
   /**

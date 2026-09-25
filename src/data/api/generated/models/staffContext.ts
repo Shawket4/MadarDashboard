@@ -24,6 +24,12 @@ export interface StaffContext {
      */
   caps: string[];
   /**
+     * The capabilities I hold at EVERY branch: the list `GET /authz/me`
+     * puts in `everywhere`, for the business-wide acts (the rules, payroll,
+     * public holidays: `hr.rules.edit`, D3). Empty without a Madar account.
+     */
+  caps_everywhere: string[];
+  /**
      * My ceiling on a deduction (AD-5: separate from the bonus limit).
      * @nullable
      */

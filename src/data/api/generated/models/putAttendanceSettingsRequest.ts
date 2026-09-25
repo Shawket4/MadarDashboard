@@ -14,6 +14,12 @@ export interface PutAttendanceSettingsRequest {
      * @nullable
      */
   branch_id?: string | null;
+  /**
+     * `minute_rate` · `full_block` (D5). On a branch: its own override;
+     * `inherit: ["cover_pay_mode"]` goes back to the business's.
+     * @nullable
+     */
+  cover_pay_mode?: string | null;
   /** @nullable */
   default_overtime_multiplier?: number | null;
   /** @nullable */

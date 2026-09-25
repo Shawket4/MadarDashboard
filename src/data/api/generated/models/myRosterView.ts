@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { MyClaim } from './myClaim';
 import type { OpenShift } from './openShift';
 import type { RosterShift } from './rosterShift';
 import type { Swap } from './swap';
@@ -7,6 +8,11 @@ import type { Swap } from './swap';
 export interface MyRosterView {
   cant_work_days: number[];
   from: string;
+  /**
+     * My claims on open shifts, decided ones included: those on dates in
+     * range, and every pending one wherever it falls (SC-9, S-162).
+     */
+  my_claims: MyClaim[];
   /** Open shifts at my branches, in published weeks (SC-9). */
   open_shifts: OpenShift[];
   /** @nullable */

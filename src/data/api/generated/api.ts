@@ -33665,7 +33665,8 @@ export const useDecideAdjustment = <TError = ErrorBody,
     }
 
 /**
- * @summary Stop a monthly line from the next period on; past payslips keep it (AD-3).
+ * @summary Stop a monthly line from the next period on: the open month and past
+payslips keep it (AD-3, owner decision D6).
  */
 export const stopAdjustment = (
     kind: string,
@@ -33718,7 +33719,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type StopAdjustmentMutationError = ErrorBody
 
     /**
- * @summary Stop a monthly line from the next period on; past payslips keep it (AD-3).
+ * @summary Stop a monthly line from the next period on: the open month and past
+payslips keep it (AD-3, owner decision D6).
  */
 export const useStopAdjustment = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopAdjustment>>, TError,{kind: string;id: string;data: StopAdjustment}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -33869,7 +33871,7 @@ export const useReviewAdvance = <TError = ErrorBody,
     }
 
 export const listAttendance = (
-    params: ListAttendanceParams,
+    params?: ListAttendanceParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
@@ -33891,7 +33893,7 @@ export const getListAttendanceQueryKey = (params?: ListAttendanceParams,) => {
     }
 
 
-export const getListAttendanceQueryOptions = <TData = Awaited<ReturnType<typeof listAttendance>>, TError = ErrorBody>(params: ListAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendance>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getListAttendanceQueryOptions = <TData = Awaited<ReturnType<typeof listAttendance>>, TError = ErrorBody>(params?: ListAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendance>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -33914,7 +33916,7 @@ export type ListAttendanceQueryError = ErrorBody
 
 
 export function useListAttendance<TData = Awaited<ReturnType<typeof listAttendance>>, TError = ErrorBody>(
- params: ListAttendanceParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendance>>, TError, TData>> & Pick<
+ params: undefined |  ListAttendanceParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendance>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAttendance>>,
           TError,
@@ -33924,7 +33926,7 @@ export function useListAttendance<TData = Awaited<ReturnType<typeof listAttendan
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAttendance<TData = Awaited<ReturnType<typeof listAttendance>>, TError = ErrorBody>(
- params: ListAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendance>>, TError, TData>> & Pick<
+ params?: ListAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendance>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAttendance>>,
           TError,
@@ -33934,12 +33936,12 @@ export function useListAttendance<TData = Awaited<ReturnType<typeof listAttendan
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListAttendance<TData = Awaited<ReturnType<typeof listAttendance>>, TError = ErrorBody>(
- params: ListAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendance>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ params?: ListAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendance>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListAttendance<TData = Awaited<ReturnType<typeof listAttendance>>, TError = ErrorBody>(
- params: ListAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendance>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ params?: ListAttendanceParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAttendance>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -38992,6 +38994,77 @@ export const useDecideClaim = <TError = ErrorBody,
         TContext
       > => {
       return useMutation(getDecideClaimMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Take back my claim while it waits (SC-9, S-162), as the one who asked can
+cancel any pending request: the shift is open again, the claim stays in
+my Requests as `withdrawn`, and the managers told of it hear. 409
+`NO_PENDING_CLAIM` when I have no claim waiting on it, 409
+`CLAIM_ALREADY_DECIDED` once it was approved or declined.
+ */
+export const withdrawClaim = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OpenShift>(
+      {url: `/staff/open-shifts/${id}/withdraw`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getWithdrawClaimMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawClaim>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof withdrawClaim>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['withdrawClaim'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof withdrawClaim>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  withdrawClaim(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WithdrawClaimMutationResult = NonNullable<Awaited<ReturnType<typeof withdrawClaim>>>
+
+    export type WithdrawClaimMutationError = ErrorBody
+
+    /**
+ * @summary Take back my claim while it waits (SC-9, S-162), as the one who asked can
+cancel any pending request: the shift is open again, the claim stays in
+my Requests as `withdrawn`, and the managers told of it hear. 409
+`NO_PENDING_CLAIM` when I have no claim waiting on it, 409
+`CLAIM_ALREADY_DECIDED` once it was approved or declined.
+ */
+export const useWithdrawClaim = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawClaim>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof withdrawClaim>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getWithdrawClaimMutationOptions(options), queryClient);
     }
 
 export const listAdvances = (

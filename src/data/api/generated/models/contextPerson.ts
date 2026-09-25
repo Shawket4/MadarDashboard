@@ -9,6 +9,11 @@ export interface ContextPerson {
      */
   advance_cap_piastres?: number | null;
   /**
+     * What they owe in salary advances is within the cap; never hidden, so
+     * a manager sees "within cap" / "over cap" without the figure (D7).
+     */
+  advance_within_cap: boolean;
+  /**
      * Only for people whose pay the caller may see.
      * @nullable
      */

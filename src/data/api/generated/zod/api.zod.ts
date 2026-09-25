@@ -15561,7 +15561,8 @@ export const DecideAdjustmentResponse = zod.object({
 
 
 /**
- * @summary Stop a monthly line from the next period on; past payslips keep it (AD-3).
+ * @summary Stop a monthly line from the next period on: the open month and past
+payslips keep it (AD-3, owner decision D6).
  */
 export const StopAdjustmentParams = zod.object({
   "kind": zod.string(),
@@ -15614,7 +15615,7 @@ export const RecordAdvanceBody = zod.object({
 
 export const RecordAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -15629,7 +15630,8 @@ export const RecordAdvanceResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
@@ -15650,7 +15652,7 @@ export const ReviewAdvanceBody = zod.object({
 
 export const ReviewAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -15665,16 +15667,19 @@ export const ReviewAdvanceResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
 export const ListAttendanceQueryParams = zod.object({
-  "from": zod.iso.date(),
-  "to": zod.iso.date(),
+  "from": zod.iso.date().optional().describe('Required unless `cover_status` or `overtime_status` is `pending`.'),
+  "to": zod.iso.date().optional().describe('Required unless `cover_status` or `overtime_status` is `pending`.'),
   "branch_id": zod.uuid().optional(),
   "employee_id": zod.uuid().optional(),
-  "status": zod.string().optional()
+  "status": zod.string().optional(),
+  "cover_status": zod.string().optional().describe('`pending` · `confirmed` · `rejected`: covers in that state.'),
+  "overtime_status": zod.string().optional().describe('`pending` · `approved` · `rejected`: overtime in that state.')
 })
 
 export const ListAttendanceResponseItem = zod.object({
@@ -15849,6 +15854,7 @@ export const GetAttendanceSettingsResponse = zod.object({
   "advance_cap_percent": zod.number().describe('Salary advances owed may reach this share of monthly salary (AV-5).'),
   "auto_checkout_buffer_minutes": zod.number(),
   "branch_id": zod.uuid().nullish(),
+  "cover_pay_mode": zod.string().describe('How a confirmed cover is paid (owner decision D5): `minute_rate` (the\ncoverer\'s day rate ÷ 8 h × the minutes covered, CV-4; the default) or\n`full_block` (the covered block as a full day). A branch may override\nit (listed in `overridden`).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "default_overtime_multiplier": zod.number(),
   "excused_time_paid_default": zod.boolean().describe('Whether an approved mid-shift permission or early departure is PAID by\ndefault. The approver may override it on any individual request.'),
@@ -15889,6 +15895,7 @@ export const PutAttendanceSettingsBody = zod.object({
   "advance_cap_percent": zod.number().nullish(),
   "auto_checkout_buffer_minutes": zod.number().nullish(),
   "branch_id": zod.uuid().nullish().describe('`None` = the org-wide default row.'),
+  "cover_pay_mode": zod.string().nullish().describe('`minute_rate` · `full_block` (D5). On a branch: its own override;\n`inherit: [\"cover_pay_mode\"]` goes back to the business\'s.'),
   "default_overtime_multiplier": zod.number().nullish(),
   "excused_time_paid_default": zod.boolean().nullish(),
   "gender_mode": zod.string().nullish().describe('`off` · `soft` · `hard`; owner only (`hr.roster.settings`).'),
@@ -15922,6 +15929,7 @@ export const PutAttendanceSettingsResponse = zod.object({
   "advance_cap_percent": zod.number().describe('Salary advances owed may reach this share of monthly salary (AV-5).'),
   "auto_checkout_buffer_minutes": zod.number(),
   "branch_id": zod.uuid().nullish(),
+  "cover_pay_mode": zod.string().describe('How a confirmed cover is paid (owner decision D5): `minute_rate` (the\ncoverer\'s day rate ÷ 8 h × the minutes covered, CV-4; the default) or\n`full_block` (the covered block as a full day). A branch may override\nit (listed in `overridden`).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "default_overtime_multiplier": zod.number(),
   "excused_time_paid_default": zod.boolean().describe('Whether an approved mid-shift permission or early departure is PAID by\ndefault. The approver may override it on any individual request.'),
@@ -16360,6 +16368,7 @@ export const ListEmployeesQueryParams = zod.object({
 
 export const ListEmployeesResponseItem = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
   "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
@@ -16420,6 +16429,7 @@ export const CreateEmployeeBody = zod.object({
 
 export const CreateEmployeeResponse = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
   "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
@@ -16477,6 +16487,7 @@ export const GetEmployeeParams = zod.object({
 
 export const GetEmployeeResponse = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
   "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
@@ -16543,6 +16554,7 @@ export const PutEmployeeBody = zod.object({
 
 export const PutEmployeeResponse = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
   "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
@@ -16752,7 +16764,7 @@ export const ResolveFlagParams = zod.object({
 })
 
 export const ResolveFlagBody = zod.object({
-  "action": zod.string().describe('`ignore` · `excuse_paid` · `excuse_unpaid` · `deduct` · `revoke` (a new\nphone) · `confirm`'),
+  "action": zod.string().describe('`ignore` · `excuse_paid` · `excuse_unpaid` · `deduct` · `revoke` (a new\nphone) · `confirm`. A cover\'s flag takes only `confirm` or `reject`,\nwhich decide the cover itself (400 `FLAG_COVER_CONFIRM_OR_REJECT`).'),
   "amount_piastres": zod.number().nullish().describe('For `deduct`: the amount the manager typed (CL-7).'),
   "reason": zod.string().nullish().describe('For `deduct`: why, on the pay line the employee sees (AD-9).')
 })
@@ -16821,7 +16833,7 @@ export const MyAdjustmentsResponse = zod.array(MyAdjustmentsResponseItem)
 
 export const MyAdvancesResponseItem = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -16836,7 +16848,8 @@ export const MyAdvancesResponseItem = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 export const MyAdvancesResponse = zod.array(MyAdvancesResponseItem)
 
@@ -16850,7 +16863,7 @@ export const CreateMyAdvanceBody = zod.object({
 
 export const CreateMyAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -16865,7 +16878,8 @@ export const CreateMyAdvanceResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
@@ -17049,6 +17063,7 @@ export const MyContextResponse = zod.object({
   "timezone": zod.string()
 })),
   "caps": zod.array(zod.string()).describe('The HR capabilities I hold (`hr.\*` keys) — through my Madar account;\nempty for an employee with none. The app gates tabs on these (PM-4).'),
+  "caps_everywhere": zod.array(zod.string()).describe('The capabilities I hold at EVERY branch: the list `GET \/authz\/me`\nputs in `everywhere`, for the business-wide acts (the rules, payroll,\npublic holidays: `hr.rules.edit`, D3). Empty without a Madar account.'),
   "deduction_limit_piastres": zod.number().nullish().describe('My ceiling on a deduction (AD-5: separate from the bonus limit).'),
   "employee_id": zod.uuid().describe('Who is signed in: the employee.'),
   "modules": zod.array(zod.string()).describe('The org\'s modules (`pos`, `dawam`); POS on means till punches (CL-13).'),
@@ -17057,6 +17072,7 @@ export const MyContextResponse = zod.object({
   "org_name": zod.string(),
   "people": zod.array(zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('Their salary-advance cap, decided by the server (AV-5, AT-3); shown\nunder the same visibility as the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances is within the cap; never hidden, so\na manager sees \"within cap\" \/ \"over cap\" without the figure (D7).'),
   "base_salary_piastres": zod.number().nullish().describe('Only for people whose pay the caller may see.'),
   "branch_ids": zod.array(zod.uuid()),
   "cant_work_days": zod.array(zod.number()),
@@ -17084,7 +17100,8 @@ export const MyContextResponse = zod.object({
   "overtime_mode": zod.string(),
   "overtime_night_multiplier": zod.number(),
   "period_start_day": zod.number(),
-  "rules_saved": zod.boolean().describe('The business saved its rules; nobody clocks in before (RU-1, DSH-6).')
+  "rules_saved": zod.boolean().describe('The business saved its rules; nobody clocks in before (RU-1, DSH-6).'),
+  "rules_saved_at": zod.iso.datetime({"offset":true}).nullish().describe('When the rules were first saved; null until then. The sweep never\nmarks absent (or charges) a shift that started before it (B-SETUP-5),\nso neither does the app (B-ONB-1).')
 }),
   "user_id": zod.uuid().nullish().describe('Their Madar account, when they have one; manager acts go through it.'),
   "work_shifts": zod.array(zod.object({
@@ -17476,8 +17493,20 @@ export const MyRosterQueryParams = zod.object({
 export const MyRosterResponse = zod.object({
   "cant_work_days": zod.array(zod.number()),
   "from": zod.iso.date(),
+  "my_claims": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish().describe('When it was decided or withdrawn; null while pending, and on a claim\ndecided before the server kept this history.'),
+  "id": zod.uuid(),
+  "on_date": zod.iso.date(),
+  "open_shift_id": zod.uuid(),
+  "shift_name": zod.string(),
+  "status": zod.string().describe('`pending` · `approved` · `declined` · `withdrawn`. A shift the\nmanager took back while the claim waited is `declined`.'),
+  "work_shift_id": zod.uuid()
+}).describe('One of my claims on an open shift, and how it ended (SC-9, S-162): a\nrequest like any other, so it stays in my Requests once decided.')).describe('My claims on open shifts, decided ones included: those on dates in\nrange, and every pending one wherever it falls (SC-9, S-162).'),
   "open_shifts": zod.array(zod.object({
   "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
   "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
   "claimed_by_name": zod.string().nullish(),
   "end_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -17801,6 +17830,7 @@ export const ListOpenShiftsQueryParams = zod.object({
 
 export const ListOpenShiftsResponseItem = zod.object({
   "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
   "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
   "claimed_by_name": zod.string().nullish(),
   "end_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -17822,6 +17852,7 @@ export const PostOpenShiftBody = zod.object({
 
 export const PostOpenShiftResponse = zod.object({
   "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
   "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
   "claimed_by_name": zod.string().nullish(),
   "end_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -17854,6 +17885,7 @@ export const ClaimOpenShiftParams = zod.object({
 
 export const ClaimOpenShiftResponse = zod.object({
   "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
   "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
   "claimed_by_name": zod.string().nullish(),
   "end_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -17881,6 +17913,32 @@ export const DecideClaimBody = zod.object({
 export const DecideClaimResponse = zod.void()
 
 
+/**
+ * @summary Take back my claim while it waits (SC-9, S-162), as the one who asked can
+cancel any pending request: the shift is open again, the claim stays in
+my Requests as `withdrawn`, and the managers told of it hear. 409
+`NO_PENDING_CLAIM` when I have no claim waiting on it, 409
+`CLAIM_ALREADY_DECIDED` once it was approved or declined.
+ */
+export const WithdrawClaimParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const WithdrawClaimResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
+  "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
+  "claimed_by_name": zod.string().nullish(),
+  "end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "id": zod.uuid(),
+  "on_date": zod.iso.date(),
+  "shift_name": zod.string(),
+  "start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`open` · `claimed` · `filled` · `cancelled`'),
+  "work_shift_id": zod.uuid()
+})
+
+
 export const ListAdvancesQueryParams = zod.object({
   "employee_id": zod.uuid().optional(),
   "from": zod.iso.date().optional(),
@@ -17889,7 +17947,7 @@ export const ListAdvancesQueryParams = zod.object({
 
 export const ListAdvancesResponseItem = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -17904,7 +17962,8 @@ export const ListAdvancesResponseItem = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 export const ListAdvancesResponse = zod.array(ListAdvancesResponseItem)
 
@@ -17923,7 +17982,7 @@ export const CreateAdvanceAdminBody = zod.object({
 
 export const CreateAdvanceAdminResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -17938,7 +17997,8 @@ export const CreateAdvanceAdminResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
@@ -18751,6 +18811,7 @@ export const RosterResponse = zod.object({
   "limits_unconfirmed": zod.boolean().describe('The limits are not yet confirmed by a lawyer; say so beside them.'),
   "open_shifts": zod.array(zod.object({
   "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
   "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
   "claimed_by_name": zod.string().nullish(),
   "end_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -19053,6 +19114,7 @@ export const GetScheduledDayResponse = zod.array(GetScheduledDayResponseItem)
 own times, or a day off (SC-5, SC-11).
  */
 export const PutDayBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch whose board sets the day: a business-wide block is worked\nthere (one of the person\'s branches, else 400\n`EMPLOYEE_NOT_AT_BRANCH`). Omitted = each block stays where the date\nhad it (a new one at the person\'s first branch).'),
   "employee_id": zod.uuid(),
   "on_date": zod.iso.date(),
   "reason": zod.string().nullish(),

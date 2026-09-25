@@ -519,6 +519,7 @@ export * from './myAttendanceParams';
 export * from './myAttendanceToday';
 export * from './myAuthz';
 export * from './myAuthzLimits';
+export * from './myClaim';
 export * from './myLeaveBalancesParams';
 export * from './myRosterParams';
 export * from './myRosterView';
