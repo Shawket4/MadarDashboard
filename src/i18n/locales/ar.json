@@ -3696,6 +3696,23 @@
       "summaryDelivery": "توصيل",
       "welcomeBack": "أهلًا بعودتك يا {{name}}",
       "change": "تغيير"
+    },
+    "combo": {
+      "badge": "كومبو",
+      "optional": "اختياري",
+      "optionalUpTo": "اختياري · حتى {{count}}",
+      "pickN": "اختر {{count}}",
+      "pickRange": "اختر من {{min}} إلى {{max}}",
+      "chooseSlot": "اختر {{slot}}",
+      "included": "مشمول",
+      "regular": "عادي",
+      "fixedHint": "كل ما يلي موجود في العلبة.",
+      "describe": "اختر مكوّنات الكومبو",
+      "less": "أقل بواحد من {{name}}",
+      "more": "واحد إضافي من {{name}}"
+    },
+    "deal": {
+      "row": "عرض · {{name}}"
     }
   },
   "deliveryTimeline": {
@@ -5386,7 +5403,9 @@
     "title": "طاولة {{label}}",
     "total": "الإجمالي",
     "unknown": "لم نتعرّف على هذه الطاولة",
-    "unknownHint": "اسأل أحد العاملين — قد يكون هذا الكود قديماً."
+    "unknownHint": "اسأل أحد العاملين — قد يكون هذا الكود قديماً.",
+    "dealOnBill": "تُخصم العروض من حسابك عند الدفع.",
+    "sendFailedWhy": "لم يُرسل الطلب: {{reason}}"
   },
   "tablesInsights": {
     "title": "الطاولات",

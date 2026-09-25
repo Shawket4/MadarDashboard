@@ -43,6 +43,10 @@ import { cn } from "@/lib/utils";
 
 import { CartPanel, CartSheet } from "./components/cart-sheet";
 import { ItemCustomizer } from "./components/item-customizer";
+import { ComboCustomizer } from "./components/combo-customizer";
+import { isCombo } from "./combo";
+import { useCartQuote } from "./use-cart-quote";
+import { getErrorMessage } from "@/data/api/errors";
 import { MenuStep } from "./components/menu-step";
 import { useCart } from "./use-cart";
 import type { CartLine } from "./types";
@@ -71,6 +75,30 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
 
   const bill = table.data?.bill ?? null;
   const addons = menu.data?.addons ?? [];
+  // The server's price for the basket, deals shown (they come off the bill
+  // when it is settled). Falls back to the estimate when it cannot be asked.
+  const pricing = useCartQuote({ kind: "table", id: tableId }, cart.lines);
+  // Why the last send failed, in the server's words — a combo without its
+  // picks, an item that just ran out — so the customer can fix the basket
+  // instead of retrying something that can never go through.
+  const sendError = send.isError
+    ? t("table.sendFailedWhy", {
+        defaultValue: "That didn't send: {{reason}}",
+        reason: getErrorMessage(send.error),
+      })
+    : null;
+  // Changing the basket answers the failure; the message goes with it.
+  const clearSendError = () => {
+    if (send.isError) send.reset?.();
+  };
+  const addLine = (line: CartLine) => {
+    clearSendError();
+    cart.addOrUpdate(line);
+  };
+  const removeLine = (uid: string) => {
+    clearSendError();
+    cart.remove(uid);
+  };
 
   // A fresh key per basket, so a resend of the SAME basket after a dropped
   // connection lands once. It is the only protection there is — a phone has no
@@ -160,18 +188,21 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
           menu={menu.data}
           emptyHint={t("table.menuEmpty", "There is nothing on the menu right now.")}
           countByItem={cart.countByItem}
-          onAdd={cart.addOrUpdate}
+          onAdd={addLine}
           query={menuQuery}
           onQueryChange={setMenuQuery}
           cartSlot={
             <CartPanel
               lines={cart.lines}
               onEdit={(line) => setEditing(line)}
-              onRemove={cart.remove}
+              onRemove={removeLine}
               onSetQty={cart.setQty}
               onCheckout={handleSend}
               checkoutLabel={t("table.send", "Send to kitchen")}
               checkoutDisabled={!accepting || send.isPending}
+              quote={pricing.quote}
+              dealHint={t("table.dealOnBill", "Deals come off your bill when you pay.")}
+              error={sendError}
             />
           }
         />
@@ -186,22 +217,36 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
           setCartOpen(false);
           setEditing(line);
         }}
-        onRemove={cart.remove}
+        onRemove={removeLine}
         onSetQty={cart.setQty}
         onCheckout={handleSend}
         onAddMore={() => setCartOpen(false)}
         checkoutLabel={t("table.send", "Send to kitchen")}
         checkoutDisabled={!accepting || send.isPending}
+        quote={pricing.quote}
+        dealHint={t("table.dealOnBill", "Deals come off your bill when you pay.")}
+        error={sendError}
       />
 
+      {/* Editing a basket line: a combo reopens its picker, anything else the customizer. */}
       <ItemCustomizer
-        item={editing?.item ?? null}
+        item={editing && !isCombo(editing.item) ? editing.item : null}
         addons={addons}
         editing={editing}
-        open={!!editing}
+        open={!!editing && !isCombo(editing.item)}
         onOpenChange={(o) => !o && setEditing(null)}
         onConfirm={(line) => {
-          cart.addOrUpdate(line);
+          addLine(line);
+          setEditing(null);
+        }}
+      />
+      <ComboCustomizer
+        item={editing && isCombo(editing.item) ? editing.item : null}
+        editing={editing}
+        open={!!editing && isCombo(editing.item)}
+        onOpenChange={(o) => !o && setEditing(null)}
+        onConfirm={(line) => {
+          addLine(line);
           setEditing(null);
         }}
       />
@@ -230,7 +275,7 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
                   {cart.itemCount}
                 </span>
               </span>
-              <span className="tabular">{fmtMoney(cart.subtotal)}</span>
+              <span className="tabular">{fmtMoney(pricing.afterDeals)}</span>
             </Button>
           </motion.div>
         ) : null}
@@ -253,9 +298,15 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
         ) : null}
       </AnimatePresence>
 
-      {send.isError ? (
-        <div className="fixed inset-x-0 bottom-24 z-30 mx-auto w-fit max-w-[90vw] rounded-full bg-destructive px-4 py-2 text-center text-sm text-destructive-foreground shadow-lg">
-          {t("table.sendFailed", "That didn't send. Try again.")}
+      {/* With the basket open the failure is shown inside it, next to the
+          button; closed, it floats above the basket button. Either way the
+          customer reads the server's reason, not a bare "try again". */}
+      {sendError && !cartOpen ? (
+        <div
+          role="alert"
+          className="fixed inset-x-0 bottom-24 z-30 mx-auto w-fit max-w-[90vw] rounded-2xl bg-destructive px-4 py-2 text-center text-sm text-destructive-foreground shadow-lg"
+        >
+          {sendError}
         </div>
       ) : null}
     </StorefrontShell>
