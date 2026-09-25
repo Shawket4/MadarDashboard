@@ -25,7 +25,7 @@ import {
   useListBranches, useListDepartments, useListEmployees,
 } from "@/data/api/generated/api";
 import { useAuthz } from "@/data/authz/use-authz";
-import { salaryState, type EmployeeD } from "@/features/dawam/phase-d-contract";
+import { salaryState } from "@/features/dawam/phase-d-contract";
 import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { AddEmployeeDialog, ImportPeopleDialog } from "@/features/dawam/add-employees";
@@ -202,7 +202,7 @@ export function EmployeesPage() {
         header: t("staff.baseSalary", "Base salary (monthly)"),
         meta: { label: t("staff.baseSalary", "Base salary (monthly)"), numeric: true },
         cell: ({ row }) => {
-          const state = salaryState(row.original as EmployeeD);
+          const state = salaryState(row.original);
           // Nobody set one (owner decision 9): payroll won't approve until it is.
           if (state === "not_set") return <Badge variant="outline">{t("dawam.notSet", "Not set")}</Badge>;
           return state === "hidden" ? "—" : fmtMoney(row.original.base_salary_piastres);

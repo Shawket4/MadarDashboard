@@ -37,7 +37,8 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
-import { capView, clearExpenseAdvance, reassignExpenseAdvance, type AdvanceD } from "./phase-d-contract";
+import type { SalaryAdvance } from "@/data/api/generated/models";
+import { capView, clearExpenseAdvance, reassignExpenseAdvance } from "./phase-d-contract";
 
 /** Pounds as typed → piastres; null when it isn't a positive amount. */
 export const readPounds = (s: string): number | null => {
@@ -769,7 +770,7 @@ export function ReviewAdvanceDialog({
  * cap (it reveals the salary). Someone who may not pass the cap reads that
  * only the owner can approve it.
  */
-export function AdvanceCapNote({ advance, mayPassCap }: { advance: AdvanceD; mayPassCap: boolean }) {
+export function AdvanceCapNote({ advance, mayPassCap }: { advance: SalaryAdvance; mayPassCap: boolean }) {
   const { t } = useTranslation();
   const { within, owed, cap } = capView(advance);
   if (within === null) return null;

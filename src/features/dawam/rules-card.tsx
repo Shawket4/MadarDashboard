@@ -15,7 +15,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { coverPayOf, type CoverPayMode, type SettingsD, type SettingsPutD } from "./phase-d-contract";
+import type { AttendanceSettings, PutAttendanceSettingsRequest } from "@/data/api/generated/models";
+import { coverPayOf, type CoverPayMode } from "./phase-d-contract";
 
 export interface DawamRules {
   overtimeMode: "off" | "automatic" | "approval";
@@ -50,7 +51,7 @@ export const DEFAULT_RULES: DawamRules = {
   coverPayMode: "minute_rate",
 };
 
-export const rulesFrom = (s: SettingsD): DawamRules => ({
+export const rulesFrom = (s: AttendanceSettings): DawamRules => ({
   overtimeMode: (["off", "automatic", "approval"].includes(s.overtime_mode) ? s.overtime_mode : "off") as DawamRules["overtimeMode"],
   otDay: String(s.overtime_day_multiplier ?? 1.35),
   otNight: String(s.overtime_night_multiplier ?? 1.7),
@@ -75,7 +76,7 @@ export const rulesFrom = (s: SettingsD): DawamRules => ({
  * rides only for someone holding `hr.roster.settings`; anyone else would be
  * refused the whole save for a field they can't change.
  */
-export function rulesRequest(r: DawamRules, canGender = false): { ok: SettingsPutD } | { error: string } {
+export function rulesRequest(r: DawamRules, canGender = false): { ok: PutAttendanceSettingsRequest } | { error: string } {
   const n = (s: string) => Number(s);
   if (!(n(r.otDay) >= 1 && n(r.otNight) >= 1 && n(r.holidayMult) >= 1)) return { error: "dawam.rulesRateLow" };
   if (!(n(r.advanceCap) >= 0 && n(r.advanceCap) <= 100)) return { error: "dawam.rulesCapRange" };

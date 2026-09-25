@@ -11,8 +11,7 @@
 import { z } from "zod";
 import type { TFunction } from "i18next";
 
-import type { PutAttendanceSettingsRequest } from "@/data/api/generated/models";
-import type { SettingsD } from "@/features/dawam/phase-d-contract";
+import type { AttendanceSettings, PutAttendanceSettingsRequest } from "@/data/api/generated/models";
 import { DEFAULT_RULES, rulesFrom, rulesRequest, type DawamRules } from "@/features/dawam/rules-card";
 
 /** One rung of the late-penalty ladder, in the shape the API stores. */
@@ -82,7 +81,7 @@ export const EMPTY_VALUES: RulesValues = {
  * its rules starts from the server's suggested ladder (RU-1); a branch always
  * shows what it effectively runs on.
  */
-export function valuesFrom(s: SettingsD, opts: { suggest?: boolean } = {}): RulesValues {
+export function valuesFrom(s: AttendanceSettings, opts: { suggest?: boolean } = {}): RulesValues {
   const stored = (s.late_deduction_tiers as Tier[] | undefined) ?? [];
   const suggested = (s.suggested_tiers ?? []) as Tier[];
   const tiers = opts.suggest && !s.rules_saved_at && stored.length === 0 ? suggested : stored;

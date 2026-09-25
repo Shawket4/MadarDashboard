@@ -27,7 +27,7 @@ import type { Employee } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate, piastresToEgp } from "@/lib/format";
 import { readPounds } from "@/features/dawam/money-dialogs";
-import { salaryState, type EmployeeD } from "@/features/dawam/phase-d-contract";
+import { salaryState } from "@/features/dawam/phase-d-contract";
 import { SalaryCalculator } from "@/features/dawam/salary-calculator";
 import { BranchChecklist } from "./branch-checklist";
 import { invalidateEmployees } from "./util";
@@ -70,7 +70,7 @@ export function EmployeeDialog({
   // Shown and sent only to someone who may set it (hr.payroll.edit): the
   // server ignores it from anyone else, and an ignored box is a lie.
   const canEditSalary = authz.canEverywhere(Cap.hrPayrollEdit);
-  const salary = employee ? salaryState(employee as EmployeeD) : "hidden";
+  const salary = employee ? salaryState(employee) : "hidden";
   const canSeeSalary = canEditSalary && salary !== "hidden";
 
   const schema = useMemo(

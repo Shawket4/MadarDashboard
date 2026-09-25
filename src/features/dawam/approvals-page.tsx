@@ -34,7 +34,7 @@ import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
 import { ApproveWithPayDialog, ASKS_PAY, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds } from "@/features/staff/requests-inbox";
 import { fmtHours, fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
 import { AdvanceCapNote, RejectDialog, ReviewAdvanceDialog } from "./money-dialogs";
-import { capView, warningsOf, type AdvanceD, type DecideD, type ReviewAdvanceD } from "./phase-d-contract";
+import { capView, warningsOf } from "./phase-d-contract";
 
 export type Section = "all" | "requests" | "money" | "shifts";
 
@@ -150,7 +150,7 @@ export function ApprovalsPage() {
         reject: () => decideRequest(r.id, { status: "rejected" }),
       });
     }
-    for (const a of can.advances ? ((advancesQ.data ?? []) as AdvanceD[]).filter((x) => x.status === "pending") : []) {
+    for (const a of can.advances ? (advancesQ.data ?? []).filter((x) => x.status === "pending") : []) {
       // Over the cap, only the owner can approve: a manager may still reject (D7).
       const overForMe = capView(a).within === false && !mayPassCap;
       out.push({
@@ -165,7 +165,7 @@ export function ApprovalsPage() {
         approve: () => setReviewing(a),
         rejectOnly: overForMe,
         reasonRequired: true,
-        reject: (reason) => reviewAdvance(a.id, { approve: false, reason } as ReviewAdvanceD),
+        reject: (reason) => reviewAdvance(a.id, { approve: false, reason }),
       });
     }
     for (const a of can.payLines ? payLinesQ.data ?? [] : []) {
@@ -179,7 +179,7 @@ export function ApprovalsPage() {
         at: a.created_at,
         approve: () => decideAdjustment(a.kind, a.id, { approve: true }),
         reasonRequired: true,
-        reject: (reason) => decideAdjustment(a.kind, a.id, { approve: false, reason } as DecideD),
+        reject: (reason) => decideAdjustment(a.kind, a.id, { approve: false, reason }),
       });
     }
     for (const s of can.roster ? swapsQ.data ?? [] : []) {

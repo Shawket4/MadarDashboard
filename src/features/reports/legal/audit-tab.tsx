@@ -10,13 +10,12 @@ import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import type { AuditReport, DiscountAuditEntry } from "@/data/api/generated/models";
+import type { AuditReport, DeductionOverrideEvent, DiscountAuditEntry } from "@/data/api/generated/models";
 import { bpsLabel, discountKindLabel } from "@/features/discounts/discount-attribution";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
 import { fmtDate, fmtDateTime, fmtMoney, fmtNumber } from "@/lib/format";
-import type { AuditReportD, DeductionOverrideEvent } from "@/features/dawam/phase-d-contract";
 
 interface AuditRow {
   label: string;
@@ -82,7 +81,7 @@ export function auditCols(t: TFunction | ((k: string, o?: Record<string, unknown
  * reason and an issuer breakdown), so one component renders all nine. */
 export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: AuditTabProps) {
   const { t } = useTranslation();
-  const d = query.data as AuditReportD | undefined;
+  const d = query.data;
   // Deduction overrides only: every waive, undo and override, even one undone since (D8, AT-10).
   const history = d?.history ?? [];
   const logoUrl = useExportLogo();

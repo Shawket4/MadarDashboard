@@ -54,7 +54,6 @@ import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
   ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote, RejectDialog, CorrectExpenseTagDialog,
 } from "./money-dialogs";
-import type { AdjustmentD, AdvanceD, CurrentPayrollD, DecideD, PayslipD } from "./phase-d-contract";
 
 type Slip = ComputedPayslip | Payslip;
 type Row = Slip & { employee_name: string; paid_method: string | null };
@@ -120,8 +119,8 @@ export function PayrollPage() {
 
   // On payroll with no salary (owner decision 9): approval is refused until
   // each is set or marked not paid through Dawam (409 SALARY_MISSING).
-  const missing = rows.filter((r) => (r as PayslipD).salary_missing);
-  const cur = currentQ.data as CurrentPayrollD | undefined;
+  const missing = rows.filter((r) => (r as ComputedPayslip).salary_missing);
+  const cur = currentQ.data;
   const missingCount = cur?.missing_salary_count ?? cur?.totals?.missing_salary_count ?? missing.length;
 
   // Reopen closes once a PERSON is paid (PAY-6). A zero-net payslip settled at
@@ -207,7 +206,7 @@ export function PayrollPage() {
       header: t("dawam.salary", "Salary"),
       meta: { numeric: true, align: "end" },
       cell: ({ row }) =>
-        (row.original as PayslipD).salary_missing
+        (row.original as ComputedPayslip).salary_missing
           ? <Badge variant="outline" className="border-warning/60">{t("dawam.notSet", "Not set")}</Badge>
           : fmtMoney(payslipLines(row.original)[0].amount),
     },
@@ -572,8 +571,8 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                   reasonText(t, a.reason_code, a.reason_vars as Record<string, unknown> | null, a.reason),
                   fmtDate(a.effective_date),
                   // Why the owner refused it (D8).
-                  a.status === "rejected" && (a as AdjustmentD).decision_note
-                    ? t("dawam.rejectedWhy", { reason: (a as AdjustmentD).decision_note, defaultValue: `Rejected: ${(a as AdjustmentD).decision_note}` })
+                  a.status === "rejected" && a.decision_note
+                    ? t("dawam.rejectedWhy", { reason: a.decision_note, defaultValue: `Rejected: ${a.decision_note}` })
                     : null,
                 ].filter(Boolean).join(" · ")}
                 trailing={
@@ -603,7 +602,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
         onOpenChange={(o) => !o && setRejecting(null)}
         title={t("dawam.rejectLineTitle", { name: rejecting?.employee_name ?? "", defaultValue: `Reject ${rejecting?.employee_name ?? ""}'s line?` })}
         description={t("dawam.rejectWhyHint", "They are told, with your reason, and nothing is paid for it. The reason is kept in the audit log.")}
-        onReject={(reason) => decideAdjustment(rejecting!.kind, rejecting!.id, { approve: false, reason } as DecideD)}
+        onReject={(reason) => decideAdjustment(rejecting!.kind, rejecting!.id, { approve: false, reason })}
       />
     </div>
   );
@@ -634,7 +633,7 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
               ].filter(Boolean).join(" · ")}
               trailing={
                 <span className="flex flex-wrap items-center justify-end gap-2">
-                  {a.status === "pending" || a.status === "approved" ? <AdvanceCapNote advance={a as AdvanceD} mayPassCap={mayPassCap} /> : null}
+                  {a.status === "pending" || a.status === "approved" ? <AdvanceCapNote advance={a} mayPassCap={mayPassCap} /> : null}
                   {a.status === "approved" ? (
                     <span className="text-sm tabular-nums text-muted-foreground">{t("dawam.remaining", { amount: fmtMoney(a.remaining_piastres), defaultValue: `${fmtMoney(a.remaining_piastres)} left` })}</span>
                   ) : null}
