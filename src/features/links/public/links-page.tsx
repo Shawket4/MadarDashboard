@@ -204,7 +204,16 @@ export function LinksPage({ orgId }: { orgId?: string | null }) {
  */
 function Wash({ color, coverUrl }: { color: string; coverUrl: string | null }) {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] overflow-hidden">
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[460px] overflow-hidden"
+      // Faded out as a whole, so a photograph ends as softly as a colour
+      // does — without it the image stopped in a hard line across the page.
+      style={{
+        maskImage: "linear-gradient(to bottom, black 45%, transparent 100%)",
+        WebkitMaskImage: "linear-gradient(to bottom, black 45%, transparent 100%)",
+      }}
+    >
       {coverUrl ? (
         <AssetImage legacyUrl={coverUrl} sizes="100vw" className="size-full scale-110 opacity-60 blur-md" />
       ) : null}
