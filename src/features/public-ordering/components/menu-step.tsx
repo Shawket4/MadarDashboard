@@ -3,7 +3,7 @@ import { AssetImage, assetOf } from "@/components/app/asset-image";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { BadgePercent, Clock, Plus, Search, UtensilsCrossed } from "lucide-react";
+import { BadgePercent, ChevronRight, Clock, Plus, Search, UtensilsCrossed } from "lucide-react";
 
 import { usePublicMenu } from "@/data/api/generated/api";
 import type { DeliveryMenu } from "@/data/api/generated/models/deliveryMenu";
@@ -163,7 +163,8 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
   const openItem = (item: DeliveryMenuItem) => {
     // Cart-building is allowed even in browse mode (closed branch preview): the
     // customer can fill a cart now and check out the moment a channel reopens.
-    if (readOnly) return;
+    // On a menu with no cart (`readOnly`, `menuMode`) the same sheet opens to
+    // look: the real options, and what the drink comes to with them.
     setActive(item);
     setCustomizerOpen(true);
   };
@@ -385,12 +386,14 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
         open={customizerOpen && !isCombo(active)}
         onOpenChange={setCustomizerOpen}
         onConfirm={onAdd}
+        viewOnly={readOnly || menuMode}
       />
       <ComboCustomizer
         item={isCombo(active) ? active : null}
         open={customizerOpen && isCombo(active)}
         onOpenChange={setCustomizerOpen}
         onConfirm={onAdd}
+        viewOnly={readOnly || menuMode}
       />
     </>
   );
@@ -407,7 +410,7 @@ function MenuCard({
   lang: string;
   count: number;
   onOpen: () => void;
-  /** A menu to read: the item and its price, no add button and nothing to tap. */
+  /** A menu to read: tapping opens the item to look, so no add button on the card. */
   readOnly?: boolean;
 }) {
   const { t } = useTranslation();
@@ -451,14 +454,6 @@ function MenuCard({
     </>
   );
 
-  if (readOnly) {
-    return (
-      <div className="flex h-full w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 text-start shadow-sm">
-        {inner}
-      </div>
-    );
-  }
-
   return (
     <button
       type="button"
@@ -470,13 +465,20 @@ function MenuCard({
     >
       {inner}
 
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm transition-transform group-hover:scale-105">
-        {count > 0 ? (
-          <span className="text-xs font-bold tabular-nums">{count}</span>
-        ) : (
-          <Plus className="size-4" />
-        )}
-      </span>
+      {readOnly ? (
+        <ChevronRight
+          aria-hidden
+          className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+        />
+      ) : (
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm transition-transform group-hover:scale-105">
+          {count > 0 ? (
+            <span className="text-xs font-bold tabular-nums">{count}</span>
+          ) : (
+            <Plus className="size-4" />
+          )}
+        </span>
+      )}
     </button>
   );
 }

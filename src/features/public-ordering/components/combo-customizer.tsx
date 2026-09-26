@@ -50,9 +50,18 @@ interface ComboCustomizerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (line: CartLine) => void;
+  /** The shop's read-only menu: pick and price, nothing to add — see `ItemCustomizer`. */
+  viewOnly?: boolean;
 }
 
-export function ComboCustomizer({ item, editing, open, onOpenChange, onConfirm }: ComboCustomizerProps) {
+export function ComboCustomizer({
+  item,
+  editing,
+  open,
+  onOpenChange,
+  onConfirm,
+  viewOnly = false,
+}: ComboCustomizerProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const combo = item?.combo ?? null;
@@ -216,18 +225,32 @@ export function ComboCustomizer({ item, editing, open, onOpenChange, onConfirm }
               <Plus className="size-4" />
             </Button>
           </div>
-          <Button
-            className="flex-1"
-            size="lg"
-            disabled={!draft || !!unmet}
-            onClick={() => draft && !unmet && (onConfirm(draft), onOpenChange(false))}
-          >
-            {unmet
-              ? t("order.combo.chooseSlot", { defaultValue: "Choose your {{slot}}", slot: unmetName })
-              : editing
-                ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
-                : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
-          </Button>
+          {viewOnly ? (
+            // Nothing to add to: the price of what was picked, where the add
+            // button stands when the shop is taking the order.
+            <p
+              aria-live="polite"
+              className="flex h-10 flex-1 items-center justify-end gap-2 text-base font-semibold tabular-nums"
+            >
+              <span className="text-sm font-normal text-muted-foreground">
+                {t("order.cart.total", "Total")}
+              </span>
+              {fmtMoney(totalPrice)}
+            </p>
+          ) : (
+            <Button
+              className="flex-1"
+              size="lg"
+              disabled={!draft || !!unmet}
+              onClick={() => draft && !unmet && (onConfirm(draft), onOpenChange(false))}
+            >
+              {unmet
+                ? t("order.combo.chooseSlot", { defaultValue: "Choose your {{slot}}", slot: unmetName })
+                : editing
+                  ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
+                  : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
+            </Button>
+          )}
         </div>
       </DrawerContent>
     </Drawer>
