@@ -243,6 +243,11 @@ describe("Bundles report · export", () => {
     expect(values(sheet.rows[0])).toEqual(["Lunch deal", 12, 10, 180000, 216000, 36000, 67540, 0.6248]);
     expect(values(sheet.rows[1])[7]).toBeNull();
     expect(sheet.columns.map((c) => c.type)).toEqual(["text", "integer", "integer", "money", "money", "money", "money", "percent"]);
+    // One order can hold two combos, so the per-row order counts don't add up
+    // to the period's orders: the TOTALS row leaves that column blank (live T3:
+    // 3 orders summed to 4). Sold, money and cost do add up.
+    const totalled = (sheet.columns as { header: string; total?: boolean }[]).filter((c) => c.total).map((c) => c.header);
+    expect(totalled).toEqual(["Sold", "Revenue", "Separately", "Saving given", "Cost"]);
     expect(toastError).not.toHaveBeenCalled();
   });
 
