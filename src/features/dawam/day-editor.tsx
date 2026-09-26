@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { moveShift, putDay, putTimes, resetDay } from "@/data/api/generated/api";
-import type { DayBlock, LabourWarning, RosterPerson, RosterShift, WorkShiftBrief } from "@/data/api/generated/models";
+import type { DayBlock, ElsewhereShift, LabourWarning, RosterPerson, RosterShift, WorkShiftBrief } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate } from "@/lib/format";
 import { fmtHours, invalidateStaff } from "@/features/staff/util";
@@ -85,6 +85,7 @@ export function DayEditor({
   person,
   date,
   shifts,
+  elsewhere: away = [],
   templates,
   staff,
   ownSet,
@@ -98,6 +99,9 @@ export function DayEditor({
   person: { employee_id: string; name: string };
   date: string;
   shifts: RosterShift[];
+  /** Their shifts at other branches that date (GET /staff/roster `elsewhere`):
+   *  said, never edited here or sent back in a PUT. */
+  elsewhere?: ElsewhereShift[];
   templates: WorkShiftBrief[];
   staff: RosterPerson[];
   /** The date holds its own set (GET /staff/roster date_sets): only then can
@@ -135,7 +139,11 @@ export function DayEditor({
   const moving_ = shifts.find((x) => x.work_shift_id === moving);
   const moveClash = moving_ && moveTo && shiftsOf ? clashesWith(shiftsOf(moveTo).map(timed), timed(moving_)) : [];
   const moveToName = staff.find((p) => p.employee_id === moveTo)?.name ?? "";
-  const elsewhere = shifts.filter((x) => x.branch_id && branchId && x.branch_id !== branchId);
+  const branchOf = (id: string, name?: string | null) => name || (branchNames?.get(id) ?? t("dawamOps.otherBranch", "another branch"));
+  const elsewhere = [
+    ...shifts.filter((x) => x.branch_id && branchId && x.branch_id !== branchId).map((x) => `${x.shift_name} (${branchOf(x.branch_id)})`),
+    ...away.map((x) => `${x.shift_name} (${branchOf(x.branch_id, x.branch_name)})`),
+  ];
   const clashText = (list: TimedBlock[]) =>
     list.map((b) => `${b.name} ${b.start}–${b.end}`).join(t("common.listSeparator", ", "));
 
@@ -203,7 +211,7 @@ export function DayEditor({
         {elsewhere.length > 0 ? (
           <p role="note" className="rounded-lg border bg-muted/40 px-3 py-2 text-sm">
             {t("dawamOps.alsoElsewhere", {
-              shifts: elsewhere.map((x) => `${x.shift_name} (${branchNames?.get(x.branch_id) ?? t("dawamOps.otherBranch", "another branch")})`).join(t("common.listSeparator", ", ")),
+              shifts: elsewhere.join(t("common.listSeparator", ", ")),
               defaultValue: "Also works at another branch that day: {{shifts}}.",
             })}
           </p>
@@ -391,6 +399,11 @@ export function DayEditor({
           {t("dawam.dayEditorWarn", "Labour limits only warn; overlapping shifts are refused.")}
         </p>
 
+        {ownSet ? (
+          <p className="text-xs text-muted-foreground">
+            {t("dawam.backToPatternHint", "Only this branch's shifts go back to the pattern; shifts at other branches stay.")}
+          </p>
+        ) : null}
         <DialogFooter className="flex-wrap gap-2 sm:justify-between">
           {ownSet ? (
           <Button
@@ -398,7 +411,7 @@ export function DayEditor({
             disabled={busy}
             onClick={() =>
               void run(
-                () => resetDay({ employee_id: person.employee_id, on_date: date }),
+                () => resetDay({ employee_id: person.employee_id, on_date: date, branch_id: branchId }),
                 t("dawam.backToPatternDone", "Back on the standing pattern"),
               )
             }

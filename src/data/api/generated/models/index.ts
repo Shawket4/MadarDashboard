@@ -341,6 +341,7 @@ export * from './discountsAuditParams';
 export * from './drinkRecipe';
 export * from './earningItem';
 export * from './earningItemList';
+export * from './elsewhereShift';
 export * from './employee';
 export * from './errorBody';
 export * from './errorBodyTill';

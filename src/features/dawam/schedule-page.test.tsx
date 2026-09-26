@@ -23,6 +23,8 @@ let warnings: unknown[] = [];
 let suggestionsList: unknown[] = [];
 let coverage: unknown = null;
 let shiftsList: unknown[] = [];
+/** The staff's shifts at other branches (GET /staff/roster `elsewhere`). */
+let elsewhereList: unknown[] = [];
 let openShifts: unknown[] = [];
 let fairnessBranches: unknown[] = [];
 let audits: unknown[] = [];
@@ -100,6 +102,7 @@ vi.mock("@/data/api/generated/api", () => ({
       { employee_id: "e2", name: "Omar Nabil", cant_work_days: [5], pref_time: "evening", prefs_set_by: "manager" },
     ],
     shifts: shiftsList,
+    elsewhere: elsewhereList,
     open_shifts: openShifts,
     // The 45-day read from today carries holidaysList; the viewed week's read its own.
     holidays: p.to === addDays(todayIso(), 45) ? holidaysList : weekHolidays,
@@ -152,6 +155,7 @@ beforeEach(() => {
   toastMock.error.mockClear();
   toastMock.warning.mockClear();
   shiftsList = [{ employee_id: "e1", employee_name: "Sara Ahmed", date: week, branch_id: "b1", work_shift_id: "zM", shift_name: "Morning", start_at: "", end_at: "", start_time: "08:00:00", end_time: "16:00:00", crosses_midnight: false, times_edited: false, from_override: false, changed: false, on_leave: false }];
+  elsewhereList = [];
   openShifts = [];
   fairnessBranches = [];
   audits = [];
@@ -498,7 +502,7 @@ describe("SchedulePage", () => {
     wrap(<SchedulePage />);
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Back to pattern" }));
-    await waitFor(() => expect(calls.resetDay).toHaveBeenCalledWith({ employee_id: "e1", on_date: week }));
+    await waitFor(() => expect(calls.resetDay).toHaveBeenCalledWith({ employee_id: "e1", on_date: week, branch_id: "b1" }));
 
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     const dialog = await screen.findByRole("dialog");
@@ -615,6 +619,28 @@ describe("SchedulePage", () => {
     const d2 = await screen.findByRole("dialog");
     expect(within(d2).queryByRole("button", { name: "Back to pattern" })).not.toBeInTheDocument();
     expect(within(d2).getByText("Follows the standing pattern")).toBeInTheDocument();
+  });
+
+  it("marks a shift at another branch 'at <branch>', never 'Off', and resets only this branch (BUG-4, P7)", async () => {
+    const user = userEvent.setup();
+    elsewhereList = [
+      { employee_id: "e2", date: week, branch_id: "b2", branch_name: "Maadi", work_shift_id: "mM", shift_name: "Maadi Morning", start_time: "09:00:00", end_time: "17:00:00", crosses_midnight: false },
+    ];
+    wrap(<SchedulePage />);
+    const cell = screen.getAllByRole("button", { name: /^Omar Nabil, / })[0];
+    expect(within(cell).getByText("at Maadi")).toBeInTheDocument();
+    expect(within(cell).getByText("Maadi Morning")).toBeInTheDocument();
+    expect(within(cell).queryByText("Off")).not.toBeInTheDocument();
+    await user.click(cell);
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("note")).toHaveTextContent("Also works at another branch that day: Maadi Morning (Maadi).");
+    // The other branch's shift is shown, never one of this day's own to edit or send.
+    expect(within(dialog).queryByRole("button", { name: "Take Maadi Morning off this day" })).not.toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    // Back to pattern says it is this branch's only, and sends the board's branch.
+    await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
+    const d1 = await screen.findByRole("dialog");
+    expect(within(d1).getByText("Only this branch's shifts go back to the pattern; shifts at other branches stay.")).toBeInTheDocument();
   });
 
   it("reads in Arabic", async () => {

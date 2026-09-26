@@ -6453,6 +6453,7 @@
     "dayEditorWarn": "Labour limits only warn; overlapping shifts are refused.",
     "backToPatternDone": "Back on the standing pattern",
     "backToPattern": "Back to pattern",
+    "backToPatternHint": "Only this branch's shifts go back to the pattern; shifts at other branches stay.",
     "errNoteLong": "At most 300 characters",
     "noPreference": "No preference",
     "prefsSaved": "Preferences saved; they were told",
