@@ -12,6 +12,8 @@
 //   /now/<memberToken>     — "Order now" from a loyalty card: the same flow, opened
 //                            knowing who is ordering (+search: branch, channel)
 //   /order/<orgId>         — back-compat alias (tracking page links here)
+//   /menu                  — the shop's read-only menu (its own hostname): the
+//                            same page in browse mode, +search: branch
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -120,6 +122,23 @@ const indexRoute = createRoute({
   },
 });
 
+// The digital menu: a link-in-bio or a table card that shows the menu without
+// asking anything first. It is the ordering page in browse mode — one menu
+// surface, not a second copy — and on a shop that takes online orders its
+// banner offers the way into an order.
+const menuRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/menu",
+  validateSearch: z.object({ branch: z.string().optional() }),
+  component: function Menu() {
+    const { orgId, resolving } = useHostOrg();
+    const s = menuRoute.useSearch();
+    if (resolving) return null;
+    if (!orgId) return <ScanToOrder />;
+    return <PublicOrderingPage orgId={orgId} branch={s.branch} preview />;
+  },
+});
+
 const trackRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/track/$id",
@@ -216,6 +235,7 @@ const branchRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  menuRoute,
   trackRoute,
   nowRoute,
   orderCompatRoute,

@@ -11657,7 +11657,8 @@ export const CancelPublicBookingResponse = zod.object({
 
 
 export const PublicBranchesQueryParams = zod.object({
-  "org_id": zod.uuid()
+  "org_id": zod.uuid(),
+  "browse": zod.boolean().nullish().describe('The read-only menu (`\/menu`): every active branch, not only the ones\ntaking online orders — a shop with ordering switched off still has a\nmenu to show. Each branch\'s channel flags stay as they are, so a client\nnever offers an order where none is taken.')
 })
 
 export const PublicBranchesResponseItem = zod.object({
@@ -11850,7 +11851,7 @@ export const PublicMenuParams = zod.object({
 })
 
 export const PublicMenuQueryParams = zod.object({
-  "channel": zod.string(),
+  "channel": zod.string().describe('A delivery channel, or `dine_in` — the dine-in menu (branch prices, no\nchannel discount), accepted ONLY with `preview=true`: the read-only\nmenu of a shop that takes no online orders. Nothing can be ordered\nagainst it; quote and intake know no such channel.'),
   "preview": zod.boolean().nullish().describe('Read-only browse preview. When `true`, the menu is returned even if the\nchannel is closed right now, so customers can browse while a branch is\nclosed. This NEVER relaxes the channel-\*enabled\* check, and the\ndelivery-quote \/ order-intake endpoints stay gated on open-now — so a\npreview can never become a real order against a closed channel.')
 })
 

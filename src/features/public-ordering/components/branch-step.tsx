@@ -13,15 +13,17 @@ interface BranchStepProps {
   onSelect: (branch: PublicBranch) => void;
   /** Tapping a fully-closed (but deliverable) branch enters read-only browse. */
   onPreview?: (branch: PublicBranch) => void;
+  /** The read-only menu: list every branch, not only those taking orders. */
+  browse?: boolean;
 }
 
 /** A branch is offerable if at least one delivery channel is enabled. */
 const isDeliverable = (b: PublicBranch) =>
   b.in_mall_enabled || b.outside_enabled || b.umbrella_enabled || b.pickup_enabled;
 
-export function BranchStep({ orgId, onSelect, onPreview }: BranchStepProps) {
+export function BranchStep({ orgId, onSelect, onPreview, browse }: BranchStepProps) {
   const { t } = useTranslation();
-  const { data, isLoading, isError } = usePublicBranches({ org_id: orgId });
+  const { data, isLoading, isError } = usePublicBranches({ org_id: orgId, browse: browse || undefined });
 
   if (isLoading) {
     return (

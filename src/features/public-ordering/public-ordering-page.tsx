@@ -219,7 +219,11 @@ export function PublicOrderingPage({
   const idempotencyKey = useRef<string>(newUid());
 
   // ── Resolve the selected branch object (needed by channel step) ───────────
-  const { data: branches, isLoading: branchesLoading } = usePublicBranches({ org_id: orgId });
+  // Browsing lists every branch: a shop with ordering off still has a menu.
+  const { data: branches, isLoading: branchesLoading } = usePublicBranches({
+    org_id: orgId,
+    browse: preview || undefined,
+  });
   const branchObj = useMemo<PublicBranch | null>(
     () => branches?.find((b) => b.id === branchId) ?? null,
     [branches, branchId],
@@ -265,8 +269,17 @@ export function PublicOrderingPage({
             ? "pickup"
             : null
     : null;
-  // The channel whose menu/prices we actually request.
-  const menuChannel: Channel = selectedChannel ?? browseChannel ?? "in_mall";
+  // The channel whose menu/prices we actually request. A branch that takes no
+  // online orders shows its dine-in menu, read-only.
+  const menuChannel: Channel | "dine_in" =
+    selectedChannel ?? browseChannel ?? (browseOnly ? "dine_in" : "in_mall");
+  const menuOnly = browseOnly && browseChannel == null;
+  const branchOpenNow =
+    !!branchObj &&
+    (branchObj.in_mall_open_now ||
+      branchObj.outside_open_now ||
+      branchObj.umbrella_open_now ||
+      branchObj.pickup_open_now);
   const enterBrowse = () => setUrl({ branch: branchId ?? undefined, channel: undefined, preview: true });
 
   // A selected channel that isn't open right now (direct link to a closed channel,
@@ -274,6 +287,14 @@ export function PublicOrderingPage({
   // Suppressed in browse mode — there we intentionally ignore open-now.
   const channelClosed =
     !browseOnly && !!branchObj && !!selectedChannel && !channelOpenNow(branchObj, selectedChannel);
+
+  // The menu link of a one-branch shop opens straight on that branch's menu:
+  // a picker with one choice in it is a tap for nothing.
+  useEffect(() => {
+    if (preview && !branchId && branches?.length === 1) {
+      setUrl({ branch: branches[0].id, channel: undefined, preview: true });
+    }
+  }, [preview, branchId, branches, setUrl]);
 
   // No auto-selection: when no branch is in the URL (e.g. org-level QR) the
   // customer reaches the branch picker and chooses explicitly.
@@ -558,7 +579,9 @@ export function PublicOrderingPage({
   const itemCount = lines.reduce((s, l) => s + l.quantity, 0);
   // The server's price for this cart on this channel, deals applied — what
   // intake will charge for the items. Falls back to the estimate silently.
-  const pricing = useCartQuote({ kind: "branch", id: branchId, channel: menuChannel }, lines);
+  // A read-only menu has no cart to price; the quote needs a real channel.
+  const quoteChannel: Channel = menuChannel === "dine_in" ? "in_mall" : menuChannel;
+  const pricing = useCartQuote({ kind: "branch", id: branchId, channel: quoteChannel }, lines);
   const itemsAfterDeals = pricing.afterDeals;
   // Estimated channel discount. Intake takes it off what is left AFTER the
   // deals, so this does too (server reprices authoritatively at intake).
@@ -925,8 +948,13 @@ export function PublicOrderingPage({
             {step === "branch" && (
               <BranchStep
                 orgId={orgId}
-                onSelect={handleSelectBranch}
+                onSelect={
+                  preview
+                    ? (b) => setUrl({ branch: b.id, channel: undefined, preview: true })
+                    : handleSelectBranch
+                }
                 onPreview={(b) => setUrl({ branch: b.id, channel: undefined, preview: true })}
+                browse={preview}
               />
             )}
 
@@ -995,27 +1023,31 @@ export function PublicOrderingPage({
               />
             ) : null}
 
-            {step === "menu" && branchId && (selectedChannel ?? browseChannel) && (!channelClosed || browseOnly) && (
+            {step === "menu" && branchId && (selectedChannel ?? browseChannel ?? (browseOnly ? "dine_in" : null)) && (!channelClosed || browseOnly) && (
               <MenuStep
                 branchId={branchId}
                 channel={menuChannel}
                 browseOnly={browseOnly}
+                open={branchOpenNow}
+                readOnly={menuOnly}
                 onExitBrowse={() => setUrl({ branch: branchId ?? undefined, channel: undefined, preview: undefined })}
                 countByItem={countByItem}
                 onAdd={addOrUpdateLine}
                 query={menuQuery}
                 onQueryChange={setMenuQuery}
                 cartSlot={
-                  <CartPanel
-                    lines={lines}
-                    deliveryFee={deliveryFee}
-                    discountAmount={discountAmount}
-                    onEdit={startEdit}
-                    onRemove={removeLine}
-                    onSetQty={setLineQty}
-                    onCheckout={requestCheckout}
-                    quote={pricing.quote}
-                  />
+                  menuOnly ? undefined : (
+                    <CartPanel
+                      lines={lines}
+                      deliveryFee={deliveryFee}
+                      discountAmount={discountAmount}
+                      onEdit={startEdit}
+                      onRemove={removeLine}
+                      onSetQty={setLineQty}
+                      onCheckout={requestCheckout}
+                      quote={pricing.quote}
+                    />
+                  )
                 }
               />
             )}
