@@ -504,7 +504,7 @@ function MenuCard({
       onClick={onOpen}
       className={cn(
         "group flex h-full w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 text-start shadow-sm transition-all",
-        "hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0",
+        "hover:border-brand/40 hover:shadow-md",
       )}
     >
       {inner}
@@ -512,10 +512,10 @@ function MenuCard({
       {readOnly ? (
         <ChevronRight
           aria-hidden
-          className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
+          className="size-4 shrink-0 text-muted-foreground rtl:rotate-180"
         />
       ) : (
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm transition-transform group-hover:scale-105">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm">
           {count > 0 ? (
             <span className="text-xs font-bold tabular-nums">{count}</span>
           ) : (

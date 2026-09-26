@@ -95,7 +95,7 @@ export function BranchStep({ orgId, onSelect, onPreview, browse }: BranchStepPro
               className={cn(
                 "group flex w-full items-center gap-3 rounded-2xl p-4 text-start transition-all",
                 lit
-                  ? "border border-border/70 bg-card shadow-sm hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0"
+                  ? "border border-border/70 bg-card shadow-sm hover:border-brand/40 hover:shadow-md"
                   : "border border-dashed border-border/70 bg-muted/30 hover:border-brand/40 hover:bg-muted/50",
               )}
             >
@@ -155,7 +155,7 @@ export function BranchStep({ orgId, onSelect, onPreview, browse }: BranchStepPro
                 </span>
               </span>
               {tappable && (
-                <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+                <ChevronRight className="size-5 shrink-0 text-muted-foreground rtl:rotate-180" />
               )}
             </button>
           </motion.li>

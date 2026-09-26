@@ -79,7 +79,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
 
   if (isLoading) {
     return (
-      <StorefrontShell brand={brand} product="ordering" pending>
+      <StorefrontShell brand={brand} product="ordering">
         <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground" role="status">
           <Loader2 className="size-6 animate-spin motion-reduce:animate-none" />
           <p className="text-sm">{t("order.track.loading", "Loading your order…")}</p>

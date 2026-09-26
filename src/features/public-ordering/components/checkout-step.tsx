@@ -450,10 +450,10 @@ function PaymentChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition-all active:translate-y-0",
+        "flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition-colors",
         active
           ? "border-brand bg-brand/10 text-brand shadow-sm"
-          : "border-border/70 bg-card text-foreground hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md",
+          : "border-border/70 bg-card text-foreground hover:border-brand/40 hover:shadow-md",
       )}
     >
       {icon}

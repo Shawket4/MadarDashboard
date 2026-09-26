@@ -4,7 +4,6 @@ import { Languages, Moon, Sun } from "lucide-react";
 
 import { LegalLinks } from "@/components/legal-links";
 
-import { MADAR_TEAL } from "./brand-color";
 import { hostSlug } from "./use-brand";
 import { useShopFavicon } from "./use-favicon";
 import { useBrandSkin } from "./use-brand-skin";
@@ -27,9 +26,9 @@ export interface ShellBrand {
    * Whether the palette above is the SHOP's or Madar's.
    *
    * Not a colour decision — the colours arrive already resolved, and a shop off
-   * the tier is handed Madar's palette server-side. It only decides how loudly
-   * Madar signs the footer: see `MadarFooter`. Absent means "we were not told",
-   * which signs at full volume.
+   * the tier is handed Madar's palette server-side. The dashboard's chrome reads
+   * it (whose logo the sidebar shows); the public footer does not — it signs
+   * every page the same.
    */
   ownBranding?: boolean;
 }
@@ -122,14 +121,12 @@ export function BrandMark({
 }
 
 /**
- * Madar's signature, on every public page at every tier.
+ * Madar's signature, on every public page at every tier, at ONE size.
  *
- * The mark and "powered by" NEVER leave — that is the deal, and a shop can look
- * like itself on top of our name rather than instead of it. What `ownBranding`
- * changes is only the VOLUME: on a page a shop is paying to make its own, the
- * signature steps back to a smaller mark and drops the copyright line, because
- * two brands shouting at the same size is a page that belongs to neither. Off
- * the tier the page IS Madar's, and it signs at full size.
+ * The mark, the product line, the copyright and the legal links, the same on a
+ * shop's own page as on ours. It used to step back to a smaller mark on a
+ * branded shop's page; at that size the footer read as an afterthought, and a
+ * shop's customers saw two different footers depending on which page they hit.
  */
 /**
  * Which of Madar's products this page is.
@@ -148,57 +145,30 @@ export function BrandMark({
  */
 export type MadarProduct = "loyalty" | "ordering" | "reservations";
 
-/**
- * Whether this page is the shop's own, so Madar signs it quietly.
- *
- * Told, where the page's data says (`ownBranding`). Where it does not — the
- * loyalty payload carries the palette but not the tier — the palette answers:
- * the server hands a shop off the tier Madar's own teal, so any other ground
- * is a shop that paid for its own. Without that fallback every loyalty page
- * signed at full volume while the same shop's ordering page signed quietly.
- */
-export function signsQuietly(brand: ShellBrand | null | undefined): boolean {
-  if (!brand) return false;
-  return brand.ownBranding ?? brand.background.toUpperCase() !== MADAR_TEAL;
-}
-
-export function MadarFooter({
-  brand,
-  product,
-}: {
-  brand?: ShellBrand | null;
-  product?: MadarProduct;
-}) {
+export function MadarFooter({ product }: { product?: MadarProduct }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
-  const quiet = signsQuietly(brand);
 
   return (
     <footer className="mt-12 flex flex-col items-center gap-2 border-t border-border/60 pt-6 text-center">
       <img
         src={lang.startsWith("ar") ? "/madar_ar.svg" : "/madar.svg"}
         alt={t("app.name")}
-        className={
-          quiet
-            ? "h-4 opacity-60 dark:brightness-0 dark:invert"
-            : "h-6 opacity-80 dark:brightness-0 dark:invert"
-        }
+        className="h-6 opacity-80 dark:brightness-0 dark:invert"
       />
-      <p className={quiet ? "text-[11px] text-muted-foreground/80" : "text-xs text-muted-foreground"}>
+      <p className="text-xs text-muted-foreground">
         {t(
           product ? `publicShell.poweredBy.${product}` : "publicShell.poweredBy.generic",
           "Powered by Madar",
         )}
       </p>
-      {quiet ? null : (
-        <p className="text-[11px] text-muted-foreground/70">
-          {t("order.footer.rights", {
-            year: new Date().getFullYear(),
-            name: t("app.name"),
-            defaultValue: "© {{year}} {{name}}. All rights reserved.",
-          })}
-        </p>
-      )}
+      <p className="text-[11px] text-muted-foreground/70">
+        {t("order.footer.rights", {
+          year: new Date().getFullYear(),
+          name: t("app.name"),
+          defaultValue: "© {{year}} {{name}}. All rights reserved.",
+        })}
+      </p>
       <LegalLinks className="mt-1" />
     </footer>
   );
@@ -220,7 +190,6 @@ export function StorefrontShell({
   brand,
   product,
   headerMark = true,
-  pending = false,
 }: {
   children: ReactNode;
   /** Which product this page is, for the footer's signature. */
@@ -232,8 +201,7 @@ export function StorefrontShell({
    * wash of its colour. The palette arrives ALREADY RESOLVED — the branding
    * tier is applied server-side, and a shop off the tier is handed Madar's own
    * colours — so nothing here branches on whether it was paid for. The FOOTER
-   * keeps the Madar mark and "powered by" either way; `brand.ownBranding` only
-   * sets how loudly it signs.
+   * is the same either way.
    */
   brand?: ShellBrand | null;
   /**
@@ -242,12 +210,6 @@ export function StorefrontShell({
    * rather than the same logo twice within a thumb's height.
    */
   headerMark?: boolean;
-  /**
-   * The page is still loading and does not yet know whose it is. The footer
-   * waits: signing at full volume for a moment and then shrinking to the
-   * shop's quiet signature is a jump under the reader's thumb on every load.
-   */
-  pending?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
@@ -290,7 +252,7 @@ export function StorefrontShell({
 
       <main className="relative z-10 mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-10 pt-5">
         <div className="flex-1">{children}</div>
-        {pending ? null : <MadarFooter brand={brand} product={product} />}
+        <MadarFooter product={product} />
       </main>
     </div>
   );

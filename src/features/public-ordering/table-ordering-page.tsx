@@ -140,7 +140,7 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
 
   if (table.isPending) {
     return (
-      <StorefrontShell product="ordering" pending>
+      <StorefrontShell product="ordering">
         <TableSkeleton />
       </StorefrontShell>
     );

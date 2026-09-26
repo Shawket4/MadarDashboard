@@ -21,7 +21,7 @@
  * preview on a wide screen, and must see the phone layout there.
  *
  * ## Rooted in the guest pages
- * `MadarFooter` (Madar's signature at the tier's volume), the shop's favicon
+ * `MadarFooter` (Madar's signature, the same on every public page), the shop's favicon
  * (`useShopFavicon`), the storefront theme (`usePublicTheme`), the shared
  * `SocialLinks`, `AssetImage` for the mark (on a plate — the card's rule), and
  * the page-accent contrast walk (`usePageColor`). A shop off the branding tier
@@ -188,7 +188,7 @@ export function LinksPage({ orgId }: { orgId?: string | null }) {
         </div>
 
         <div className="mt-auto pb-10">
-          <MadarFooter brand={shell} />
+          <MadarFooter />
         </div>
       </main>
     </div>
@@ -361,7 +361,7 @@ function LinkRow({
     <a
       href={href}
       {...(custom ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className={`group flex h-full min-h-[72px] items-center gap-3.5 rounded-2xl border border-border/70 bg-card p-3.5 shadow-sm transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-border hover:shadow-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${card ? "@3xl:min-h-[132px] @3xl:flex-col @3xl:items-start @3xl:justify-between @3xl:p-5" : "@3xl:min-h-[80px] @3xl:px-5"}`}
+      className={`group flex h-full min-h-[72px] items-center gap-3.5 rounded-2xl border border-border/70 bg-card p-3.5 shadow-sm transition-[border-color,box-shadow] hover:border-border hover:shadow-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none ${card ? "@3xl:min-h-[132px] @3xl:flex-col @3xl:items-start @3xl:justify-between @3xl:p-5" : "@3xl:min-h-[80px] @3xl:px-5"}`}
     >
       <span
         className="grid size-11 shrink-0 place-items-center rounded-xl"

@@ -99,7 +99,7 @@ export function ChannelStep({ branch, onSelect, onBrowse }: ChannelStepProps) {
               className={cn(
                 "group flex w-full items-center gap-4 rounded-2xl border p-5 text-start shadow-sm transition-all",
                 o.open
-                  ? "border-border/70 bg-card hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0"
+                  ? "border-border/70 bg-card hover:border-brand/40 hover:shadow-md"
                   : "cursor-not-allowed border-dashed border-border/60 bg-muted/40 opacity-70",
               )}
             >
@@ -129,7 +129,7 @@ export function ChannelStep({ branch, onSelect, onBrowse }: ChannelStepProps) {
                 <span className="mt-1 block text-sm text-muted-foreground">{o.hint}</span>
               </span>
               {o.open && (
-                <ChevronRight className="size-5 shrink-0 text-brand transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+                <ChevronRight className="size-5 shrink-0 text-brand rtl:rotate-180" />
               )}
             </button>
           </motion.li>
