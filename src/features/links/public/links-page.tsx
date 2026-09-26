@@ -37,6 +37,7 @@ import {
 import { usePublicOrgLinks } from "@/data/api/generated/api";
 import type { PublicLinksItem } from "@/data/api/generated/models/publicLinksItem";
 import type { PublicLinksBranch } from "@/data/api/generated/models/publicLinksBranch";
+import { AssetImage } from "@/components/app/asset-image";
 import { StorefrontShell, type ShellBrand } from "@/features/public-shell/storefront-shell";
 import { hostSlug } from "@/features/public-shell/use-brand";
 import { PageNotice, PageSkeleton, Section, usePageColor } from "@/features/loyalty/public/page-shell";
@@ -145,23 +146,32 @@ export function LinksPage({ orgId }: { orgId?: string | null }) {
             </button>
           </div>
           <div className="relative z-10 -mt-12 flex flex-col gap-2 px-1">
-            <span
-              className="grid size-24 place-items-center overflow-hidden rounded-[28px] border-4 border-background shadow-sm"
-              style={{ background: page.brand.background_color }}
-            >
-              {brand.logoUrl ? (
-                <img
-                  src={brand.logoUrl}
+            {/* The mark on a white plate — the card's rule (card-face.tsx): the
+                shop's colours are derived FROM its logo, so the logo on its own
+                colour is invisible by construction (Drops: pink on pink), and
+                repainting it through a CSS mask silently drops it on Chrome for
+                Android. No logo: the initial, on the shop's colour. */}
+            {brand.logoUrl ? (
+              <span className="grid size-24 place-items-center overflow-hidden rounded-[28px] border-4 border-background bg-white p-3 shadow-sm">
+                <AssetImage
+                  legacyUrl={brand.logoUrl}
                   alt={page.brand.name}
-                  className="size-[72%] object-contain"
+                  sizes="96px"
+                  fit="contain"
+                  className="max-h-full max-w-full"
                   draggable={false}
                 />
-              ) : (
+              </span>
+            ) : (
+              <span
+                className="grid size-24 place-items-center overflow-hidden rounded-[28px] border-4 border-background shadow-sm"
+                style={{ background: page.brand.background_color }}
+              >
                 <span className="text-3xl font-semibold" style={{ color: onBrand }}>
                   {page.brand.name.trim().charAt(0).toUpperCase()}
                 </span>
-              )}
-            </span>
+              </span>
+            )}
             <h1 dir="auto" className="mt-1 font-serif text-[28px] leading-[1.15] text-balance">{page.brand.name}</h1>
             {tagline ? (
               <p className="max-w-[40ch] text-[15px] leading-relaxed text-muted-foreground">{tagline}</p>
