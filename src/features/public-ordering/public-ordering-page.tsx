@@ -24,7 +24,7 @@ import { fmtMoney } from "@/lib/format";
 import { fadeIn } from "@/lib/motion";
 
 import { isFlatChannel, type CartLine, type Channel, type Step } from "./types";
-import { asChannel, calcDiscount, cartSubtotal, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
+import { asChannel, calcDiscount, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
 import { getDeviceToken, setDeviceToken } from "@/features/public-shell/guest";
 import { canonicalPhone, formatPhoneInput, isValidPhone, samePhone } from "@/lib/phone";
 import { FIELD_LIMITS } from "./limits";
@@ -40,6 +40,10 @@ import { PhoneStep } from "./components/phone-step";
 import { LocationStep } from "./components/location-step";
 import { MenuStep } from "./components/menu-step";
 import { ItemCustomizer } from "./components/item-customizer";
+import { ComboCustomizer } from "./components/combo-customizer";
+import { isCombo } from "./combo";
+import { useCartQuote } from "./use-cart-quote";
+import { getErrorMessage } from "@/data/api/errors";
 import { CartSheet, CartPanel } from "./components/cart-sheet";
 import { CheckoutStep, emptyForm, type CheckoutForm } from "./components/checkout-step";
 import { CheckoutChannelSheet } from "./components/checkout-channel-sheet";
@@ -552,9 +556,13 @@ export function PublicOrderingPage({
   }, [lines]);
 
   const itemCount = lines.reduce((s, l) => s + l.quantity, 0);
-  const subtotal = cartSubtotal(lines);
-  // Estimated channel discount (server reprices authoritatively at intake).
-  const discountAmount = calcDiscount(subtotal, menu?.discount);
+  // The server's price for this cart on this channel, deals applied — what
+  // intake will charge for the items. Falls back to the estimate silently.
+  const pricing = useCartQuote({ kind: "branch", id: branchId, channel: menuChannel }, lines);
+  const itemsAfterDeals = pricing.afterDeals;
+  // Estimated channel discount. Intake takes it off what is left AFTER the
+  // deals, so this does too (server reprices authoritatively at intake).
+  const discountAmount = calcDiscount(itemsAfterDeals, menu?.discount);
 
   // Editing from the cart re-opens the menu customizer through MenuStep is not
   // direct; instead we open the cart's edit which mounts the customizer here.
@@ -633,7 +641,7 @@ export function PublicOrderingPage({
   // customer (`useOrderIdentity`), not failures to report.
   const sendOrder = async (identity: OrderIdentityFields): Promise<PlaceOutcome> => {
     setSubmitError(null);
-    const estimate = subtotal - discountAmount + (deliveryFee ?? 0);
+    const estimate = itemsAfterDeals - discountAmount + (deliveryFee ?? 0);
     try {
       const order = await createOrder.mutateAsync({ data: { ...buildInput(identity.device_token), ...identity } });
       setOtpOpen(false);
@@ -649,7 +657,9 @@ export function PublicOrderingPage({
       // Fresh idempotency key for the retry (this attempt failed).
       idempotencyKey.current = newUid();
       const { status, code } = identityRefusal(e);
-      return { ok: false, status, code };
+      // A coded refusal reads in the customer's language (a combo missing
+      // its picks, an item that just sold out) rather than "try again".
+      return { ok: false, status, code, message: code ? getErrorMessage(e) : undefined };
     }
   };
 
@@ -661,7 +671,7 @@ export function PublicOrderingPage({
         ? t("order.checkout.errChannelClosed", {
             defaultValue: "Sorry — this branch just stopped accepting orders on this channel.",
           })
-        : t("order.checkout.errSubmit"),
+        : (outcome.message ?? t("order.checkout.errSubmit")),
     );
   };
 
@@ -838,7 +848,7 @@ export function PublicOrderingPage({
           <span className="text-sm">{t("order.cart.units", { count: itemCount, defaultValue: "items" })}</span>
         </span>
         <span className="inline-flex items-center gap-2 text-sm font-semibold tabular-nums">
-          {fmtMoney(subtotal)}
+          {fmtMoney(itemsAfterDeals)}
           <ArrowRight className="size-4 rtl:rotate-180" />
         </span>
       </button>
@@ -1004,6 +1014,7 @@ export function PublicOrderingPage({
                     onRemove={removeLine}
                     onSetQty={setLineQty}
                     onCheckout={requestCheckout}
+                    quote={pricing.quote}
                   />
                 }
               />
@@ -1020,6 +1031,7 @@ export function PublicOrderingPage({
                 lines={lines}
                 deliveryFee={deliveryFee}
                 discountAmount={discountAmount}
+                quote={pricing.quote}
                 submitting={createOrder.isPending || otp.sending || identity.busy}
                 error={submitError}
                 phoneError={phoneError}
@@ -1058,6 +1070,7 @@ export function PublicOrderingPage({
           requestCheckout();
         }}
         onAddMore={() => setCartOpen(false)}
+        quote={pricing.quote}
       />
 
       {/* Browse-mode checkout: pick a channel, or the warm "closed" state */}
@@ -1067,17 +1080,25 @@ export function PublicOrderingPage({
           onOpenChange={setCheckoutSheetOpen}
           branch={branchObj}
           itemCount={itemCount}
-          subtotal={subtotal}
+          subtotal={itemsAfterDeals}
           onChoose={handleChooseChannelFromBrowse}
         />
       )}
 
       {/* Edit customizer (re-opens a configured line from the cart) */}
       <ItemCustomizer
-        item={editing?.item ?? null}
+        item={editing && !isCombo(editing.item) ? editing.item : null}
         addons={addons}
         editing={editing}
-        open={!!editing}
+        open={!!editing && !isCombo(editing.item)}
+        onOpenChange={(o) => !o && setEditing(null)}
+        onConfirm={addOrUpdateLine}
+      />
+      {/* A combo line reopens its own picker, with its picks. */}
+      <ComboCustomizer
+        item={editing && isCombo(editing.item) ? editing.item : null}
+        editing={editing}
+        open={!!editing && isCombo(editing.item)}
         onOpenChange={(o) => !o && setEditing(null)}
         onConfirm={addOrUpdateLine}
       />

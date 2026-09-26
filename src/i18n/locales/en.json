@@ -3589,6 +3589,23 @@
       "summaryDelivery": "Delivery",
       "welcomeBack": "Welcome back, {{name}}",
       "change": "Change"
+    },
+    "combo": {
+      "badge": "Combo",
+      "optional": "Optional",
+      "optionalUpTo": "Optional · up to {{count}}",
+      "pickN": "Pick {{count}}",
+      "pickRange": "Pick {{min}} to {{max}}",
+      "chooseSlot": "Choose your {{slot}}",
+      "included": "Included",
+      "regular": "Regular",
+      "fixedHint": "Everything below comes in the box.",
+      "describe": "Choose what goes in your combo",
+      "less": "One less {{name}}",
+      "more": "One more {{name}}"
+    },
+    "deal": {
+      "row": "Deal · {{name}}"
     }
   },
   "deliveryTimeline": {
@@ -5237,7 +5254,9 @@
     "title": "Table {{label}}",
     "total": "Total",
     "unknown": "We can't find that table",
-    "unknownHint": "Ask a member of staff — this code may have been replaced."
+    "unknownHint": "Ask a member of staff — this code may have been replaced.",
+    "dealOnBill": "Deals come off your bill when you pay.",
+    "sendFailedWhy": "That didn't send: {{reason}}"
   },
   "tablesInsights": {
     "title": "Tables",

@@ -20,6 +20,8 @@ import i18n from "@/i18n";
 
 import type { Channel, CartLine } from "../types";
 import { ItemCustomizer } from "./item-customizer";
+import { ComboCustomizer } from "./combo-customizer";
+import { isCombo } from "../combo";
 
 interface MenuStepProps {
   branchId: string;
@@ -335,10 +337,17 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
         )}
       </div>
 
+      {/* A combo has slots to fill, not add-ons: it gets its own picker. */}
       <ItemCustomizer
-        item={active}
+        item={isCombo(active) ? null : active}
         addons={data.addons}
-        open={customizerOpen}
+        open={customizerOpen && !isCombo(active)}
+        onOpenChange={setCustomizerOpen}
+        onConfirm={onAdd}
+      />
+      <ComboCustomizer
+        item={isCombo(active) ? active : null}
+        open={customizerOpen && isCombo(active)}
         onOpenChange={setCustomizerOpen}
         onConfirm={onAdd}
       />
@@ -380,7 +389,14 @@ function MenuCard({
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate font-medium">{getTranslatedName(item, lang)}</span>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate font-medium">{getTranslatedName(item, lang)}</span>
+          {isCombo(item) ? (
+            <span className="shrink-0 rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
+              {t("order.combo.badge", "Combo")}
+            </span>
+          ) : null}
+        </span>
         {description && (
           <span className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{description}</span>
         )}
