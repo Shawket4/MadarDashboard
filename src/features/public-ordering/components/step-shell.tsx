@@ -139,7 +139,7 @@ export function StepShell({
       <BrandWash brand={brand} />
 
       {variant !== "bare" && (
-        <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
+        <header data-sticky-header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
           <div className={cn("mx-auto flex w-full items-center gap-2 py-3", widthClass, padClass)}>
             {variant === "menu" ? (
               // The branch chip already says which of the shop's rooms you are

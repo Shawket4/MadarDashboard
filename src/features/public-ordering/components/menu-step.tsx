@@ -22,6 +22,7 @@ import type { Channel, CartLine } from "../types";
 import { ItemCustomizer } from "./item-customizer";
 import { ComboCustomizer } from "./combo-customizer";
 import { isCombo } from "../combo";
+import { useHeaderHeight } from "@/features/public-shell/use-header-height";
 
 interface MenuStepProps {
   branchId: string;
@@ -111,8 +112,42 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const [activeCat, setActiveCat] = useState<string | null>(null);
 
-  const scrollToCat = (id: string) =>
-    sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Mobile/tablet: the category bar sticks under the page header, and follows
+  // the section being read — scrolled sideways so its chip stays in view.
+  const headerH = useHeaderHeight();
+  const barRef = useRef<HTMLDivElement>(null);
+  const chipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  // A section lands under the header AND the sticky bar, not behind them. The
+  // bar measures 0 where it is hidden (desktop, where the rail does this job).
+  // A tapped category is the answer until the scroll it started settles: the
+  // spy would otherwise re-pick whatever the smooth scroll passes, and a last
+  // section too short to reach the top of the window would never be picked.
+  const spyPaused = useRef(false);
+  const scrollToCat = (id: string) => {
+    const el = sectionRefs.current[id];
+    if (!el) return;
+    setActiveCat(id);
+    spyPaused.current = true;
+    const resume = () => {
+      spyPaused.current = false;
+      window.removeEventListener("scrollend", resume);
+    };
+    window.addEventListener("scrollend", resume);
+    window.setTimeout(resume, 1200); // no `scrollend` (older Safari), or nothing to scroll
+    const covered = headerH + (barRef.current?.offsetHeight ?? 0) + 12;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - covered, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const bar = barRef.current;
+    const chip = activeCat ? chipRefs.current[activeCat] : null;
+    if (!bar || !chip || bar.offsetHeight === 0) return;
+    // Relative, so it reads the same in RTL, where scrollLeft counts backwards.
+    const b = bar.getBoundingClientRect();
+    const c = chip.getBoundingClientRect();
+    bar.scrollBy({ left: c.left + c.width / 2 - (b.left + b.width / 2), behavior: "smooth" });
+  }, [activeCat]);
 
   useEffect(() => {
     const els = groups
@@ -121,6 +156,7 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
     if (els.length === 0) return;
     const obs = new IntersectionObserver(
       (entries) => {
+        if (spyPaused.current) return;
         const top = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
@@ -287,12 +323,20 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
             />
           </div>
 
-          {/* Category pills — mobile only (desktop uses the rail) */}
+          {/* Category pills — mobile only (desktop uses the rail). Sticky under
+              the header for the whole menu, like the rail beside it. */}
           {!noResults && groups.length > 1 && (
-            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
+            <div
+              ref={barRef}
+              style={{ top: headerH }}
+              className="no-scrollbar sticky z-10 -mx-4 flex gap-2 overflow-x-auto border-b border-border/60 bg-background/90 px-4 py-2 backdrop-blur-md lg:hidden"
+            >
               {groups.map((group) => (
                 <button
                   key={group.id}
+                  ref={(el) => {
+                    chipRefs.current[group.id] = el;
+                  }}
                   type="button"
                   onClick={() => scrollToCat(group.id)}
                   className={cn(

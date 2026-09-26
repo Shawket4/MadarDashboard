@@ -269,7 +269,7 @@ export function StorefrontShell({
     <div className="relative flex min-h-[100dvh] flex-col bg-background text-foreground">
       <BrandWash brand={brand} />
 
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
+      <header data-sticky-header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[480px] items-center gap-2 px-4 py-3">
           {brand && headerMark ? (
             <BrandMark brand={brand} />
