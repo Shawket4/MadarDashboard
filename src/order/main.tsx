@@ -135,7 +135,7 @@ const menuRoute = createRoute({
     const s = menuRoute.useSearch();
     if (resolving) return null;
     if (!orgId) return <ScanToOrder />;
-    return <PublicOrderingPage orgId={orgId} branch={s.branch} preview />;
+    return <PublicOrderingPage orgId={orgId} branch={s.branch} preview menuMode />;
   },
 });
 

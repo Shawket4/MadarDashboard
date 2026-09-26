@@ -39,6 +39,14 @@ interface StepShellProps {
   /** Number of past orders — used to badge the history icon. */
   historyCount?: number;
   /**
+   * The menu step's heading, when this is the shop's read-only MENU rather
+   * than an order being built: "Menu" and the branch, in place of "What are
+   * you craving?" and the time-of-day greeting, which are ordering's voice.
+   */
+  menuHeading?: { title: string; subtitle?: string };
+  /** The menu is not a flow: no ordering progress bar over its branch picker. */
+  hideProgress?: boolean;
+  /**
    * Whose shop this is.
    *
    * The ordering flow needs its own frame — a progress row, a branch chip, a
@@ -91,6 +99,8 @@ export function StepShell({
   onOpenHistory,
   historyCount = 0,
   brand,
+  menuHeading,
+  hideProgress = false,
 }: StepShellProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
@@ -111,7 +121,7 @@ export function StepShell({
 
   const dots = PROGRESS_STEPS.filter((s) => s !== "location" || showLocationDot);
   const activeIdx = dots.indexOf(step);
-  const showProgress = variant === "flow" && activeIdx >= 0;
+  const showProgress = variant === "flow" && activeIdx >= 0 && !hideProgress;
 
   // The menu step breathes out to a multi-pane width on desktop; every other
   // step stays a focused mobile-width column, centered on large screens too.
@@ -213,9 +223,15 @@ export function StepShell({
         {variant === "menu" && (
           <div className="mb-4 lg:hidden">
             <h1 className="font-serif text-2xl font-semibold leading-tight tracking-tight">
-              {t("order.menu.greeting", "What are you craving?")}
+              {menuHeading ? menuHeading.title : t("order.menu.greeting", "What are you craving?")}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t(greet.key, greet.fallback)}</p>
+            {menuHeading ? (
+              menuHeading.subtitle ? (
+                <p className="mt-1 text-sm text-muted-foreground">{menuHeading.subtitle}</p>
+              ) : null
+            ) : (
+              <p className="mt-1 text-sm text-muted-foreground">{t(greet.key, greet.fallback)}</p>
+            )}
           </div>
         )}
         {variant === "flow" && (
@@ -229,7 +245,7 @@ export function StepShell({
 
         <div className="flex-1">{children}</div>
 
-        {variant !== "bare" && <MadarFooter brand={brand} product="ordering" />}
+        {variant !== "bare" && <MadarFooter brand={brand} product={menuHeading ? undefined : "ordering"} />}
       </main>
 
       {footer && (

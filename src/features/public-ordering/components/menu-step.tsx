@@ -62,6 +62,13 @@ interface MenuStepProps {
   /** Browse of a shop that takes no online orders: the menu to read, nothing
    *  to add — no customizer, no way to an order that could never be placed. */
   readOnly?: boolean;
+  /**
+   * The shop's MENU (`/menu`), not a preview inside the ordering flow: no
+   * browse banner, no add buttons. When the branch does take orders,
+   * `onOrder` puts one slim "Order now" bar above the list instead.
+   */
+  menuMode?: boolean;
+  onOrder?: () => void;
 }
 
 interface Group {
@@ -70,7 +77,7 @@ interface Group {
   items: DeliveryMenuItem[];
 }
 
-export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAdd, query, onQueryChange, cartSlot, browseOnly, onExitBrowse, open, readOnly }: MenuStepProps) {
+export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAdd, query, onQueryChange, cartSlot, browseOnly, onExitBrowse, open, readOnly, menuMode, onOrder }: MenuStepProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const fetched = usePublicMenu(
@@ -219,7 +226,21 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
         {/* Center column */}
         <div className="min-w-0 space-y-4 lg:space-y-6">
           {/* Browse-only banner: we're closed, this is a read-only preview. */}
-          {browseOnly && (
+          {menuMode && onOrder ? (
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-3 ps-4">
+              <p className="text-sm font-medium">
+                {open
+                  ? t("order.menuMode.orderPrompt", "Want it now? Order for pickup or delivery.")
+                  : t("order.menuMode.closedPrompt", "We're closed right now — ordering reopens when we're back.")}
+              </p>
+              {open ? (
+                <Button variant="brand" size="sm" className="shrink-0" onClick={onOrder}>
+                  {t("order.menuMode.orderNow", "Order now")}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+          {browseOnly && !menuMode && (
             <div className="flex flex-col gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
@@ -340,6 +361,7 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
                           lang={lang}
                           count={countByItem[item.id] ?? 0}
                           onOpen={() => openItem(item)}
+                          readOnly={readOnly || menuMode}
                         />
                       </motion.li>
                     ))}
@@ -379,11 +401,14 @@ function MenuCard({
   lang,
   count,
   onOpen,
+  readOnly = false,
 }: {
   item: DeliveryMenuItem;
   lang: string;
   count: number;
   onOpen: () => void;
+  /** A menu to read: the item and its price, no add button and nothing to tap. */
+  readOnly?: boolean;
 }) {
   const { t } = useTranslation();
   const hasSizes = item.sizes.length > 0;
@@ -425,6 +450,14 @@ function MenuCard({
       </div>
     </>
   );
+
+  if (readOnly) {
+    return (
+      <div className="flex h-full w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 text-start shadow-sm">
+        {inner}
+      </div>
+    );
+  }
 
   return (
     <button

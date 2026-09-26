@@ -3619,6 +3619,13 @@
     },
     "deal": {
       "row": "Deal · {{name}}"
+    },
+    "menuMode": {
+      "title": "Menu",
+      "orderPrompt": "Want it now? Order for pickup or delivery.",
+      "closedPrompt": "We're closed right now — ordering reopens when we're back.",
+      "orderNow": "Order now",
+      "pickBranch": "Pick a branch to see its menu"
     }
   },
   "deliveryTimeline": {

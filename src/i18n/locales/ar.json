@@ -3726,6 +3726,13 @@
     },
     "deal": {
       "row": "عرض · {{name}}"
+    },
+    "menuMode": {
+      "title": "القائمة",
+      "orderPrompt": "تريده الآن؟ اطلب للاستلام أو التوصيل.",
+      "closedPrompt": "نحن مغلقون الآن — يعود الطلب عند عودتنا.",
+      "orderNow": "اطلب الآن",
+      "pickBranch": "اختر فرعاً لعرض قائمته"
     }
   },
   "deliveryTimeline": {

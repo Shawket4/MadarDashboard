@@ -62,6 +62,12 @@ interface PublicOrderingPageProps {
   channel?: string;
   /** Browse-only menu preview (read-only): show the menu even when closed. */
   preview?: boolean;
+  /**
+   * The shop's read-only MENU (`/menu`): browse mode with the menu's own
+   * voice — its heading and tab title, no add buttons, no cart — and an
+   * "Order now" bar only where the branch takes orders.
+   */
+  menuMode?: boolean;
   prefillPlaceName?: string;
   prefillFloor?: string;
   prefillUnitNumber?: string;
@@ -83,6 +89,7 @@ export function PublicOrderingPage({
   branchLocked,
   channel,
   preview,
+  menuMode = false,
   prefillPlaceName,
   prefillFloor,
   prefillUnitNumber,
@@ -102,6 +109,12 @@ export function PublicOrderingPage({
   // "the shop's identity" — a shop off the branding tier gets Madar's palette
   // back under its own name, and the page never asks which it received.
   const brand = usePublicBrand(orgId);
+  // The tab says what the page is: the shop's menu, not "Madar — Order".
+  useEffect(() => {
+    if (menuMode && brand?.orgName) {
+      document.title = `${t("order.menuMode.title", "Menu")} · ${brand.orgName}`;
+    }
+  }, [menuMode, brand?.orgName, t]);
 
   // ── URL-bound selection (branch + channel) ───────────────────────────────
   // The route validates ?branch=&channel=; we mirror selection back into the URL
@@ -250,6 +263,10 @@ export function PublicOrderingPage({
       ),
     [branches],
   );
+  // Which branches the header's switcher offers: to ORDER, the ones taking
+  // orders; to BROWSE the menu, every active branch (the list was fetched with
+  // `browse`) — a branch with ordering off still has a menu to read.
+  const switchableBranches = preview ? (branches ?? []) : deliverableBranches;
 
   // ── Browse-only mode ──────────────────────────────────────────────────────
   // A deliberate read-only menu preview (e.g. when every channel is closed). It
@@ -281,6 +298,12 @@ export function PublicOrderingPage({
       branchObj.umbrella_open_now ||
       branchObj.pickup_open_now);
   const enterBrowse = () => setUrl({ branch: branchId ?? undefined, channel: undefined, preview: true });
+  // From the MENU to an order at this branch: the ordering flow's own entry
+  // (this bundle's root), not a search-param flip — `/menu` is browse by route.
+  const startOrder = () =>
+    window.location.assign(
+      `${import.meta.env.BASE_URL}${branchId ? `?branch=${encodeURIComponent(branchId)}` : ""}`,
+    );
 
   // A selected channel that isn't open right now (direct link to a closed channel,
   // or one that closed mid-session). Drives the apologetic ChannelClosed state.
@@ -854,11 +877,16 @@ export function PublicOrderingPage({
   // ── Per-step header copy ──────────────────────────────────────────────────
   const headers = channelClosed
     ? { title: t("order.channel.heading", "How would you like it?"), subtitle: undefined }
-    : stepHeaders(step, branchObj?.name ?? "", t);
+    : menuMode && step === "branch"
+      ? {
+          title: t("order.branch.heading", "Choose a branch"),
+          subtitle: t("order.menuMode.pickBranch", "Pick a branch to see its menu"),
+        }
+      : stepHeaders(step, branchObj?.name ?? "", t);
 
   // ── Sticky footer (view-cart bar on menu) ─────────────────────────────────
   const footer =
-    step === "menu" && itemCount > 0 && !channelClosed ? (
+    step === "menu" && itemCount > 0 && !channelClosed && !menuMode ? (
       <button
         type="button"
         onClick={() => setCartOpen(true)}
@@ -914,7 +942,7 @@ export function PublicOrderingPage({
         branchSelector={
           branchLocked ? undefined : (
             <BranchSelector
-              branches={deliverableBranches}
+              branches={switchableBranches}
               currentId={branchId ?? ""}
               onSelect={handleSwitchBranch}
             />
@@ -926,6 +954,12 @@ export function PublicOrderingPage({
         onOpenHistory={orders.length > 0 ? () => setHistoryOpen(true) : undefined}
         historyCount={orders.length}
         brand={brand}
+        hideProgress={menuMode}
+        menuHeading={
+          menuMode
+            ? { title: t("order.menuMode.title", "Menu"), subtitle: branchObj?.name }
+            : undefined
+        }
       >
         <AnimatePresence mode="wait">
           <motion.div key={step} variants={fadeIn} initial="hidden" animate="show" exit="hidden">
@@ -1030,13 +1064,15 @@ export function PublicOrderingPage({
                 browseOnly={browseOnly}
                 open={branchOpenNow}
                 readOnly={menuOnly}
+                menuMode={menuMode}
+                onOrder={menuMode && browseChannel ? startOrder : undefined}
                 onExitBrowse={() => setUrl({ branch: branchId ?? undefined, channel: undefined, preview: undefined })}
                 countByItem={countByItem}
                 onAdd={addOrUpdateLine}
                 query={menuQuery}
                 onQueryChange={setMenuQuery}
                 cartSlot={
-                  menuOnly ? undefined : (
+                  menuOnly || menuMode ? undefined : (
                     <CartPanel
                       lines={lines}
                       deliveryFee={deliveryFee}
@@ -1079,7 +1115,7 @@ export function PublicOrderingPage({
         </AnimatePresence>
 
         {/* Empty-cart hint on the menu footer area (mobile / tablet only) */}
-        {step === "menu" && itemCount === 0 && (
+        {step === "menu" && itemCount === 0 && !menuMode && (
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-[480px] items-center justify-center gap-2 px-4 py-4 text-xs text-muted-foreground xl:hidden">
             <ShoppingBag className="size-3.5" />
             {t("order.cart.emptyHint")}
