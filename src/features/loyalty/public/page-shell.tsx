@@ -167,7 +167,7 @@ export function LoyaltyPage({
  */
 export function PageSkeleton() {
   return (
-    <StorefrontShell product="loyalty">
+    <StorefrontShell product="loyalty" pending>
       <div className="flex flex-col gap-8 pt-3" aria-busy>
         <div className="flex flex-col gap-3">
           <Skeleton className="h-3 w-24 rounded-full" />

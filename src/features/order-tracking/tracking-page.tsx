@@ -79,7 +79,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
 
   if (isLoading) {
     return (
-      <StorefrontShell brand={brand}>
+      <StorefrontShell brand={brand} product="ordering" pending>
         <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground" role="status">
           <Loader2 className="size-6 animate-spin motion-reduce:animate-none" />
           <p className="text-sm">{t("order.track.loading", "Loading your order…")}</p>
@@ -90,7 +90,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
 
   if (isError || !data) {
     return (
-      <StorefrontShell brand={brand}>
+      <StorefrontShell brand={brand} product="ordering">
         <div className="flex flex-col items-center gap-3 py-16 text-center">
           <XCircle className="size-12 text-destructive" />
           <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
@@ -111,7 +111,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
   const priceChanged = estimate != null && estimate !== order.total;
 
   return (
-    <StorefrontShell brand={brand}>
+    <StorefrontShell brand={brand} product="ordering">
       <motion.div variants={staggerContainer(0.06)} initial="hidden" animate="show" className="space-y-5">
         {/* Headline + ref */}
         <motion.div variants={riseIn} className="text-center">

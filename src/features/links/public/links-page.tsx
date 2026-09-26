@@ -187,7 +187,7 @@ export function LinksPage({ orgId }: { orgId?: string | null }) {
           {page.branches.length > 0 ? <VisitUs branches={page.branches} accent={accent} /> : null}
         </div>
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto pb-10">
           <MadarFooter brand={shell} />
         </div>
       </main>

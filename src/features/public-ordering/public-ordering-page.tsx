@@ -903,6 +903,13 @@ export function PublicOrderingPage({
           <ArrowRight className="size-4 rtl:rotate-180" />
         </span>
       </button>
+    ) : step === "menu" && itemCount === 0 && !menuMode ? (
+      // In the same floating slot as the cart bar it turns into, so the page
+      // keeps room for it — laid over the page, it sat on the footer's links.
+      <div className="pointer-events-none flex items-center justify-center gap-2 py-2 text-xs text-muted-foreground">
+        <ShoppingBag className="size-3.5" />
+        {t("order.cart.emptyHint")}
+      </div>
     ) : undefined;
 
   // Desktop menu search lives in the header (mobile renders its own inside MenuStep).
@@ -1115,12 +1122,6 @@ export function PublicOrderingPage({
         </AnimatePresence>
 
         {/* Empty-cart hint on the menu footer area (mobile / tablet only) */}
-        {step === "menu" && itemCount === 0 && !menuMode && (
-          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-[480px] items-center justify-center gap-2 px-4 py-4 text-xs text-muted-foreground xl:hidden">
-            <ShoppingBag className="size-3.5" />
-            {t("order.cart.emptyHint")}
-          </div>
-        )}
       </StepShell>
 
       {/* Cart sheet (menu step) */}

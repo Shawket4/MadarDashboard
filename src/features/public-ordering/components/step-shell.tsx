@@ -255,12 +255,14 @@ export function StepShell({
       {footer && (
         <div
           className={cn(
-            "fixed inset-x-0 bottom-0 z-20 flex justify-center pb-4",
+            // The strip itself lets taps through to the menu under it; only
+            // what is in the slot takes them.
+            "pointer-events-none fixed inset-x-0 bottom-0 z-20 flex justify-center pb-4",
             padClass,
             wide && "xl:hidden",
           )}
         >
-          <div className={cn("w-full", widthClass)}>{footer}</div>
+          <div className={cn("pointer-events-auto w-full", widthClass)}>{footer}</div>
         </div>
       )}
     </div>

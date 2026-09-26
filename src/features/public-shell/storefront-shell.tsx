@@ -4,6 +4,7 @@ import { Languages, Moon, Sun } from "lucide-react";
 
 import { LegalLinks } from "@/components/legal-links";
 
+import { MADAR_TEAL } from "./brand-color";
 import { hostSlug } from "./use-brand";
 import { useShopFavicon } from "./use-favicon";
 import { useBrandSkin } from "./use-brand-skin";
@@ -147,6 +148,20 @@ export function BrandMark({
  */
 export type MadarProduct = "loyalty" | "ordering" | "reservations";
 
+/**
+ * Whether this page is the shop's own, so Madar signs it quietly.
+ *
+ * Told, where the page's data says (`ownBranding`). Where it does not — the
+ * loyalty payload carries the palette but not the tier — the palette answers:
+ * the server hands a shop off the tier Madar's own teal, so any other ground
+ * is a shop that paid for its own. Without that fallback every loyalty page
+ * signed at full volume while the same shop's ordering page signed quietly.
+ */
+export function signsQuietly(brand: ShellBrand | null | undefined): boolean {
+  if (!brand) return false;
+  return brand.ownBranding ?? brand.background.toUpperCase() !== MADAR_TEAL;
+}
+
 export function MadarFooter({
   brand,
   product,
@@ -156,7 +171,7 @@ export function MadarFooter({
 }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
-  const quiet = brand?.ownBranding === true;
+  const quiet = signsQuietly(brand);
 
   return (
     <footer className="mt-12 flex flex-col items-center gap-2 border-t border-border/60 pt-6 text-center">
@@ -205,6 +220,7 @@ export function StorefrontShell({
   brand,
   product,
   headerMark = true,
+  pending = false,
 }: {
   children: ReactNode;
   /** Which product this page is, for the footer's signature. */
@@ -226,6 +242,12 @@ export function StorefrontShell({
    * rather than the same logo twice within a thumb's height.
    */
   headerMark?: boolean;
+  /**
+   * The page is still loading and does not yet know whose it is. The footer
+   * waits: signing at full volume for a moment and then shrinking to the
+   * shop's quiet signature is a jump under the reader's thumb on every load.
+   */
+  pending?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
@@ -268,7 +290,7 @@ export function StorefrontShell({
 
       <main className="relative z-10 mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-10 pt-5">
         <div className="flex-1">{children}</div>
-        <MadarFooter brand={brand} product={product} />
+        {pending ? null : <MadarFooter brand={brand} product={product} />}
       </main>
     </div>
   );
