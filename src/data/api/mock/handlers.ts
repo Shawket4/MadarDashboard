@@ -398,6 +398,17 @@ export const handlers = [
     return HttpResponse.json(mockCreateDecision(body));
   }),
 
+  // ── Links page (the shop's own address) ──────────────────────────────────
+  // In-memory, like the floor: a reload re-seeds it. The public read is built
+  // from the same settings, so the editor's preview follows its saves.
+  http.get("*/orgs/:id/links-page", () => HttpResponse.json(mockLinksSettings())),
+  http.put("*/orgs/:id/links-page", async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json(mockSaveLinks(body));
+  }),
+  http.get("*/orgs/:id/links-qr", () => HttpResponse.json(MOCK_QR("org_links", "madar-coffee", "madar"))),
+  http.get("*/public/orgs/links", () => HttpResponse.json(mockPublicLinks())),
+
   // ── Org ───────────────────────────────────────────────────────────────────
   http.get("*/orgs/:orgId", () => HttpResponse.json(MOCK_ORG)),
   http.get("*/branches", () => HttpResponse.json(MOCK_BRANCHES)),
@@ -664,4 +675,114 @@ export const handlers = [
 /** The branch a floor request is scoped to (query param on every floor read). */
 function branchOf(request: Request): string {
   return new URL(request.url).searchParams.get("branch_id") ?? "br_zamalek";
+}
+
+// ── Links page mock state ─────────────────────────────────────────────────────
+type MockLinksItem = {
+  kind: "order" | "menu" | "rewards" | "book" | "custom";
+  visible: boolean;
+  id?: string | null;
+  title_en?: string | null;
+  title_ar?: string | null;
+  url?: string | null;
+};
+const mockLinks = {
+  items: [
+    { kind: "order", visible: true },
+    { kind: "menu", visible: true },
+    { kind: "rewards", visible: true },
+    { kind: "book", visible: true },
+    { kind: "custom", visible: true, id: "c1", title_en: "Beans to brew at home", title_ar: "بن للتحضير في البيت", url: "https://example.com/beans" },
+  ] as MockLinksItem[],
+  tagline_en: "Specialty coffee, roasted in small batches." as string | null,
+  tagline_ar: "قهوة مختصة نحمّصها بكميات صغيرة." as string | null,
+  show_cover: true,
+  show_branches: true,
+  branches: {} as Record<string, { visible: boolean; maps_url: string | null }>,
+  social_links: { instagram: "https://instagram.com/madar", whatsapp: "https://wa.me/201000000000" } as Record<string, string>,
+};
+const MOCK_SHOP = "https://madar.madar-pos.cloud";
+const MODULE_PATH: Record<string, string> = { order: "/order/", menu: "/order/menu", rewards: "/rewards", book: "/book/" };
+
+function mockLinksSettings() {
+  return {
+    items: mockLinks.items,
+    tagline_en: mockLinks.tagline_en,
+    tagline_ar: mockLinks.tagline_ar,
+    show_cover: mockLinks.show_cover,
+    show_branches: mockLinks.show_branches,
+    branches: MOCK_BRANCHES.map((b) => ({
+      id: b.id,
+      name: b.name,
+      address: b.address ?? null,
+      phone: b.phone ?? null,
+      visible: mockLinks.branches[b.id]?.visible ?? true,
+      maps_url: mockLinks.branches[b.id]?.maps_url ?? null,
+    })),
+    social_links: mockLinks.social_links,
+    modules: (["order", "menu", "rewards", "book"] as const).map((kind) => ({
+      kind,
+      available: true,
+      branch_names: kind === "menu" ? [] : MOCK_BRANCHES.map((b) => b.name),
+      path: MODULE_PATH[kind],
+    })),
+    public_url: `${MOCK_SHOP}/`,
+    custom_branding: true,
+    card_image_url: null,
+    loyalty_mode: "visits",
+  };
+}
+
+function mockSaveLinks(body: Record<string, unknown>) {
+  if (Array.isArray(body.items)) mockLinks.items = body.items as MockLinksItem[];
+  mockLinks.tagline_en = (body.tagline_en as string | null) ?? null;
+  mockLinks.tagline_ar = (body.tagline_ar as string | null) ?? null;
+  mockLinks.show_cover = !!body.show_cover;
+  mockLinks.show_branches = !!body.show_branches;
+  for (const b of (body.branches as { branch_id: string; visible: boolean; maps_url?: string | null }[]) ?? []) {
+    mockLinks.branches[b.branch_id] = { visible: b.visible, maps_url: b.maps_url ?? null };
+  }
+  for (const [k, v] of Object.entries((body.social_links as Record<string, string>) ?? {})) {
+    if (v) mockLinks.social_links[k] = v;
+    else delete mockLinks.social_links[k];
+  }
+  return mockLinksSettings();
+}
+
+function mockPublicLinks() {
+  return {
+    brand: {
+      org_id: MOCK_ORG.id,
+      name: MOCK_ORG.name,
+      slug: MOCK_ORG.slug,
+      custom_branding: true,
+      logo_url: MOCK_ORG.logo_url,
+      logo_is_mark: false,
+      card_image_url: null,
+      background_color: "#0D6273",
+      foreground_color: "#EFF3F4",
+      accent_color: "#2E94A6",
+    },
+    tagline_en: mockLinks.tagline_en,
+    tagline_ar: mockLinks.tagline_ar,
+    cover_image_url: null,
+    items: mockLinks.items
+      .filter((i) => i.visible)
+      .map((i) =>
+        i.kind === "custom"
+          ? { kind: "custom", href: i.url ?? "", path: null, title_en: i.title_en, title_ar: i.title_ar, branch_names: [], channels: [] }
+          : { kind: i.kind, href: `${MOCK_SHOP}${MODULE_PATH[i.kind]}`, path: MODULE_PATH[i.kind], branch_names: MOCK_BRANCHES.map((b) => b.name), channels: i.kind === "order" ? ["pickup", "delivery"] : [] },
+      ),
+    socials: Object.entries(mockLinks.social_links).map(([key, url]) => ({ key, label: key, url })),
+    branches: mockLinks.show_branches
+      ? MOCK_BRANCHES.filter((b) => mockLinks.branches[b.id]?.visible ?? true).map((b) => ({
+          id: b.id,
+          name: b.name,
+          address: b.address ?? null,
+          phone: b.phone ?? null,
+          directions_url: mockLinks.branches[b.id]?.maps_url ?? null,
+        }))
+      : [],
+    loyalty_mode: "visits",
+  };
 }

@@ -162,7 +162,7 @@ export function SocialLinksFields() {
         <p className="text-xs text-muted-foreground">
           {t(
             "orgs.socialLinksHint",
-            "These print on your customers' loyalty cards. Paste the full address, starting with https://. Clear a box to remove that link.",
+            "These show on your links page and on your customers' loyalty cards. Paste the full address, starting with https://. Clear a box to remove that link.",
           )}
         </p>
       </div>

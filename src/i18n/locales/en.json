@@ -354,7 +354,7 @@
     "customBrandingHint": "Puts this organisation's own logo and colours on customer loyalty cards and the signup page. Off, they use Madar's. Madar stays in the footer either way.",
     "inactive": "Inactive",
     "socialLinks": "Where else to find you",
-    "socialLinksHint": "These print on your customers' loyalty cards. Paste the full address, starting with https://. Clear a box to remove that link.",
+    "socialLinksHint": "These show on your links page and on your customers' loyalty cards. Paste the full address, starting with https://. Clear a box to remove that link.",
     "socialInvalid": "Use the full address, starting with https://",
     "social": {
       "instagram": "Instagram",
@@ -2424,12 +2424,16 @@
     "address": {
       "title": "Your web address",
       "hint": "Your customer pages are on your own address. These are safe to print — they do not change.",
-      "card": "Loyalty card",
-      "cardHint": "Where customers sign up and open their card.",
-      "order": "Menu and ordering",
-      "orderHint": "Your menu, for a QR code on the table or a link in a bio.",
+      "order": "Online ordering",
+      "orderHint": "Where customers order for pickup or delivery.",
       "book": "Bookings",
-      "bookHint": "Where guests reserve a table."
+      "bookHint": "Where guests reserve a table.",
+      "links": "Links page",
+      "linksHint": "Your main address — for your Instagram bio or a QR on the counter. Everything below is one tap from it.",
+      "menu": "Menu",
+      "menuHint": "Your menu to browse, for a QR code on the table.",
+      "rewards": "Rewards card",
+      "rewardsHint": "Where customers sign up and get their wallet card."
     },
     "pickPane": "Settings section",
     "account": "Account",
@@ -7231,7 +7235,12 @@
       "visit": "Show “Visit us”",
       "visitHint": "Your branches, with directions and a call button.",
       "maps": "Google Maps link (optional)",
-      "preview": "Preview (as saved)"
-    }
+      "preview": "Preview (as saved)",
+      "address": "Your address",
+      "addressHint": "Put it in your bio, on a counter card, or on a receipt.",
+      "about": "Under your name",
+      "aboutHint": "One line about your shop, in each language. Leave empty for none."
+    },
+    "copied": "Link copied"
   }
 }

@@ -117,14 +117,50 @@ const isSafe = (url: string): boolean => /^https:\/\/\S+$/.test(url);
 export function SocialLinks({
   links,
   accent,
+  variant = "pills",
 }: {
   links: PublicSocialLink[] | undefined;
   /** The shop's accent, already made legible on this page. */
   accent: string;
+  /**
+   * `pills` (the loyalty pages): a titled section of labelled buttons.
+   * `icons` (the links page): one centred row of round icon buttons and no
+   * heading — the row sits under a column of labelled buttons, where a second
+   * set of labels is noise. The name stays on each for a screen reader.
+   */
+  variant?: "pills" | "icons";
 }) {
   const { t } = useTranslation();
   const shown = (links ?? []).filter((l) => isSafe(l.url));
   if (shown.length === 0) return null;
+
+  if (variant === "icons") {
+    return (
+      <ul
+        aria-label={t("loyalty.findUs", "Find us")}
+        className="flex flex-wrap items-center justify-center gap-3"
+      >
+        {shown.map((l) => {
+          const Icon = GLYPHS[l.key] ?? Globe;
+          const label = t(`loyalty.social.${l.key}`, { defaultValue: l.label });
+          return (
+            <li key={l.key}>
+              <a
+                href={l.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                title={label}
+                className="grid size-12 place-items-center rounded-full border border-border/70 bg-card text-foreground shadow-sm transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-muted focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              >
+                <Icon className="size-5" style={{ color: accent }} />
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
 
   return (
     <Section title={t("loyalty.findUs", "Find us")}>

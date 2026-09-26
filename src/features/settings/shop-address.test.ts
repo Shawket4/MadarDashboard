@@ -30,18 +30,21 @@ describe("shopAddresses", () => {
   // `/orderfoo` cannot match it — and `/order` falls through to the loyalty app
   // at the root, showing the shop a page that is not its menu. This card is
   // what gets copied onto a printed menu.
-  it("mounts the card at the root and the rest under their paths", () => {
+  it("puts the links page at the root and the rest under their paths", () => {
     expect(shopAddresses("drops", "madar-pos.cloud")).toEqual([
-      { key: "card", url: "https://drops.madar-pos.cloud/" },
+      { key: "links", url: "https://drops.madar-pos.cloud/" },
+      { key: "menu", url: "https://drops.madar-pos.cloud/order/menu" },
       { key: "order", url: "https://drops.madar-pos.cloud/order/" },
+      { key: "rewards", url: "https://drops.madar-pos.cloud/rewards" },
       { key: "book", url: "https://drops.madar-pos.cloud/book/" },
     ]);
   });
 
-  it("gives every address a trailing slash, so each one resolves", () => {
-    for (const { url } of shopAddresses("drops", "madar-pos.cloud")) {
-      expect(url.endsWith("/")).toBe(true);
-    }
+  it("gives every bare MOUNT a trailing slash, so each one resolves", () => {
+    const byKey = Object.fromEntries(
+      shopAddresses("drops", "madar-pos.cloud").map((a) => [a.key, a.url]),
+    );
+    for (const key of ["links", "order", "book"]) expect(byKey[key].endsWith("/")).toBe(true);
   });
 
   it("shows nothing rather than a broken address", () => {

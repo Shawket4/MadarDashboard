@@ -255,16 +255,20 @@ function LinksEditor({
           <form onSubmit={(e) => void save(e)} className="space-y-6">
             {/* Where it lives */}
             <Card className="py-0">
-              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+              <CardContent className="space-y-3 p-4">
+                <CardHeading
+                  title={t("links.editor.address", "Your address")}
+                  hint={t("links.editor.addressHint", "Put it in your bio, on a counter card, or on a receipt.")}
+                />
                 {saved.public_url ? (
                   <>
-                    <code
+                    <p
                       dir="ltr"
-                      className="min-w-0 flex-1 truncate rounded-lg border bg-secondary px-3 py-2 text-sm"
+                      className="break-all rounded-lg border bg-secondary px-3 py-2.5 font-mono text-sm"
                     >
                       {saved.public_url}
-                    </code>
-                    <div className="flex shrink-0 gap-2">
+                    </p>
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"
                         variant="outline"
@@ -302,7 +306,11 @@ function LinksEditor({
 
             {/* Under the name */}
             <Card className="py-0">
-              <CardContent className="grid gap-4 p-4 sm:grid-cols-2">
+              <CardContent className="grid gap-4 p-4">
+                <CardHeading
+                  title={t("links.editor.about", "Under your name")}
+                  hint={t("links.editor.aboutHint", "One line about your shop, in each language. Leave empty for none.")}
+                />
                 <FormField
                   control={form.control}
                   name="tagline_en"
@@ -333,7 +341,7 @@ function LinksEditor({
                   control={form.control}
                   name="show_cover"
                   render={({ field }) => (
-                    <FormItem className="flex items-center justify-between gap-3 rounded-lg border p-3 sm:col-span-2">
+                    <FormItem className="flex items-center justify-between gap-3 rounded-lg border p-3">
                       <div>
                         <FormLabel>{t("links.editor.cover", "Use your card image as the cover")}</FormLabel>
                         <p className="text-xs text-muted-foreground">
@@ -354,15 +362,13 @@ function LinksEditor({
             {/* The buttons */}
             <Card className="py-0">
               <CardContent className="space-y-3 p-4">
-                <div>
-                  <p className="text-sm font-medium">{t("links.editor.buttons", "Buttons")}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t(
-                      "links.editor.buttonsHint",
-                      "In the order they show. The first one that's on is the big button.",
-                    )}
-                  </p>
-                </div>
+                <CardHeading
+                  title={t("links.editor.buttons", "Buttons")}
+                  hint={t(
+                    "links.editor.buttonsHint",
+                    "In the order they show. The first one that's on is the big button.",
+                  )}
+                />
                 <ul className="divide-y rounded-lg border">
                   {items.map((it, i) => {
                     const status = it.kind === "custom" ? null : modules.get(it.kind);
@@ -425,7 +431,7 @@ function LinksEditor({
                           />
                         </div>
                         {it.kind === "custom" ? (
-                          <div className="grid gap-2 sm:grid-cols-3">
+                          <div className="grid gap-2 sm:grid-cols-2">
                             <Input
                               value={it.title_en ?? ""}
                               maxLength={MAX_TITLE}
@@ -441,6 +447,7 @@ function LinksEditor({
                               dir="rtl"
                             />
                             <Input
+                              className="sm:col-span-2"
                               value={it.url ?? ""}
                               placeholder="https://"
                               inputMode="url"
@@ -493,15 +500,24 @@ function LinksEditor({
                 {form.watch("show_branches") && branches.length > 0 ? (
                   <ul className="divide-y rounded-lg border">
                     {branches.map((b, i) => (
-                      <li key={b.branch_id} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">{b.name}</p>
-                          {b.address ? (
-                            <p className="truncate text-xs text-muted-foreground">{b.address}</p>
-                          ) : null}
+                      <li key={b.branch_id} className="flex flex-col gap-2.5 p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium">{b.name}</p>
+                            {b.address ? (
+                              <p className="text-xs text-muted-foreground">{b.address}</p>
+                            ) : null}
+                          </div>
+                          <Switch
+                            checked={b.visible}
+                            aria-label={t("links.editor.show", { name: b.name, defaultValue: "Show {{name}}" })}
+                            onCheckedChange={(v) =>
+                              setBranches((list) => list.map((x, k) => (k === i ? { ...x, visible: v } : x)))
+                            }
+                          />
                         </div>
                         <Input
-                          className="sm:w-64"
+                          disabled={!b.visible}
                           value={b.maps_url ?? ""}
                           placeholder={t("links.editor.maps", "Google Maps link (optional)")}
                           inputMode="url"
@@ -512,13 +528,6 @@ function LinksEditor({
                             setBranches((list) =>
                               list.map((x, k) => (k === i ? { ...x, maps_url: e.target.value } : x)),
                             )
-                          }
-                        />
-                        <Switch
-                          checked={b.visible}
-                          aria-label={t("links.editor.show", { name: b.name, defaultValue: "Show {{name}}" })}
-                          onCheckedChange={(v) =>
-                            setBranches((list) => list.map((x, k) => (k === i ? { ...x, visible: v } : x)))
                           }
                         />
                       </li>
@@ -547,6 +556,16 @@ function LinksEditor({
         onOpenChange={(o) => !o && setQr(null)}
         title={t("links.editor.qrTitle", "Links page code")}
       />
+    </div>
+  );
+}
+
+/** A card's title and one line under it — every card in the pane opens the same way. */
+function CardHeading({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <div className="space-y-0.5">
+      <p className="text-sm font-semibold">{title}</p>
+      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
 }
