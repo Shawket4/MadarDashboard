@@ -25,33 +25,22 @@
  * is also what keeps the Madar default looking finished rather than like a
  * fallback.
  */
-import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, RefreshCw, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
+import { PAGE_GROUND, readableOn } from "@/features/public-shell/brand-color";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 
-import { readableOn, type ResolvedBrand } from "../shared/brand";
-
-/**
- * The page ground each theme paints — `--background` from `globals.css`, as
- * hex, because the AA arithmetic in `brand.ts` works on hex and a CSS token is
- * not a value until the browser resolves it. KEEP IN STEP with those tokens.
- *
- * The dark one used to be #0B0B0C, near-black, while the page actually paints
- * a blue-grey some four times as luminous. Contrast is a ratio against the
- * REAL ground: an accent that cleared 4.5:1 against the constant could land at
- * 3.7:1 on the page, and nothing would have said so.
- */
-const GROUND = { light: "#EFF3F4", dark: "#14181E" } as const;
+import type { ResolvedBrand } from "../shared/brand";
 
 /** The brand accent, made legible against the theme in force. */
 export function usePageAccent(brand: ResolvedBrand): string {
   const mode = usePublicTheme((s) => s.mode);
-  return brand.pageAccent(GROUND[mode === "dark" ? "dark" : "light"]);
+  return brand.pageAccent(PAGE_GROUND[mode === "dark" ? "dark" : "light"]);
 }
 
 /**
@@ -60,7 +49,7 @@ export function usePageAccent(brand: ResolvedBrand): string {
  */
 export function usePageColor(color: string): string {
   const mode = usePublicTheme((s) => s.mode);
-  return readableOn(color, GROUND[mode === "dark" ? "dark" : "light"]);
+  return readableOn(color, PAGE_GROUND[mode === "dark" ? "dark" : "light"]);
 }
 
 /**
@@ -134,27 +123,9 @@ export function LoyaltyPage({
 }) {
   const accent = usePageAccent(brand);
 
-  // THE SHOP'S COLOUR REACHES THE CONTROLS, not just the trim.
-  //
-  // The accent is derived from the logo on the server — `palette_from_image`
-  // takes the mark's dominant colour and nudges it for legibility — and it is
-  // the same derivation the wallet card's ground comes from. But it only ever
-  // reached the eyebrow, the icons and the card: every BUTTON came from the
-  // shared kit and rendered in Madar teal, so a shop with an orange logo got an
-  // orange eyebrow and a teal Join button.
-  //
-  // Rebinding `--primary` on this subtree carries it to every control inside,
-  // without touching the kit or `PhoneVerify` — which is shared with ordering
-  // and bookings and must keep its own colours there.
-  //
-  // `accent` is already `pageAccent`, so it has been made legible against the
-  // ground this page actually paints; the label on top of it is picked the same
-  // way, against the accent itself.
-  const accentSkin = {
-    "--primary": accent,
-    "--primary-foreground": readableOn(accent, accent),
-    "--ring": accent,
-  } as CSSProperties;
+  // The shop's colour on the buttons is `StorefrontShell`'s job (`useBrandSkin`),
+  // on the page root so the phone step's sheets and dialogs wear it too. The
+  // accent here is the same colour walked the same way, for the eyebrow.
 
   // The tab is the one surface of the branding tier that still said "Madar"
   // to a shop's customers. The programme and the shop, in that order, because
@@ -165,7 +136,7 @@ export function LoyaltyPage({
 
   return (
     <StorefrontShell brand={brand} product="loyalty">
-      <div style={accentSkin} className="flex flex-col gap-8 pb-2 pt-3">
+      <div className="flex flex-col gap-8 pb-2 pt-3">
         <header className="flex flex-col gap-2.5">
           {eyebrow ? (
             <p

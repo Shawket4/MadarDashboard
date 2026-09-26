@@ -56,6 +56,7 @@ import type { PublicLinksBranch } from "@/data/api/generated/models/publicLinksB
 import { HeaderIcon, MadarFooter, type ShellBrand } from "@/features/public-shell/storefront-shell";
 import { hostSlug } from "@/features/public-shell/use-brand";
 import { useShopFavicon } from "@/features/public-shell/use-favicon";
+import { useBrandSkin } from "@/features/public-shell/use-brand-skin";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { PageNotice, PageSkeleton, usePageColor } from "@/features/loyalty/public/page-shell";
 import { SocialLinks } from "@/features/loyalty/public/social-links";
@@ -98,6 +99,7 @@ export function LinksPage({ orgId }: { orgId?: string | null }) {
   const accent = usePageColor(page?.brand.background_color || MADAR_TEAL);
 
   useShopFavicon({ orgId: page?.brand.org_id ?? orgId ?? null, slug });
+  useBrandSkin(page?.brand.background_color);
   // The tab is the shop's — but not inside the dashboard's preview, which
   // passes the org and must leave the dashboard's own title alone.
   useEffect(() => {

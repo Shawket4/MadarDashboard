@@ -6,6 +6,7 @@ import { LegalLinks } from "@/components/legal-links";
 
 import { hostSlug } from "./use-brand";
 import { useShopFavicon } from "./use-favicon";
+import { useBrandSkin } from "./use-brand-skin";
 import { usePublicTheme } from "./use-public-theme";
 
 /**
@@ -239,6 +240,8 @@ export function StorefrontShell({
     orgId: brand?.orgId,
     slug: hostSlug(typeof window === "undefined" ? "" : window.location.hostname),
   });
+  // And the controls: every button, chip and sheet on the page, in its colour.
+  useBrandSkin(brand?.background);
 
   return (
     <div className="relative flex min-h-[100dvh] flex-col bg-background text-foreground">

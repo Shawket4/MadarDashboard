@@ -63,7 +63,7 @@
  * demonstration is the same choreography with the glyph and the row swapped;
  * on both platforms the menu sits at the END corner, so the RTL flip holds.
  */
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, Compass, Copy, Globe, Lock } from "lucide-react";
 
@@ -72,8 +72,8 @@ import { useLoyaltyJoinInfo } from "@/data/api/generated/api";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { useHostOrg } from "@/features/public-shell/use-brand";
 
-import { readableOn, resolveBrand, type ResolvedBrand } from "../shared/brand";
-import { Panel, usePageAccent } from "./page-shell";
+import { resolveBrand, type ResolvedBrand } from "../shared/brand";
+import { Panel } from "./page-shell";
 
 /**
  * The shop this link belongs to, from the only clues a root-level page has.
@@ -314,7 +314,7 @@ export function OpenInSafariPage({
 
   return (
     <StorefrontShell brand={brand} product="loyalty">
-      <Skinned brand={brand}>
+      <div className="flex flex-col gap-8 pb-2 pt-3">
         <header className="flex flex-col gap-2.5">
           <h1 className="font-serif text-[32px] leading-[1.1] text-balance">
             {copyFor.title}
@@ -373,43 +373,8 @@ export function OpenInSafariPage({
             {url}
           </p>
         </div>
-      </Skinned>
+      </div>
     </StorefrontShell>
   );
 }
 
-/**
- * The page column, in the shop's colour when there is one.
- *
- * The same rebinding `LoyaltyPage` does: `pageAccent` has already been made
- * legible against the ground this page paints, and the label colour on top of
- * it is picked the same way. Without a shop the tokens stay as the storefront
- * set them, which is Madar's own accent — not a fallback, the default.
- */
-function Skinned({ brand, children }: { brand: ResolvedBrand | null; children: ReactNode }) {
-  const layout = "flex flex-col gap-8 pb-2 pt-3";
-  if (!brand) return <div className={layout}>{children}</div>;
-  return <SkinnedWith brand={brand} className={layout}>{children}</SkinnedWith>;
-}
-
-function SkinnedWith({
-  brand,
-  className,
-  children,
-}: {
-  brand: ResolvedBrand;
-  className: string;
-  children: ReactNode;
-}) {
-  const accent = usePageAccent(brand);
-  const skin = {
-    "--primary": accent,
-    "--primary-foreground": readableOn(accent, accent),
-    "--ring": accent,
-  } as CSSProperties;
-  return (
-    <div style={skin} className={className}>
-      {children}
-    </div>
-  );
-}

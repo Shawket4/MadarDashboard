@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import i18n from "@/i18n";
 
 import type { Step } from "../types";
+import { useBrandSkin } from "@/features/public-shell/use-brand-skin";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import {
   BrandMark,
@@ -107,6 +108,9 @@ export function StepShell({
   const toggleLang = () => void i18n.changeLanguage(lang.startsWith("ar") ? "en" : "ar");
   const mode = usePublicTheme((s) => s.mode);
   const toggleTheme = usePublicTheme((s) => s.toggle);
+  // The shop's colour on the controls — category chips, the cart pill, every
+  // sheet — the same way `StorefrontShell` puts it there.
+  useBrandSkin(brand?.background);
 
   // Time-of-day greeting shown under the menu heading.
   const hour = new Date().getHours();

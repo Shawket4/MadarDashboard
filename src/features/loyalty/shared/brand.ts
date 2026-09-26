@@ -9,6 +9,13 @@
  * is a SAFETY NET for a row written before that existed, not a second opinion.
  */
 import type { CardBrand } from "@/data/api/generated/models/cardBrand";
+import {
+  AA,
+  contrast,
+  HEX,
+  luminance,
+  readableOn,
+} from "@/features/public-shell/brand-color";
 
 /** Teal deep — the Madar mark, and the default card ground. */
 const MADAR_TEAL = "#0D6273";
@@ -20,72 +27,13 @@ const MADAR_PAPER = "#EFF3F4";
 /** Ink for a light ground — `branding::MADAR_INK`. */
 const MADAR_INK = "#12222A";
 
-/** WCAG 2.1 AA for body text, and the floor `branding::ensure_readable` holds to. */
-const AA = 4.5;
-
-const HEX = /^#[0-9a-f]{6}$/i;
-
 /** A colour we are willing to paint with, or the fallback. */
 const safe = (value: string | null | undefined, fallback: string): string =>
   value && HEX.test(value) ? value : fallback;
 
-/**
- * Relative luminance, per WCAG. Used to decide whether text on this card should
- * be light or dark — a tenant picks a background and we must not leave their
- * customers reading dark grey on navy.
- */
-const luminance = (hex: string): number => {
-  const channel = (i: number) => {
-    const c = parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16) / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * channel(0) + 0.7152 * channel(1) + 0.0722 * channel(2);
-};
-
-/** Contrast ratio between two colours, per WCAG. 1 = identical, 21 = max. */
-const contrast = (a: string, b: string): number => {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-};
-
-/** Mix two colours, `t` of the way from `a` to `b`. */
-const mix = (a: string, b: string, t: number): string => {
-  const ch = (h: string, i: number) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16);
-  const c = (i: number) => Math.round(ch(a, i) + (ch(b, i) - ch(a, i)) * t);
-  return `#${[0, 1, 2].map((i) => c(i).toString(16).padStart(2, "0")).join("")}`;
-};
-
-/**
- * A brand colour that is legible as TEXT on the page it is printed on.
- *
- * The card can use a shop's accent freely — it sits on that shop's own ground,
- * and the pair is contrast-checked at the source. The PAGE is a different
- * problem: it follows the reader's light/dark preference, so the same accent
- * has to read on white and on near-black, and plenty of real brand colours read
- * on neither. A pale mint headline on white is not a design choice, it is an
- * unreadable one.
- *
- * So the hue is kept and the lightness is walked towards the page's ink until
- * it clears AA. Nudged in steps rather than solved analytically because the
- * answer only has to be right, and this is a handful of arithmetic on a colour
- * that changes when a shop uploads a new logo.
- */
-export const readableOn = (color: string, ground: string): string => {
-  if (!HEX.test(color) || !HEX.test(ground)) return color;
-  // Legible already: hand back the shop's own value, untouched. Mixing by zero
-  // would return an equal colour spelled differently, and a caller comparing
-  // strings would think we had changed it.
-  if (contrast(color, ground) >= AA) return color;
-  // Toward the opposite end from the ground: darker on a light page, lighter on
-  // a dark one, which is the direction that keeps the hue recognisable.
-  const target = luminance(ground) > 0.5 ? "#000000" : "#ffffff";
-  let out = color;
-  for (let t = 0.08; t <= 1.0001; t += 0.08) {
-    out = mix(color, target, t);
-    if (contrast(out, ground) >= AA) return out;
-  }
-  return out;
-};
+// The arithmetic is shared with every storefront; re-exported so the card's
+// callers keep one import.
+export { readableOn };
 
 export interface ResolvedBrand {
   orgName: string;
@@ -119,11 +67,15 @@ export interface ResolvedBrand {
   /** True when the ground is dark, so the caller can pick matching assets. */
   isDark: boolean;
   /**
-   * The accent, made legible on the PAGE rather than on the card.
+   * The shop's colour, made legible on the PAGE rather than on the card.
    *
    * `accent` is for things sitting on the card's own ground. This is for
    * headings, icons and links on the page around it, which follows the
-   * reader's theme and not the shop's.
+   * reader's theme and not the shop's — and it is the shop's MAIN colour, the
+   * same one `useBrandSkin` puts on the page's buttons, not the card's label
+   * colour: that is chosen to read ON the card's ground, so it is often a pale
+   * tint of it, and walked to AA on paper it comes out a dead grey-brown next
+   * to a button in the real colour.
    */
   pageAccent: (ground: string) => string;
 }
@@ -174,7 +126,6 @@ export function resolveBrand(
     muted: dark ? "rgba(255,255,255,0.72)" : "rgba(0,0,0,0.60)",
     accent: safe(brand?.label_color, dark ? MADAR_TEAL_LIGHT : MADAR_TEAL),
     isDark: dark,
-    pageAccent: (ground: string) =>
-      readableOn(safe(brand?.label_color, MADAR_TEAL), ground),
+    pageAccent: (ground: string) => readableOn(background, ground),
   };
 }
