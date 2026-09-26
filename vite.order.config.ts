@@ -32,11 +32,13 @@ export default defineConfig({
     tailwindcss(),
     // Dev-only: the entry is order.html (not index.html), so serve it for every
     // navigation in `vite` dev (SPA fallback). No effect on build or preview.
+    // Under the mount, so `MADAR_MOUNT=/order/` can be run locally as the shop
+    // build is served — a bare "/order.html" is outside that base and 404s.
     {
       name: "order-spa-fallback",
       configureServer(server) {
         server.middlewares.use((req, _res, next) => {
-          if (req.headers.accept?.includes("text/html")) req.url = "/order.html";
+          if (req.headers.accept?.includes("text/html")) req.url = `${mount}order.html`;
           next();
         });
       },

@@ -157,3 +157,14 @@ export const newUid = (): string => {
     return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   }
 };
+
+/**
+ * The tracking page for an order, as a plain link (it opens in a new tab).
+ *
+ * Under the bundle's mount, not the host's root: on a shop's own hostname the
+ * ordering app is served at `/order/`, and a bare `/track/<id>` there is the
+ * shop's links page asking for a path it has never heard of — a not-found.
+ * `BASE_URL` is the same base the router is given, so the two cannot disagree.
+ */
+export const trackHref = (orderId: string, base: string = import.meta.env.BASE_URL): string =>
+  `${base.endsWith("/") ? base : `${base}/`}track/${encodeURIComponent(orderId)}`;

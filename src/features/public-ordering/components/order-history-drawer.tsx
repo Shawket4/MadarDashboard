@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 
 import type { OrderHistorySummary } from "@/data/api/generated/models/orderHistorySummary";
 
+import { trackHref } from "../utils";
+
 interface OrderHistoryDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -192,7 +194,7 @@ function OrderCard({ order }: { order: OrderHistorySummary }) {
 
             {/* Track link */}
             <a
-              href={`/track/${order.id}`}
+              href={trackHref(order.id)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-lg border border-brand/30 px-3 py-2 text-sm font-medium text-brand transition-colors hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"

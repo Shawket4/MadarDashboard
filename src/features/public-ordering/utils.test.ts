@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
 
 import type { CartLine } from "./types";
-import { displaySize, lineTotal, lineUnitPrice, loadCart, saveCart, toCartLineInput } from "./utils";
+import { displaySize, lineTotal, lineUnitPrice, loadCart, saveCart, toCartLineInput, trackHref } from "./utils";
 
 const comboItem = {
   id: "combo-1",
@@ -109,5 +109,13 @@ describe("persisted online cart", () => {
     expect(back).toEqual(comboLine);
     expect(lineUnitPrice(back)).toBe(lineUnitPrice(comboLine));
     expect(toCartLineInput(back)).toEqual(toCartLineInput(comboLine));
+  });
+});
+
+describe("trackHref", () => {
+  it("stays under the ordering app's mount", () => {
+    expect(trackHref("ord_1", "/")).toBe("/track/ord_1");
+    expect(trackHref("ord_1", "/order/")).toBe("/order/track/ord_1");
+    expect(trackHref("ord_1", "/order")).toBe("/order/track/ord_1");
   });
 });
