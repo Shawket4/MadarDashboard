@@ -8,8 +8,11 @@
 //   /join/<branchId>    — the counter QR's target: sign up at this branch
 //   /join/org/<orgId>   — the shop's own code: a poster, a receipt, a bio link
 //   /card/<token>       — the member's own card (what their pass links back to)
-//   /                   — on a shop's hostname, that shop's sign-up page;
-//                         on ours, "scan the code on the counter"
+//   /                   — on a shop's hostname, that shop's LINKS PAGE (order,
+//                         menu, rewards, a table, its socials); on ours,
+//                         "scan the code on the counter"
+//   /rewards            — on a shop's hostname, its sign-up page (what `/`
+//                         was before the links page)
 //
 // Membership belongs to the SHOP either way; a branch code only records where
 // someone joined.
@@ -67,6 +70,7 @@ import { JoinPage } from "@/features/loyalty/public/join-page";
 import { CardPage } from "@/features/loyalty/public/card-page";
 import { useHostOrg } from "@/features/public-shell/use-brand";
 import { ScanToJoin } from "@/features/loyalty/public/scan-to-join";
+import { LinksPage } from "@/features/links/public/links-page";
 import {
   detectInAppBrowser,
   escapeToBrowserOnce,
@@ -113,26 +117,53 @@ const rootRoute = createRootRoute({
       }
     }
 
-    const escape = !preview && !!inApp?.android && !inApp.ios;
+    const escape =
+      !preview && !!inApp?.android && !inApp.ios && !isLinksPath(window.location.pathname);
     useEffect(() => {
       if (escape) escapeToBrowserOnce();
     }, [escape]);
 
-    if (preview) return <OpenInSafariPage app={preview.app} platform={preview.platform} />;
-    if (inApp?.ios) return <OpenInSafariPage app={inApp.app} platform="ios" />;
-    if (escape) return <OpenInSafariPage app={inApp!.app} platform="android" />;
+    // The links page is exempt: it is what an Instagram bio opens, IN
+    // Instagram's browser, and every button on it works there — only a wallet
+    // pass cannot be installed from one, and that is the rewards page's gate.
+    const gated = !isLinksPath(window.location.pathname);
+    if (gated && preview) return <OpenInSafariPage app={preview.app} platform={preview.platform} />;
+    if (gated && inApp?.ios) return <OpenInSafariPage app={inApp.app} platform="ios" />;
+    if (gated && escape) return <OpenInSafariPage app={inApp!.app} platform="android" />;
     return <Outlet />;
   },
 });
 
+/**
+ * `/` on a shop's own hostname: its links page. The one path that is not
+ * behind the in-app-browser gate above.
+ */
+function isLinksPath(pathname: string): boolean {
+  return pathname === "/" || pathname === "";
+}
+
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  // On a shop's own hostname this IS the shop's sign-up page — the URL has no
-  // org id to carry one, and telling someone standing on `drops.madar-pos.cloud`
-  // to go and scan a code would be absurd. Everywhere else it is what it has
+  // On a shop's own hostname this is the shop's links page — every door it
+  // runs on Madar, rewards among them. Everywhere else it is what it has
   // always been.
   component: function Index() {
+    const { orgId, resolving } = useHostOrg();
+    if (resolving) return null;
+    return orgId ? <LinksPage /> : <ScanToJoin />;
+  },
+});
+
+/**
+ * The shop's sign-up page, where `/` used to put it. Printed counter codes
+ * point at `/join/...` and wallet passes at `loyalty.madar-pos.cloud`, so
+ * nothing already in a customer's hands moves.
+ */
+const rewardsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/rewards",
+  component: function Rewards() {
     const { orgId, resolving } = useHostOrg();
     if (resolving) return null;
     return orgId ? <JoinPage orgId={orgId} /> : <ScanToJoin />;
@@ -177,7 +208,7 @@ const cardRoute = createRoute({
 const router = createRouter({
   // `join/org/$orgId` before `join/$branchId`: the literal segment has to be
   // matched first, or "org" is read as a branch id.
-  routeTree: rootRoute.addChildren([indexRoute, joinOrgRoute, joinRoute, cardRoute]),
+  routeTree: rootRoute.addChildren([indexRoute, rewardsRoute, joinOrgRoute, joinRoute, cardRoute]),
   defaultPreload: "intent",
 });
 

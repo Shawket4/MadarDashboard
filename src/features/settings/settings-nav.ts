@@ -17,6 +17,7 @@ import {
   CreditCard,
   Languages,
   Layers,
+  Link2,
   MessageCircle,
   Palette,
   Plug,
@@ -73,6 +74,17 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         descKey: "settings.brandDesc",
         desc: "Your mark and your links, on receipts and on your customers' loyalty cards.",
         icon: ImageIcon,
+      },
+      {
+        // The page the shop's own address opens on. Same rule as Brand: the
+        // shop's own face, edited by its manager.
+        to: "/settings/links",
+        module: "pos",
+        labelKey: "settings.linksPage",
+        fallback: "Links page",
+        descKey: "settings.linksPageDesc",
+        desc: "The page your address opens on: order, menu, rewards, your socials.",
+        icon: Link2,
       },
     ],
   },

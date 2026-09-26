@@ -203,6 +203,7 @@ export function StorefrontShell({
   children,
   brand,
   product,
+  headerMark = true,
 }: {
   children: ReactNode;
   /** Which product this page is, for the footer's signature. */
@@ -218,6 +219,12 @@ export function StorefrontShell({
    * sets how loudly it signs.
    */
   brand?: ShellBrand | null;
+  /**
+   * False when the page carries the shop's mark itself, large, right under
+   * the header (the links page): the header then holds only the toggles,
+   * rather than the same logo twice within a thumb's height.
+   */
+  headerMark?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
@@ -239,7 +246,7 @@ export function StorefrontShell({
 
       <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[480px] items-center gap-2 px-4 py-3">
-          {brand ? (
+          {brand && headerMark ? (
             <BrandMark brand={brand} />
           ) : (
             <>

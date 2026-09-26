@@ -20,6 +20,7 @@ import {
   Dir,
   Grain,
   LateDeductionKind,
+  LinksItemKind,
   LintSeverity,
   PeriodPreset,
   PrinterBrand,
@@ -157,6 +158,7 @@ import type {
   LiabilityTrend,
   LimitsView,
   LinkableUser,
+  LinksPageSettings,
   LintIssue,
   LoginResponse,
   LowStockRow,
@@ -241,6 +243,7 @@ import type {
   PublicBranch,
   PublicBrand,
   PublicCombo,
+  PublicLinksPage,
   PublicSlots,
   PublicTable,
   PublicTableBill,
@@ -951,6 +954,12 @@ export const getOrgBookingQrResponseMock = (overrideResponse: Partial<Extract<Qr
 
 export const getUploadOrgCardImageResponseMock = (overrideResponse: Partial<Extract<Org, object>> = {}): Org => ({brand_accent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_background: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_card_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_foreground: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_logo_is_mark: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), currency_code: faker.string.alpha({length: {min: 10, max: 20}}), custom_branding: faker.datatype.boolean(), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), modules: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_table_for_orders: faker.datatype.boolean(), service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), social_links: {}, tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
+export const getGetLinksPageResponseMock = (overrideResponse: Partial<Extract<LinksPageSettings, object>> = {}): LinksPageSettings => ({branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({address: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), maps_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), visible: faker.datatype.boolean()})), card_image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), custom_branding: faker.datatype.boolean(), items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), kind: faker.helpers.arrayElement(Object.values(LinksItemKind)), title_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), title_en: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), visible: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])})), loyalty_mode: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), modules: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({available: faker.datatype.boolean(), branch_names: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), kind: faker.helpers.arrayElement(Object.values(LinksItemKind)), path: faker.string.alpha({length: {min: 10, max: 20}})})), public_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), show_branches: faker.datatype.boolean(), show_cover: faker.datatype.boolean(), social_links: {}, tagline_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), tagline_en: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getPutLinksPageResponseMock = (overrideResponse: Partial<Extract<LinksPageSettings, object>> = {}): LinksPageSettings => ({branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({address: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), maps_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), visible: faker.datatype.boolean()})), card_image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), custom_branding: faker.datatype.boolean(), items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), kind: faker.helpers.arrayElement(Object.values(LinksItemKind)), title_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), title_en: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), visible: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])})), loyalty_mode: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), modules: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({available: faker.datatype.boolean(), branch_names: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), kind: faker.helpers.arrayElement(Object.values(LinksItemKind)), path: faker.string.alpha({length: {min: 10, max: 20}})})), public_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), show_branches: faker.datatype.boolean(), show_cover: faker.datatype.boolean(), social_links: {}, tagline_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), tagline_en: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
+
+export const getOrgLinksQrResponseMock = (overrideResponse: Partial<Extract<QrResponse, object>> = {}): QrResponse => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), long_url: faker.string.alpha({length: {min: 10, max: 20}}), qr_data_url: faker.string.alpha({length: {min: 10, max: 20}}), short_code: faker.string.alpha({length: {min: 10, max: 20}}), short_url: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
 export const getUploadOrgLogoResponseMock = (overrideResponse: Partial<Extract<Org, object>> = {}): Org => ({brand_accent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_background: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_card_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_foreground: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), brand_logo_is_mark: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), currency_code: faker.string.alpha({length: {min: 10, max: 20}}), custom_branding: faker.datatype.boolean(), id: faker.string.uuid(), is_active: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), modules: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), name: faker.string.alpha({length: {min: 10, max: 20}}), receipt_footer: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), require_table_for_orders: faker.datatype.boolean(), service_charge_rate: faker.number.float({fractionDigits: 2}), service_charge_taxable: faker.datatype.boolean(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), social_links: {}, tax_inclusive: faker.datatype.boolean(), tax_rate: faker.number.float({fractionDigits: 2}), timezone: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 export const getOrgLoyaltyQrResponseMock = (overrideResponse: Partial<Extract<QrResponse, object>> = {}): QrResponse => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), long_url: faker.string.alpha({length: {min: 10, max: 20}}), qr_data_url: faker.string.alpha({length: {min: 10, max: 20}}), short_code: faker.string.alpha({length: {min: 10, max: 20}}), short_url: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
@@ -1066,6 +1075,8 @@ export const getOrderNowReplaceIdentityResponseMock = (overrideResponse: Partial
 export const getPublicOrgBrandResponseMock = (overrideResponse: Partial<Extract<PublicBrand, object>> = {}): PublicBrand => ({accent_color: faker.string.alpha({length: {min: 10, max: 20}}), background_color: faker.string.alpha({length: {min: 10, max: 20}}), card_image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), custom_branding: faker.datatype.boolean(), foreground_color: faker.string.alpha({length: {min: 10, max: 20}}), logo_is_mark: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
 
 export const getPublicOrgFaviconResponseMock = (): ArrayBuffer => (new ArrayBuffer(faker.number.int({ min: 1, max: 64 })))
+
+export const getPublicOrgLinksResponseMock = (overrideResponse: Partial<Extract<PublicLinksPage, object>> = {}): PublicLinksPage => ({branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({address: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), directions_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), phone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), brand: {accent_color: faker.string.alpha({length: {min: 10, max: 20}}), background_color: faker.string.alpha({length: {min: 10, max: 20}}), card_image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), custom_branding: faker.datatype.boolean(), foreground_color: faker.string.alpha({length: {min: 10, max: 20}}), logo_is_mark: faker.datatype.boolean(), logo_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])}, cover_image_url: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), items: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_names: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), channels: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), href: faker.string.alpha({length: {min: 10, max: 20}}), kind: faker.helpers.arrayElement(Object.values(LinksItemKind)), path: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), title_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), title_en: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), loyalty_mode: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), socials: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({key: faker.string.alpha({length: {min: 10, max: 20}}), label: faker.string.alpha({length: {min: 10, max: 20}}), url: faker.string.alpha({length: {min: 10, max: 20}})})), tagline_ar: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), tagline_en: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ...overrideResponse})
 
 export const getOtpRequestResponseMock = (overrideResponse: Partial<Extract<OtpRequestResponse, object>> = {}): OtpRequestResponse => ({sent: faker.datatype.boolean(), ...overrideResponse})
 
@@ -4860,6 +4871,42 @@ export const getUploadOrgCardImageMockHandler = (overrideResponse?: Org | ((info
   }, options)
 }
 
+export const getGetLinksPageMockHandler = (overrideResponse?: LinksPageSettings | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<LinksPageSettings> | LinksPageSettings), options?: RequestHandlerOptions) => {
+  return http.get('*/orgs/:id/links-page', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetLinksPageResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPutLinksPageMockHandler = (overrideResponse?: LinksPageSettings | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<LinksPageSettings> | LinksPageSettings), options?: RequestHandlerOptions) => {
+  return http.put('*/orgs/:id/links-page', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPutLinksPageResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getOrgLinksQrMockHandler = (overrideResponse?: QrResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<QrResponse> | QrResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/orgs/:id/links-qr', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getOrgLinksQrResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getUploadOrgLogoMockHandler = (overrideResponse?: Org | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<Org> | Org), options?: RequestHandlerOptions) => {
   return http.put('*/orgs/:id/logo', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
 
@@ -5510,6 +5557,18 @@ export const getPublicOrgFaviconMockHandler = (overrideResponse?: ArrayBuffer | 
         : new ArrayBuffer(0),
       { status: 200,
         headers: { 'Content-Type': 'image/png' }
+      })
+  }, options)
+}
+
+export const getPublicOrgLinksMockHandler = (overrideResponse?: PublicLinksPage | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PublicLinksPage> | PublicLinksPage), options?: RequestHandlerOptions) => {
+  return http.get('*/public/orgs/links', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPublicOrgLinksResponseMock(),
+      { status: 200
       })
   }, options)
 }
@@ -9087,6 +9146,9 @@ export const getMadarAPIMock = () => [
   getUpdateOrgMockHandler(),
   getOrgBookingQrMockHandler(),
   getUploadOrgCardImageMockHandler(),
+  getGetLinksPageMockHandler(),
+  getPutLinksPageMockHandler(),
+  getOrgLinksQrMockHandler(),
   getUploadOrgLogoMockHandler(),
   getOrgLoyaltyQrMockHandler(),
   getGetOrgModulesMockHandler(),
@@ -9142,6 +9204,7 @@ export const getMadarAPIMock = () => [
   getOrderNowReplaceIdentityMockHandler(),
   getPublicOrgBrandMockHandler(),
   getPublicOrgFaviconMockHandler(),
+  getPublicOrgLinksMockHandler(),
   getOtpRequestMockHandler(),
   getOtpVerifyMockHandler(),
   getPublicTableOrderMockHandler(),
