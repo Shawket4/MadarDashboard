@@ -25,7 +25,9 @@ import { isCombo } from "../combo";
 
 interface MenuStepProps {
   branchId: string;
-  channel: Channel;
+  /** A delivery channel, or `dine_in`: the read-only menu of a shop that takes
+   *  no online orders (the backend serves it only as a preview). */
+  channel: Channel | "dine_in";
   /**
    * A menu supplied by the caller instead of fetched here.
    *
@@ -54,6 +56,12 @@ interface MenuStepProps {
   browseOnly?: boolean;
   /** Browse CTA — leave the preview to choose how to order. */
   onExitBrowse?: () => void;
+  /** Browse: whether the branch is taking orders right now. The banner says
+   *  "we're closed" only when it really is. */
+  open?: boolean;
+  /** Browse of a shop that takes no online orders: the menu to read, nothing
+   *  to add — no customizer, no way to an order that could never be placed. */
+  readOnly?: boolean;
 }
 
 interface Group {
@@ -62,7 +70,7 @@ interface Group {
   items: DeliveryMenuItem[];
 }
 
-export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAdd, query, onQueryChange, cartSlot, browseOnly, onExitBrowse }: MenuStepProps) {
+export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAdd, query, onQueryChange, cartSlot, browseOnly, onExitBrowse, open, readOnly }: MenuStepProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const fetched = usePublicMenu(
@@ -82,7 +90,9 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
         ? t("order.channel.umbrella", "To my umbrella")
         : channel === "pickup"
           ? t("order.channel.pickup", "Pickup")
-          : t("order.channel.outside", "Delivery");
+          : channel === "dine_in"
+            ? t("order.channel.dineIn", "Dine in")
+            : t("order.channel.outside", "Delivery");
 
   const [active, setActive] = useState<DeliveryMenuItem | null>(null);
   const [customizerOpen, setCustomizerOpen] = useState(false);
@@ -146,6 +156,7 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
   const openItem = (item: DeliveryMenuItem) => {
     // Cart-building is allowed even in browse mode (closed branch preview): the
     // customer can fill a cart now and check out the moment a channel reopens.
+    if (readOnly) return;
     setActive(item);
     setCustomizerOpen(true);
   };
@@ -216,19 +227,27 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
                 </span>
                 <div className="min-w-0">
                   <p className="font-serif text-base font-semibold leading-tight">
-                    {t("order.browse.bannerTitle", "We're closed right now")}
+                    {readOnly
+                      ? t("order.browse.menuTitle", "Our menu")
+                      : open
+                        ? t("order.browse.viewingTitle", "You're viewing our menu")
+                        : t("order.browse.bannerTitle", "We're closed right now")}
                   </p>
                   <p className="mt-0.5 text-sm text-muted-foreground">
-                    {t("order.browse.bannerBody", "You're previewing the menu — ordering reopens when we're back.")}
+                    {readOnly
+                      ? t("order.browse.menuOnlyBody", "Order at the counter — these are our prices.")
+                      : open
+                        ? t("order.browse.viewingBody", "Ready? Start your order and choose how you'd like it.")
+                        : t("order.browse.bannerBody", "You're previewing the menu — ordering reopens when we're back.")}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground/80">
                     {t("order.browse.priceNote", { channel: channelLabel, defaultValue: "Prices shown for {{channel}}" })}
                   </p>
                 </div>
               </div>
-              {onExitBrowse && (
+              {onExitBrowse && !readOnly && (
                 <Button variant="brand" size="sm" className="shrink-0 self-start sm:self-center" onClick={onExitBrowse}>
-                  {t("order.browse.exit", "See how to order")}
+                  {open ? t("order.browse.start", "Start your order") : t("order.browse.exit", "See how to order")}
                 </Button>
               )}
             </div>

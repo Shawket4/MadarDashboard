@@ -137,6 +137,14 @@ export function ChannelStep({ branch, onSelect, onBrowse }: ChannelStepProps) {
       })}
     </motion.ul>
 
+      {!allClosed && onBrowse && (
+        <div className="flex justify-center">
+          <Button variant="ghost" size="sm" className="text-brand" onClick={onBrowse}>
+            {t("order.browse.viewMenu", "Just looking? View the menu")}
+          </Button>
+        </div>
+      )}
+
       {allClosed && onBrowse && (
         <div className="rounded-2xl border border-brand/30 bg-brand/5 p-5 text-center">
           <span className="mx-auto mb-3 flex size-11 items-center justify-center rounded-full bg-brand/10 text-brand">

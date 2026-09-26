@@ -3259,7 +3259,13 @@
       "checkoutClosedTitle": "Ordering is closed right now",
       "checkoutClosedHint": "Your cart is saved — pick up right where you left off.",
       "checkoutClosedBody": "Every channel is closed at the moment. We've saved your cart — come back when we reopen and check out in a tap.",
-      "keepBrowsing": "Keep browsing"
+      "keepBrowsing": "Keep browsing",
+      "viewingTitle": "You're viewing our menu",
+      "viewingBody": "Ready? Start your order and choose how you'd like it.",
+      "start": "Start your order",
+      "menuTitle": "Our menu",
+      "menuOnlyBody": "Order at the counter — these are our prices.",
+      "viewMenu": "Just looking? View the menu"
     },
     "channel": {
       "title": "How would you like it?",
@@ -3278,7 +3284,8 @@
       "closedTitle": "This isn't available right now",
       "closedBodyInMall": "Sorry — in-mall ordering is closed at the moment. Please try delivery, or check back a little later.",
       "closedBodyOutside": "Sorry — delivery is closed at the moment. Please try in-mall ordering, or check back a little later.",
-      "choose": "Choose another option"
+      "choose": "Choose another option",
+      "dineIn": "Dine in"
     },
     "location": {
       "heading": "Delivery location",
