@@ -97,6 +97,19 @@ const X: Glyph = (p) => (
 );
 
 /** Keyed by `orgs::social::PLATFORMS`. Anything else falls to the globe. */
+/**
+ * Talabat: its lowercase "t" with the smile under it, drawn in the same
+ * outline weight as the other marks rather than pasted in as its orange logo —
+ * every icon in this row takes the shop's accent.
+ */
+const Talabat: Glyph = (p) => (
+  <Outline {...p}>
+    <path d="M10.5 3.5v10a3.5 3.5 0 0 0 3.5 3.5h1.5" />
+    <path d="M7 8h8" />
+    <path d="M5.5 20.5c4 2 9 2 13 0" />
+  </Outline>
+);
+
 const GLYPHS: Record<string, Glyph> = {
   instagram: Instagram,
   facebook: Facebook,
@@ -104,6 +117,7 @@ const GLYPHS: Record<string, Glyph> = {
   x: X,
   youtube: YouTube,
   whatsapp: MessageCircle,
+  talabat: Talabat,
   website: Globe,
 };
 

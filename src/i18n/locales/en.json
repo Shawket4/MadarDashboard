@@ -363,7 +363,8 @@
       "x": "X",
       "youtube": "YouTube",
       "whatsapp": "WhatsApp",
-      "website": "Website"
+      "website": "Website",
+      "talabat": "Talabat"
     },
     "taxRateRange": "Enter a rate between 0 and 100",
     "taxInclusive": "Menu prices include tax",
@@ -5111,7 +5112,8 @@
       "x": "X",
       "youtube": "YouTube",
       "whatsapp": "WhatsApp",
-      "website": "Website"
+      "website": "Website",
+      "talabat": "Talabat"
     },
     "joinQr": "Join code",
     "tabOverview": "Overview",
