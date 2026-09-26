@@ -19637,7 +19637,18 @@ export const RosterResponse = zod.object({
   "date": zod.iso.date(),
   "day_off": zod.boolean().describe('The date is a day off by date change (it holds no shift).'),
   "employee_id": zod.uuid()
-}).describe('A person\'s date that holds its own set (a date change), not the pattern.')).optional().describe('The dates that hold their own set (a date change), a day off included:\nthe ones \"back to the pattern\" applies to.'),
+}).describe('A person\'s date that holds its own set (a date change), not the pattern.')).optional().describe('The dates whose part at THIS branch is not the pattern\'s (a date\nchange here, a day off included): the ones \"back to the pattern\"\napplies to on this board. A date changed only at another branch is\nnot one (BUG-4).'),
+  "elsewhere": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "crosses_midnight": zod.boolean(),
+  "date": zod.iso.date(),
+  "employee_id": zod.uuid(),
+  "end_time": zod.string(),
+  "shift_name": zod.string(),
+  "start_time": zod.string(),
+  "work_shift_id": zod.uuid()
+}).describe('A person\'s shift at ANOTHER branch that date (BUG-4): the board shows it\n(\"at <branch>\") so the cell never reads \"Off\", but it is not this\nboard\'s: never one of `shifts`, never sent back by a PUT from here.')).optional().describe('The staff\'s shifts at other branches in range, for display only\n(BUG-4).'),
   "from": zod.iso.date(),
   "holidays": zod.array(zod.object({
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -20007,7 +20018,8 @@ export const PutDayResponse = zod.object({
  */
 export const ResetDayQueryParams = zod.object({
   "employee_id": zod.uuid(),
-  "on_date": zod.iso.date()
+  "on_date": zod.iso.date(),
+  "branch_id": zod.uuid().optional().describe('The board it is reset from (BUG-4): only the blocks worked at that\nbranch go back to the pattern; the other branches\' stay (one of the\nperson\'s branches, else 400 `EMPLOYEE_NOT_AT_BRANCH`). Omitted (an\nold client) = the branches the caller may edit the roster at: an\nowner resets the whole date, as before.')
 })
 
 export const ResetDayResponse = zod.object({

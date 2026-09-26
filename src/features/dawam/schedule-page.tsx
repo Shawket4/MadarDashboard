@@ -31,7 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   cancelOpenShift, decideHoliday, decideSuggestion, postOpenShift, publish, useListBranches, useRoster, useSuggestions,
 } from "@/data/api/generated/api";
-import type { LabourWarning, OpenShift, RosterPerson, RosterShift, Suggestion } from "@/data/api/generated/models";
+import type { ElsewhereShift, LabourWarning, OpenShift, RosterPerson, RosterShift, Suggestion } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
 import { useAuthz } from "@/data/authz/use-authz";
@@ -90,6 +90,15 @@ export function SchedulePage() {
   const cell = useMemo(() => {
     const m = new Map<string, RosterShift[]>();
     for (const s of view?.shifts ?? []) {
+      const k = `${s.employee_id}|${s.date}`;
+      m.set(k, [...(m.get(k) ?? []), s]);
+    }
+    return m;
+  }, [view]);
+  /** (employee|date) → their shifts at other branches: shown "at <branch>", never sent back. */
+  const away = useMemo(() => {
+    const m = new Map<string, ElsewhereShift[]>();
+    for (const s of view?.elsewhere ?? []) {
       const k = `${s.employee_id}|${s.date}`;
       m.set(k, [...(m.get(k) ?? []), s]);
     }
@@ -330,6 +339,7 @@ export function SchedulePage() {
                       branchId={branchId}
                       branchNames={branchNames}
                       shifts={cell.get(`${p.employee_id}|${d}`) ?? []}
+                      elsewhere={away.get(`${p.employee_id}|${d}`) ?? []}
                       warnings={warningsAt.get(`${p.employee_id}|${d}`) ?? []}
                       dayOff={dateSets.get(`${p.employee_id}|${d}`) === true}
                       editable={canEdit}
@@ -483,6 +493,7 @@ export function SchedulePage() {
           person={dayOpen.person}
           date={dayOpen.date}
           shifts={cell.get(`${dayOpen.person.employee_id}|${dayOpen.date}`) ?? []}
+          elsewhere={away.get(`${dayOpen.person.employee_id}|${dayOpen.date}`) ?? []}
           templates={templates}
           staff={view.staff}
           ownSet={dateSets.has(`${dayOpen.person.employee_id}|${dayOpen.date}`)}
@@ -541,7 +552,7 @@ function ScheduleLegend() {
 }
 
 function DayCell({
-  name, date, today, branchId, branchNames, shifts, warnings, dayOff, editable, onOpen,
+  name, date, today, branchId, branchNames, shifts, elsewhere, warnings, dayOff, editable, onOpen,
 }: {
   name: string;
   today: boolean;
@@ -552,6 +563,8 @@ function DayCell({
   dayOff: boolean;
   date: string;
   shifts: RosterShift[];
+  /** Their shifts at other branches that date: shown, never this board's to edit. */
+  elsewhere: ElsewhereShift[];
   warnings: LabourWarning[];
   editable: boolean;
   onOpen: () => void;
@@ -562,7 +575,7 @@ function DayCell({
       {shifts.length === 0 ? (
         dayOff ? (
           <span className="text-xs font-medium">{t("dawam.dayOffSet", "Day off")}</span>
-        ) : (
+        ) : elsewhere.length > 0 ? null : (
           <span className="text-xs text-muted-foreground">{t("dawam.off", "Off")}</span>
         )
       ) : (
@@ -593,6 +606,16 @@ function DayCell({
           </span>
         ))
       )}
+      {elsewhere.map((s) => (
+        <span key={`${s.branch_id}|${s.work_shift_id}`} className="flex flex-col items-center leading-tight text-muted-foreground">
+          <span className="text-xs">{s.shift_name}</span>
+          <span className="inline-flex items-center gap-0.5 text-[10px] font-medium">
+            <MapPin className="size-3" aria-hidden />
+            {t("dawamOps.atBranch", { branch: s.branch_name || (branchNames.get(s.branch_id) ?? t("dawamOps.otherBranch", "another branch")), defaultValue: "at {{branch}}" })}
+          </span>
+          <ShiftTimes s={s} compact />
+        </span>
+      ))}
       {warnings.map((w) => <WarningChip key={w.kind} w={w} />)}
     </div>
   );
