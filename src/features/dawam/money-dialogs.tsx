@@ -37,13 +37,14 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
-import { DateField, MoneyField, NumberField } from "@/components/inputs";
+import { DateField, MoneyField, NumberField, latinDigits } from "@/components/inputs";
 import type { SalaryAdvance } from "@/data/api/generated/models";
 import { capView } from "./phase-d";
 
 /** Pounds as typed → piastres; null when it isn't a positive amount. */
 export const readPounds = (s: string): number | null => {
-  const n = Number(s.replace(/,/g, "").trim());
+  // Arabic digits and separators too: ٩٬٠٠٠٫٥٠ is 9,000.50.
+  const n = Number(latinDigits(s).replace(/٫/g, ".").replace(/[,٬]/g, "").trim());
   return Number.isFinite(n) && n > 0 ? egpToPiastres(n) : null;
 };
 

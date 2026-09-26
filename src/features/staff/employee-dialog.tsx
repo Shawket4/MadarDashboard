@@ -179,6 +179,28 @@ export function EmployeeDialog({
 
   const submit = async (v: Values) => {
     if (!employee) return;
+    // The server signs the phone in use out when the number changes or app
+    // access is turned off (RO-4): say so before saving, never after.
+    const newPhone = v.phone.trim() ? canonicalPhone(v.phone) : "";
+    const numberChanged = newPhone !== (employee.phone ? canonicalPhone(employee.phone) : "");
+    const accessOff = !!employee.app_access && !v.app_access;
+    if (employee.device_model && (numberChanged || accessOff)) {
+      const ok = await confirm({
+        title: t("dawam.revokeTitle", { name: employee.name, defaultValue: `Sign ${employee.name}'s phone out?` }),
+        description: numberChanged
+          ? t("dawam.signOutOnNewNumber", {
+              model: employee.device_model,
+              defaultValue: "A new number signs out the phone they use now ({{model}}). They sign in again with a WhatsApp code to the new number.",
+            })
+          : t("dawam.signOutOnAccessOff", {
+              model: employee.device_model,
+              defaultValue: "Without app access, the phone they use now ({{model}}) is signed out and can't sign in again.",
+            }),
+        confirmLabel: t("dawam.saveAndSignOut", "Save and sign it out"),
+        destructive: true,
+      });
+      if (!ok) return;
+    }
     setBusy(true);
     try {
       await putEmployee(employee.id, {

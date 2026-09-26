@@ -174,7 +174,11 @@ export function DawamRulesCard({
     <Card>
       <CardHeader>
         <CardTitle>{t("dawam.rulesTitle", "Overtime, holidays and pay")}</CardTitle>
-        <CardDescription>{t("dawam.rulesHint", "Overtime is off until you turn it on. Rates follow Egypt's labour law as read so far — check them with your lawyer.")}</CardDescription>
+        <CardDescription>
+          {/* Only while it is off: the card never says overtime is off when it is on. */}
+          {value.overtimeMode === "off" ? `${t("dawam.setupOtOff", "Overtime is off until you turn it on.")} ` : ""}
+          {t("dawam.rulesHintRates", "Rates follow Egypt's labour law as read so far — check them with your lawyer.")}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-1">

@@ -86,6 +86,9 @@ export function TeamPage() {
   const presenceQ = useTeamPresence({ branch_id: branchId ?? undefined }, { query: dawamQuery({ enabled: canRead, refetchInterval: 60_000 }) });
   const flagsQ = useListAttendanceFlags({ branch_id: branchId ?? undefined }, { query: dawamQuery({ enabled: canRead }) });
   const rows = useMemo(() => presenceQ.data?.rows ?? [], [presenceQ.data]);
+  // Every active person comes back, rostered or not: a day where nobody is on
+  // the roster (all off, nothing scheduled, nobody in) is the empty board.
+  const anyoneRostered = rows.some((r) => r.state !== "off" || (r.scheduled_minutes ?? 0) > 0 || !!r.check_in_at);
   // Today's records say whose shift a colleague is covering: that punch is refused (D1).
   const today = presenceQ.data?.business_date;
   const todayQ = useListAttendance(
@@ -162,7 +165,7 @@ export function TeamPage() {
         ) : null}
         {failedEmpty(presenceQ) ? (
           <ErrorState title={t("dawam.teamLoadError", "Couldn't load the team")} message={getErrorMessage(presenceQ.error)} onRetry={() => void presenceQ.refetch()} />
-        ) : presenceQ.isLoading ? <Skeleton className="h-48 w-full rounded-2xl" /> : rows.length === 0 ? (
+        ) : presenceQ.isLoading ? <Skeleton className="h-48 w-full rounded-2xl" /> : !anyoneRostered ? (
           <EmptyState
             icon={UsersRound}
             title={t("dawam.nobodyRostered", "Nobody is rostered today")}

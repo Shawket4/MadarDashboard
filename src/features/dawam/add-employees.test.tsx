@@ -216,12 +216,25 @@ describe("Import from a spreadsheet", () => {
 });
 
 describe("D9: the salary calculator (owner decision 9)", () => {
+  it("T4: a salary typed in Arabic digits is read, not dropped (٩٬٠٠٠٫٥٠)", async () => {
+    const user = userEvent.setup();
+    wrap(<AddEmployeeDialog onOpenChange={() => {}} />);
+    await user.type(screen.getByLabelText("Name"), "Sara Ahmed");
+    await user.type(screen.getByLabelText("WhatsApp number"), "01001234567");
+    await user.click(screen.getByRole("checkbox", { name: "Maadi" }));
+    await user.type(screen.getByLabelText("Monthly salary (EGP)"), "٩٬٠٠٠٫٥٠");
+    expect(screen.getByLabelText("Monthly salary (EGP)")).toHaveValue("٩٬٠٠٠٫٥٠");
+    expect(screen.getByLabelText("Daily rate (EGP)")).toHaveValue("346.17");
+    await user.click(screen.getByRole("button", { name: "Add employee" }));
+    await waitFor(() => expect(createEmployee).toHaveBeenCalledWith(expect.objectContaining({ base_salary_piastres: 900_050 })));
+  });
+
   it("a day rate fills the monthly salary and the hourly rate, from 26 days of 8 hours", async () => {
     const user = userEvent.setup();
     wrap(<AddEmployeeDialog onOpenChange={() => {}} />);
     await user.type(screen.getByLabelText("Daily rate (EGP)"), "250");
-    expect(screen.getByLabelText("Monthly salary (EGP)")).toHaveValue(6500);
-    expect(screen.getByLabelText("Hourly rate (EGP)")).toHaveValue(31.25);
+    expect(screen.getByLabelText("Monthly salary (EGP)")).toHaveValue("6500");
+    expect(screen.getByLabelText("Hourly rate (EGP)")).toHaveValue("31.25");
     expect(screen.getByText(/26 working days of 8 h/)).toBeInTheDocument();
   });
 
@@ -229,13 +242,13 @@ describe("D9: the salary calculator (owner decision 9)", () => {
     const user = userEvent.setup();
     wrap(<AddEmployeeDialog onOpenChange={() => {}} />);
     await user.type(screen.getByLabelText("Hourly rate (EGP)"), "31.25");
-    expect(screen.getByLabelText("Monthly salary (EGP)")).toHaveValue(6500);
-    expect(screen.getByLabelText("Daily rate (EGP)")).toHaveValue(250);
+    expect(screen.getByLabelText("Monthly salary (EGP)")).toHaveValue("6500");
+    expect(screen.getByLabelText("Daily rate (EGP)")).toHaveValue("250");
     const monthly = screen.getByLabelText("Monthly salary (EGP)");
     await user.clear(monthly);
     await user.type(monthly, "7800");
-    expect(screen.getByLabelText("Daily rate (EGP)")).toHaveValue(300);
-    expect(screen.getByLabelText("Hourly rate (EGP)")).toHaveValue(37.5);
+    expect(screen.getByLabelText("Daily rate (EGP)")).toHaveValue("300");
+    expect(screen.getByLabelText("Hourly rate (EGP)")).toHaveValue("37.5");
   });
 
   it("names the first pay, pro rata from the hire date to the period's end (310,000 × 16/31)", async () => {
@@ -252,8 +265,8 @@ describe("D9: the salary calculator (owner decision 9)", () => {
     const user = userEvent.setup();
     wrap(<AddEmployeeDialog onOpenChange={() => {}} />);
     await user.type(screen.getByLabelText("Monthly salary (EGP)"), "9000");
-    expect(screen.getByLabelText("Daily rate (EGP)")).toHaveValue(300);
-    expect(screen.getByLabelText("Hourly rate (EGP)")).toHaveValue(33.33);
+    expect(screen.getByLabelText("Daily rate (EGP)")).toHaveValue("300");
+    expect(screen.getByLabelText("Hourly rate (EGP)")).toHaveValue("33.33");
   });
 
   it("a manager with the pay right at one branch only gets no salary field (the server would drop it)", () => {

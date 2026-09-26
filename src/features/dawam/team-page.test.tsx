@@ -34,6 +34,8 @@ const logExpenseAdvance = vi.fn(async () => ({}));
 let todayRecords: Record<string, unknown>[] = [];
 /** More presence rows for a test (someone before their shift, M15). */
 let extraRows: Record<string, unknown>[] = [];
+/** Replaces the presence rows for a test (a day nobody is rostered). */
+let onlyRows: Record<string, unknown>[] | null = null;
 
 const failing: Record<string, Error | null> = {};
 const hook = (name: string, data: () => unknown) => (...args: unknown[]) => {
@@ -67,7 +69,7 @@ vi.mock("./rules-banner", () => ({ RulesFirstBanner: () => null }));
 vi.mock("@/data/api/generated/api", () => ({
   useTeamPresence: hook("presence", () => ({
     business_date: "2026-09-22", present: 1, late: 1, absent: 1, on_leave: 0, planned_minutes: 0, worked_minutes: 0,
-    rows: [
+    rows: onlyRows ?? [
       { employee_id: "e1", employee_name: "Sara Ahmed", state: "in", check_in_at: "2026-09-22T05:00:00Z", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 60, branch_name: "Zamalek" },
       { employee_id: "e4", employee_name: "Youssef Adel", state: "absent", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 0, branch_name: "Zamalek" },
       ...extraRows,
@@ -103,6 +105,7 @@ beforeEach(() => {
   punchFor.mockClear();
   todayRecords = [];
   extraRows = [];
+  onlyRows = null;
   limits = {};
   toastMock.success.mockClear();
   toastMock.info.mockClear();
@@ -378,6 +381,26 @@ describe("TeamPage", () => {
     expect(within(row("Mona Samir")).getByRole("button", { name: /Punch in/ })).toBeInTheDocument();
     expect(within(row("Hany Fathy")).queryByRole("button", { name: /Punch/ })).toBeNull();
     expect(within(row("Rana Adel")).queryByRole("button", { name: /Punch/ })).toBeNull();
+  });
+
+  it("T4: nobody rostered today (everyone off, nothing scheduled) says to use Schedule, not a list of Off", () => {
+    onlyRows = [
+      { employee_id: "e1", employee_name: "Sara Ahmed", state: "off", late_minutes: 0, scheduled_minutes: 0, worked_minutes: 0, branch_name: "Zamalek" },
+      { employee_id: "e4", employee_name: "Youssef Adel", state: "off", late_minutes: 0, scheduled_minutes: 0, worked_minutes: 0, branch_name: "Zamalek" },
+    ];
+    wrap(<TeamPage />);
+    expect(screen.getByText("Nobody is rostered today")).toBeInTheDocument();
+    expect(screen.queryByText("Sara Ahmed")).toBeNull();
+  });
+
+  it("T4: someone rostered later today keeps the list (off now, but scheduled)", () => {
+    onlyRows = [
+      { employee_id: "e1", employee_name: "Sara Ahmed", state: "off", late_minutes: 0, scheduled_minutes: 480, worked_minutes: 0, branch_name: "Zamalek" },
+      { employee_id: "e4", employee_name: "Youssef Adel", state: "off", late_minutes: 0, scheduled_minutes: 0, worked_minutes: 0, branch_name: "Zamalek" },
+    ];
+    wrap(<TeamPage />);
+    expect(screen.queryByText("Nobody is rostered today")).toBeNull();
+    expect(screen.getByText("Sara Ahmed")).toBeInTheDocument();
   });
 
   it("offers no punch when today is in an approved month (box verify, BC-3 decision a)", () => {
