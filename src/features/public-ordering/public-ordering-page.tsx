@@ -30,6 +30,7 @@ import { canonicalPhone, formatPhoneInput, isValidPhone, samePhone } from "@/lib
 import { FIELD_LIMITS } from "./limits";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
+import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { StepShell } from "./components/step-shell";
 import { BranchStep } from "./components/branch-step";
 import { BranchSelector } from "./components/branch-selector";
@@ -229,6 +230,10 @@ export function PublicOrderingPage({
   // OTP
   const [otpOpen, setOtpOpen] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
+  // Also as a toast: the inline copy sits where the customer may have scrolled from.
+  useErrorToast(submitError);
+  useErrorToast(phoneError);
+  useErrorToast(otpError);
   const idempotencyKey = useRef<string>(newUid());
 
   // ── Resolve the selected branch object (needed by channel step) ───────────
@@ -640,7 +645,9 @@ export function PublicOrderingPage({
     setResolvedPhone({ phone, deviceToken });
     // Pre-fill phone in checkout form immediately; name will be filled when
     // the background profile query resolves (via the effect below).
-    setForm((f) => ({ ...f, phone }));
+    // The step hands over the CANONICAL number (201…); the field wants what a
+    // person types (01…), or it reads "+20 2010…" under its own +20 prefix.
+    setForm((f) => ({ ...f, phone: formatPhoneInput(phone) }));
   }, []);
 
   // When the background order history loads, pre-fill customer name if not yet set.
