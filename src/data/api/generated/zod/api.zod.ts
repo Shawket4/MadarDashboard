@@ -11023,7 +11023,7 @@ export const GetLinksPageResponse = zod.object({
   "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
   "path": zod.string().describe('Where it opens on the shop\'s own host.')
 }).describe('Whether a module can be shown, and why — the editor\'s hint line.')),
-  "public_url": zod.string().nullish().describe('Where the page is, or `None` when there is nowhere to put it yet (a\nshop with no own host on a deployment with no generic links host).'),
+  "public_url": zod.string().nullish().describe('Where the page is: the root of the shop\'s own host, for a shop on the\nbranding tier with a slug. `None` otherwise — there is no generic links\nhost.'),
   "show_branches": zod.boolean(),
   "show_cover": zod.boolean(),
   "social_links": zod.looseObject({
@@ -11094,7 +11094,7 @@ export const PutLinksPageResponse = zod.object({
   "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
   "path": zod.string().describe('Where it opens on the shop\'s own host.')
 }).describe('Whether a module can be shown, and why — the editor\'s hint line.')),
-  "public_url": zod.string().nullish().describe('Where the page is, or `None` when there is nowhere to put it yet (a\nshop with no own host on a deployment with no generic links host).'),
+  "public_url": zod.string().nullish().describe('Where the page is: the root of the shop\'s own host, for a shop on the\nbranding tier with a slug. `None` otherwise — there is no generic links\nhost.'),
   "show_branches": zod.boolean(),
   "show_cover": zod.boolean(),
   "social_links": zod.looseObject({

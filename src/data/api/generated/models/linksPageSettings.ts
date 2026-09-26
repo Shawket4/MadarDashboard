@@ -23,8 +23,9 @@ export interface LinksPageSettings {
   loyalty_mode?: string | null;
   modules: LinksModuleStatus[];
   /**
-     * Where the page is, or `None` when there is nowhere to put it yet (a
-     * shop with no own host on a deployment with no generic links host).
+     * Where the page is: the root of the shop's own host, for a shop on the
+     * branding tier with a slug. `None` otherwise — there is no generic links
+     * host.
      * @nullable
      */
   public_url?: string | null;

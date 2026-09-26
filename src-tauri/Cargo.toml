@@ -1,6 +1,6 @@
 [package]
 name = "madar-dashboard"
-version = "1.3.1"
+version = "1.4.0"
 description = "Madar — Dashboard desktop client"
 authors = ["Madar"]
 edition = "2021"
