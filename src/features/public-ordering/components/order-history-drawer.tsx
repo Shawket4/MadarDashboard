@@ -167,12 +167,12 @@ function OrderCard({ order }: { order: OrderHistorySummary }) {
               )}
               {hasDiscount && (
                 <div className="flex justify-between text-success">
-                  <span>{t("cart.discount", "Discount")}</span>
+                  <span>{t("order.cart.discount", "Discount")}</span>
                   <span className="tabular-nums">−{fmtMoney(order.discount_amount)}</span>
                 </div>
               )}
               <div className="flex justify-between border-t border-border/50 pt-1.5 font-semibold text-foreground">
-                <span>{t("cart.total", "Total")}</span>
+                <span>{t("order.cart.total", "Total")}</span>
                 <span className="tabular-nums">{fmtMoney(order.total)}</span>
               </div>
             </div>

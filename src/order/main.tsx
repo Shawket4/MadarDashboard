@@ -27,6 +27,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "motion/react";
 import { z } from "zod";
 
+import { orderSearchSchema } from "./search";
+
 // Self-hosted fonts (work offline in Tauri).
 //
 // ONE SUPERFAMILY. The Arabic cut leads and carries Latin too, so a bilingual
@@ -77,18 +79,6 @@ import { OrderNowPage } from "@/features/public-ordering/order-now/order-now-pag
 // preference. A storefront should look the same to every customer.
 initPublicTheme();
 
-const orderSearchSchema = z.object({
-  branch: z.string().optional(),
-  channel: z.string().optional(),
-  table: z.string().optional(),
-  preview: z
-    .union([z.boolean(), z.string()])
-    .optional()
-    .transform((v) => (v === true || v === "1" || v === "true" ? true : undefined)),
-  place_name: z.string().optional(),
-  floor: z.coerce.string().optional(),
-  unit_number: z.coerce.string().optional(),
-});
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
 

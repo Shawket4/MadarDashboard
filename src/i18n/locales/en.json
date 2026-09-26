@@ -3370,6 +3370,8 @@
       "addOns": "Add-ons",
       "searchAddons": "Search add-ons",
       "noAddons": "No add-ons match your search.",
+      "showAllAddons": "Show all add-ons",
+      "showConfigured": "Show customized options",
       "extras": "Extras",
       "noCharge": "No charge",
       "selected": "{{count}} selected",
@@ -4822,7 +4824,12 @@
     "statusSeated": "Seated",
     "statusCompleted": "Completed",
     "statusNoShow": "Marked as no-show",
-    "statusCancelled": "Cancelled"
+    "statusCancelled": "Cancelled",
+    "scan": {
+      "title": "Scan to book a table",
+      "body": "Scan the code at the door or on your table to see what times are free.",
+      "hint": "Point your phone's camera at the Madar code"
+    }
   },
   "bookings": {
     "title": "Bookings",
@@ -5100,6 +5107,8 @@
     "introVisits": "A stamp for every order, and a reward when the card is full.",
     "phoneHint": "Your card is tied to this number — it's how the counter finds you.",
     "phoneHintOtp": "We'll send a code to confirm it, then make your card.",
+    "phoneHintVerify": "This number already has a card. Tap Join again and we'll send a code to confirm it's yours.",
+    "phoneHintVerifySent": "This number already has a card. We've sent its link to you on WhatsApp — or tap Join again and we'll send a code to confirm it's yours.",
     "termsHeading": "Terms",
     "walletHint": "It updates itself every time you earn, and it's there when you're back.",
     "couldntLoad": "We couldn't load this page",
