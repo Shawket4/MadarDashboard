@@ -921,6 +921,7 @@ export * from './syncItem';
 export * from './syncModifierGroup';
 export * from './syncModifierGroupNameTranslations';
 export * from './syncOption';
+export * from './syncOptionNameTranslations';
 export * from './syncRecipeLine';
 export * from './syncSize';
 export * from './tableBookingHint';

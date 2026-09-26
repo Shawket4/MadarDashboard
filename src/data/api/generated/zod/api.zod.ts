@@ -2243,6 +2243,9 @@ export const CatalogSyncResponse = zod.object({
   "is_available": zod.boolean().describe('Effective availability (branch_channel → branch → channel → TRUE).'),
   "is_default": zod.boolean().optional().describe('Explicit preselect for non-swap groups (e.g. \"White bread\"). Swap groups\nderive their default from the drink\'s recipe; this is always `false` there.'),
   "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional().describe('`{locale: name}`, as the dashboard authored it (`{}` when untranslated):\na till shows the option in its own language. Additive.'),
   "price": zod.number().describe('Effective price in piastres (branch_channel → branch → channel → catalog default).'),
   "recipe": zod.array(zod.object({
   "ingredient_id": zod.uuid(),
