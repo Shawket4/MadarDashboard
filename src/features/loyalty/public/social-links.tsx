@@ -98,16 +98,17 @@ const X: Glyph = (p) => (
 
 /** Keyed by `orgs::social::PLATFORMS`. Anything else falls to the globe. */
 /**
- * Talabat: its lowercase "t" with the smile under it, drawn in the same
- * outline weight as the other marks rather than pasted in as its orange logo —
- * every icon in this row takes the shop's accent.
+ * Talabat: the "t" of its own wordmark (the first glyph of the logo on
+ * Wikimedia Commons, `Talabat_logo.svg`), not a redrawing. Filled in the
+ * shop's accent like the other solid marks rather than in Talabat orange —
+ * every icon in this row takes the same colour. The viewBox squares the
+ * glyph's bounds (42 × 68) with a little air, so it sits at the size of its
+ * neighbours.
  */
 const Talabat: Glyph = (p) => (
-  <Outline {...p}>
-    <path d="M10.5 3.5v10a3.5 3.5 0 0 0 3.5 3.5h1.5" />
-    <path d="M7 8h8" />
-    <path d="M5.5 20.5c4 2 9 2 13 0" />
-  </Outline>
+  <svg viewBox="-0.05 25.8 74 74" fill="currentColor" aria-hidden {...p}>
+    <path d="M55.81 83.02c-1.05.36-2.17.56-3.34.56-3.65 0-5.41-1.92-7.01-4.8-.53-.91-.82-2.91-.82-2.91V60.08h13.5l-.71-6.3c-.35-3.1-2.98-5.45-6.1-5.45h-6.68V28.8s-4.04.27-5.39.37c-6.91.54-11.58 5.14-11.58 10.52l.03 9.08-11.95.44v4.54c0 3.49 2.83 6.32 6.31 6.32h5.63v16.17l.08 2.36c.05 10.07 8.22 18.2 18.3 18.2 3.58 0 6.92-1.03 9.74-2.81V83.02Z" />
+  </svg>
 );
 
 const GLYPHS: Record<string, Glyph> = {
