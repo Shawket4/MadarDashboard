@@ -263,6 +263,7 @@ const EXTRA_MODULE_ROUTES: Array<[string, OrgModule]> = [
   ["/reports/sales", "pos"],
   ["/settings/bookings", "pos"],
   ["/settings/brand", "pos"],
+  ["/settings/links", "pos"],
   ["/settings/combos", "pos"],
   ["/settings/integrations", "pos"],
   ["/settings/delivery", "pos"],

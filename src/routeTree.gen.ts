@@ -54,6 +54,7 @@ import { Route as AppSettingsStaffPoolRouteImport } from './routes/_app/settings
 import { Route as AppSettingsQrRouteImport } from './routes/_app/settings/qr'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppSettingsLoyaltyRouteImport } from './routes/_app/settings/loyalty'
+import { Route as AppSettingsLinksRouteImport } from './routes/_app/settings/links'
 import { Route as AppSettingsKitchenStationsRouteImport } from './routes/_app/settings/kitchen-stations'
 import { Route as AppSettingsKitchenRoutingRouteImport } from './routes/_app/settings/kitchen-routing'
 import { Route as AppSettingsIntegrationsRouteImport } from './routes/_app/settings/integrations'
@@ -330,6 +331,11 @@ const AppSettingsPaymentMethodsRoute =
 const AppSettingsLoyaltyRoute = AppSettingsLoyaltyRouteImport.update({
   id: '/loyalty',
   path: '/loyalty',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsLinksRoute = AppSettingsLinksRouteImport.update({
+  id: '/links',
+  path: '/links',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
 const AppSettingsKitchenStationsRoute =
@@ -672,6 +678,7 @@ export interface FileRoutesByFullPath {
   '/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/settings/kitchen-routing': typeof AppSettingsKitchenRoutingRoute
   '/settings/kitchen-stations': typeof AppSettingsKitchenStationsRoute
+  '/settings/links': typeof AppSettingsLinksRoute
   '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/qr': typeof AppSettingsQrRoute
@@ -765,6 +772,7 @@ export interface FileRoutesByTo {
   '/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/settings/kitchen-routing': typeof AppSettingsKitchenRoutingRoute
   '/settings/kitchen-stations': typeof AppSettingsKitchenStationsRoute
+  '/settings/links': typeof AppSettingsLinksRoute
   '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/settings/qr': typeof AppSettingsQrRoute
@@ -865,6 +873,7 @@ export interface FileRoutesById {
   '/_app/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/_app/settings/kitchen-routing': typeof AppSettingsKitchenRoutingRoute
   '/_app/settings/kitchen-stations': typeof AppSettingsKitchenStationsRoute
+  '/_app/settings/links': typeof AppSettingsLinksRoute
   '/_app/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
   '/_app/settings/qr': typeof AppSettingsQrRoute
@@ -965,6 +974,7 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/settings/kitchen-routing'
     | '/settings/kitchen-stations'
+    | '/settings/links'
     | '/settings/loyalty'
     | '/settings/payment-methods'
     | '/settings/qr'
@@ -1058,6 +1068,7 @@ export interface FileRouteTypes {
     | '/settings/integrations'
     | '/settings/kitchen-routing'
     | '/settings/kitchen-stations'
+    | '/settings/links'
     | '/settings/loyalty'
     | '/settings/payment-methods'
     | '/settings/qr'
@@ -1157,6 +1168,7 @@ export interface FileRouteTypes {
     | '/_app/settings/integrations'
     | '/_app/settings/kitchen-routing'
     | '/_app/settings/kitchen-stations'
+    | '/_app/settings/links'
     | '/_app/settings/loyalty'
     | '/_app/settings/payment-methods'
     | '/_app/settings/qr'
@@ -1506,6 +1518,13 @@ declare module '@tanstack/react-router' {
       path: '/loyalty'
       fullPath: '/settings/loyalty'
       preLoaderRoute: typeof AppSettingsLoyaltyRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/links': {
+      id: '/_app/settings/links'
+      path: '/links'
+      fullPath: '/settings/links'
+      preLoaderRoute: typeof AppSettingsLinksRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
     '/_app/settings/kitchen-stations': {
@@ -1982,6 +2001,7 @@ interface AppSettingsRouteRouteChildren {
   AppSettingsIntegrationsRoute: typeof AppSettingsIntegrationsRoute
   AppSettingsKitchenRoutingRoute: typeof AppSettingsKitchenRoutingRoute
   AppSettingsKitchenStationsRoute: typeof AppSettingsKitchenStationsRoute
+  AppSettingsLinksRoute: typeof AppSettingsLinksRoute
   AppSettingsLoyaltyRoute: typeof AppSettingsLoyaltyRoute
   AppSettingsPaymentMethodsRoute: typeof AppSettingsPaymentMethodsRoute
   AppSettingsQrRoute: typeof AppSettingsQrRoute
@@ -1999,6 +2019,7 @@ const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
   AppSettingsIntegrationsRoute: AppSettingsIntegrationsRoute,
   AppSettingsKitchenRoutingRoute: AppSettingsKitchenRoutingRoute,
   AppSettingsKitchenStationsRoute: AppSettingsKitchenStationsRoute,
+  AppSettingsLinksRoute: AppSettingsLinksRoute,
   AppSettingsLoyaltyRoute: AppSettingsLoyaltyRoute,
   AppSettingsPaymentMethodsRoute: AppSettingsPaymentMethodsRoute,
   AppSettingsQrRoute: AppSettingsQrRoute,

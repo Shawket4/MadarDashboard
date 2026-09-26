@@ -2438,7 +2438,9 @@
     "links": "Links",
     "staffPoolDesc": "How many drinks a branch may give its own people in a day, and which items count.",
     "groupMenu": "Menu",
-    "combosDesc": "Where combos and deals are sold, per channel and branch, and the margin that warns you."
+    "combosDesc": "Where combos and deals are sold, per channel and branch, and the margin that warns you.",
+    "linksPage": "Links page",
+    "linksPageDesc": "The page your address opens on: order, menu, rewards, your socials."
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -7152,5 +7154,84 @@
     "pickBranch": "Pick a branch",
     "searchBranch": "Type a branch name",
     "noBranchMatches": "No branch by that name"
+  },
+  "links": {
+    "share": "Share this page",
+    "navLabel": "{{name}} links",
+    "error": {
+      "title": "This page isn't available",
+      "body": "Check the address, or try again in a moment."
+    },
+    "module": {
+      "order": {
+        "title": "Order now",
+        "hint": "Order ahead, skip the wait"
+      },
+      "menu": {
+        "title": "Menu",
+        "hint": "What we serve, with prices"
+      },
+      "rewards": {
+        "title": "Rewards card",
+        "points": "Earn points on every order · Apple & Google Wallet",
+        "visits": "Collect a stamp every visit · Apple & Google Wallet"
+      },
+      "book": {
+        "title": "Book a table",
+        "hint": "Reserve ahead",
+        "one": "{{branch}} branch"
+      }
+    },
+    "channel": {
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "in_mall": "In-mall delivery",
+      "umbrella": "To your umbrella"
+    },
+    "visit": {
+      "title": "Visit us",
+      "count": "{{count}} branches",
+      "directions": "Directions",
+      "call": "Call"
+    },
+    "editor": {
+      "title": "Links page",
+      "desc": "The page your address opens on — for your Instagram bio, a QR on the counter, or a receipt.",
+      "saved": "Links page saved",
+      "fixLinks": "Every link needs a title and a full https:// address.",
+      "copy": "Copy",
+      "copied": "Address copied",
+      "qr": "QR code",
+      "open": "Open",
+      "qrTitle": "Links page code",
+      "noAddress": "Your own address comes with the branding plan. The page is ready — it goes live the moment you have one.",
+      "taglineEn": "Line under your name (English)",
+      "taglineAr": "Line under your name (Arabic)",
+      "cover": "Use your card image as the cover",
+      "coverHint": "The wide photo from your Brand settings. Off, the band is your colour.",
+      "coverNone": "Upload a card image under Brand to use one.",
+      "buttons": "Buttons",
+      "buttonsHint": "In the order they show. The first one that's on is the big button.",
+      "up": "Move up",
+      "down": "Move down",
+      "remove": "Remove link",
+      "show": "Show {{name}}",
+      "available": "On",
+      "newLink": "New link",
+      "customHint": "Your own link",
+      "titleEn": "Title (English)",
+      "titleAr": "Title (Arabic)",
+      "addLink": "Add your own link",
+      "off": {
+        "order": "Off — turn on a channel under Delivery settings",
+        "menu": "Needs an active branch",
+        "rewards": "Off — turn on your rewards programme under Loyalty",
+        "book": "Off — turn on bookings under Bookings settings"
+      },
+      "visit": "Show “Visit us”",
+      "visitHint": "Your branches, with directions and a call button.",
+      "maps": "Google Maps link (optional)",
+      "preview": "Preview (as saved)"
+    }
   }
 }

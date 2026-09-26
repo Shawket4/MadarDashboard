@@ -312,6 +312,8 @@ import type {
   LegacyTill,
   LiabilityTrend,
   LinkableUser,
+  LinksPageInput,
+  LinksPageSettings,
   LintIssue,
   ListAddonCatalogParams,
   ListAddonCostsParams,
@@ -434,6 +436,7 @@ import type {
   OrgConsumptionParams,
   OrgIngredient,
   OrgInventorySettings,
+  OrgLinksQrParams,
   OrgLoyaltyQrParams,
   OrgMaterialCostTrendParams,
   OrgModules,
@@ -504,9 +507,11 @@ import type {
   PublicBranchesParams,
   PublicBrand,
   PublicCartQuoteRequest,
+  PublicLinksPage,
   PublicMenuParams,
   PublicOrgBrandParams,
   PublicOrgFaviconParams,
+  PublicOrgLinksParams,
   PublicSlots,
   PublicTable,
   PublishWeek,
@@ -20815,6 +20820,272 @@ export const useUploadOrgCardImage = <TError = ErrorBody,
       return useMutation(getUploadOrgCardImageMutationOptions(options), queryClient);
     }
 
+/**
+ * @summary The links page, as the editor sees it.
+ */
+export const getLinksPage = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<LinksPageSettings>(
+      {url: `/orgs/${id}/links-page`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetLinksPageQueryKey = (id: string,) => {
+    return [
+    `/orgs/${id}/links-page`
+    ] as const;
+    }
+
+
+export const getGetLinksPageQueryOptions = <TData = Awaited<ReturnType<typeof getLinksPage>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLinksPage>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLinksPageQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLinksPage>>> = ({ signal }) => getLinksPage(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLinksPage>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLinksPageQueryResult = NonNullable<Awaited<ReturnType<typeof getLinksPage>>>
+export type GetLinksPageQueryError = ErrorBody
+
+
+export function useGetLinksPage<TData = Awaited<ReturnType<typeof getLinksPage>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLinksPage>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLinksPage>>,
+          TError,
+          Awaited<ReturnType<typeof getLinksPage>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLinksPage<TData = Awaited<ReturnType<typeof getLinksPage>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLinksPage>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLinksPage>>,
+          TError,
+          Awaited<ReturnType<typeof getLinksPage>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLinksPage<TData = Awaited<ReturnType<typeof getLinksPage>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLinksPage>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The links page, as the editor sees it.
+ */
+
+export function useGetLinksPage<TData = Awaited<ReturnType<typeof getLinksPage>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLinksPage>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLinksPageQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * The organisation settings capability, as every other settings screen —
+ * and the same one that lets a manager change the shop's logo. The social
+ * links ride along because the page shows them; they are written to the
+ * organisation's own column, under the same rules as `PATCH /orgs/{id}`.
+ * @summary Save the links page.
+ */
+export const putLinksPage = (
+    id: string,
+    linksPageInput: LinksPageInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<LinksPageSettings>(
+      {url: `/orgs/${id}/links-page`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: linksPageInput, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutLinksPageMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLinksPage>>, TError,{id: string;data: LinksPageInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putLinksPage>>, TError,{id: string;data: LinksPageInput}, TContext> => {
+
+const mutationKey = ['putLinksPage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putLinksPage>>, {id: string;data: LinksPageInput}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  putLinksPage(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutLinksPageMutationResult = NonNullable<Awaited<ReturnType<typeof putLinksPage>>>
+    export type PutLinksPageMutationBody = LinksPageInput
+    export type PutLinksPageMutationError = ErrorBody
+
+    /**
+ * @summary Save the links page.
+ */
+export const usePutLinksPage = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLinksPage>>, TError,{id: string;data: LinksPageInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putLinksPage>>,
+        TError,
+        {id: string;data: LinksPageInput},
+        TContext
+      > => {
+      return useMutation(getPutLinksPageMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary The code for the shop's links page — the one address that leads to
+everything else (menu, ordering, rewards, bookings, socials).
+ */
+export const orgLinksQr = (
+    id: string,
+    params?: OrgLinksQrParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<QrResponse>(
+      {url: `/orgs/${id}/links-qr`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getOrgLinksQrQueryKey = (id: string,
+    params?: OrgLinksQrParams,) => {
+    return [
+    `/orgs/${id}/links-qr`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getOrgLinksQrQueryOptions = <TData = Awaited<ReturnType<typeof orgLinksQr>>, TError = ErrorBody>(id: string,
+    params?: OrgLinksQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgLinksQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getOrgLinksQrQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof orgLinksQr>>> = ({ signal }) => orgLinksQr(id,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof orgLinksQr>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type OrgLinksQrQueryResult = NonNullable<Awaited<ReturnType<typeof orgLinksQr>>>
+export type OrgLinksQrQueryError = ErrorBody
+
+
+export function useOrgLinksQr<TData = Awaited<ReturnType<typeof orgLinksQr>>, TError = ErrorBody>(
+ id: string,
+    params: undefined |  OrgLinksQrParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgLinksQr>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgLinksQr>>,
+          TError,
+          Awaited<ReturnType<typeof orgLinksQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgLinksQr<TData = Awaited<ReturnType<typeof orgLinksQr>>, TError = ErrorBody>(
+ id: string,
+    params?: OrgLinksQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgLinksQr>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof orgLinksQr>>,
+          TError,
+          Awaited<ReturnType<typeof orgLinksQr>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useOrgLinksQr<TData = Awaited<ReturnType<typeof orgLinksQr>>, TError = ErrorBody>(
+ id: string,
+    params?: OrgLinksQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgLinksQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The code for the shop's links page — the one address that leads to
+everything else (menu, ordering, rewards, bookings, socials).
+ */
+
+export function useOrgLinksQr<TData = Awaited<ReturnType<typeof orgLinksQr>>, TError = ErrorBody>(
+ id: string,
+    params?: OrgLinksQrParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orgLinksQr>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getOrgLinksQrQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const uploadOrgLogo = (
     id: string,
     uploadLogoMultipart: UploadLogoMultipart,
@@ -25043,6 +25314,103 @@ export function usePublicOrgFavicon<TData = Awaited<ReturnType<typeof publicOrgF
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPublicOrgFaviconQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * Public for the same reason `/public/orgs/brand` is — it is the first thing
+ * a customer's browser asks — and it answers "no shop" identically for a shop
+ * that does not exist and one that is switched off, for the same reason.
+ * @summary The shop's links page, in one request.
+ */
+export const publicOrgLinks = (
+    params?: PublicOrgLinksParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PublicLinksPage>(
+      {url: `/public/orgs/links`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicOrgLinksQueryKey = (params?: PublicOrgLinksParams,) => {
+    return [
+    `/public/orgs/links`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPublicOrgLinksQueryOptions = <TData = Awaited<ReturnType<typeof publicOrgLinks>>, TError = ErrorBody>(params?: PublicOrgLinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgLinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicOrgLinksQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicOrgLinks>>> = ({ signal }) => publicOrgLinks(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicOrgLinks>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicOrgLinksQueryResult = NonNullable<Awaited<ReturnType<typeof publicOrgLinks>>>
+export type PublicOrgLinksQueryError = ErrorBody
+
+
+export function usePublicOrgLinks<TData = Awaited<ReturnType<typeof publicOrgLinks>>, TError = ErrorBody>(
+ params: undefined |  PublicOrgLinksParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgLinks>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicOrgLinks>>,
+          TError,
+          Awaited<ReturnType<typeof publicOrgLinks>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicOrgLinks<TData = Awaited<ReturnType<typeof publicOrgLinks>>, TError = ErrorBody>(
+ params?: PublicOrgLinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgLinks>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicOrgLinks>>,
+          TError,
+          Awaited<ReturnType<typeof publicOrgLinks>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicOrgLinks<TData = Awaited<ReturnType<typeof publicOrgLinks>>, TError = ErrorBody>(
+ params?: PublicOrgLinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgLinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The shop's links page, in one request.
+ */
+
+export function usePublicOrgLinks<TData = Awaited<ReturnType<typeof publicOrgLinks>>, TError = ErrorBody>(
+ params?: PublicOrgLinksParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOrgLinks>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicOrgLinksQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

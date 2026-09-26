@@ -10990,6 +10990,154 @@ export const UploadOrgCardImageResponse = zod.object({
 })
 
 
+/**
+ * @summary The links page, as the editor sees it.
+ */
+export const GetLinksPageParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const GetLinksPageResponse = zod.object({
+  "branches": zod.array(zod.object({
+  "address": zod.string().nullish(),
+  "id": zod.uuid(),
+  "maps_url": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "visible": zod.boolean()
+}).describe('A branch, as the editor lists it.')).describe('Every active branch, with its settings.'),
+  "card_image_url": zod.string().nullish().describe('The shop\'s card image, which the page uses as its cover.'),
+  "custom_branding": zod.boolean().describe('Whether the shop wears its own colours on the page.'),
+  "items": zod.array(zod.object({
+  "id": zod.uuid().nullish().describe('Custom links only: a stable id, so the editor can tell two links with\nthe same title apart. Minted by the server when missing.'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "title_ar": zod.string().nullish().describe('Custom links only. Falls back to the English title when empty.'),
+  "title_en": zod.string().nullish().describe('Custom links only.'),
+  "url": zod.string().nullish().describe('Custom links only — a full `https:\/\/` address.'),
+  "visible": zod.boolean().optional().describe('Off = kept in the list (and its place) but not shown.')
+}).describe('One button, as stored and as edited.')),
+  "loyalty_mode": zod.string().nullish(),
+  "modules": zod.array(zod.object({
+  "available": zod.boolean().describe('The switch that governs it is on somewhere. A hidden module that is\navailable is the shop\'s choice; an unavailable one cannot be shown.'),
+  "branch_names": zod.array(zod.string()).describe('The branches where it is on (menu: every active branch; rewards: none,\nthe programme is the org\'s).'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "path": zod.string().describe('Where it opens on the shop\'s own host.')
+}).describe('Whether a module can be shown, and why — the editor\'s hint line.')),
+  "public_url": zod.string().nullish().describe('Where the page is, or `None` when there is nowhere to put it yet (a\nshop with no own host on a deployment with no generic links host).'),
+  "show_branches": zod.boolean(),
+  "show_cover": zod.boolean(),
+  "social_links": zod.looseObject({
+
+}).describe('`organizations.social_links`, as stored.'),
+  "tagline_ar": zod.string().nullish(),
+  "tagline_en": zod.string().nullish()
+}).describe('The editor\'s view: what is saved, plus what it is built from.')
+
+
+/**
+ * The organisation settings capability, as every other settings screen —
+ * and the same one that lets a manager change the shop's logo. The social
+ * links ride along because the page shows them; they are written to the
+ * organisation's own column, under the same rules as `PATCH /orgs/{id}`.
+ * @summary Save the links page.
+ */
+export const PutLinksPageParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const PutLinksPageBody = zod.object({
+  "branches": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "maps_url": zod.string().nullish().describe('A Google Maps (or any https) link, so Directions opens the shop\'s own\npin. Without one, Directions searches the branch\'s coordinates or\naddress.'),
+  "visible": zod.boolean().optional()
+}).describe('Per-branch settings for \"Visit us\".')).optional(),
+  "items": zod.array(zod.object({
+  "id": zod.uuid().nullish().describe('Custom links only: a stable id, so the editor can tell two links with\nthe same title apart. Minted by the server when missing.'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "title_ar": zod.string().nullish().describe('Custom links only. Falls back to the English title when empty.'),
+  "title_en": zod.string().nullish().describe('Custom links only.'),
+  "url": zod.string().nullish().describe('Custom links only — a full `https:\/\/` address.'),
+  "visible": zod.boolean().optional().describe('Off = kept in the list (and its place) but not shown.')
+}).describe('One button, as stored and as edited.')),
+  "show_branches": zod.boolean().optional(),
+  "show_cover": zod.boolean().optional(),
+  "social_links": zod.looseObject({
+
+}).nullish().describe('The organisation\'s social links — the SAME map `PATCH \/orgs\/{id}`\ntakes, stored in the same column, under the same closed list and\nhttps rule. Omitted = unchanged.'),
+  "tagline_ar": zod.string().nullish(),
+  "tagline_en": zod.string().nullish()
+}).describe('What the editor saves.')
+
+export const PutLinksPageResponse = zod.object({
+  "branches": zod.array(zod.object({
+  "address": zod.string().nullish(),
+  "id": zod.uuid(),
+  "maps_url": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "visible": zod.boolean()
+}).describe('A branch, as the editor lists it.')).describe('Every active branch, with its settings.'),
+  "card_image_url": zod.string().nullish().describe('The shop\'s card image, which the page uses as its cover.'),
+  "custom_branding": zod.boolean().describe('Whether the shop wears its own colours on the page.'),
+  "items": zod.array(zod.object({
+  "id": zod.uuid().nullish().describe('Custom links only: a stable id, so the editor can tell two links with\nthe same title apart. Minted by the server when missing.'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "title_ar": zod.string().nullish().describe('Custom links only. Falls back to the English title when empty.'),
+  "title_en": zod.string().nullish().describe('Custom links only.'),
+  "url": zod.string().nullish().describe('Custom links only — a full `https:\/\/` address.'),
+  "visible": zod.boolean().optional().describe('Off = kept in the list (and its place) but not shown.')
+}).describe('One button, as stored and as edited.')),
+  "loyalty_mode": zod.string().nullish(),
+  "modules": zod.array(zod.object({
+  "available": zod.boolean().describe('The switch that governs it is on somewhere. A hidden module that is\navailable is the shop\'s choice; an unavailable one cannot be shown.'),
+  "branch_names": zod.array(zod.string()).describe('The branches where it is on (menu: every active branch; rewards: none,\nthe programme is the org\'s).'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "path": zod.string().describe('Where it opens on the shop\'s own host.')
+}).describe('Whether a module can be shown, and why — the editor\'s hint line.')),
+  "public_url": zod.string().nullish().describe('Where the page is, or `None` when there is nowhere to put it yet (a\nshop with no own host on a deployment with no generic links host).'),
+  "show_branches": zod.boolean(),
+  "show_cover": zod.boolean(),
+  "social_links": zod.looseObject({
+
+}).describe('`organizations.social_links`, as stored.'),
+  "tagline_ar": zod.string().nullish(),
+  "tagline_en": zod.string().nullish()
+}).describe('The editor\'s view: what is saved, plus what it is built from.')
+
+
+/**
+ * @summary The code for the shop's links page — the one address that leads to
+everything else (menu, ordering, rewards, bookings, socials).
+ */
+export const OrgLinksQrParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const orgLinksQrQueryDpiMin = 0;
+
+export const orgLinksQrQueryModulePxMin = 0;
+
+
+
+export const OrgLinksQrQueryParams = zod.object({
+  "card": zod.boolean().optional().describe('`true` (default) → branded A6 card PNG; `false` → plain receipt QR PNG.'),
+  "caption": zod.string().optional().describe('Dynamic caption line beneath the tagline (A6 card only).'),
+  "dpi": zod.number().min(orgLinksQrQueryDpiMin).optional().describe('Raster DPI for the A6 card (clamped 72–2400). Default 600.'),
+  "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
+  "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
+  "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
+  "module_px": zod.number().min(orgLinksQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+})
+
+export const OrgLinksQrResponse = zod.object({
+  "kind": zod.string(),
+  "long_url": zod.string(),
+  "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
+  "short_code": zod.string(),
+  "short_url": zod.string()
+}).describe('JSON returned from every QR-generation endpoint.')
+
+
 export const UploadOrgLogoParams = zod.object({
   "id": zod.uuid().describe('Organization ID')
 })
@@ -12559,6 +12707,58 @@ export const PublicOrgFaviconQueryParams = zod.object({
 })
 
 export const PublicOrgFaviconResponse = zod.unknown()
+
+
+/**
+ * Public for the same reason `/public/orgs/brand` is — it is the first thing
+ * a customer's browser asks — and it answers "no shop" identically for a shop
+ * that does not exist and one that is switched off, for the same reason.
+ * @summary The shop's links page, in one request.
+ */
+export const PublicOrgLinksQueryParams = zod.object({
+  "org_id": zod.uuid().optional().describe('The shop, when the page already knows which one it is.'),
+  "slug": zod.string().optional().describe('The first label of the hostname, when it does not — `rue` for\n`rue.madar-pos.cloud`.')
+})
+
+export const PublicOrgLinksResponse = zod.object({
+  "branches": zod.array(zod.object({
+  "address": zod.string().nullish(),
+  "directions_url": zod.string().nullish().describe('The shop\'s Maps link, else a search for the coordinates, else for the\naddress. `None` when the branch has none of the three.'),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "phone": zod.string().nullish()
+})).describe('Empty when \"Visit us\" is off.'),
+  "brand": zod.object({
+  "accent_color": zod.string(),
+  "background_color": zod.string().describe('`#RRGGBB`. Madar\'s own when the shop is not on the tier.'),
+  "card_image_url": zod.string().nullish(),
+  "custom_branding": zod.boolean().describe('Whether the rest of this is the shop\'s or Madar\'s.\n\nThe page does not need it to render — the palette below is already\nresolved — but it decides how loudly Madar signs the footer.'),
+  "foreground_color": zod.string(),
+  "logo_is_mark": zod.boolean().describe('True when the logo is a shape on transparency and may be repainted for\ncontrast. See `orgs::branding::is_mark`.'),
+  "logo_url": zod.string().nullish(),
+  "name": zod.string().describe('Always the shop\'s own name, at every tier. A page that does not say\nwhose it is helps nobody, and that was never the thing being sold.'),
+  "org_id": zod.uuid(),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own — reached by `org_id`,\nwhich every page that already knows the shop uses.')
+}).describe('A shop, as a guest page needs to know it.'),
+  "cover_image_url": zod.string().nullish().describe('The card image, when the shop uses it as the cover (and is on the\nbranding tier — the loader already applied that).'),
+  "items": zod.array(zod.object({
+  "branch_names": zod.array(zod.string()).describe('Order \/ book: the branches where it is on.'),
+  "channels": zod.array(zod.string()).describe('Order: the channels on anywhere — `pickup`, `delivery`, `in_mall`,\n`umbrella`.'),
+  "href": zod.string().describe('Absolute. For a module: the shop\'s own host when it has one, else the\ngeneric host. For a custom link: the shop\'s URL.'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "path": zod.string().nullish().describe('Modules only: the same place as a path on the shop\'s own host, for a\npage being read ON that host.'),
+  "title_ar": zod.string().nullish(),
+  "title_en": zod.string().nullish().describe('Custom links only (a module\'s title is the page\'s own words).')
+}).describe('One button on the public page, already resolved.')).describe('Visible, available buttons, in the shop\'s order.'),
+  "loyalty_mode": zod.string().nullish().describe('`points` or `visits`, when the rewards button is shown.'),
+  "socials": zod.array(zod.object({
+  "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
+  "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
+  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+}).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')),
+  "tagline_ar": zod.string().nullish(),
+  "tagline_en": zod.string().nullish()
+}).describe('Everything the links page shows, in one request.')
 
 
 export const OtpRequestBody = zod.object({

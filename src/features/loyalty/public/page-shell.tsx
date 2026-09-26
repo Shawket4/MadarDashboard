@@ -55,6 +55,15 @@ export function usePageAccent(brand: ResolvedBrand): string {
 }
 
 /**
+ * Any colour, made legible against the theme in force — for a page that has a
+ * shop's raw accent rather than a resolved card brand (the links page).
+ */
+export function usePageColor(color: string): string {
+  const mode = usePublicTheme((s) => s.mode);
+  return readableOn(color, GROUND[mode === "dark" ? "dark" : "light"]);
+}
+
+/**
  * One idea per section, with a real heading above it.
  *
  * A heading is not decoration here: the signup page asks a stranger for a
