@@ -64,6 +64,7 @@ import "@/styles/globals.css";
 // Customer surface: the brand register, where the primary is Madar teal.
 document.documentElement.classList.add("brand-surface");
 import { initPublicTheme } from "@/features/public-shell/use-public-theme";
+import { PublicToaster } from "@/features/public-shell/public-toaster";
 
 import { queryClient } from "@/data/api/query";
 import { JoinPage } from "@/features/loyalty/public/join-page";
@@ -223,6 +224,7 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion="user">
         <RouterProvider router={router} />
+        <PublicToaster />
       </MotionConfig>
     </QueryClientProvider>
   </StrictMode>,

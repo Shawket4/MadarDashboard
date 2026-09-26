@@ -15,6 +15,7 @@ import type { CartQuote } from "@/data/api/generated/models/cartQuote";
 import { cartSubtotal } from "../utils";
 import { isValidPhone } from "@/lib/phone";
 import { FIELD_LIMITS } from "../limits";
+import { toastFormError } from "@/features/public-shell/public-toaster";
 
 export interface CheckoutForm {
   name: string;
@@ -141,7 +142,11 @@ export function CheckoutStep({
     ev.preventDefault();
     const e = validate();
     setErrors(e);
-    if (Object.keys(e).length === 0) onSubmit();
+    const messages = Object.values(e).filter((m): m is string => !!m);
+    // The first problem, in the order the form asks — the customer tapped
+    // Place order at the bottom, and the name field is a screen above.
+    if (messages.length > 0) toastFormError(messages[0]!, messages.length > 1);
+    else onSubmit();
   };
 
   return (

@@ -21,6 +21,7 @@ import { useOtpRequest, useOtpVerify } from "@/data/api/generated/api";
 import { canonicalPhone } from "@/lib/phone";
 
 import { getDeviceToken, setDeviceToken } from "./guest";
+import { useErrorToast } from "./public-toaster";
 
 export interface PhoneOtpTransport {
   /** Send a code to a canonical phone. Rejects when it could not be sent. */
@@ -101,6 +102,8 @@ export function usePhoneOtp({ otpRequired, initialPhone = "", onVerified, transp
   const [phone, setPhoneRaw] = useState(initialPhone);
   const [stage, setStage] = useState<PhoneOtpStage>("phone");
   const [error, setError] = useState<string | null>(null);
+  // Also as a toast: the inline copy sits where the customer may have scrolled from.
+  useErrorToast(error);
   const [resetSignal, setResetSignal] = useState(0);
   const canonical = canonicalPhone(phone) ?? "";
 

@@ -39,6 +39,7 @@ import type { PublicTableBill } from "@/data/api/generated/models/publicTableBil
 import { Button } from "@/components/ui/button";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
+import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { cn } from "@/lib/utils";
 
 import { CartPanel, CartSheet } from "./components/cart-sheet";
@@ -87,6 +88,8 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
         reason: getErrorMessage(send.error),
       })
     : null;
+  // Also as a toast: the inline copy sits where the customer may have scrolled from.
+  useErrorToast(sendError);
   // Changing the basket answers the failure; the message goes with it.
   const clearSendError = () => {
     if (send.isError) send.reset?.();

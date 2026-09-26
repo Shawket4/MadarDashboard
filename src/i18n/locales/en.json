@@ -5261,6 +5261,9 @@
       "ordering": "Online ordering powered by Madar",
       "reservations": "Reservations powered by Madar",
       "generic": "Powered by Madar"
+    },
+    "formErrors": {
+      "more": "Other fields need attention too."
     }
   },
   "export": {

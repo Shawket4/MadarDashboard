@@ -66,6 +66,7 @@ document.documentElement.classList.add("brand-surface");
 // intentionally NOT imported — this origin never holds a session.
 import "@/i18n";
 import { initPublicTheme } from "@/features/public-shell/use-public-theme";
+import { PublicToaster } from "@/features/public-shell/public-toaster";
 
 import { queryClient } from "@/data/api/query";
 import { PublicOrderingPage } from "@/features/public-ordering/public-ordering-page";
@@ -256,6 +257,7 @@ function render() {
       <QueryClientProvider client={queryClient}>
         <MotionConfig reducedMotion="user">
           <RouterProvider router={router} />
+          <PublicToaster />
         </MotionConfig>
       </QueryClientProvider>
     </StrictMode>,

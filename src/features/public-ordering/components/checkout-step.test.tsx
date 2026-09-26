@@ -2,7 +2,7 @@
  * Online checkout shows what intake will charge: the deals the server applies,
  * then the channel discount on what is left, then the fee.
  */
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { CartQuote } from "@/data/api/generated/models/cartQuote";
@@ -52,5 +52,32 @@ describe("CheckoutStep with deals", () => {
     renderCheckout(null);
     expect(screen.queryByText(/Deal ·/)).toBeNull();
     expect(totalText()).toMatch(/300\.00/);
+  });
+});
+
+describe("CheckoutStep validation", () => {
+  it("toasts the first problem, so a customer at the bottom of the form sees it", async () => {
+    const sonner = await import("sonner");
+    const spy = vi.spyOn(sonner.toast, "error");
+    const onSubmit = vi.fn();
+    render(
+      <CheckoutStep
+        channel="outside"
+        form={emptyForm()}
+        onChange={vi.fn()}
+        lines={[line]}
+        deliveryFee={0}
+        quote={null}
+        submitting={false}
+        error={null}
+        onSubmit={onSubmit}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /place order/i }));
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledOnce();
+    const [message, opts] = spy.mock.calls[0]!;
+    expect(message).toBe(screen.getAllByText(message as string)[0]!.textContent);
+    expect(opts).toMatchObject({ description: "Other fields need attention too." });
   });
 });
