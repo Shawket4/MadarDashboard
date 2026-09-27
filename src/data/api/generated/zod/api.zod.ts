@@ -7851,7 +7851,7 @@ export const DuplicateItemResponse = zod.object({
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
-}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+}).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
   "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
@@ -7914,7 +7914,7 @@ export const PutModifierGroupsBody = zod.object({
   "max_override": zod.number().nullish(),
   "min_override": zod.number().nullish(),
   "sort": zod.number().optional()
-}))
+})).nullish().describe('The item\'s full set of reusable groups, in order. `[]` detaches every\ngroup (the item then offers none). Omitted or `null` changes nothing,\nso a partial update or an older client never detaches by accident.\nThe item\'s own priced options are not in this set: they belong to\n`PUT \/menu-items\/{id}\/options`.')
 })
 
 export const PutModifierGroupsResponse = zod.object({
@@ -8044,7 +8044,7 @@ export const PutModifierGroupsResponse = zod.object({
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
-}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+}).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
   "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
@@ -8225,7 +8225,7 @@ export const PutItemOptionsResponseItem = zod.object({
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
-}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')
+}).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')
 export const PutItemOptionsResponse = zod.array(PutItemOptionsResponseItem)
 
 
@@ -8509,7 +8509,7 @@ export const PutSizesResponse = zod.object({
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
-}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+}).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
   "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
@@ -8705,7 +8705,7 @@ export const GetStudioResponse = zod.object({
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
-}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+}).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
   "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
@@ -8946,6 +8946,7 @@ export const ListGroupsResponseItem = zod.object({
   "effect": zod.string().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "is_item_options": zod.boolean().optional().describe('An item\'s own priced Options group (what `PUT \/menu-items\/{id}\/options`\nedits), not a reusable group: never offered for attaching to an item.'),
   "is_required": zod.boolean(),
   "legacy_addon_type": zod.string().nullish(),
   "max_selections": zod.number().nullish(),
@@ -8995,6 +8996,7 @@ export const CreateGroupResponse = zod.object({
   "effect": zod.string().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "is_item_options": zod.boolean().optional().describe('An item\'s own priced Options group (what `PUT \/menu-items\/{id}\/options`\nedits), not a reusable group: never offered for attaching to an item.'),
   "is_required": zod.boolean(),
   "legacy_addon_type": zod.string().nullish(),
   "max_selections": zod.number().nullish(),
@@ -9055,6 +9057,7 @@ export const PatchGroupResponse = zod.object({
   "effect": zod.string().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "is_item_options": zod.boolean().optional().describe('An item\'s own priced Options group (what `PUT \/menu-items\/{id}\/options`\nedits), not a reusable group: never offered for attaching to an item.'),
   "is_required": zod.boolean(),
   "legacy_addon_type": zod.string().nullish(),
   "max_selections": zod.number().nullish(),

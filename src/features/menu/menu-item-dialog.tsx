@@ -59,6 +59,9 @@ const humanizeAddonType = (type: string) => {
   return base.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
+/** A selection of add-on ids as one comparable value, order-free. */
+const selectionKey = (ids: Iterable<string>) => [...ids].sort().join(",");
+
 export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, open, onOpenChange }: Props) {
   const { t, i18n } = useTranslation();
   const editing = !!item;
@@ -66,8 +69,10 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const [recipeRows, setRecipeRows] = useState<CleanRow[]>([]);
-  // Per-item allowed addons state.
+  // Per-item allowed addons state, and the selection the dialog opened with:
+  // the item's group set is written only when the selection changed.
   const [allowedIds, setAllowedIds] = useState<Set<string>>(new Set());
+  const [seededAllowed, setSeededAllowed] = useState("");
   const [addonSearch, setAddonSearch] = useState("");
 
   // Full item (sizes + recipes + allowed_addon_ids) for edit mode.
@@ -153,6 +158,14 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
     }
   }, [open, item, defaultCategoryId, form]);
 
+  // A new item starts with no add-ons picked (an edit seeds them below).
+  useEffect(() => {
+    if (open && !item) {
+      setAllowedIds(new Set());
+      setSeededAllowed("");
+    }
+  }, [open, item]);
+
   // Load sizes + allowed addon IDs once the full item arrives (edit).
   useEffect(() => {
     if (liveItem) {
@@ -167,6 +180,7 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
           .map((s) => ({ id: s.id, label: s.label, price_override: piastresToEgp(s.price_override) })),
       );
       setAllowedIds(new Set(liveItem.allowed_addon_ids));
+      setSeededAllowed(selectionKey(liveItem.allowed_addon_ids));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveItem]);
@@ -221,9 +235,10 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
 
       // Offered add-ons — group ATTACHMENTS on the unified model: each selected
       // addon's type maps to its reusable group, the selection becoming that
-      // attachment's `included_option_ids`. Empty selection = no attachments
-      // (old clients keep their org-default via the shim; new clients author
-      // offers in the Studio's Modifiers tab).
+      // attachment's `included_option_ids`. Written only when the selection
+      // changed: an explicit empty set detaches every group (the item then
+      // offers no add-ons), so an untouched picker must not send one, and a
+      // resave must not reset what the Studio's Modifiers tab set up.
       const typeOf = new Map((allAddons ?? []).map((a) => [a.id, a.addon_type]));
       const groupByType = new Map(
         (modifierGroups ?? []).map((g) => [g.legacy_addon_type ?? g.name, g]),
@@ -238,7 +253,9 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
         const g = groupByType.get(ty);
         return g ? [{ group_id: g.id, sort: i, included_option_ids: ids }] : [];
       });
-      await putModifierGroups(itemId, { groups });
+      if (selectionKey(allowedIds) !== seededAllowed) {
+        await putModifierGroups(itemId, { groups });
+      }
 
       return res;
     },

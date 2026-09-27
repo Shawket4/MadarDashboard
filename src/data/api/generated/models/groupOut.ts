@@ -10,6 +10,11 @@ export interface GroupOut {
   effect: string;
   id: string;
   is_active: boolean;
+  /**
+     * An item's own priced Options group (what `PUT /menu-items/{id}/options`
+     * edits), not a reusable group: never offered for attaching to an item.
+     */
+  is_item_options?: boolean;
   is_required: boolean;
   /** @nullable */
   legacy_addon_type?: string | null;
