@@ -72,6 +72,7 @@ const burger = line({
   line_kind: "combo_part",
   combo_line_id: "h1",
   combo_slot_name: "Main",
+  combo_slot_name_translations: { ar: "الطبق الرئيسي" },
   unit_price: 11000,
   combo_share: 8571,
   combo_surcharge: 0,
@@ -95,6 +96,7 @@ const latte = line({
   line_kind: "combo_part",
   combo_line_id: "h1",
   combo_slot_name: "Drink",
+  combo_slot_name_translations: { ar: "مشروب" },
   unit_price: 8500,
   combo_share: 3571,
   combo_surcharge: 800,
@@ -246,6 +248,12 @@ describe("OrderDetailSheet — a combo and a deal", () => {
     expect(screen.getByTestId("deal-line-note")).toHaveTextContent(`أي قطعتين · ${fmtMoney(-2000)}`);
     expect(figure("أي قطعتين")).toBe(fmtMoney(-2000));
     expect(within(screen.getAllByTestId("combo-part-note")[2]).getByText(/ترقية/)).toBeInTheDocument();
+    // Each part's slot in Arabic, as sold; a slot sold with no Arabic name reads in English.
+    const notes = screen.getAllByTestId("combo-part-note");
+    expect(notes[0]).toHaveTextContent(/^الطبق الرئيسي$/);
+    expect(notes[1]).toHaveTextContent(/^Side$/);
+    expect(notes[2]).toHaveTextContent(/^مشروب · /);
+    expect(document.body.textContent).not.toMatch(/\bMain\b|\bDrink\b/);
     expect(screen.getByText("الأصناف بسعرها العادي")).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/Any 2 bites|Lunch deal|upgrade|before extras/);
   });
@@ -253,11 +261,22 @@ describe("OrderDetailSheet — a combo and a deal", () => {
 
 describe("combo-order-lines components", () => {
   it("ComboPartNote shows nothing extra without a surcharge, and the upgrade alone without a slot", () => {
-    const { rerender } = render(<ComboPartNote line={{ combo_slot_name: "Side", combo_surcharge: 0 }} />);
+    const { rerender } = render(<ComboPartNote line={{ combo_slot_name: "Side", combo_surcharge: 0 }} lang="en" />);
     expect(screen.getByTestId("combo-part-note")).toHaveTextContent(/^Side$/);
-    rerender(<ComboPartNote line={{ combo_slot_name: null, combo_surcharge: 500 }} />);
+    rerender(<ComboPartNote line={{ combo_slot_name: null, combo_surcharge: 500 }} lang="en" />);
     expect(screen.getByTestId("combo-part-note")).toHaveTextContent(`+${fmtMoney(500)} upgrade`);
     expect(screen.getByTestId("combo-part-note").textContent).not.toContain("·");
+  });
+
+  it("ComboPartNote names the slot in the page's language, falling back to the name sold", () => {
+    const sold = { combo_slot_name: "Drink", combo_slot_name_translations: { ar: "مشروب" }, combo_surcharge: 0 };
+    const { rerender } = render(<ComboPartNote line={sold} lang="ar" />);
+    expect(screen.getByTestId("combo-part-note")).toHaveTextContent(/^مشروب$/);
+    rerender(<ComboPartNote line={sold} lang="en" />);
+    expect(screen.getByTestId("combo-part-note")).toHaveTextContent(/^Drink$/);
+    // A line from before the translations were kept, or a slot with none.
+    rerender(<ComboPartNote line={{ combo_slot_name: "Drink", combo_surcharge: 0 }} lang="ar" />);
+    expect(screen.getByTestId("combo-part-note")).toHaveTextContent(/^Drink$/);
   });
 
   it("DealLineNote renders nothing without a cut, and a generic label when the deal is missing", () => {

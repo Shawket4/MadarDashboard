@@ -10165,6 +10165,9 @@ export const CreateOrderResponse = zod.object({
   "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
   "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
   "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_slot_name_translations": zod.looseObject({
+
+}).optional().describe('A part: the slot\'s names by language at the sale (`{\"ar\": \"مشروب\"}`),\nbeside `combo_slot_name` as `name_translations` is beside `item_name`.\n`{}` on any other line, and on a part whose slot had none; a reader\nfalls back to `combo_slot_name`. Additive.'),
   "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
   "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
@@ -10316,6 +10319,9 @@ export const ExportOrdersResponse = zod.object({
   "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
   "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
   "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_slot_name_translations": zod.looseObject({
+
+}).optional().describe('A part: the slot\'s names by language at the sale (`{\"ar\": \"مشروب\"}`),\nbeside `combo_slot_name` as `name_translations` is beside `item_name`.\n`{}` on any other line, and on a part whose slot had none; a reader\nfalls back to `combo_slot_name`. Additive.'),
   "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
   "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
@@ -10536,6 +10542,9 @@ export const GetOrderResponse = zod.object({
   "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
   "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
   "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_slot_name_translations": zod.looseObject({
+
+}).optional().describe('A part: the slot\'s names by language at the sale (`{\"ar\": \"مشروب\"}`),\nbeside `combo_slot_name` as `name_translations` is beside `item_name`.\n`{}` on any other line, and on a part whose slot had none; a reader\nfalls back to `combo_slot_name`. Additive.'),
   "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
   "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
@@ -12088,6 +12097,7 @@ export const PublicMenuResponse = zod.object({
   "is_fixed": zod.boolean(),
   "slots": zod.array(zod.object({
   "choices": zod.array(zod.object({
+  "available": zod.boolean().optional().describe('`false`: the item is not sold on this menu right now (switched off at\nthe branch or on the channel, or inactive). The page shows it greyed\nwith \"Unavailable\" and never lets it be picked (an order that picks it\nis refused `COMBO_ITEM_UNAVAILABLE`); it has no `sizes` and is never\nthe slot\'s default. Absent from an older server: available.'),
   "base_price": zod.number().describe('The included size\'s channel price (what the split weighs it by).'),
   "image_url": zod.string().nullish(),
   "included_size_label": zod.string(),
@@ -12102,7 +12112,7 @@ export const PublicMenuResponse = zod.object({
   "price": zod.number().describe('Its normal channel price.')
 }).describe('A size of a public combo choice.')),
   "surcharge": zod.number().describe('The choice\'s own surcharge, per pick unit.')
-}).describe('One concrete item a public combo slot offers (categories expanded to the\nitems available on this channel and branch).')),
+}).describe('One concrete item a public combo slot offers (categories expanded to the\ncategory\'s active items), with whether this channel and branch sell it now.')),
   "default_item_id": zod.uuid().nullish(),
   "default_size_label": zod.string().nullish(),
   "id": zod.uuid(),
@@ -12143,7 +12153,7 @@ export const PublicMenuResponse = zod.object({
   "price": zod.number().describe('Channel-effective surcharge (piastres): branch_channel → branch →\nchannel → catalog default. Unavailable options are excluded entirely.')
 }).describe('One option inside a per-item modifier group. `option_id` is the STABLE id —\nit equals the legacy `addon_item_id`, so order intake accepts it unchanged in\n`addons[].addon_item_id` (menu-unification stable-id rule).')),
   "selection_type": zod.string().describe('\"single\" | \"multi\".')
-}).describe('A per-item modifier group from the unified model (`menu_item_modifier_groups`\n→ `modifier_groups`\/`modifier_options`), constraints resolved (attachment\noverrides beat group defaults) and options already filtered to the\nattachment\'s `included_option_ids`. Only addon-sourced options appear here —\nthe item\'s priced optionals stay in `optionals`. Empty until the org\'s\ncatalog is backfilled onto the unified tables; the customizer falls back to\nthe flat `addons` catalog + `allowed_addon_ids` in that case.')).describe('The item\'s modifier groups (unified model), channel-effective. Empty ⇒\nthe customizer falls back to `addons` + `allowed_addon_ids`.'),
+}).describe('A per-item modifier group from the unified model (`menu_item_modifier_groups`\n→ `modifier_groups`\/`modifier_options`), constraints resolved (attachment\noverrides beat group defaults) and options already filtered to the\nattachment\'s `included_option_ids`. Only addon-sourced options appear here —\nthe item\'s priced optionals stay in `optionals`. Empty until the org\'s\ncatalog is backfilled onto the unified tables; the customizer falls back to\nthe flat `addons` catalog + `allowed_addon_ids` in that case.')).describe('The item\'s modifier groups (unified model), channel-effective: every\nactive attached group, a group with no option here included (options\n`[]`). Non-empty ⇒ the item\'s add-ons are SET: the page offers only\nwhat these groups hold, and no \"show all\" (none at all when every\ngroup is empty). Empty ⇒ not set up in the unified model: the page\nfalls back to `addons` + `allowed_addon_ids`.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -13096,6 +13106,7 @@ export const PublicTableMenuResponse = zod.object({
   "is_fixed": zod.boolean(),
   "slots": zod.array(zod.object({
   "choices": zod.array(zod.object({
+  "available": zod.boolean().optional().describe('`false`: the item is not sold on this menu right now (switched off at\nthe branch or on the channel, or inactive). The page shows it greyed\nwith \"Unavailable\" and never lets it be picked (an order that picks it\nis refused `COMBO_ITEM_UNAVAILABLE`); it has no `sizes` and is never\nthe slot\'s default. Absent from an older server: available.'),
   "base_price": zod.number().describe('The included size\'s channel price (what the split weighs it by).'),
   "image_url": zod.string().nullish(),
   "included_size_label": zod.string(),
@@ -13110,7 +13121,7 @@ export const PublicTableMenuResponse = zod.object({
   "price": zod.number().describe('Its normal channel price.')
 }).describe('A size of a public combo choice.')),
   "surcharge": zod.number().describe('The choice\'s own surcharge, per pick unit.')
-}).describe('One concrete item a public combo slot offers (categories expanded to the\nitems available on this channel and branch).')),
+}).describe('One concrete item a public combo slot offers (categories expanded to the\ncategory\'s active items), with whether this channel and branch sell it now.')),
   "default_item_id": zod.uuid().nullish(),
   "default_size_label": zod.string().nullish(),
   "id": zod.uuid(),
@@ -13151,7 +13162,7 @@ export const PublicTableMenuResponse = zod.object({
   "price": zod.number().describe('Channel-effective surcharge (piastres): branch_channel → branch →\nchannel → catalog default. Unavailable options are excluded entirely.')
 }).describe('One option inside a per-item modifier group. `option_id` is the STABLE id —\nit equals the legacy `addon_item_id`, so order intake accepts it unchanged in\n`addons[].addon_item_id` (menu-unification stable-id rule).')),
   "selection_type": zod.string().describe('\"single\" | \"multi\".')
-}).describe('A per-item modifier group from the unified model (`menu_item_modifier_groups`\n→ `modifier_groups`\/`modifier_options`), constraints resolved (attachment\noverrides beat group defaults) and options already filtered to the\nattachment\'s `included_option_ids`. Only addon-sourced options appear here —\nthe item\'s priced optionals stay in `optionals`. Empty until the org\'s\ncatalog is backfilled onto the unified tables; the customizer falls back to\nthe flat `addons` catalog + `allowed_addon_ids` in that case.')).describe('The item\'s modifier groups (unified model), channel-effective. Empty ⇒\nthe customizer falls back to `addons` + `allowed_addon_ids`.'),
+}).describe('A per-item modifier group from the unified model (`menu_item_modifier_groups`\n→ `modifier_groups`\/`modifier_options`), constraints resolved (attachment\noverrides beat group defaults) and options already filtered to the\nattachment\'s `included_option_ids`. Only addon-sourced options appear here —\nthe item\'s priced optionals stay in `optionals`. Empty until the org\'s\ncatalog is backfilled onto the unified tables; the customizer falls back to\nthe flat `addons` catalog + `allowed_addon_ids` in that case.')).describe('The item\'s modifier groups (unified model), channel-effective: every\nactive attached group, a group with no option here included (options\n`[]`). Non-empty ⇒ the item\'s add-ons are SET: the page offers only\nwhat these groups hold, and no \"show all\" (none at all when every\ngroup is empty). Empty ⇒ not set up in the unified model: the page\nfalls back to `addons` + `allowed_addon_ids`.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -14741,6 +14752,9 @@ export const ComboMixResponse = zod.object({
   "from": zod.iso.date(),
   "slots": zod.array(zod.object({
   "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional().describe('The slot\'s names by language: the catalogue\'s when it has any, else\nwhat the sales stored (a deleted slot\'s). `{}` when neither has any.'),
   "picks": zod.array(zod.object({
   "count": zod.number().describe('Units picked (Σ part quantity, refunds netted).'),
   "menu_item_id": zod.uuid().nullish(),

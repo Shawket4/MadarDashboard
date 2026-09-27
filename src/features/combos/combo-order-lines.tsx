@@ -39,15 +39,19 @@ export function ComboHeaderRow({ line, total, lang }: { line: HeaderLine; total:
   );
 }
 
-export function ComboPartNote({ line }: { line: ComboLineFields }) {
+export function ComboPartNote({ line, lang }: { line: ComboLineFields; lang: string }) {
   const { t } = useTranslation();
   const surcharge = line.combo_surcharge ?? 0;
+  // The slot's name as sold, in the page's language (English when the slot had no Arabic).
+  const slot = line.combo_slot_name
+    ? getTranslatedName({ name: line.combo_slot_name, name_translations: line.combo_slot_name_translations }, lang)
+    : "";
   return (
     <p data-testid="combo-part-note" className="text-xs text-muted-foreground tabular">
-      {line.combo_slot_name ? <span>{line.combo_slot_name}</span> : null}
+      {slot ? <span>{slot}</span> : null}
       {surcharge > 0 ? (
         <>
-          {line.combo_slot_name ? " · " : null}
+          {slot ? " · " : null}
           <bdi>{t("combos.order.upgrade", { defaultValue: "+{{amount}} upgrade", amount: fmtMoney(surcharge) })}</bdi>
         </>
       ) : null}

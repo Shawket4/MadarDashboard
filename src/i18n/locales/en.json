@@ -3618,7 +3618,8 @@
       "fixedHint": "Everything below comes in the box.",
       "describe": "Choose what goes in your combo",
       "less": "One less {{name}}",
-      "more": "One more {{name}}"
+      "more": "One more {{name}}",
+      "unavailable": "Unavailable"
     },
     "deal": {
       "row": "Deal · {{name}}"

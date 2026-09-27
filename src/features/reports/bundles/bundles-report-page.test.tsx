@@ -279,3 +279,23 @@ describe("Bundles report · the mix", () => {
     expect(within(drink).getByText("100%")).toBeInTheDocument();
   });
 });
+
+describe("Bundles report · the mix in Arabic", () => {
+  it("names each slot and pick in Arabic, and a slot with no Arabic name in English", async () => {
+    await i18n.changeLanguage("ar");
+    const m = mixFixture();
+    m.slots[0].name_translations = { ar: "الطبق الرئيسي" };
+    m.slots[0].picks[0].name_translations = { ar: "برجر" };
+    mix = m;
+    const { MixDialog } = await import("./mix-dialog");
+    render(<MixDialog comboId="c-1" name="وجبة الغداء" params={{ from: "2026-09-01", to: "2026-09-30" }} onClose={() => {}} />);
+    const dialog = await screen.findByRole("dialog");
+    const main = within(dialog).getByRole("region", { name: "الطبق الرئيسي" });
+    expect(within(main).getByRole("heading", { name: "الطبق الرئيسي" })).toBeInTheDocument();
+    expect(within(main).getByText("برجر")).toBeInTheDocument();
+    // Chicken wrap has no Arabic name: its English one shows.
+    expect(within(main).getByText("Chicken wrap")).toBeInTheDocument();
+    expect(within(dialog).getByRole("region", { name: "Drink" })).toBeInTheDocument();
+    expect(within(dialog).queryByRole("region", { name: "Main" })).not.toBeInTheDocument();
+  });
+});
