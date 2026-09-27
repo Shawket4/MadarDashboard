@@ -136,7 +136,15 @@ export function ItemCustomizer({
       }))
       .filter((g) => g.options.length > 0);
   }, [item, addons, lang]);
-  const useServerGroups = serverGroups.length > 0 && !showAll;
+  // An item that lists ANY group has its add-ons SET, even when its groups
+  // hold nothing (its own empty Options group once every group was
+  // detached): only its groups' options are offered — none at all when they
+  // are empty — and there is no "show all". It never falls back to the org's
+  // whole add-on catalog (the till's reading of the same list). Only an item
+  // that lists no group (never set up in the unified model) keeps the
+  // legacy allowlist view with its "show all".
+  const groupsSet = (item?.modifier_groups?.length ?? 0) > 0;
+  const useServerGroups = groupsSet || (serverGroups.length > 0 && !showAll);
 
   // Groups whose min/max constraint the current selection breaks — the confirm
   // CTA stays disabled until every group is satisfied.
@@ -380,18 +388,20 @@ export function ItemCustomizer({
               </Section>
             )}
 
-            {/* "Show all add-ons" — always present; default view is the item's configured set (or nothing) */}
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => setShowAll((v) => !v)}
-                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-              >
-                {showAll
-                  ? t("order.customize.showConfigured", "Show customized options")
-                  : t("order.customize.showAllAddons", "Show all add-ons")}
-              </button>
-            </div>
+            {/* "Show all add-ons" — only for an item whose add-ons were never set up: its default view is its allowlist (or nothing) */}
+            {!groupsSet && (
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowAll((v) => !v)}
+                  className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                >
+                  {showAll
+                    ? t("order.customize.showConfigured", "Show customized options")
+                    : t("order.customize.showAllAddons", "Show all add-ons")}
+                </button>
+              </div>
+            )}
 
             {/* Unified modifier groups (server-authoritative constraints) */}
             {useServerGroups &&
