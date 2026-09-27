@@ -35,6 +35,7 @@ import {
   buildPicks,
   firstUnmetSlot,
   initialSelection,
+  isAvailable,
   isLockedSlot,
   slotCount,
   slotHint,
@@ -305,24 +306,37 @@ function SlotSection({
 
       <div className="space-y-2">
         {choices.map((choice) => {
-          const pick = slotSel[choice.menu_item_id];
+          // Switched off by the shop: shown greyed, never picked.
+          const off = !isAvailable(choice);
+          const pick = off ? undefined : slotSel[choice.menu_item_id];
           const active = !!pick;
           const name = getTranslatedName(choice, lang);
           return (
             <div
               key={choice.menu_item_id}
+              data-testid="combo-choice"
+              data-unavailable={off || undefined}
               className={cn(
                 "rounded-xl border transition-colors",
                 active ? "border-brand/40 bg-brand/5" : "border-border/70",
+                off && "border-dashed bg-muted/40 opacity-60",
               )}
             >
               <div className="flex items-center gap-3 px-3 py-2.5">
                 <button
                   type="button"
-                  disabled={locked}
+                  disabled={locked || off}
+                  aria-disabled={off || undefined}
                   aria-pressed={active}
-                  onClick={() => (single ? onPickOnly(choice) : onSetQty(choice, active ? 0 : 1))}
-                  className="flex min-w-0 flex-1 items-center gap-3 text-start disabled:cursor-default"
+                  onClick={() => {
+                    if (off) return;
+                    if (single) onPickOnly(choice);
+                    else onSetQty(choice, active ? 0 : 1);
+                  }}
+                  className={cn(
+                    "flex min-w-0 flex-1 items-center gap-3 text-start disabled:cursor-default",
+                    off && "disabled:cursor-not-allowed",
+                  )}
                 >
                   {choice.image_url ? (
                     <AssetImage
@@ -337,8 +351,12 @@ function SlotSection({
                     </span>
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{name}</span>
-                    {choice.surcharge > 0 ? (
+                    <span className={cn("block truncate text-sm font-medium", off && "text-muted-foreground")}>{name}</span>
+                    {off ? (
+                      <span className="block text-xs font-medium text-muted-foreground">
+                        {t("order.combo.unavailable", "Unavailable")}
+                      </span>
+                    ) : choice.surcharge > 0 ? (
                       <span className="block text-xs text-muted-foreground tabular-nums">+{fmtMoney(choice.surcharge)}</span>
                     ) : null}
                   </span>
@@ -346,7 +364,7 @@ function SlotSection({
                     <span className="flex shrink-0 items-center gap-1 text-xs font-semibold tabular-nums text-muted-foreground">
                       <Lock aria-hidden className="size-3" />×{pick?.qty ?? 0}
                     </span>
-                  ) : single ? (
+                  ) : single && !off ? (
                     <span
                       aria-hidden
                       className={cn(
@@ -358,7 +376,7 @@ function SlotSection({
                     </span>
                   ) : null}
                 </button>
-                {!locked && !single ? (
+                {!locked && !single && !off ? (
                   <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-border/70">
                     <Button
                       variant="ghost"

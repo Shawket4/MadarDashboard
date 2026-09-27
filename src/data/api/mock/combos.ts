@@ -192,7 +192,7 @@ function report(kind: string, from: string, to: string): BundlesReport {
 export const MOCK_COMBO_ORDER_ID = "ord_combo_1";
 const line = (p: Record<string, unknown>) => ({
   order_id: MOCK_COMBO_ORDER_ID, size_label: null, addons: [], optionals: [], deductions_snapshot: [], staff_comp_minor: 0, staff_drink_id: null,
-  line_kind: "item", combo_line_id: null, combo_slot_id: null, combo_slot_name: null, combo_unit_price: null, combo_share: 0, combo_surcharge: 0, deal_minor: 0,
+  line_kind: "item", combo_line_id: null, combo_slot_id: null, combo_slot_name: null, combo_slot_name_translations: {}, combo_unit_price: null, combo_share: 0, combo_surcharge: 0, deal_minor: 0,
   ...p,
 });
 export const MOCK_COMBO_ORDER = {
@@ -206,8 +206,8 @@ export const MOCK_COMBO_ORDER = {
   total_amount: 16_530,
   items: [
     line({ id: "oi_c_h", menu_item_id: seed.id, item_name: "Breakfast combo", name_translations: { ar: "كومبو الفطور" }, quantity: 1, unit_price: 0, line_total: 0, line_kind: "combo", combo_unit_price: 9_000 }),
-    line({ id: "oi_c_p1", menu_item_id: "mi_croissant", item_name: "Croissant", name_translations: { ar: "كرواسان" }, quantity: 1, unit_price: 4_500, line_total: 3_857, line_kind: "combo_part", combo_line_id: "oi_c_h", combo_slot_name: "Pastry", combo_share: 3_857 }),
-    line({ id: "oi_c_p2", menu_item_id: "mi_latte", item_name: "Latte", name_translations: { ar: "لاتيه" }, size_label: "Large", quantity: 1, unit_price: 7_000, line_total: 6_143, line_kind: "combo_part", combo_line_id: "oi_c_h", combo_slot_name: "Coffee", combo_share: 5_143, combo_surcharge: 1_000 }),
+    line({ id: "oi_c_p1", menu_item_id: "mi_croissant", item_name: "Croissant", name_translations: { ar: "كرواسان" }, quantity: 1, unit_price: 4_500, line_total: 3_857, line_kind: "combo_part", combo_line_id: "oi_c_h", combo_slot_name: "Pastry", combo_slot_name_translations: { ar: "مخبوزات" }, combo_share: 3_857 }),
+    line({ id: "oi_c_p2", menu_item_id: "mi_latte", item_name: "Latte", name_translations: { ar: "لاتيه" }, size_label: "Large", quantity: 1, unit_price: 7_000, line_total: 6_143, line_kind: "combo_part", combo_line_id: "oi_c_h", combo_slot_name: "Coffee", combo_slot_name_translations: { ar: "قهوة" }, combo_share: 5_143, combo_surcharge: 1_000 }),
     line({ id: "oi_c_x", menu_item_id: "mi_cheesecake", item_name: "Cheesecake", name_translations: { ar: "تشيز كيك" }, quantity: 1, unit_price: 9_000, line_total: 4_500, deal_minor: 4_500 }),
   ],
   deals: [{ id: "od_1", deal_rule_id: "deal_seed", name: "Cake half off", name_translations: { ar: "الكيك بنصف السعر" }, times: 1, discount: 4_500, discount_server: 4_500, lines: [{ order_item_id: "oi_c_x", units: 1, discount: 4_500 }] }],
@@ -301,6 +301,7 @@ export const comboHandlers = [
       slots: (c?.slots ?? []).map((s) => ({
         slot_id: s.id,
         name: s.name,
+        name_translations: s.name_translations ?? {},
         picks: s.choices
           .filter((ch) => ch.menu_item_id)
           .map((ch) => ({ menu_item_id: ch.menu_item_id, name: MOCK_MENU_ITEMS.find((m) => m.id === ch.menu_item_id)?.name ?? "", size_label: null, count: 30, surcharge_total: 0 })),

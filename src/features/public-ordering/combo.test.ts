@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { PublicCombo } from "@/data/api/generated/models/publicCombo";
 
-import { buildPicks, firstUnmetSlot, initialSelection } from "./combo";
+import { buildPicks, firstUnmetSlot, initialSelection, isAvailable } from "./combo";
 
 const choice = (id: string, sizes: { label: string; extra: number }[] = [{ label: "one_size", extra: 0 }], surcharge = 0) => ({
   menu_item_id: id,
@@ -75,5 +75,43 @@ describe("buildPicks", () => {
       ["cola", "large", 1, 700],
       ["burger", null, 2, 0],
     ]);
+  });
+});
+
+/* ── Unavailable choices: shown greyed, never picked (owner, 2026-09-27) ── */
+
+const off = (id: string) => ({ ...choice(id), sizes: [], available: false });
+
+describe("unavailable choices", () => {
+  it("a choice is available unless the server says otherwise (an older server sends no flag)", () => {
+    expect(isAvailable(choice("water"))).toBe(true);
+    expect(isAvailable({ ...choice("water"), available: true })).toBe(true);
+    expect(isAvailable(off("water"))).toBe(false);
+  });
+
+  it("is never the default, and a slot left with one pickable choice is filled with it", () => {
+    const c: PublicCombo = {
+      is_fixed: false,
+      slots: [
+        // The default itself went unavailable: nothing pre-picked, the customer chooses.
+        { ...combo.slots[0], default_item_id: "cola", choices: [choice("water"), choice("juice"), off("cola")] },
+        // Exactly one pickable choice, taken once: filled, the greyed one shown beside it.
+        { id: "main", name: "Main", name_translations: {}, sort: 1, min: 1, max: 1, choices: [off("burger"), choice("wrap")] },
+      ],
+    };
+    const sel = initialSelection(c);
+    expect(sel.drink).toBeUndefined();
+    expect(sel.main).toEqual({ wrap: { qty: 1, size: "one_size" } });
+    expect(firstUnmetSlot(c, sel)?.id).toBe("drink");
+  });
+
+  it("drops an edited line's pick that has gone unavailable, and never sends one", () => {
+    const c: PublicCombo = { is_fixed: false, slots: [{ ...combo.slots[0], choices: [choice("water"), off("cola")] }] };
+    const sel = initialSelection(c, [
+      { slot_id: "drink", menu_item_id: "cola", size_label: null, quantity: 1, name: "cola", name_translations: {}, slot_name: "Drink", slot_name_translations: {}, extra: 0 },
+    ]);
+    expect(sel).toEqual({});
+    // Even if a selection somehow holds it, the picks leave it out.
+    expect(buildPicks(c, { drink: { cola: { qty: 1, size: "one_size" }, water: { qty: 1, size: "one_size" } } }).map((p) => p.menu_item_id)).toEqual(["water"]);
   });
 });

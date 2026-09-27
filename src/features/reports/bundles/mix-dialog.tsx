@@ -11,6 +11,7 @@ import { fmtMoney, fmtNumber, fmtShare } from "@/lib/format";
 import { useComboMix } from "@/features/combos/api";
 import type { BundlesReportParams } from "@/features/combos/types";
 import { sizeLabelText } from "@/features/combos/use-menu-options";
+import { getTranslatedName } from "@/lib/translation";
 
 export function MixDialog({
   comboId,
@@ -23,7 +24,8 @@ export function MixDialog({
   params: Omit<BundlesReportParams, "kind">;
   onClose: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const q = useComboMix(comboId, params);
 
   return (
@@ -47,9 +49,10 @@ export function MixDialog({
           <div className="space-y-5">
             {q.data.slots.map((s) => {
               const total = s.picks.reduce((n, p) => n + p.count, 0);
+              const slotName = getTranslatedName(s, lang);
               return (
-                <section key={s.slot_id} aria-label={s.name} className="space-y-2">
-                  <h3 className="text-sm font-semibold">{s.name}</h3>
+                <section key={s.slot_id} aria-label={slotName} className="space-y-2">
+                  <h3 className="text-sm font-semibold">{slotName}</h3>
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
@@ -73,7 +76,7 @@ export function MixDialog({
                         .map((p) => (
                           <tr key={`${p.menu_item_id}:${p.size_label ?? ""}`} className="border-t">
                             <td className="py-1.5">
-                              {p.name}
+                              {getTranslatedName(p, lang)}
                               {p.size_label ? <span className="text-muted-foreground"> · {sizeLabelText(p.size_label, t)}</span> : null}
                             </td>
                             <td className="py-1.5 text-end font-mono tabular-nums">{fmtNumber(p.count)}</td>

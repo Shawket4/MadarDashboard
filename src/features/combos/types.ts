@@ -54,7 +54,7 @@ export type MealTarget = { combo_id: string; slot_id: string } | null;
 /** §3.2: the combo/deal fields on every `OrderFull.items[]` line. */
 export type ComboLineFields = Pick<
   import("@/data/api/generated/models").OrderItem,
-  "line_kind" | "combo_line_id" | "combo_slot_id" | "combo_slot_name" | "combo_unit_price" | "combo_share" | "combo_surcharge" | "deal_minor"
+  "line_kind" | "combo_line_id" | "combo_slot_id" | "combo_slot_name" | "combo_slot_name_translations" | "combo_unit_price" | "combo_share" | "combo_surcharge" | "deal_minor"
 >;
 
 /** The Arabic name out of a `*_translations` map (typed `unknown` values on the wire). */

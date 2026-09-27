@@ -376,7 +376,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                               <p className="text-xs text-muted-foreground tabular">
                                 <bdi>× {fmtNumber(it.quantity)} · {fmtMoney(it.unit_price)}</bdi>
                               </p>
-                              {row.part ? <ComboPartNote line={it} /> : <DealLineNote line={it} deals={deals} lang={lang} />}
+                              {row.part ? <ComboPartNote line={it} lang={lang} /> : <DealLineNote line={it} deals={deals} lang={lang} />}
 
                               {it.addons.length > 0 ? (
                                 <div className="mt-1 space-y-0.5 ps-2">

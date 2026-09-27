@@ -10162,6 +10162,9 @@ export const CreateOrderResponse = zod.object({
   "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
   "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
   "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_slot_name_translations": zod.looseObject({
+
+}).optional().describe('A part: the slot\'s names by language at the sale (`{\"ar\": \"مشروب\"}`),\nbeside `combo_slot_name` as `name_translations` is beside `item_name`.\n`{}` on any other line, and on a part whose slot had none; a reader\nfalls back to `combo_slot_name`. Additive.'),
   "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
   "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
@@ -10313,6 +10316,9 @@ export const ExportOrdersResponse = zod.object({
   "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
   "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
   "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_slot_name_translations": zod.looseObject({
+
+}).optional().describe('A part: the slot\'s names by language at the sale (`{\"ar\": \"مشروب\"}`),\nbeside `combo_slot_name` as `name_translations` is beside `item_name`.\n`{}` on any other line, and on a part whose slot had none; a reader\nfalls back to `combo_slot_name`. Additive.'),
   "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
   "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
@@ -10533,6 +10539,9 @@ export const GetOrderResponse = zod.object({
   "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
   "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
   "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_slot_name_translations": zod.looseObject({
+
+}).optional().describe('A part: the slot\'s names by language at the sale (`{\"ar\": \"مشروب\"}`),\nbeside `combo_slot_name` as `name_translations` is beside `item_name`.\n`{}` on any other line, and on a part whose slot had none; a reader\nfalls back to `combo_slot_name`. Additive.'),
   "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
   "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
@@ -12085,6 +12094,7 @@ export const PublicMenuResponse = zod.object({
   "is_fixed": zod.boolean(),
   "slots": zod.array(zod.object({
   "choices": zod.array(zod.object({
+  "available": zod.boolean().optional().describe('`false`: the item is not sold on this menu right now (switched off at\nthe branch or on the channel, or inactive). The page shows it greyed\nwith \"Unavailable\" and never lets it be picked (an order that picks it\nis refused `COMBO_ITEM_UNAVAILABLE`); it has no `sizes` and is never\nthe slot\'s default. Absent from an older server: available.'),
   "base_price": zod.number().describe('The included size\'s channel price (what the split weighs it by).'),
   "image_url": zod.string().nullish(),
   "included_size_label": zod.string(),
@@ -12099,7 +12109,7 @@ export const PublicMenuResponse = zod.object({
   "price": zod.number().describe('Its normal channel price.')
 }).describe('A size of a public combo choice.')),
   "surcharge": zod.number().describe('The choice\'s own surcharge, per pick unit.')
-}).describe('One concrete item a public combo slot offers (categories expanded to the\nitems available on this channel and branch).')),
+}).describe('One concrete item a public combo slot offers (categories expanded to the\ncategory\'s active items), with whether this channel and branch sell it now.')),
   "default_item_id": zod.uuid().nullish(),
   "default_size_label": zod.string().nullish(),
   "id": zod.uuid(),
@@ -13093,6 +13103,7 @@ export const PublicTableMenuResponse = zod.object({
   "is_fixed": zod.boolean(),
   "slots": zod.array(zod.object({
   "choices": zod.array(zod.object({
+  "available": zod.boolean().optional().describe('`false`: the item is not sold on this menu right now (switched off at\nthe branch or on the channel, or inactive). The page shows it greyed\nwith \"Unavailable\" and never lets it be picked (an order that picks it\nis refused `COMBO_ITEM_UNAVAILABLE`); it has no `sizes` and is never\nthe slot\'s default. Absent from an older server: available.'),
   "base_price": zod.number().describe('The included size\'s channel price (what the split weighs it by).'),
   "image_url": zod.string().nullish(),
   "included_size_label": zod.string(),
@@ -13107,7 +13118,7 @@ export const PublicTableMenuResponse = zod.object({
   "price": zod.number().describe('Its normal channel price.')
 }).describe('A size of a public combo choice.')),
   "surcharge": zod.number().describe('The choice\'s own surcharge, per pick unit.')
-}).describe('One concrete item a public combo slot offers (categories expanded to the\nitems available on this channel and branch).')),
+}).describe('One concrete item a public combo slot offers (categories expanded to the\ncategory\'s active items), with whether this channel and branch sell it now.')),
   "default_item_id": zod.uuid().nullish(),
   "default_size_label": zod.string().nullish(),
   "id": zod.uuid(),
@@ -14738,6 +14749,9 @@ export const ComboMixResponse = zod.object({
   "from": zod.iso.date(),
   "slots": zod.array(zod.object({
   "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional().describe('The slot\'s names by language: the catalogue\'s when it has any, else\nwhat the sales stored (a deleted slot\'s). `{}` when neither has any.'),
   "picks": zod.array(zod.object({
   "count": zod.number().describe('Units picked (Σ part quantity, refunds netted).'),
   "menu_item_id": zod.uuid().nullish(),

@@ -26,6 +26,14 @@ export type ComboSelection = Record<string, SlotSelection>;
 export const isCombo = (item: DeliveryMenuItem | null | undefined): boolean =>
   !!item && item.kind === "combo" && !!item.combo;
 
+/**
+ * Can this choice be picked right now? The menu shows a choice the shop has
+ * switched off greyed with "Unavailable" rather than hiding it; it is never
+ * picked, never the default, and never sent. A server from before the flag
+ * sends only what it sells.
+ */
+export const isAvailable = (choice: PublicComboChoice): boolean => choice.available !== false;
+
 /** The slots in the order the owner arranged them. */
 export const sortedSlots = (combo: PublicCombo): PublicComboSlot[] =>
   [...combo.slots].sort((a, b) => a.sort - b.sort);
@@ -67,7 +75,8 @@ export function initialSelection(combo: PublicCombo, editing?: ComboPick[] | nul
     for (const p of editing) {
       const slot = slots.find((s) => s.id === p.slot_id);
       const choice = slot?.choices.find((c) => c.menu_item_id === p.menu_item_id);
-      if (!slot || !choice) continue;
+      // A pick that has gone unavailable since is dropped: the slot asks again.
+      if (!slot || !choice || !isAvailable(choice)) continue;
       (out[slot.id] ??= {})[choice.menu_item_id] = {
         qty: p.quantity,
         size: validSize(choice, p.size_label),
@@ -76,9 +85,13 @@ export function initialSelection(combo: PublicCombo, editing?: ComboPick[] | nul
     return out;
   }
   for (const slot of slots) {
-    const byDefault = slot.choices.find((c) => c.menu_item_id === slot.default_item_id);
+    const pickable = slot.choices.filter(isAvailable);
+    const byDefault = pickable.find((c) => c.menu_item_id === slot.default_item_id);
+    // Nothing to decide (locked, or one pickable choice taken exactly so many
+    // times while the others are greyed): filled in.
+    const only = pickable.length === 1 && slot.min === slot.max && slot.min > 0;
     const locked = isLockedSlot(combo, slot);
-    const choice = byDefault ?? (locked ? slot.choices[0] : undefined);
+    const choice = byDefault ?? (locked || only ? pickable[0] : undefined);
     if (!choice) continue;
     const qty = Math.min(Math.max(slot.min, 1), Math.max(slot.max, 1));
     out[slot.id] = {
@@ -108,7 +121,7 @@ export function buildPicks(combo: PublicCombo, sel: ComboSelection): ComboPick[]
     const slotSel = sel[slot.id] ?? {};
     for (const choice of slot.choices) {
       const p = slotSel[choice.menu_item_id];
-      if (!p || p.qty <= 0) continue;
+      if (!p || p.qty <= 0 || !isAvailable(choice)) continue;
       picks.push({
         slot_id: slot.id,
         menu_item_id: choice.menu_item_id,

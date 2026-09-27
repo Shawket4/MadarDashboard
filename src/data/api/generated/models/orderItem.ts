@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { OrderItemComboSlotNameTranslations } from './orderItemComboSlotNameTranslations';
 import type { OrderItemNameTranslations } from './orderItemNameTranslations';
 
 export interface OrderItem {
@@ -20,6 +21,13 @@ export interface OrderItem {
      * @nullable
      */
   combo_slot_name?: string | null;
+  /**
+     * A part: the slot's names by language at the sale (`{"ar": "مشروب"}`),
+     * beside `combo_slot_name` as `name_translations` is beside `item_name`.
+     * `{}` on any other line, and on a part whose slot had none; a reader
+     * falls back to `combo_slot_name`. Additive.
+     */
+  combo_slot_name_translations?: OrderItemComboSlotNameTranslations;
   /** A part: its choice and size surcharges, whole line. */
   combo_surcharge?: number;
   /**
