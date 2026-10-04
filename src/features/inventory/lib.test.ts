@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildCountPayload,
+  transferActions,
   countsDue,
   isVarianceFlagged,
   missingReasons,
@@ -111,5 +112,24 @@ describe("below zero", () => {
     expect(isBelowZero(0)).toBe(false);
     expect(isBelowZero(3)).toBe(false);
     expect(isBelowZero(null)).toBe(false);
+  });
+});
+
+describe("transferActions", () => {
+  const tr = (status: string) => ({ status, source_branch_id: "wh", destination_branch_id: "shop" }) as Parameters<typeof transferActions>[0];
+  const shop = new Set(["shop"]);
+  const both = new Set(["wh", "shop"]);
+
+  it("gives each side its own steps", () => {
+    expect(transferActions(tr("requested"), shop).sort()).toEqual(["cancel", "edit"]);
+    expect(transferActions(tr("requested"), new Set(["wh"])).sort()).toEqual(["accept", "decline"]);
+    expect(transferActions(tr("dispatched"), shop)).toEqual(["receive"]);
+    expect(transferActions(tr("received"), both)).toEqual([]);
+  });
+
+  it("needs the capability too: cancelling stock in transit is .delete", () => {
+    const noDelete = (c: string) => c !== "inventory.transfers.delete";
+    expect(transferActions(tr("dispatched"), both, noDelete as never)).toEqual(["receive"]);
+    expect(transferActions(tr("draft"), both, noDelete as never).sort()).toEqual(["cancel", "dispatch", "edit"]);
   });
 });

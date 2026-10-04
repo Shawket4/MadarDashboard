@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AcceptTransferRequest,
   AcceptingInput,
   ActivateDeviceRequest,
   ActivateDeviceResponse,
@@ -131,6 +132,7 @@ import type {
   CloseTillPreview,
   CloseTillRequest,
   CloseTillResponse,
+  CloseTransferRequest,
   CombinedItemSalesRow,
   Combo,
   ComboEconomics,
@@ -545,6 +547,7 @@ import type {
   ReadNotifications,
   ReassignExpenseAdvance,
   ReceivePurchaseOrderRequest,
+  ReceiveTransferRequest,
   RecipeBaseOut,
   RecipeBaseSaveResult,
   RecipeBaseUsage,
@@ -569,6 +572,8 @@ import type {
   ReplaceIdentityRequest,
   ReplaceIdentityResponse,
   ReplayFlag,
+  ReplenishmentParams,
+  ReplenishmentRow,
   RepricingReport,
   RequestDecision,
   ResetDayParams,
@@ -654,6 +659,8 @@ import type {
   TillSpotView,
   TimeseriesPoint,
   TopUpRequest,
+  TransferDifferenceRow,
+  TransferDifferencesParams,
   TransferView,
   TransfersSyncResponse,
   UnregisterPushDevice,
@@ -13219,6 +13226,101 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getUpdateInventorySettingsMutationOptions(options), queryClient);
     }
 
+export const transferDifferences = (
+    orgId: string,
+    params?: TransferDifferencesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TransferDifferenceRow[]>(
+      {url: `/inventory/orgs/${orgId}/transfer-differences`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getTransferDifferencesQueryKey = (orgId: string,
+    params?: TransferDifferencesParams,) => {
+    return [
+    `/inventory/orgs/${orgId}/transfer-differences`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getTransferDifferencesQueryOptions = <TData = Awaited<ReturnType<typeof transferDifferences>>, TError = ErrorBody>(orgId: string,
+    params?: TransferDifferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transferDifferences>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTransferDifferencesQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof transferDifferences>>> = ({ signal }) => transferDifferences(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof transferDifferences>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TransferDifferencesQueryResult = NonNullable<Awaited<ReturnType<typeof transferDifferences>>>
+export type TransferDifferencesQueryError = ErrorBody
+
+
+export function useTransferDifferences<TData = Awaited<ReturnType<typeof transferDifferences>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  TransferDifferencesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof transferDifferences>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof transferDifferences>>,
+          TError,
+          Awaited<ReturnType<typeof transferDifferences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTransferDifferences<TData = Awaited<ReturnType<typeof transferDifferences>>, TError = ErrorBody>(
+ orgId: string,
+    params?: TransferDifferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transferDifferences>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof transferDifferences>>,
+          TError,
+          Awaited<ReturnType<typeof transferDifferences>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTransferDifferences<TData = Awaited<ReturnType<typeof transferDifferences>>, TError = ErrorBody>(
+ orgId: string,
+    params?: TransferDifferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transferDifferences>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useTransferDifferences<TData = Awaited<ReturnType<typeof transferDifferences>>, TError = ErrorBody>(
+ orgId: string,
+    params?: TransferDifferencesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transferDifferences>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTransferDifferencesQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const createTransfer = (
     createTransferRequest: CreateTransferRequest,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -13278,14 +13380,14 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreateTransferMutationOptions(options), queryClient);
     }
 
-export const deleteTransfer = (
+export const getTransfer = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
-      return customInstance<void>(
-      {url: `/inventory/transfers/${id}`, method: 'DELETE', signal
+      return customInstance<StockTransfer>(
+      {url: `/inventory/transfers/${id}`, method: 'GET', signal
     },
       options);
     }
@@ -13293,47 +13395,77 @@ export const deleteTransfer = (
 
 
 
-export const getDeleteTransferMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTransfer>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteTransfer>>, TError,{id: string}, TContext> => {
-
-const mutationKey = ['deleteTransfer'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTransfer>>, {id: string}> = (props) => {
-          const {id} = props ?? {};
-
-          return  deleteTransfer(id,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteTransferMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTransfer>>>
-
-    export type DeleteTransferMutationError = ErrorBody
-
-    export const useDeleteTransfer = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTransfer>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteTransfer>>,
-        TError,
-        {id: string},
-        TContext
-      > => {
-      return useMutation(getDeleteTransferMutationOptions(options), queryClient);
+export const getGetTransferQueryKey = (id: string,) => {
+    return [
+    `/inventory/transfers/${id}`
+    ] as const;
     }
+
+
+export const getGetTransferQueryOptions = <TData = Awaited<ReturnType<typeof getTransfer>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfer>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTransferQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTransfer>>> = ({ signal }) => getTransfer(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTransfer>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTransferQueryResult = NonNullable<Awaited<ReturnType<typeof getTransfer>>>
+export type GetTransferQueryError = ErrorBody
+
+
+export function useGetTransfer<TData = Awaited<ReturnType<typeof getTransfer>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfer>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTransfer>>,
+          TError,
+          Awaited<ReturnType<typeof getTransfer>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTransfer<TData = Awaited<ReturnType<typeof getTransfer>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfer>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTransfer>>,
+          TError,
+          Awaited<ReturnType<typeof getTransfer>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetTransfer<TData = Awaited<ReturnType<typeof getTransfer>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfer>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetTransfer<TData = Awaited<ReturnType<typeof getTransfer>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTransfer>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTransferQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const updateTransfer = (
     id: string,
@@ -13394,6 +13526,398 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateTransferMutationOptions(options), queryClient);
     }
+
+export const acceptTransfer = (
+    id: string,
+    acceptTransferRequest: AcceptTransferRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StockTransfer>(
+      {url: `/inventory/transfers/${id}/accept`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: acceptTransferRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getAcceptTransferMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptTransfer>>, TError,{id: string;data: AcceptTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptTransfer>>, TError,{id: string;data: AcceptTransferRequest}, TContext> => {
+
+const mutationKey = ['acceptTransfer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptTransfer>>, {id: string;data: AcceptTransferRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  acceptTransfer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptTransferMutationResult = NonNullable<Awaited<ReturnType<typeof acceptTransfer>>>
+    export type AcceptTransferMutationBody = AcceptTransferRequest
+    export type AcceptTransferMutationError = ErrorBody
+
+    export const useAcceptTransfer = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptTransfer>>, TError,{id: string;data: AcceptTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof acceptTransfer>>,
+        TError,
+        {id: string;data: AcceptTransferRequest},
+        TContext
+      > => {
+      return useMutation(getAcceptTransferMutationOptions(options), queryClient);
+    }
+
+export const cancelStockTransfer = (
+    id: string,
+    closeTransferRequest: CloseTransferRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StockTransfer>(
+      {url: `/inventory/transfers/${id}/cancel`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: closeTransferRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getCancelStockTransferMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelStockTransfer>>, TError,{id: string;data: CloseTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelStockTransfer>>, TError,{id: string;data: CloseTransferRequest}, TContext> => {
+
+const mutationKey = ['cancelStockTransfer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelStockTransfer>>, {id: string;data: CloseTransferRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelStockTransfer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelStockTransferMutationResult = NonNullable<Awaited<ReturnType<typeof cancelStockTransfer>>>
+    export type CancelStockTransferMutationBody = CloseTransferRequest
+    export type CancelStockTransferMutationError = ErrorBody
+
+    export const useCancelStockTransfer = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelStockTransfer>>, TError,{id: string;data: CloseTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelStockTransfer>>,
+        TError,
+        {id: string;data: CloseTransferRequest},
+        TContext
+      > => {
+      return useMutation(getCancelStockTransferMutationOptions(options), queryClient);
+    }
+
+export const declineTransfer = (
+    id: string,
+    closeTransferRequest: CloseTransferRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StockTransfer>(
+      {url: `/inventory/transfers/${id}/decline`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: closeTransferRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getDeclineTransferMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineTransfer>>, TError,{id: string;data: CloseTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof declineTransfer>>, TError,{id: string;data: CloseTransferRequest}, TContext> => {
+
+const mutationKey = ['declineTransfer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof declineTransfer>>, {id: string;data: CloseTransferRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  declineTransfer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeclineTransferMutationResult = NonNullable<Awaited<ReturnType<typeof declineTransfer>>>
+    export type DeclineTransferMutationBody = CloseTransferRequest
+    export type DeclineTransferMutationError = ErrorBody
+
+    export const useDeclineTransfer = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineTransfer>>, TError,{id: string;data: CloseTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof declineTransfer>>,
+        TError,
+        {id: string;data: CloseTransferRequest},
+        TContext
+      > => {
+      return useMutation(getDeclineTransferMutationOptions(options), queryClient);
+    }
+
+export const dispatchTransfer = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StockTransfer>(
+      {url: `/inventory/transfers/${id}/dispatch`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getDispatchTransferMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dispatchTransfer>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof dispatchTransfer>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['dispatchTransfer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof dispatchTransfer>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  dispatchTransfer(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DispatchTransferMutationResult = NonNullable<Awaited<ReturnType<typeof dispatchTransfer>>>
+
+    export type DispatchTransferMutationError = ErrorBody
+
+    export const useDispatchTransfer = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof dispatchTransfer>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof dispatchTransfer>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDispatchTransferMutationOptions(options), queryClient);
+    }
+
+export const receiveTransfer = (
+    id: string,
+    receiveTransferRequest: ReceiveTransferRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<StockTransfer>(
+      {url: `/inventory/transfers/${id}/receive`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: receiveTransferRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getReceiveTransferMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveTransfer>>, TError,{id: string;data: ReceiveTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof receiveTransfer>>, TError,{id: string;data: ReceiveTransferRequest}, TContext> => {
+
+const mutationKey = ['receiveTransfer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof receiveTransfer>>, {id: string;data: ReceiveTransferRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  receiveTransfer(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReceiveTransferMutationResult = NonNullable<Awaited<ReturnType<typeof receiveTransfer>>>
+    export type ReceiveTransferMutationBody = ReceiveTransferRequest
+    export type ReceiveTransferMutationError = ErrorBody
+
+    export const useReceiveTransfer = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof receiveTransfer>>, TError,{id: string;data: ReceiveTransferRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof receiveTransfer>>,
+        TError,
+        {id: string;data: ReceiveTransferRequest},
+        TContext
+      > => {
+      return useMutation(getReceiveTransferMutationOptions(options), queryClient);
+    }
+
+export const replenishment = (
+    warehouseId: string,
+    params: ReplenishmentParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ReplenishmentRow[]>(
+      {url: `/inventory/warehouses/${warehouseId}/replenishment`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getReplenishmentQueryKey = (warehouseId: string,
+    params?: ReplenishmentParams,) => {
+    return [
+    `/inventory/warehouses/${warehouseId}/replenishment`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getReplenishmentQueryOptions = <TData = Awaited<ReturnType<typeof replenishment>>, TError = ErrorBody>(warehouseId: string,
+    params: ReplenishmentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof replenishment>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getReplenishmentQueryKey(warehouseId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof replenishment>>> = ({ signal }) => replenishment(warehouseId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: warehouseId !== null && warehouseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof replenishment>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ReplenishmentQueryResult = NonNullable<Awaited<ReturnType<typeof replenishment>>>
+export type ReplenishmentQueryError = ErrorBody
+
+
+export function useReplenishment<TData = Awaited<ReturnType<typeof replenishment>>, TError = ErrorBody>(
+ warehouseId: string,
+    params: ReplenishmentParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof replenishment>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof replenishment>>,
+          TError,
+          Awaited<ReturnType<typeof replenishment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReplenishment<TData = Awaited<ReturnType<typeof replenishment>>, TError = ErrorBody>(
+ warehouseId: string,
+    params: ReplenishmentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof replenishment>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof replenishment>>,
+          TError,
+          Awaited<ReturnType<typeof replenishment>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReplenishment<TData = Awaited<ReturnType<typeof replenishment>>, TError = ErrorBody>(
+ warehouseId: string,
+    params: ReplenishmentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof replenishment>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useReplenishment<TData = Awaited<ReturnType<typeof replenishment>>, TError = ErrorBody>(
+ warehouseId: string,
+    params: ReplenishmentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof replenishment>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getReplenishmentQueryOptions(warehouseId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 /**
  * @summary POST /inventory/waste — record waste at a branch (ingredient or menu item).

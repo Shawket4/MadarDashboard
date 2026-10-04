@@ -88,6 +88,7 @@ export const MOCK_BRANCHES: Branch[] = BRANCH_SEEDS.map((b) => ({
   id: b.id,
   org_id: MOCK_ORG_ID,
   name: b.name,
+  kind: "branch",
   is_active: true,
   address: `${b.name}, Cairo`,
   phone: "+20 2 0000 0000",

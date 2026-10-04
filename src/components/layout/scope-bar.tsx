@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Loader2, SlidersHorizontal, Store } from "lucide-react";
+import { useLocation } from "@tanstack/react-router";
+import { Loader2, SlidersHorizontal, Store, Warehouse } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -8,7 +9,9 @@ import { DateRangePicker } from "@/components/app/date-range-picker";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -47,7 +50,16 @@ function ScopeControls({ className }: { className?: string }) {
     { org_id: orgId ?? "" },
     { query: { enabled: Boolean(canPickBranch && orgId) } },
   );
-  const activeBranches = useMemo(() => (branches ?? []).filter((b) => b.is_active), [branches]);
+  // A warehouse only holds stock, so it is a scope on Inventory pages alone;
+  // everywhere else (sales, menu, tills) the picker lists selling branches.
+  const { pathname } = useLocation();
+  const withWarehouses = pathname.startsWith("/inventory");
+  const activeBranches = useMemo(
+    () => (branches ?? []).filter((b) => b.is_active && (withWarehouses || b.kind !== "warehouse")),
+    [branches, withWarehouses],
+  );
+  const shops = activeBranches.filter((b) => b.kind !== "warehouse");
+  const warehouses = activeBranches.filter((b) => b.kind === "warehouse");
 
   // Self-heal a stale/invalid scoped branch: a branchId persisted from a prior
   // session/org (login doesn't reset it) or one since deactivated isn't in this
@@ -93,11 +105,22 @@ function ScopeControls({ className }: { className?: string }) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL_BRANCHES}>{t("scope.allBranches", "All branches")}</SelectItem>
-            {activeBranches.map((b) => (
+            {shops.map((b) => (
               <SelectItem key={b.id} value={b.id}>
                 {b.name}
               </SelectItem>
             ))}
+            {warehouses.length ? (
+              <SelectGroup>
+                <SelectLabel>{t("scope.warehouses", "Warehouses")}</SelectLabel>
+                {warehouses.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    <Warehouse className="size-4 text-muted-foreground" />
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ) : null}
           </SelectContent>
         </Select>
       ) : null}

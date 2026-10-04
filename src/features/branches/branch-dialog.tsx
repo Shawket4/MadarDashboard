@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { MapPin, Printer } from "lucide-react";
+import { MapPin, Printer, Store, Warehouse } from "lucide-react";
 
 import { useAuthStore } from "@/data/stores/auth.store";
 import { toast } from "sonner";
@@ -19,7 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TimezoneSelect } from "@/components/app/timezone-select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { createBranch, patchBranch } from "@/data/api/generated/api";
-import type { Branch, UpdateBranchRequest } from "@/data/api/generated/models";
+import type { Branch, BranchKind, UpdateBranchRequest } from "@/data/api/generated/models";
+import { SegmentedControl } from "@/components/app/segmented-control";
 import { getErrorMessage } from "@/data/api/errors";
 import { invalidateBranches } from "./util";
 
@@ -29,11 +30,13 @@ const numOrNull = (v: number | undefined) => (v === undefined || Number.isNaN(v)
 interface Props {
   orgId: string;
   branch: Branch | null;
+  /** What a NEW location is; an existing one carries its own kind. */
+  defaultKind?: BranchKind;
   open: boolean;
   onOpenChange: (o: boolean) => void;
 }
 
-export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
+export function BranchDialog({ orgId, branch, defaultKind = "branch", open, onOpenChange }: Props) {
   const { t } = useTranslation();
   const editing = !!branch;
   const [busy, setBusy] = useState(false);
@@ -41,6 +44,7 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
   const schema = useMemo(
     () =>
       z.object({
+        kind: z.enum(["branch", "warehouse"]),
         name: z.string().min(1, t("common.requiredField", "This field is required")),
         phone: z.string().optional(),
         address: z.string().optional(),
@@ -72,7 +76,7 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: "", phone: "", address: "", timezone: "Africa/Cairo", is_active: true,
+      kind: "branch", name: "", phone: "", address: "", timezone: "Africa/Cairo", is_active: true,
       printer_brand: "none", printer_ip: "", printer_port: 9100,
       latitude: undefined, longitude: undefined, geo_radius_meters: 200,
       tax_override: false, tax_rate: 0, tax_inclusive: false,
@@ -82,11 +86,14 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
   });
   const printerBrand = form.watch("printer_brand");
   const taxOverride = form.watch("tax_override");
+  // A warehouse holds stock and never sells: no till, printer or tax settings.
+  const isWarehouse = form.watch("kind") === "warehouse";
   const isSuperAdmin = useAuthStore((s) => s.user?.role) === "super_admin";
 
   useEffect(() => {
     if (open) {
       form.reset({
+        kind: branch?.kind ?? defaultKind,
         name: branch?.name ?? "",
         phone: branch?.phone ?? "",
         address: branch?.address ?? "",
@@ -113,7 +120,7 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
         standard_float: branch?.standard_float == null ? undefined : piastresToEgp(branch.standard_float),
       });
     }
-  }, [open, branch, form]);
+  }, [open, branch, defaultKind, form]);
 
   const submit = async (v: Values) => {
     const hasPrinter = v.printer_brand !== "none";
@@ -139,14 +146,14 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
     const tills: Pick<UpdateBranchRequest, "old_bill_hours" | "standard_float"> = { old_bill_hours: v.old_bill_hours, standard_float: v.standard_float == null || Number.isNaN(v.standard_float) ? null : egpToPiastres(v.standard_float) };
     setBusy(true);
     try {
-      if (branch) await patchBranch(branch.id, { ...base, ...tills, is_active: v.is_active });
+      if (branch) await patchBranch(branch.id, { ...base, ...tills, is_active: v.is_active, ...(v.kind !== branch.kind ? { kind: v.kind } : {}) });
       else {
         // Create doesn't take the till settings; PATCH them onto the new branch.
-        const created = await createBranch({ org_id: orgId, ...base });
-        await patchBranch(created.id, tills);
+        const created = await createBranch({ org_id: orgId, ...base, kind: v.kind });
+        if (v.kind === "branch") await patchBranch(created.id, tills);
       }
       void invalidateBranches();
-      toast.success(editing ? t("branches.updatedToast", "Branch updated") : t("branches.createdToast", "Branch created"));
+      toast.success(editing ? t("branches.updatedToast", "Branch updated") : v.kind === "warehouse" ? t("branches.warehouseCreatedToast", "Warehouse created") : t("branches.createdToast", "Branch created"));
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -159,14 +166,43 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{editing ? t("branches.editTitle", "Edit Branch") : t("branches.newTitle", "New Branch")}</DialogTitle>
+          <DialogTitle>
+            {editing
+              ? isWarehouse ? t("branches.editWarehouseTitle", "Edit warehouse") : t("branches.editTitle", "Edit Branch")
+              : isWarehouse ? t("branches.newWarehouseTitle", "New warehouse") : t("branches.newTitle", "New Branch")}
+          </DialogTitle>
           <DialogDescription>{t("branches.subtitle", "Manage your branch locations and printer config")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(submit)} className="space-y-4">
+            <FormField control={form.control} name="kind" render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("branches.kind", "Type")}</FormLabel>
+                <SegmentedControl<BranchKind>
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={[
+                    { value: "branch", label: <span className="flex items-center gap-1.5"><Store className="size-3.5" />{t("branches.kindBranch", "Branch")}</span> },
+                    { value: "warehouse", label: <span className="flex items-center gap-1.5"><Warehouse className="size-3.5" />{t("branches.kindWarehouse", "Warehouse")}</span> },
+                  ]}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {field.value === "warehouse"
+                    ? t("branches.kindWarehouseHint", "Holds stock and sends it to branches. It never sells: no tills, devices or menu.")
+                    : t("branches.kindBranchHint", "Sells through tills and devices, and keeps its own stock.")}
+                </p>
+                {editing && branch && field.value !== branch.kind ? (
+                  <p className="text-xs text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]">
+                    {field.value === "warehouse"
+                      ? t("branches.toWarehouseHint", "It must have no open tills, open orders or bills, and no paired devices. Its menu settings are kept for if you switch it back.")
+                      : t("branches.toBranchHint", "Its stock stays. Set up its menu, tills and devices to start selling.")}
+                  </p>
+                ) : null}
+              </FormItem>
+            )} />
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("branches.branchName", "Branch Name")}</FormLabel>
+                <FormLabel>{isWarehouse ? t("branches.warehouseName", "Warehouse name") : t("branches.branchName", "Branch Name")}</FormLabel>
                 <FormControl><Input {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
@@ -179,19 +215,19 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
                 <FormItem><FormLabel>{t("branches.timezone", "Timezone")}</FormLabel><FormControl><TimezoneSelect value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            {isWarehouse ? null : <div className="grid grid-cols-2 gap-3">
               <FormField control={form.control} name="old_bill_hours" render={({ field }) => (
                 <FormItem><FormLabel>{t("branches.oldBillHours", "Flag open bills as old after (hours)")}</FormLabel><FormControl><Input type="number" min={1} max={168} step={1} {...field} value={(field.value as number | undefined) ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="standard_float" render={({ field }) => (
                 <FormItem><FormLabel>{t("branches.standardFloat", "Standard drawer float")}</FormLabel><FormControl><Input type="number" min={0} step="0.01" {...field} value={(field.value as number | undefined) ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
-            </div>
+            </div>}
             <FormField control={form.control} name="address" render={({ field }) => (
               <FormItem><FormLabel>{t("branches.address", "Address")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
             )} />
 
-            <div className="space-y-3 rounded-lg border p-4">
+            {isWarehouse ? null : <div className="space-y-3 rounded-lg border p-4">
               <div className="flex items-center gap-2"><Printer className="size-3.5 text-muted-foreground" /><p className="text-sm font-semibold">{t("branches.printerConfig", "Printer Configuration")}</p></div>
               <FormField control={form.control} name="printer_brand" render={({ field }) => (
                 <FormItem>
@@ -217,7 +253,7 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
                   )} />
                 </div>
               ) : null}
-            </div>
+            </div>}
 
             <div className="space-y-3 rounded-lg border p-4">
               <div className="flex items-center gap-2"><MapPin className="size-3.5 text-muted-foreground" /><p className="text-sm font-semibold">{t("branches.location", "Location (geofencing)")}</p></div>
@@ -247,7 +283,7 @@ export function BranchDialog({ orgId, branch, open, onOpenChange }: Props) {
                 org can trade across jurisdictions, and a branch in a free zone
                 or another country cannot be made to charge its head office's
                 rate. */}
-            {isSuperAdmin ? (
+            {isSuperAdmin && !isWarehouse ? (
               <>
               <FormField control={form.control} name="tax_override" render={({ field }) => (
                 <FormItem className="rounded-lg bg-muted p-3">

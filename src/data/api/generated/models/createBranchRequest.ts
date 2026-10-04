@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { BranchKind } from './branchKind';
 import type { PrinterBrand } from './printerBrand';
 
 export interface CreateBranchRequest {
@@ -10,6 +11,8 @@ export interface CreateBranchRequest {
      * @nullable
      */
   geo_radius_meters?: number | null;
+  /** `warehouse` for a stock-only location; defaults to `branch`. */
+  kind?: BranchKind;
   /** @nullable */
   latitude?: number | null;
   /** @nullable */

@@ -1715,7 +1715,8 @@ export const DeleteBranchMenuOverrideResponse = zod.void()
 
 
 export const ListBranchesQueryParams = zod.object({
-  "org_id": zod.uuid().describe('Organization whose branches to list. Must match the caller\'s JWT org.')
+  "org_id": zod.uuid().describe('Organization whose branches to list. Must match the caller\'s JWT org.'),
+  "kind": zod.enum(['branch', 'warehouse']).optional().describe('Only this kind; omitted = branches and warehouses.')
 })
 
 export const listBranchesResponseOldBillHoursMax = 168;
@@ -1731,6 +1732,7 @@ export const ListBranchesResponseItem = zod.object({
   "geo_radius_meters": zod.number().nullish().describe('Radius in meters within which this branch is considered a match. Defaults to 200.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "kind": zod.enum(['branch', 'warehouse']).describe('`branch` sells; `warehouse` only holds stock (WAREHOUSE_DESIGN.md).'),
   "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
   "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
@@ -1757,6 +1759,7 @@ export const ListBranchesResponse = zod.array(ListBranchesResponseItem)
 export const CreateBranchBody = zod.object({
   "address": zod.string().nullish(),
   "geo_radius_meters": zod.number().nullish().describe('Geofence radius in meters. Defaults to 200.'),
+  "kind": zod.enum(['branch', 'warehouse']).optional().describe('`warehouse` for a stock-only location; defaults to `branch`.'),
   "latitude": zod.number().nullish(),
   "longitude": zod.number().nullish(),
   "name": zod.string(),
@@ -1781,6 +1784,7 @@ export const CreateBranchResponse = zod.object({
   "geo_radius_meters": zod.number().nullish().describe('Radius in meters within which this branch is considered a match. Defaults to 200.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "kind": zod.enum(['branch', 'warehouse']).describe('`branch` sells; `warehouse` only holds stock (WAREHOUSE_DESIGN.md).'),
   "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
   "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
@@ -1820,6 +1824,7 @@ export const GetBranchResponse = zod.object({
   "geo_radius_meters": zod.number().nullish().describe('Radius in meters within which this branch is considered a match. Defaults to 200.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "kind": zod.enum(['branch', 'warehouse']).describe('`branch` sells; `warehouse` only holds stock (WAREHOUSE_DESIGN.md).'),
   "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
   "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
@@ -1856,6 +1861,7 @@ export const UpdateBranchBody = zod.object({
   "address": zod.string().nullish(),
   "geo_radius_meters": zod.number().nullish(),
   "is_active": zod.boolean().nullish(),
+  "kind": zod.union([zod.null(),zod.enum(['branch', 'warehouse']).describe('Turn a branch into a warehouse or back (WAREHOUSE_DESIGN.md §4.3).')]).optional(),
   "latitude": zod.number().nullish(),
   "longitude": zod.number().nullish(),
   "name": zod.string().nullish(),
@@ -1886,6 +1892,7 @@ export const UpdateBranchResponse = zod.object({
   "geo_radius_meters": zod.number().nullish().describe('Radius in meters within which this branch is considered a match. Defaults to 200.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "kind": zod.enum(['branch', 'warehouse']).describe('`branch` sells; `warehouse` only holds stock (WAREHOUSE_DESIGN.md).'),
   "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
   "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
@@ -1933,6 +1940,7 @@ export const PatchBranchBody = zod.object({
   "address": zod.string().nullish(),
   "geo_radius_meters": zod.number().nullish(),
   "is_active": zod.boolean().nullish(),
+  "kind": zod.union([zod.null(),zod.enum(['branch', 'warehouse']).describe('Turn a branch into a warehouse or back (WAREHOUSE_DESIGN.md §4.3).')]).optional(),
   "latitude": zod.number().nullish(),
   "longitude": zod.number().nullish(),
   "name": zod.string().nullish(),
@@ -1963,6 +1971,7 @@ export const PatchBranchResponse = zod.object({
   "geo_radius_meters": zod.number().nullish().describe('Radius in meters within which this branch is considered a match. Defaults to 200.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "kind": zod.enum(['branch', 'warehouse']).describe('`branch` sells; `warehouse` only holds stock (WAREHOUSE_DESIGN.md).'),
   "latitude": zod.number().nullish().describe('WGS-84 latitude for geofenced branch resolution.'),
   "longitude": zod.number().nullish().describe('WGS-84 longitude for geofenced branch resolution.'),
   "name": zod.string(),
@@ -5637,30 +5646,63 @@ export const SetParLevelsResponse = zod.object({
 
 
 export const ListTransfersParams = zod.object({
-  "branch_id": zod.uuid().describe('Branch ID')
+  "branch_id": zod.uuid().describe('Branch or warehouse ID; the nil UUID = every location in the org')
 })
 
 export const ListTransfersQueryParams = zod.object({
-  "direction": zod.string().optional(),
+  "direction": zod.string().optional().describe('`incoming` | `outgoing`; omitted = both.'),
+  "status": zod.string().optional().describe('`requested` | `draft` | `dispatched` | `received` | `cancelled`; omitted = all.'),
   "limit": zod.number().optional(),
   "offset": zod.number().optional()
 })
 
 export const ListTransfersResponseItem = zod.object({
+  "cancelled": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "created": zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.'),
   "destination_branch_id": zod.uuid(),
   "destination_branch_name": zod.string(),
+  "destination_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "dispatched": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
-  "initiated_at": zod.iso.datetime({"offset":true}),
-  "initiated_by": zod.uuid(),
-  "initiated_by_name": zod.string(),
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "qty_received": zod.number().nullish().describe('`None` until received.'),
+  "qty_sent": zod.number().describe('Asked for while `requested`, planned while `draft`, sent from dispatch on.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Frozen at dispatch from the source\'s cost; `None` before dispatch or unknown.')
+})),
   "note": zod.string().nullish(),
   "org_id": zod.uuid(),
-  "org_ingredient_id": zod.uuid(),
-  "quantity": zod.number(),
+  "received": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "reference": zod.string().describe('`TR-1043`, per org.'),
+  "requested": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
   "source_branch_id": zod.uuid(),
   "source_branch_name": zod.string(),
-  "unit": zod.string()
+  "source_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "status": zod.enum(['requested', 'draft', 'dispatched', 'received', 'cancelled'])
 })
 export const ListTransfersResponse = zod.array(ListTransfersResponseItem)
 
@@ -5979,37 +6021,148 @@ export const UpdateInventorySettingsResponse = zod.object({
 })
 
 
+export const TransferDifferencesParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID')
+})
+
+export const TransferDifferencesQueryParams = zod.object({
+  "from": zod.iso.datetime({"offset":true}).optional().describe('Received on or after (inclusive).'),
+  "to": zod.iso.datetime({"offset":true}).optional().describe('Received before (exclusive).')
+})
+
+export const TransferDifferencesResponseItem = zod.object({
+  "destination_branch_name": zod.string(),
+  "difference": zod.number().describe('received − sent; negative = transit loss.'),
+  "ingredient_name": zod.string(),
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "qty_received": zod.number(),
+  "qty_sent": zod.number(),
+  "received_at": zod.iso.datetime({"offset":true}),
+  "reference": zod.string(),
+  "source_branch_name": zod.string(),
+  "transfer_id": zod.uuid(),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish(),
+  "value_difference": zod.number().nullish().describe('`difference × unit_cost`, piastres; `None` when the cost is unknown.')
+}).describe('`GET \/reports\/orgs\/{org}\/transfer-differences`: one received line whose\nreceived quantity differs from what was sent.')
+export const TransferDifferencesResponse = zod.array(TransferDifferencesResponseItem)
+
+
 export const CreateTransferBody = zod.object({
   "destination_branch_id": zod.uuid(),
+  "lines": zod.array(zod.object({
   "note": zod.string().nullish(),
   "org_ingredient_id": zod.uuid(),
-  "quantity": zod.number(),
+  "quantity": zod.number().describe('Greater than 0.')
+}).describe('One ingredient and how much of it.')).describe('At least one; each ingredient once.'),
+  "note": zod.string().nullish(),
+  "request": zod.boolean().optional(),
   "source_branch_id": zod.uuid()
-})
+}).describe('`POST \/inventory\/transfers`. With `request: true` the DESTINATION asks\n(status `requested`); otherwise the SOURCE starts a `draft`.')
 
 export const CreateTransferResponse = zod.object({
+  "cancelled": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "created": zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.'),
   "destination_branch_id": zod.uuid(),
   "destination_branch_name": zod.string(),
+  "destination_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "dispatched": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
-  "initiated_at": zod.iso.datetime({"offset":true}),
-  "initiated_by": zod.uuid(),
-  "initiated_by_name": zod.string(),
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "qty_received": zod.number().nullish().describe('`None` until received.'),
+  "qty_sent": zod.number().describe('Asked for while `requested`, planned while `draft`, sent from dispatch on.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Frozen at dispatch from the source\'s cost; `None` before dispatch or unknown.')
+})),
   "note": zod.string().nullish(),
   "org_id": zod.uuid(),
-  "org_ingredient_id": zod.uuid(),
-  "quantity": zod.number(),
+  "received": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "reference": zod.string().describe('`TR-1043`, per org.'),
+  "requested": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
   "source_branch_id": zod.uuid(),
   "source_branch_name": zod.string(),
-  "unit": zod.string()
+  "source_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "status": zod.enum(['requested', 'draft', 'dispatched', 'received', 'cancelled'])
 })
 
 
-export const DeleteTransferParams = zod.object({
+export const GetTransferParams = zod.object({
   "id": zod.uuid().describe('Transfer ID')
 })
 
-export const DeleteTransferResponse = zod.void()
+export const GetTransferResponse = zod.object({
+  "cancelled": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "created": zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.'),
+  "destination_branch_id": zod.uuid(),
+  "destination_branch_name": zod.string(),
+  "destination_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "dispatched": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "qty_received": zod.number().nullish().describe('`None` until received.'),
+  "qty_sent": zod.number().describe('Asked for while `requested`, planned while `draft`, sent from dispatch on.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Frozen at dispatch from the source\'s cost; `None` before dispatch or unknown.')
+})),
+  "note": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "received": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "reference": zod.string().describe('`TR-1043`, per org.'),
+  "requested": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "source_branch_id": zod.uuid(),
+  "source_branch_name": zod.string(),
+  "source_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "status": zod.enum(['requested', 'draft', 'dispatched', 'received', 'cancelled'])
+})
 
 
 export const UpdateTransferParams = zod.object({
@@ -6017,25 +6170,383 @@ export const UpdateTransferParams = zod.object({
 })
 
 export const UpdateTransferBody = zod.object({
+  "lines": zod.array(zod.object({
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "quantity": zod.number().describe('Greater than 0.')
+}).describe('One ingredient and how much of it.')).nullish(),
   "note": zod.string().nullish()
-})
+}).describe('`PATCH \/inventory\/transfers\/{id}`. `lines`, when given, replaces every\nline (only while `requested` or `draft`).')
 
 export const UpdateTransferResponse = zod.object({
+  "cancelled": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "created": zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.'),
   "destination_branch_id": zod.uuid(),
   "destination_branch_name": zod.string(),
+  "destination_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "dispatched": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
-  "initiated_at": zod.iso.datetime({"offset":true}),
-  "initiated_by": zod.uuid(),
-  "initiated_by_name": zod.string(),
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "qty_received": zod.number().nullish().describe('`None` until received.'),
+  "qty_sent": zod.number().describe('Asked for while `requested`, planned while `draft`, sent from dispatch on.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Frozen at dispatch from the source\'s cost; `None` before dispatch or unknown.')
+})),
   "note": zod.string().nullish(),
   "org_id": zod.uuid(),
-  "org_ingredient_id": zod.uuid(),
-  "quantity": zod.number(),
+  "received": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "reference": zod.string().describe('`TR-1043`, per org.'),
+  "requested": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
   "source_branch_id": zod.uuid(),
   "source_branch_name": zod.string(),
-  "unit": zod.string()
+  "source_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "status": zod.enum(['requested', 'draft', 'dispatched', 'received', 'cancelled'])
 })
+
+
+export const AcceptTransferParams = zod.object({
+  "id": zod.uuid().describe('Transfer ID')
+})
+
+export const AcceptTransferBody = zod.object({
+  "lines": zod.array(zod.object({
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "quantity": zod.number().describe('Greater than 0.')
+}).describe('One ingredient and how much of it.')).nullish()
+}).describe('`POST \/inventory\/transfers\/{id}\/accept`: a request becomes the source\'s\ndraft, optionally with its lines changed.')
+
+export const AcceptTransferResponse = zod.object({
+  "cancelled": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "created": zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.'),
+  "destination_branch_id": zod.uuid(),
+  "destination_branch_name": zod.string(),
+  "destination_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "dispatched": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "qty_received": zod.number().nullish().describe('`None` until received.'),
+  "qty_sent": zod.number().describe('Asked for while `requested`, planned while `draft`, sent from dispatch on.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Frozen at dispatch from the source\'s cost; `None` before dispatch or unknown.')
+})),
+  "note": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "received": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "reference": zod.string().describe('`TR-1043`, per org.'),
+  "requested": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "source_branch_id": zod.uuid(),
+  "source_branch_name": zod.string(),
+  "source_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "status": zod.enum(['requested', 'draft', 'dispatched', 'received', 'cancelled'])
+})
+
+
+export const CancelStockTransferParams = zod.object({
+  "id": zod.uuid().describe('Transfer ID')
+})
+
+export const CancelStockTransferBody = zod.object({
+  "note": zod.string().nullish()
+}).describe('`POST \/inventory\/transfers\/{id}\/decline` (note required) and\n`POST \/inventory\/transfers\/{id}\/cancel` (note optional).')
+
+export const CancelStockTransferResponse = zod.object({
+  "cancelled": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "created": zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.'),
+  "destination_branch_id": zod.uuid(),
+  "destination_branch_name": zod.string(),
+  "destination_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "dispatched": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "qty_received": zod.number().nullish().describe('`None` until received.'),
+  "qty_sent": zod.number().describe('Asked for while `requested`, planned while `draft`, sent from dispatch on.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Frozen at dispatch from the source\'s cost; `None` before dispatch or unknown.')
+})),
+  "note": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "received": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "reference": zod.string().describe('`TR-1043`, per org.'),
+  "requested": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "source_branch_id": zod.uuid(),
+  "source_branch_name": zod.string(),
+  "source_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "status": zod.enum(['requested', 'draft', 'dispatched', 'received', 'cancelled'])
+})
+
+
+export const DeclineTransferParams = zod.object({
+  "id": zod.uuid().describe('Transfer ID')
+})
+
+export const DeclineTransferBody = zod.object({
+  "note": zod.string().nullish()
+}).describe('`POST \/inventory\/transfers\/{id}\/decline` (note required) and\n`POST \/inventory\/transfers\/{id}\/cancel` (note optional).')
+
+export const DeclineTransferResponse = zod.object({
+  "cancelled": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "created": zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.'),
+  "destination_branch_id": zod.uuid(),
+  "destination_branch_name": zod.string(),
+  "destination_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "dispatched": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "qty_received": zod.number().nullish().describe('`None` until received.'),
+  "qty_sent": zod.number().describe('Asked for while `requested`, planned while `draft`, sent from dispatch on.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Frozen at dispatch from the source\'s cost; `None` before dispatch or unknown.')
+})),
+  "note": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "received": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "reference": zod.string().describe('`TR-1043`, per org.'),
+  "requested": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "source_branch_id": zod.uuid(),
+  "source_branch_name": zod.string(),
+  "source_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "status": zod.enum(['requested', 'draft', 'dispatched', 'received', 'cancelled'])
+})
+
+
+export const DispatchTransferParams = zod.object({
+  "id": zod.uuid().describe('Transfer ID')
+})
+
+export const DispatchTransferResponse = zod.object({
+  "cancelled": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "created": zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.'),
+  "destination_branch_id": zod.uuid(),
+  "destination_branch_name": zod.string(),
+  "destination_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "dispatched": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "qty_received": zod.number().nullish().describe('`None` until received.'),
+  "qty_sent": zod.number().describe('Asked for while `requested`, planned while `draft`, sent from dispatch on.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Frozen at dispatch from the source\'s cost; `None` before dispatch or unknown.')
+})),
+  "note": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "received": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "reference": zod.string().describe('`TR-1043`, per org.'),
+  "requested": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "source_branch_id": zod.uuid(),
+  "source_branch_name": zod.string(),
+  "source_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "status": zod.enum(['requested', 'draft', 'dispatched', 'received', 'cancelled'])
+})
+
+
+export const ReceiveTransferParams = zod.object({
+  "id": zod.uuid().describe('Transfer ID')
+})
+
+export const ReceiveTransferBody = zod.object({
+  "lines": zod.array(zod.object({
+  "line_id": zod.uuid(),
+  "note": zod.string().nullish(),
+  "qty_received": zod.number().describe('0 or more. More than sent needs `note`.')
+}).describe('One line as it arrived.')),
+  "note": zod.string().nullish()
+}).describe('`POST \/inventory\/transfers\/{id}\/receive`: every line, once. Closes it.')
+
+export const ReceiveTransferResponse = zod.object({
+  "cancelled": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "created": zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.'),
+  "destination_branch_id": zod.uuid(),
+  "destination_branch_name": zod.string(),
+  "destination_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "dispatched": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "note": zod.string().nullish(),
+  "org_ingredient_id": zod.uuid(),
+  "qty_received": zod.number().nullish().describe('`None` until received.'),
+  "qty_sent": zod.number().describe('Asked for while `requested`, planned while `draft`, sent from dispatch on.'),
+  "unit": zod.string(),
+  "unit_cost": zod.number().nullish().describe('Frozen at dispatch from the source\'s cost; `None` before dispatch or unknown.')
+})),
+  "note": zod.string().nullish(),
+  "org_id": zod.uuid(),
+  "received": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "reference": zod.string().describe('`TR-1043`, per org.'),
+  "requested": zod.union([zod.null(),zod.object({
+  "at": zod.iso.datetime({"offset":true}),
+  "by": zod.uuid(),
+  "by_name": zod.string()
+}).describe('Who did a step and when.')]).optional(),
+  "source_branch_id": zod.uuid(),
+  "source_branch_name": zod.string(),
+  "source_kind": zod.enum(['branch', 'warehouse']).describe('What a `branches` row is. A warehouse holds stock and never sells.'),
+  "status": zod.enum(['requested', 'draft', 'dispatched', 'received', 'cancelled'])
+})
+
+
+export const ReplenishmentParams = zod.object({
+  "warehouse_id": zod.uuid().describe('Warehouse ID')
+})
+
+export const ReplenishmentQueryParams = zod.object({
+  "branch_id": zod.uuid().describe('The branch to fill from this warehouse.')
+})
+
+export const ReplenishmentResponseItem = zod.object({
+  "available": zod.number(),
+  "category_name": zod.string(),
+  "in_transit": zod.number(),
+  "ingredient_name": zod.string(),
+  "need": zod.number().describe('See [`crate::replenish::Suggestion`].'),
+  "on_hand": zod.number(),
+  "open_inbound": zod.number(),
+  "org_ingredient_id": zod.uuid(),
+  "par_max": zod.number().nullish(),
+  "par_min": zod.number(),
+  "suggested": zod.number(),
+  "unit": zod.string(),
+  "warehouse_on_hand": zod.number()
+}).describe('`GET \/inventory\/warehouses\/{id}\/replenishment?branch_id=`: one row per\ningredient the branch is at or under its low-stock level on.')
+export const ReplenishmentResponse = zod.array(ReplenishmentResponseItem)
 
 
 /**
@@ -10711,6 +11222,7 @@ export const ListOrgsResponseItem = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
@@ -10754,6 +11266,7 @@ export const CreateOrgResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
@@ -10804,6 +11317,7 @@ export const ProvisionOrgResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
@@ -10852,6 +11366,7 @@ export const GetOrgResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
@@ -10884,6 +11399,7 @@ export const UpdateOrgBody = zod.object({
   "custom_branding": zod.boolean().nullish().describe('May this organisation wear its own mark and colours on the customer\'s\ncard and signup page? A paid tier, and this endpoint is already\nsuper-admin only — which is the whole reason it lives here rather than\nwith the other branding controls an org manager can reach.'),
   "is_active": zod.boolean().nullish(),
   "logo_url": zod.string().nullish().describe('`null` clears the logo; absent leaves it unchanged. To set a new\nlogo, use `PUT \/orgs\/{id}\/logo` (multipart) instead — JSON updates\nonly accept the clear-to-null case here.'),
+  "max_warehouses": zod.number().nullish().describe('Warehouses this org may have. `null` = unlimited; absent = unchanged.'),
   "modules": zod.array(zod.string()).nullish().describe('`pos`, `dawam`: at least one (PS-2, SA-5). Super admin only, like the\nrest of this endpoint.'),
   "name": zod.string().nullish(),
   "receipt_footer": zod.string().nullish(),
@@ -10910,6 +11426,7 @@ export const UpdateOrgResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
@@ -10986,6 +11503,7 @@ export const UploadOrgCardImageResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),
@@ -11169,6 +11687,7 @@ export const UploadOrgLogoResponse = zod.object({
   "id": zod.uuid(),
   "is_active": zod.boolean(),
   "logo_url": zod.string().nullish(),
+  "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
   "receipt_footer": zod.string().nullish(),

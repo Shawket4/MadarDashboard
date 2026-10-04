@@ -34,6 +34,12 @@ export interface Org {
   /** @nullable */
   logo_url?: string | null;
   /**
+     * How many warehouses this org may have; `null` = unlimited. Set by a
+     * super admin (WAREHOUSE_DESIGN.md).
+     * @nullable
+     */
+  max_warehouses?: number | null;
+  /**
      * Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it
      * and keeps every record.
      */
