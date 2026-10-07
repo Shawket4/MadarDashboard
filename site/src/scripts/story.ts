@@ -1,6 +1,7 @@
 // The scroll story: GSAP (ScrollTrigger, SplitText, DrawSVG) with Lenis smooth
-// scrolling on mouse and trackpad. Nothing that holds screenshots pins: they scroll
-// with the page, and on desktop the point that goes with the screen in view lights up.
+// scrolling on mouse and trackpad. An area's screens are a carousel that stays in
+// view (sticky) while its points scroll past, each point bringing up its screen:
+// nothing pins, so the page always moves.
 // Reduced motion gets none of it (the content is fully visible without this file).
 //
 // Two ways in:
@@ -88,6 +89,7 @@ function run() {
   // Pins next (only the cappuccino, on desktop): every trigger created after them
   // measures the page with the pin's extra scroll length already in place.
   const barista = document.querySelector("[data-barista]");
+  document.querySelectorAll<HTMLElement>("[data-order]").forEach(areaScene);
   if (barista) initBarista({ mode: desktop.matches ? "scrub" : "play" });
   // With the page at its full length, land on a # address before anything below decides
   // what is on screen and what was passed.
@@ -96,7 +98,6 @@ function run() {
 
   if (desktop.matches) {
     root.classList.add("story-on");
-    document.querySelectorAll<HTMLElement>("[data-order]").forEach(areaFollow);
     parallax();
     rail();
   }
@@ -383,23 +384,125 @@ function parallax() {
 }
 
 /**
- * An area with several screens: they scroll with the page, and on desktop the points
- * that go with the screen crossing the middle of the viewport light up (the rest dim,
- * .story-on in global.css). Nothing pins, so a flick just scrolls.
+ * Plays changes one after another. When the target moves on while a change is still
+ * running (a fast scroll), the running one hurries to its end and the next follows,
+ * sped up while there is a backlog: nothing is ever cut off half-way. Out of sight (a
+ * jump went past the area) it goes straight to where it should be.
  */
-function areaFollow(area: HTMLElement) {
+function sequencer(
+  change: (from: number, to: number) => gsap.core.Animation,
+  snap: (to: number) => void,
+  inView: () => boolean,
+) {
+  let current = 0;
+  let target = 0;
+  let running: gsap.core.Animation | null = null;
+  const next = () => {
+    if (running || current === target) return;
+    const from = current;
+    current += Math.sign(target - current);
+    running = change(from, current);
+    if (current !== target) running.timeScale(2.6);
+    running.eventCallback("onComplete", () => {
+      running = null;
+      next();
+    });
+  };
+  return (to: number) => {
+    if (to === target) return;
+    target = to;
+    if (!inView() || flicking()) {
+      running?.kill();
+      running = null;
+      current = to;
+      snap(to);
+      return;
+    }
+    // `current` is where the running change is headed: hurry it only if that's not the end.
+    if (running && current !== target && running.timeScale() < 3) running.timeScale(3);
+    next();
+  };
+}
+
+/**
+ * An area with several screens, told by scrolling: the carousel stays in view (sticky,
+ * global.css) while the points scroll past, and the point crossing the reading line
+ * brings up its screen. Nothing pins. A flick or a jump lands on the right screen at
+ * once instead of playing through the ones in between.
+ */
+function areaScene(area: HTMLElement) {
   const order: number[] = JSON.parse(area.dataset.order || "[]");
-  const cards = Array.from(area.querySelectorAll<HTMLElement>("[data-card]"));
+  const n = order.length;
+  const media = area.querySelector<HTMLElement>("[data-media]");
+  if (n < 2 || !media) return;
+  const cards = Array.from(media.querySelectorAll<HTMLElement>("[data-card]"));
   const steps = Array.from(area.querySelectorAll<HTMLElement>("[data-step]"));
-  if (order.length < 2 || !cards.length) return;
-  const light = (card: number) => steps.forEach((s) => s.toggleAttribute("data-active", Number(s.dataset.screen) === card));
-  light(order[0] ?? 0);
-  cards.forEach((c, i) => {
+  const dots = Array.from(media.querySelectorAll<HTMLElement>("[data-dot]"));
+  const count = media.querySelector<HTMLElement>("[data-media-count]");
+  const caption = media.querySelector<HTMLElement>("[data-media-caption]");
+  const row = media.dataset.media === "row" && desktop.matches;
+  const pad = (v: number) => String(v).padStart(2, "0");
+  const altOf = (card: number) => cards[card]?.querySelector("img")?.getAttribute("alt") ?? "";
+  let lit = 0; // the step whose screen is up
+
+  // What a screen change says, at once: the lit point, the counter, the dots, the caption.
+  const mark = (k: number) => {
+    const card = order[k] ?? 0;
+    cards.forEach((c, i) => c.toggleAttribute("data-active", i === card));
+    steps.forEach((s, i) => s.toggleAttribute("data-active", i === lit));
+    dots.forEach((d, i) => d.toggleAttribute("data-on", i === k));
+    if (count) count.textContent = `${pad(k + 1)} / ${pad(n)}`;
+    if (caption) caption.textContent = altOf(card);
+  };
+  // Screen k at rest, without moving: the start state, and where a flick or jump lands.
+  const snap = (k: number) => {
+    mark(k);
+    const on = cards[order[k] ?? 0];
+    for (const c of cards) {
+      const me = c === on;
+      if (row) gsap.set(c, { autoAlpha: me ? 1 : 0.42, scale: me ? 1.04 : 0.94, yPercent: me ? -3 : 0 });
+      else gsap.set(c, { autoAlpha: me ? 1 : 0, y: 0, scale: 1, zIndex: me ? 2 : 1 });
+    }
+  };
+  const change = (from: number, to: number) => {
+    mark(to);
+    const way = to > from ? 1 : -1;
+    const a = cards[order[from] ?? 0];
+    const b = cards[order[to] ?? 0];
+    const tl = gsap.timeline();
+    if (row) {
+      cards.forEach((c) => {
+        const me = c === b;
+        tl.to(c, { autoAlpha: me ? 1 : 0.42, scale: me ? 1.04 : 0.94, yPercent: me ? -3 : 0, duration: 0.7, ease: "expo.out" }, 0);
+      });
+    } else if (a && b) {
+      tl.set(b, { zIndex: 2 }, 0).set(a, { zIndex: 1 }, 0)
+        .to(a, { autoAlpha: 0, y: -28 * way, scale: 0.98, duration: 0.4, ease: "power2.in" }, 0)
+        .fromTo(b, { autoAlpha: 0, y: 40 * way, scale: 0.98 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.75, ease: "expo.out" }, 0.1);
+    }
+    return tl;
+  };
+  snap(0);
+  const go = sequencer(change, snap, () => {
+    const r = media.getBoundingClientRect();
+    return r.bottom > 0 && r.top < window.innerHeight;
+  });
+
+  // The reading line: the middle of the screen on desktop; on phones, the band under the
+  // held carousel.
+  const line = desktop.matches ? "55%" : "72%";
+  steps.forEach((s, i) => {
+    const k = Math.max(0, order.indexOf(Number(s.dataset.screen ?? 0)));
     ScrollTrigger.create({
-      trigger: c,
-      start: "top 55%",
-      end: "bottom 55%",
-      onToggle: (self) => self.isActive && light(i),
+      trigger: s,
+      start: `top ${line}`,
+      end: `bottom ${line}`,
+      onToggle: (self) => {
+        if (!self.isActive) return;
+        lit = i;
+        steps.forEach((t, j) => t.toggleAttribute("data-active", j === lit));
+        go(k);
+      },
     });
   });
 }

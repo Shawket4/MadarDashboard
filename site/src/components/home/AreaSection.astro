@@ -2,12 +2,14 @@
 /**
  * One area of the café's day: the intro and its points beside the screens.
  *
- * The screens scroll with the page, full size, one under another, each with its
- * caption: nothing pins, so the page never stops under the reader's thumb. On desktop
- * the words stay beside them (sticky) and, with motion, the points that go with the
- * screen in view light up while the rest dim (story.ts). `stepMap` maps each step to
- * its screen (step 0 is the intro, then one per point); `order` is the screens in the
- * order the paragraph first needs them.
+ * With several screens (`media`) the area is a scroll-told scene. Nothing pins: the
+ * carousel stays in view (sticky) while the points scroll past it, each point bringing
+ * up the screen it goes with (story.ts), so the page always moves under the reader's
+ * thumb. Desktop: the words on one side, the carousel on the other. Phones: the intro,
+ * then the carousel held under the header while the points scroll beneath it.
+ * `stepMap` maps each step to its screen (step 0 is the intro, then one per point);
+ * `order` is the screens in the order the paragraph first needs them. Without motion
+ * every screen shows, one under another, with its caption.
  */
 import Icon from "@/components/ui/Icon.astro";
 import MediaStack, { type MediaItem } from "@/components/media/MediaStack.astro";
@@ -44,35 +46,33 @@ const mutedTone = ink ? "text-muted-ink" : "text-muted";
   data-order={scene ? JSON.stringify(order) : undefined}
   aria-labelledby={`${id}-title`}
 >
-  <div class="area-panel">
-    <div class="area-grid container-site grid w-full gap-12 py-16 md:py-24 lg:grid-cols-12 lg:items-center lg:gap-14 lg:py-28">
-      <div class:list={["area-copy lg:col-span-5", reverse && "lg:order-2"]}>
-        <div class="area-step" data-step="0" data-screen={stepMap[0] ?? 0}>
-          <p class:list={["kicker", kickerTone]}>{kicker}</p>
-          <h3 id={`${id}-title`} class="text-h3 mt-4" data-split>{title}</h3>
-          <p class:list={["text-lead mt-5", mutedTone]}>{body}</p>
-        </div>
-        <ul class="area-points mt-8 space-y-4 lg:mt-8">
-          {points.map((p, i) => (
-            <li class="area-step" data-step={i + 1} data-screen={stepMap[i + 1] ?? 0}>
-              <p class:list={["bullet text-[1.02rem]", ink ? "text-paper/90" : "text-ink/85"]}>{p}</p>
-            </li>
-          ))}
-        </ul>
-        {moreHref && (
-          <a class:list={["mt-8 inline-flex items-center gap-2 font-medium", kickerTone]} href={moreHref}>
-            {c.common.learnMore} <Icon name="arrow" size={18} />
-          </a>
-        )}
-      </div>
-      <div class:list={["area-media lg:col-span-7", reverse && "lg:order-1"]} data-area-media>
+  <div class:list={["area-grid container-site py-16 md:py-24 lg:py-28", reverse && "area-reverse"]}>
+    <div class="area-intro area-step" data-step="0" data-screen={stepMap[0] ?? 0}>
+      <p class:list={["kicker", kickerTone]}>{kicker}</p>
+      <h3 id={`${id}-title`} class="text-h3 mt-4" data-split>{title}</h3>
+      <p class:list={["text-lead mt-5", mutedTone]}>{body}</p>
+    </div>
+    <div class="area-media" data-area-media>
+      <div class="area-stick">
         {media ? (
-          <MediaStack lang={lang} items={media.items} layout={media.layout} float={media.float} />
+          <MediaStack lang={lang} items={media.items} layout={media.layout} float={media.float} order={order} />
         ) : (
           <slot name="media" />
         )}
       </div>
     </div>
+    <ul class="area-points space-y-4">
+      {points.map((p, i) => (
+        <li class="area-step" data-step={i + 1} data-screen={stepMap[i + 1] ?? 0}>
+          <p class:list={["bullet text-[1.02rem]", ink ? "text-paper/90" : "text-ink/85"]}>{p}</p>
+        </li>
+      ))}
+    </ul>
+    {moreHref && (
+      <a class:list={["area-more inline-flex items-center gap-2 font-medium", kickerTone]} href={moreHref}>
+        {c.common.learnMore} <Icon name="arrow" size={18} />
+      </a>
+    )}
   </div>
 
   <slot name="after" />
