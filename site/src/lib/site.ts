@@ -4,8 +4,8 @@ export const SITE_URL = "https://get.madar-pos.cloud";
 /** The dashboard merchants log in to (the old landing build's VITE_DASHBOARD_URL). */
 export const DASHBOARD_URL = "https://madar-pos.cloud";
 
-export const PHONE_DISPLAY = "+20 121 111 6899";
-export const PHONE_E164 = "+201211116899";
+export const PHONE_DISPLAY = "+20 106 185 6523";
+export const PHONE_E164 = "+201061856523";
 export const PHONE_HREF = `tel:${PHONE_E164}`;
 
 /** TODO(owner): switch to a domain address (e.g. hello@madar-pos.cloud) once it exists. */
