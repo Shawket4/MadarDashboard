@@ -64,7 +64,7 @@ The HTML is meant to be cached at Cloudflare for 5 minutes (a Cache Rule on
 | Home page order | `src/pages/[lang]/index.astro` |
 | Screenshots | see below |
 | The scroll story | `src/scripts/story.ts` (GSAP: ScrollTrigger, SplitText, DrawSVG; Lenis on mouse/trackpad) |
-| An area's screens | `media` and `stepMap` on each `AreaSection` in `src/pages/[lang]/index.astro`: `stepMap` says which screen each step brings up (step 0 is the intro, then one per point) |
+| An area's screens | `media` and `stepMap` on each `AreaSection` in `src/pages/[lang]/index.astro`: the screens play in the order the steps first need them (step 0 is the intro, then one per point) |
 | The cappuccino steps | `src/scripts/barista.ts`, files in `src/assets/lottie/` (Madar's own prep-step animations) |
 | The roadmap | `features.roadmap` in both copy files (`state`: `shipped` or `dev`), drawn by `src/components/features/Roadmap.astro` and `roadmap()` in `story.ts` |
 | Colours, type, buttons | `src/styles/global.css`: the brand kit's palette, and the design system's type (MadarDashboard `DESIGN.md`): IBM Plex Sans Arabic leads in both languages, IBM Plex Sans behind it, IBM Plex Mono for figures |
@@ -77,14 +77,14 @@ action is an underlined `link-cta`, not another button. Teal stays in small mark
 Motion rules:
 - Content is in the HTML and fully readable without JavaScript; `prefers-reduced-motion`
   gets no animation at all: a still frame for the barista.
-- An area with several screens is a **scroll-told carousel**: one screen at a time in one
-  spot, with a counter, dots and a caption. Nothing pins: the carousel stays in view
-  (sticky) while the area's points scroll past, and the point crossing the reading line
-  brings up its screen (`areaScene` in `story.ts`). On phones the carousel holds under
-  the header and the points scroll beneath it. A fast scroll never cuts a change off
-  (`sequencer`); a flick or a jump lands on the right screen at once. The cappuccino
-  pins on desktop only; on phones its steps play while it is on screen.
-- **Flicks**: entrances that come up while the page moves fast just finish
+- An area with screens is a **scene**: the page pauses on it while scrolling plays its
+  screens one at a time (about two-thirds of a screen of scrolling each), then carries
+  on. A progress line under the screen fills with the scroll, so the pause never reads
+  as stuck. A fast scroll never cuts a change off: the running one hurries to its end
+  (`sequencer` in `story.ts`). A **flick** skips the pause: the scene settles on its last
+  screen and the page leaps past (`FLICK`, `leap`). The cappuccino pins on desktop
+  only; on phones its steps play while it is on screen.
+- Entrances that come up while the page moves fast just finish
   (`flicking` in `story.ts`), so nothing fades in behind a fling.
 - A click from another page of the site is a **soft** entry: the page transition
   brings the page in and nothing on screen replays its entrance. Arriving from
@@ -99,7 +99,7 @@ Motion rules:
   what is on screen plays.
   Same-page `#` links glide (Lenis, or the browser's smooth scroll on touch); a `#`
   address lands again once the pins have added their length (`landOnHash`).
-- The pin is created first. ScrollTriggers whose range contains it use
+- Pins are created in page order. ScrollTriggers whose range contains a pin use
   `refreshPriority: -1`, or they end a pin-length too early.
 
 ## Screenshots
