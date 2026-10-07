@@ -2,7 +2,7 @@
 import BaseLayout from "@/components/layout/BaseLayout.astro";
 import Icon from "@/components/ui/Icon.astro";
 import Orbit from "@/components/ui/Orbit.astro";
-import { BorderBeam } from "@/components/kit/BorderBeam";
+import BorderBeam from "@/components/kit/BorderBeam.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS, whatsappHref, absoluteUrl, pageHref } from "@/lib/site";
 
@@ -56,7 +56,7 @@ const jsonLd = [{
     <div class="container-site grid gap-6 pb-16 md:grid-cols-2 md:pb-24" data-plans>
       {p.plans.map((plan) => (
         <article class:list={["relative flex flex-col overflow-hidden rounded-[1.6rem] p-7 md:p-9", plan.featured ? "on-ink bg-ink text-paper" : "card"]} data-reveal>
-          {plan.featured && <BorderBeam client:visible size={140} duration={9} colorFrom="#2E94A6" colorTo="#0D6273" borderWidth={1.5} />}
+          {plan.featured && <BorderBeam radius={25.6} duration={9} />}
           <div class="flex items-start justify-between gap-3">
             <h2 class="text-2xl font-semibold">{plan.name}</h2>
             <span class:list={["chip mt-0.5 shrink-0 whitespace-nowrap", plan.featured ? "bg-teal-light text-ink" : "border border-rule text-muted"]}>{plan.tag}</span>
@@ -113,7 +113,7 @@ const jsonLd = [{
   <section class="bg-surface" aria-labelledby="free-title">
     <div class="container-site py-16 md:py-24">
       <div class="relative grid grid-cols-1 gap-10 overflow-hidden rounded-[2rem] border border-teal/20 bg-white p-6 sm:p-8 md:grid-cols-2 md:p-12" data-reveal>
-        <BorderBeam client:visible size={180} duration={12} colorFrom="#2E94A6" colorTo="#0D6273" borderWidth={1.5} />
+        <BorderBeam radius={32} border={1} duration={12} />
         <div class="min-w-0">
           <p class="kicker text-teal">{p.free.kicker}</p>
           <h2 id="free-title" class="text-h3 mt-4">{p.free.title}</h2>

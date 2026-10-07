@@ -1,11 +1,13 @@
 // A cappuccino, step by step: Madar's prep-step animations played with dotLottie.
-//  scrub  the block pins and scrolling plays the steps (desktop and phones)
+//  scrub  desktop: the block pins and scrolling plays the steps
+//  play   phones: nothing pins (a pin under a thumb's flick is what felt janky); the
+//         steps play one after another while the block is on screen, and pause off it
 //  still  (reduced motion) one finished frame, no movement
 import { DotLottie } from "@lottiefiles/dotlottie-web";
 import wasmUrl from "@lottiefiles/dotlottie-web/dotlottie-player.wasm?url";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-type Mode = "scrub" | "still";
+type Mode = "scrub" | "play" | "still";
 let players: DotLottie[] = [];
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -65,6 +67,50 @@ export function initBarista({ mode }: { mode: Mode }): (() => void) | void {
     p?.addEventListener("load", () => frameAt(p, 1));
     show(i);
     if (bar) bar.style.transform = "scaleX(1)";
+    return;
+  }
+
+  if (mode === "play") {
+    let i = 0;
+    let on = false;
+    const hooked = new Set<DotLottie>();
+    const step = () => {
+      if (!on) return;
+      ensure();
+      show(i);
+      if (bar) bar.style.transform = `scaleX(${(i + 1) / n})`;
+      const p = players[i];
+      if (!p) return;
+      if (!hooked.has(p)) {
+        hooked.add(p);
+        p.addEventListener("complete", () => {
+          if (!on) return;
+          i = (i + 1) % n;
+          window.setTimeout(step, i === 0 ? 1600 : 350); // a breath, longer before it starts over
+        });
+        p.addEventListener("load", () => {
+          if (on && players[i] === p) {
+            p.setFrame(0);
+            p.play();
+          }
+        });
+      }
+      if (p.isLoaded) {
+        p.setFrame(0);
+        p.play();
+      }
+    };
+    show(0);
+    ScrollTrigger.create({
+      trigger: root,
+      start: "top 70%",
+      end: "bottom 30%",
+      onToggle: (self) => {
+        on = self.isActive;
+        if (on) step();
+        else players[i]?.pause();
+      },
+    });
     return;
   }
 

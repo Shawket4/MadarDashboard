@@ -331,63 +331,26 @@ html[lang="ar"] .menu-link { letter-spacing: 0; line-height: 1.4; }
 dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7s var(--ease-out-expo) both; animation-delay: calc(70ms + var(--i, 0) * 45ms); }
 @keyframes menu-item-in { from { opacity: 0; transform: translateY(18px); } }
 
-/* ---------- Area scenes: the screens pin and play one at a time (story.ts) ---------- */
-/* Without motion (no JavaScript, or reduced motion) nothing pins: every screen shows,
-   one under another, with its caption. "motion" is set by the head script. */
-.area-intro-m, .area-texts, .area-more-m, .media-float, .media-meta { display: none; }
-.media-track { display: grid; gap: 2.25rem; }
+/* ---------- Area screens: they scroll with the page, full size (nothing pins) ----------
+   Desktop: the words stay beside the screens (sticky, native, so a flick never fights
+   it) and the point that goes with the screen in view lights up (story.ts). Phones: the
+   words, then the screens one under another, each with its caption. */
+.media-track { display: grid; gap: 2.5rem; }
 .media-card { margin: 0; }
 .media-caption { margin-top: .75rem; font-size: .9rem; line-height: 1.5; color: var(--color-muted); }
 .on-ink .media-caption { color: var(--color-muted-ink); }
-
-.motion [data-media] .media-track { gap: 0; }
-.motion [data-media] .media-caption { display: none; }
-.motion [data-media="stack"] .media-track { grid-template-areas: "s"; }
-.motion [data-media="stack"] .media-card { grid-area: s; }
-.motion [data-media="stack"] .media-card:not([data-active]) { opacity: 0; visibility: hidden; }
-.motion .media-meta { display: flex; align-items: flex-start; gap: .9rem; margin-top: 1.4rem; font-size: .92rem; line-height: 1.5; color: var(--color-muted); }
-.on-ink .media-meta { color: var(--color-muted-ink); }
-.media-meta-caption { flex: 1; min-width: 0; }
-.media-dots { display: inline-flex; gap: .3rem; padding-top: .5rem; }
-.media-dots i { display: block; width: .4rem; height: .4rem; border-radius: 99px; background: currentColor; opacity: .3; transition: width .45s var(--ease-out-expo), opacity .3s, background-color .3s; }
-.media-dots i[data-on] { width: 1.15rem; opacity: 1; background: var(--color-teal); }
-.on-ink .media-dots i[data-on] { background: var(--color-teal-light); }
+.media-float { display: none; }
+/* Phones (the guest's screens) sit side by side: two a row on small screens, all in one
+   row from tablets up. */
+[data-media="row"] .media-track { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 2rem 6%; }
+[data-media="row"] .media-card { width: 47%; }
+@media (min-width: 640px) { [data-media="row"] .media-card { width: 29%; } }
 
 @media (min-width: 1024px) {
-  /* Without motion the screens stack in a column: keep the words beside them in view. */
-  html:not(.motion) .area-scene .area-copy { position: sticky; top: 6rem; align-self: start; }
-  .motion .area-scene .area-panel { height: 100svh; display: flex; align-items: center; padding-top: 4rem; }
-  .motion .area-scene .area-grid { padding-block: 1.25rem; }
-  .motion .area-scene .area-points { margin-top: 1.4rem; }
-  .motion [data-media="stack"] .media-frame { width: min(100%, calc((100svh - 13rem) * var(--ratio))); margin-inline: auto; }
-  .motion [data-media="row"] .media-track { display: flex; justify-content: center; align-items: flex-end; gap: 4%; }
-  .motion [data-media="row"] .media-card { width: min(30%, calc((100svh - 15rem) * var(--ratio))); }
-  .motion [data-media="row"] .media-card:not([data-active]) { opacity: .42; transform: scale(.94); }
-  .motion [data-media="row"] .media-card[data-active] { transform: translateY(-3%) scale(1.04); }
-  .motion .media-float { display: block; position: absolute; z-index: 3; bottom: -2rem; inset-inline-start: -5%; width: 26%; max-width: 12rem; }
-  .motion .media-meta-float { padding-inline-start: 23%; }
-}
-@media (max-width: 1023px) {
-  .motion .area-scene .area-intro-m { display: block; }
-  .motion .area-scene .area-more-m { display: inline-flex; }
-  .motion .area-scene .area-copy { display: none; }
-  .motion .area-scene .area-panel { height: 100svh; display: flex; align-items: center; }
-  .motion .area-scene .area-grid { padding-block: 4.75rem 1rem; gap: 0; }
-  .motion [data-media="stack"] .media-frame { width: min(100%, calc((100svh - 22rem) * var(--ratio))); margin-inline: auto; }
-  .motion [data-media="row"] .media-track { grid-template-areas: "s"; }
-  .motion [data-media="row"] .media-card { grid-area: s; justify-self: center; width: min(64%, calc((100svh - 22rem) * var(--ratio))); }
-  .motion [data-media="row"] .media-card:not([data-active]) { opacity: 0; visibility: hidden; }
-  .motion .media-meta { justify-content: center; margin-top: 1.1rem; }
-  .motion .media-meta-caption { display: none; }
-  .motion .area-scene .area-texts { display: grid; margin-top: 1rem; min-height: 8.5rem; }
-  .area-text { grid-area: 1 / 1; display: grid; gap: .55rem; align-content: start; }
-  .area-text:not([data-active]) { opacity: 0; visibility: hidden; }
-
-  /* The cappuccino pins on phones too: the stage and the current step's note. */
-  .motion .barista-pin { height: 100svh; padding-block: 4.75rem 1rem; align-content: center; }
-  .motion .barista :is([data-barista-list], .barista-hint) { display: none; }
-  .motion .barista-stage { max-width: min(100%, calc(100svh - 15rem)); }
-  .motion .barista-note { display: block; }
+  .area-scene .area-copy { position: sticky; top: 6rem; align-self: start; }
+  .area-scene .area-grid { align-items: start; }
+  /* The guest's QR order floats over the corner of the floor's last screen. */
+  .media-float { display: block; position: absolute; z-index: 3; bottom: 1.5rem; inset-inline-start: -6%; width: 24%; max-width: 12rem; }
 }
 .barista-note { display: none; }
 
@@ -466,3 +429,10 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
   [dir="rtl"] .rm-seg[data-kind="lead"] { mask-image: linear-gradient(270deg, transparent, #000 80%); }
   [dir="rtl"] .rm-seg[data-kind="end"] { mask-image: linear-gradient(270deg, #000 25%, transparent); background-position: 100% 50%; }
 }
+
+/* ---------- Border beam (kit/BorderBeam.astro): a light running round a box's border ---------- */
+.border-beam { position: absolute; display: none; overflow: visible; pointer-events: none; }
+.motion .border-beam { display: block; }
+.border-beam rect { fill: none; stroke: var(--color-teal-light); stroke-linecap: round; animation: border-beam var(--beam-duration) linear infinite; }
+@keyframes border-beam { from { stroke-dashoffset: calc(-1px * var(--lead)); } to { stroke-dashoffset: calc(-100px - 1px * var(--lead)); } }
+@media (prefers-reduced-motion: reduce) { .motion .border-beam { display: none; } }

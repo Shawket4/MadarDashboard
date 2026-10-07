@@ -1,13 +1,10 @@
 ---
 /**
- * The screens for one area of the café's day.
- *  - stack (browser or iPad): one screen at a time, in one spot. The area pins and
- *    scrolling moves through them (story.ts), with a counter, dots and a caption.
- *  - row (phones): side by side on desktop, the current one lifted; one at a time on
- *    phones, like a stack.
- * An optional floating phone sits over a stack on desktop (the guest's QR order on the
- * floor). With reduced motion or without JavaScript, every screen shows, one under
- * another, each with its caption.
+ * The screens for one area, full size, each with its caption.
+ *  - stack (browser or iPad): one under another.
+ *  - row (the guest's phones): side by side.
+ * An optional floating phone sits over the stack's corner on desktop (the guest's QR
+ * order on the floor).
  */
 import Shot from "./Shot.astro";
 import type { Lang } from "@/lib/site";
@@ -18,23 +15,16 @@ interface Props {
   items: MediaItem[];
   layout?: "stack" | "row";
   float?: MediaItem;
-  /** Screen order as the story shows it (card indices); defaults to the items' order. */
-  order?: number[];
   class?: string;
 }
-const { lang, items, layout = "stack", float, order = items.map((_, i) => i), class: cls = "" } = Astro.props;
-const pad = (n: number) => String(n).padStart(2, "0");
-const frame = items[0]?.frame ?? "browser";
-// Width over height of one screen in its frame, so a pinned panel can fit it to the viewport.
-const ratio = frame === "iphone" ? 0.47 : frame === "ipad" ? 1.42 : 1.36;
-const sizes = layout === "row" ? "(min-width: 1024px) 14rem, 60vw" : "(min-width: 1024px) 50vw, 92vw";
-const first = items[order[0] ?? 0];
+const { lang, items, layout = "stack", float, class: cls = "" } = Astro.props;
+const sizes = layout === "row" ? "(min-width: 1024px) 14rem, (min-width: 640px) 28vw, 46vw" : "(min-width: 1024px) 50vw, 92vw";
 ---
-<div class:list={["media-stack", cls]} data-media={layout} style={`--ratio:${ratio}`}>
+<div class:list={["media-stack", cls]} data-media={layout}>
   <div class="media-frame relative">
     <div class="media-track">
       {items.map((it, i) => (
-        <figure class="media-card" data-card={i} data-active={i === (order[0] ?? 0) ? "" : undefined}>
+        <figure class="media-card" data-card={i}>
           <Shot id={it.id} lang={lang} alt={it.alt} frame={it.frame} sizes={sizes} />
           <figcaption class="media-caption">{it.alt}</figcaption>
         </figure>
@@ -46,11 +36,4 @@ const first = items[order[0] ?? 0];
       </div>
     )}
   </div>
-  {items.length > 1 && (
-    <div class:list={["media-meta", float && "media-meta-float"]} aria-hidden="true">
-      <span class="ltr tabular font-mono text-xs" data-media-count>01 / {pad(items.length)}</span>
-      <span class="media-dots">{order.map((_, k) => <i data-dot={k} data-on={k === 0 ? "" : undefined}></i>)}</span>
-      <span class="media-meta-caption" data-media-caption>{first?.alt}</span>
-    </div>
-  )}
 </div>

@@ -1,6 +1,6 @@
 // The scroll story: GSAP (ScrollTrigger, SplitText, DrawSVG) with Lenis smooth
-// scrolling on mouse and trackpad. Each area with screens is a scene: it pins and
-// scrolling moves through its screens one at a time, on desktop and phones alike.
+// scrolling on mouse and trackpad. Nothing that holds screenshots pins: they scroll
+// with the page, and on desktop the point that goes with the screen in view lights up.
 // Reduced motion gets none of it (the content is fully visible without this file).
 //
 // Two ways in:
@@ -29,6 +29,27 @@ const desktop = window.matchMedia("(min-width: 1024px)");
 
 /** Above the viewport: the page opened, or a # link jumped, past it. */
 const passed = (el: Element) => el.getBoundingClientRect().bottom <= 0;
+
+/**
+ * A flick: the page is moving fast (a thumb's fling, a trackpad throw, a long glide).
+ * Entrances that come up mid-flick just finish: nobody can watch them, and things
+ * fading in behind a fast scroll is what reads as jank.
+ */
+let speed = 0;
+let lastY = window.scrollY;
+let lastT = performance.now();
+window.addEventListener(
+  "scroll",
+  () => {
+    const t = performance.now();
+    const dt = t - lastT;
+    if (dt > 0) speed = (Math.abs(window.scrollY - lastY) / dt) * 1000;
+    lastY = window.scrollY;
+    lastT = t;
+  },
+  { passive: true },
+);
+const flicking = () => performance.now() - lastT < 150 && speed > 2400;
 
 /**
  * Left exactly as it is, never animated: whatever the page opened past (a # address, a
@@ -61,23 +82,21 @@ function run() {
   }
   anchorLinks();
 
-  // Entrances first, so nothing waits on the scenes below.
+  // Entrances first, so nothing waits on the pin below.
   if (!soft) hero();
 
-  // Pins next, in page order: every trigger created after them measures the page with
-  // the pins' extra scroll length already in place.
-  const scenes = Array.from(document.querySelectorAll<HTMLElement>("[data-order], [data-barista]"));
-  for (const el of scenes) {
-    if (el.hasAttribute("data-barista")) initBarista({ mode: "scrub" });
-    else areaScene(el);
-  }
+  // Pins next (only the cappuccino, on desktop): every trigger created after them
+  // measures the page with the pin's extra scroll length already in place.
+  const barista = document.querySelector("[data-barista]");
+  if (barista) initBarista({ mode: desktop.matches ? "scrub" : "play" });
   // With the page at its full length, land on a # address before anything below decides
   // what is on screen and what was passed.
-  if (scenes.length) ScrollTrigger.refresh();
+  if (barista) ScrollTrigger.refresh();
   landOnHash();
 
   if (desktop.matches) {
     root.classList.add("story-on");
+    document.querySelectorAll<HTMLElement>("[data-order]").forEach(areaFollow);
     parallax();
     rail();
   }
@@ -135,7 +154,7 @@ function glide(to: HTMLElement, immediate: boolean) {
 
 /**
  * A # address (a link from another page, a shared link). The browser jumps there while
- * the page loads, before the scenes add their scroll length, and the refreshes after it
+ * the page loads, before the pin adds its scroll length, and the refreshes after it
  * can drop the jump. Land on it now, and again after each refresh until the visitor
  * moves the page themselves. A reload or back/forward keeps the browser's own memory
  * of where you were.
@@ -187,7 +206,7 @@ function whenSeen(el: Element, start: string, anim: gsap.core.Animation) {
     trigger: el,
     start,
     once: true,
-    onEnter: () => void (passed(el) ? anim.progress(1) : anim.play()),
+    onEnter: () => void (passed(el) || flicking() ? anim.progress(1) : anim.play()),
   });
 }
 
@@ -223,10 +242,11 @@ function reveals() {
     start: "top 92%",
     once: true,
     onEnter: (batch) => {
-      // A jump can pass a whole page of these at once: what it passed shows at once, and
-      // only what is on screen plays, without queueing behind the rest.
-      const gone = batch.filter(passed);
-      const here = batch.filter((el) => !passed(el));
+      // A jump or a flick can pass a whole page of these at once: what it passed (or
+      // all of them, mid-flick) shows at once, and only what is on screen plays.
+      const fast = flicking();
+      const gone = batch.filter((el) => fast || passed(el));
+      const here = batch.filter((el) => !fast && !passed(el));
       if (gone.length) gsap.set(gone, { autoAlpha: 1, y: 0, overwrite: true });
       if (here.length) {
         gsap.to(here, { autoAlpha: 1, y: 0, duration: 0.95, ease: "expo.out", stagger: Math.min(0.07, 0.35 / here.length), overwrite: true });
@@ -342,7 +362,7 @@ function roadmap() {
       start: "top 85%",
       once: true,
       onEnter: () => {
-        if (passed(el)) return void tl.progress(1);
+        if (passed(el) || flicking()) return void tl.progress(1);
         const wait = Math.max(0, free - gsap.ticker.time);
         free = gsap.ticker.time + wait + reach;
         gsap.delayedCall(wait, () => void tl.play());
@@ -363,126 +383,24 @@ function parallax() {
 }
 
 /**
- * Plays changes one after another. When the target moves on while a change is still
- * running (a fast scroll), the running one hurries to its end and the next follows,
- * sped up while there is a backlog: nothing is ever cut off half-way. Out of sight (a
- * jump went past the scene, or back over it) it goes straight to where it should be.
+ * An area with several screens: they scroll with the page, and on desktop the points
+ * that go with the screen crossing the middle of the viewport light up (the rest dim,
+ * .story-on in global.css). Nothing pins, so a flick just scrolls.
  */
-function sequencer(
-  change: (from: number, to: number) => gsap.core.Animation,
-  snap: (to: number) => void,
-  inView: () => boolean,
-) {
-  let current = 0;
-  let target = 0;
-  let running: gsap.core.Animation | null = null;
-  const next = () => {
-    if (running || current === target) return;
-    const from = current;
-    current += Math.sign(target - current);
-    running = change(from, current);
-    if (current !== target) running.timeScale(2.6);
-    running.eventCallback("onComplete", () => {
-      running = null;
-      next();
-    });
-  };
-  return (to: number) => {
-    if (to === target) return;
-    target = to;
-    if (!inView()) {
-      running?.kill();
-      running = null;
-      current = to;
-      snap(to);
-      return;
-    }
-    // `current` is where the running change is headed: hurry it only if that's not the end.
-    if (running && current !== target && running.timeScale() < 3) running.timeScale(3);
-    next();
-  };
-}
-
-/** An area with screens: pin it, and let scrolling move through the screens. */
-function areaScene(area: HTMLElement) {
+function areaFollow(area: HTMLElement) {
   const order: number[] = JSON.parse(area.dataset.order || "[]");
-  const n = order.length;
-  const panel = area.querySelector<HTMLElement>("[data-area-pin]");
-  const media = area.querySelector<HTMLElement>("[data-media]");
-  if (n < 2 || !panel || !media) return;
-  const cards = Array.from(media.querySelectorAll<HTMLElement>("[data-card]"));
+  const cards = Array.from(area.querySelectorAll<HTMLElement>("[data-card]"));
   const steps = Array.from(area.querySelectorAll<HTMLElement>("[data-step]"));
-  const texts = Array.from(area.querySelectorAll<HTMLElement>("[data-screen-text]"));
-  const dots = Array.from(media.querySelectorAll<HTMLElement>("[data-dot]"));
-  const count = media.querySelector<HTMLElement>("[data-media-count]");
-  const caption = media.querySelector<HTMLElement>("[data-media-caption]");
-  const row = media.dataset.media === "row" && desktop.matches;
-  const pad = (v: number) => String(v).padStart(2, "0");
-  const altOf = (card: number) => cards[card]?.querySelector("img")?.getAttribute("alt") ?? "";
-
-  // What a screen change says, at once: which points are lit, the counter, the caption.
-  const mark = (k: number) => {
-    const card = order[k] ?? 0;
-    cards.forEach((c, i) => c.toggleAttribute("data-active", i === card));
-    steps.forEach((s) => s.toggleAttribute("data-active", Number(s.dataset.screen) === card));
-    texts.forEach((t, i) => t.toggleAttribute("data-active", i === k));
-    dots.forEach((d, i) => d.toggleAttribute("data-on", i === k));
-    if (count) count.textContent = `${pad(k + 1)} / ${pad(n)}`;
-    if (caption) caption.textContent = altOf(card);
-  };
-
-  // Screen k at rest, without moving: the start state (GSAP owns the screens from here),
-  // and where a jump past the scene leaves it.
-  const snap = (k: number) => {
-    mark(k);
-    const lit = cards[order[k] ?? 0];
-    for (const c of cards) {
-      const on = c === lit;
-      if (row) gsap.set(c, { autoAlpha: on ? 1 : 0.42, scale: on ? 1.04 : 0.94, yPercent: on ? -3 : 0 });
-      else gsap.set(c, { autoAlpha: on ? 1 : 0, y: 0, scale: 1, zIndex: on ? 2 : 1 });
-    }
-    texts.forEach((t, i) => gsap.set(t, { autoAlpha: i === k ? 1 : 0, y: 0 }));
-  };
-  snap(0);
-  const inView = () => {
-    const r = panel.getBoundingClientRect();
-    return r.bottom > 0 && r.top < window.innerHeight;
-  };
-
-  const change = (from: number, to: number) => {
-    mark(to);
-    const way = to > from ? 1 : -1;
-    const a = cards[order[from] ?? 0];
-    const b = cards[order[to] ?? 0];
-    const tl = gsap.timeline();
-    if (row) {
-      cards.forEach((c) => {
-        const on = c === b;
-        tl.to(c, { autoAlpha: on ? 1 : 0.42, scale: on ? 1.04 : 0.94, yPercent: on ? -3 : 0, duration: 0.7, ease: "expo.out" }, 0);
-      });
-    } else if (a && b) {
-      tl.set(b, { zIndex: 2 }, 0).set(a, { zIndex: 1 }, 0)
-        .to(a, { autoAlpha: 0, y: -36 * way, scale: 0.97, duration: 0.42, ease: "power2.in" }, 0)
-        .fromTo(b, { autoAlpha: 0, y: 52 * way, scale: 0.97 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.8, ease: "expo.out" }, 0.1);
-    }
-    const ta = texts[from];
-    const tb = texts[to];
-    if (ta && tb) {
-      tl.to(ta, { autoAlpha: 0, y: -10 * way, duration: 0.25, ease: "power2.in" }, 0)
-        .fromTo(tb, { autoAlpha: 0, y: 14 * way }, { autoAlpha: 1, y: 0, duration: 0.55, ease: "expo.out" }, 0.15);
-    }
-    return tl;
-  };
-  const go = sequencer(change, snap, inView);
-
-  // Each screen gets most of a screen's height of scrolling while the area stays put.
-  ScrollTrigger.create({
-    trigger: panel,
-    pin: true,
-    start: "top top",
-    end: () => `+=${Math.round(window.innerHeight * 0.8 * n)}`,
-    invalidateOnRefresh: true,
-    onUpdate: (self) => go(Math.min(n - 1, Math.floor(self.progress * n))),
+  if (order.length < 2 || !cards.length) return;
+  const light = (card: number) => steps.forEach((s) => s.toggleAttribute("data-active", Number(s.dataset.screen) === card));
+  light(order[0] ?? 0);
+  cards.forEach((c, i) => {
+    ScrollTrigger.create({
+      trigger: c,
+      start: "top 55%",
+      end: "bottom 55%",
+      onToggle: (self) => self.isActive && light(i),
+    });
   });
 }
 
@@ -493,7 +411,7 @@ function rail() {
   if (!story || !pill) return;
   const progress = pill.querySelector<HTMLElement>("[data-rail-progress]");
   const chips = Array.from(pill.querySelectorAll<HTMLElement>("[data-rail-chip]"));
-  // These ranges contain pinned scenes, so they measure after them (refreshPriority -1);
+  // These ranges contain the cappuccino's pin, so they measure after it (refreshPriority -1);
   // measured before, they would end a whole pin-length too early.
   if (progress) {
     gsap.to(progress, { scaleX: 1, ease: "none", scrollTrigger: { trigger: story, start: "top 20%", end: "bottom bottom", scrub: 0.4, refreshPriority: -1 } });
