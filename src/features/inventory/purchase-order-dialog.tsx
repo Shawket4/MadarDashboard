@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, X } from "lucide-react";
+import { Lock, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -11,14 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AnimatedFigure } from "@/components/app/animated-figure";
 import { Combobox } from "@/components/app/combobox";
 import { DatePicker } from "@/components/app/date-picker";
 import { Separator } from "@/components/ui/separator";
 import type { OrgIngredient, POLineInput, Supplier } from "@/data/api/generated/models";
 import { createPurchaseOrder } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
-import { cairoDateISO, egpToPiastres, fmtMoney, fmtNumber, piastresToEgp } from "@/lib/format";
-import { estimateLineTotal, invalidateInventory, UNIT_COST_DIGITS, unitCostFromTotal, unitsForFamily } from "./lib";
+import { cairoDateISO, egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
+import { estimateLineTotal, formatUnitCost, invalidateInventory, unitCostFromTotal, unitsForFamily } from "./lib";
 
 export interface POPrefillLine {
   org_ingredient_id: string;
@@ -230,14 +231,30 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
                       />
                     </div>
                   </div>
-                  {unitCost != null && l.purchaseUnit ? (
-                    <p className="text-end text-xs text-muted-foreground tabular">
-                      {t("inventory.purchasing.unitCostDerived", "= {{cost}} EGP per {{unit}}", {
-                        cost: fmtNumber(piastresToEgp(unitCost), { minimumFractionDigits: 2, maximumFractionDigits: UNIT_COST_DIGITS }),
-                        unit: t(`units.${l.purchaseUnit}`, l.purchaseUnit),
+                  {/* Locked: nothing types here. It is the line total ÷ the
+                      quantity, recomputed as either changes, and animates like
+                      the POS charge amount when it does. */}
+                  <div
+                    className="flex items-center justify-between gap-3 rounded-md border border-dashed bg-muted/50 px-3 py-2"
+                    title={t("inventory.purchasing.unitCostLockedHint", "Worked out from the line total ÷ the quantity. Change either to change it.")}
+                  >
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Lock className="size-3.5 shrink-0" aria-hidden />
+                      {t("inventory.purchasing.unitCostLocked", "Unit cost (EGP per {{unit}})", {
+                        unit: l.purchaseUnit
+                          ? t(`units.${l.purchaseUnit}`, l.purchaseUnit)
+                          : t("inventory.purchasing.unitCostUnit", "unit"),
                       })}
-                    </p>
-                  ) : null}
+                    </span>
+                    <output
+                      aria-readonly="true"
+                      className="font-mono text-sm font-medium text-foreground"
+                    >
+                      <bdi>
+                        <AnimatedFigure text={unitCost != null ? formatUnitCost(unitCost) : "—"} />
+                      </bdi>
+                    </output>
+                  </div>
                 </div>
               );
             })}

@@ -1437,8 +1437,10 @@
       "deleteSupplierConsequence": "The supplier is removed from your list. Past purchase orders keep their records.",
       "reorderFailed": "Couldn't load reorder suggestions",
       "lineTotal": "Line total (EGP)",
-      "unitCostDerived": "= {{cost}} EGP per {{unit}}",
-      "invoiceTotal": "Invoice total (EGP)"
+      "invoiceTotal": "Invoice total (EGP)",
+      "unitCostLocked": "Unit cost (EGP per {{unit}})",
+      "unitCostLockedHint": "Worked out from the line total ÷ the quantity. Change either to change it.",
+      "unitCostUnit": "unit"
     },
     "reports": {
       "title": "Inventory reports",

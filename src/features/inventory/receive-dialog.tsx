@@ -18,7 +18,7 @@ import { listPoReceipts, receivePurchaseOrder, useGetPurchaseOrder } from "@/dat
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtDateTime, fmtMoney, fmtNumber, piastresToEgp } from "@/lib/format";
 import type { GoodsReceipt } from "@/data/api/generated/models";
-import { invalidateInventory, UNIT_COST_DIGITS } from "./lib";
+import { formatUnitCost, invalidateInventory } from "./lib";
 
 interface Props {
   poId: string | null;
@@ -189,9 +189,7 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                             <TableCell className="text-end font-mono tabular"><bdi>{l.line_cost != null ? fmtMoney(l.line_cost) : "—"}</bdi></TableCell>
                             <TableCell className="text-end font-mono tabular text-muted-foreground">
                               <bdi>
-                                {l.unit_cost_exact != null
-                                  ? fmtNumber(piastresToEgp(l.unit_cost_exact), { minimumFractionDigits: 2, maximumFractionDigits: UNIT_COST_DIGITS })
-                                  : "—"}
+                                {l.unit_cost_exact != null ? formatUnitCost(l.unit_cost_exact) : "—"}
                               </bdi>
                             </TableCell>
                           </TableRow>

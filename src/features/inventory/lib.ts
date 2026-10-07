@@ -1,6 +1,7 @@
 import type { StatusTone } from "@/components/app/status-pill";
 import { queryClient } from "@/data/api/query";
 import type { BranchStockRow, ItemCountInput, Stocktake, StocktakeItem } from "@/data/api/generated/models";
+import { fmtNumber } from "@/lib/format";
 
 /**
  * Shared vocabulary + helpers for the inventory screens.
@@ -98,8 +99,17 @@ export const estimateLineTotal = (
     ? Math.round(catalogCostPerStockUnit * qty * stockUnitsPer(purchaseUnit, stockUnit))
     : null;
 
-/** Fraction digits a unit cost is shown with (EGP): enough for 0.04568 per gram. */
+/** Fraction digits a unit cost is shown with (EGP), always all of them:
+ *  enough for 0.04568 per gram, and a whole-looking figure still reads as
+ *  the exact quotient it is (0.050000, not a rounded-looking 0.05). */
 export const UNIT_COST_DIGITS = 6;
+
+/** A unit cost in EGP, from piastres per unit, at a fixed [UNIT_COST_DIGITS]. */
+export const formatUnitCost = (piastresPerUnit: number): string =>
+  fmtNumber(piastresPerUnit / 100, {
+    minimumFractionDigits: UNIT_COST_DIGITS,
+    maximumFractionDigits: UNIT_COST_DIGITS,
+  });
 
 // ── Stock counts ─────────────────────────────────────────────────────────────
 

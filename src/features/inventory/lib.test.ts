@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  formatUnitCost,
   estimateLineTotal,
   stockUnitsPer,
   unitCostFromTotal,
@@ -125,6 +126,12 @@ describe("purchase line costs", () => {
     expect(unitCostFromTotal(54816, 0)).toBeNull();
     expect(unitCostFromTotal(-1, 10)).toBeNull();
     expect(unitCostFromTotal(Number.NaN, 10)).toBeNull();
+  });
+
+  it("shows a unit cost with all six decimals, never a rounded-looking figure", () => {
+    expect(formatUnitCost(54816 / 12000)).toBe("0.045680");
+    expect(formatUnitCost(60000 / 12000)).toBe("0.050000");
+    expect(formatUnitCost(10000 / 3)).toBe("33.333333");
   });
 
   it("converts a purchase unit to stock units within a measure", () => {
