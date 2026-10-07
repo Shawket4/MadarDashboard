@@ -1435,7 +1435,10 @@
       "cancelTitle": "Cancel purchase order {{ref}}?",
       "cancelConsequence": "The supplier order is voided and nothing more can be received against it.",
       "deleteSupplierConsequence": "The supplier is removed from your list. Past purchase orders keep their records.",
-      "reorderFailed": "Couldn't load reorder suggestions"
+      "reorderFailed": "Couldn't load reorder suggestions",
+      "lineTotal": "Line total (EGP)",
+      "unitCostDerived": "= {{cost}} EGP per {{unit}}",
+      "invoiceTotal": "Invoice total (EGP)"
     },
     "reports": {
       "title": "Inventory reports",

@@ -18,7 +18,7 @@ import { listPoReceipts, receivePurchaseOrder, useGetPurchaseOrder } from "@/dat
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtDateTime, fmtMoney, fmtNumber, piastresToEgp } from "@/lib/format";
 import type { GoodsReceipt } from "@/data/api/generated/models";
-import { invalidateInventory } from "./lib";
+import { invalidateInventory, UNIT_COST_DIGITS } from "./lib";
 
 interface Props {
   poId: string | null;
@@ -31,7 +31,9 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
   const { t } = useTranslation();
   const po = useGetPurchaseOrder(poId ?? "", { query: { enabled: open && !!poId } });
   const [receiving, setReceiving] = useState<Record<string, string>>({});
-  const [unitCosts, setUnitCosts] = useState<Record<string, string>>({});
+  // The ACTUAL invoice total (EGP) for what arrived, per line; blank = the
+  // ordered total, pro rata (the server does the same sum).
+  const [lineTotals, setLineTotals] = useState<Record<string, string>>({});
   const [receipts, setReceipts] = useState<GoodsReceipt[]>([]);
   const [loadingReceipts, setLoadingReceipts] = useState(false);
   const [activeTab, setActiveTab] = useState("receive");
@@ -45,7 +47,7 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
         init[l.id] = remaining > 0 ? String(remaining) : "";
       }
       setReceiving(init);
-      setUnitCosts({});
+      setLineTotals({});
       setActiveTab("receive");
     }
   }, [open, po.data]);
@@ -66,9 +68,10 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
       .map((l) => {
         const qty = parseFloat(receiving[l.id] ?? "");
         if (!Number.isFinite(qty) || qty <= 0) return null;
-        const rawCost = unitCosts[l.id]?.trim();
-        const unit_cost = rawCost ? egpToPiastres(parseFloat(rawCost)) : null;
-        return { line_id: l.id, quantity_received: qty, unit_cost };
+        const raw = lineTotals[l.id]?.trim();
+        const egp = raw ? parseFloat(raw) : Number.NaN;
+        const line_cost = Number.isFinite(egp) && egp >= 0 ? egpToPiastres(egp) : null;
+        return { line_id: l.id, quantity_received: qty, line_cost, unit_cost: null };
       })
       .filter((l): l is NonNullable<typeof l> => l !== null);
     if (lines.length === 0) return;
@@ -111,12 +114,18 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                     <TableHead className="text-end">{t("inventory.purchasing.alreadyReceived", "Already")}</TableHead>
                     <TableHead className="text-end">{t("inventory.purchasing.remaining", "Remaining")}</TableHead>
                     <TableHead className="text-end">{t("inventory.purchasing.receiving", "Receiving")}</TableHead>
-                    <TableHead className="text-end">{t("inventory.purchasing.invoicePrice", "Invoice price (EGP)")}</TableHead>
+                    <TableHead className="text-end">{t("inventory.purchasing.invoiceTotal", "Invoice total (EGP)")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {(po.data?.lines ?? []).map((l) => {
                     const remaining = l.quantity_ordered - l.quantity_received;
+                    const arriving = parseFloat(receiving[l.id] ?? "");
+                    // What the order says this much costs: the line total, pro rata.
+                    const expected =
+                      Number.isFinite(arriving) && arriving > 0 && l.quantity_ordered > 0
+                        ? Math.round((l.line_cost * arriving) / l.quantity_ordered)
+                        : null;
                     return (
                       <TableRow key={l.id}>
                         <TableCell className="font-medium">{l.ingredient_name}</TableCell>
@@ -134,10 +143,10 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                         </TableCell>
                         <TableCell className="text-end">
                           <Input
-                            type="number" min="0" step="0.0001"
-                            placeholder={l.unit_cost != null ? String(piastresToEgp(l.unit_cost)) : "—"}
-                            value={unitCosts[l.id] ?? ""}
-                            onChange={(e) => setUnitCosts((prev) => ({ ...prev, [l.id]: e.target.value }))}
+                            type="number" min="0" step="0.01" inputMode="decimal"
+                            placeholder={expected != null ? piastresToEgp(expected).toFixed(2) : "—"}
+                            value={lineTotals[l.id] ?? ""}
+                            onChange={(e) => setLineTotals((prev) => ({ ...prev, [l.id]: e.target.value }))}
                             disabled={remaining <= 0 || isPastReceiving}
                             className="ms-auto h-8 w-28 tabular"
                           />
@@ -177,7 +186,14 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                           <TableRow key={l.id}>
                             <TableCell>{l.ingredient_name}</TableCell>
                             <TableCell className="text-end font-mono tabular"><bdi>{fmtNumber(l.quantity, { signDisplay: "exceptZero" })}</bdi></TableCell>
-                            <TableCell className="text-end font-mono tabular text-muted-foreground"><bdi>{fmtMoney(l.unit_cost)}</bdi></TableCell>
+                            <TableCell className="text-end font-mono tabular"><bdi>{l.line_cost != null ? fmtMoney(l.line_cost) : "—"}</bdi></TableCell>
+                            <TableCell className="text-end font-mono tabular text-muted-foreground">
+                              <bdi>
+                                {l.unit_cost_exact != null
+                                  ? fmtNumber(piastresToEgp(l.unit_cost_exact), { minimumFractionDigits: 2, maximumFractionDigits: UNIT_COST_DIGITS })
+                                  : "—"}
+                              </bdi>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

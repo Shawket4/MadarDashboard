@@ -66,6 +66,41 @@ export const unitsForFamily = (unit: string): string[] => {
   }
 };
 
+// ── Purchase costs: the invoice total is the truth ───────────────────────────
+
+/** Base stock units in one purchase unit (a kg of a gram item → 1000), the
+ *  same conversion the backend derives the pack factor with. A named pack is
+ *  the backend's business; it reads as 1 here. */
+export const stockUnitsPer = (purchaseUnit: string, stockUnit: string): number => {
+  const scale: Record<string, number> = { g: 1, kg: 1000, ml: 1, l: 1000, pcs: 1 };
+  if (!(purchaseUnit in scale) || !(stockUnit in scale)) return 1;
+  if (unitFamily(purchaseUnit) !== unitFamily(stockUnit)) return 1;
+  return scale[purchaseUnit] / scale[stockUnit];
+};
+
+/** A line's unit cost DERIVED from its total, in piastres per purchase unit,
+ *  unrounded. `null` until both are known. Never the other way round: a unit
+ *  cost rounded to whole piastres turned 12 000 g at 548.16 EGP into 600.00. */
+export const unitCostFromTotal = (linePiastres: number, qty: number): number | null =>
+  Number.isFinite(linePiastres) && linePiastres >= 0 && Number.isFinite(qty) && qty > 0
+    ? linePiastres / qty
+    : null;
+
+/** The catalog's estimate of a line's total, in whole piastres: its cost per
+ *  stock unit × the stock units ordered. `null` when the catalog has no cost. */
+export const estimateLineTotal = (
+  catalogCostPerStockUnit: number | null | undefined,
+  qty: number,
+  purchaseUnit: string,
+  stockUnit: string,
+): number | null =>
+  catalogCostPerStockUnit != null && Number.isFinite(qty) && qty > 0
+    ? Math.round(catalogCostPerStockUnit * qty * stockUnitsPer(purchaseUnit, stockUnit))
+    : null;
+
+/** Fraction digits a unit cost is shown with (EGP): enough for 0.04568 per gram. */
+export const UNIT_COST_DIGITS = 6;
+
 // ── Stock counts ─────────────────────────────────────────────────────────────
 
 /**

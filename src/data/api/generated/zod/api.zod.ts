@@ -13221,10 +13221,11 @@ export const CreatePurchaseOrderParams = zod.object({
 export const CreatePurchaseOrderBody = zod.object({
   "expected_at": zod.iso.datetime({"offset":true}).nullish(),
   "lines": zod.array(zod.object({
+  "line_cost": zod.number().nullish().describe('Piastres for the whole line, as invoiced. Preferred: the unit cost is\nderived from it exactly (12 000 g for 548.16 EGP is 4.568 piastres\/g,\nwhere a whole-piastre unit cost made it 5 and the order 600.00).'),
   "org_ingredient_id": zod.uuid(),
   "purchase_unit": zod.string(),
   "quantity_ordered": zod.number(),
-  "unit_cost": zod.number().describe('Piastres per purchase unit.'),
+  "unit_cost": zod.number().nullish().describe('Piastres per purchase unit, for clients that predate `line_cost`.\nIgnored when `line_cost` is sent; one of the two is required.'),
   "units_per_purchase_unit": zod.number().nullish().describe('Stock units per purchase unit. Ignored when `purchase_unit` is a known\ninventory unit (the factor is derived from the ingredient\'s base unit).')
 })),
   "note": zod.string().nullish(),
@@ -13252,13 +13253,15 @@ export const CreatePurchaseOrderResponse = zod.object({
   "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "line_cost": zod.number().describe('Piastres for the whole line, as on the supplier\'s invoice. The unit\ncost is derived from it, never the other way round.'),
   "org_ingredient_id": zod.uuid(),
   "purchase_order_id": zod.uuid(),
   "purchase_unit": zod.string(),
   "quantity_ordered": zod.number(),
   "quantity_received": zod.number(),
   "unit": zod.string().describe('Ingredient\'s base stock unit.'),
-  "unit_cost": zod.number().describe('Piastres per PURCHASE unit.'),
+  "unit_cost": zod.number().describe('Piastres per PURCHASE unit, rounded to whole piastres (older readers;\nthe truth is `line_cost`, the precise figure `unit_cost_exact`).'),
+  "unit_cost_exact": zod.number().describe('Piastres per PURCHASE unit, exact: `line_cost \/ quantity_ordered`.'),
   "units_per_purchase_unit": zod.number()
 }))
 }))
@@ -13315,10 +13318,12 @@ export const CreateReturnResponse = zod.object({
   "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "line_cost": zod.number().nullish().describe('Piastres this delivery cost (negative for a return); null when unknown.'),
   "org_ingredient_id": zod.uuid(),
   "purchase_order_line_id": zod.uuid().nullish(),
   "quantity": zod.number().describe('Base stock units received (+) or returned (−).'),
-  "unit_cost": zod.number().nullish().describe('Piastres per base stock unit (actual).')
+  "unit_cost": zod.number().nullish().describe('Piastres per base stock unit (actual), rounded to whole piastres.'),
+  "unit_cost_exact": zod.number().nullish().describe('Piastres per base stock unit at full precision.')
 })),
   "note": zod.string().nullish(),
   "purchase_order_id": zod.uuid().nullish(),
@@ -13355,13 +13360,15 @@ export const GetPurchaseOrderResponse = zod.object({
   "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "line_cost": zod.number().describe('Piastres for the whole line, as on the supplier\'s invoice. The unit\ncost is derived from it, never the other way round.'),
   "org_ingredient_id": zod.uuid(),
   "purchase_order_id": zod.uuid(),
   "purchase_unit": zod.string(),
   "quantity_ordered": zod.number(),
   "quantity_received": zod.number(),
   "unit": zod.string().describe('Ingredient\'s base stock unit.'),
-  "unit_cost": zod.number().describe('Piastres per PURCHASE unit.'),
+  "unit_cost": zod.number().describe('Piastres per PURCHASE unit, rounded to whole piastres (older readers;\nthe truth is `line_cost`, the precise figure `unit_cost_exact`).'),
+  "unit_cost_exact": zod.number().describe('Piastres per PURCHASE unit, exact: `line_cost \/ quantity_ordered`.'),
   "units_per_purchase_unit": zod.number()
 }))
 }))
@@ -13405,10 +13412,12 @@ export const ListPoReceiptsResponseItem = zod.object({
   "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "line_cost": zod.number().nullish().describe('Piastres this delivery cost (negative for a return); null when unknown.'),
   "org_ingredient_id": zod.uuid(),
   "purchase_order_line_id": zod.uuid().nullish(),
   "quantity": zod.number().describe('Base stock units received (+) or returned (−).'),
-  "unit_cost": zod.number().nullish().describe('Piastres per base stock unit (actual).')
+  "unit_cost": zod.number().nullish().describe('Piastres per base stock unit (actual), rounded to whole piastres.'),
+  "unit_cost_exact": zod.number().nullish().describe('Piastres per base stock unit at full precision.')
 })),
   "note": zod.string().nullish(),
   "purchase_order_id": zod.uuid().nullish(),
@@ -13428,9 +13437,10 @@ export const ReceivePurchaseOrderParams = zod.object({
 
 export const ReceivePurchaseOrderBody = zod.object({
   "lines": zod.array(zod.object({
+  "line_cost": zod.number().nullish().describe('Optional ACTUAL invoice total (piastres) for what this delivery brought,\nwhen it differs from the ordered price. Preferred over `unit_cost`.\nDrives weighted-average cost + the ledger; omitted (with `unit_cost`)\n⟹ the ordered line total, pro rata to the quantity received.'),
   "line_id": zod.uuid(),
   "quantity_received": zod.number(),
-  "unit_cost": zod.number().nullish().describe('Optional ACTUAL invoice cost (piastres per purchase unit) for this\ndelivery, when it differs from the ordered price. Drives weighted-average\ncost + the ledger; omitted ⟹ the PO line\'s ordered cost is used.')
+  "unit_cost": zod.number().nullish().describe('Optional ACTUAL invoice cost in piastres per purchase unit (older\nclients). Ignored when `line_cost` is sent.')
 }))
 })
 
@@ -13454,13 +13464,15 @@ export const ReceivePurchaseOrderResponse = zod.object({
   "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "line_cost": zod.number().describe('Piastres for the whole line, as on the supplier\'s invoice. The unit\ncost is derived from it, never the other way round.'),
   "org_ingredient_id": zod.uuid(),
   "purchase_order_id": zod.uuid(),
   "purchase_unit": zod.string(),
   "quantity_ordered": zod.number(),
   "quantity_received": zod.number(),
   "unit": zod.string().describe('Ingredient\'s base stock unit.'),
-  "unit_cost": zod.number().describe('Piastres per PURCHASE unit.'),
+  "unit_cost": zod.number().describe('Piastres per PURCHASE unit, rounded to whole piastres (older readers;\nthe truth is `line_cost`, the precise figure `unit_cost_exact`).'),
+  "unit_cost_exact": zod.number().describe('Piastres per PURCHASE unit, exact: `line_cost \/ quantity_ordered`.'),
   "units_per_purchase_unit": zod.number()
 }))
 }))
