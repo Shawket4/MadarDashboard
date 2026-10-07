@@ -44,7 +44,7 @@ const links: { key: PageKey; label: string }[] = [
       >{c.nav.langSwitch}</a>
       <a class="nav-link hidden md:inline-flex" href={DASHBOARD_URL} rel="noopener">{c.nav.login}</a>
       <a
-        class="btn btn-primary btn-sm hidden sm:inline-flex"
+        class="btn btn-ink btn-sm hidden sm:inline-flex"
         href={whatsappHref(lang)}
         data-open-contact
         data-umami-event="talk-to-us"
@@ -78,8 +78,8 @@ const links: { key: PageKey; label: string }[] = [
       ))}
     </nav>
     <div class="menu-foot container-site mt-auto flex flex-col gap-3 pt-10" style={`--i:${links.length + 1}`}>
-      <a class="btn btn-accent btn-lg w-full" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="menu">
-        <Icon name="whatsapp" /> {c.contact.whatsapp}
+      <a class="btn btn-paper btn-lg w-full" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="menu">
+        {c.contact.whatsapp} <Icon name="arrow" size={18} />
       </a>
       <div class="grid grid-cols-2 gap-3">
         <a class="btn btn-ghost-ink" href={switchHref} hreflang={other} lang={other} data-umami-event="lang-switch"><Icon name="globe" size={18} /> {c.nav.langSwitch}</a>

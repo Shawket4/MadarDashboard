@@ -1,0 +1,82 @@
+---
+/**
+ * The roadmap as a line through time: what just shipped (filled, checked), then what
+ * is in development (a ring with a pulse). The line runs in reading order, so right to
+ * left in Arabic; on phones it runs down the page, each stop beside its marker.
+ * Every stop also says its state in words (the labels above the line on desktop, its
+ * own label on phones and for screen readers), so nothing rests on colour or a glyph.
+ * story.ts draws the line in as it arrives; without motion it simply stands there.
+ */
+import { t } from "@/i18n";
+import type { Lang } from "@/lib/site";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const r = t(lang).features.roadmap;
+const label = (state: string) => (state === "shipped" ? r.states.shipped : r.states.dev);
+
+// Labels over the line: one per run of stops in the same state.
+const zones: { state: string; span: number }[] = [];
+for (const item of r.items) {
+  const last = zones.at(-1);
+  if (last?.state === item.state) last.span += 1;
+  else zones.push({ state: item.state, span: 1 });
+}
+let pulse = 0;
+---
+<section id="roadmap" class="on-ink scroll-mt-32 bg-ink text-paper" aria-labelledby="roadmap-title">
+  <div class="container-site py-20 md:py-28">
+    <div class="max-w-2xl">
+      <p class="kicker text-teal-light" data-reveal>{r.kicker}</p>
+      <h2 id="roadmap-title" class="text-h2 mt-4" data-split>{r.title}</h2>
+      <p class="text-lead mt-5 text-muted-ink" data-reveal>{r.body}</p>
+    </div>
+
+    <div class="rm mt-16 lg:mt-20" style={`--rm-n:${r.items.length}`} data-roadmap>
+      <div class="rm-zones" aria-hidden="true">
+        {zones.map((z) => (
+          <div class="rm-zone" data-state={z.state} style={`grid-column:span ${z.span}`} data-rm-zone>
+            <span class="kicker">{label(z.state)}</span>
+            <span class="rm-bracket" data-rm-bracket></span>
+          </div>
+        ))}
+      </div>
+
+      <ol class="rm-track">
+        {r.items.map((item, i) => {
+          const last = i === r.items.length - 1;
+          const shipped = item.state === "shipped";
+          return (
+            <li class="rm-stop" data-state={item.state} data-rm-stop>
+              {i === 0 && <span class="rm-seg" data-kind="lead" data-state={item.state} aria-hidden="true" data-rm-seg="lead" />}
+              <span class="rm-seg" data-kind={last ? "end" : shipped ? "done" : "laid"} aria-hidden="true" data-rm-seg="out" />
+              <span class="rm-marker" aria-hidden="true" data-rm-marker>
+                {shipped ? (
+                  <svg viewBox="0 0 36 36">
+                    <circle class="rm-fill" cx="18" cy="18" r="18" />
+                    <path class="rm-check" d="M11.5 18.5 16 23l8.5-9" data-rm-check />
+                  </svg>
+                ) : (
+                  <>
+                    <span class="rm-halo" style={`--i:${pulse++}`} />
+                    <svg viewBox="0 0 36 36">
+                      <circle class="rm-ring" cx="18" cy="18" r="16" />
+                      <circle class="rm-dot" cx="18" cy="18" r="6" />
+                    </svg>
+                  </>
+                )}
+              </span>
+              <div class="rm-text" data-rm-text>
+                <p class="rm-state kicker">{label(item.state)}</p>
+                <h3 class="text-xl font-semibold leading-snug">{item.title}</h3>
+                <p class="text-muted-ink">{item.body}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  </div>
+</section>

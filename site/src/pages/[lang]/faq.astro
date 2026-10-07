@@ -25,8 +25,8 @@ const jsonLd = [{
           <p class="kicker text-teal" data-reveal>{f.kicker}</p>
           <h1 class="text-display mt-5" data-split>{f.title}</h1>
           <p class="text-lead mt-6 text-muted" data-reveal>{f.sub}</p>
-          <a class="btn btn-primary btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="faq" data-reveal>
-            <Icon name="whatsapp" /> {c.contact.whatsapp}
+          <a class="btn btn-ink btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="faq" data-reveal>
+            {c.contact.whatsapp} <Icon name="arrow" size={18} />
           </a>
         </div>
       </div>

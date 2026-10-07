@@ -20,11 +20,11 @@ const c = t(lang);
       <h1 id="hero-title" class="text-display mt-6" data-hero-title>{c.hero.title}</h1>
       <p class="text-lead mt-6 font-medium text-paper" data-hero-item>{c.hero.sub}</p>
       <p class="mt-3 max-w-md text-muted-ink" data-hero-item>{c.hero.body}</p>
-      <div class="mt-9 flex flex-wrap items-center gap-3" data-hero-item>
-        <a class="btn btn-accent btn-lg" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="hero">
-          <Icon name="whatsapp" /> {c.hero.ctaPrimary}
+      <div class="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3" data-hero-item>
+        <a class="btn btn-paper btn-lg" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="hero">
+          {c.hero.ctaPrimary} <Icon name="arrow" size={18} />
         </a>
-        <a class="btn btn-ghost-ink btn-lg" href="#day">
+        <a class="link-cta" href="#day">
           {c.hero.ctaSecondary} <Icon name="arrow-down" size={18} />
         </a>
       </div>

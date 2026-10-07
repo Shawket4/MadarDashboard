@@ -173,8 +173,14 @@ html.lenis, html.lenis body { height: auto; }
 
 /* ---------- Motion helpers ---------- */
 /* Split words keep Arabic letters joined: we only ever split by word. */
-.split-word { display: inline-block; will-change: transform; }
-.mask-word { display: inline-block; overflow: clip; padding-block: 0.08em; margin-block: -0.08em; vertical-align: top; }
+.split-word { display: inline-block; }
+/* GSAP wraps each split word in a mask (overflow: clip) exactly as tall as the line.
+   Headings set their lines tighter than the font's ascent and descent, so descenders
+   (g, y, p), Arabic tails and marks reach outside it and would be cut off: pad the mask
+   past them, and pull its margins back so nothing moves. Measured: no glyph of either
+   language's headings reaches past these. */
+.split-word-mask { padding: 0.18em 0.1em; margin: -0.18em -0.1em; }
+html[lang="ar"] .split-word-mask { padding: 0.42em 0.32em; margin: -0.42em -0.32em; }
 
 [dir="rtl"] .marquee-track { animation-name: marquee-rtl; }
 @keyframes marquee-rtl { from { transform: translateX(0); } to { transform: translateX(calc(100% + var(--gap))); } }
@@ -208,27 +214,37 @@ html.lenis, html.lenis body { height: auto; }
 /* ---------- Components ---------- */
 @layer components {
   .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem;
-    min-height: 2.9rem; padding: 0.7rem 1.25rem; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+    min-height: 2.9rem; padding: 0.7rem 1.2rem; border-radius: 0.625rem;
     font-weight: 500; font-size: 0.98rem; line-height: 1.2; white-space: nowrap; max-width: 100%;
-    transition: background-color .2s var(--ease-out-expo), color .2s, border-color .2s, transform .2s var(--ease-out-expo), box-shadow .2s;
+    transition: background-color .2s var(--ease-out-expo), color .2s, border-color .2s, transform .2s var(--ease-out-expo);
     -webkit-tap-highlight-color: transparent;
   }
-  .btn:active { transform: translateY(1px) scale(0.99); }
+  .btn:active { transform: translateY(1px); }
+  /* The trailing arrow leans the way the line reads. */
+  .btn .icon-arrow { transition: translate .3s var(--ease-out-expo); }
+  .btn:hover .icon-arrow { translate: 3px 0; }
+  [dir="rtl"] .btn:hover .icon-arrow { translate: -3px 0; }
   /* Small phones: a long label wraps inside the button instead of pushing out of its card. */
   @media (max-width: 479px) { .btn { white-space: normal; text-align: center; } }
-  .btn-sm { min-height: 2.35rem; padding: 0.45rem 0.95rem; font-size: 0.9rem; }
-  .btn-lg { min-height: 3.35rem; padding: 0.85rem 1.6rem; font-size: 1.04rem; }
-  .btn-primary { background: var(--color-teal); color: var(--color-paper); box-shadow: 0 1px 0 rgb(255 255 255 / .12) inset, 0 10px 24px -12px rgb(13 98 115 / .7); }
-  .btn-primary:hover { background: #0b5665; }
-  .btn-accent { background: var(--color-teal-light); color: var(--color-ink); box-shadow: 0 10px 30px -12px rgb(46 148 166 / .65); }
-  .btn-accent:hover { background: #3aa3b5; }
+  .btn-sm { min-height: 2.35rem; padding: 0.45rem 0.9rem; font-size: 0.9rem; border-radius: 0.5rem; }
+  .btn-lg { min-height: 3.25rem; padding: 0.85rem 1.4rem; font-size: 1.02rem; }
+  /* Ink & Paper: the one solid button is Ink on light ground and Paper on Ink, flat, no
+     glow. Teal stays in the small marks (kickers, ticks, the logo's satellite, focus). */
+  .btn-ink { background: var(--color-ink); color: var(--color-paper); }
+  .btn-ink:hover { background: var(--color-ink-3); }
   .btn-paper { background: var(--color-paper); color: var(--color-ink); }
-  .btn-paper:hover { background: #fff; }
-  .btn-ghost { border: 1px solid var(--color-rule); color: var(--color-ink); background: transparent; }
-  .btn-ghost:hover { border-color: var(--color-ink); }
+  .btn-paper:hover { background: var(--color-white); }
   .btn-ghost-ink { border: 1px solid var(--color-line-ink); color: var(--color-paper); background: transparent; }
-  .btn-ghost-ink:hover { border-color: rgb(239 243 244 / .5); background: rgb(239 243 244 / .04); }
+  .btn-ghost-ink:hover { border-color: color-mix(in oklab, var(--color-paper) 50%, transparent); background: color-mix(in oklab, var(--color-paper) 4%, transparent); }
+  /* A second action is a link, not a second button: underlined, quiet, as tall as the
+     button beside it so it is as easy to tap. */
+  .link-cta {
+    display: inline-flex; align-items: center; gap: .5rem; min-height: 3rem; padding-inline: .2rem;
+    font-weight: 500; text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: .35em;
+    text-decoration-color: color-mix(in oklab, currentColor 40%, transparent); transition: text-decoration-color .2s;
+  }
+  .link-cta:hover { text-decoration-color: currentColor; }
   .link-quiet { text-decoration: none; color: inherit; opacity: .78; transition: opacity .2s; }
   .link-quiet:hover { opacity: 1; }
   .chip { display: inline-flex; align-items: center; gap: .45rem; border-radius: 999px; padding: .32rem .8rem; font-size: .8rem; font-weight: 500; }
@@ -238,7 +254,8 @@ html.lenis, html.lenis body { height: auto; }
   .site-header[data-solid="true"] { background: rgb(239 243 244 / 0.86); -webkit-backdrop-filter: saturate(1.5) blur(14px); backdrop-filter: saturate(1.5) blur(14px); border-bottom-color: rgb(20 24 30 / 0.08); }
   .site-header[data-tone="ink"]:not([data-solid="true"]) { color: var(--color-paper); }
   .site-header[data-tone="ink"]:not([data-solid="true"]) .nav-link:hover { background: rgb(239 243 244 / .08); }
-  .site-header[data-tone="ink"]:not([data-solid="true"]) .btn-ghost { border-color: var(--color-line-ink); color: var(--color-paper); }
+  .site-header[data-tone="ink"]:not([data-solid="true"]) .btn-ink { background: var(--color-paper); color: var(--color-ink); }
+  .site-header[data-tone="ink"]:not([data-solid="true"]) .btn-ink:hover { background: var(--color-white); }
   .nav-link { border-radius: 999px; padding: .45rem .8rem; font-size: .94rem; font-weight: 500; opacity: .88; transition: background-color .2s, opacity .2s; }
   .nav-link:hover { background: rgb(20 24 30 / .05); opacity: 1; }
   .nav-link[aria-current="page"] { opacity: 1; box-shadow: inset 0 -2px 0 currentColor; border-radius: 0; }
@@ -252,6 +269,8 @@ html.lenis, html.lenis body { height: auto; }
   @keyframes fade-in { from { opacity: 0; } }
 
   .sticky-wa { transition: transform .45s var(--ease-out-expo), opacity .3s; }
+  /* Ink with a light hairline, so it holds its edge over Ink sections too. */
+  .sticky-wa .btn { box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 18%, transparent), 0 16px 34px -14px color-mix(in oklab, var(--color-bezel) 60%, transparent); }
   .sticky-wa[data-visible="false"] { transform: translateY(140%); opacity: 0; pointer-events: none; }
 
   [dir="rtl"] .icon-arrow { transform: scaleX(-1); }
@@ -371,3 +390,79 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
   .motion .barista-note { display: block; }
 }
 .barista-note { display: none; }
+
+/* ---------- Roadmap: a line through time (features page, story.ts draws it in) ----------
+   Phones: a column, each marker at the start of its stop, the line running down from
+   one marker's centre to the next. Desktop: a row of stops under labels for each run of
+   states, the line running from one marker's centre to the next across the gap. The
+   markers sit over the line on an Ink fill, so the line seems to pass behind them. */
+.rm {
+  --rm-gap: 2rem;
+  --rm-row: 2.75rem;
+  --rm-size: 2.25rem;
+  --rm-line: 6px;
+  --rm-done: var(--color-teal-light);
+  --rm-dev: color-mix(in oklab, var(--color-teal-light) 58%, var(--color-paper));
+  --rm-track: color-mix(in oklab, var(--color-slate) 36%, var(--color-ink));
+}
+.rm-zones { display: none; }
+.rm-zone { display: flex; flex-direction: column; gap: .625rem; color: var(--rm-done); }
+.rm-zone[data-state="dev"] { color: var(--rm-dev); }
+.rm-bracket { display: block; height: 8px; border-top: 1px solid currentColor; border-inline-start: 1px solid currentColor; }
+
+.rm-track { list-style: none; margin: 0; padding: 0; display: grid; row-gap: var(--rm-row); }
+.rm-stop { position: relative; min-width: 0; padding-inline-start: calc(var(--rm-size) + 1.5rem); }
+.rm-marker { position: absolute; z-index: 2; inset-inline-start: 0; top: 0; display: block; width: var(--rm-size); height: var(--rm-size); }
+.rm-marker svg { position: relative; display: block; width: 100%; height: 100%; }
+.rm-fill { fill: var(--rm-done); }
+.rm-check { fill: none; stroke: var(--color-ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.rm-ring { fill: var(--color-ink); stroke: var(--rm-dev); stroke-width: 4; }
+.rm-dot { fill: var(--rm-dev); }
+.rm-halo { position: absolute; inset: 0; border: 2px solid var(--rm-dev); border-radius: 50%; opacity: 0; }
+.motion .rm-halo { animation: rm-pulse 2.4s cubic-bezier(.2, .6, .3, 1) infinite; animation-delay: calc(var(--i, 0) * -0.8s); }
+@keyframes rm-pulse { from { transform: scale(1); opacity: .8; } to { transform: scale(2.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .motion .rm-halo { animation: none; } }
+
+.rm-seg {
+  position: absolute; z-index: 1;
+  inset-inline-start: calc(var(--rm-size) / 2 - var(--rm-line) / 2); top: calc(var(--rm-size) / 2);
+  width: var(--rm-line); height: calc(100% + var(--rm-row));
+  border-radius: calc(var(--rm-line) / 2); background: var(--rm-track);
+}
+.rm-seg[data-kind="done"] { background: var(--rm-done); }
+.rm-seg[data-kind="lead"] { display: none; }
+.rm-seg[data-kind="end"] {
+  height: 7rem; border-radius: 0;
+  background: radial-gradient(circle, var(--rm-track) 0 3px, transparent 3.5px) 50% 0 / var(--rm-line) 16px repeat-y;
+  mask-image: linear-gradient(180deg, #000 25%, transparent);
+}
+.rm-text { display: flex; flex-direction: column; gap: .625rem; }
+.rm-state { color: var(--rm-done); }
+.rm-stop[data-state="dev"] .rm-state { color: var(--rm-dev); }
+
+@media (min-width: 1024px) {
+  .rm-zones { display: grid; grid-template-columns: repeat(var(--rm-n), minmax(0, 1fr)); column-gap: var(--rm-gap); margin-bottom: 1.75rem; }
+  .rm-track { grid-template-columns: repeat(var(--rm-n), minmax(0, 1fr)); column-gap: var(--rm-gap); row-gap: 0; }
+  .rm-stop { padding-inline-start: 0; }
+  .rm-marker { position: relative; inset-inline-start: auto; }
+  .rm-text { margin-top: 2rem; }
+  /* The labels over the line say it here; screen readers still get each stop's own. */
+  .rm-state { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .rm-seg {
+    inset-inline-start: calc(var(--rm-size) / 2); top: calc(var(--rm-size) / 2 - var(--rm-line) / 2);
+    width: calc(100% + var(--rm-gap)); height: var(--rm-line);
+  }
+  .rm-seg[data-kind="lead"] {
+    display: block; inset-inline-start: -4.5rem; width: calc(4.5rem + var(--rm-size) / 2); border-radius: 0;
+    mask-image: linear-gradient(90deg, transparent, #000 80%);
+  }
+  .rm-seg[data-kind="lead"][data-state="shipped"] { background: var(--rm-done); }
+  .rm-seg[data-kind="end"] {
+    width: calc(100% - var(--rm-size) / 2); height: var(--rm-line);
+    background: radial-gradient(circle, var(--rm-track) 0 3px, transparent 3.5px) 0 50% / 16px var(--rm-line) repeat-x;
+    mask-image: linear-gradient(90deg, #000 25%, transparent);
+  }
+  /* Arabic reads the line from the right: the fades turn with it. */
+  [dir="rtl"] .rm-seg[data-kind="lead"] { mask-image: linear-gradient(270deg, transparent, #000 80%); }
+  [dir="rtl"] .rm-seg[data-kind="end"] { mask-image: linear-gradient(270deg, #000 25%, transparent); background-position: 100% 50%; }
+}

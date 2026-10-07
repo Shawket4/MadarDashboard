@@ -1,8 +1,8 @@
 ---
 import BaseLayout from "@/components/layout/BaseLayout.astro";
 import FeatureArea from "@/components/features/FeatureArea.astro";
+import Roadmap from "@/components/features/Roadmap.astro";
 import BasiraDemo from "@/components/home/BasiraDemo.astro";
-import Icon from "@/components/ui/Icon.astro";
 import Orbit from "@/components/ui/Orbit.astro";
 import { LedgerBeams } from "@/components/kit/LedgerBeams";
 import { t } from "@/i18n";
@@ -134,25 +134,5 @@ const groups = [
     { id: "dash-payments", frame: "browser", alt: a.setup.alts.payments },
   ]} />
 
-  <!-- Roadmap -->
-  <section id="roadmap" class="on-ink scroll-mt-32 bg-ink text-paper" aria-labelledby="roadmap-title">
-    <div class="container-site py-20 md:py-28">
-      <div class="max-w-2xl">
-        <p class="kicker text-teal-light" data-reveal>{f.roadmap.kicker}</p>
-        <h2 id="roadmap-title" class="text-h2 mt-4" data-split>{f.roadmap.title}</h2>
-        <p class="text-lead mt-5 text-muted-ink" data-reveal>{f.roadmap.body}</p>
-      </div>
-      <ol class="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3" data-reveal-group>
-        {f.roadmap.items.map((r) => (
-          <li class="card-ink p-6" data-reveal>
-            <span class:list={["chip", r.live ? "bg-teal-light text-ink" : "border border-line-ink text-paper/80"]}>
-              {r.live ? <Icon name="check" size={14} /> : <Icon name="clock" size={14} />} {r.status}
-            </span>
-            <h3 class="mt-5 text-xl font-semibold">{r.title}</h3>
-            <p class="mt-2 text-muted-ink">{r.body}</p>
-          </li>
-        ))}
-      </ol>
-    </div>
-  </section>
+  <Roadmap lang={lang} />
 </BaseLayout>

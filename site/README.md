@@ -66,7 +66,13 @@ The HTML is meant to be cached at Cloudflare for 5 minutes (a Cache Rule on
 | The scroll story | `src/scripts/story.ts` (GSAP: ScrollTrigger, SplitText, DrawSVG; Lenis on mouse/trackpad) |
 | An area's screens | `media` and `stepMap` on each `AreaSection` in `src/pages/[lang]/index.astro`: the screens play in the order the steps first need them (step 0 is the intro, then one per point) |
 | The cappuccino steps | `src/scripts/barista.ts`, files in `src/assets/lottie/` (Madar's own prep-step animations) |
+| The roadmap | `features.roadmap` in both copy files (`state`: `shipped` or `dev`), drawn by `src/components/features/Roadmap.astro` and `roadmap()` in `story.ts` |
 | Colours, type, buttons | `src/styles/global.css`: the brand kit's palette, and the design system's type (MadarDashboard `DESIGN.md`): IBM Plex Sans Arabic leads in both languages, IBM Plex Sans behind it, IBM Plex Mono for figures |
+
+Buttons are **Ink & Paper**: one solid button per spot, `btn-ink` on light ground and
+`btn-paper` on Ink, flat, a trailing arrow that turns with the language; a second
+action is an underlined `link-cta`, not another button. Teal stays in small marks
+(kickers, ticks, the logo's satellite, focus rings), never a button.
 
 Motion rules:
 - Content is in the HTML and fully readable without JavaScript; `prefers-reduced-motion`
@@ -79,7 +85,16 @@ Motion rules:
 - A click from another page of the site is a **soft** entry: the page transition
   brings the page in and nothing on screen replays its entrance. Arriving from
   outside (or a reload) plays the hero's entrance.
-- Split text by **words only** (letters would break how Arabic joins).
+- Split text by **words only** (letters would break how Arabic joins). Each word rises
+  inside a mask that is padded past descenders and Arabic tails and marks
+  (`.split-word-mask`); the split stays after the words land, since undoing it can
+  re-wrap a heading that fits its line to the pixel. `npm run verify` fails if any
+  word's ink would reach outside its mask.
+- **Jumps** (a `#` link on the page, a `#` address from elsewhere) never wait on what
+  they pass: anything a jump carries the page past finishes at once (`whenSeen`), only
+  what is on screen plays, and a scene out of sight snaps to where it should be.
+  Same-page `#` links glide (Lenis, or the browser's smooth scroll on touch); a `#`
+  address lands again once the pins have added their length (`landOnHash`).
 - Pins are created in page order. ScrollTriggers whose range contains a pin use
   `refreshPriority: -1`, or they end a pin-length too early.
 

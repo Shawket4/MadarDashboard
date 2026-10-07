@@ -90,8 +90,8 @@ const jsonLd = [{
             ))}
           </ul>
           <div class="mt-auto pt-10">
-            <a class:list={["btn btn-lg w-full", plan.featured ? "btn-accent" : "btn-primary"]} href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where={`pricing-${plan.key}`}>
-              <Icon name="whatsapp" /> {c.contact.whatsapp}
+            <a class:list={["btn btn-lg w-full", plan.featured ? "btn-paper" : "btn-ink"]} href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where={`pricing-${plan.key}`}>
+              {c.contact.whatsapp} <Icon name="arrow" size={18} />
             </a>
           </div>
         </article>
@@ -118,8 +118,8 @@ const jsonLd = [{
           <p class="kicker text-teal">{p.free.kicker}</p>
           <h2 id="free-title" class="text-h3 mt-4">{p.free.title}</h2>
           <p class="mt-4 text-muted">{p.free.body}</p>
-          <a class="btn btn-primary btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="free-month" data-umami-event-where="pricing">
-            <Icon name="whatsapp" /> {p.free.cta}
+          <a class="btn btn-ink btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="free-month" data-umami-event-where="pricing">
+            {p.free.cta} <Icon name="arrow" size={18} />
           </a>
           <p class="mt-4 font-mono text-sm text-muted">{p.free.note}</p>
         </div>

@@ -5,9 +5,11 @@
 //    motion). Fails on console errors, a horizontal scrollbar, a missing image, wrong
 //    lang/dir, missing title/description/canonical/hreflang, or not exactly one <h1>.
 //    Screenshots land in node_modules/.verify/ for a visual pass.
+//    Also fails when a split heading's word would be cut off by its mask.
 // 2. The flows, against two servers: one that opens folders (index.html), and one
 //    that behaves like today's nginx on the VPS (`try_files $uri /get.html`, no
-//    folder lookup): language pick, folder addresses, links, 404, pricing terms, sheet.
+//    folder lookup): language pick, folder addresses, links, # addresses and # links,
+//    404, pricing terms, sheet.
 import { chromium } from "playwright-core";
 import { createServer } from "node:http";
 import { readFile, stat, mkdir } from "node:fs/promises";
@@ -85,7 +87,30 @@ for (const lang of ["en", "ar"]) {
           hreflang: document.querySelectorAll('link[rel="alternate"][hreflang]').length,
         };
       });
+      // Split headings: every word's ink inside its (padded) mask, so no descender,
+      // Arabic tail or mark is cut off while the words rise or after they land.
+      const cut = await page.evaluate(() => {
+        const c = document.createElement("canvas").getContext("2d");
+        const bad = [];
+        for (const mask of document.querySelectorAll(".split-word-mask")) {
+          const word = mask.firstElementChild;
+          if (!word?.textContent) continue;
+          const cs = getComputedStyle(word);
+          c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+          c.letterSpacing = cs.letterSpacing === "normal" ? "0px" : cs.letterSpacing;
+          c.direction = cs.direction;
+          const m = c.measureText(word.textContent);
+          const ms = getComputedStyle(mask);
+          const r = mask.getBoundingClientRect();
+          const baseline = r.top + parseFloat(ms.paddingTop) + (parseFloat(cs.lineHeight) - m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2 + m.fontBoundingBoxAscent;
+          const x = cs.direction === "rtl" ? r.right - parseFloat(ms.paddingRight) : r.left + parseFloat(ms.paddingLeft);
+          const over = Math.max(r.top - (baseline - m.actualBoundingBoxAscent), baseline + m.actualBoundingBoxDescent - r.bottom, r.left - (x - m.actualBoundingBoxLeft), x + m.actualBoundingBoxRight - r.right);
+          if (over > 0.5) bad.push(`"${word.textContent}" by ${over.toFixed(1)}px`);
+        }
+        return bad;
+      });
       const tag = `${lang}/${p || "home/"}@${w}`;
+      if (cut.length) problems.push(`${tag}: heading text cut off: ${cut.slice(0, 4).join(", ")}`);
       if (r.lang !== lang) problems.push(`${tag}: lang=${r.lang}`);
       if (r.dir !== (lang === "ar" ? "rtl" : "ltr")) problems.push(`${tag}: dir=${r.dir}`);
       if (r.overflow > 1) problems.push(`${tag}: horizontal overflow ${r.overflow}px`);
@@ -136,6 +161,32 @@ for (const folders of ["open", "nginx-today"]) {
 
   v = await visit("/en/no-such-page/");
   check((await v.page.evaluate(() => document.querySelector('meta[name="robots"]')?.getAttribute("content"))) === "noindex" && /404/.test(await v.page.content()), `missing page → ${v.path}`);
+  await v.ctx.close();
+
+  // A # address (a link from another page) and a # link on the page land on their
+  // section, and what's there is showing: nothing waits on what the jump passed.
+  const landing = (id) => v.page.evaluate((id) => {
+    const t = document.getElementById(id);
+    const hidden = Array.from(document.querySelectorAll("[data-reveal], [data-split]")).filter((e) => {
+      const r = e.getBoundingClientRect();
+      return r.bottom > 0 && r.top < innerHeight * 0.8 && Number(getComputedStyle(e).opacity) < 0.9;
+    }).length;
+    return { path: location.pathname, hash: location.hash, top: Math.round(t?.getBoundingClientRect().top ?? -1), hidden };
+  }, id);
+  v = await visit("/en/features/#loyalty");
+  await v.page.waitForTimeout(1200);
+  let at = await landing("loyalty");
+  check(at.path === "/en/features/" && at.hash === "#loyalty" && at.top > 0 && at.top < 260 && at.hidden === 0, `# address → ${JSON.stringify(at)}`);
+  await v.ctx.close();
+
+  v = await visit("/en/");
+  const card = v.page.locator('a.card[href="#stage-rush"]').first();
+  await card.scrollIntoViewIfNeeded();
+  await v.page.waitForTimeout(500);
+  await card.click();
+  await v.page.waitForTimeout(2200);
+  at = await landing("stage-rush");
+  check(at.hash === "#stage-rush" && Math.abs(at.top - 88) < 6 && at.hidden === 0, `# link on the page → ${JSON.stringify(at)}`);
   await v.ctx.close();
 
   // The pricing terms switch both plans.

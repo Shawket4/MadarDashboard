@@ -42,8 +42,8 @@ const free = c.pricing.free;
         <p class="kicker text-teal" data-reveal>{free.kicker}</p>
         <h2 class="text-h2 mt-4" data-split>{free.title}</h2>
         <p class="text-lead mt-5 text-muted" data-reveal>{free.body}</p>
-        <a class="btn btn-primary btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="free-month" data-umami-event-where="about" data-reveal>
-          <Icon name="whatsapp" /> {free.cta}
+        <a class="btn btn-ink btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="free-month" data-umami-event-where="about" data-reveal>
+          {free.cta} <Icon name="arrow" size={18} />
         </a>
       </div>
       <div>

@@ -9,7 +9,7 @@ const { lang } = Astro.props;
 const c = t(lang);
 ---
 <div id="sticky-wa" class="sticky-wa fixed inset-x-3 z-40 md:hidden" style="bottom: max(0.75rem, env(safe-area-inset-bottom));" data-visible="false">
-  <a class="btn btn-primary btn-lg w-full shadow-xl" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="sticky">
-    <Icon name="whatsapp" /> {c.contact.whatsapp}
+  <a class="btn btn-ink btn-lg w-full" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="sticky">
+    {c.contact.whatsapp} <Icon name="arrow" size={18} />
   </a>
 </div>
