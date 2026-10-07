@@ -342,9 +342,6 @@
  * `dark:` so the panel stays navy and lets the terracotta live only in the
  * blurred accent glows.
  */
-@utility brand-panel {
-  background-color: oklch(0.23 0.04 255);
-}
 @utility brand-gradient-text {
   background-image: linear-gradient(120deg, var(--primary), var(--brand));
   -webkit-background-clip: text;

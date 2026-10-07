@@ -226,6 +226,7 @@
   "auth": {
     "welcome": "Welcome back",
     "signInSubtitle": "Sign in to your account to continue",
+    "signInTitle": "Sign in to Madar",
     "email": "Email address",
     "password": "Password",
     "pin": "PIN",
@@ -234,14 +235,6 @@
     "forgotPassword": "Forgot password?",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
-    "features": {
-      "realtime": "Real-time shifts",
-      "realtimeDesc": "Live order tracking across all branches",
-      "rbac": "Role-based access",
-      "rbacDesc": "Granular permissions per user",
-      "multi": "Multi-branch",
-      "multiDesc": "Manage all locations from one place"
-    },
     "errors": {
       "invalid": "Invalid credentials",
       "required": "Email and password are required",

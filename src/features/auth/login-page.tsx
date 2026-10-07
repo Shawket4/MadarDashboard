@@ -5,38 +5,34 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { Activity, Building2, Eye, EyeOff, LogIn, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { LanguageToggle } from "@/components/layout/language-toggle";
+import { MadarWordmark } from "@/components/brand/madar-wordmark";
+import { LegalLinks } from "@/components/legal-links";
 import { useLogin } from "@/data/api/generated/api";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { getErrorMessage } from "@/data/api/errors";
-import { fadeInUp, riseIn, staggerContainer } from "@/lib/motion";
-import { LegalLinks } from "@/components/legal-links";
+import { fadeInUp } from "@/lib/motion";
 
 type LoginValues = { email: string; password: string };
 
-const FEATURES = [
-  { icon: Activity, key: "realtime", descKey: "realtimeDesc" },
-  { icon: ShieldCheck, key: "rbac", descKey: "rbacDesc" },
-  { icon: Building2, key: "multi", descKey: "multiDesc" },
-] as const;
-
+/**
+ * Sign-in. One quiet surface in both themes: the wordmark and the theme/language
+ * toggles on top, the form on a card in the middle, the legal links at the foot.
+ * Every colour is a semantic token, so light and dark need no overrides of their own
+ * (the old split layout hard-coded a navy panel with blurred gradient glows, and
+ * inverted the logo in dark mode, which also whitened its brand "d"). The orbit
+ * behind is the brand motif in hairlines: the border colour, one brand dot.
+ */
 export function LoginPage() {
   const { t, i18n } = useTranslation();
-  const isAr = i18n.language === "ar";
+  const lang = i18n.language === "ar" ? "ar" : "en";
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { redirect?: string };
   const signIn = useAuthStore((s) => s.signIn);
@@ -45,9 +41,10 @@ export function LoginPage() {
   const schema = useMemo(
     () =>
       z.object({
-        email: z.string().min(1, t("common.requiredField", "This field is required")).email(
-          t("auth.errors.invalidEmail", "Enter a valid email"),
-        ),
+        email: z
+          .string()
+          .min(1, t("common.requiredField", "This field is required"))
+          .email(t("auth.errors.invalidEmail", "Enter a valid email")),
         password: z.string().min(1, t("common.requiredField", "This field is required")),
       }),
     [t],
@@ -71,136 +68,112 @@ export function LoginPage() {
   const year = new Date().getFullYear();
 
   return (
-    <div className="flex min-h-svh bg-background">
-      {/* Brand panel */}
-      <aside className="relative hidden w-1/2 overflow-hidden bg-primary text-primary-foreground dark:brand-panel lg:flex xl:w-[55%]">
-        <div className="pointer-events-none absolute -end-24 -top-24 size-96 rounded-full bg-brand/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -start-16 size-96 rounded-full bg-brand/20 blur-3xl" />
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={staggerContainer(0.14, 0.05)}
-          className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16"
-        >
-          <motion.div variants={riseIn} className="flex items-center gap-3">
-            <img src="/Icon.svg" alt="" className="size-11 rounded-xl" draggable={false} />
-            <div className="leading-tight">
-              <p className="text-xl font-semibold">{t("app.name", "Madar")}</p>
-              <p className="text-sm text-primary-foreground/60">{t("app.tagline", "Coffee Shop Management")}</p>
-            </div>
-          </motion.div>
+    <div className="relative isolate flex min-h-svh flex-col overflow-hidden bg-background text-foreground">
+      <Orbit />
 
-          <motion.div variants={riseIn} className="max-w-md space-y-4">
-            <h1 className="font-serif text-4xl font-bold leading-tight tracking-tight xl:text-5xl">
-              {t("auth.welcome", "Welcome back")}
-            </h1>
-            <p className="text-base text-primary-foreground/70">
-              {t("auth.signInSubtitle", "Sign in to your account to continue")}
-            </p>
-            <ul className="space-y-3 pt-4">
-              {FEATURES.map(({ icon: Icon, key, descKey }) => (
-                <li key={key} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10">
-                    <Icon className="size-4" />
-                  </span>
-                  <div>
-                    <p className="font-medium">{t(`auth.features.${key}`, key)}</p>
-                    <p className="text-sm text-primary-foreground/60">{t(`auth.features.${descKey}`, "")}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          <motion.p variants={riseIn} className="text-xs text-primary-foreground/50">
-            {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
-          </motion.p>
-        </motion.div>
-      </aside>
-
-      {/* Form panel */}
-      <main className="relative flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-6">
-        <div className="absolute end-4 top-4 flex items-center gap-1">
+      <header className="flex items-center justify-between px-4 py-4 sm:px-8 sm:py-6">
+        <MadarWordmark lang={lang} title={t("app.name", "Madar")} className="h-7" />
+        <div className="flex items-center gap-1">
           <ThemeToggle />
           <LanguageToggle />
         </div>
+      </header>
 
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={fadeInUp}
-          className="w-full max-w-sm"
-        >
-          <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-start">
-            <img
-              src={isAr ? "/madar_ar.svg" : "/madar.svg"}
-              alt={t("app.name", "Madar")}
-              className="mb-6 h-9 w-auto select-none dark:brightness-0 dark:invert"
-              draggable={false}
-            />
-            <h2 className="text-2xl font-semibold tracking-tight">{t("auth.welcome", "Welcome back")}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+      <main className="flex flex-1 items-center justify-center px-4 py-8 sm:px-6">
+        <motion.div initial="hidden" animate="show" variants={fadeInUp} className="w-full max-w-sm">
+          <div className="rounded-xl border bg-card p-6 text-card-foreground shadow-sm sm:p-8">
+            <h1 className="text-2xl font-semibold tracking-tight">{t("auth.signInTitle", "Sign in to Madar")}</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">
               {t("auth.signInSubtitle", "Sign in to your account to continue")}
             </p>
-          </div>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit((v) => mutate({ data: v }))} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("auth.email", "Email address")}</FormLabel>
-                    <FormControl>
-                      <Input type="email" autoComplete="email" placeholder={t("auth.emailPlaceholder", "you@madar.com")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("auth.password", "Password")}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit((v) => mutate({ data: v }))} className="mt-6 space-y-4" noValidate>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("auth.email", "Email address")}</FormLabel>
+                      <FormControl>
                         <Input
-                          type={showPw ? "text" : "password"}
-                          autoComplete="current-password"
-                          placeholder="••••••••"
-                          className="pe-10"
+                          type="email"
+                          autoComplete="email"
+                          inputMode="email"
+                          dir="ltr"
+                          placeholder={t("auth.emailPlaceholder", "you@madar.com")}
+                          className="h-11"
                           {...field}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPw((s) => !s)}
-                          className="absolute end-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
-                          aria-label={showPw ? t("auth.hidePassword", "Hide password") : t("auth.showPassword", "Show password")}
-                        >
-                          {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" loading={isPending} className="h-11 w-full text-base">
-                <LogIn className="size-4 rtl:-scale-x-100" />
-                {t("auth.signIn", "Sign in")}
-              </Button>
-            </form>
-          </Form>
-
-          <p className="mt-8 text-center text-xs text-muted-foreground">
-            {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
-          </p>
-          <LegalLinks className="mt-2" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("auth.password", "Password")}</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPw ? "text" : "password"}
+                            autoComplete="current-password"
+                            dir="ltr"
+                            className="h-11 pe-11"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPw((s) => !s)}
+                            className="absolute end-0 top-0 flex size-11 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+                            aria-label={showPw ? t("auth.hidePassword", "Hide password") : t("auth.showPassword", "Show password")}
+                            aria-pressed={showPw}
+                          >
+                            {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" loading={isPending} className="h-11 w-full text-base">
+                  {isPending ? t("auth.signingIn", "Signing in…") : t("auth.signIn", "Sign in")}
+                </Button>
+              </form>
+            </Form>
+          </div>
         </motion.div>
       </main>
+
+      <footer className="px-4 pb-6 text-center">
+        <LegalLinks />
+        <p className="mt-2 text-xs text-muted-foreground">
+          {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
+        </p>
+      </footer>
     </div>
+  );
+}
+
+/** The brand's orbit in hairlines, off the page's end edge. Decorative. */
+function Orbit() {
+  return (
+    <svg
+      viewBox="0 0 800 800"
+      aria-hidden="true"
+      className="pointer-events-none absolute -end-64 top-1/2 -z-10 size-[56rem] -translate-y-1/2 text-border sm:-end-48"
+    >
+      <g fill="none" stroke="currentColor" strokeWidth="1.5">
+        <circle cx="400" cy="400" r="130" />
+        <circle cx="400" cy="400" r="250" />
+        <circle cx="400" cy="400" r="380" />
+      </g>
+      <circle cx="400" cy="400" r="10" className="fill-border" />
+      <circle cx="223" cy="223" r="9" className="fill-brand" />
+    </svg>
   );
 }
