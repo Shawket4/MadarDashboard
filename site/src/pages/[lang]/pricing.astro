@@ -70,7 +70,7 @@ const jsonLd = [{
               return (
                 <div class="price-term" data-term={term} hidden={i !== 0}>
                   <p class="flex items-baseline gap-2">
-                    <span class="ltr font-mono text-5xl font-medium tracking-tight md:text-6xl">{fmt(total)}</span>
+                    <span class="ltr tabular font-mono text-5xl font-medium tracking-tight md:text-6xl" data-amount={total}>{fmt(total)}</span>
                     <span class:list={["text-sm", plan.featured ? "text-muted-ink" : "text-muted"]}>{p.currency} · {p.termTotal[term]}</span>
                   </p>
                   <p class:list={["mt-2 h-5 text-sm", plan.featured ? "text-teal-light" : "text-teal"]}>
@@ -139,20 +139,40 @@ const jsonLd = [{
 </BaseLayout>
 
 <script>
+  // Switching the term: each plan's price counts from the old figure to the new one in
+  // place, and the saving line under it fades over. Fast clicks retarget the running
+  // count instead of cutting it. Reduced motion just swaps.
   import gsap from "gsap";
-  import { Flip } from "gsap/Flip";
-  gsap.registerPlugin(Flip);
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const fmt = new Intl.NumberFormat("en-US");
   const set = document.querySelector<HTMLFieldSetElement>("[data-terms]");
+  const blocks = Array.from(document.querySelectorAll<HTMLElement>("[data-price-block]"));
+  // One running figure per plan, so a new click continues from wherever it is.
+  const shown = blocks.map((b) => Number(b.querySelector<HTMLElement>(".price-term:not([hidden]) [data-amount]")?.dataset.amount ?? 0));
+  const counts: (gsap.core.Tween | undefined)[] = [];
   set?.addEventListener("change", (e) => {
     const term = (e.target as HTMLInputElement).value;
-    const blocks = Array.from(document.querySelectorAll<HTMLElement>("[data-price-block]"));
-    const state = reduce ? null : Flip.getState(blocks.flatMap((b) => Array.from(b.children)));
-    for (const b of blocks) {
-      for (const el of Array.from(b.querySelectorAll<HTMLElement>(".price-term"))) el.hidden = el.dataset.term !== term;
-    }
-    if (state) {
-      Flip.from(state, { duration: 0.45, ease: "expo.out", absolute: true, onEnter: (els) => gsap.fromTo(els, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }), onLeave: (els) => gsap.to(els, { opacity: 0, y: -10, duration: 0.25 }) });
-    }
+    blocks.forEach((block, i) => {
+      const terms = Array.from(block.querySelectorAll<HTMLElement>(".price-term"));
+      const next = terms.find((el) => el.dataset.term === term);
+      if (!next) return;
+      const amount = next.querySelector<HTMLElement>("[data-amount]");
+      const target = Number(amount?.dataset.amount ?? 0);
+      terms.forEach((el) => (el.hidden = el !== next));
+      if (reduce || !amount) { shown[i] = target; return; }
+      const from = shown[i] ?? target;
+      const state = { v: from };
+      amount.textContent = fmt.format(Math.round(from));
+      counts[i]?.kill();
+      counts[i] = gsap.to(state, {
+        v: target,
+        duration: 0.7,
+        ease: "expo.out",
+        onUpdate: () => { shown[i] = state.v; amount.textContent = fmt.format(Math.round(state.v)); },
+        onComplete: () => { shown[i] = target; amount.textContent = fmt.format(target); },
+      });
+      const save = next.querySelector<HTMLElement>("p:nth-of-type(2)");
+      if (save) gsap.fromTo(save, { autoAlpha: 0, y: 6 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: "expo.out", overwrite: true });
+    });
   });
 </script>

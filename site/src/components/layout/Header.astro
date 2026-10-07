@@ -56,27 +56,34 @@ const links: { key: PageKey; label: string }[] = [
   </div>
 </header>
 
-<dialog id="mobile-menu" class="sheet menu-sheet" aria-label={c.nav.menu}>
-  <div class="flex h-full flex-col bg-paper px-6 pb-8 pt-5 text-ink shadow-2xl">
-    <div class="flex items-center justify-between">
-      <span class="text-[1.4rem]"><Logo lang={lang} tone="paper" /></span>
+<dialog id="mobile-menu" class="menu-sheet" aria-label={c.nav.menu}>
+  <div class="menu-panel">
+    <svg class="menu-rings" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+      <g stroke="currentColor" stroke-width="1.5"><circle cx="200" cy="200" r="70" /><circle cx="200" cy="200" r="130" /><circle cx="200" cy="200" r="195" /></g>
+      <circle cx="200" cy="200" r="7" fill="currentColor" />
+    </svg>
+    <div class="container-site flex h-16 shrink-0 items-center justify-between">
+      <a href={pageHref(lang, "home")} aria-label={c.nav.home} class="flex items-center text-[1.4rem]"><Logo lang={lang} tone="ink" /></a>
       <form method="dialog">
-        <button class="nav-link inline-flex h-10 w-10 items-center justify-center !p-0" aria-label={c.nav.close}><Icon name="close" size={22} /></button>
+        <button class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line-ink text-paper" aria-label={c.nav.close}><Icon name="close" size={20} /></button>
       </form>
     </div>
-    <nav aria-label={c.nav.primary} class="mt-10 flex flex-col">
-      <a class="border-b border-rule py-4 text-2xl font-semibold" href={pageHref(lang, "home")} aria-current={page === "home" ? "page" : undefined}>{c.nav.home.split(/[,،]/)[0]}</a>
-      {links.map((l) => (
-        <a class="border-b border-rule py-4 text-2xl font-semibold" href={pageHref(lang, l.key)} aria-current={page === l.key ? "page" : undefined}>{l.label}</a>
+    <nav aria-label={c.nav.primary} class="container-site mt-6 flex flex-col">
+      {[{ key: "home" as PageKey, label: c.nav.homeLabel }, ...links].map((l, i) => (
+        <a class="menu-link" style={`--i:${i}`} href={pageHref(lang, l.key)} aria-current={page === l.key ? "page" : undefined}>
+          <span class="menu-index ltr">{String(i + 1).padStart(2, "0")}</span>
+          <span>{l.label}</span>
+          <Icon name="arrow" size={20} />
+        </a>
       ))}
     </nav>
-    <div class="mt-auto flex flex-col gap-3 pt-10">
-      <a class="btn btn-primary btn-lg w-full" href={whatsappHref(lang)} data-umami-event="whatsapp" data-umami-event-where="menu">
+    <div class="menu-foot container-site mt-auto flex flex-col gap-3 pt-10" style={`--i:${links.length + 1}`}>
+      <a class="btn btn-accent btn-lg w-full" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="menu">
         <Icon name="whatsapp" /> {c.contact.whatsapp}
       </a>
-      <div class="flex items-center justify-between gap-3">
-        <a class="btn btn-ghost flex-1" href={switchHref} hreflang={other} lang={other} data-umami-event="lang-switch">{c.nav.langSwitch}</a>
-        <a class="btn btn-ghost flex-1" href={DASHBOARD_URL} rel="noopener">{c.nav.login}</a>
+      <div class="grid grid-cols-2 gap-3">
+        <a class="btn btn-ghost-ink" href={switchHref} hreflang={other} lang={other} data-umami-event="lang-switch"><Icon name="globe" size={18} /> {c.nav.langSwitch}</a>
+        <a class="btn btn-ghost-ink" href={DASHBOARD_URL} rel="noopener">{c.nav.login}</a>
       </div>
     </div>
   </div>

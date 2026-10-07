@@ -49,11 +49,12 @@ for (const [lang, c] of [["en", en], ["ar", ar]]) {
         ? `<div class="frame browser"><div class="bar"><i></i><i></i><i></i></div><img src="${shot(lang, cfg.shot)}"></div>`
         : `<div class="frame ${cfg.frame}"><img src="${shot(lang, cfg.shot)}"></div>`;
     const html = `<!doctype html><html lang="${lang}" dir="${rtl ? "rtl" : "ltr"}"><head><meta charset="utf-8"><style>
-      @font-face{font-family:Plex;font-weight:600;src:url(${font("ibm-plex-sans", "ibm-plex-sans-latin-600-normal.woff2")})}
-      @font-face{font-family:Plex;font-weight:400;src:url(${font("ibm-plex-sans", "ibm-plex-sans-latin-400-normal.woff2")})}
+      @font-face{font-family:Plex;font-weight:600;src:url(${font("ibm-plex-sans-arabic", "ibm-plex-sans-arabic-latin-600-normal.woff2")})}
+      @font-face{font-family:Plex;font-weight:400;src:url(${font("ibm-plex-sans-arabic", "ibm-plex-sans-arabic-latin-400-normal.woff2")})}
       @font-face{font-family:PlexAr;font-weight:600;src:url(${font("ibm-plex-sans-arabic", "ibm-plex-sans-arabic-arabic-600-normal.woff2")})}
       @font-face{font-family:PlexAr;font-weight:400;src:url(${font("ibm-plex-sans-arabic", "ibm-plex-sans-arabic-arabic-400-normal.woff2")})}
       *{box-sizing:border-box;margin:0}
+      svg{display:block}
       html,body{width:1200px;height:630px;overflow:hidden;background:#14181E}
       /* A clipping card rather than the body: in RTL, overflow on the body scrolls the viewport. */
       .card{position:relative;width:1200px;height:630px;overflow:hidden;color:#EFF3F4;font-family:${rtl ? "PlexAr,Plex" : "Plex,PlexAr"},sans-serif}

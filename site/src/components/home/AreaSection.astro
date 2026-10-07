@@ -1,10 +1,20 @@
 ---
 /**
- * One area of the café's day. On desktop the screens stay put (sticky) while the
- * paragraph and its points scroll past; the scroll story brings the matching screen
- * forward for each one (data-step-map: step index → screen index).
+ * One area of the café's day.
+ *
+ * With screens (`media`), the area is a scene: its panel pins to the viewport and
+ * scrolling moves through the screens one at a time, then lets the page carry on
+ * (story.ts). The screens play in the order the paragraph first needs them
+ * (`stepMap`: step index → screen index; step 0 is the intro, then one per point).
+ *  - Desktop: the intro and the points beside the screen; the points that go with the
+ *    current screen stay bright, the rest dim.
+ *  - Phones: the intro reads above the scene; inside it, the screen and the point(s)
+ *    that go with it.
+ * With reduced motion or without JavaScript nothing pins: every screen shows with its
+ * caption, the intro and points beside or above them.
  */
 import Icon from "@/components/ui/Icon.astro";
+import MediaStack, { type MediaItem } from "@/components/media/MediaStack.astro";
 import { t } from "@/i18n";
 import type { Lang } from "@/lib/site";
 
@@ -19,37 +29,83 @@ interface Props {
   tone?: "paper" | "ink";
   reverse?: boolean;
   moreHref?: string;
+  media?: { items: MediaItem[]; layout?: "stack" | "row"; float?: MediaItem };
 }
-const { lang, id, kicker, title, body, points, stepMap = [], tone = "paper", reverse = false, moreHref } = Astro.props;
+const { lang, id, kicker, title, body, points, stepMap = [], tone = "paper", reverse = false, moreHref, media } = Astro.props;
 const c = t(lang);
 const ink = tone === "ink";
+
+// The screens in the order the paragraph first needs them.
+const order = media ? [...new Set(stepMap.length ? stepMap : media.items.map((_, i) => i))] : [];
+const scene = order.length > 1;
+// For each screen, the point(s) it illustrates (phones show these with it); a screen
+// that only goes with the intro shows its own caption instead.
+const screenTexts = order.map((card) => {
+  const mine = points.filter((_, i) => stepMap[i + 1] === card);
+  return mine.length ? mine : [media?.items[card]?.alt ?? ""];
+});
+const kickerTone = ink ? "text-teal-light" : "text-teal";
+const mutedTone = ink ? "text-muted-ink" : "text-muted";
 ---
-<section id={id} class="area relative" data-area data-step-map={JSON.stringify(stepMap)} aria-labelledby={`${id}-title`}>
-  <div class="container-site grid gap-12 py-16 md:py-24 lg:grid-cols-12 lg:gap-14 lg:py-28">
-    <div class:list={["lg:col-span-5", reverse && "lg:order-2"]}>
-      <div class="area-step" data-step="0">
-        <p class:list={["kicker", ink ? "text-teal-light" : "text-teal"]}>{kicker}</p>
-        <h3 id={`${id}-title`} class="text-h3 mt-4" data-split>{title}</h3>
-        <p class:list={["text-lead mt-5", ink ? "text-muted-ink" : "text-muted"]}>{body}</p>
-      </div>
-      <ul class="mt-8 space-y-4 lg:mt-10 lg:space-y-0">
-        {points.map((p, i) => (
-          <li class="area-step lg:py-7" data-step={i + 1}>
-            <p class:list={["bullet text-[1.02rem]", ink ? "text-paper/90" : "text-ink/85"]}>{p}</p>
-          </li>
-        ))}
-      </ul>
-      {moreHref && (
-        <a class:list={["mt-8 inline-flex items-center gap-2 font-medium", ink ? "text-teal-light" : "text-teal"]} href={moreHref}>
-          {c.common.learnMore} <Icon name="arrow" size={18} />
-        </a>
-      )}
+<section
+  id={id}
+  class:list={["area relative", scene && "area-scene"]}
+  data-area
+  data-order={scene ? JSON.stringify(order) : undefined}
+  aria-labelledby={`${id}-title`}
+>
+  {scene && (
+    <div class="area-intro-m container-site pt-16" aria-hidden="true">
+      <p class:list={["kicker", kickerTone]}>{kicker}</p>
+      <p class="text-h3 mt-4" data-split>{title}</p>
+      <p class:list={["text-lead mt-5", mutedTone]}>{body}</p>
     </div>
-    <div class:list={["lg:col-span-7", reverse && "lg:order-1"]}>
-      <div class="lg:sticky lg:top-36" data-area-media>
-        <slot name="media" />
+  )}
+
+  <div class="area-panel" data-area-pin>
+    <div class="area-grid container-site grid w-full gap-12 py-16 md:py-24 lg:grid-cols-12 lg:items-center lg:gap-14 lg:py-28">
+      <div class:list={["area-copy lg:col-span-5", reverse && "lg:order-2"]}>
+        <div class="area-step" data-step="0" data-screen={stepMap[0] ?? 0}>
+          <p class:list={["kicker", kickerTone]}>{kicker}</p>
+          <h3 id={`${id}-title`} class="text-h3 mt-4" data-split>{title}</h3>
+          <p class:list={["text-lead mt-5", mutedTone]}>{body}</p>
+        </div>
+        <ul class="area-points mt-8 space-y-4 lg:mt-8">
+          {points.map((p, i) => (
+            <li class="area-step" data-step={i + 1} data-screen={stepMap[i + 1] ?? 0}>
+              <p class:list={["bullet text-[1.02rem]", ink ? "text-paper/90" : "text-ink/85"]}>{p}</p>
+            </li>
+          ))}
+        </ul>
+        {moreHref && (
+          <a class:list={["mt-8 inline-flex items-center gap-2 font-medium", kickerTone]} href={moreHref}>
+            {c.common.learnMore} <Icon name="arrow" size={18} />
+          </a>
+        )}
+      </div>
+      <div class:list={["area-media lg:col-span-7", reverse && "lg:order-1"]} data-area-media>
+        {media ? (
+          <MediaStack lang={lang} items={media.items} layout={media.layout} float={media.float} order={order} />
+        ) : (
+          <slot name="media" />
+        )}
+        {scene && (
+          <div class="area-texts" aria-hidden="true">
+            {screenTexts.map((lines, k) => (
+              <div class="area-text" data-screen-text={k} data-active={k === 0 ? "" : undefined}>
+                {lines.map((line) => <p class:list={["bullet", ink ? "text-paper/90" : "text-ink/85"]}>{line}</p>)}
+              </div>
+            ))}
+          </div>
+        )}
+        {scene && moreHref && (
+          <a class:list={["area-more-m mt-5 items-center gap-2 font-medium", kickerTone]} href={moreHref}>
+            {c.common.learnMore} <Icon name="arrow" size={18} />
+          </a>
+        )}
       </div>
     </div>
   </div>
+
   <slot name="after" />
 </section>

@@ -1,12 +1,11 @@
 // A cappuccino, step by step: Madar's prep-step animations played with dotLottie.
-//  scrub    (desktop) the block pins and scrolling plays the steps
-//  autoplay (phones)  the steps play one after another while on screen
-//  still    (reduced motion) one finished frame, no movement
+//  scrub  the block pins and scrolling plays the steps (desktop and phones)
+//  still  (reduced motion) one finished frame, no movement
 import { DotLottie } from "@lottiefiles/dotlottie-web";
 import wasmUrl from "@lottiefiles/dotlottie-web/dotlottie-player.wasm?url";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-type Mode = "scrub" | "autoplay" | "still";
+type Mode = "scrub" | "still";
 let players: DotLottie[] = [];
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -19,7 +18,9 @@ export function initBarista({ mode }: { mode: Mode }): (() => void) | void {
   const canvases = Array.from(root.querySelectorAll<HTMLCanvasElement>("canvas[data-lottie]"));
   const steps = Array.from(root.querySelectorAll<HTMLElement>("[data-barista-step]"));
   const names = steps.map((s) => s.querySelector(".font-semibold")?.textContent ?? "");
+  const notes = steps.map((s) => s.querySelector(".text-muted-ink")?.textContent ?? "");
   const label = root.querySelector<HTMLElement>("[data-barista-current]");
+  const note = root.querySelector<HTMLElement>("[data-barista-note]");
   const count = root.querySelector<HTMLElement>("[data-barista-count]");
   const bar = root.querySelector<HTMLElement>("[data-barista-progress]");
   const n = canvases.length;
@@ -46,6 +47,7 @@ export function initBarista({ mode }: { mode: Mode }): (() => void) | void {
     canvases.forEach((c, j) => (c.style.opacity = j === i ? "1" : "0"));
     steps.forEach((s, j) => (j === i ? s.setAttribute("data-active", "") : s.removeAttribute("data-active")));
     if (label) label.textContent = names[i] ?? "";
+    if (note) note.textContent = notes[i] ?? "";
     if (count) count.textContent = `${pad(i + 1)} / ${pad(n)}`;
   };
 
@@ -88,39 +90,5 @@ export function initBarista({ mode }: { mode: Mode }): (() => void) | void {
     return;
   }
 
-  // autoplay: one step after another while the block is on screen
-  let i = 0;
-  let running = false;
-  const playCurrent = () => {
-    const p = players[i];
-    if (!p) return;
-    show(i);
-    if (bar) bar.style.transform = `scaleX(${(i + 1) / n})`;
-    try { p.setFrame(0); p.play(); } catch { /* loading */ }
-  };
-  const onComplete = () => {
-    if (!running) return;
-    i = (i + 1) % n;
-    playCurrent();
-  };
-  const io = new IntersectionObserver(([en]) => {
-    if (en?.isIntersecting) {
-      ensure();
-      if (!running) {
-        running = true;
-        players.forEach((p) => p.addEventListener("complete", onComplete));
-        const first = players[i];
-        if (first?.isLoaded) playCurrent();
-        else first?.addEventListener("load", playCurrent);
-      }
-    } else if (running) {
-      running = false;
-      players.forEach((p) => { try { p.pause(); } catch { /* ignore */ } });
-    }
-  }, { threshold: 0.35 });
-  io.observe(root);
-  return () => {
-    io.disconnect();
-    running = false;
-  };
+  return;
 }

@@ -51,6 +51,7 @@ export const en = {
     langSwitchAria: "اقرأ الصفحة دي بالعربي",
     skip: "Skip to content",
     home: "Madar, home",
+    homeLabel: "Home",
     primary: "Main",
   },
 

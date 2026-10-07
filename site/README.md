@@ -63,15 +63,25 @@ The HTML is meant to be cached at Cloudflare for 5 minutes (a Cache Rule on
 | Phone, email, socials, dashboard link | `src/lib/site.ts` |
 | Home page order | `src/pages/[lang]/index.astro` |
 | Screenshots | see below |
-| The scroll story | `src/scripts/story.ts` (GSAP: ScrollTrigger, SplitText, DrawSVG, Flip; Lenis on mouse/trackpad) |
+| The scroll story | `src/scripts/story.ts` (GSAP: ScrollTrigger, SplitText, DrawSVG; Lenis on mouse/trackpad) |
+| An area's screens | `media` and `stepMap` on each `AreaSection` in `src/pages/[lang]/index.astro`: the screens play in the order the steps first need them (step 0 is the intro, then one per point) |
 | The cappuccino steps | `src/scripts/barista.ts`, files in `src/assets/lottie/` (Madar's own prep-step animations) |
-| Colours, type, buttons | `src/styles/global.css` (brand kit palette; IBM Plex Sans, Sans Arabic, Mono) |
+| Colours, type, buttons | `src/styles/global.css`: the brand kit's palette, and the design system's type (MadarDashboard `DESIGN.md`): IBM Plex Sans Arabic leads in both languages, IBM Plex Sans behind it, IBM Plex Mono for figures |
 
-Motion rules: content is in the HTML and fully readable without JavaScript;
-`prefers-reduced-motion` gets no animation at all (a still frame for the barista);
-phones get reveals and autoplay but no pinning. Split text by **words only** (letters
-would break how Arabic joins). ScrollTriggers whose range contains the barista pin use
-`refreshPriority: -1`, or they end a pin-length too early.
+Motion rules:
+- Content is in the HTML and fully readable without JavaScript; `prefers-reduced-motion`
+  gets no animation at all: no pinning, every screen shown with its caption, a still
+  frame for the barista.
+- Each area with screens is a **scene**: it pins (desktop and phones) and scrolling
+  moves through its screens one at a time, then the page carries on. A fast scroll
+  never cuts a change off: the running one hurries to its end and the next follows
+  (`sequencer` in `story.ts`). The cappuccino pins and scrubs the same way.
+- A click from another page of the site is a **soft** entry: the page transition
+  brings the page in and nothing on screen replays its entrance. Arriving from
+  outside (or a reload) plays the hero's entrance.
+- Split text by **words only** (letters would break how Arabic joins).
+- Pins are created in page order. ScrollTriggers whose range contains a pin use
+  `refreshPriority: -1`, or they end a pin-length too early.
 
 ## Screenshots
 

@@ -37,6 +37,8 @@ const svg = (s: string) => s.replace(/<svg([^>]*?)\swidth="[^"]*"\sheight="[^"]*
           to = "/404.html";
         }
         d.className = "go";
+        // The page we land on counts this as arriving, not as a click inside the site.
+        try { sessionStorage.setItem("madar-hop", "1"); } catch (e) {}
         location.replace(to);
       })(document.documentElement);
     </script>

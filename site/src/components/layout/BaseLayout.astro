@@ -1,7 +1,7 @@
 ---
 import "@/styles/global.css";
-import plexSans600 from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2?url";
-import plexSans400 from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url";
+import plexLatin600 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-600-normal.woff2?url";
+import plexLatin400 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-400-normal.woff2?url";
 import plexArabic600 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-600-normal.woff2?url";
 import plexArabic400 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-400-normal.woff2?url";
 import Header from "./Header.astro";
@@ -57,8 +57,23 @@ const ld = [org, ...jsonLd];
     <meta charset="utf-8" />
     <script is:inline>
       (function (d) {
-        // Hide what the scroll story will animate in, until it's ready (3 s safety net).
-        if (window.matchMedia && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        d.classList.add("js");
+        var motion = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+        if (motion) d.classList.add("motion");
+        // A click from another page of this site: the page transition brings the page
+        // in, so nothing on screen waits for an entrance ("soft"). The root page's
+        // forward to a page file marks itself, and that still counts as arriving.
+        var soft = false;
+        try {
+          var hop = sessionStorage.getItem("madar-hop");
+          if (hop) sessionStorage.removeItem("madar-hop");
+          var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+          var ref = document.referrer;
+          soft = !hop && !!ref && ref.indexOf(location.origin + "/") === 0 && !(nav && nav.type === "reload");
+        } catch (e) {}
+        if (soft) d.setAttribute("data-soft", "");
+        // Arriving fresh: hide what the entrance animates until it's ready (3 s safety net).
+        if (motion && !soft) {
           d.classList.add("m");
           setTimeout(function () { if (!d.classList.contains("m-ready")) d.classList.add("m-fail"); }, 3000);
         }
@@ -110,8 +125,8 @@ const ld = [org, ...jsonLd];
       </>
     ) : (
       <>
-        <link rel="preload" as="font" type="font/woff2" href={plexSans600} crossorigin />
-        <link rel="preload" as="font" type="font/woff2" href={plexSans400} crossorigin />
+        <link rel="preload" as="font" type="font/woff2" href={plexLatin600} crossorigin />
+        <link rel="preload" as="font" type="font/woff2" href={plexLatin400} crossorigin />
       </>
     )}
 

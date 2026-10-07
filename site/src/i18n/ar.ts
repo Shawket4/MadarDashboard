@@ -53,6 +53,7 @@ export const ar: Copy = {
     langSwitchAria: "Read this page in English",
     skip: "انتقل للمحتوى",
     home: "مدار، الرئيسية",
+    homeLabel: "الرئيسية",
     primary: "القايمة الرئيسية",
   },
 

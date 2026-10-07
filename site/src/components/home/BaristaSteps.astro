@@ -1,8 +1,9 @@
 ---
 /**
  * A cappuccino, step by step, with Madar's own prep-step animations (Lottie, played by
- * dotLottie). Desktop: the block pins and scrolling plays the steps. Phones: the steps
- * play one after another while the block is on screen. Reduced motion: a still frame.
+ * dotLottie). The block pins and scrolling plays the steps, on desktop and phones
+ * (phones show the current step's note under the cup instead of the whole list).
+ * Reduced motion: a still frame and the list.
  */
 import { BARISTA_STEPS } from "@/data/barista";
 import { t } from "@/i18n";
@@ -33,7 +34,7 @@ const lottieUrl = (key: string) => lottie[`/src/assets/lottie/${key}.json`] ?? "
             </li>
           ))}
         </ol>
-        <p class="mt-6 hidden items-center gap-2 text-sm text-muted-ink lg:flex">
+        <p class="barista-hint mt-6 hidden items-center gap-2 text-sm text-muted-ink lg:flex">
           <span class="inline-block h-6 w-[2px] animate-pulse rounded bg-teal-light"></span>{c.areas.counter.barista.hint}
         </p>
       </div>
@@ -58,6 +59,7 @@ const lottieUrl = (key: string) => lottie[`/src/assets/lottie/${key}.json`] ?? "
           </div>
           <div class="absolute inset-x-0 top-0 h-1 bg-ink/5"><span class="barista-progress block h-full w-full scale-x-0 bg-teal" data-barista-progress></span></div>
         </div>
+        <p class="barista-note mx-auto mt-4 max-w-[30rem] text-center text-muted-ink" data-barista-note>{steps[0]?.note}</p>
       </div>
     </div>
   </div>

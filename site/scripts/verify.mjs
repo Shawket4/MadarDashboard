@@ -141,7 +141,7 @@ for (const folders of ["open", "nginx-today"]) {
   // The pricing terms switch both plans.
   v = await visit("/en/pricing/");
   await v.page.click("[data-terms] label:last-child");
-  await v.page.waitForTimeout(700);
+  await v.page.waitForTimeout(1400);
   const prices = await v.page.$$eval("[data-price-block] .price-term:not([hidden]) .font-mono", (els) => els.map((e) => e.textContent?.trim()));
   check(prices.join(",") === "30,000,35,000", `yearly prices → ${prices.join(",")}`);
   // "Talk to us" opens the contact sheet.

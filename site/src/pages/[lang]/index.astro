@@ -10,7 +10,6 @@ import RushMarquee from "@/components/home/RushMarquee.astro";
 import BaristaSteps from "@/components/home/BaristaSteps.astro";
 import BasiraDemo from "@/components/home/BasiraDemo.astro";
 import Tiles from "@/components/home/Tiles.astro";
-import MediaStack from "@/components/media/MediaStack.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS, pageHref } from "@/lib/site";
 
@@ -34,113 +33,79 @@ const sec = (x: { kicker: string; title: string; body: string; points: string[] 
     <!-- 07:00 Opening -->
     <div id="stage-opening" class="bg-paper" data-stage-block="opening">
       <StageHeader id="opening" {...c.day.stages.opening} />
-      <AreaSection lang={lang} id="till" {...sec(a.till)} stepMap={[0, 1, 1, 2]} moreHref={more("till")}>
-        <MediaStack
-          slot="media"
-          lang={lang}
-          items={[
-            { id: "pos-close-till", frame: "ipad", alt: a.till.alts.closeTill },
-            { id: "pos-charge", frame: "ipad", alt: a.till.alts.charge },
-            { id: "pos-manager-pin", frame: "ipad", alt: a.till.alts.managerPin },
-          ]}
-        />
-      </AreaSection>
-      <AreaSection lang={lang} id="inventory" {...sec(a.inventory)} stepMap={[0, 3, 2, 1]} reverse moreHref={more("inventory")}>
-        <MediaStack
-          slot="media"
-          lang={lang}
-          items={[
-            { id: "dash-ingredients", frame: "browser", alt: a.inventory.alts.ingredients },
-            { id: "dash-reorder", frame: "browser", alt: a.inventory.alts.reorder },
-            { id: "dash-waste", frame: "browser", alt: a.inventory.alts.waste },
-            { id: "dash-purchasing", frame: "browser", alt: a.inventory.alts.purchasing },
-          ]}
-        />
-      </AreaSection>
+      <AreaSection lang={lang} id="till" {...sec(a.till)} stepMap={[0, 1, 1, 2]} moreHref={more("till")}
+        media={{ items: [
+          { id: "pos-close-till", frame: "ipad", alt: a.till.alts.closeTill },
+          { id: "pos-charge", frame: "ipad", alt: a.till.alts.charge },
+          { id: "pos-manager-pin", frame: "ipad", alt: a.till.alts.managerPin },
+        ] }}
+      />
+      <AreaSection lang={lang} id="inventory" {...sec(a.inventory)} stepMap={[0, 3, 2, 1]} reverse moreHref={more("inventory")}
+        media={{ items: [
+          { id: "dash-ingredients", frame: "browser", alt: a.inventory.alts.ingredients },
+          { id: "dash-reorder", frame: "browser", alt: a.inventory.alts.reorder },
+          { id: "dash-waste", frame: "browser", alt: a.inventory.alts.waste },
+          { id: "dash-purchasing", frame: "browser", alt: a.inventory.alts.purchasing },
+        ] }}
+      />
     </div>
 
     <!-- 13:00 The rush -->
     <div id="stage-rush" class="on-ink bg-ink text-paper" data-stage-block="rush">
       <StageHeader id="rush" {...c.day.stages.rush} tone="ink" />
       <RushMarquee tags={c.rushTags} />
-      <AreaSection lang={lang} id="counter" {...sec(a.counter)} tone="ink" stepMap={[0, 1, 1, 0]} moreHref={more("counter")}>
-        <MediaStack
-          slot="media"
-          lang={lang}
-          items={[
-            { id: "pos-cart", frame: "ipad", alt: c.hero.altPos },
-            { id: "pos-item", frame: "ipad", alt: a.counter.alts.item },
-          ]}
-        />
+      <AreaSection lang={lang} id="counter" {...sec(a.counter)} tone="ink" stepMap={[0, 1, 1, 0]} moreHref={more("counter")}
+        media={{ items: [
+          { id: "pos-cart", frame: "ipad", alt: c.hero.altPos },
+          { id: "pos-item", frame: "ipad", alt: a.counter.alts.item },
+        ] }}
+      >
         <BaristaSteps slot="after" lang={lang} />
       </AreaSection>
-      <AreaSection lang={lang} id="floor" {...sec(a.floor)} tone="ink" stepMap={[0, 1, 0, 0]} reverse moreHref={more("floor")}>
-        <MediaStack
-          slot="media"
-          lang={lang}
-          items={[
-            { id: "pos-table", frame: "ipad", alt: a.floor.alts.table },
-            { id: "kds-board", frame: "ipad", alt: a.floor.alts.kds },
-          ]}
-          float={{ id: "order-table", frame: "iphone", alt: a.floor.alts.orderTable }}
-        />
-      </AreaSection>
-      <AreaSection lang={lang} id="ordering" {...sec(a.ordering)} tone="ink" stepMap={[0, 1, 1, 2]} moreHref={more("ordering")}>
-        <MediaStack
-          slot="media"
-          lang={lang}
-          layout="fan"
-          items={[
-            { id: "order-menu", frame: "iphone", alt: a.ordering.alts.menu },
-            { id: "order-channel", frame: "iphone", alt: a.ordering.alts.channel },
-            { id: "order-track", frame: "iphone", alt: a.ordering.alts.track },
-          ]}
-        />
-      </AreaSection>
-      <AreaSection lang={lang} id="loyalty" {...sec(a.loyalty)} tone="ink" stepMap={[0, 1, 0, 2]} reverse moreHref={more("loyalty")}>
-        <MediaStack
-          slot="media"
-          lang={lang}
-          layout="fan"
-          items={[
-            { id: "wallet-pass", frame: "iphone", alt: a.loyalty.alts.pass },
-            { id: "loyalty-join", frame: "iphone", alt: a.loyalty.alts.join },
-            { id: "loyalty-card", frame: "iphone", alt: a.loyalty.alts.card },
-          ]}
-        />
-      </AreaSection>
+      <AreaSection lang={lang} id="floor" {...sec(a.floor)} tone="ink" stepMap={[0, 1, 0, 0]} reverse moreHref={more("floor")}
+        media={{ items: [
+          { id: "pos-table", frame: "ipad", alt: a.floor.alts.table },
+          { id: "kds-board", frame: "ipad", alt: a.floor.alts.kds },
+        ], float: { id: "order-table", frame: "iphone", alt: a.floor.alts.orderTable } }}
+      />
+      <AreaSection lang={lang} id="ordering" {...sec(a.ordering)} tone="ink" stepMap={[0, 1, 1, 2]} moreHref={more("ordering")}
+        media={{ items: [
+          { id: "order-menu", frame: "iphone", alt: a.ordering.alts.menu },
+          { id: "order-channel", frame: "iphone", alt: a.ordering.alts.channel },
+          { id: "order-track", frame: "iphone", alt: a.ordering.alts.track },
+        ], layout: "row" }}
+      />
+      <AreaSection lang={lang} id="loyalty" {...sec(a.loyalty)} tone="ink" stepMap={[0, 1, 0, 2]} reverse moreHref={more("loyalty")}
+        media={{ items: [
+          { id: "wallet-pass", frame: "iphone", alt: a.loyalty.alts.pass },
+          { id: "loyalty-join", frame: "iphone", alt: a.loyalty.alts.join },
+          { id: "loyalty-card", frame: "iphone", alt: a.loyalty.alts.card },
+        ], layout: "row" }}
+      />
       <div class="h-10 md:h-16"></div>
     </div>
 
     <!-- 23:30 After close -->
     <div id="stage-close" class="bg-surface" data-stage-block="close">
       <StageHeader id="close" {...c.day.stages.close} />
-      <AreaSection lang={lang} id="menu" {...sec(a.menu)} stepMap={[0, 1, 2, 0]} moreHref={more("menu")}>
-        <MediaStack
-          slot="media"
-          lang={lang}
-          items={[
-            { id: "dash-quadrant", frame: "browser", alt: a.menu.alts.quadrant },
-            { id: "dash-repricing", frame: "browser", alt: a.menu.alts.repricing },
-            { id: "dash-decisions", frame: "browser", alt: a.menu.alts.decisions },
-          ]}
-        />
-      </AreaSection>
+      <AreaSection lang={lang} id="menu" {...sec(a.menu)} stepMap={[0, 1, 2, 0]} moreHref={more("menu")}
+        media={{ items: [
+          { id: "dash-quadrant", frame: "browser", alt: a.menu.alts.quadrant },
+          { id: "dash-repricing", frame: "browser", alt: a.menu.alts.repricing },
+          { id: "dash-decisions", frame: "browser", alt: a.menu.alts.decisions },
+        ] }}
+      />
       <AreaSection lang={lang} id="basira" {...sec(a.basira)} reverse moreHref={more("basira")}>
         <BasiraDemo slot="media" lang={lang} />
       </AreaSection>
-      <AreaSection lang={lang} id="hq" {...sec(a.hq)} stepMap={[0, 1, 2, 3]} moreHref={more("hq")}>
-        <MediaStack
-          slot="media"
-          lang={lang}
-          items={[
-            { id: "dash-overview", frame: "browser", alt: a.hq.alts.overview },
-            { id: "dash-menu-pricing", frame: "browser", alt: a.hq.alts.menuPricing },
-            { id: "dash-access", frame: "browser", alt: a.hq.alts.access },
-            { id: "dash-export", frame: "browser", alt: a.hq.alts.export },
-          ]}
-        />
-      </AreaSection>
+      <AreaSection lang={lang} id="hq" {...sec(a.hq)} stepMap={[0, 1, 2, 3]} moreHref={more("hq")}
+        media={{ items: [
+          { id: "dash-overview", frame: "browser", alt: a.hq.alts.overview },
+          { id: "dash-menu-pricing", frame: "browser", alt: a.hq.alts.menuPricing },
+          { id: "dash-access", frame: "browser", alt: a.hq.alts.access },
+          { id: "dash-export", frame: "browser", alt: a.hq.alts.export },
+        ] }}
+      />
     </div>
   </div>
 
