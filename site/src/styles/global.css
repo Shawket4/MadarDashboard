@@ -354,6 +354,14 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
 .media-dots i[data-on] { width: 1.15rem; opacity: 1; background: var(--color-teal); }
 .on-ink .media-dots i[data-on] { background: var(--color-teal-light); }
 .media-progress { display: none; }
+/* A small cue that scrolling moves the screens on; it bows out on the last one. */
+.media-cue { display: inline-flex; padding-top: .15rem; opacity: .7; transition: opacity .3s; }
+.motion .media-cue svg { animation: media-cue 1.6s var(--ease-in-out-quart) infinite; }
+[data-last] .media-cue { opacity: 0; }
+@keyframes media-cue { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+@media (prefers-reduced-motion: reduce) { .motion .media-cue svg { animation: none; } }
+/* Phones: the WhatsApp bar steps aside while a scene holds the page. */
+.scene-on .sticky-wa { transform: translateY(140%); opacity: 0; pointer-events: none; }
 .motion .area-scene .media-progress { display: block; position: relative; height: 2px; margin-top: .85rem; border-radius: 2px; background: color-mix(in oklab, currentColor 16%, transparent); overflow: hidden; }
 .media-progress i { position: absolute; inset: 0; background: var(--color-teal); transform: scaleX(0); transform-origin: 0% 50%; }
 .on-ink .media-progress i { background: var(--color-teal-light); }
@@ -364,7 +372,7 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
 @media (min-width: 1024px) {
   /* Without motion the screens stack in a column: keep the words beside them in view. */
   html:not(.motion) .area-scene .area-copy { position: sticky; top: 6rem; align-self: start; }
-  .motion .area-scene .area-panel { height: 100svh; display: flex; align-items: center; padding-top: 4rem; }
+  .motion .area-scene .area-panel { height: 100svh; display: flex; align-items: safe center; padding-block: 4rem 3.5rem; }
   .motion .area-scene .area-grid { padding-block: 1.25rem; }
   .motion .area-scene .area-points { margin-top: 1.4rem; }
   .motion [data-media="stack"] .media-frame { width: min(100%, calc((100svh - 13rem) * var(--ratio))); margin-inline: auto; }
@@ -374,6 +382,16 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
   .motion [data-media="row"] .media-card[data-active] { transform: translateY(-3%) scale(1.04); }
   .motion .media-float { display: block; position: absolute; z-index: 3; bottom: -2rem; inset-inline-start: -5%; width: 26%; max-width: 12rem; }
   .motion .media-meta-float { padding-inline-start: 23%; }
+}
+/* Short laptop screens: the words tighten so the whole scene fits under the header. */
+@media (min-width: 1024px) and (max-height: 780px) {
+  .motion .area-scene .area-grid { padding-block: .5rem; }
+  .motion .area-scene .text-h3 { font-size: clamp(1.45rem, 1.1rem + 1.1vw, 2rem); }
+  .motion .area-scene .text-lead { font-size: 1rem; line-height: 1.5; margin-top: .75rem; }
+  .motion .area-scene .area-points { margin-top: .9rem; }
+  .motion .area-scene .area-points > * + * { margin-top: .55rem; }
+  .motion .area-scene .area-points .bullet { font-size: .92rem; line-height: 1.45; }
+  .motion .area-scene .media-meta { margin-top: .8rem; }
 }
 @media (max-width: 1023px) {
   .motion .area-scene .area-intro-m { display: block; }

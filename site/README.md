@@ -79,11 +79,19 @@ Motion rules:
   gets no animation at all: a still frame for the barista.
 - An area with screens is a **scene**: the page pauses on it while scrolling plays its
   screens one at a time (about two-thirds of a screen of scrolling each), then carries
-  on. A progress line under the screen fills with the scroll, so the pause never reads
-  as stuck. A fast scroll never cuts a change off: the running one hurries to its end
-  (`sequencer` in `story.ts`). A **flick** skips the pause: the scene settles on its last
-  screen and the page leaps past (`FLICK`, `leap`). The cappuccino pins on desktop
-  only; on phones its steps play while it is on screen.
+  on. A screen change turns the deck: the next screen slides up over the current one,
+  which settles back underneath (the reverse going up); the words swap one after the
+  other, never overlapping. A progress line under the screen fills with the scroll and
+  a small arrow bobs until the last screen, so the pause never reads as stuck. On phones
+  the WhatsApp bar steps aside while a scene holds the page. Short laptop screens get
+  tighter type so a scene fits under the header. A fast scroll never cuts a change off:
+  the running one hurries to its end (`sequencer` in `story.ts`).
+- A **flick** skips a scene's pause: past 3,500 px/s (`FLICK`) the scene settles on its
+  last screen (its first, going up) and the page leaps past (`leap`). Only the
+  visitor's own throws count (wheel, touch or keys in the last moments, `thrown`), so a
+  # address landing or the browser restoring a position never skips anything, and one
+  leap never sets off the next.
+- The cappuccino pins on desktop only; on phones its steps play while it is on screen.
 - Entrances that come up while the page moves fast just finish
   (`flicking` in `story.ts`), so nothing fades in behind a fling.
 - A click from another page of the site is a **soft** entry: the page transition

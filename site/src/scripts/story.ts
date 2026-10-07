@@ -59,7 +59,17 @@ const FLICK = 3500;
  * touch an instant jump (the flick's own motion hides it, and it ends the momentum
  * just past the pause rather than fighting it).
  */
+let leapt = 0; // when the last leap happened: its own speed is not a new flick
+// A flick is the visitor's own throw: a wheel, a finger or a key moved the page in the
+// last couple of seconds (a phone's momentum runs on after the finger lifts). A script's
+// jump (a # address landing, the browser restoring a position) is fast too, but no flick.
+let touched = 0;
+for (const type of ["wheel", "touchstart", "touchmove", "touchend", "keydown"]) {
+  window.addEventListener(type, () => (touched = performance.now()), { passive: true });
+}
+const thrown = () => performance.now() - touched < 2500 && performance.now() - leapt > 600;
 function leap(y: number) {
+  leapt = performance.now();
   if (lenis) {
     lenis.resize();
     lenis.scrollTo(y, { duration: 0.35, easing: (t: number) => 1 - Math.pow(1 - t, 3), force: true });
@@ -444,6 +454,8 @@ function sequencer(
   };
 }
 
+let pausedScenes = 0;
+
 /**
  * An area with screens: the page pauses on it while scrolling moves through its screens,
  * then carries on. The pause is kept short (about two-thirds of a screen of scrolling
@@ -475,6 +487,7 @@ function areaScene(area: HTMLElement) {
     steps.forEach((s) => s.toggleAttribute("data-active", Number(s.dataset.screen) === card));
     texts.forEach((t, i) => t.toggleAttribute("data-active", i === k));
     dots.forEach((d, i) => d.toggleAttribute("data-on", i === k));
+    media.toggleAttribute("data-last", k === n - 1); // the scroll cue bows out on the last screen
     if (count) count.textContent = `${pad(k + 1)} / ${pad(n)}`;
     if (caption) caption.textContent = altOf(card);
   };
@@ -487,7 +500,7 @@ function areaScene(area: HTMLElement) {
     for (const c of cards) {
       const on = c === lit;
       if (row) gsap.set(c, { autoAlpha: on ? 1 : 0.42, scale: on ? 1.04 : 0.94, yPercent: on ? -3 : 0 });
-      else gsap.set(c, { autoAlpha: on ? 1 : 0, y: 0, scale: 1, zIndex: on ? 2 : 1 });
+      else gsap.set(c, { autoAlpha: on ? 1 : 0, y: 0, yPercent: 0, scale: 1, zIndex: on ? 2 : 1 });
     }
     texts.forEach((t, i) => gsap.set(t, { autoAlpha: i === k ? 1 : 0, y: 0 }));
   };
@@ -497,27 +510,41 @@ function areaScene(area: HTMLElement) {
     return r.bottom > 0 && r.top < window.innerHeight;
   };
 
+  // A screen change turns the deck: going on, the next screen slides up over the one on
+  // show, which settles back underneath; going back, the top screen slides away and the
+  // one beneath comes forward. The moving screen is opaque and on top, so two screens
+  // never show through each other. The words swap after one another, never overlapping.
   const change = (from: number, to: number) => {
     mark(to);
-    const way = to > from ? 1 : -1;
+    const on = to > from;
     const a = cards[order[from] ?? 0];
     const b = cards[order[to] ?? 0];
-    const tl = gsap.timeline();
+    const tl = gsap.timeline({ defaults: { overwrite: "auto" } });
     if (row) {
       cards.forEach((c) => {
-        const on = c === b;
-        tl.to(c, { autoAlpha: on ? 1 : 0.42, scale: on ? 1.04 : 0.94, yPercent: on ? -3 : 0, duration: 0.7, ease: "expo.out" }, 0);
+        const me = c === b;
+        tl.to(c, { autoAlpha: me ? 1 : 0.42, scale: me ? 1.04 : 0.94, yPercent: me ? -3 : 0, duration: 0.7, ease: "expo.out" }, 0);
       });
     } else if (a && b) {
-      tl.set(b, { zIndex: 2 }, 0).set(a, { zIndex: 1 }, 0)
-        .to(a, { autoAlpha: 0, y: -36 * way, scale: 0.97, duration: 0.42, ease: "power2.in" }, 0)
-        .fromTo(b, { autoAlpha: 0, y: 52 * way, scale: 0.97 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.8, ease: "expo.out" }, 0.1);
+      if (on) {
+        tl.set(b, { zIndex: 3 }, 0).set(a, { zIndex: 2 }, 0)
+          .fromTo(b, { yPercent: 9, scale: 1, autoAlpha: 0 }, { yPercent: 0, duration: 0.75, ease: "expo.out" }, 0)
+          .to(b, { autoAlpha: 1, duration: 0.1, ease: "none" }, 0)
+          .to(a, { scale: 0.94, yPercent: -2, duration: 0.6, ease: "expo.out" }, 0)
+          .to(a, { autoAlpha: 0, duration: 0.25, ease: "none" }, 0.3);
+      } else {
+        tl.set(a, { zIndex: 3 }, 0).set(b, { zIndex: 2 }, 0)
+          .to(a, { yPercent: 9, duration: 0.42, ease: "power3.in" }, 0)
+          .to(a, { autoAlpha: 0, duration: 0.12, ease: "none" }, 0.3)
+          .fromTo(b, { scale: 0.94, yPercent: -2, autoAlpha: 1 }, { scale: 1, yPercent: 0, duration: 0.7, ease: "expo.out" }, 0.08);
+      }
     }
     const ta = texts[from];
     const tb = texts[to];
     if (ta && tb) {
-      tl.to(ta, { autoAlpha: 0, y: -10 * way, duration: 0.25, ease: "power2.in" }, 0)
-        .fromTo(tb, { autoAlpha: 0, y: 14 * way }, { autoAlpha: 1, y: 0, duration: 0.55, ease: "expo.out" }, 0.15);
+      const way = on ? 1 : -1;
+      tl.to(ta, { autoAlpha: 0, y: -8 * way, duration: 0.18, ease: "power2.in" }, 0)
+        .fromTo(tb, { autoAlpha: 0, y: 12 * way }, { autoAlpha: 1, y: 0, duration: 0.5, ease: "expo.out" }, 0.2);
     }
     return tl;
   };
@@ -535,7 +562,7 @@ function areaScene(area: HTMLElement) {
     onUpdate: (self) => {
       if (bar) gsap.set(bar, { scaleX: self.progress });
       if (skipping) return;
-      if (self.isActive && Math.abs(self.getVelocity()) > FLICK) {
+      if (self.isActive && thrown() && Math.abs(self.getVelocity()) > FLICK) {
         skipping = true;
         const down = self.direction > 0;
         go(down ? n - 1 : 0, true);
@@ -546,6 +573,9 @@ function areaScene(area: HTMLElement) {
     },
     onToggle: (self) => {
       if (!self.isActive) skipping = false;
+      // While a scene holds the page, the phone's WhatsApp bar steps aside for its words.
+      pausedScenes = Math.max(0, pausedScenes + (self.isActive ? 1 : -1));
+      root.classList.toggle("scene-on", pausedScenes > 0);
     },
   });
 }

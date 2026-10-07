@@ -11,6 +11,7 @@
  * another, each with its caption.
  */
 import Shot from "./Shot.astro";
+import Icon from "@/components/ui/Icon.astro";
 import type { Lang } from "@/lib/site";
 
 export type MediaItem = { id: string; frame: "browser" | "ipad" | "iphone"; alt: string };
@@ -52,6 +53,7 @@ const first = items[order[0] ?? 0];
       <span class="ltr tabular font-mono text-xs" data-media-count>01 / {pad(items.length)}</span>
       <span class="media-dots">{order.map((_, k) => <i data-dot={k} data-on={k === 0 ? "" : undefined}></i>)}</span>
       <span class="media-meta-caption" data-media-caption>{first?.alt}</span>
+      <span class="media-cue"><Icon name="arrow-down" size={16} /></span>
     </div>
   )}
   {items.length > 1 && <span class="media-progress" aria-hidden="true"><i data-media-progress></i></span>}
