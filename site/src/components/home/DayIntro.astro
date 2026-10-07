@@ -1,0 +1,30 @@
+---
+import { t } from "@/i18n";
+import type { Lang } from "@/lib/site";
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const c = t(lang);
+const stages = [
+  { key: "opening", ...c.day.stages.opening },
+  { key: "rush", ...c.day.stages.rush },
+  { key: "close", ...c.day.stages.close },
+];
+---
+<section id="day" class="bg-paper" aria-labelledby="day-title">
+  <div class="container-site pb-6 pt-12 md:pt-20">
+    <p class="kicker text-teal" data-reveal>{c.day.kicker}</p>
+    <h2 id="day-title" class="text-h2 mt-4 max-w-4xl" data-split>{c.day.title}</h2>
+    <p class="text-lead mt-5 max-w-2xl text-muted" data-reveal>{c.day.body}</p>
+    <ol class="mt-12 grid gap-4 sm:grid-cols-3" data-reveal-group>
+      {stages.map((s) => (
+        <li data-reveal>
+          <a href={`#stage-${s.key}`} class="card group flex h-full flex-col p-6 transition-colors hover:border-teal/40">
+            <span class="ltr font-mono text-3xl font-medium text-teal">{s.time}</span>
+            <span class="mt-3 text-lg font-semibold">{s.name}</span>
+            <span class="mt-1.5 text-sm text-muted">{s.line}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

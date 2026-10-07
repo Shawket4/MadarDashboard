@@ -1,0 +1,62 @@
+---
+import Logo from "@/components/ui/Logo.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { t } from "@/i18n";
+import {
+  type Lang, type PageKey, pageHref, otherLang, whatsappHref, PHONE_HREF, PHONE_DISPLAY,
+  EMAIL_HREF, EMAIL, INSTAGRAM, FACEBOOK, LEGAL_URL, DASHBOARD_URL,
+} from "@/lib/site";
+
+interface Props { lang: Lang; page: PageKey | "notFound" }
+const { lang, page } = Astro.props;
+const c = t(lang);
+const other = otherLang(lang);
+const year = 2026;
+---
+<footer class="on-ink border-t border-line-ink bg-ink text-paper">
+  <div class="container-site grid gap-12 py-16 md:grid-cols-12 md:py-20">
+    <div class="md:col-span-4">
+      <a href={pageHref(lang, "home")} aria-label={c.nav.home} class="inline-flex text-[1.9rem]"><Logo lang={lang} tone="ink" display /></a>
+      <p class="kicker mt-5 max-w-xs text-muted-ink">{c.footer.tagline}</p>
+      <a class="nav-link mt-6 inline-flex items-center gap-2 !px-0" href={page === "notFound" ? pageHref(other, "home") : pageHref(other, page)} hreflang={other} lang={other} data-umami-event="lang-switch">
+        <Icon name="globe" size={18} /> {c.nav.langSwitch}
+      </a>
+    </div>
+
+    <nav class="grid gap-10 sm:grid-cols-3 md:col-span-8" aria-label={c.footer.product}>
+      <div>
+        <h3 class="text-sm font-semibold text-muted-ink">{c.footer.product}</h3>
+        <ul class="mt-4 space-y-3">
+          <li><a class="link-quiet" href={pageHref(lang, "features")}>{c.nav.features}</a></li>
+          <li><a class="link-quiet" href={pageHref(lang, "pricing")}>{c.nav.pricing}</a></li>
+          <li><a class="link-quiet" href={pageHref(lang, "faq")}>{c.nav.faq}</a></li>
+          <li><a class="link-quiet" href={pageHref(lang, "about")}>{c.nav.about}</a></li>
+          <li><a class="link-quiet" href={DASHBOARD_URL} rel="noopener">{c.footer.dashboard}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-muted-ink">{c.footer.contact}</h3>
+        <ul class="mt-4 space-y-3">
+          <li><a class="link-quiet inline-flex items-center gap-2" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="footer"><Icon name="whatsapp" size={16} /> WhatsApp</a></li>
+          <li><a class="link-quiet ltr inline-block" href={PHONE_HREF} data-umami-event="call">{PHONE_DISPLAY}</a></li>
+          <li><a class="link-quiet ltr inline-block break-all" href={EMAIL_HREF} data-umami-event="email">{EMAIL}</a></li>
+          <li class="flex gap-2 pt-1">
+            <a class="grid h-9 w-9 place-items-center rounded-full border border-line-ink hover:border-paper/50" href={INSTAGRAM} target="_blank" rel="noopener" aria-label="Instagram"><Icon name="instagram" size={16} /></a>
+            <a class="grid h-9 w-9 place-items-center rounded-full border border-line-ink hover:border-paper/50" href={FACEBOOK} target="_blank" rel="noopener" aria-label="Facebook"><Icon name="facebook" size={16} /></a>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-muted-ink">{c.footer.legal}</h3>
+        <ul class="mt-4 space-y-3">
+          <li><a class="link-quiet" href={`${LEGAL_URL}/terms-of-service.html`} rel="noopener">{c.footer.terms}</a></li>
+          <li><a class="link-quiet" href={`${LEGAL_URL}/privacy-policy.html`} rel="noopener">{c.footer.privacy}</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="container-site flex flex-col gap-2 border-t border-line-ink py-6 text-sm text-muted-ink sm:flex-row sm:items-center sm:justify-between">
+    <p>© {year} Madar. {c.footer.rights}</p>
+    <p class="font-mono text-xs tracking-wide">get.madar-pos.cloud</p>
+  </div>
+</footer>

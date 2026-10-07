@@ -1,0 +1,73 @@
+---
+/**
+ * A product screenshot in a flat vector frame (browser card, iPad or iPhone bezel).
+ * Images come from src/assets/shots/{lang}/<id>.webp (made by scripts/prep-shots.mjs);
+ * Astro turns each into WebP at several widths (the masters are WebP already, so AVIF
+ * saved nothing and slowed builds). Arabic pages show the Arabic capture; if one is
+ * missing, the English one stands in.
+ */
+import { Picture } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import type { Lang } from "@/lib/site";
+
+interface Props {
+  id: string;
+  lang: Lang;
+  alt: string;
+  frame?: "browser" | "ipad" | "iphone" | "none";
+  sizes?: string;
+  eager?: boolean;
+  class?: string;
+  imgClass?: string;
+  /** Fill a sized parent: the image covers the frame, anchored to the top. */
+  fill?: boolean;
+  [key: `data-${string}`]: string | undefined;
+}
+
+const { id, lang, alt, frame = "browser", sizes = "(min-width: 1024px) 50vw, 100vw", eager = false, class: cls = "", imgClass = "", fill = false, ...rest } = Astro.props;
+
+const all = import.meta.glob<{ default: ImageMetadata }>("/src/assets/shots/*/*.webp", { eager: true });
+const img = all[`/src/assets/shots/${lang}/${id}.webp`]?.default ?? all[`/src/assets/shots/en/${id}.webp`]?.default;
+if (!img) throw new Error(`Missing screenshot: ${lang}/${id}`);
+
+const widths = [360, 540, 720, 960, 1280, 1600, 2000].filter((w) => w <= img.width);
+if (!widths.includes(img.width) && img.width < 2000) widths.push(img.width);
+
+const picture = {
+  src: img,
+  alt,
+  widths,
+  sizes,
+  formats: ["webp" as const],
+  fallbackFormat: "webp" as const,
+  quality: 78,
+  loading: eager ? ("eager" as const) : ("lazy" as const),
+  decoding: eager ? ("sync" as const) : ("async" as const),
+  fetchpriority: eager ? ("high" as const) : undefined,
+  class: fill ? `block h-full w-full object-cover object-top ${imgClass}` : `block h-auto w-full ${imgClass}`,
+  pictureAttributes: { class: fill ? "block min-h-0 flex-1" : "block" },
+};
+const fillFrame = fill ? "flex h-full flex-col" : "";
+const fillInner = fill ? "flex h-full min-h-0 flex-col" : "";
+---
+{frame === "browser" && (
+  <figure class:list={["frame-browser", fillFrame, cls]} {...rest}>
+    <div class="frame-browser-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+    <Picture {...picture} />
+  </figure>
+)}
+{frame === "ipad" && (
+  <figure class:list={["frame-ipad", fillFrame, cls]} {...rest}>
+    <div class={fillInner}><Picture {...picture} /></div>
+  </figure>
+)}
+{frame === "iphone" && (
+  <figure class:list={["frame-iphone", fillFrame, cls]} {...rest}>
+    <div class={fillInner}><Picture {...picture} /></div>
+  </figure>
+)}
+{frame === "none" && (
+  <figure class:list={[cls]} {...rest}>
+    <Picture {...picture} />
+  </figure>
+)}

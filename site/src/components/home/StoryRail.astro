@@ -1,0 +1,26 @@
+---
+/** Desktop: a small floating pill that shows where we are in the café's day. */
+import { t } from "@/i18n";
+import type { Lang } from "@/lib/site";
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const c = t(lang);
+const stages = [
+  { key: "opening", ...c.day.stages.opening },
+  { key: "rush", ...c.day.stages.rush },
+  { key: "close", ...c.day.stages.close },
+];
+---
+<div class="story-rail pointer-events-none fixed inset-x-0 bottom-5 z-30 hidden justify-center lg:flex">
+  <nav aria-label={c.day.progress}>
+    <div class="pointer-events-auto relative flex items-center gap-1 overflow-hidden rounded-full border border-white/10 bg-ink/85 p-1 text-paper shadow-[0_18px_40px_-18px_rgba(11,14,18,0.7)] backdrop-blur-md" style="opacity:0;visibility:hidden" data-rail>
+      {stages.map((s) => (
+        <a href={`#stage-${s.key}`} class="rail-chip flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm transition-colors" data-rail-chip={s.key}>
+          <span class="ltr font-mono text-xs opacity-70">{s.time}</span>
+          <span class="font-medium">{s.name}</span>
+        </a>
+      ))}
+      <span class="rail-progress absolute inset-x-3 bottom-0 h-[2px] scale-x-0 rounded-full bg-teal-light" data-rail-progress></span>
+    </div>
+  </nav>
+</div>

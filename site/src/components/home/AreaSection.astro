@@ -1,0 +1,55 @@
+---
+/**
+ * One area of the café's day. On desktop the screens stay put (sticky) while the
+ * paragraph and its points scroll past; the scroll story brings the matching screen
+ * forward for each one (data-step-map: step index → screen index).
+ */
+import Icon from "@/components/ui/Icon.astro";
+import { t } from "@/i18n";
+import type { Lang } from "@/lib/site";
+
+interface Props {
+  lang: Lang;
+  id: string;
+  kicker: string;
+  title: string;
+  body: string;
+  points: string[];
+  stepMap?: number[];
+  tone?: "paper" | "ink";
+  reverse?: boolean;
+  moreHref?: string;
+}
+const { lang, id, kicker, title, body, points, stepMap = [], tone = "paper", reverse = false, moreHref } = Astro.props;
+const c = t(lang);
+const ink = tone === "ink";
+---
+<section id={id} class="area relative" data-area data-step-map={JSON.stringify(stepMap)} aria-labelledby={`${id}-title`}>
+  <div class="container-site grid gap-12 py-16 md:py-24 lg:grid-cols-12 lg:gap-14 lg:py-28">
+    <div class:list={["lg:col-span-5", reverse && "lg:order-2"]}>
+      <div class="area-step" data-step="0">
+        <p class:list={["kicker", ink ? "text-teal-light" : "text-teal"]}>{kicker}</p>
+        <h3 id={`${id}-title`} class="text-h3 mt-4" data-split>{title}</h3>
+        <p class:list={["text-lead mt-5", ink ? "text-muted-ink" : "text-muted"]}>{body}</p>
+      </div>
+      <ul class="mt-8 space-y-4 lg:mt-10 lg:space-y-0">
+        {points.map((p, i) => (
+          <li class="area-step lg:py-7" data-step={i + 1}>
+            <p class:list={["bullet text-[1.02rem]", ink ? "text-paper/90" : "text-ink/85"]}>{p}</p>
+          </li>
+        ))}
+      </ul>
+      {moreHref && (
+        <a class:list={["mt-8 inline-flex items-center gap-2 font-medium", ink ? "text-teal-light" : "text-teal"]} href={moreHref}>
+          {c.common.learnMore} <Icon name="arrow" size={18} />
+        </a>
+      )}
+    </div>
+    <div class:list={["lg:col-span-7", reverse && "lg:order-1"]}>
+      <div class="lg:sticky lg:top-36" data-area-media>
+        <slot name="media" />
+      </div>
+    </div>
+  </div>
+  <slot name="after" />
+</section>

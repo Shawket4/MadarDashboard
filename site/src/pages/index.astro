@@ -1,0 +1,78 @@
+---
+/**
+ * The root page. The build copies it to get.html too (marked `data-fallback`), and
+ * that matters: the get vhost answers every path that isn't a file with /get.html
+ * (`try_files $uri /get.html`, no folder lookup, checked against the live server on
+ * 2026-10-07). So this page routes, before anything paints:
+ *  - the root: Arabic when the browser's first language is Arabic, English otherwise
+ *    (to the page file straight away when it came as the fallback);
+ *  - a language folder (/en/pricing/): its file, /en/pricing/index.html. The page then
+ *    puts the clean address back (BaseLayout) and links straight to files (ui.ts);
+ *  - a page file that doesn't exist, or any other path: the 404 page.
+ * Once nginx opens folders (`try_files $uri $uri/ …` with `index index.html`), the
+ * language pages answer directly and only the root comes here. Nothing to change.
+ * No CSS bundle and no view transition on this page: it is a hop, not a page.
+ * Without JavaScript it shows the two languages as links.
+ */
+import symbol from "@/assets/brand/symbol-reversed.svg?raw";
+import wordmark from "@/assets/brand/wordmark-reversed.svg?raw";
+import { absoluteUrl } from "@/lib/site";
+
+const svg = (s: string) => s.replace(/<svg([^>]*?)\swidth="[^"]*"\sheight="[^"]*"/, "<svg$1").replace("<svg", '<svg aria-hidden="true" focusable="false"');
+---
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <script is:inline>
+      (function (d) {
+        var p = location.pathname, q = location.search + location.hash, to;
+        if (p === "/" || p === "/index.html" || p === "/get.html") {
+          var l = (navigator.languages && navigator.languages[0]) || navigator.language || "en";
+          // Served as the fallback: this server won't open /en/, so go to its file.
+          to = (/^ar\b/i.test(l) ? "/ar/" : "/en/") + (d.hasAttribute("data-fallback") ? "index.html" : "") + q;
+        } else if (/^\/(en|ar)(\/[a-z0-9-]+)*\/?$/i.test(p)) {
+          to = p.replace(/\/?$/, "/") + "index.html" + q;
+        } else {
+          to = "/404.html";
+        }
+        d.className = "go";
+        location.replace(to);
+      })(document.documentElement);
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Madar · مدار</title>
+    <meta name="description" content="Madar, the café POS for owners who care about their numbers. مدار، نظام كاشير لأصحاب الكافيهات اللي بيهمهم أرقامهم." />
+    <link rel="alternate" hreflang="en" href={absoluteUrl("/en/")} />
+    <link rel="alternate" hreflang="ar" href={absoluteUrl("/ar/")} />
+    <link rel="alternate" hreflang="x-default" href={absoluteUrl("/")} />
+    <meta property="og:title" content="Madar · مدار" />
+    <meta property="og:image" content={absoluteUrl("/og/en-home.jpg")} />
+    <meta name="theme-color" content="#14181E" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <noscript><meta http-equiv="refresh" content="0; url=/en/index.html" /></noscript>
+    <style is:inline>
+      html { background: #14181E; color: #EFF3F4; font: 500 16px/1.4 system-ui, sans-serif; }
+      html.go body { visibility: hidden; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; }
+      main { display: flex; flex-direction: column; align-items: center; gap: 32px; padding: 32px; }
+      .logo { display: flex; align-items: center; gap: 14px; height: 40px; }
+      .logo span { display: block; height: 100%; }
+      .logo .w { height: 30px; }
+      .logo svg { height: 100%; width: auto; display: block; }
+      nav { display: flex; gap: 12px; }
+      a { display: inline-block; padding: 12px 22px; border-radius: 999px; border: 1px solid #2B323A; color: inherit; text-decoration: none; }
+      a:first-child { background: #EFF3F4; color: #14181E; border-color: #EFF3F4; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="logo" aria-label="Madar"><span set:html={svg(symbol)} /><span class="w" set:html={svg(wordmark)} /></div>
+      <nav>
+        <a href="/en/index.html" hreflang="en" lang="en">English</a>
+        <a href="/ar/index.html" hreflang="ar" lang="ar">العربية</a>
+      </nav>
+    </main>
+  </body>
+</html>

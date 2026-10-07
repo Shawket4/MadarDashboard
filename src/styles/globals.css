@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* The marketing site (site/) is its own Astro package with its own Tailwind. */
+@source not "../../site";
+
 /* Dark mode is class-driven (.dark on <html>). */
 @custom-variant dark (&:is(.dark *));
 
@@ -148,7 +151,7 @@
 }
 
 /*
- * Customer surfaces (landing, public ordering, tracking, bookings, loyalty) are
+ * Customer surfaces (public ordering, tracking, bookings, loyalty) are
  * the BRAND register: there the primary IS Madar teal. Their entry points put
  * this class on <html> so portals (sheets, dialogs) inherit it too.
  */

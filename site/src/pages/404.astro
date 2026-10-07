@@ -1,0 +1,27 @@
+---
+import BaseLayout from "@/components/layout/BaseLayout.astro";
+import Orbit from "@/components/ui/Orbit.astro";
+import { t } from "@/i18n";
+import { pageHref } from "@/lib/site";
+const en = t("en");
+const ar = t("ar");
+---
+<BaseLayout lang="en" page="notFound" headerTone="ink" noindex closing={false}>
+  <section class="on-ink relative isolate overflow-hidden bg-ink text-paper">
+    <Orbit tone="ink" class="absolute -end-[30rem] -top-[20rem] -z-10 h-[70rem] w-[70rem]" />
+    <div class="container-site grid min-h-[80svh] content-center gap-16 py-32 md:grid-cols-2">
+      <div>
+        <p class="ltr font-mono text-teal-light">404</p>
+        <h1 class="text-h2 mt-4">{en.notFound.title}</h1>
+        <p class="text-lead mt-4 text-muted-ink">{en.notFound.body}</p>
+        <a class="btn btn-accent mt-8" href={pageHref("en", "home")}>{en.notFound.home}</a>
+      </div>
+      <div lang="ar" dir="rtl" class="font-[family-name:var(--font-arabic)]">
+        <p class="ltr font-mono text-teal-light">404</p>
+        <h2 class="text-h2 mt-4 !leading-[1.35]">{ar.notFound.title}</h2>
+        <p class="text-lead mt-4 text-muted-ink">{ar.notFound.body}</p>
+        <a class="btn btn-ghost-ink mt-8" href={pageHref("ar", "home")}>{ar.notFound.home}</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

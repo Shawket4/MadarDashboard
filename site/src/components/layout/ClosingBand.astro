@@ -1,0 +1,28 @@
+---
+import Icon from "@/components/ui/Icon.astro";
+import Orbit from "@/components/ui/Orbit.astro";
+import { t } from "@/i18n";
+import { type Lang, whatsappHref, PHONE_HREF, EMAIL_HREF } from "@/lib/site";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const c = t(lang);
+---
+<section id="closing" class="on-ink relative isolate overflow-hidden bg-ink text-paper" aria-labelledby="closing-title">
+  <Orbit tone="ink" class="absolute -end-[28rem] top-1/2 -z-10 h-[64rem] w-[64rem] -translate-y-1/2 opacity-100 md:-end-[20rem]" />
+  <div class="container-site py-24 md:py-36">
+    <div class="max-w-3xl">
+      <p class="kicker text-teal-light" data-reveal>{c.closing.kicker}</p>
+      <h2 id="closing-title" class="text-h2 mt-5" data-split>{c.closing.title}</h2>
+      <p class="text-lead mt-6 max-w-2xl text-muted-ink" data-reveal>{c.closing.body}</p>
+      <div class="mt-10 flex flex-wrap items-center gap-3" data-reveal>
+        <a class="btn btn-accent btn-lg" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="closing">
+          <Icon name="whatsapp" /> {c.closing.cta}
+        </a>
+        <a class="btn btn-ghost-ink btn-lg" href={PHONE_HREF} data-umami-event="call"><Icon name="phone" size={18} /> {c.closing.call}</a>
+        <a class="btn btn-ghost-ink btn-lg" href={EMAIL_HREF} data-umami-event="email"><Icon name="mail" size={18} /> {c.closing.email}</a>
+      </div>
+      <p class="mt-6 font-mono text-sm tracking-wide text-muted-ink" data-reveal>{c.closing.note}</p>
+    </div>
+  </div>
+</section>

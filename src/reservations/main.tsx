@@ -145,7 +145,7 @@ const router = createRouter({
 // NOTE: deliberately no `declare module "@tanstack/react-router"` Register
 // block. That augmentation is GLOBAL — declaring it here would replace the
 // dashboard's own router type for the whole project, and every typed `<Link
-// to>` in the admin app would stop compiling. The ordering and landing apps
+// to>` in the admin app would stop compiling. The ordering and loyalty apps
 // omit it for the same reason.
 
 createRoot(document.getElementById("root")!).render(

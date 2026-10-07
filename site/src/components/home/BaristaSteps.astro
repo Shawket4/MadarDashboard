@@ -1,0 +1,64 @@
+---
+/**
+ * A cappuccino, step by step, with Madar's own prep-step animations (Lottie, played by
+ * dotLottie). Desktop: the block pins and scrolling plays the steps. Phones: the steps
+ * play one after another while the block is on screen. Reduced motion: a still frame.
+ */
+import { BARISTA_STEPS } from "@/data/barista";
+import { t } from "@/i18n";
+import type { Lang } from "@/lib/site";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const c = t(lang);
+const steps = BARISTA_STEPS.map((s) => ({ key: s.key, ...s[lang] }));
+// Hashed URLs under /assets/, so the server and the CDN cache them for good.
+const lottie = import.meta.glob<string>("/src/assets/lottie/*.json", { query: "?url", import: "default", eager: true });
+const lottieUrl = (key: string) => lottie[`/src/assets/lottie/${key}.json`] ?? "";
+---
+<div class="barista relative" data-barista>
+  <div class="container-site">
+    <div class="barista-pin grid items-center gap-8 py-14 lg:min-h-[100svh] lg:grid-cols-12 lg:gap-14 lg:py-0">
+      <!-- Phones: the title, then the animation, then the steps (the column dissolves into the grid). -->
+      <div class="contents lg:order-1 lg:col-span-6 lg:block">
+        <p class="kicker order-1 text-teal-light">{c.areas.counter.barista.label}</p>
+        <ol class="order-3 space-y-1 lg:mt-6" data-barista-list>
+          {steps.map((s, i) => (
+            <li class="barista-step flex items-start gap-4 rounded-2xl px-4 py-3 transition-colors duration-300" data-barista-step={i}>
+              <span class="ltr mt-0.5 font-mono text-sm text-teal-light">{String(i + 1).padStart(2, "0")}</span>
+              <span>
+                <span class="block font-semibold text-paper">{s.name}</span>
+                <span class="block text-sm text-muted-ink">{s.note}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+        <p class="mt-6 hidden items-center gap-2 text-sm text-muted-ink lg:flex">
+          <span class="inline-block h-6 w-[2px] animate-pulse rounded bg-teal-light"></span>{c.areas.counter.barista.hint}
+        </p>
+      </div>
+      <div class="order-2 lg:col-span-6">
+        <div class="barista-stage relative mx-auto aspect-square w-full max-w-[30rem] overflow-hidden rounded-[2.25rem] bg-paper shadow-[0_40px_90px_-40px_rgba(0,0,0,0.75)]">
+          <div class="absolute inset-[6%]">
+            {steps.map((s, i) => (
+              <canvas
+                class="barista-canvas absolute inset-0 h-full w-full transition-opacity duration-300"
+                style={i === 0 ? "opacity:1" : "opacity:0"}
+                data-lottie={lottieUrl(s.key)}
+                data-index={i}
+                width="512"
+                height="512"
+                aria-hidden="true"
+              ></canvas>
+            ))}
+          </div>
+          <div class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 border-t border-ink/10 bg-paper/90 px-5 py-3 text-ink backdrop-blur">
+            <span class="text-sm font-semibold" data-barista-current>{steps[0]?.name}</span>
+            <span class="ltr font-mono text-xs text-muted" data-barista-count>01 / {String(steps.length).padStart(2, "0")}</span>
+          </div>
+          <div class="absolute inset-x-0 top-0 h-1 bg-ink/5"><span class="barista-progress block h-full w-full scale-x-0 bg-teal" data-barista-progress></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

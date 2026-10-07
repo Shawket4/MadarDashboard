@@ -2,9 +2,11 @@
 
 ## Project Overview
 The management dashboard for the Madar ecosystem: a React 19 + Vite app, also packaged
-as a desktop app with Tauri. This repo builds **four** bundles from one codebase — the
-authenticated dashboard, the public ordering page, the order-tracking page, and the
-marketing landing site (see the `vite.*.config.ts` files and the `dev:*` scripts).
+as a desktop app with Tauri. This repo builds the authenticated dashboard and the public
+customer bundles (ordering, tracking, reservations, loyalty) from one codebase (see the
+`vite.*.config.ts` files and the `dev:*` scripts). The marketing site
+(get.madar-pos.cloud) is a separate Astro package in `site/` with its own dependencies;
+read `site/README.md` before touching it.
 
 It is a *consumer* of the backend: every API type and hook under
 `src/data/api/generated/` is generated from the backend's OpenAPI spec. Do not hand-edit
@@ -51,7 +53,8 @@ explicit — see "Floor / tables" below. When you change a shared surface, check
 ## Development Commands
 - `npm run dev` — real API (`VITE_API_URL`, see `.env`), port 5173
 - `npm run dev:mock` — MSW mock data, port 5180. **Use this to see features without a backend.**
-- `npm run dev:order` / `dev:get` / `dev:demo` — the other bundles
+- `npm run dev:order` / `dev:demo` — the other bundles; `dev:get` / `build:get` run the
+  marketing site in `site/` (`npm ci --prefix site` once first)
 - `npm run build` — typecheck (`tsc --noEmit`) then Vite build
 - `npm run test` — Vitest; `npm run lint` — ESLint (`--max-warnings 0`)
 - `npm run generate:api` — regenerate the API client (Orval)
@@ -97,8 +100,9 @@ scattering constants across components.
 Strategic intent lives in [`PRODUCT.md`](PRODUCT.md); the visual system in
 [`DESIGN.md`](DESIGN.md) and `src/styles/globals.css` (source of truth).
 - **Register is split.** The authenticated dashboard is **product** (quiet, precise,
-  restrained — design serves the task). The customer surfaces (`landing`,
-  `/order/:orgId`, `/track/:id`) are **brand** (bold, editorial, hospitable).
+  restrained — design serves the task). The customer surfaces (`/order/:orgId`,
+  `/track/:id`, and the marketing site in `site/`) are **brand** (bold, editorial,
+  hospitable).
 - **Personality:** trustworthy, hospitable, precise. Navy = trust, terracotta =
   warmth/CTA, cream = hospitality.
 - **Accessibility bar:** WCAG 2.1 AAA where feasible (AA floor). RTL parity and

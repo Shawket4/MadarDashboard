@@ -1,0 +1,158 @@
+---
+import BaseLayout from "@/components/layout/BaseLayout.astro";
+import FeatureArea from "@/components/features/FeatureArea.astro";
+import BasiraDemo from "@/components/home/BasiraDemo.astro";
+import Icon from "@/components/ui/Icon.astro";
+import Orbit from "@/components/ui/Orbit.astro";
+import { LedgerBeams } from "@/components/kit/LedgerBeams";
+import { t } from "@/i18n";
+import { type Lang, LANGS } from "@/lib/site";
+
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+const { lang } = Astro.params as { lang: Lang };
+const c = t(lang);
+const a = c.areas;
+const f = c.features;
+
+const groups = [
+  { label: f.groups.opening, items: [["till", a.till.kicker], ["inventory", a.inventory.kicker]] },
+  { label: f.groups.rush, items: [["counter", a.counter.kicker], ["floor", a.floor.kicker], ["ordering", a.ordering.kicker], ["loyalty", a.loyalty.kicker]] },
+  { label: f.groups.close, items: [["menu", a.menu.kicker], ["basira", a.basira.kicker], ["hq", a.hq.kicker]] },
+  { label: f.groups.also, items: [["dawam", a.dawam.kicker], ["setup", a.setup.kicker]] },
+];
+---
+<BaseLayout lang={lang} page="features" headerTone="paper">
+  <!-- Intro -->
+  <section class="relative isolate overflow-hidden bg-paper">
+    <Orbit tone="paper" class="absolute -end-[34rem] -top-[34rem] -z-10 h-[76rem] w-[76rem] opacity-70" />
+    <div class="container-site pb-14 pt-36 md:pb-20 md:pt-44">
+      <p class="kicker text-teal" data-reveal>{f.kicker}</p>
+      <h1 class="text-display mt-5 max-w-5xl" data-split>{f.title}</h1>
+      <p class="text-lead mt-6 max-w-2xl text-muted" data-reveal>{f.intro}</p>
+    </div>
+  </section>
+
+  <!-- What today's POS gets wrong -->
+  <section class="on-ink bg-ink text-paper" aria-labelledby="wrong-title">
+    <div class="container-site grid gap-12 py-20 md:py-28 lg:grid-cols-12">
+      <div class="lg:col-span-4">
+        <p class="kicker text-teal-light" data-reveal>{f.wrongKicker}</p>
+        <h2 id="wrong-title" class="text-h2 mt-4" data-split>{f.wrongTitle}</h2>
+      </div>
+      <ol class="grid gap-5 sm:grid-cols-2 lg:col-span-8" data-reveal-group>
+        {f.wrong.map((w, i) => (
+          <li class="card-ink flex flex-col p-7" data-reveal>
+            <span class="ltr font-mono text-sm text-teal-light">0{i + 1}</span>
+            <h3 class="mt-6 text-xl font-semibold leading-snug">{w.title}</h3>
+            <p class="mt-3 text-muted-ink">{w.body}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- One ledger -->
+  <section class="bg-surface" aria-labelledby="ledger-title">
+    <div class="container-site py-20 md:py-28">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="kicker text-teal" data-reveal>{f.ledger.kicker}</p>
+        <h2 id="ledger-title" class="text-h2 mt-4" data-split>{f.ledger.title}</h2>
+        <p class="text-lead mt-5 text-muted" data-reveal>{f.ledger.body}</p>
+      </div>
+      <div class="mt-14" data-reveal>
+        <LedgerBeams client:visible labels={f.ledger.labels} rtl={lang === "ar"} />
+      </div>
+    </div>
+  </section>
+
+  <!-- Jump to -->
+  <nav class="sticky top-16 z-20 border-y border-ink/10 bg-paper/90 backdrop-blur-md" aria-label={f.indexLabel}>
+    <div class="container-site flex gap-6 overflow-x-auto py-3 [scrollbar-width:none]">
+      {groups.map((g) => (
+        <div class="flex shrink-0 items-center gap-1.5">
+          <span class="me-1 text-xs font-semibold text-muted">{g.label}</span>
+          {g.items.map(([id, label]) => (
+            <a class="chip border border-rule bg-white text-ink transition-colors hover:border-teal" href={`#${id}`}>{label}</a>
+          ))}
+        </div>
+      ))}
+    </div>
+  </nav>
+
+  <FeatureArea lang={lang} id="till" {...a.till} shots={[
+    { id: "pos-close-till", frame: "ipad", alt: a.till.alts.closeTill },
+    { id: "pos-charge", frame: "ipad", alt: a.till.alts.charge },
+    { id: "pos-manager-pin", frame: "ipad", alt: a.till.alts.managerPin },
+    { id: "pos-till-report", frame: "ipad", alt: a.till.alts.tillReport },
+  ]} />
+  <FeatureArea lang={lang} id="inventory" tone="surface" {...a.inventory} shots={[
+    { id: "dash-ingredients", frame: "browser", alt: a.inventory.alts.ingredients },
+    { id: "dash-reorder", frame: "browser", alt: a.inventory.alts.reorder },
+    { id: "dash-purchasing", frame: "browser", alt: a.inventory.alts.purchasing },
+  ]} />
+  <FeatureArea lang={lang} id="counter" {...a.counter} shots={[
+    { id: "pos-cart", frame: "ipad", alt: c.hero.altPos },
+    { id: "pos-item", frame: "ipad", alt: a.counter.alts.item },
+  ]} />
+  <FeatureArea lang={lang} id="floor" tone="surface" {...a.floor} shots={[
+    { id: "pos-table", frame: "ipad", alt: a.floor.alts.table },
+    { id: "kds-board", frame: "ipad", alt: a.floor.alts.kds },
+    { id: "dash-floor", frame: "browser", alt: a.floor.alts.dashFloor },
+    { id: "order-table", frame: "iphone", alt: a.floor.alts.orderTable },
+  ]} />
+  <FeatureArea lang={lang} id="ordering" {...a.ordering} shots={[
+    { id: "order-menu", frame: "iphone", alt: a.ordering.alts.menu },
+    { id: "order-customize", frame: "iphone", alt: a.ordering.alts.customize },
+    { id: "order-channel", frame: "iphone", alt: a.ordering.alts.channel },
+    { id: "order-checkout", frame: "iphone", alt: a.ordering.alts.checkout },
+    { id: "order-track", frame: "iphone", alt: a.ordering.alts.track },
+  ]} />
+  <FeatureArea lang={lang} id="loyalty" tone="surface" {...a.loyalty} shots={[
+    { id: "wallet-pass", frame: "iphone", alt: a.loyalty.alts.pass },
+    { id: "loyalty-join", frame: "iphone", alt: a.loyalty.alts.join },
+    { id: "loyalty-card", frame: "iphone", alt: a.loyalty.alts.card },
+  ]} />
+  <FeatureArea lang={lang} id="menu" {...a.menu} shots={[
+    { id: "dash-quadrant", frame: "browser", alt: a.menu.alts.quadrant },
+    { id: "dash-repricing", frame: "browser", alt: a.menu.alts.repricing },
+    { id: "dash-decisions", frame: "browser", alt: a.menu.alts.decisions },
+  ]} />
+  <FeatureArea lang={lang} id="basira" tone="surface" {...a.basira}>
+    <BasiraDemo lang={lang} />
+  </FeatureArea>
+  <FeatureArea lang={lang} id="hq" {...a.hq} shots={[
+    { id: "dash-overview", frame: "browser", alt: a.hq.alts.overview },
+    { id: "dash-menu-pricing", frame: "browser", alt: a.hq.alts.menuPricing },
+    { id: "dash-access", frame: "browser", alt: a.hq.alts.access },
+    { id: "dash-export", frame: "browser", alt: a.hq.alts.export },
+    { id: "dash-legal", frame: "browser", alt: a.hq.alts.legal },
+  ]} />
+  <FeatureArea lang={lang} id="dawam" tone="surface" {...a.dawam} />
+  <FeatureArea lang={lang} id="setup" {...a.setup} shots={[
+    { id: "dash-payments", frame: "browser", alt: a.setup.alts.payments },
+  ]} />
+
+  <!-- Roadmap -->
+  <section id="roadmap" class="on-ink scroll-mt-32 bg-ink text-paper" aria-labelledby="roadmap-title">
+    <div class="container-site py-20 md:py-28">
+      <div class="max-w-2xl">
+        <p class="kicker text-teal-light" data-reveal>{f.roadmap.kicker}</p>
+        <h2 id="roadmap-title" class="text-h2 mt-4" data-split>{f.roadmap.title}</h2>
+        <p class="text-lead mt-5 text-muted-ink" data-reveal>{f.roadmap.body}</p>
+      </div>
+      <ol class="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3" data-reveal-group>
+        {f.roadmap.items.map((r) => (
+          <li class="card-ink p-6" data-reveal>
+            <span class:list={["chip", r.live ? "bg-teal-light text-ink" : "border border-line-ink text-paper/80"]}>
+              {r.live ? <Icon name="check" size={14} /> : <Icon name="clock" size={14} />} {r.status}
+            </span>
+            <h3 class="mt-5 text-xl font-semibold">{r.title}</h3>
+            <p class="mt-2 text-muted-ink">{r.body}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+</BaseLayout>

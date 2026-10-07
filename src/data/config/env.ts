@@ -28,10 +28,6 @@ const apiBase = z.union([
 const envSchema = z.object({
   VITE_API_URL: apiBase.default("http://localhost:8080"),
   VITE_APP_NAME: z.string().default("Madar"),
-  // Origin of the management dashboard. The standalone landing (get.madar-pos.cloud)
-  // links its "Sign in" / "Get started" CTAs here, cross-origin — so this one is
-  // absolute always; a relative path would point at whatever host is serving.
-  VITE_DASHBOARD_URL: z.string().url().default("https://madar-pos.cloud"),
 });
 
 const parsed = envSchema.safeParse(import.meta.env);
