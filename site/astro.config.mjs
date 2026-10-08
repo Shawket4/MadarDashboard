@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { promisify } from "node:util";
 import { brotliCompress, gzip, constants as zlib } from "node:zlib";
+import { pack } from "./integrations/pack.mjs";
 
 export const SITE = "https://get.madar-pos.cloud";
 
@@ -94,6 +95,9 @@ export default defineConfig({
       filter: (page) => /\/(en|ar)\//.test(page),
     }),
     rootAlias(),
+    // The whole site as one archive and the service worker that serves it (before the
+    // precompression, so sw.js gets its .br and .gz too).
+    pack(),
     precompress(),
   ],
   vite: {

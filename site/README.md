@@ -15,12 +15,14 @@ cd site
 npm ci
 npm run dev        # http://localhost:5184/en/
 npm run build      # → site/dist
-npm run preview
+npm run preview    # the build at http://localhost:5194/en/, service worker and all
 npm run verify     # every page × EN/AR × 4 widths in Chrome, plus the flows (see below)
 ```
 
 From the repo root, `npm run dev:get` and `npm run build:get` do the same. Node 22.12 or
-newer. `verify` and `og` need Chrome: they use your installed Chrome, or set
+newer. The dev server never registers the service worker (see "The archive"); the
+preview does, which is why it has a port of its own: a worker installed on a port keeps
+answering there, and would hide `npm run dev` behind the last build if they shared one. `verify` and `og` need Chrome: they use your installed Chrome, or set
 `CHROME_PATH=/path/to/chrome`.
 
 ## Deploy
@@ -56,6 +58,42 @@ server gave it and stops forwarding.
 
 The HTML is meant to be cached at Cloudflare for 5 minutes (a Cache Rule on
 `get.madar-pos.cloud`, Edge TTL 5 min, respect origin off for HTML). No purge needed.
+
+## The archive: the whole site, offline
+
+Once a visitor's first page has loaded, a service worker (`sw/sw.ts`, built into
+`/sw.js`) fetches every file a visit needs as **one file**, `assets/pack.<hash>.tar`
+(about 3.2 MB with brotli, both languages), unpacks it into the browser's cache and
+from then on answers the site's requests from it: pages, scripts, styles, fonts,
+screenshots, the 3D and the cappuccino's animations, online or offline (owner).
+
+- **In it** (`integrations/pack.mjs`, after the build): every page in both languages,
+  every script, style, woff2 font, Lottie file and the animation runtime, the icons,
+  and each screenshot once: the smallest width at or above 720 px for phones and
+  1280 px for wide screens; the worker answers a request for any width with it. Not
+  the share images, the sitemaps, `robots.txt` or `get.html`. The build fails if a page
+  names an asset the archive lacks.
+- **Pages come from it too**, online as well: instant, at the cost that the first page
+  after a release is still the previous version; the rest of that visit is new.
+- **Before it lands**, a file that's in it waits up to 3 s for it (`WAIT`), then comes on
+  its own, so a slow connection never leaves a screenshot empty (owner).
+- **Releases:** the archive's name is its content hash, and `/sw.js` names it. On a later
+  page the browser finds the new worker, which downloads the new archive whole while
+  the old one keeps serving, checks its hash, then takes over and drops the old one. A
+  page never mixes two releases.
+- **No service worker** (Instagram's and Facebook's in-app browsers on iPhone, some
+  private windows): the site loads exactly as before, lazily, file by file.
+- **The server:** nginx sends `pack.<hash>.tar.br` as it is to browsers that accept
+  brotli (`brotli_static`), and the browser undoes the compression itself. After a
+  deploy, `curl -sI -H 'Accept-Encoding: br' https://get.madar-pos.cloud/assets/pack.<hash>.tar`
+  should show `content-encoding: br` (without it the 5.7 MB tar goes out as it is,
+  which still works). `/sw.js` must stay uncached; it is, like everything outside
+  `/assets/`. Old archives stay on the server like every old file (about 13 MB each
+  with their `.br` and `.gz`), so clear old `pack.*` files now and then.
+- `npm run verify` checks it: a first visit unpacks it; after that, pages ask the server
+  for nothing but the browser's own update check; with the server gone, every page
+  opens whole and an unknown address gets the 404 page. `npm run check` type-checks the
+  worker (`sw/tsconfig.json`: it runs in a worker, not a page).
 
 ## Change things
 

@@ -10,8 +10,8 @@
   "scripts": {
     "dev": "astro dev --port 5184",
     "build": "astro build",
-    "preview": "astro preview --port 5184",
-    "check": "astro check",
+    "preview": "astro preview --port 5194",
+    "check": "astro check && tsc -p sw",
     "verify": "node scripts/verify.mjs",
     "og": "node scripts/og.mjs",
     "shots": "node scripts/prep-shots.mjs"

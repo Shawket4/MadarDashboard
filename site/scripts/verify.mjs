@@ -10,6 +10,10 @@
 //    that behaves like today's nginx on the VPS (`try_files $uri /get.html`, no
 //    folder lookup): language pick, folder addresses, links, # addresses and # links,
 //    404, pricing terms, sheet.
+//    (1 and 2 run without the service worker: they check the pages and the servers.)
+// 3. The archive (sw/sw.ts): a first visit unpacks it; after that, pages in both
+//    languages reach the server for nothing but the browser's own update check; and
+//    with the server gone, every page opens whole, and an unknown one gets the 404.
 import { chromium } from "playwright-core";
 import { createServer } from "node:http";
 import { readFile, stat, mkdir } from "node:fs/promises";
@@ -26,10 +30,18 @@ const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", "
 const isFile = (f) => stat(f).then((s) => s.isFile(), () => false);
 const isDir = (f) => stat(f).then((s) => s.isDirectory(), () => false);
 
-/** folders: "open" serves a folder's index.html (404.html otherwise); "nginx-today" mimics the VPS. */
+/**
+ * folders: "open" serves a folder's index.html (404.html otherwise); "nginx-today" mimics
+ * the VPS. `seen` collects the paths asked for; `down()` drops every connection from then
+ * on, as if the network were gone.
+ */
 function serve(folders) {
+  const seen = [];
+  let gone = false;
   const server = createServer(async (req, res) => {
     const p = decodeURIComponent(new URL(req.url ?? "/", "http://x").pathname);
+    if (gone) return void req.socket.destroy();
+    seen.push(p);
     let file = path.join(dist, p);
     let status = 200;
     if (folders === "open") {
@@ -43,7 +55,7 @@ function serve(folders) {
     res.writeHead(status, { "content-type": types[path.extname(file)] ?? "application/octet-stream" });
     res.end(await readFile(file));
   });
-  return new Promise((r) => server.listen(0, () => r({ server, base: `http://localhost:${server.address().port}` })));
+  return new Promise((r) => server.listen(0, () => r({ server, base: `http://localhost:${server.address().port}`, seen, down: () => void (gone = true) })));
 }
 
 const exe = process.env.CHROME_PATH ?? (existsSync("/opt/pw-browsers/chromium-1194/chrome-linux/chrome") ? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" : undefined);
@@ -58,7 +70,7 @@ let views = 0;
 for (const lang of ["en", "ar"]) {
   for (const p of pages) {
     for (const w of widths) {
-      const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, deviceScaleFactor: 1, reducedMotion: process.env.REDUCED ? "reduce" : "no-preference" });
+      const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, deviceScaleFactor: 1, reducedMotion: process.env.REDUCED ? "reduce" : "no-preference", serviceWorkers: "block" });
       const page = await ctx.newPage();
       const errors = [];
       page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
@@ -131,7 +143,7 @@ for (const folders of ["open", "nginx-today"]) {
   const { server, base } = await serve(folders);
   const check = (ok, what) => { if (!ok) problems.push(`flow (${folders}): ${what}`); };
   const visit = async (url, locale = "en-US") => {
-    const ctx = await browser.newContext({ locale, viewport: { width: 1280, height: 900 } });
+    const ctx = await browser.newContext({ locale, viewport: { width: 1280, height: 900 }, serviceWorkers: "block" });
     const page = await ctx.newPage();
     const errors = [];
     page.on("pageerror", (e) => errors.push(String(e)));
@@ -202,9 +214,66 @@ for (const folders of ["open", "nginx-today"]) {
   server.close();
 }
 
+// 3. The archive ───────────────────────────────────────────────────────────────────
+{
+  const { server, base, seen, down } = await serve("nginx-today");
+  const check = (ok, what) => { if (!ok) problems.push(`archive: ${what}`); };
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  // (The missing page's own 404 is expected.)
+  page.on("console", (m) => { if (m.type() === "error" && !m.location().url.includes("no-such-page")) errors.push(m.text()); });
+  page.on("pageerror", (e) => errors.push(String(e)));
+  const unpacked = async () => {
+    for (let i = 0; i < 300; i++) {
+      const done = await page.evaluate(async () => {
+        for (const k of await caches.keys()) if (k.startsWith("madar-pack-") && (await (await caches.open(k)).match("/__madar-pack"))) return true;
+        return false;
+      }).catch(() => false);
+      if (done) return true;
+      await page.waitForTimeout(200);
+    }
+    return false;
+  };
+  const walk = async () => {
+    await page.evaluate(async () => {
+      for (let y = 0; y < document.documentElement.scrollHeight; y += Math.round(innerHeight * 0.7)) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 100)); }
+    });
+    await page.waitForFunction(() => Array.from(document.images).every((i) => i.complete), null, { timeout: 15000 }).catch(() => {});
+    return page.evaluate(() => Array.from(document.images).filter((i) => i.complete && i.naturalWidth === 0).length);
+  };
+
+  await page.goto(`${base}/en/`, { waitUntil: "load" });
+  check(await unpacked(), "a first visit never finished unpacking the archive");
+  check(seen.filter((p) => p.startsWith("/assets/pack.")).length === 1, `the archive should come as one file: ${seen.filter((p) => p.startsWith("/assets/pack.")).join(", ")}`);
+
+  seen.length = 0;
+  for (const url of ["/en/features/", "/ar/", "/ar/pricing/", "/en/faq/"]) {
+    await page.goto(base + url, { waitUntil: "load" });
+    const broken = await walk();
+    check(!broken, `${url}: ${broken} broken images`);
+  }
+  const asked = [...new Set(seen)].filter((p) => p !== "/sw.js");
+  check(!asked.length, `after the archive, pages still asked the server for ${asked.slice(0, 5).join(", ")}`);
+
+  down();
+  for (const url of ["/en/", "/ar/features/", "/en/pricing/", "/ar/about/", "/en/no-such-page/"]) {
+    const res = await page.goto(base + url, { waitUntil: "load" }).catch(() => null);
+    const want = url.includes("no-such") ? 404 : 200;
+    check(res?.status() === want, `offline ${url}: ${res?.status() ?? "no answer"} (want ${want})`);
+    if (res?.status() === 200) {
+      const broken = await walk();
+      check(!broken, `offline ${url}: ${broken} broken images`);
+    }
+  }
+  check(!errors.length, `console ${errors.slice(0, 3).join(" | ")}`);
+  await ctx.close();
+  server.close();
+}
+
 await browser.close();
 if (problems.length) {
   console.log(`✗ ${problems.length} problem(s):\n  ${problems.join("\n  ")}`);
   process.exit(1);
 }
-console.log(`✓ ${views} page views, and the flows on both server setups, clean`);
+console.log(`✓ ${views} page views, the flows on both server setups, and the archive online and offline, clean`);

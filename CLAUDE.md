@@ -7,7 +7,9 @@ customer bundles (ordering, tracking, reservations, loyalty) from one codebase (
 `vite.*.config.ts` files and the `dev:*` scripts). The marketing site
 (get.madar-pos.cloud) is a separate Astro package in `site/` with its own dependencies;
 read `site/README.md` before touching it. It ships no React (Astro components and plain
-scripts only); keep it that way. Code both use lives in `shared/` (plain TypeScript, no
+scripts only); keep it that way. After a visitor's first page it serves itself from one
+archive through a service worker, offline included (`site/sw/`,
+`site/integrations/pack.mjs`). Code both use lives in `shared/` (plain TypeScript, no
 framework, imported as `@shared/…`; see `shared/README.md`), such as the 3D family
 showcase on the sign-in panel and the site's home page.
 
