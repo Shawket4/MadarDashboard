@@ -5,7 +5,7 @@ export const MADAR_SITE_URL = "https://get.madar-pos.cloud/";
 
 /**
  * The signature's address: the site in the page's language (straight to
- * `/en/` or `/ar/`, not the root's language picker), tagged so the site's
+ * `/en/` or `/ar/`, not the bilingual root page), tagged so the site's
  * analytics can tell which shop and which product sent the visitor. The shop
  * is the host's slug; on one of our own hosts it is that host's name
  * (`order`, `loyalty`, ...), and the signed-in dashboard passes its own.

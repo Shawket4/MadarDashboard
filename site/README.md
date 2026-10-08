@@ -17,6 +17,7 @@ npm run dev        # http://localhost:5184/en/
 npm run build      # → site/dist
 npm run preview    # the build at http://localhost:5194/en/, service worker and all
 npm run verify     # every page × EN/AR × 4 widths in Chrome, plus the flows (see below)
+SERVE=1 npm run verify   # only the mimic of the get vhost, for curl (PORT=… to pick one)
 ```
 
 From the repo root, `npm run dev:get` and `npm run build:get` do the same. Node 22.12 or
@@ -36,10 +37,12 @@ still point at the previous build's assets. Prune old assets by age now and then
 ### How the server answers (the get vhost, `deploy/nginx/get.madar-pos.cloud`)
 
 - Folder addresses serve their page: `/en/pricing/` is `/en/pricing/index.html`.
-  `/en/pricing` and `/en/pricing/index.html` 301 to `/en/pricing/`.
-- `/` serves `get.html` (the build writes the root page under that name too), which
-  sends the browser on to `/en/` or `/ar/` by its language.
-- Unknown paths get a real 404 with `/404.html`.
+  `/en/pricing`, `/en/pricing/index.html` and `/en/pricing.html` 301 to `/en/pricing/`.
+- `/` serves `get.html` (the build writes the root page under that name too): Madar POS
+  in both languages on one page, with buttons to `/en/` and `/ar/`. It never redirects.
+- Short addresses 301: `/pricing`, `/features`, `/faq`, `/about` and `/contact` (with or
+  without the slash) to their English page, `/privacy` and `/terms` to the legal site.
+- Unknown paths get a real 404 with `/404.html`, or `/404.md` for `Accept: text/markdown`.
 - With `Accept: text/markdown`, a folder address serves its `index.md` (and `/` serves
   `/index.md`). Cloudflare bypasses its cache for those requests (a Cache Rule), so a
   Markdown response is never stored and served to a browser.
@@ -63,14 +66,17 @@ integration in `astro.config.mjs`):
 | File | What |
 |---|---|
 | `/<lang>/<page>/index.md` | each page's `<main>` as Markdown, with front matter (title, description, url, language, translation) and the contact line. Elements marked `data-md-skip` (phone-only duplicates, the story rail) and anything `aria-hidden` are left out |
-| `/index.md` | a bilingual summary linking `/en/` and `/ar/` |
-| `/llms.txt`, `/llms-full.txt` | the page list with descriptions; every page in full, English then Arabic |
+| `/index.md` | the root page (both languages) as Markdown |
+| `/404.md` | the 404 page as Markdown, with the sitemap and `llms.txt` |
+| `/llms.txt`, `/llms-full.txt` | "When to use Madar POS" (who it fits, who it doesn't, how to act), then the page list with descriptions; every page in full, English then Arabic |
 | `/sitemap.xml` (and `sitemap-index.xml`, `sitemap-0.xml`) | the language pages with `lastmod` (the last commit to `src/` or `public/`) and en, ar and x-default alternates |
 | `/robots.txt` | `public/robots.txt`, with Content Signals |
 
 JSON-LD comes from `src/lib/schema.ts`: Organization on every page; WebSite and
 SoftwareApplication on the home pages; SoftwareApplication on Pricing; FAQPage on
-the FAQ; BreadcrumbList on every page but home; Organization and WebSite on `/`.
+the FAQ; BreadcrumbList on every page but home; Organization, WebSite and
+SoftwareApplication on `/`. The dashboard's sign-in page (`index.html` at the repo root)
+carries a hand-kept copy of the Organization and SoftwareApplication: change both together.
 
 ## The archive: the whole site, offline
 

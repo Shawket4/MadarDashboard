@@ -285,7 +285,7 @@ html[lang="ar"] .split-word-mask { padding: 0.42em 0.32em; margin: -0.42em -0.32
   .bullet { position: relative; padding-inline-start: 1.6rem; }
   .bullet::before { content: ""; position: absolute; inset-inline-start: 0; top: .62em; width: .7rem; height: .7rem; border-radius: 999px; border: 2px solid var(--color-teal); }
   .on-ink .bullet::before { border-color: var(--color-teal-light); }
-  html[lang="ar"] .bullet::before { top: .72em; }
+  [lang="ar"] .bullet::before { top: .72em; }
 }
 
 /* Small language-aware details */

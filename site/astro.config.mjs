@@ -102,7 +102,7 @@ export default defineConfig({
   integrations: [
     sitemap({
       i18n: { defaultLocale: "en", locales: { en: "en", ar: "ar" } },
-      // Only the language pages: the root is a language picker, 404 isn't a page.
+      // Only the language pages: the root is a bilingual signpost to them, 404 isn't a page.
       filter: (page) => /\/(en|ar)\//.test(page),
       lastmod: lastModified(),
       // x-default: the English page, as each page's own hreflang says.

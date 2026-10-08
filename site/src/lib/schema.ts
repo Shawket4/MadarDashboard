@@ -27,6 +27,7 @@ export function organization() {
     contactPoint: [{
       "@type": "ContactPoint",
       telephone: PHONE_E164,
+      email: EMAIL,
       contactType: "sales",
       areaServed: "EG",
       availableLanguage: ["en", "ar"],

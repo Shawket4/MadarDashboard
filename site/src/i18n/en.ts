@@ -83,6 +83,34 @@ export const en = {
     facebook: "Facebook",
     city: "City",
     cityValue: "Cairo, Egypt",
+    nextTitle: "What happens when you write",
+    next: [
+      "Tell us about your café: how many branches and tills, and what you use today.",
+      "We reply the same day, on WhatsApp or by phone.",
+      "We agree a day to install Madar in your branch, usually within the week, and your first month is free.",
+      "Sales, setup and support all reach the same team in Cairo, with no ticket queue.",
+    ],
+  },
+
+  /** The root page (/): both languages on one page, each block in its own language. */
+  root: {
+    title: "The café point of sale built in Cairo",
+    lead: "Madar POS is a point of sale for cafés and restaurants in Egypt, built in Cairo. One system runs the till on an iPad or Android tablet, the kitchen's screens and the back office on one ledger, so you know what every cup costs you.",
+    featuresTitle: "What it runs",
+    features: [
+      "The till: fast counter selling, split payments and tips, and a blind close of the cash drawer.",
+      "The kitchen: every order reaches the station that makes it, on its own screen.",
+      "Recipe costing: the cost and margin of every item, per size, down to the gram.",
+      "Stock: one ingredient catalogue, purchase orders, waste, transfers and stocktakes.",
+      "Loyalty: points or stamps on a card in Apple Wallet and Google Wallet.",
+      "Online ordering: your own ordering page for pickup and delivery, with live tracking.",
+      "Reservations: table bookings by phone or online that hold their tables.",
+    ],
+    languages: "Arabic and English throughout, receipts included, and the till keeps selling online or offline.",
+    pricingTitle: "Pricing",
+    pricing: "From 3,000 EGP per branch per month, with no per-seat fee. Your first month is on us.",
+    linksTitle: "Read more",
+    cta: "Continue in English",
   },
 
   freeMonth: {

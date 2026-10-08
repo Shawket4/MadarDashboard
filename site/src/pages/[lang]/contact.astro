@@ -33,6 +33,10 @@ const rows = [
         <p class="kicker text-teal" data-reveal>{cp.kicker}</p>
         <h1 class="text-display mt-5" data-split>{c.contact.title}</h1>
         <p class="text-lead mt-6 text-muted" data-reveal>{c.contact.subtitle}</p>
+        <h2 class="mt-12 text-lg font-semibold" data-reveal>{cp.nextTitle}</h2>
+        <ol class="mt-4 grid list-decimal gap-3 ps-5 text-muted marker:font-mono marker:text-teal" data-reveal-group>
+          {cp.next.map((line) => <li data-reveal>{line}</li>)}
+        </ol>
       </div>
       <div class="lg:col-span-7">
         <h2 class="text-lg font-semibold" data-reveal>{cp.channels}</h2>
