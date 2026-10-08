@@ -7,9 +7,12 @@
 //    Screenshots land in node_modules/.verify/ for a visual pass.
 //    Also fails when a split heading's word would be cut off by its mask.
 // 2. The flows, against two servers: one that opens folders (index.html), and one
-//    that behaves like today's nginx on the VPS (`try_files $uri /get.html`, no
-//    folder lookup): language pick, folder addresses, links, # addresses and # links,
-//    404, pricing terms, sheet.
+//    that behaves like the get vhost on the VPS (deploy/nginx/get.madar-pos.cloud):
+//    / serves get.html, …/index.html and folder addresses without the slash 301 to the
+//    folder address, unknown paths are a real 404 with 404.html, and Accept:
+//    text/markdown gets a folder's index.md. Language pick, folder addresses, links,
+//    # addresses and # links, 404, pricing terms, sheet, and (nginx) the redirects,
+//    the Markdown versions and llms.txt.
 //    (1 and 2 run without the service worker: they check the pages and the servers.)
 // 3. The archive (sw/sw.ts): a first visit unpacks it; after that, pages in both
 //    languages reach the server for nothing but the browser's own update check; and
@@ -26,31 +29,38 @@ const dist = path.resolve(here, "../dist");
 const shots = path.resolve(here, "../node_modules/.verify");
 await mkdir(shots, { recursive: true });
 
-const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".webp": "image/webp", ".svg": "image/svg+xml", ".json": "application/json", ".wasm": "application/wasm", ".png": "image/png", ".jpg": "image/jpeg", ".ico": "image/x-icon", ".woff2": "font/woff2", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json" };
+const types = { ".md": "text/markdown; charset=utf-8", ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".webp": "image/webp", ".svg": "image/svg+xml", ".json": "application/json", ".wasm": "application/wasm", ".png": "image/png", ".jpg": "image/jpeg", ".ico": "image/x-icon", ".woff2": "font/woff2", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json" };
 const isFile = (f) => stat(f).then((s) => s.isFile(), () => false);
 const isDir = (f) => stat(f).then((s) => s.isDirectory(), () => false);
 
 /**
- * folders: "open" serves a folder's index.html (404.html otherwise); "nginx-today" mimics
- * the VPS. `seen` collects the paths asked for; `down()` drops every connection from then
- * on, as if the network were gone.
+ * folders: "open" serves a folder's index.html (404.html otherwise); "nginx" mimics the
+ * get vhost. `seen` collects the paths asked for; `down()` drops every connection from
+ * then on, as if the network were gone.
  */
 function serve(folders) {
   const seen = [];
   let gone = false;
   const server = createServer(async (req, res) => {
-    const p = decodeURIComponent(new URL(req.url ?? "/", "http://x").pathname);
+    const url = new URL(req.url ?? "/", "http://x");
+    const p = decodeURIComponent(url.pathname);
     if (gone) return void req.socket.destroy();
     seen.push(p);
+    const md = /text\/markdown/i.test(req.headers.accept ?? "");
     let file = path.join(dist, p);
     let status = 200;
+    const redirect = (to) => { res.writeHead(301, { location: to + url.search }); res.end(); };
     if (folders === "open") {
       if (await isDir(file)) file = path.join(file, "index.html");
       if (!(await isFile(file))) { file = path.join(dist, "404.html"); status = 404; }
-    } else if (p.startsWith("/assets/")) {
-      if (!(await isFile(file))) { res.writeHead(404); res.end("404 Not Found"); return; }
-    } else if (!(await isFile(file))) {
-      file = path.join(dist, "get.html");
+    } else {
+      if (/\/index\.html$/.test(p)) return redirect(p.slice(0, -10));
+      if (p === "/") file = path.join(dist, md && (await isFile(path.join(dist, "index.md"))) ? "index.md" : "get.html");
+      else if (!p.endsWith("/") && (await isDir(file))) return redirect(`${p}/`);
+      else if (await isFile(file)) { /* the file itself */ }
+      else if (p.endsWith("/") && md && (await isFile(path.join(file, "index.md")))) file = path.join(file, "index.md");
+      else if (p.endsWith("/") && (await isFile(path.join(file, "index.html")))) file = path.join(file, "index.html");
+      else { file = path.join(dist, "404.html"); status = 404; }
     }
     res.writeHead(status, { "content-type": types[path.extname(file)] ?? "application/octet-stream" });
     res.end(await readFile(file));
@@ -64,7 +74,7 @@ const problems = [];
 
 // 1. Pages ─────────────────────────────────────────────────────────────────────────
 const open = await serve("open");
-const pages = ["", "features/", "pricing/", "faq/", "about/"];
+const pages = ["", "features/", "pricing/", "faq/", "about/", "contact/"];
 const widths = (process.env.WIDTHS ?? "390,768,1280,1440").split(",").map(Number);
 let views = 0;
 for (const lang of ["en", "ar"]) {
@@ -139,7 +149,7 @@ for (const lang of ["en", "ar"]) {
 open.server.close();
 
 // 2. Flows ─────────────────────────────────────────────────────────────────────────
-for (const folders of ["open", "nginx-today"]) {
+for (const folders of ["open", "nginx"]) {
   const { server, base } = await serve(folders);
   const check = (ok, what) => { if (!ok) problems.push(`flow (${folders}): ${what}`); };
   const visit = async (url, locale = "en-US") => {
@@ -201,6 +211,26 @@ for (const folders of ["open", "nginx-today"]) {
   check(at.hash === "#stage-rush" && Math.abs(at.top - 88) < 6 && at.hidden === 0, `# link on the page → ${JSON.stringify(at)}`);
   await v.ctx.close();
 
+  if (folders === "nginx") {
+    // The redirects, the Markdown versions and llms.txt, as the VPS serves them.
+    const get = (u, accept) => fetch(base + u, { redirect: "manual", headers: accept ? { accept } : {} });
+    let r = await get("/en/pricing/index.html");
+    check(r.status === 301 && r.headers.get("location") === "/en/pricing/", `/en/pricing/index.html → ${r.status} ${r.headers.get("location")}`);
+    r = await get("/ar/pricing");
+    check(r.status === 301 && r.headers.get("location") === "/ar/pricing/", `/ar/pricing → ${r.status} ${r.headers.get("location")}`);
+    for (const [u, needle] of [["/en/pricing/", "3,000 EGP"], ["/ar/faq/", "### "], ["/", "](https://get.madar-pos.cloud/ar/)"]]) {
+      r = await get(u, "text/markdown, text/html;q=0.9");
+      const body = await r.text();
+      check(r.ok && /text\/markdown/.test(r.headers.get("content-type") ?? "") && body.includes(needle), `Markdown for ${u} → ${r.status} ${r.headers.get("content-type")}`);
+    }
+    for (const u of ["/llms.txt", "/llms-full.txt", "/robots.txt", "/sitemap.xml"]) {
+      r = await get(u);
+      check(r.ok, `${u} → ${r.status}`);
+    }
+    r = await get("/no-such-page");
+    check(r.status === 404, `unknown path → ${r.status}`);
+  }
+
   // The pricing terms switch both plans.
   v = await visit("/en/pricing/");
   await v.page.click("[data-terms] label:last-child");
@@ -216,7 +246,7 @@ for (const folders of ["open", "nginx-today"]) {
 
 // 3. The archive ───────────────────────────────────────────────────────────────────
 {
-  const { server, base, seen, down } = await serve("nginx-today");
+  const { server, base, seen, down } = await serve("nginx");
   const check = (ok, what) => { if (!ok) problems.push(`archive: ${what}`); };
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();

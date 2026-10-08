@@ -1,59 +1,52 @@
 ---
 /**
- * The root page. The build copies it to get.html too (marked `data-fallback`), and
- * that matters: the get vhost answers every path that isn't a file with /get.html
- * (`try_files $uri /get.html`, no folder lookup, checked against the live server on
- * 2026-10-07). So this page routes, before anything paints:
- *  - the root: Arabic when the browser's first language is Arabic, English otherwise
- *    (to the page file straight away when it came as the fallback);
- *  - a language folder (/en/pricing/): its file, /en/pricing/index.html. The page then
- *    puts the clean address back (BaseLayout) and links straight to files (ui.ts);
- *  - a page file that doesn't exist, or any other path: the 404 page.
- * Once nginx opens folders (`try_files $uri $uri/ …` with `index index.html`), the
- * language pages answer directly and only the root comes here. Nothing to change.
+ * The root page (/): a language picker. The browser goes straight on to /ar/ when its
+ * first language is Arabic and to /en/ otherwise (src/scripts/classic/root.js), before
+ * anything paints. Without JavaScript it shows the two languages as links (and a
+ * noscript refresh to English). The build also writes it as get.html, which the get
+ * vhost serves for / (deploy/nginx/get.madar-pos.cloud).
  * No CSS bundle and no view transition on this page: it is a hop, not a page.
- * Without JavaScript it shows the two languages as links.
  */
 import symbol from "@/assets/brand/symbol-reversed.svg?raw";
 import wordmark from "@/assets/brand/wordmark-reversed.svg?raw";
+import rootUrl from "@/scripts/classic/root.js?url&no-inline";
 import { absoluteUrl } from "@/lib/site";
+import { organization, website } from "@/lib/schema";
 
 const svg = (s: string) => s.replace(/<svg([^>]*?)\swidth="[^"]*"\sheight="[^"]*"/, "<svg$1").replace("<svg", '<svg aria-hidden="true" focusable="false"');
+const title = "Madar POS · مدار: café point of sale for Egypt";
+const description = "Madar POS, the café point of sale for Egypt that knows what every cup costs. مدار، سيستم كاشير للكافيهات بيحسب تكلفة كل كوباية.";
+const ogImage = absoluteUrl("/og/en-home.jpg");
 ---
 <!doctype html>
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <script is:inline>
-      (function (d) {
-        var p = location.pathname, q = location.search + location.hash, to;
-        if (p === "/" || p === "/index.html" || p === "/get.html") {
-          var l = (navigator.languages && navigator.languages[0]) || navigator.language || "en";
-          // Served as the fallback: this server won't open /en/, so go to its file.
-          to = (/^ar\b/i.test(l) ? "/ar/" : "/en/") + (d.hasAttribute("data-fallback") ? "index.html" : "") + q;
-        } else if (/^\/(en|ar)(\/[a-z0-9-]+)*\/?$/i.test(p)) {
-          to = p.replace(/\/?$/, "/") + "index.html" + q;
-        } else {
-          to = "/404.html";
-        }
-        d.className = "go";
-        // The page we land on counts this as arriving, not as a click inside the site.
-        try { sessionStorage.setItem("madar-hop", "1"); } catch (e) {}
-        location.replace(to);
-      })(document.documentElement);
-    </script>
+    <script is:inline src={rootUrl}></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Madar · مدار</title>
-    <meta name="description" content="Madar, the café POS for owners who care about their numbers. مدار، نظام كاشير لأصحاب الكافيهات اللي بيهمهم أرقامهم." />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={absoluteUrl("/")} />
     <link rel="alternate" hreflang="en" href={absoluteUrl("/en/")} />
     <link rel="alternate" hreflang="ar" href={absoluteUrl("/ar/")} />
-    <link rel="alternate" hreflang="x-default" href={absoluteUrl("/")} />
-    <meta property="og:title" content="Madar · مدار" />
-    <meta property="og:image" content={absoluteUrl("/og/en-home.jpg")} />
+    <link rel="alternate" hreflang="x-default" href={absoluteUrl("/en/")} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Madar POS" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={absoluteUrl("/")} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    {[organization(), website()].map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
     <meta name="theme-color" content="#14181E" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <noscript><meta http-equiv="refresh" content="0; url=/en/index.html" /></noscript>
+    <noscript><meta http-equiv="refresh" content="0; url=/en/" /></noscript>
     <style is:inline>
       html { background: #14181E; color: #EFF3F4; font: 500 16px/1.4 system-ui, sans-serif; }
       html.go body { visibility: hidden; }
@@ -70,10 +63,10 @@ const svg = (s: string) => s.replace(/<svg([^>]*?)\swidth="[^"]*"\sheight="[^"]*
   </head>
   <body>
     <main>
-      <div class="logo" aria-label="Madar"><span set:html={svg(symbol)} /><span class="w" set:html={svg(wordmark)} /></div>
+      <div class="logo" role="img" aria-label="Madar POS"><span set:html={svg(symbol)} /><span class="w" set:html={svg(wordmark)} /></div>
       <nav>
-        <a href="/en/index.html" hreflang="en" lang="en">English</a>
-        <a href="/ar/index.html" hreflang="ar" lang="ar">العربية</a>
+        <a href="/en/" hreflang="en" lang="en">English</a>
+        <a href="/ar/" hreflang="ar" lang="ar">العربية</a>
       </nav>
     </main>
   </body>

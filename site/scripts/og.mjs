@@ -1,6 +1,7 @@
 // Share cards (1200×630) for every page in both languages → public/og/{lang}-{page}.jpg
 // Rendered by a real browser so Arabic shapes correctly with the real fonts.
-//   npm run og        (uses your installed Chrome, or CHROME_PATH=/path/to/chrome)
+//   npm run og                 every page (uses your installed Chrome, or CHROME_PATH=/path/to/chrome)
+//   npm run og -- contact      only the pages named
 // Run it after changing a page title; the JPGs are committed, so CI doesn't need a browser.
 import { chromium } from "playwright-core";
 import { writeFile, mkdir, readFile } from "node:fs/promises";
@@ -25,12 +26,19 @@ const shot = (lang, id) => {
 const svg = async (name) => (await readFile(path.join(site, "src/assets/brand", name), "utf8")).replace(/\swidth="[^"]*"\sheight="[^"]*"/, "");
 
 const pages = {
-  home: { copy: (c) => [c.hero.title, c.hero.sub], shot: "dash-recipe", frame: "browser" },
+  // The card keeps the short tagline (hero.body); hero.sub is the long factual lead.
+  home: { copy: (c) => [c.hero.title, c.hero.body], shot: "dash-recipe", frame: "browser" },
   features: { copy: (c) => [c.features.title, c.features.intro], shot: "dash-overview", frame: "browser" },
   pricing: { copy: (c) => [c.pricing.title, c.pricing.free.title], shot: "pos-close-till", frame: "ipad" },
-  faq: { copy: (c) => [c.faq.title, c.faq.sub], shot: "order-track", frame: "iphone" },
+  faq: { copy: (c) => [c.faq.title, firstSentence(c.faq.sub)], shot: "order-track", frame: "iphone" },
   about: { copy: (c) => [c.about.title, c.about.partnerTitle], shot: "wallet-pass", frame: "iphone" },
+  contact: { copy: (c) => [c.contact.title, c.contact.subtitle], shot: "pos-charge", frame: "ipad" },
 };
+const only = process.argv.slice(2);
+
+function firstSentence(s) {
+  return s.split(/(?<=[.؟?])\s/)[0];
+}
 
 const symbolPaper = await svg("symbol-reversed.svg");
 const words = { en: await svg("wordmark-reversed.svg"), ar: await svg("arabic-plain-paper.svg") };
@@ -42,6 +50,7 @@ const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, dev
 
 for (const [lang, c] of [["en", en], ["ar", ar]]) {
   for (const [key, cfg] of Object.entries(pages)) {
+    if (only.length && !only.includes(key)) continue;
     const [title, sub] = cfg.copy(c);
     const rtl = lang === "ar";
     const shotBox =

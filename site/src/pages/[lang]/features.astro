@@ -7,6 +7,7 @@ import Orbit from "@/components/ui/Orbit.astro";
 import LedgerBeams from "@/components/kit/LedgerBeams.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS } from "@/lib/site";
+import { breadcrumbs } from "@/lib/schema";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -23,7 +24,7 @@ const groups = [
   { label: f.groups.also, items: [["dawam", a.dawam.kicker], ["setup", a.setup.kicker]] },
 ];
 ---
-<BaseLayout lang={lang} page="features" headerTone="paper">
+<BaseLayout lang={lang} page="features" headerTone="paper" jsonLd={[breadcrumbs(lang, "features")]}>
   <!-- Intro -->
   <section class="relative isolate overflow-hidden bg-paper">
     <Orbit tone="paper" class="absolute -end-[34rem] -top-[34rem] -z-10 h-[76rem] w-[76rem] opacity-70" />

@@ -9,11 +9,12 @@ import Footer from "./Footer.astro";
 import ContactSheet from "./ContactSheet.astro";
 import StickyWhatsApp from "./StickyWhatsApp.astro";
 import ClosingBand from "./ClosingBand.astro";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import bootUrl from "@/scripts/classic/boot.js?url&no-inline";
 import { t, dirOf } from "@/i18n";
-import {
-  type Lang, type PageKey, LANGS, pageHref, absoluteUrl, otherLang, SITE_URL,
-  INSTAGRAM, FACEBOOK, PHONE_E164,
-} from "@/lib/site";
+import { type Lang, type PageKey, LANGS, pageHref, absoluteUrl, otherLang } from "@/lib/site";
+import { organization } from "@/lib/schema";
 
 interface Props {
   lang: Lang;
@@ -29,70 +30,27 @@ const c = t(lang);
 const meta = c.meta[page];
 const routable = page !== "notFound";
 const canonical = routable ? absoluteUrl(pageHref(lang, page)) : undefined;
-const ogImage = absoluteUrl(`/og/${lang}-${routable ? page : "home"}.jpg`);
+// Each page's share card (scripts/og.mjs); the home card until a page has its own.
+const ogFile = `${lang}-${routable ? page : "home"}.jpg`;
+const ogImage = absoluteUrl(`/og/${existsSync(path.join(process.cwd(), "public/og", ogFile)) ? ogFile : `${lang}-home.jpg`}`);
 const umamiId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID as string | undefined;
 const umamiSrc = (import.meta.env.PUBLIC_UMAMI_SRC as string | undefined) ?? "https://cloud.umami.is/script.js";
 
-const org = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "Madar",
-  alternateName: "مدار",
-  url: SITE_URL,
-  logo: absoluteUrl("/icon-512.png"),
-  sameAs: [INSTAGRAM, FACEBOOK],
-  contactPoint: [{
-    "@type": "ContactPoint",
-    telephone: PHONE_E164,
-    contactType: "sales",
-    areaServed: "EG",
-    availableLanguage: ["en", "ar"],
-  }],
-};
-const ld = [org, ...jsonLd];
+const ld = [organization(), ...jsonLd];
 ---
 <!doctype html>
 <html lang={lang} dir={dirOf(lang)}>
   <head>
     <meta charset="utf-8" />
-    <script is:inline>
-      (function (d) {
-        d.classList.add("js");
-        var motion = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-        if (motion) d.classList.add("motion");
-        // A click from another page of this site: the page transition brings the page
-        // in, so nothing on screen waits for an entrance ("soft"). The root page's
-        // forward to a page file marks itself, and that still counts as arriving.
-        var soft = false;
-        try {
-          var hop = sessionStorage.getItem("madar-hop");
-          if (hop) sessionStorage.removeItem("madar-hop");
-          var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
-          var ref = document.referrer;
-          soft = !hop && !!ref && ref.indexOf(location.origin + "/") === 0 && !(nav && nav.type === "reload");
-        } catch (e) {}
-        if (soft) d.setAttribute("data-soft", "");
-        // Arriving fresh: hide what the entrance animates until it's ready (3 s safety net).
-        if (motion && !soft) {
-          d.classList.add("m");
-          setTimeout(function () { if (!d.classList.contains("m-ready")) d.classList.add("m-fail"); }, 3000);
-        }
-        // Opened as …/index.html: the server couldn't open the folder address and the
-        // root page forwarded here. Show the clean address; links go straight to files.
-        var p = location.pathname;
-        if (/\/index\.html$/.test(p)) {
-          d.setAttribute("data-files", "");
-          try { history.replaceState(history.state, "", p.slice(0, -10) + location.search + location.hash); } catch (e) {}
-        }
-      })(document.documentElement);
-    </script>
+    <!-- Before anything paints: motion and entrance classes (src/scripts/classic/boot.js). -->
+    <script is:inline src={bootUrl}></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{meta.title}</title>
     <meta name="description" content={meta.description} />
     {noindex && <meta name="robots" content="noindex" />}
     {canonical && <link rel="canonical" href={canonical} />}
     {routable && LANGS.map((l) => <link rel="alternate" hreflang={l} href={absoluteUrl(pageHref(l, page as PageKey))} />)}
-    {routable && <link rel="alternate" hreflang="x-default" href={page === "home" ? absoluteUrl("/") : absoluteUrl(pageHref("en", page as PageKey))} />}
+    {routable && <link rel="alternate" hreflang="x-default" href={absoluteUrl(pageHref("en", page as PageKey))} />}
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={c.meta.siteName} />

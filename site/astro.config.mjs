@@ -8,16 +8,16 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { promisify } from "node:util";
 import { brotliCompress, gzip, constants as zlib } from "node:zlib";
+import { execSync } from "node:child_process";
 import { pack } from "./integrations/pack.mjs";
+import { agentFiles } from "./scripts/agent-files.mjs";
 
 export const SITE = "https://get.madar-pos.cloud";
 
 /**
- * The previous landing was a single-page app whose entry file was `get.html`, and
- * nginx still falls back to that file for every path that isn't a file. The VPS
- * keeps old files on deploy, so ship the root page under that name too (it routes
- * those paths; see src/pages/index.astro), marked so it knows it came as the
- * fallback, and overwrite the old single-URL sitemap.xml with the real one.
+ * The get vhost serves the root page for / as `get.html` (`location = /`, see
+ * deploy/nginx/get.madar-pos.cloud), so ship it under that name too, and publish the
+ * sitemap as sitemap.xml (robots.txt points there) beside the integration's files.
  */
 function rootAlias() {
   return {
@@ -25,14 +25,25 @@ function rootAlias() {
     hooks: {
       "astro:build:done": async ({ dir }) => {
         const out = fileURLToPath(dir);
-        const root = await readFile(`${out}index.html`, "utf8");
-        if (!root.includes("<html lang=\"en\" dir=\"ltr\">")) throw new Error("root page: <html> tag changed, update the get.html marker");
-        await writeFile(`${out}get.html`, root.replace("<html lang=\"en\" dir=\"ltr\">", "<html lang=\"en\" dir=\"ltr\" data-fallback>"));
+        await copyFile(`${out}index.html`, `${out}get.html`);
         const urls = `${out}sitemap-0.xml`;
         if (await access(urls).then(() => true, () => false)) await copyFile(urls, `${out}sitemap.xml`);
       },
     },
   };
+}
+
+/**
+ * The sitemap's <lastmod>: the date of the last commit that touched the site's source,
+ * so it moves when the pages do and not on every rebuild. Falls back to the build date
+ * where git history isn't there (a shallow CI clone whose head didn't touch site/).
+ */
+function lastModified() {
+  try {
+    const out = execSync("git log -1 --format=%cI -- src public", { cwd: fileURLToPath(new URL(".", import.meta.url)), stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+    if (out) return new Date(out);
+  } catch {}
+  return new Date();
 }
 
 /**
@@ -42,7 +53,7 @@ function rootAlias() {
  * want neither. Runs after the root alias, so get.html and sitemap.xml get theirs.
  */
 function precompress() {
-  const TEXT = /\.(html|css|js|mjs|json|svg|xml|txt|webmanifest|wasm)$/;
+  const TEXT = /\.(html|css|js|mjs|json|svg|xml|txt|md|webmanifest|wasm)$/;
   const MIN = 1024; // smaller files aren't worth a second request path
   const br = promisify(brotliCompress);
   const gz = promisify(gzip);
@@ -93,8 +104,13 @@ export default defineConfig({
       i18n: { defaultLocale: "en", locales: { en: "en", ar: "ar" } },
       // Only the language pages: the root is a language picker, 404 isn't a page.
       filter: (page) => /\/(en|ar)\//.test(page),
+      lastmod: lastModified(),
+      // x-default: the English page, as each page's own hreflang says.
+      serialize: (item) => ({ ...item, links: [...(item.links ?? []), { url: item.url.replace(/\/ar\//, "/en/"), lang: "x-default" }] }),
     }),
     rootAlias(),
+    // Markdown versions, /index.md and llms.txt, read back from the built pages.
+    agentFiles(SITE),
     // The whole site as one archive and the service worker that serves it (before the
     // precompression, so sw.js gets its .br and .gz too).
     pack(),

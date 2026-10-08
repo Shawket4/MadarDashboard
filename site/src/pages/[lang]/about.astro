@@ -5,6 +5,7 @@ import Orbit from "@/components/ui/Orbit.astro";
 import Logo from "@/components/ui/Logo.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS, whatsappHref } from "@/lib/site";
+import { breadcrumbs } from "@/lib/schema";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -13,8 +14,9 @@ const { lang } = Astro.params as { lang: Lang };
 const c = t(lang);
 const ab = c.about;
 const free = c.pricing.free;
+const jsonLd = [breadcrumbs(lang, "about")];
 ---
-<BaseLayout lang={lang} page="about" headerTone="ink">
+<BaseLayout lang={lang} page="about" headerTone="ink" jsonLd={jsonLd}>
   <section class="on-ink relative isolate overflow-hidden bg-ink text-paper">
     <Orbit tone="ink" class="absolute -end-[30rem] -top-[26rem] -z-10 h-[76rem] w-[76rem]" />
     <div class="container-site pb-20 pt-36 md:pb-28 md:pt-44">

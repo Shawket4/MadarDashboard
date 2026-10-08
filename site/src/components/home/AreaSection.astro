@@ -46,6 +46,8 @@ const screenTexts = order.map((card) => {
   return mine.length ? mine : [media?.items[card]?.alt ?? ""];
 });
 const kickerTone = ink ? "text-teal-light" : "text-teal";
+// Link text that names where it goes ("Till & control in Features"), not "Learn more".
+const moreLabel = c.common.inFeatures.replace("{area}", kicker);
 const mutedTone = ink ? "text-muted-ink" : "text-muted";
 ---
 <section
@@ -80,7 +82,7 @@ const mutedTone = ink ? "text-muted-ink" : "text-muted";
         </ul>
         {moreHref && (
           <a class:list={["mt-8 inline-flex items-center gap-2 font-medium", kickerTone]} href={moreHref}>
-            {c.common.learnMore} <Icon name="arrow" size={18} />
+            {moreLabel} <Icon name="arrow" size={18} />
           </a>
         )}
       </div>
@@ -100,8 +102,8 @@ const mutedTone = ink ? "text-muted-ink" : "text-muted";
           </div>
         )}
         {scene && moreHref && (
-          <a class:list={["area-more-m mt-5 items-center gap-2 font-medium", kickerTone]} href={moreHref}>
-            {c.common.learnMore} <Icon name="arrow" size={18} />
+          <a class:list={["area-more-m mt-5 items-center gap-2 font-medium", kickerTone]} href={moreHref} data-md-skip>
+            {moreLabel} <Icon name="arrow" size={18} />
           </a>
         )}
       </div>

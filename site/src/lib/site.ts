@@ -8,12 +8,13 @@ export const PHONE_DISPLAY = "+20 121 111 6899";
 export const PHONE_E164 = "+201211116899";
 export const PHONE_HREF = `tel:${PHONE_E164}`;
 
-/** TODO(owner): switch to a domain address (e.g. hello@madar-pos.cloud) once it exists. */
 export const EMAIL = "shawket.4@icloud.com";
 export const EMAIL_HREF = `mailto:${EMAIL}`;
 
 export const INSTAGRAM = "https://www.instagram.com/madar.cloud/";
 export const FACEBOOK = "https://www.facebook.com/profile.php?id=61591636403380";
+
+export const APP_STORE_URL = "https://apps.apple.com/app/id6815221877";
 
 export const LEGAL_URL = "https://legal.madar-pos.cloud";
 
@@ -30,7 +31,7 @@ export function whatsappHref(lang: Lang): string {
   return `https://wa.me/${PHONE_E164.replace("+", "")}?text=${encodeURIComponent(WA_TEXT[lang])}`;
 }
 
-export type PageKey = "home" | "features" | "pricing" | "faq" | "about";
+export type PageKey = "home" | "features" | "pricing" | "faq" | "about" | "contact";
 
 const PAGE_PATH: Record<PageKey, string> = {
   home: "",
@@ -38,6 +39,7 @@ const PAGE_PATH: Record<PageKey, string> = {
   pricing: "pricing/",
   faq: "faq/",
   about: "about/",
+  contact: "contact/",
 };
 
 /** Site-relative URL of a page in a language, e.g. /ar/pricing/ */

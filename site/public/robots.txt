@@ -1,4 +1,4 @@
 User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
 Allow: /
-
-Sitemap: https://get.madar-pos.cloud/sitemap-index.xml
+Sitemap: https://get.madar-pos.cloud/sitemap.xml

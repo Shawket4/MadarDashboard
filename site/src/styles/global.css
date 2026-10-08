@@ -28,6 +28,9 @@
   --color-white: #ffffff;
   --color-teal: #0d6273;
   --color-teal-light: #2e94a6;
+  /* Teal light raised 0.018 in OKLCH lightness (same hue and chroma) for text on the
+     lifted Ink of an active row (~#23272d): 4.55:1 there, where Teal light is 4.21:1. */
+  --color-teal-light-raised: #359aac;
   --color-tint: #cfe3e7;
   --color-slate: #76828b;
   --color-rule: #d3dce0;
@@ -301,7 +304,8 @@ html[lang="ar"] .chip-label { font-size: 0.78rem; text-transform: none; letter-s
 .barista-progress { transform-origin: 0% 50%; }
 [dir="rtl"] .barista-progress { transform-origin: 100% 50%; }
 .barista-step[data-active] { background: rgb(239 243 244 / 0.07); }
-.barista-step[data-active] .text-paper { color: var(--color-teal-light); }
+.barista-step[data-active] .text-paper,
+.barista-step[data-active] .text-teal-light { color: var(--color-teal-light-raised); }
 
 /* Until the story script is ready, keep animated pieces out of sight (never without JS:
    the "m" class is only set by the inline head script, with a 3 s fallback). */

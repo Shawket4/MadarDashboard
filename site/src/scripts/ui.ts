@@ -2,18 +2,6 @@
 // header turning solid on scroll, and the sticky WhatsApp bar on phones.
 // Everything here degrades to plain links without JavaScript.
 
-// The server can't open folder addresses yet (see src/pages/index.astro): link
-// straight to each page's file, so a click doesn't hop through the root page.
-if (document.documentElement.hasAttribute("data-files")) {
-  for (const a of Array.from(document.querySelectorAll<HTMLAnchorElement>("a[href]"))) {
-    const raw = a.getAttribute("href") ?? "";
-    if (raw.startsWith("#")) continue;
-    const u = new URL(raw, location.href);
-    if (u.origin !== location.origin || u.pathname === location.pathname) continue;
-    if (/^\/(en|ar)\/([a-z0-9-]+\/)*$/.test(u.pathname)) a.setAttribute("href", `${u.pathname}index.html${u.search}${u.hash}`);
-  }
-}
-
 const contact = document.getElementById("contact-dialog") as HTMLDialogElement | null;
 const menu = document.getElementById("mobile-menu") as HTMLDialogElement | null;
 

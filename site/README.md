@@ -28,36 +28,49 @@ answering there, and would hide `npm run dev` behind the last build if they shar
 ## Deploy
 
 Same as the dashboard: push a `v*.*.*` tag. `.github/workflows/deploy.yml` builds the
-site on Node 22 and copies `site/dist/*` to `/var/www/madar-get`. Old files on the
-server are left in place (no delete step), so a deploy never takes the site down, and
-the old landing's leftovers (`/screenshots/`, old `/assets/get-*.js`) stay harmless.
+site on Node 22 and rsyncs `site/dist/` to `/var/www/madar-get` with `--delete`, so
+files the site no longer builds are removed. Hashed files in `assets/` are protected
+from the delete: Cloudflare keeps the HTML for up to 5 minutes, and those cached pages
+still point at the previous build's assets. Prune old assets by age now and then.
 
-### How the server answers today (checked 2026-10-07)
+### How the server answers (the get vhost, `deploy/nginx/get.madar-pos.cloud`)
 
+- Folder addresses serve their page: `/en/pricing/` is `/en/pricing/index.html`.
+  `/en/pricing` and `/en/pricing/index.html` 301 to `/en/pricing/`.
+- `/` serves `get.html` (the build writes the root page under that name too), which
+  sends the browser on to `/en/` or `/ar/` by its language.
+- Unknown paths get a real 404 with `/404.html`.
+- With `Accept: text/markdown`, a folder address serves its `index.md` (and `/` serves
+  `/index.md`). Cloudflare bypasses its cache for those requests (a Cache Rule), so a
+  Markdown response is never stored and served to a browser.
 - `/assets/…` is served with a one-year immutable cache, so `astro.config.mjs` puts
   every hashed file (JS, CSS, images, fonts, the Lottie files) in `assets/`.
 - Every text file over 1 KB also ships precompressed beside itself, `.br` (brotli 11)
-  and `.gz` (gzip 9), as the old landing's build did, for nginx's `brotli_static` and
-  `gzip_static`. About 2.9 MB of HTML, JS, CSS, JSON and WASM goes down to 0.7 MB.
-- Everything else is `no-store`, and any path that isn't a file gets `/get.html`
-  (`try_files $uri /get.html`, no folder lookup). So `/en/pricing/` can't open
-  `/en/pricing/index.html` by itself. The build ships the root page as `get.html`
-  too, and that page forwards a folder address to its file before anything paints;
-  the page then puts the clean address back and links straight to files. It works,
-  with one extra hop on the first page of a visit.
+  and `.gz` (gzip 9), for nginx's `brotli_static` and `gzip_static`.
+- HTML is `no-cache` from nginx and cached at Cloudflare for 5 minutes (a Cache Rule).
+- Security headers on every response; the CSP is `script-src 'self'`
+  (plus Cloudflare's analytics beacon), so the site has **no inline scripts**: the
+  scripts that must run before paint are classic files in `src/scripts/classic/`,
+  imported with `?url&no-inline` so they are emitted as hashed files. JSON-LD blocks
+  stay inline (they aren't executed). If Umami is turned on, its script origin has to
+  be added to the CSP in the vhost.
 
-**Owner action (optional, removes the hop):** in the get vhost,
+## Files for agents and search
 
-```nginx
-index index.html;
-location / { try_files $uri $uri/ /get.html; }
-```
+Written at build time, all from the built pages (`scripts/agent-files.mjs`, the sitemap
+integration in `astro.config.mjs`):
 
-Nothing in the site needs to change after that: the root page notices which file the
-server gave it and stops forwarding.
+| File | What |
+|---|---|
+| `/<lang>/<page>/index.md` | each page's `<main>` as Markdown, with front matter (title, description, url, language, translation) and the contact line. Elements marked `data-md-skip` (phone-only duplicates, the story rail) and anything `aria-hidden` are left out |
+| `/index.md` | a bilingual summary linking `/en/` and `/ar/` |
+| `/llms.txt`, `/llms-full.txt` | the page list with descriptions; every page in full, English then Arabic |
+| `/sitemap.xml` (and `sitemap-index.xml`, `sitemap-0.xml`) | the language pages with `lastmod` (the last commit to `src/` or `public/`) and en, ar and x-default alternates |
+| `/robots.txt` | `public/robots.txt`, with Content Signals |
 
-The HTML is meant to be cached at Cloudflare for 5 minutes (a Cache Rule on
-`get.madar-pos.cloud`, Edge TTL 5 min, respect origin off for HTML). No purge needed.
+JSON-LD comes from `src/lib/schema.ts`: Organization on every page; WebSite and
+SoftwareApplication on the home pages; SoftwareApplication on Pricing; FAQPage on
+the FAQ; BreadcrumbList on every page but home; Organization and WebSite on `/`.
 
 ## The archive: the whole site, offline
 
@@ -101,7 +114,8 @@ screenshots, the 3D and the cappuccino's animations, online or offline (owner).
 |---|---|
 | Words (EN and AR) | `src/i18n/en.ts`, `src/i18n/ar.ts` (Arabic is typed against English, so a missing key fails the build) |
 | Prices | `pricing.plans` in both copy files |
-| Phone, email, socials, dashboard link | `src/lib/site.ts` |
+| Phone, email, socials, dashboard link, App Store link | `src/lib/site.ts` |
+| Structured data (JSON-LD) | `src/lib/schema.ts` |
 | Home page order | `src/pages/[lang]/index.astro` |
 | Screenshots | see below |
 | The scroll story | `src/scripts/story.ts` (GSAP: ScrollTrigger, SplitText, DrawSVG; Lenis on mouse/trackpad) |
@@ -179,11 +193,15 @@ npm run shots -- ~/Desktop/Madar
 
 ## Share cards
 
-`public/og/{en,ar}-{page}.jpg` (1200×630), committed. After changing a page title:
+`public/og/{en,ar}-{page}.jpg` (1200×630), committed. The cards show each page's
+heading and lead (not its `<title>`), so rerun after changing those:
 
 ```bash
-npm run og
+npm run og              # every page
+npm run og -- contact   # only the pages named
 ```
+
+A page without its own card uses the home page's.
 
 ## Analytics
 

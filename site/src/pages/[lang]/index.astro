@@ -13,6 +13,7 @@ import BasiraDemo from "@/components/home/BasiraDemo.astro";
 import Tiles from "@/components/home/Tiles.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS, pageHref } from "@/lib/site";
+import { website, softwareApplication } from "@/lib/schema";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -21,9 +22,10 @@ const { lang } = Astro.params as { lang: Lang };
 const c = t(lang);
 const a = c.areas;
 const more = (key: string) => pageHref(lang, "features", key);
+const jsonLd = [website(), softwareApplication(lang, "home")];
 const sec = (x: { kicker: string; title: string; body: string; points: string[] }) => ({ kicker: x.kicker, title: x.title, body: x.body, points: x.points });
 ---
-<BaseLayout lang={lang} page="home" headerTone="ink">
+<BaseLayout lang={lang} page="home" headerTone="ink" jsonLd={jsonLd}>
   <Hero lang={lang} />
   <Pillars lang={lang} />
   <FamilyShowcase lang={lang} />

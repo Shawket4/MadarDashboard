@@ -4,7 +4,8 @@ import Icon from "@/components/ui/Icon.astro";
 import Orbit from "@/components/ui/Orbit.astro";
 import BorderBeam from "@/components/kit/BorderBeam.astro";
 import { t } from "@/i18n";
-import { type Lang, LANGS, whatsappHref, absoluteUrl, pageHref } from "@/lib/site";
+import { type Lang, LANGS, whatsappHref } from "@/lib/site";
+import { softwareApplication, breadcrumbs } from "@/lib/schema";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -16,21 +17,7 @@ const terms = ["monthly", "three", "six", "year"] as const;
 const months = { monthly: 1, three: 3, six: 6, year: 12 } as const;
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
-const jsonLd = [{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Madar",
-  applicationCategory: "BusinessApplication",
-  operatingSystem: "iPadOS, Android, Web",
-  url: absoluteUrl(pageHref(lang, "pricing")),
-  offers: p.plans.map((plan) => ({
-    "@type": "Offer",
-    name: plan.name,
-    price: plan.prices.monthly,
-    priceCurrency: "EGP",
-    description: `${plan.name}: ${p.termTotal.monthly}, per branch`,
-  })),
-}];
+const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing")];
 ---
 <BaseLayout lang={lang} page="pricing" headerTone="paper" jsonLd={jsonLd}>
   <section class="relative isolate overflow-hidden bg-paper">

@@ -8,33 +8,39 @@ export const en = {
     siteName: "Madar",
     locale: "en_US",
     home: {
-      title: "Madar: the café POS that knows what every cup costs",
+      title: "Madar POS: café point of sale for Egypt, cost per cup",
       description:
-        "Madar is the café point of sale for owners who care about their numbers: recipe costing per cup, an inventory ledger, a till that counts blind and loyalty in the wallet. Arabic and English. First month free.",
+        "Madar POS is the café point of sale for Egypt: recipe cost per cup, an inventory ledger, a till that counts blind and wallet loyalty. First month free.",
     },
     features: {
-      title: "Features · Madar café POS",
+      title: "Madar POS features: till, stock, recipes and loyalty",
       description:
-        "Everything Madar does from opening to close: the till, inventory and true cost, recipes at the counter, floor and kitchen, your own ordering, loyalty, menu engineering, Basira and HQ.",
+        "Everything Madar POS does from opening to close: the till, stock and true cost, recipes, floor and kitchen, online ordering, loyalty and menu engineering.",
     },
     pricing: {
-      title: "Pricing · Madar café POS",
+      title: "Madar POS pricing: two plans per branch, in EGP",
       description:
-        "Two plans per branch with no per-seat fee: Essential Café at 3,000 EGP a month and Advanced Operation at 3,500. Your first month is on us.",
+        "Two Madar POS plans per branch, with no per-seat fee: Essential Café at 3,000 EGP a month and Advanced Operation at 3,500. Your first month is on us.",
     },
     faq: {
-      title: "Questions · Madar café POS",
+      title: "Madar POS questions: hardware, offline, setup, billing",
       description:
-        "Hardware, offline selling, the free month, billing, Arabic, branches and support: straight answers about running your café on Madar.",
+        "Hardware, offline selling, the free month, billing, Arabic, branches and support: straight answers about running your café on Madar POS.",
     },
     about: {
-      title: "About & support · Madar",
+      title: "About Madar POS: built in Cairo with the cafés on it",
       description:
-        "Madar is built in Cairo with the cafés that run on it: a direct line to the team, logic shaped to your operation, and setup done with you.",
+        "Madar POS is built in Cairo with the cafés that run on it: a direct line to the team, logic shaped to your operation, and setup done with you.",
+    },
+    contact: {
+      title: "Contact Madar POS: WhatsApp, phone and email, Cairo",
+      description:
+        "Talk to the Madar POS team in Cairo on WhatsApp or by phone at +20 121 111 6899, or email shawket.4@icloud.com. We reply the same day.",
     },
     notFound: {
-      title: "Page not found · Madar",
-      description: "This page isn't here.",
+      title: "Page not found · Madar POS",
+      description:
+        "This page isn't here.",
     },
   },
 
@@ -43,6 +49,7 @@ export const en = {
     pricing: "Pricing",
     faq: "Questions",
     about: "About",
+    contact: "Contact",
     login: "Log in",
     talk: "Talk to us",
     menu: "Menu",
@@ -66,6 +73,18 @@ export const en = {
     close: "Close",
   },
 
+  contactPage: {
+    kicker: "Contact",
+    channels: "Ways to reach us",
+    whatsapp: "WhatsApp",
+    phone: "Phone",
+    email: "Email",
+    instagram: "Instagram",
+    facebook: "Facebook",
+    city: "City",
+    cityValue: "Cairo, Egypt",
+  },
+
   freeMonth: {
     badge: "First month free",
     line: "Your first month is on us: setup, menu build and staff training. No card, no lock-in.",
@@ -75,8 +94,8 @@ export const en = {
   hero: {
     kicker: "The fixed point your operations orbit",
     title: "Know what every cup costs you.",
-    sub: "The café POS for owners who care about their numbers.",
-    body: "Recipes, stock, the till and loyalty on one ledger, in Arabic and English, online or off.",
+    sub: "Madar POS is a café point of sale for Egypt that runs the till, kitchen, recipes, stock and loyalty on one ledger, in Arabic and English, online or offline, from 3,000 EGP per branch per month.",
+    body: "The café POS for owners who care about their numbers.",
     ctaPrimary: "Talk to us on WhatsApp",
     ctaSecondary: "See a café's day",
     chipItem: "Cappuccino · regular",
@@ -545,7 +564,7 @@ export const en = {
   faq: {
     kicker: "Questions",
     title: "Straight answers.",
-    sub: "Something else on your mind? Ask us on WhatsApp; we reply the same day.",
+    sub: "Answers on Madar POS pricing, hardware, setup, offline use and integrations. Something else on your mind? Ask us on WhatsApp; we reply the same day.",
     items: [
       {
         q: "What do we need to run Madar?",
@@ -593,7 +612,7 @@ export const en = {
   about: {
     kicker: "About & support",
     title: "Built in Cairo, with the cafés that run on it.",
-    lead: "Madar isn't software looking for a customer; it's an operational partnership. We set it up in your branches, shape the logic to how you work, and grow it with you.",
+    lead: "Madar POS is built in Cairo by Shawket Ibrahim and developed with the cafés that run on it every day. Madar isn't software looking for a customer; it's an operational partnership. We set it up in your branches, shape the logic to how you work, and grow it with you.",
     sections: [
       {
         title: "A direct line, not a ticket queue.",
@@ -625,7 +644,8 @@ export const en = {
 
   common: {
     newTab: "(opens in a new tab)",
-    learnMore: "Learn more",
+    /** A link to an area's section on the Features page; {area} is the area's name. */
+    inFeatures: "{area} in Features",
     included: "Included",
   },
 };

@@ -34,7 +34,7 @@ const lottieUrl = (key: string) => lottie[`/src/assets/lottie/${key}.json`] ?? "
             </li>
           ))}
         </ol>
-        <p class="barista-hint mt-6 hidden items-center gap-2 text-sm text-muted-ink lg:flex">
+        <p class="barista-hint mt-6 hidden items-center gap-2 text-sm text-muted-ink lg:flex" data-md-skip>
           <span class="inline-block h-6 w-[2px] animate-pulse rounded bg-teal-light"></span>{c.areas.counter.barista.hint}
         </p>
       </div>
@@ -53,13 +53,13 @@ const lottieUrl = (key: string) => lottie[`/src/assets/lottie/${key}.json`] ?? "
               ></canvas>
             ))}
           </div>
-          <div class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 border-t border-ink/10 bg-paper/90 px-5 py-3 text-ink backdrop-blur">
+          <div class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 border-t border-ink/10 bg-paper/90 px-5 py-3 text-ink backdrop-blur" data-md-skip>
             <span class="text-sm font-semibold" data-barista-current>{steps[0]?.name}</span>
             <span class="ltr font-mono text-xs text-muted" data-barista-count>01 / {String(steps.length).padStart(2, "0")}</span>
           </div>
           <div class="absolute inset-x-0 top-0 h-1 bg-ink/5"><span class="barista-progress block h-full w-full scale-x-0 bg-teal" data-barista-progress></span></div>
         </div>
-        <p class="barista-note mx-auto mt-4 max-w-[30rem] text-center text-muted-ink" data-barista-note>{steps[0]?.note}</p>
+        <p class="barista-note mx-auto mt-4 max-w-[30rem] text-center text-muted-ink" data-barista-note data-md-skip>{steps[0]?.note}</p>
       </div>
     </div>
   </div>
