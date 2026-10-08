@@ -145,6 +145,9 @@ export function BrandMark({
  */
 export type MadarProduct = "loyalty" | "ordering" | "reservations";
 
+/** Where the signature leads: Madar POS's own site. */
+export const MADAR_SITE_URL = "https://get.madar-pos.cloud/";
+
 export function MadarFooter({ product }: { product?: MadarProduct }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
@@ -156,11 +159,22 @@ export function MadarFooter({ product }: { product?: MadarProduct }) {
         alt={t("app.name")}
         className="h-6 opacity-80 dark:brightness-0 dark:invert"
       />
+      {/* The signature is a way to find us: a quiet link, styled like the
+          legal links below it, in a new tab so an order in progress is not
+          lost. `noopener` without `noreferrer`, so the site can tell which
+          shop's page sent the visitor. */}
       <p className="text-xs text-muted-foreground">
-        {t(
-          product ? `publicShell.poweredBy.${product}` : "publicShell.poweredBy.generic",
-          "Powered by Madar",
-        )}
+        <a
+          href={MADAR_SITE_URL}
+          target="_blank"
+          rel="noopener"
+          className="underline-offset-2 hover:text-foreground hover:underline"
+        >
+          {t(
+            product ? `publicShell.poweredBy.${product}` : "publicShell.poweredBy.madarPos",
+            "Powered by Madar POS",
+          )}
+        </a>
       </p>
       <p className="text-[11px] text-muted-foreground/70">
         {t("order.footer.rights", {

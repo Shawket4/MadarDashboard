@@ -7,10 +7,23 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0A2540" />
-  <title>Madar</title>
+  <title>%VITE_PAGE_TITLE%</title>
+  <meta name="description" content="%VITE_PAGE_DESCRIPTION%" />
+  <link rel="canonical" href="%VITE_PAGE_URL%" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Madar POS" />
+  <meta property="og:url" content="%VITE_PAGE_URL%" />
+  <meta property="og:title" content="%VITE_PAGE_TITLE%" />
+  <meta property="og:description" content="%VITE_PAGE_DESCRIPTION%" />
+  <meta property="og:image" content="https://get.madar-pos.cloud/og/en-home.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://get.madar-pos.cloud/#organization","name":"Madar POS","alternateName":["Madar","مدار"],"url":"https://get.madar-pos.cloud/"}</script>
 </head>
 
 <body class="bg-background text-foreground antialiased">
+  <noscript>
+    <p>This is the <a href="https://get.madar-pos.cloud/">Madar POS</a> dashboard, where restaurants and cafés manage their menus, branches, staff, stock and sales, and it needs JavaScript to run.</p>
+  </noscript>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>

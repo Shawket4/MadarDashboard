@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "Madar",
-    "tagline": "Coffee Shop Management"
+    "tagline": "Coffee Shop Management",
+    "documentTitle": "Madar POS"
   },
   "common": {
     "copyright": "© {{year}} Madar. All rights reserved.",
@@ -5140,9 +5141,10 @@
   },
   "publicShell": {
     "poweredBy": {
-      "loyalty": "Loyalty cards powered by Madar",
-      "ordering": "Online ordering powered by Madar",
-      "reservations": "Reservations powered by Madar",
+      "loyalty": "Loyalty cards powered by Madar POS",
+      "ordering": "Online ordering powered by Madar POS",
+      "reservations": "Reservations powered by Madar POS",
+      "madarPos": "Powered by Madar POS",
       "generic": "Powered by Madar"
     },
     "formErrors": {

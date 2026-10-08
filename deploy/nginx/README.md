@@ -4,14 +4,24 @@ These are copies of the live files on the production VPS (187.124.33.153), taken
 
 **Keeping them current:** if you change one of these files on the box, copy it back here.
 
+**Ahead of the box:** the Phase 4a edits to the five SPA vhosts (apex, demo, order, reservations, loyalty; described below) were made here first. They are live only once each file is copied to its path below, `sudo nginx -t` passes and nginx is reloaded.
+
 **Where each file lives on the box:**
 
 | File here | Path on the box |
 |---|---|
 | `get.madar-pos.cloud` | `/etc/nginx/sites-available/get.madar-pos.cloud` (enabled by a symlink) |
 | `madar-pos.cloud` | `/etc/nginx/sites-available/madar-pos.cloud` (enabled by a symlink; also serves `www.`) |
+| `demo.madar-pos.cloud` | `/etc/nginx/sites-available/demo.madar-pos.cloud` (enabled by a symlink) |
+| `order.madar-pos.cloud` | `/etc/nginx/sites-available/order.madar-pos.cloud` (enabled by a symlink; the box's layout, not yet confirmed for this file) |
+| `reservations.madar-pos.cloud` | `/etc/nginx/sites-available/reservations.madar-pos.cloud` (enabled by a symlink; the box's layout, not yet confirmed for this file) |
+| `loyalty.madar-pos.cloud` | `/etc/nginx/sites-available/loyalty.madar-pos.cloud` (enabled by a symlink) |
 | `madar-security-headers.conf` | `/etc/nginx/snippets/` |
 | `madar-markdown.conf` | `/etc/nginx/conf.d/` (the `$md_suffix` map for `Accept: text/markdown`) |
+
+The tenant wildcard vhost (`<slug>.madar-pos.cloud`, which serves the loyalty, `/order/` and `/book/` bundles) is not here: it lives in MadarRust (`deploy/shop/nginx-wildcard.conf`).
+
+**The SPA hosts (apex, demo, order, reservations, loyalty), Phase 4a:** a path that looks like a file (it ends in `.` plus letters or digits: `/openapi.json`, `/llms.txt`, `/x.md`) and anything under `/.well-known/` is served from the build or answered with a real 404, never with the app's HTML. This is safe because no client route ends that way: org, branch, item, combo and order ids are UUIDs, the loyalty card token (`/card/`, `/now/`) is `M` plus base64url, and the booking token (`/manage/`) is hex. Every prefix location is `^~`, so the regex cannot take `/assets/` (cache headers) or `/api/` (the backend, including Apple Wallet calls that end in `pass.cloud.madar-pos.loyalty`) away from it. The regex location carries the same headers as the SPA fallback, because the fallback's internal redirect to the HTML shell lands in it.
 
 **Other changes:**
 - `/etc/nginx/mime.types` gained `text/markdown md;`.

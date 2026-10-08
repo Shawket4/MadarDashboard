@@ -12,18 +12,37 @@ server {
     root /var/www/madar-dashboard/;
     index index.html;
 
-    location /.well-known/acme-challenge/ {
+    # `^~` on every prefix location below: a regex location (the file-like
+    # paths further down) otherwise beats a prefix one, and would take
+    # /assets/*.js away from its cache headers.
+    location ^~ /.well-known/acme-challenge/ {
         root /var/www/letsencrypt;
         try_files $uri =404;
     }
 
-
+    # The rest of /.well-known/ is a file in the build or a real 404, never the app.
+    location ^~ /.well-known/ {
+        include snippets/madar-security-headers.conf;
+        try_files $uri =404;
+    }
 
     # Aggressive caching for static Vite assets
-    location /assets/ {
+    location ^~ /assets/ {
         include snippets/madar-security-headers.conf;
         add_header Cache-Control "public, max-age=31536000, immutable";
         access_log off;
+        try_files $uri =404;
+    }
+
+    # A path that looks like a file (/openapi.json, /llms.txt, /x.md) is a file
+    # in the build or a real 404, never the app shell. The same headers as the
+    # fallback below: every top-level file (icons, fonts, robots.txt) is served
+    # here now, and so is the shell itself, because `try_files ... /index.html`
+    # re-runs location matching and /index.html matches this regex.
+    # No client route ends in ".<letters/digits>" (ids are UUIDs).
+    location ~ \.[A-Za-z0-9]+$ {
+        include snippets/madar-security-headers.conf;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
         try_files $uri =404;
     }
 

@@ -8,6 +8,7 @@ import { constants as zlibConstants } from "node:zlib";
 import { readFileSync } from "node:fs";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
+import { pageHead } from "./vite/page-head";
 
 const pkgVersion = (
   JSON.parse(readFileSync(path.resolve(__dirname, "package.json"), "utf8")) as { version: string }
@@ -31,6 +32,9 @@ export default defineConfig({
   plugins: [
     // `public/` is copied verbatim, so a README beside an asset ships with it.
     noDocsInTheBundle(),
+    // index.html's title, description and canonical: the dashboard's, or the
+    // demo's when VITE_DEMO=1 builds the same file for demo.madar-pos.cloud.
+    pageHead(),
     // Must precede the React plugin so generated routes are transformed.
     tanstackRouter({ target: "react", autoCodeSplitting: true }),
     react(),

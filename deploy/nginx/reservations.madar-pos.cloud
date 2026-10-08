@@ -4,7 +4,12 @@
 server {
     server_name reservations.madar-pos.cloud;
 
-    location /.well-known/acme-challenge/ { root /var/www/letsencrypt; try_files $uri =404; }
+    # `^~` on every prefix location in this server: a regex location (the
+    # file-like paths below) otherwise beats a prefix one, and would take
+    # /assets/*.js from its cache headers and /api/... from the backend.
+    location ^~ /.well-known/acme-challenge/ { root /var/www/letsencrypt; try_files $uri =404; }
+    # The rest of /.well-known/ is a file in the build or a real 404, never the app.
+    location ^~ /.well-known/ { try_files $uri =404; }
 
     root /var/www/madar-reservations;
     index reservations.html;
@@ -18,13 +23,13 @@ server {
     add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
 
     # Uploads are served directly, shared with the backend upload dir.
-    location /api/uploads/ {
+    location ^~ /api/uploads/ {
         alias /opt/madar-rust/uploads/;
         expires 30d; access_log off; try_files $uri =404;
     }
 
     # Public API (same backend; admin endpoints still require a JWT this origin never holds).
-    location /api/ {
+    location ^~ /api/ {
         proxy_pass http://madar_api/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
@@ -35,13 +40,28 @@ server {
         proxy_read_timeout 60s;
     }
 
-    location /assets/ {
+    location ^~ /assets/ {
+        include snippets/madar-security-headers.conf;
         expires 1y; add_header Cache-Control "public, max-age=31536000, immutable";
         access_log off; try_files $uri =404;
     }
 
+    # A path that looks like a file (/openapi.json, /llms.txt, /x.md) is a
+    # file in the build or a real 404, never the app shell. The same headers
+    # as the fallback below: every top-level file (icons, robots.txt) is
+    # served here now, and so is the shell itself, because `try_files ... /reservations.html`
+    # re-runs location matching and /reservations.html matches this regex.
+    # No client route ends in ".<letters/digits>": org and branch ids are
+    # UUIDs, and the /manage/ booking token is hex.
+    location ~ \.[A-Za-z0-9]+$ {
+        include snippets/madar-security-headers.conf;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        try_files $uri =404;
+    }
+
     # SPA fallback
     location / {
+        include snippets/madar-security-headers.conf;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         try_files $uri /reservations.html;
     }
