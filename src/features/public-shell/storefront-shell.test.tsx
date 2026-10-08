@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 await import("@/i18n");
 const { MadarFooter, StorefrontShell } = await import("./storefront-shell");
+const { madarSiteHref, signatureSource } = await import("./madar-site");
 
 const shop = { orgName: "Drops", logoUrl: null, background: "#7B1E3A", ownBranding: true };
 
@@ -31,22 +32,47 @@ describe("StorefrontShell footer", () => {
 });
 
 describe("MadarFooter signature", () => {
-  // The line under the mark is a link to Madar POS's own site, on every
-  // public page: a new tab, so a cart or a half-done sign-up is not lost.
-  const expectSignature = (name: string) => {
-    const link = screen.getByRole("link", { name });
-    expect(link).toHaveAttribute("href", "https://get.madar-pos.cloud/");
+  // The whole signature, mark and line, is one link to Madar POS's own site,
+  // on every public page: a new tab, so a cart or a half-done sign-up is not
+  // lost, and it says so to a screen reader.
+  const expectSignature = (name: string, campaign: string) => {
+    const link = screen.getByRole("link", { name: `${name} (opens in a new tab)` });
+    expect(link).toHaveAttribute(
+      "href",
+      `https://get.madar-pos.cloud/en/?utm_source=localhost&utm_medium=powered_by&utm_campaign=${campaign}`,
+    );
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener");
+    // The mark is inside it, and the line looks like a link before any hover.
+    expect(link.querySelector("img")).not.toBeNull();
+    expect(link.querySelector("span.underline")).not.toBeNull();
+    expect(link.querySelector("svg")).not.toBeNull();
   };
 
   it("names the product the page is", () => {
     render(<MadarFooter product="ordering" />);
-    expectSignature("Online ordering powered by Madar POS");
+    expectSignature("Online ordering powered by Madar POS", "ordering");
   });
 
   it("says Madar POS where the page names no product (the links page, the menu)", () => {
     render(<MadarFooter />);
-    expectSignature("Powered by Madar POS");
+    expectSignature("Powered by Madar POS", "shop_page");
+  });
+});
+
+describe("madarSiteHref", () => {
+  it("goes straight to the page's language, tagged with the shop and product", () => {
+    expect(madarSiteHref("ar", "drops", "ordering")).toBe(
+      "https://get.madar-pos.cloud/ar/?utm_source=drops&utm_medium=powered_by&utm_campaign=ordering",
+    );
+    expect(madarSiteHref("en-US", "", "loyalty")).toBe(
+      "https://get.madar-pos.cloud/en/?utm_source=madar&utm_medium=powered_by&utm_campaign=loyalty",
+    );
+  });
+
+  it("names the shop by its host, or our host by its name", () => {
+    expect(signatureSource("drops.madar-pos.cloud")).toBe("drops");
+    expect(signatureSource("order.madar-pos.cloud")).toBe("order");
+    expect(signatureSource("localhost")).toBe("localhost");
   });
 });

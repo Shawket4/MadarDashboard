@@ -5,6 +5,7 @@
     "documentTitle": "Madar POS"
   },
   "common": {
+    "opensInNewTab": "(opens in a new tab)",
     "copyright": "© {{year}} Madar. All rights reserved.",
     "source": "Source",
     "cairoTime": "Cairo time",

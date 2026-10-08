@@ -16,6 +16,12 @@ server {
     # Server level: covers responses made before a location is chosen (the index.html 301s)
     include snippets/madar-security-headers.conf;
 
+    # /en/pricing -> /en/pricing/ when that folder exists. At server level, not
+    # inside `location /`: there a true `if` (any folder URL, slash or not)
+    # hands the request to the if's own implicit location, which has no
+    # try_files, so a folder always got index.html and never its Markdown.
+    if (-d $request_filename) { rewrite ^(.*[^/])$ $1/ permanent; }
+
     error_page 404 /404.html;
     location = /404.html {
         internal;
@@ -48,10 +54,11 @@ server {
         add_header Cache-Control "no-cache" always;
         add_header Vary "Accept" always;
 
-        # /en/pricing -> /en/pricing/ when that folder exists
-        if (-d $request_filename) { rewrite ^(.*[^/])$ $1/ permanent; }
-
-        try_files $uri ${uri}index$md_suffix $uri/ =404;
+        # The Markdown copy first: for a folder URL $uri ends in "/", so trying
+        # it first matches the directory and serves index.html before
+        # ${uri}index.md is ever looked at. Without Accept: text/markdown the
+        # first candidate is ${uri}index, which never exists.
+        try_files ${uri}index$md_suffix $uri $uri/ =404;
     }
     access_log /var/log/nginx/get-madar.access.log;
     error_log  /var/log/nginx/get-madar.error.log;

@@ -5,6 +5,7 @@
     "documentTitle": "مدار"
   },
   "common": {
+    "opensInNewTab": "(يفتح في علامة تبويب جديدة)",
     "copyright": "© {{year}} مدار. جميع الحقوق محفوظة.",
     "source": "المصدر",
     "cairoTime": "بتوقيت القاهرة",

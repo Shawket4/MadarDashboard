@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Languages, Moon, Sun } from "lucide-react";
+import { ArrowUpRight, Languages, Moon, Sun } from "lucide-react";
 
 import { LegalLinks } from "@/components/legal-links";
 
+import { madarSiteHref, signatureSource } from "./madar-site";
 import { hostSlug } from "./use-brand";
 import { useShopFavicon } from "./use-favicon";
 import { useBrandSkin } from "./use-brand-skin";
@@ -145,37 +146,39 @@ export function BrandMark({
  */
 export type MadarProduct = "loyalty" | "ordering" | "reservations";
 
-/** Where the signature leads: Madar POS's own site. */
-export const MADAR_SITE_URL = "https://get.madar-pos.cloud/";
-
 export function MadarFooter({ product }: { product?: MadarProduct }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  const host = typeof window === "undefined" ? "" : window.location.hostname;
+  const href = madarSiteHref(lang, signatureSource(host), product ?? "shop_page");
 
   return (
     <footer className="mt-12 flex flex-col items-center gap-2 border-t border-border/60 pt-6 text-center">
-      <img
-        src={lang.startsWith("ar") ? "/madar_ar.svg" : "/madar.svg"}
-        alt={t("app.name")}
-        className="h-6 opacity-80 dark:brightness-0 dark:invert"
-      />
-      {/* The signature is a way to find us: a quiet link, styled like the
-          legal links below it, in a new tab so an order in progress is not
-          lost. `noopener` without `noreferrer`, so the site can tell which
-          shop's page sent the visitor. */}
-      <p className="text-xs text-muted-foreground">
-        <a
-          href={MADAR_SITE_URL}
-          target="_blank"
-          rel="noopener"
-          className="underline-offset-2 hover:text-foreground hover:underline"
-        >
+      {/* The whole signature, mark and line, is one link to Madar POS's own
+          site: always underlined and marked with an arrow, so it reads as a
+          link before anyone hovers it. A new tab, so an order or a sign-up in
+          progress is not lost. `noopener` without `noreferrer`, so the site
+          can tell which shop's page sent the visitor. */}
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener"
+        className="group flex flex-col items-center gap-2 rounded-md px-3 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <img
+          src={lang.startsWith("ar") ? "/madar_ar.svg" : "/madar.svg"}
+          alt=""
+          className="h-6 opacity-80 transition-opacity group-hover:opacity-100 dark:brightness-0 dark:invert"
+        />
+        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 transition-colors group-hover:text-foreground group-hover:decoration-current">
           {t(
             product ? `publicShell.poweredBy.${product}` : "publicShell.poweredBy.madarPos",
             "Powered by Madar POS",
           )}
-        </a>
-      </p>
+          <ArrowUpRight aria-hidden className="size-3 rtl:-scale-x-100" />{" "}
+          <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
+        </span>
+      </a>
       <p className="text-[11px] text-muted-foreground/70">
         {t("order.footer.rights", {
           year: new Date().getFullYear(),
