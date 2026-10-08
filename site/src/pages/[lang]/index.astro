@@ -75,14 +75,14 @@ const sec = (x: { kicker: string; title: string; body: string; points: string[] 
           { id: "order-menu", frame: "iphone", alt: a.ordering.alts.menu },
           { id: "order-channel", frame: "iphone", alt: a.ordering.alts.channel },
           { id: "order-track", frame: "iphone", alt: a.ordering.alts.track },
-        ], layout: "row" }}
+        ] }}
       />
       <AreaSection lang={lang} id="loyalty" {...sec(a.loyalty)} tone="ink" stepMap={[0, 1, 0, 2]} reverse moreHref={more("loyalty")}
         media={{ items: [
           { id: "wallet-pass", frame: "iphone", alt: a.loyalty.alts.pass },
           { id: "loyalty-join", frame: "iphone", alt: a.loyalty.alts.join },
           { id: "loyalty-card", frame: "iphone", alt: a.loyalty.alts.card },
-        ], layout: "row" }}
+        ] }}
       />
       <div class="h-10 md:h-16"></div>
     </div>

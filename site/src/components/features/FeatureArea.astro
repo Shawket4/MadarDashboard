@@ -1,5 +1,6 @@
 ---
 import Shot from "@/components/media/Shot.astro";
+import MediaStack from "@/components/media/MediaStack.astro";
 import Icon from "@/components/ui/Icon.astro";
 import type { Lang } from "@/lib/site";
 
@@ -38,28 +39,17 @@ const wide = shots.filter((s) => s.frame !== "iphone");
         </ul>
       </div>
     </div>
-    <div class="flex flex-col gap-6 lg:col-span-7">
+    <div class="flex flex-col gap-10 lg:col-span-7">
       <slot />
-      {wide.length > 0 && (
-        <div class:list={["grid gap-6", wide.length > 1 && "sm:grid-cols-2"]}>
-          {wide.map((s, i) => (
-            <Shot
-              id={s.id}
-              lang={lang}
-              alt={s.alt}
-              frame={s.frame}
-              class={wide.length > 2 && i === 0 ? "sm:col-span-2" : ""}
-              sizes={wide.length > 2 && i === 0 ? "(min-width: 1024px) 50vw, 92vw" : "(min-width: 1024px) 25vw, (min-width: 640px) 46vw, 92vw"}
-              data-reveal=""
-            />
-          ))}
-        </div>
+      {/* Two screens or more turn as they scroll past (MediaStack, carousel.ts). */}
+      {wide.length > 1 && <MediaStack lang={lang} items={wide} layout="strip" mode="pass" data-reveal="" />}
+      {wide.length === 1 && wide[0] && (
+        <Shot id={wide[0].id} lang={lang} alt={wide[0].alt} frame={wide[0].frame} sizes="(min-width: 1024px) 50vw, 92vw" data-reveal="" />
       )}
-      {phones.length > 0 && (
+      {phones.length > 1 && <MediaStack lang={lang} items={phones} layout="fan" mode="pass" data-reveal="" />}
+      {phones.length === 1 && phones[0] && (
         <div class="grid grid-cols-2 gap-5 sm:grid-cols-3">
-          {phones.map((s) => (
-            <Shot id={s.id} lang={lang} alt={s.alt} frame="iphone" sizes="(min-width: 1024px) 14rem, (min-width: 640px) 30vw, 45vw" data-reveal="" />
-          ))}
+          <Shot id={phones[0].id} lang={lang} alt={phones[0].alt} frame="iphone" sizes="(min-width: 1024px) 14rem, (min-width: 640px) 30vw, 45vw" data-reveal="" />
         </div>
       )}
     </div>

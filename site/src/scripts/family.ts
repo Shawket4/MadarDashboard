@@ -1,9 +1,9 @@
 // The family (FamilyShowcase.astro): Madar's products as 3D objects, one at a
 // time, as the page scrolls. The panel pins like the area scenes (story.ts) and
 // shares their manners: the item that goes with the object stays bright, the
-// progress line fills with the scroll, a change never gets cut off half-way (the
-// sequencer hurries it instead), a flick skips the pause, and the phone's
-// WhatsApp bar steps aside meanwhile.
+// progress line fills with the scroll, every change plays however fast the page
+// moves (the sequencer hurries the ones behind), and the phone's WhatsApp bar
+// steps aside meanwhile.
 //
 // The 3D is the shared engine (shared/showcase), loaded on its own only when the
 // section is near and the page has finished loading. GSAP drives it: scrolling
@@ -19,14 +19,11 @@ const SPAN = 0.35;
 
 /** What the scene borrows from the scroll story, so it behaves like the others. */
 export type SceneKit = {
-  thrown: () => boolean;
-  leap: (y: number) => void;
-  flick: number;
   sequencer: (
     change: (from: number, to: number) => gsap.core.Animation,
     snap: (to: number) => void,
     inView: () => boolean,
-  ) => (to: number, now?: boolean) => void;
+  ) => (to: number) => void;
   whenSeen: (el: Element, start: string, anim: gsap.core.Animation) => void;
   /** A scene holds the page (or lets go). */
   hold: (holding: boolean) => void;
@@ -79,7 +76,7 @@ export function familyScene(section: HTMLElement, kit: SceneKit) {
     const r = panel.getBoundingClientRect();
     return r.bottom > 0 && r.top < window.innerHeight;
   };
-  // Object k on stage at once (a jump past the scene, a flick).
+  // Object k on stage at once (a jump past the scene).
   const snap = (k: number) => {
     mark(k);
     gsap.killTweensOf(stage, "presence,index,leaving");
@@ -101,7 +98,6 @@ export function familyScene(section: HTMLElement, kit: SceneKit) {
   kit.whenSeen(stageEl, "top 75%", gsap.to(stage, { presence: 1, duration: 0.7, ease: "back.out(1.7)", paused: true }));
 
   // Each object gets a third of a screen of scrolling, and turns through it.
-  let skipping = false;
   ScrollTrigger.create({
     trigger: panel,
     pin: true,
@@ -111,24 +107,12 @@ export function familyScene(section: HTMLElement, kit: SceneKit) {
     invalidateOnRefresh: true,
     onUpdate: (self) => {
       if (bar) gsap.set(bar, { scaleX: self.progress });
-      if (skipping) return;
-      if (self.isActive && kit.thrown() && Math.abs(self.getVelocity()) > kit.flick) {
-        skipping = true;
-        const down = self.direction > 0;
-        go(down ? n - 1 : 0, true);
-        turnTo(down ? 1 : 0);
-        kit.leap(down ? self.end + 2 : self.start - 2);
-        return;
-      }
       const at = self.progress * n;
       const k = Math.min(n - 1, Math.floor(at));
       go(k);
       turnTo(Math.min(1, at - k));
     },
-    onToggle: (self) => {
-      if (!self.isActive) skipping = false;
-      kit.hold(self.isActive);
-    },
+    onToggle: (self) => kit.hold(self.isActive),
   });
 
   // The engine: fetched when the section is within a screen and a half and the

@@ -3,7 +3,8 @@
  * One area of the café's day.
  *
  * With screens (`media`), the area is a scene: its panel pins to the viewport and
- * scrolling moves through the screens one at a time, then lets the page carry on
+ * scrolling turns the screens, all on show with the current one in the middle (a strip
+ * of wide screens, or a fan of phones: MediaStack), then lets the page carry on
  * (story.ts). The screens play in the order the paragraph first needs them
  * (`stepMap`: step index → screen index; step 0 is the intro, then one per point).
  *  - Desktop: the intro and the points beside the screen; the points that go with the
@@ -29,7 +30,7 @@ interface Props {
   tone?: "paper" | "ink";
   reverse?: boolean;
   moreHref?: string;
-  media?: { items: MediaItem[]; layout?: "stack" | "row"; float?: MediaItem };
+  media?: { items: MediaItem[]; layout?: "strip" | "fan"; float?: MediaItem };
 }
 const { lang, id, kicker, title, body, points, stepMap = [], tone = "paper", reverse = false, moreHref, media } = Astro.props;
 const c = t(lang);

@@ -69,7 +69,7 @@ The HTML is meant to be cached at Cloudflare for 5 minutes (a Cache Rule on
 | The scroll story | `src/scripts/story.ts` (GSAP: ScrollTrigger, SplitText, DrawSVG; Lenis on mouse/trackpad) |
 | The family (3D) | `src/components/home/FamilyShowcase.astro` and `src/scripts/family.ts`; the 3D itself is the engine shared with the dashboard's sign-in, `../shared/showcase` (plain three.js) |
 | The hero chip's figures, the "one ledger" beams | `src/components/kit/CountUp.astro` (counted by `story.ts`), `src/components/kit/LedgerBeams.astro` + `src/scripts/beams.ts` |
-| An area's screens | `media` and `stepMap` on each `AreaSection` in `src/pages/[lang]/index.astro`: the screens play in the order the steps first need them (step 0 is the intro, then one per point) |
+| An area's screens | `media` and `stepMap` on each `AreaSection` in `src/pages/[lang]/index.astro`: the screens play in the order the steps first need them (step 0 is the intro, then one per point). On the features page, `shots` on each `FeatureArea` (`src/pages/[lang]/features.astro`): two or more wide screens make a strip, two or more phones a fan |
 | The cappuccino steps | `src/scripts/barista.ts`, files in `src/assets/lottie/` (Madar's own prep-step animations) |
 | The roadmap | `features.roadmap` in both copy files (`state`: `shipped` or `dev`), drawn by `src/components/features/Roadmap.astro` and `roadmap()` in `story.ts` |
 | Colours, type, buttons | `src/styles/global.css`: the brand kit's palette, and the design system's type (MadarDashboard `DESIGN.md`): IBM Plex Sans Arabic leads in both languages, IBM Plex Sans behind it, IBM Plex Mono for figures |
@@ -82,20 +82,27 @@ action is an underlined `link-cta`, not another button. Teal stays in small mark
 Motion rules:
 - Content is in the HTML and fully readable without JavaScript; `prefers-reduced-motion`
   gets no animation at all: a still frame for the barista.
-- An area with screens is a **scene**: the page pauses on it while scrolling plays its
-  screens one at a time (about two-thirds of a screen of scrolling each), then carries
-  on. A screen change turns the deck: the next screen slides up over the current one,
-  which settles back underneath (the reverse going up); the words swap one after the
-  other, never overlapping. A progress line under the screen fills with the scroll and
-  a small arrow bobs until the last screen, so the pause never reads as stuck. On phones
-  the WhatsApp bar steps aside while a scene holds the page. Short laptop screens get
-  tighter type so a scene fits under the header. A fast scroll never cuts a change off:
-  the running one hurries to its end (`sequencer` in `story.ts`).
-- A **flick** skips a scene's pause: past 3,500 px/s (`FLICK`) the scene settles on its
-  last screen (its first, going up) and the page leaps past (`leap`). Only the
-  visitor's own throws count (wheel, touch or keys in the last moments, `thrown`), so a
-  # address landing or the browser restoring a position never skips anything, and one
-  leap never sets off the next.
+- **Screens are all on show, the current one in the middle** (`MediaStack.astro`,
+  `src/scripts/carousel.ts`). Wide screens (browser, iPad) make a **strip**: the
+  current one full size in the middle, its neighbours peeking in from the sides,
+  smaller and dimmed; a change slides the strip one place. Phones make a **fan**: every
+  phone on show, the current one lifted in the middle, the others either side in their
+  order; a change swaps the next phone into the middle (only those two move, the
+  incoming one passing in front). At rest no two cards overlap, so nothing shows
+  through anything. Mirrored in Arabic.
+- On the home page an area with screens is a **scene**: the page pauses on it while
+  scrolling turns the screens (about two-thirds of a screen of scrolling each), then
+  carries on. The words swap one after the other, never overlapping. A progress line
+  under the screens fills with the scroll and a small arrow bobs until the last screen,
+  so the pause never reads as stuck. On phones the WhatsApp bar steps aside while a
+  scene holds the page. Short laptop screens get tighter type so a scene fits under the
+  header. On the features page the same sets turn as they scroll past (`passes` in
+  `story.ts`), with nothing pinned.
+- **Every change plays**, however fast the page moves, flicks included (owner): when
+  scrolling runs ahead, the running change and the ones after it speed up with the
+  backlog (about 2x to 4.5x), and the last one lands at normal speed (`sequencer` in
+  `story.ts`). Only a jump that carries a scene out of sight (a `#` link, the rail)
+  settles it at once, since nobody would see it.
 - The **family** (home page, after the pillars) is a scene too: Madar's products as 3D
   objects, one per third of a screen of scrolling (`SPAN`). Scrolling picks the object and turns it;
   GSAP tweens pop objects in and out (`family.ts` drives the shared engine's `stage`).

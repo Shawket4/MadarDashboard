@@ -329,23 +329,45 @@ html[lang="ar"] .menu-link { letter-spacing: 0; line-height: 1.4; }
 dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7s var(--ease-out-expo) both; animation-delay: calc(70ms + var(--i, 0) * 45ms); }
 @keyframes menu-item-in { from { opacity: 0; transform: translateY(18px); } }
 
-/* ---------- Area scenes: the area pauses while its screens play, one at a time (story.ts) ----------
-   The pause is short and always shows it is moving: the progress line under the screen
-   fills with every bit of scrolling, and the counter and dots step with each screen. A
-   flick doesn't stop for it at all (story.ts skips the pause). */
-/* Without motion (no JavaScript, or reduced motion) nothing pins: every screen shows,
-   one under another, with its caption. "motion" is set by the head script. */
+/* ---------- Screens: all on show, the current one in the middle (carousel.ts) ----------
+   Wide screens make a strip (the current one full size, its neighbours peeking in from
+   the sides) and phones a fan (every phone on show, the current one lifted in the
+   middle). On the home page an area with screens is a scene: the page pauses on it while
+   scrolling turns the screens, and the progress line under them fills with every bit of
+   scrolling (story.ts). On the features page they turn as they scroll past. */
+/* Without motion (no JavaScript, or reduced motion) every screen shows with its caption:
+   one under another in a scene, in a grid on the features page. "motion" is set by the
+   head script. */
 .area-intro-m, .area-texts, .area-more-m, .media-float, .media-meta { display: none; }
 .media-track { display: grid; gap: 2.25rem; }
 .media-card { margin: 0; }
 .media-caption { margin-top: .75rem; font-size: .9rem; line-height: 1.5; color: var(--color-muted); }
 .on-ink .media-caption { color: var(--color-muted-ink); }
+@media (min-width: 640px) {
+  html:not(.motion) [data-media-mode="pass"] .media-track { gap: 1.75rem 1.5rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html:not(.motion) [data-media-mode="pass"][data-media="fan"] .media-track { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 
-.motion [data-media] .media-track { gap: 0; }
+/* With motion the cards share one spot and carousel.ts places them (xPercent, scale,
+   opacity). --card is one card's width, as a share of the set's. The set clips at its
+   sides (the strip's neighbours fade out there) and keeps room above and below for the
+   lifted phone and the frames' shadows. */
+.motion [data-media] .media-track {
+  grid-template-areas: "s"; gap: 0; justify-items: center;
+  overflow-x: hidden; overflow-x: clip; padding-block: 2.5rem; margin-block: -2.5rem;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+}
+.motion [data-media] .media-card { grid-area: s; width: var(--card); will-change: transform; }
 .motion [data-media] .media-caption { display: none; }
-.motion [data-media="stack"] .media-track { grid-template-areas: "s"; }
-.motion [data-media="stack"] .media-card { grid-area: s; }
-.motion [data-media="stack"] .media-card:not([data-active]) { opacity: 0; visibility: hidden; }
+.motion [data-media="strip"] { --card: 72%; --meta: var(--card); }
+.motion [data-media="strip"] .media-track { align-items: center; }
+.motion [data-media="fan"] { --card: 31%; --meta: min(100%, 30rem); }
+.motion [data-media="fan"][data-media-mode="pass"] { --card: 26%; }
+.motion [data-media="fan"] .media-track { align-items: end; }
+.motion [data-media="fan"] .media-card { transform-origin: 50% 100%; }
+.motion [data-media] :is(.media-meta, .media-progress) { width: var(--meta); margin-inline: auto; }
+
 .motion .media-meta { display: flex; align-items: flex-start; gap: .9rem; margin-top: 1.4rem; font-size: .92rem; line-height: 1.5; color: var(--color-muted); }
 .on-ink .media-meta { color: var(--color-muted-ink); }
 .media-meta-caption { flex: 1; min-width: 0; }
@@ -375,13 +397,11 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
   .motion .area-scene .area-panel { height: 100svh; display: flex; align-items: safe center; padding-block: 4rem 3.5rem; }
   .motion .area-scene .area-grid { padding-block: 1.25rem; }
   .motion .area-scene .area-points { margin-top: 1.4rem; }
-  .motion [data-media="stack"] .media-frame { width: min(100%, calc((100svh - 13rem) * var(--ratio))); margin-inline: auto; }
-  .motion [data-media="row"] .media-track { display: flex; justify-content: center; align-items: flex-end; gap: 4%; }
-  .motion [data-media="row"] .media-card { width: min(30%, calc((100svh - 15rem) * var(--ratio))); }
-  .motion [data-media="row"] .media-card:not([data-active]) { opacity: .42; transform: scale(.94); }
-  .motion [data-media="row"] .media-card[data-active] { transform: translateY(-3%) scale(1.04); }
-  .motion .media-float { display: block; position: absolute; z-index: 3; bottom: -2rem; inset-inline-start: -5%; width: 26%; max-width: 12rem; }
-  .motion .media-meta-float { padding-inline-start: 23%; }
+  /* In a scene the set fits the screen's height too. */
+  .motion .area-scene [data-media="strip"] { --card: min(72%, calc((100svh - 14rem) * var(--ratio))); }
+  .motion .area-scene [data-media="fan"] { --card: min(31%, calc((100svh - 17rem) * var(--ratio))); }
+  .motion .media-float { display: block; position: absolute; z-index: 4; bottom: -2rem; inset-inline-start: -3%; width: 24%; max-width: 12rem; }
+  .motion .media-meta-float { padding-inline-start: 14%; }
 }
 /* Short laptop screens: the words tighten so the whole scene fits under the header. */
 @media (min-width: 1024px) and (max-height: 780px) {
@@ -394,21 +414,21 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
   .motion .area-scene .media-meta { margin-top: .8rem; }
 }
 @media (max-width: 1023px) {
+  .motion [data-media="strip"] { --card: 78%; }
+  .motion [data-media="fan"] { --card: 40%; }
+  .motion [data-media="fan"][data-media-mode="pass"] { --card: 36%; }
   .motion .area-scene .area-intro-m { display: block; }
   .motion .area-scene .area-more-m { display: inline-flex; }
   .motion .area-scene .area-copy { display: none; }
   .motion .area-scene .area-panel { height: 100svh; display: flex; align-items: center; }
   .motion .area-scene .area-grid { padding-block: 4.75rem 1rem; gap: 0; }
-  .motion [data-media="stack"] .media-frame { width: min(100%, calc((100svh - 22rem) * var(--ratio))); margin-inline: auto; }
-  .motion [data-media="row"] .media-track { grid-template-areas: "s"; }
-  .motion [data-media="row"] .media-card { grid-area: s; justify-self: center; width: min(64%, calc((100svh - 22rem) * var(--ratio))); }
-  .motion [data-media="row"] .media-card:not([data-active]) { opacity: 0; visibility: hidden; }
-  .motion .media-meta { justify-content: center; margin-top: 1.1rem; }
-  .motion .media-meta-caption { display: none; }
+  .motion .area-scene [data-media="strip"] { --card: min(78%, calc((100svh - 23rem) * var(--ratio))); }
+  .motion .area-scene [data-media="fan"] { --card: min(40%, calc((100svh - 25rem) * var(--ratio))); }
+  .motion .area-scene .media-meta { justify-content: center; margin-top: 1.1rem; }
+  .motion .area-scene .media-meta-caption { display: none; }
   .motion .area-scene .area-texts { display: grid; margin-top: 1rem; min-height: 8.5rem; }
   .area-text { grid-area: 1 / 1; display: grid; gap: .55rem; align-content: start; }
   .area-text:not([data-active]) { opacity: 0; visibility: hidden; }
-
 }
 /* ---------- The family: Madar's products in 3D, one at a time (family.ts) ----------
    The stage starts as the 2D orbit (pure CSS); the 3D canvas fades in over it once

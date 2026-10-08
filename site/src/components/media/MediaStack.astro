@@ -1,14 +1,17 @@
 ---
 /**
- * The screens for one area of the café's day.
- *  - stack (browser or iPad): one screen at a time, in one spot. The area pauses and
- *    scrolling moves through them (story.ts), with a counter, dots, a caption and a
- *    progress line that fills as you scroll.
- *  - row (phones): side by side on desktop, the current one lifted; one at a time on
- *    phones, like a stack.
- * An optional floating phone sits over a stack on desktop (the guest's QR order on the
- * floor). With reduced motion or without JavaScript, every screen shows, one under
- * another, each with its caption.
+ * A set of screens, all on show, the current one in the middle (carousel.ts turns them):
+ *  - strip (browser or iPad): the current screen in the middle at full size; its
+ *    neighbours peek in from the sides, smaller and dimmed. A change slides the strip.
+ *  - fan (phones): every phone on show, the current one in the middle and lifted, the
+ *    others either side, smaller and dimmed. A change swaps the next one into the middle.
+ * Two ways to drive it:
+ *  - scene (home): the area pins and scrolling turns the screens (story.ts), with a
+ *    counter, dots, a caption and a progress line that fills as you scroll.
+ *  - pass (features page): the screens turn as the set scrolls past; nothing pins.
+ * An optional floating phone sits over a strip on desktop (the guest's QR order on the
+ * floor). With reduced motion or without JavaScript, every screen shows with its
+ * caption: one under another in a scene, in a grid on the features page.
  */
 import Shot from "./Shot.astro";
 import Icon from "@/components/ui/Icon.astro";
@@ -18,21 +21,35 @@ export type MediaItem = { id: string; frame: "browser" | "ipad" | "iphone"; alt:
 interface Props {
   lang: Lang;
   items: MediaItem[];
-  layout?: "stack" | "row";
+  /** Phones make a fan, everything else a strip, unless set. */
+  layout?: "strip" | "fan";
+  mode?: "scene" | "pass";
   float?: MediaItem;
   /** Screen order as the story shows it (card indices); defaults to the items' order. */
   order?: number[];
   class?: string;
+  [key: `data-${string}`]: string | undefined;
 }
-const { lang, items, layout = "stack", float, order = items.map((_, i) => i), class: cls = "" } = Astro.props;
-const pad = (n: number) => String(n).padStart(2, "0");
+const { lang, items, float, mode = "scene", order = items.map((_, i) => i), class: cls = "", ...rest } = Astro.props;
 const frame = items[0]?.frame ?? "browser";
+const layout = Astro.props.layout ?? (frame === "iphone" ? "fan" : "strip");
+const pad = (n: number) => String(n).padStart(2, "0");
 // Width over height of one screen in its frame, so a pinned panel can fit it to the viewport.
 const ratio = frame === "iphone" ? 0.47 : frame === "ipad" ? 1.42 : 1.36;
-const sizes = layout === "row" ? "(min-width: 1024px) 14rem, 60vw" : "(min-width: 1024px) 50vw, 92vw";
+const sizes =
+  layout === "fan"
+    ? mode === "pass" ? "(min-width: 1024px) 12rem, 40vw" : "(min-width: 1024px) 15rem, 42vw"
+    : "(min-width: 1024px) 44vw, 82vw";
 const first = items[order[0] ?? 0];
 ---
-<div class:list={["media-stack", cls]} data-media={layout} style={`--ratio:${ratio}`}>
+<div
+  class:list={["media-stack", cls]}
+  data-media={layout}
+  data-media-mode={mode}
+  data-order={mode === "pass" ? JSON.stringify(order) : undefined}
+  style={`--ratio:${ratio}`}
+  {...rest}
+>
   <div class="media-frame relative">
     <div class="media-track">
       {items.map((it, i) => (
@@ -48,13 +65,13 @@ const first = items[order[0] ?? 0];
       </div>
     )}
   </div>
-  {items.length > 1 && (
+  {order.length > 1 && (
     <div class:list={["media-meta", float && "media-meta-float"]} aria-hidden="true">
-      <span class="ltr tabular font-mono text-xs" data-media-count>01 / {pad(items.length)}</span>
+      <span class="ltr tabular font-mono text-xs" data-media-count>01 / {pad(order.length)}</span>
       <span class="media-dots">{order.map((_, k) => <i data-dot={k} data-on={k === 0 ? "" : undefined}></i>)}</span>
       <span class="media-meta-caption" data-media-caption>{first?.alt}</span>
-      <span class="media-cue"><Icon name="arrow-down" size={16} /></span>
+      {mode === "scene" && <span class="media-cue"><Icon name="arrow-down" size={16} /></span>}
     </div>
   )}
-  {items.length > 1 && <span class="media-progress" aria-hidden="true"><i data-media-progress></i></span>}
+  {mode === "scene" && order.length > 1 && <span class="media-progress" aria-hidden="true"><i data-media-progress></i></span>}
 </div>
