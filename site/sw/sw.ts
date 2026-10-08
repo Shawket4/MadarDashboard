@@ -122,12 +122,26 @@ function untar(tar: Uint8Array<ArrayBuffer>) {
   return files;
 }
 
+/**
+ * The headers nginx sends with every page (deploy/nginx/get.madar-pos.cloud): a page
+ * this worker answers from the archive never touches nginx, so it carries them
+ * itself, the CSP included. Keep the two in step.
+ */
+const PAGE_HEADERS = {
+  "content-security-policy":
+    "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "referrer-policy": "strict-origin-when-cross-origin",
+};
+
 /** One file into the cache, under the address the site asks for it by. */
 function store(cache: Cache, name: string, body: Uint8Array<ArrayBuffer>) {
   const type = TYPES[name.slice(name.lastIndexOf(".") + 1)] ?? "application/octet-stream";
   const page = name === "index.html" || name.endsWith("/index.html");
   const path = `/${page ? name.slice(0, -"index.html".length) : name}`;
-  return cache.put(path, new Response(body, { headers: { "content-type": type } }));
+  const headers = type.startsWith("text/html") ? { "content-type": type, ...PAGE_HEADERS } : { "content-type": type, "x-content-type-options": "nosniff" };
+  return cache.put(path, new Response(body, { headers }));
 }
 
 async function fromPack(key: string) {
