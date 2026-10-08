@@ -514,6 +514,7 @@ import type {
   PublicOrgLinksParams,
   PublicSlots,
   PublicTable,
+  PublicTenantShellParams,
   PublishWeek,
   PullParams,
   PullRequest,
@@ -731,6 +732,99 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+/**
+ * @summary What this host is, for a person or an agent that opens it.
+ */
+export const apiRoot = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<unknown>(
+      {url: `/`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getApiRootQueryKey = () => {
+    return [
+    `/`
+    ] as const;
+    }
+
+
+export const getApiRootQueryOptions = <TData = Awaited<ReturnType<typeof apiRoot>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getApiRootQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof apiRoot>>> = ({ signal }) => apiRoot(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ApiRootQueryResult = NonNullable<Awaited<ReturnType<typeof apiRoot>>>
+export type ApiRootQueryError = unknown
+
+
+export function useApiRoot<TData = Awaited<ReturnType<typeof apiRoot>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof apiRoot>>,
+          TError,
+          Awaited<ReturnType<typeof apiRoot>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useApiRoot<TData = Awaited<ReturnType<typeof apiRoot>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof apiRoot>>,
+          TError,
+          Awaited<ReturnType<typeof apiRoot>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useApiRoot<TData = Awaited<ReturnType<typeof apiRoot>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary What this host is, for a person or an agent that opens it.
+ */
+
+export function useApiRoot<TData = Awaited<ReturnType<typeof apiRoot>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getApiRootQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const listAddonItems = (
     params: ListAddonItemsParams,
@@ -19678,6 +19772,99 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getVoidOpenTicketMutationOptions(options), queryClient);
     }
 
+/**
+ * @summary The public part of this API as OpenAPI 3.1.
+ */
+export const publicOpenapi = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<unknown>(
+      {url: `/openapi.json`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicOpenapiQueryKey = () => {
+    return [
+    `/openapi.json`
+    ] as const;
+    }
+
+
+export const getPublicOpenapiQueryOptions = <TData = Awaited<ReturnType<typeof publicOpenapi>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicOpenapiQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicOpenapi>>> = ({ signal }) => publicOpenapi(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicOpenapiQueryResult = NonNullable<Awaited<ReturnType<typeof publicOpenapi>>>
+export type PublicOpenapiQueryError = unknown
+
+
+export function usePublicOpenapi<TData = Awaited<ReturnType<typeof publicOpenapi>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicOpenapi>>,
+          TError,
+          Awaited<ReturnType<typeof publicOpenapi>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicOpenapi<TData = Awaited<ReturnType<typeof publicOpenapi>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicOpenapi>>,
+          TError,
+          Awaited<ReturnType<typeof publicOpenapi>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicOpenapi<TData = Awaited<ReturnType<typeof publicOpenapi>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The public part of this API as OpenAPI 3.1.
+ */
+
+export function usePublicOpenapi<TData = Awaited<ReturnType<typeof publicOpenapi>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicOpenapiQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const listOrders = (
     params?: ListOrdersParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -25848,6 +26035,103 @@ export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTable
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPublicTableMenuQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * Called by nginx for page requests on a shop's own host. Public by nature:
+ * it returns what the shop's public pages and the public JSON endpoints
+ * already show.
+ * @summary A shop page's HTML: the app entry with the shop's head and noscript.
+ */
+export const publicTenantShell = (
+    params?: PublicTenantShellParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<unknown>(
+      {url: `/public/tenant-shell`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicTenantShellQueryKey = (params?: PublicTenantShellParams,) => {
+    return [
+    `/public/tenant-shell`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPublicTenantShellQueryOptions = <TData = Awaited<ReturnType<typeof publicTenantShell>>, TError = unknown>(params?: PublicTenantShellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicTenantShellQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicTenantShell>>> = ({ signal }) => publicTenantShell(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicTenantShellQueryResult = NonNullable<Awaited<ReturnType<typeof publicTenantShell>>>
+export type PublicTenantShellQueryError = unknown
+
+
+export function usePublicTenantShell<TData = Awaited<ReturnType<typeof publicTenantShell>>, TError = unknown>(
+ params: undefined |  PublicTenantShellParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicTenantShell>>,
+          TError,
+          Awaited<ReturnType<typeof publicTenantShell>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicTenantShell<TData = Awaited<ReturnType<typeof publicTenantShell>>, TError = unknown>(
+ params?: PublicTenantShellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicTenantShell>>,
+          TError,
+          Awaited<ReturnType<typeof publicTenantShell>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicTenantShell<TData = Awaited<ReturnType<typeof publicTenantShell>>, TError = unknown>(
+ params?: PublicTenantShellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A shop page's HTML: the app entry with the shop's head and noscript.
+ */
+
+export function usePublicTenantShell<TData = Awaited<ReturnType<typeof publicTenantShell>>, TError = unknown>(
+ params?: PublicTenantShellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicTenantShellQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -1593,6 +1593,16 @@ export const getWhatsappPauseResponseMock = (overrideResponse: Partial<Extract<W
 export const getWhatsappStatusResponseMock = (overrideResponse: Partial<Extract<WhatsappStatus, object>> = {}): WhatsappStatus => ({configured: faker.datatype.boolean(), connected: faker.datatype.boolean(), has_qr: faker.datatype.boolean(), logged_in: faker.datatype.boolean(), paused: faker.datatype.boolean(), paused_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), qr_image: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), reachable: faker.datatype.boolean(), session: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 
+export const getApiRootMockHandler = (overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<unknown> | unknown), options?: RequestHandlerOptions) => {
+  return http.get('*/', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 200
+      })
+  }, options)
+}
+
 export const getListAddonItemsMockHandler = (overrideResponse?: AddonItem[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AddonItem[]> | AddonItem[]), options?: RequestHandlerOptions) => {
   return http.get('*/addon-items', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -4693,6 +4703,16 @@ export const getVoidOpenTicketMockHandler = (overrideResponse?: OpenTicketView |
   }, options)
 }
 
+export const getPublicOpenapiMockHandler = (overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<unknown> | unknown), options?: RequestHandlerOptions) => {
+  return http.get('*/openapi.json', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 200
+      })
+  }, options)
+}
+
 export const getListOrdersMockHandler = (overrideResponse?: PaginatedOrders | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PaginatedOrders> | PaginatedOrders), options?: RequestHandlerOptions) => {
   return http.get('*/orders', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -5640,6 +5660,16 @@ export const getPublicTableMenuMockHandler = (overrideResponse?: DeliveryMenu | 
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getPublicTableMenuResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPublicTenantShellMockHandler = (overrideResponse?: unknown | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<unknown> | unknown), options?: RequestHandlerOptions) => {
+  return http.get('*/public/tenant-shell', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
       { status: 200
       })
   }, options)
@@ -8865,6 +8895,7 @@ export const getWhatsappStatusMockHandler = (overrideResponse?: WhatsappStatus |
   }, options)
 }
 export const getMadarAPIMock = () => [
+  getApiRootMockHandler(),
   getListAddonItemsMockHandler(),
   getCreateAddonItemMockHandler(),
   getListAddonCatalogMockHandler(),
@@ -9131,6 +9162,7 @@ export const getMadarAPIMock = () => [
   getSettleOpenTicketMockHandler(),
   getMoveTicketTableMockHandler(),
   getVoidOpenTicketMockHandler(),
+  getPublicOpenapiMockHandler(),
   getListOrdersMockHandler(),
   getCreateOrderMockHandler(),
   getExportOrdersMockHandler(),
@@ -9211,6 +9243,7 @@ export const getMadarAPIMock = () => [
   getPublicTableMockHandler(),
   getPublicTableCartQuoteMockHandler(),
   getPublicTableMenuMockHandler(),
+  getPublicTenantShellMockHandler(),
   getListPurchaseOrdersMockHandler(),
   getCreatePurchaseOrderMockHandler(),
   getReorderSuggestionsMockHandler(),

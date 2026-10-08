@@ -3,6 +3,12 @@
 import * as zod from 'zod';
 
 
+/**
+ * @summary What this host is, for a person or an agent that opens it.
+ */
+export const ApiRootResponse = zod.unknown()
+
+
 export const ListAddonItemsQueryParams = zod.object({
   "org_id": zod.uuid(),
   "addon_type": zod.string().optional(),
@@ -9840,6 +9846,12 @@ export const VoidOpenTicketResponse = zod.object({
 })
 
 
+/**
+ * @summary The public part of this API as OpenAPI 3.1.
+ */
+export const PublicOpenapiResponse = zod.unknown()
+
+
 export const ListOrdersQueryParams = zod.object({
   "branch_id": zod.uuid().optional(),
   "till_id": zod.uuid().optional(),
@@ -13183,6 +13195,20 @@ export const PublicTableMenuResponse = zod.object({
 }))
 }))
 })
+
+
+/**
+ * Called by nginx for page requests on a shop's own host. Public by nature:
+ * it returns what the shop's public pages and the public JSON endpoints
+ * already show.
+ * @summary A shop page's HTML: the app entry with the shop's head and noscript.
+ */
+export const PublicTenantShellQueryParams = zod.object({
+  "host": zod.string().optional().describe('The shop\'s host, e.g. `rue.madar-pos.cloud`. nginx sends it as the\n`X-Shell-Host` header; the query parameter is for tests and probes.'),
+  "path": zod.string().optional().describe('The page\'s path and query, e.g. `\/order\/menu?branch=…`. nginx sends it\nas the `X-Shell-Path` header.')
+})
+
+export const PublicTenantShellResponse = zod.unknown()
 
 
 export const ListPurchaseOrdersParams = zod.object({

@@ -754,6 +754,7 @@ export * from './publicTable';
 export * from './publicTableBill';
 export * from './publicTableLine';
 export * from './publicTableRound';
+export * from './publicTenantShellParams';
 export * from './publishWeek';
 export * from './pullChange';
 export * from './pullChangeData';
