@@ -1,7 +1,6 @@
 // Madar marketing site: get.madar-pos.cloud
 // Static output: every page is prerendered HTML, in English (/en/…) and Arabic (/ar/…).
 import { defineConfig } from "astro/config";
-import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import { copyFile, access, readFile, writeFile, readdir } from "node:fs/promises";
@@ -89,7 +88,6 @@ export default defineConfig({
   },
   prefetch: { prefetchAll: true, defaultStrategy: "hover" },
   integrations: [
-    react(),
     sitemap({
       i18n: { defaultLocale: "en", locales: { en: "en", ar: "ar" } },
       // Only the language pages: the root is a language picker, 404 isn't a page.
@@ -98,5 +96,16 @@ export default defineConfig({
     rootAlias(),
     precompress(),
   ],
-  vite: { plugins: [tailwindcss()] },
+  vite: {
+    plugins: [tailwindcss()],
+    resolve: {
+      // Code shared with the dashboard (../shared): the family showcase's 3D engine.
+      alias: { "@shared": fileURLToPath(new URL("../shared", import.meta.url)) },
+      // The shared engine sits outside this package; its "three" is this package's.
+      dedupe: ["three"],
+    },
+    server: {
+      fs: { allow: [fileURLToPath(new URL(".", import.meta.url)), fileURLToPath(new URL("../shared", import.meta.url))] },
+    },
+  },
 });

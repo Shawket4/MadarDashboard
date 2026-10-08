@@ -1,6 +1,9 @@
 # Madar marketing site (get.madar-pos.cloud)
 
 Astro, prerendered to static HTML, in English (`/en/…`) and Arabic (`/ar/…`, RTL).
+**No React:** every component is an Astro component and every behaviour a plain
+script (GSAP, Lenis, three.js), so no page ships a framework runtime. Keep it that
+way: no `client:` islands, no `@astrojs/react`.
 It replaced the old React landing module (`src/features/landing`, `get.html`,
 `vite.get.config.ts`) in October 2026. Decisions and their reasons are in
 `~/Desktop/Madar/LANDING_DECISIONS.md`.
@@ -64,6 +67,8 @@ The HTML is meant to be cached at Cloudflare for 5 minutes (a Cache Rule on
 | Home page order | `src/pages/[lang]/index.astro` |
 | Screenshots | see below |
 | The scroll story | `src/scripts/story.ts` (GSAP: ScrollTrigger, SplitText, DrawSVG; Lenis on mouse/trackpad) |
+| The family (3D) | `src/components/home/FamilyShowcase.astro` and `src/scripts/family.ts`; the 3D itself is the engine shared with the dashboard's sign-in, `../shared/showcase` (plain three.js) |
+| The hero chip's figures, the "one ledger" beams | `src/components/kit/CountUp.astro` (counted by `story.ts`), `src/components/kit/LedgerBeams.astro` + `src/scripts/beams.ts` |
 | An area's screens | `media` and `stepMap` on each `AreaSection` in `src/pages/[lang]/index.astro`: the screens play in the order the steps first need them (step 0 is the intro, then one per point) |
 | The cappuccino steps | `src/scripts/barista.ts`, files in `src/assets/lottie/` (Madar's own prep-step animations) |
 | The roadmap | `features.roadmap` in both copy files (`state`: `shipped` or `dev`), drawn by `src/components/features/Roadmap.astro` and `roadmap()` in `story.ts` |
@@ -91,6 +96,13 @@ Motion rules:
   visitor's own throws count (wheel, touch or keys in the last moments, `thrown`), so a
   # address landing or the browser restoring a position never skips anything, and one
   leap never sets off the next.
+- The **family** (home page, after the pillars) is a scene too: Madar's products as 3D
+  objects, one per third of a screen of scrolling (`SPAN`). Scrolling picks the object and turns it;
+  GSAP tweens pop objects in and out (`family.ts` drives the shared engine's `stage`).
+  The 3D (three.js, ~123 KB brotli) is fetched only when the section is a screen and a
+  half away and the page has loaded, draws only while the section is on screen, and
+  fades in over the 2D orbit. No WebGL or data saving on: no pin, the orbit and the
+  whole list instead. Reduced motion or no JavaScript: the same, with the orbit still.
 - The cappuccino pins on desktop only; on phones its steps play while it is on screen.
 - Entrances that come up while the page moves fast just finish
   (`flicking` in `story.ts`), so nothing fades in behind a fling.
@@ -136,6 +148,8 @@ Umami, cookieless. Off until the build has `PUBLIC_UMAMI_WEBSITE_ID` (and option
 
 ## Versions worth knowing
 
-- Vite is pinned to 7 (`@tailwindcss/vite` and Astro 6 need it; `@astrojs/react` 7
-  pulls Vite 8, so it stays on 5).
+- Vite is pinned to 7 (`@tailwindcss/vite` and Astro 6 need it).
+- `../shared` (code shared with the dashboard) is reached through the `@shared` alias;
+  Vite resolves its `three` from this package (`resolve.dedupe`), and `astro check`
+  type-checks it from the repository's own install.
 - TypeScript stays on 6 for `@astrojs/check`.

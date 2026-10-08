@@ -16,6 +16,7 @@ import { SplitText } from "gsap/SplitText";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import Lenis from "lenis";
 import { initBarista } from "./barista";
+import { familyScene, type SceneKit } from "./family";
 
 gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin);
 // Phones: the address bar showing and hiding is not a resize worth re-measuring for.
@@ -115,9 +116,12 @@ function run() {
   // Pins next, in page order: every trigger created after them measures the page with
   // the pins' extra scroll length already in place. (The cappuccino pins on desktop
   // only; on phones its steps play while it is on screen.)
-  const scenes = Array.from(document.querySelectorAll<HTMLElement>("[data-order], [data-barista]"));
+  const scenes = Array.from(document.querySelectorAll<HTMLElement>("[data-family], [data-order], [data-barista]"));
+  // What the family scene (family.ts) borrows to behave like the area scenes.
+  const sceneKit: SceneKit = { thrown, leap, flick: FLICK, sequencer, whenSeen, hold };
   for (const el of scenes) {
     if (el.hasAttribute("data-barista")) initBarista({ mode: desktop.matches ? "scrub" : "play" });
+    else if (el.hasAttribute("data-family")) familyScene(el, sceneKit);
     else areaScene(el);
   }
   // With the page at its full length, land on a # address before anything below decides
@@ -133,6 +137,7 @@ function run() {
 
   splits();
   reveals();
+  counts();
   orbits();
   lines();
   stageClocks();
@@ -224,6 +229,38 @@ function hero() {
     .fromTo("[data-hero-browser]", { y: 70, autoAlpha: 0, rotateX: 7, transformPerspective: 1400 }, { y: 0, autoAlpha: 1, rotateX: 0, duration: 1.5 }, 0.15)
     .fromTo("[data-hero-ipad]", { y: 110, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.5 }, 0.4)
     .fromTo("[data-hero-chip]", { y: 24, scale: 0.92, autoAlpha: 0 }, { y: 0, scale: 1, autoAlpha: 1, duration: 1 }, 0.9);
+  // The chip's figures count up as it settles.
+  for (const figure of el.querySelectorAll<HTMLElement>("[data-count]")) {
+    tl.add(countUp(figure), 1 + Number(figure.dataset.delay ?? 0));
+  }
+}
+
+/**
+ * A figure counting up to the value the page rendered (CountUp.astro). It reads
+ * from zero from the moment it's made, so it never shows the final value first.
+ */
+function countUp(el: HTMLElement, paused = false) {
+  const digits = Number(el.dataset.decimals ?? 0);
+  const fmt = new Intl.NumberFormat("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  const figure = { value: 0 };
+  el.textContent = fmt.format(0);
+  return gsap.to(figure, {
+    value: Number(el.dataset.count ?? 0),
+    duration: 1.9,
+    ease: "expo.out",
+    paused,
+    onUpdate: () => void (el.textContent = fmt.format(figure.value)),
+  });
+}
+
+/** Figures outside the hero count up the first time they scroll in. */
+function counts() {
+  for (const el of gsap.utils.toArray<HTMLElement>("[data-count]")) {
+    if (el.closest("[data-hero]") || settled(el)) continue;
+    const tween = countUp(el, true);
+    tween.delay(Number(el.dataset.delay ?? 0));
+    whenSeen(el, "top 92%", tween);
+  }
 }
 
 /**
@@ -455,6 +492,11 @@ function sequencer(
 }
 
 let pausedScenes = 0;
+/** While a scene holds the page, the phone's WhatsApp bar steps aside for its words. */
+function hold(holding: boolean) {
+  pausedScenes = Math.max(0, pausedScenes + (holding ? 1 : -1));
+  root.classList.toggle("scene-on", pausedScenes > 0);
+}
 
 /**
  * An area with screens: the page pauses on it while scrolling moves through its screens,
@@ -573,9 +615,7 @@ function areaScene(area: HTMLElement) {
     },
     onToggle: (self) => {
       if (!self.isActive) skipping = false;
-      // While a scene holds the page, the phone's WhatsApp bar steps aside for its words.
-      pausedScenes = Math.max(0, pausedScenes + (self.isActive ? 1 : -1));
-      root.classList.toggle("scene-on", pausedScenes > 0);
+      hold(self.isActive);
     },
   });
 }

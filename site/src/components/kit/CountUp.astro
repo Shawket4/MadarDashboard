@@ -1,0 +1,25 @@
+---
+/**
+ * A figure that counts up when it comes in (story.ts: the hero counts with its
+ * entrance; anywhere else, the first time it scrolls into view). The final value
+ * is what the page renders, so it's right without JavaScript, under reduced
+ * motion and on a soft entry. Western digits in both languages; the width is
+ * held at the final value's, so nothing around it moves while it counts.
+ */
+interface Props {
+  value: number;
+  decimals?: number;
+  /** Seconds after the entrance (or the scroll-in) before it starts. */
+  delay?: number;
+  class?: string;
+}
+const { value, decimals = 0, delay = 0, class: cls } = Astro.props;
+const text = new Intl.NumberFormat("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
+---
+<span
+  class:list={["inline-block text-end tabular-nums", cls]}
+  style={`min-inline-size: ${text.length}ch`}
+  data-count={value}
+  data-decimals={decimals}
+  data-delay={delay}
+>{text}</span>

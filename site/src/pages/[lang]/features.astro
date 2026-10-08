@@ -4,7 +4,7 @@ import FeatureArea from "@/components/features/FeatureArea.astro";
 import Roadmap from "@/components/features/Roadmap.astro";
 import BasiraDemo from "@/components/home/BasiraDemo.astro";
 import Orbit from "@/components/ui/Orbit.astro";
-import { LedgerBeams } from "@/components/kit/LedgerBeams";
+import LedgerBeams from "@/components/kit/LedgerBeams.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS } from "@/lib/site";
 
@@ -62,7 +62,7 @@ const groups = [
         <p class="text-lead mt-5 text-muted" data-reveal>{f.ledger.body}</p>
       </div>
       <div class="mt-14" data-reveal>
-        <LedgerBeams client:visible labels={f.ledger.labels} rtl={lang === "ar"} />
+        <LedgerBeams labels={f.ledger.labels} />
       </div>
     </div>
   </section>

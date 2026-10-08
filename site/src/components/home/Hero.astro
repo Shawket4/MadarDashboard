@@ -2,7 +2,7 @@
 import Shot from "@/components/media/Shot.astro";
 import Icon from "@/components/ui/Icon.astro";
 import Orbit from "@/components/ui/Orbit.astro";
-import { NumberTicker } from "@/components/kit/NumberTicker";
+import CountUp from "@/components/kit/CountUp.astro";
 import { t } from "@/i18n";
 import { type Lang, whatsappHref } from "@/lib/site";
 
@@ -54,11 +54,11 @@ const c = t(lang);
           <div class="mt-1.5 flex items-baseline gap-5">
             <p class="ltr">
               <span class="chip-label block text-muted">{c.hero.chipCost}</span>
-              <span class="font-mono text-lg font-medium sm:text-xl">EGP <NumberTicker client:visible value={32} decimalPlaces={2} delay={0.4} /></span>
+              <span class="font-mono text-lg font-medium sm:text-xl">EGP <CountUp value={32} decimals={2} delay={0.4} /></span>
             </p>
             <p class="ltr">
               <span class="chip-label block text-muted">{c.hero.chipMargin}</span>
-              <span class="font-mono text-lg font-medium text-teal sm:text-xl"><NumberTicker client:visible value={70.9} decimalPlaces={1} delay={0.55} />%</span>
+              <span class="font-mono text-lg font-medium text-teal sm:text-xl"><CountUp value={70.9} decimals={1} delay={0.55} />%</span>
             </p>
           </div>
         </div>

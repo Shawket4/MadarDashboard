@@ -109,6 +109,21 @@ export const en = {
     ],
   },
 
+  family: {
+    kicker: "One system",
+    title: "Everything your café runs on.",
+    body: "The till, the kitchen's screens, your own ordering page, rewards for regulars and Dawam for the team: one system on one ledger, in Arabic and English.",
+    /** Listed in the order the 3D plays them (the order itself is shared/showcase/keys.ts). */
+    items: {
+      till: { name: "Till", title: "The till", line: "Every pay-in and pay-out, with its reason and its person." },
+      dawam: { name: "Dawam", title: "Dawam", line: "Staff clock in on their phones; the hours become payslips." },
+      ordering: { name: "Ordering", title: "Your own ordering page", line: "Guests order from your menu, in Arabic or English." },
+      receipt: { name: "Ledger", title: "One ledger", line: "Counter sales and deliveries close into the same books." },
+      kitchen: { name: "Kitchen", title: "The kitchen screen", line: "Each station gets its own screen, live." },
+      rewards: { name: "Rewards", title: "Rewards", line: "Points or stamps, in Apple Wallet and Google Wallet." },
+    },
+  },
+
   day: {
     kicker: "A café's day",
     title: "From the first shot to the closing count.",
