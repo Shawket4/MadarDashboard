@@ -22,14 +22,30 @@ server {
     # try_files, so a folder always got index.html and never its Markdown.
     if (-d $request_filename) { rewrite ^(.*[^/])$ $1/ permanent; }
 
+    # Every 404 is the 404 page: 404.html, or 404.md for Accept: text/markdown
+    # ($md_suffix, conf.d/madar-markdown.conf), still with status 404.
     error_page 404 /404.html;
     location = /404.html {
         internal;
         include snippets/madar-security-headers.conf;
+        add_header Vary "Accept" always;
+        try_files /404$md_suffix /404.html =404;
     }
 
     # /en/pricing/index.html -> /en/pricing/ (checks the original request, so it can't loop)
     if ($request_uri ~ ^([^?]*/)index\.html(\?.*)?$) { return 301 $1$2; }
+
+    # /en/pricing.html -> /en/pricing/ when that folder exists. Server level, like the
+    # slash rule above (a true `if` inside a location would drop its try_files). A
+    # real .html file (get.html, 404.html) has no folder of that name, so it stays.
+    set $html_folder "";
+    if ($uri ~ ^(/.+)\.html$) { set $html_folder $document_root$1; }
+    if (-d $html_folder) { rewrite ^(/.+)\.html$ $1/ permanent; }
+
+    # Short addresses: the English page, or the legal site. With or without the slash.
+    location ~ ^/(pricing|features|faq|about|contact)/?$ { return 301 /en/$1/$is_args$args; }
+    location ~ ^/privacy/?$ { return 301 https://legal.madar-pos.cloud/privacy-policy.html; }
+    location ~ ^/terms/?$ { return 301 https://legal.madar-pos.cloud/terms-of-service.html; }
 
     location /assets/ {
         include snippets/madar-security-headers.conf;
@@ -38,7 +54,7 @@ server {
         try_files $uri =404;
     }
 
-    # Root: the language picker, until the root-page decision is made
+    # Root: the bilingual root page (get.html, a copy of index.html), or /index.md
     location = / {
         include snippets/madar-security-headers.conf;
         add_header Content-Security-Policy-Report-Only "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;

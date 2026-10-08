@@ -11,6 +11,18 @@ server {
     client_max_body_size 20M;
     root /var/www/madar-dashboard/;
     index index.html;
+    charset utf-8;
+    charset_types text/plain text/markdown;
+
+    # A 404 asked for as Markdown is 404.md, still with status 404 ($md_suffix,
+    # conf.d/madar-markdown.conf). Any other 404 keeps nginx's own page: "/404"
+    # never exists, and a second 404 inside an error page is not redirected again.
+    error_page 404 @not_found;
+    location @not_found {
+        include snippets/madar-security-headers.conf;
+        add_header Vary "Accept" always;
+        try_files /404$md_suffix =404;
+    }
 
     # `^~` on every prefix location below: a regex location (the file-like
     # paths further down) otherwise beats a prefix one, and would take
@@ -34,23 +46,46 @@ server {
         try_files $uri =404;
     }
 
+    # Short addresses: the marketing site's English pages, or the legal site.
+    # No dashboard route is named like these (the app's /pricing is /menu/pricing).
+    location ~ ^/(pricing|features|about|contact)/?$ {
+        include snippets/madar-security-headers.conf;
+        return 301 https://get.madar-pos.cloud/en/$1/$is_args$args;
+    }
+    location ~ ^/privacy/?$ {
+        include snippets/madar-security-headers.conf;
+        return 301 https://legal.madar-pos.cloud/privacy-policy.html;
+    }
+    location ~ ^/terms/?$ {
+        include snippets/madar-security-headers.conf;
+        return 301 https://legal.madar-pos.cloud/terms-of-service.html;
+    }
+
+    # The sign-in page, or its Markdown (index.md) for Accept: text/markdown.
+    location = / {
+        include snippets/madar-security-headers.conf;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Vary "Accept" always;
+        try_files /index$md_suffix /index.html =404;
+    }
+
     # A path that looks like a file (/openapi.json, /llms.txt, /x.md) is a file
     # in the build or a real 404, never the app shell. The same headers as the
     # fallback below: every top-level file (icons, fonts, robots.txt) is served
-    # here now, and so is the shell itself, because `try_files ... /index.html`
-    # re-runs location matching and /index.html matches this regex.
-    # No client route ends in ".<letters/digits>" (ids are UUIDs).
+    # here. No client route ends in ".<letters/digits>" (ids are UUIDs).
     location ~ \.[A-Za-z0-9]+$ {
         include snippets/madar-security-headers.conf;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         try_files $uri =404;
     }
 
-    # SPA fallback (never cache index.html)
+    # SPA fallback (never cache index.html). An app route asked for as Markdown
+    # has none: "/index.html.md" never exists, so it ends in the Markdown 404.
     location / {
         include snippets/madar-security-headers.conf;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
-        try_files $uri /index.html;
+        add_header Vary "Accept" always;
+        try_files $uri /index.html$md_suffix =404;
     }
 
     # The sales brochure (owner, 2026-09-26): a direct download. The file
