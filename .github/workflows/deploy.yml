@@ -169,17 +169,12 @@ jobs:
       # pages keep their Last-Modified.
       - name: Deploy marketing site to VPS
         env:
-          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
-        run: |
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644 \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
-            site/dist/ "$VPS_USER@$VPS_HOST:/var/www/madar-get/"
-          rm -f ~/.ssh/deploy_key
+        run: >-
+          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          site/dist/ "$VPS_USER@$VPS_HOST:/var/www/madar-get/"
 
       - name: Ensure reservations web root exists
         uses: appleboy/ssh-action@v1.0.3

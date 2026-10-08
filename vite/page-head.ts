@@ -11,8 +11,9 @@ import type { Plugin } from "vite";
  * them, chosen by the `VITE_DEMO` flag the demo build already passes. An
  * explicit `VITE_PAGE_*` in the environment (or an `.env` file) still wins.
  *
- * The customer bundles (loyalty, order, reservations) are one host each, so
- * their heads are plain HTML.
+ * The customer bundles (loyalty, order, reservations) have plain HTML heads.
+ * Those served on more than one host leave out the page's own address: see
+ * `withoutOwnAddress`.
  */
 export interface PageHead {
   VITE_PAGE_TITLE: string;
@@ -52,6 +53,29 @@ export function fillPageHead(html: string, env: Env): string {
     const value = env[key] ?? defaults[key];
     return value === undefined ? whole : escapeHtml(value);
   });
+}
+
+/** The tags that claim one address for the page. */
+const OWN_ADDRESS = /\n?[ \t]*<link rel="canonical"[^>]*>|\n?[ \t]*<meta property="og:url"[^>]*>/g;
+
+/**
+ * The entry without `canonical` and `og:url`. An entry served from more than
+ * one host must not name one of them as every page's address: the shop builds
+ * (`MADAR_MOUNT`) and the loyalty bundle are also the pages of every shop's
+ * own host, where the backend's tenant shell writes that shop's canonical. When
+ * it cannot (nginx falls back to the file itself), no canonical is right and
+ * one naming order.madar-pos.cloud would hand the shop's page to that host.
+ */
+export function withoutOwnAddress(html: string): string {
+  return html.replace(OWN_ADDRESS, "");
+}
+
+/** For a build mounted under a shop's host (`MADAR_MOUNT` set): see `withoutOwnAddress`. */
+export function shopEntry(mount: string): Plugin {
+  return {
+    name: "madar-shop-entry",
+    transformIndexHtml: { order: "pre", handler: (html) => (mount === "/" ? html : withoutOwnAddress(html)) },
+  };
 }
 
 export function pageHead(): Plugin {

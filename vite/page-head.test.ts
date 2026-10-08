@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { DASHBOARD_HEAD, DEMO_HEAD, fillPageHead } from "./page-head";
+import { DASHBOARD_HEAD, DEMO_HEAD, fillPageHead, withoutOwnAddress } from "./page-head";
 
 const root = path.resolve(__dirname, "..");
 const read = (file: string) => readFileSync(path.join(root, file), "utf8");
@@ -44,16 +44,28 @@ describe("fillPageHead", () => {
   });
 });
 
+describe("withoutOwnAddress", () => {
+  it("drops canonical and og:url and nothing else", () => {
+    const html = '<head>\n  <title>T</title>\n  <link rel="canonical" href="https://order.madar-pos.cloud/" />\n  <meta property="og:type" content="website" />\n  <meta property="og:url" content="https://order.madar-pos.cloud/" />\n</head>';
+    expect(withoutOwnAddress(html)).toBe('<head>\n  <title>T</title>\n  <meta property="og:type" content="website" />\n</head>');
+  });
+});
+
 /**
  * Every HTML entry, as a crawler or a link preview reads it before any script
- * runs. index.html is checked once per build it serves.
+ * runs. index.html is checked once per build it serves, and order and
+ * reservations once more as their shop builds. An entry that is also served on
+ * every shop's own host (loyalty, the shop builds) names no address of its own
+ * (`url: null`): the tenant shell writes the shop's.
  */
 const ENTRIES = [
   { name: "dashboard", html: fillPageHead(read("index.html"), {}), url: "https://madar-pos.cloud/", title: "Madar POS — Sign in", shell: false },
   { name: "demo", html: fillPageHead(read("index.html"), { VITE_DEMO: "1" }), url: "https://demo.madar-pos.cloud/", title: "Madar POS — Live demo", shell: false },
-  { name: "loyalty", html: read("loyalty.html"), url: "https://loyalty.madar-pos.cloud/", title: "Madar POS — Rewards", shell: true },
+  { name: "loyalty", html: read("loyalty.html"), url: null, title: "Madar POS — Rewards", shell: true },
   { name: "order", html: read("order.html"), url: "https://order.madar-pos.cloud/", title: "Madar POS — Order", shell: true },
+  { name: "order (shop build)", html: withoutOwnAddress(read("order.html")), url: null, title: "Madar POS — Order", shell: true },
   { name: "reservations", html: read("reservations.html"), url: "https://reservations.madar-pos.cloud/", title: "Madar POS — Reservations", shell: true },
+  { name: "reservations (shop build)", html: withoutOwnAddress(read("reservations.html")), url: null, title: "Madar POS — Reservations", shell: true },
 ];
 
 describe.each(ENTRIES)("the $name head", ({ html, url, title, shell }) => {
@@ -71,8 +83,8 @@ describe.each(ENTRIES)("the $name head", ({ html, url, title, shell }) => {
   it("says what the page is, and where it lives", () => {
     expect(doc.title).toBe(title);
     expect(meta('meta[property="og:title"]')).toBe(title);
-    expect(doc.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(url);
-    expect(meta('meta[property="og:url"]')).toBe(url);
+    expect(doc.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? null).toBe(url);
+    expect(meta('meta[property="og:url"]') ?? null).toBe(url);
     expect(meta('meta[property="og:type"]')).toBe("website");
     expect(meta('meta[property="og:image"]')).toBe("https://get.madar-pos.cloud/og/en-home.jpg");
     expect(meta('meta[name="twitter:card"]')).toBe("summary_large_image");
@@ -110,7 +122,7 @@ describe.each(ENTRIES)("the $name head", ({ html, url, title, shell }) => {
     expect(head).not.toBeNull();
     expect(html.match(/<!-- madar:head -->/g)).toHaveLength(1);
     expect(html.indexOf("<!-- /madar:head -->")).toBeLessThan(html.indexOf("</head>"));
-    for (const tag of ["<title>", 'name="description"', 'rel="canonical"', 'property="og:', 'name="twitter:', "application/ld+json"]) {
+    for (const tag of ["<title>", 'name="description"', 'property="og:', 'name="twitter:', "application/ld+json"]) {
       expect(head, tag).toContain(tag);
     }
     // ...and nothing that names the page sits outside them.
