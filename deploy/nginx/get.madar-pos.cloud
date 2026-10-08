@@ -28,6 +28,7 @@ server {
     location = /404.html {
         internal;
         include snippets/madar-security-headers.conf;
+        add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
         add_header Vary "Accept" always;
         try_files /404$md_suffix /404.html =404;
     }
