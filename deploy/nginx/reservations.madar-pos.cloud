@@ -1,0 +1,81 @@
+# Public reservations — ISOLATED origin (separate bundle, no admin code, no
+# shared cookies/storage with the dashboard), mirroring order.madar-pos.cloud.
+# HTTPS added by certbot below once this is enabled.
+server {
+    server_name reservations.madar-pos.cloud;
+
+    location /.well-known/acme-challenge/ { root /var/www/letsencrypt; try_files $uri =404; }
+
+    root /var/www/madar-reservations;
+    index reservations.html;
+
+    client_max_body_size 10M;
+
+    # Hardened headers for a public origin anyone can reach.
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+
+    # Uploads are served directly, shared with the backend upload dir.
+    location /api/uploads/ {
+        alias /opt/madar-rust/uploads/;
+        expires 30d; access_log off; try_files $uri =404;
+    }
+
+    # Public API (same backend; admin endpoints still require a JWT this origin never holds).
+    location /api/ {
+        proxy_pass http://madar_api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        proxy_read_timeout 60s;
+    }
+
+    location /assets/ {
+        expires 1y; add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off; try_files $uri =404;
+    }
+
+    # SPA fallback
+    location / {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        try_files $uri /reservations.html;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    listen [::]:443 ssl; # managed by Certbot
+    ssl_certificate /etc/nginx/ssl/cloudflare-origin/cert.pem; # Cloudflare Origin CA (proxied host, valid to 2041)
+    ssl_certificate_key /etc/nginx/ssl/cloudflare-origin/key.pem; # Cloudflare Origin CA
+
+    # Restore the real client IP. Rate limits are per IP; without this every
+    # customer arrives as a Cloudflare address and shares one budget.
+    include /etc/nginx/cloudflare-real-ip.conf;
+
+    # Origin lockdown: this hostname is proxied, so legitimate traffic can only
+    # arrive from Cloudflare. The origin IP is publicly known, so without this
+    # anyone can address the box directly and skip the edge's rate limiting and
+    # WAF. NEVER add this to a DNS-only vhost (api, demo-api, sentry) or another
+    # tenant's config -- they are reached directly by design.
+    include /etc/nginx/cloudflare-only.conf;
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+    if ($host = reservations.madar-pos.cloud) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    listen [::]:80;
+    server_name reservations.madar-pos.cloud;
+    return 404; # managed by Certbot
+
+
+}
