@@ -73,7 +73,11 @@ export default defineConfig({
       : []),
   ],
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      // Code shared with the marketing site (site/): the family showcase's 3D engine.
+      "@shared": path.resolve(__dirname, "./shared"),
+    },
   },
   server: { port: 5173, host: true },
   optimizeDeps: {

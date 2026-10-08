@@ -6,7 +6,10 @@ as a desktop app with Tauri. This repo builds the authenticated dashboard and th
 customer bundles (ordering, tracking, reservations, loyalty) from one codebase (see the
 `vite.*.config.ts` files and the `dev:*` scripts). The marketing site
 (get.madar-pos.cloud) is a separate Astro package in `site/` with its own dependencies;
-read `site/README.md` before touching it.
+read `site/README.md` before touching it. It ships no React (Astro components and plain
+scripts only); keep it that way. Code both use lives in `shared/` (plain TypeScript, no
+framework, imported as `@shared/…`; see `shared/README.md`), such as the 3D family
+showcase on the sign-in panel and the site's home page.
 
 It is a *consumer* of the backend: every API type and hook under
 `src/data/api/generated/` is generated from the backend's OpenAPI spec. Do not hand-edit
