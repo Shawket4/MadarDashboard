@@ -47,6 +47,11 @@ server {
     location ~ ^/(pricing|features|faq|about|contact)/?$ { return 301 /en/$1/$is_args$args; }
     location ~ ^/privacy/?$ { return 301 https://legal.madar-pos.cloud/privacy-policy.html; }
     location ~ ^/terms/?$ { return 301 https://legal.madar-pos.cloud/terms-of-service.html; }
+    # Where developers and agents look first: the developers page, and the API's own spec.
+    location ~ ^/(docs|api|developers)/?$ { return 301 /en/developers/$is_args$args; }
+    location = /openapi.json { return 301 https://api.madar-pos.cloud/openapi.json; }
+    # The MCP server card comes from the API, from its own tool list (mcp.json stays here).
+    location = /.well-known/mcp/server-card.json { return 301 https://api.madar-pos.cloud/.well-known/mcp/server-card.json; }
 
     location /assets/ {
         include snippets/madar-security-headers.conf;

@@ -4,7 +4,7 @@ import Icon from "@/components/ui/Icon.astro";
 import { t } from "@/i18n";
 import { currentYear } from "@shared/dates";
 import {
-  type Lang, type PageKey, pageHref, otherLang, whatsappHref, PHONE_HREF, PHONE_DISPLAY,
+  type Lang, type PageKey, pageHref, otherLang, switchHref, whatsappHref, PHONE_HREF, PHONE_DISPLAY,
   EMAIL_HREF, EMAIL, INSTAGRAM, FACEBOOK, LEGAL_URL, DASHBOARD_URL,
 } from "@/lib/site";
 
@@ -20,7 +20,7 @@ const year = currentYear(lang);
     <div class="md:col-span-4">
       <a href={pageHref(lang, "home")} aria-label={c.nav.home} class="inline-flex text-[1.9rem]"><Logo lang={lang} tone="ink" display /></a>
       <p class="kicker mt-5 max-w-xs text-muted-ink">{c.footer.tagline}</p>
-      <a class="nav-link mt-6 inline-flex items-center gap-2 !px-0" href={page === "notFound" ? pageHref(other, "home") : pageHref(other, page)} hreflang={other} lang={other} data-umami-event="lang-switch">
+      <a class="nav-link mt-6 inline-flex items-center gap-2 !px-0" href={switchHref(lang, page)} hreflang={other} lang={other} data-umami-event="lang-switch">
         <Icon name="globe" size={18} /> {c.nav.langSwitch}
       </a>
     </div>
@@ -35,6 +35,7 @@ const year = currentYear(lang);
           <li><a class="link-quiet" href={pageHref(lang, "about")}>{c.nav.about}</a></li>
           <li><a class="link-quiet" href={pageHref(lang, "contact")}>{c.nav.contact}</a></li>
           <li><a class="link-quiet" href={DASHBOARD_URL} rel="noopener">{c.footer.dashboard}</a></li>
+          <li><a class="link-quiet" href={pageHref("en", "developers")} hreflang="en">{c.footer.developers}</a></li>
         </ul>
       </div>
       <div>

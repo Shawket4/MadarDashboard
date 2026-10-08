@@ -37,6 +37,11 @@ export const en = {
       description:
         "Talk to the Madar POS team in Cairo on WhatsApp or by phone at +20 121 111 6899, or email shawket.4@icloud.com. We reply the same day.",
     },
+    developers: {
+      title: "Madar POS developers: public API, OpenAPI and MCP server",
+      description:
+        "Read a café's brand, branches, menu with EGP prices, free table times and order status from the Madar POS public API or its MCP server. No key needed.",
+    },
     notFound: {
       title: "Page not found · Madar POS",
       description:
@@ -445,6 +450,7 @@ export const en = {
     owner: "Madar",
     rights: "Built in Cairo.",
     dashboard: "Merchant login",
+    developers: "Developers · API",
   },
 
   features: {

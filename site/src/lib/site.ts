@@ -31,7 +31,7 @@ export function whatsappHref(lang: Lang): string {
   return `https://wa.me/${PHONE_E164.replace("+", "")}?text=${encodeURIComponent(WA_TEXT[lang])}`;
 }
 
-export type PageKey = "home" | "features" | "pricing" | "faq" | "about" | "contact";
+export type PageKey = "home" | "features" | "pricing" | "faq" | "about" | "contact" | "developers";
 
 const PAGE_PATH: Record<PageKey, string> = {
   home: "",
@@ -40,6 +40,7 @@ const PAGE_PATH: Record<PageKey, string> = {
   faq: "faq/",
   about: "about/",
   contact: "contact/",
+  developers: "developers/",
 };
 
 /** Site-relative URL of a page in a language, e.g. /ar/pricing/ */
@@ -52,3 +53,12 @@ export function absoluteUrl(path: string): string {
 }
 
 export const otherLang = (lang: Lang): Lang => (lang === "en" ? "ar" : "en");
+
+/** Pages written in English only (no Arabic copy): their language switch leads to the Arabic home. */
+export const isEnglishOnly = (page: PageKey | "notFound"): boolean => page === "developers";
+
+/** The language switch's target: this page in the other language, or that language's home. */
+export function switchHref(lang: Lang, page: PageKey | "notFound"): string {
+  const other = otherLang(lang);
+  return page === "notFound" || isEnglishOnly(page) ? pageHref(other, "home") : pageHref(other, page);
+}

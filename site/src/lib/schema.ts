@@ -85,6 +85,7 @@ export function breadcrumbs(lang: Lang, page: Exclude<PageKey, "home">) {
     faq: c.nav.faq,
     about: c.nav.about,
     contact: c.nav.contact,
+    developers: c.footer.developers,
   };
   return {
     "@context": "https://schema.org",

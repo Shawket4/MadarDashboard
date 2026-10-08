@@ -41,7 +41,10 @@ const LEGAL = "https://legal.madar-pos.cloud";
 const ALIASES = {
   pricing: "/en/pricing/", features: "/en/features/", faq: "/en/faq/", about: "/en/about/", contact: "/en/contact/",
   privacy: `${LEGAL}/privacy-policy.html`, terms: `${LEGAL}/terms-of-service.html`,
+  docs: "/en/developers/", api: "/en/developers/", developers: "/en/developers/",
 };
+const API_SPEC = "https://api.madar-pos.cloud/openapi.json";
+const MCP_CARD = "https://api.madar-pos.cloud/.well-known/mcp/server-card.json";
 
 /**
  * folders: "open" serves a folder's index.html (404.html otherwise); "nginx" mimics the
@@ -67,6 +70,8 @@ function serve(folders, port = 0) {
       const alias = ALIASES[/^\/([a-z]+)\/?$/.exec(p)?.[1] ?? ""];
       const html = /^(\/.+)\.html$/.exec(p)?.[1];
       if (alias) return redirect(alias);
+      if (p === "/openapi.json") return redirect(API_SPEC);
+      if (p === "/.well-known/mcp/server-card.json") return redirect(MCP_CARD);
       if (html && (await isDir(path.join(dist, html)))) return redirect(`${html}/`);
       if (/\/index\.html$/.test(p)) return redirect(p.slice(0, -10));
       if (p === "/") file = path.join(dist, md && (await isFile(path.join(dist, "index.md"))) ? "index.md" : "get.html");
@@ -101,9 +106,11 @@ const widths = (process.env.WIDTHS ?? "390,768,1280,1440").split(",").map(Number
 const targets = [
   { lang: "en", url: "/", name: "root", shot: "root" },
   ...["en", "ar"].flatMap((lang) => pages.map((p) => ({ lang, url: `/${lang}/${p}`, name: `${lang}/${p || "home/"}`, shot: `${lang}-${(p || "home/").replace("/", "")}` }))),
+  // English only: en and x-default alternates, no Arabic.
+  { lang: "en", url: "/en/developers/", name: "en/developers/", shot: "en-developers", alternates: 2 },
 ];
 let views = 0;
-for (const { lang, url, name, shot } of targets) {
+for (const { lang, url, name, shot, alternates = 3 } of targets) {
   for (const w of widths) {
     const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, deviceScaleFactor: 1, reducedMotion: process.env.REDUCED ? "reduce" : "no-preference", serviceWorkers: "block" });
     const page = await ctx.newPage();
@@ -163,7 +170,7 @@ for (const { lang, url, name, shot } of targets) {
     if (r.overflow > 1) problems.push(`${tag}: horizontal overflow ${r.overflow}px`);
     if (r.broken.length) problems.push(`${tag}: broken images ${r.broken.join(", ")}`);
     if (r.h1 !== 1) problems.push(`${tag}: ${r.h1} <h1>`);
-    if (!r.title || !r.desc || !r.canonical || r.hreflang < 3) problems.push(`${tag}: meta missing`);
+    if (!r.title || !r.desc || !r.canonical || r.hreflang !== alternates) problems.push(`${tag}: meta missing (${r.hreflang} hreflang, want ${alternates})`);
     if (errors.length) problems.push(`${tag}: console ${errors.slice(0, 3).join(" | ")}`);
     if (w === 390 || w === 1440) await page.screenshot({ path: path.join(shots, `${shot}-${w}.jpg`), fullPage: true, type: "jpeg", quality: 60 });
     await ctx.close();
@@ -249,7 +256,7 @@ for (const folders of ["open", "nginx"]) {
     check(r.status === 301 && r.headers.get("location") === "/en/pricing/", `/en/pricing/index.html → ${r.status} ${r.headers.get("location")}`);
     r = await get("/ar/pricing");
     check(r.status === 301 && r.headers.get("location") === "/ar/pricing/", `/ar/pricing → ${r.status} ${r.headers.get("location")}`);
-    for (const [u, needle] of [["/en/pricing/", "3,000 EGP"], ["/ar/faq/", "### "], ["/", "](https://get.madar-pos.cloud/ar/)"]]) {
+    for (const [u, needle] of [["/en/pricing/", "3,000 EGP"], ["/ar/faq/", "### "], ["/", "](https://get.madar-pos.cloud/ar/)"], ["/en/developers/", "| `get_booking_slots` |"]]) {
       r = await get(u, "text/markdown, text/html;q=0.9");
       const body = await r.text();
       check(r.ok && /text\/markdown/.test(r.headers.get("content-type") ?? "") && body.includes(needle), `Markdown for ${u} → ${r.status} ${r.headers.get("content-type")}`);
@@ -257,6 +264,17 @@ for (const folders of ["open", "nginx"]) {
     for (const u of ["/llms.txt", "/llms-full.txt", "/robots.txt", "/sitemap.xml"]) {
       r = await get(u);
       check(r.ok, `${u} → ${r.status}`);
+    }
+    // For developers and agents: llms.txt names the API and the MCP server, the MCP
+    // manifest is JSON (the server card is the API's), and the root page and every
+    // footer link the developers page.
+    const llms = await (await get("/llms.txt")).text();
+    check(llms.includes("## For developers") && llms.includes("https://api.madar-pos.cloud/mcp") && llms.includes("/.well-known/mcp.json"), "llms.txt has no For developers section");
+    r = await get("/.well-known/mcp.json");
+    const manifest = r.ok && /application\/json/.test(r.headers.get("content-type") ?? "") ? await r.json().catch(() => null) : null;
+    check(manifest?.url === "https://api.madar-pos.cloud/mcp", `/.well-known/mcp.json → ${r.status} ${r.headers.get("content-type")}`);
+    for (const u of ["/", "/en/", "/ar/pricing/"]) {
+      check((await (await get(u, "text/html")).text()).includes('href="/en/developers/"'), `${u} has no link to /en/developers/`);
     }
     r = await get("/no-such-page");
     check(r.status === 404 && /text\/html/.test(r.headers.get("content-type") ?? ""), `unknown path → ${r.status} ${r.headers.get("content-type")}`);
@@ -276,6 +294,9 @@ for (const folders of ["open", "nginx"]) {
       ["/about", "/en/about/"], ["/contact/", "/en/contact/"],
       ["/privacy", `${LEGAL}/privacy-policy.html`], ["/terms/", `${LEGAL}/terms-of-service.html`],
       ["/en/pricing.html", "/en/pricing/"], ["/ar/about.html", "/ar/about/"],
+      ["/docs", "/en/developers/"], ["/docs/", "/en/developers/"], ["/api", "/en/developers/"], ["/api/", "/en/developers/"],
+      ["/developers", "/en/developers/"], ["/developers/", "/en/developers/"], ["/en/developers", "/en/developers/"],
+      ["/openapi.json", API_SPEC], ["/.well-known/mcp/server-card.json", MCP_CARD],
     ]) {
       r = await get(u);
       check(r.status === 301 && r.headers.get("location") === to, `${u} → ${r.status} ${r.headers.get("location")} (want ${to})`);

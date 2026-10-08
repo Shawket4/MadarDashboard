@@ -16,8 +16,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
 
-const ORDER = ["", "features/", "pricing/", "faq/", "about/", "contact/"];
+const ORDER = ["", "features/", "pricing/", "faq/", "about/", "contact/", "developers/"];
 const LEGAL = "https://legal.madar-pos.cloud/";
+const API = "https://api.madar-pos.cloud";
 
 const decode = (s) =>
   s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#x27;/g, "'");
@@ -47,6 +48,19 @@ function converter(site) {
   td.addRule("summary", {
     filter: "summary",
     replacement: (content) => `\n\n### ${content.replace(/\s+/g, " ").trim()}\n\n`,
+  });
+  td.addRule("table", {
+    // Tables (the developers page's endpoints and tools) as pipe tables.
+    filter: "table",
+    replacement: (_, node) => {
+      // turndown's DOM in Node has no querySelectorAll: walk the element children.
+      const kids = (n) => [...n.childNodes].filter((c) => c.nodeType === 1);
+      const find = (n, name) => kids(n).flatMap((c) => (c.nodeName === name ? [c] : find(c, name)));
+      const rows = find(node, "TR").map((tr) =>
+        `| ${kids(tr).map((cell) => td.turndown(cell.innerHTML).replace(/\s+/g, " ").replace(/\|/g, "\\|")).join(" | ")} |`);
+      const head = `|${" --- |".repeat(kids(find(node, "TR")[0]).length)}`;
+      return `\n\n${[rows[0], head, ...rows.slice(1)].join("\n")}\n\n`;
+    },
   });
   td.addRule("on-page-links", {
     // # links jump within the HTML page; in Markdown they're just their text.
@@ -103,6 +117,18 @@ function whenToUse(home, site) {
     "- Use it when helping a café or restaurant owner in Egypt choose a point of sale, cost recipes and see the margin per item, track stock, run loyalty with wallet cards, take online orders or table reservations, or work in Arabic and English, online or offline.",
     "- Not a fit for retail-only shops without food service, or for businesses outside Egypt (pricing is in EGP).",
     `- How to act: pricing is at ${site}/en/pricing/. Contact sales on [WhatsApp](${home.whatsapp}), by phone at [${phone}](${home.tel}) or by email at [${email}](${home.mailto}), as on the [contact page](${site}/en/contact/). The public API is described at https://api.madar-pos.cloud/openapi.json.`,
+    "",
+  ];
+}
+
+/** The public API and the MCP server (llms.txt, llms-full.txt). */
+function forDevelopers(site) {
+  return [
+    "## For developers",
+    "",
+    `- [Developers page](${site}/en/developers/): the public API (a café's brand, branches, menu with EGP prices, booking times and order tracking; no key) and the MCP server.`,
+    `- [OpenAPI 3.1](${API}/openapi.json): the public part of the API, base URL ${API}.`,
+    `- MCP server: ${API}/mcp (Streamable HTTP, stateless, no authentication, read-only). Manifest: [${site}/.well-known/mcp.json](${site}/.well-known/mcp.json); server card: [${API}/.well-known/mcp/server-card.json](${API}/.well-known/mcp/server-card.json).`,
     "",
   ];
 }
@@ -194,6 +220,7 @@ export function agentFiles(site) {
             "Madar POS (مدار) is described here in English and Arabic. Every page is also available as Markdown: send `Accept: text/markdown`, or add `index.md` to the page's address.",
             "",
             ...whenToUse(home.en, site),
+            ...forDevelopers(site),
             "## English",
             "",
             list("en"),
@@ -214,7 +241,7 @@ export function agentFiles(site) {
         );
 
         // /llms-full.txt: every page's Markdown, English then Arabic.
-        const full = ["# Madar POS: full text", "", `> ${home.en.description}`, "", ...whenToUse(home.en, site)];
+        const full = ["# Madar POS: full text", "", `> ${home.en.description}`, "", ...whenToUse(home.en, site), ...forDevelopers(site)];
         for (const lang of ["en", "ar"]) {
           for (const p of pages[lang]) full.push("---", "", `Source: ${p.canonical} (${LABEL[lang].lang})`, "", p.body, "");
         }

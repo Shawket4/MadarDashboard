@@ -13,7 +13,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import bootUrl from "@/scripts/classic/boot.js?url&no-inline";
 import { t, dirOf } from "@/i18n";
-import { type Lang, type PageKey, LANGS, pageHref, absoluteUrl, otherLang } from "@/lib/site";
+import { type Lang, type PageKey, LANGS, pageHref, absoluteUrl, otherLang, isEnglishOnly } from "@/lib/site";
 import { organization } from "@/lib/schema";
 
 interface Props {
@@ -49,7 +49,7 @@ const ld = [organization(), ...jsonLd];
     <meta name="description" content={meta.description} />
     {noindex && <meta name="robots" content="noindex" />}
     {canonical && <link rel="canonical" href={canonical} />}
-    {routable && LANGS.map((l) => <link rel="alternate" hreflang={l} href={absoluteUrl(pageHref(l, page as PageKey))} />)}
+    {routable && (isEnglishOnly(page) ? ["en" as const] : LANGS).map((l) => <link rel="alternate" hreflang={l} href={absoluteUrl(pageHref(l, page as PageKey))} />)}
     {routable && <link rel="alternate" hreflang="x-default" href={absoluteUrl(pageHref("en", page as PageKey))} />}
 
     <meta property="og:type" content="website" />
@@ -61,7 +61,7 @@ const ld = [organization(), ...jsonLd];
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:locale" content={c.meta.locale} />
-    <meta property="og:locale:alternate" content={t(otherLang(lang)).meta.locale} />
+    {!isEnglishOnly(page) && <meta property="og:locale:alternate" content={t(otherLang(lang)).meta.locale} />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={meta.title} />
     <meta name="twitter:description" content={meta.description} />

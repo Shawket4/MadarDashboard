@@ -76,6 +76,7 @@ const links = ["pricing", "features", "faq", "about", "contact"] as const;
               <h3 class="mt-10 text-lg font-semibold">{r.linksTitle}</h3>
               <ul class="mt-2 flex flex-wrap gap-x-5">
                 {links.map((k) => <li><a class="link-cta" href={pageHref(lang, k)}>{c.nav[k]}</a></li>)}
+                <li><a class="link-cta" href={pageHref("en", "developers")} hreflang="en">{c.footer.developers}</a></li>
               </ul>
               <a class="btn btn-ink btn-lg mt-8" href={pageHref(lang, "home")}>{r.cta} <Icon name="arrow" size={18} /></a>
             </section>

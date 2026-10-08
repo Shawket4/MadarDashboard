@@ -39,6 +39,12 @@ export const ar: Copy = {
       description:
         "كلّم فريق مدار في القاهرة على واتساب أو اتصل على ‎+20 121 111 6899‎، أو ابعت إيميل على shawket.4@icloud.com. بنرد عليك في نفس اليوم.",
     },
+    // The developers page is in English only; this is for the type.
+    developers: {
+      title: "مدار للمطورين: الـ API العام وOpenAPI وسيرفر MCP",
+      description:
+        "اقرا بيانات الكافيه العامة من الـ API بتاع مدار أو سيرفر MCP: البراند والفروع والمنيو بأسعاره والمواعيد الفاضية وحالة الأوردر. من غير مفتاح.",
+    },
     notFound: {
       title: "الصفحة مش موجودة · مدار",
       description:
@@ -444,6 +450,7 @@ export const ar: Copy = {
     owner: "مدار",
     rights: "مبني في القاهرة.",
     dashboard: "دخول التجار",
+    developers: "للمطورين · API",
   },
 
   features: {
