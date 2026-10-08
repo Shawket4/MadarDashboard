@@ -137,7 +137,7 @@ content-type: application/json
 
       <h2>Endpoints</h2>
       <p>All are <code>GET</code>, under <code>{API}</code>.</p>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0">
         <table>
           <thead><tr><th scope="col">Method</th><th scope="col">Path</th><th scope="col">Returns</th></tr></thead>
           <tbody>
@@ -154,14 +154,14 @@ content-type: application/json
 
       <h2>Examples</h2>
       <h3>A shop's links page and branches</h3>
-      <pre><code class="language-bash">{ex.links}</code></pre>
-      <pre><code class="language-json">{ex.linksOut}</code></pre>
+      <pre tabindex="0"><code class="language-bash">{ex.links}</code></pre>
+      <pre tabindex="0"><code class="language-json">{ex.linksOut}</code></pre>
       <h3>A branch's menu</h3>
-      <pre><code class="language-bash">{ex.menu}</code></pre>
-      <pre><code class="language-json">{ex.menuOut}</code></pre>
+      <pre tabindex="0"><code class="language-bash">{ex.menu}</code></pre>
+      <pre tabindex="0"><code class="language-json">{ex.menuOut}</code></pre>
       <h3>Free tables on a date</h3>
-      <pre><code class="language-bash">{ex.slots}</code></pre>
-      <pre><code class="language-json">{ex.slotsOut}</code></pre>
+      <pre tabindex="0"><code class="language-bash">{ex.slots}</code></pre>
+      <pre tabindex="0"><code class="language-json">{ex.slotsOut}</code></pre>
 
       <h2>Ordering and booking</h2>
       <p>
@@ -178,12 +178,12 @@ content-type: application/json
         Requests are limited per client IP. Over the limit, the answer is <code>429</code> with a
         <code>Retry-After</code> header and a JSON body that says how long to wait:
       </p>
-      <pre><code class="language-http">{ex.limited}</code></pre>
+      <pre tabindex="0"><code class="language-http">{ex.limited}</code></pre>
       <p>
         Every error is JSON with an <code>error</code> message. An address name that isn't a shop (or
         a shop that is switched off) answers <code>404</code>:
       </p>
-      <pre><code class="language-bash">{ex.notFound}</code></pre>
+      <pre tabindex="0"><code class="language-bash">{ex.notFound}</code></pre>
       <p>Cache what you read, and don't crawl.</p>
 
       <h2>OpenAPI</h2>
@@ -207,7 +207,7 @@ content-type: application/json
       </dl>
 
       <h3>Tools</h3>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0">
         <table>
           <thead><tr><th scope="col">Tool</th><th scope="col">Input</th><th scope="col">Returns</th></tr></thead>
           <tbody>
@@ -220,12 +220,12 @@ content-type: application/json
 
       <h3>Try it</h3>
       <p>Start a session (optional, since the server keeps no state):</p>
-      <pre><code class="language-bash">{ex.init}</code></pre>
-      <pre><code class="language-json">{ex.initOut}</code></pre>
+      <pre tabindex="0"><code class="language-bash">{ex.init}</code></pre>
+      <pre tabindex="0"><code class="language-json">{ex.initOut}</code></pre>
       <p>List the tools:</p>
-      <pre><code class="language-bash">{ex.list}</code></pre>
+      <pre tabindex="0"><code class="language-bash">{ex.list}</code></pre>
       <p>Call one:</p>
-      <pre><code class="language-bash">{ex.call}</code></pre>
+      <pre tabindex="0"><code class="language-bash">{ex.call}</code></pre>
 
       <h2>Contact</h2>
       <p>
@@ -252,6 +252,7 @@ content-type: application/json
   .dev .facts dt { font-weight: 600; }
   @media (max-width: 479px) { .dev .facts { grid-template-columns: 1fr; gap: .15rem; } .dev .facts dd { margin-bottom: .6rem; } }
   .dev .table-wrap { margin-top: 1rem; overflow-x: auto; }
+  .dev :is(pre, .table-wrap):focus-visible { outline: 2px solid var(--color-teal); outline-offset: 3px; }
   .dev table { width: 100%; min-width: 36rem; border-collapse: collapse; font-size: .95rem; }
   .dev th, .dev td { text-align: start; vertical-align: top; padding: .7rem .75rem; border-bottom: 1px solid var(--color-rule); }
   .dev th { font-weight: 600; border-bottom-color: var(--color-ink); }
