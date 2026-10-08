@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Languages, Moon, Sun } from "lucide-react";
+import { ArrowRight, Languages, Moon, Sun } from "lucide-react";
 
 import { MadarMark } from "@/components/brand/marks";
 import { MadarWordmark } from "@/components/brand/madar-wordmark";
@@ -161,29 +161,38 @@ export function MadarFooter({ product }: { product?: MadarProduct }) {
   const href = madarSiteHref(lang, signatureSource(host), product ?? "shop_page");
 
   return (
-    <footer className="mt-12 flex flex-col items-center gap-5 border-t border-border/60 pb-2 pt-8">
-      {/* The store badge (Madar Design System, "Madar signature"): ink in both themes,
-          the orbit at its small optical size, the words, the wordmark. It pins
-          --brand to the kit's teal, because a shop's skin re-colours --brand and
-          this is Madar's mark, not theirs. */}
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener"
-        className="inline-flex h-12 items-center gap-2.5 rounded-[11px] bg-(--madar-ink) pe-[18px] ps-3.5 text-(--madar-paper) shadow-md shadow-black/10 outline-none transition-[translate,box-shadow] [--brand:var(--madar-teal-light)] hover:-translate-y-px hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:shadow-none dark:ring-1 dark:ring-(--madar-paper)/20"
-      >
-        <MadarMark optical className="size-[26px] shrink-0 [&_.fill-brand]:fill-(--madar-teal-deep)" />
-        <span className="flex flex-col items-start gap-[5px] leading-none">
-          <span className="text-[10.5px] opacity-70">{t(`publicShell.signature.by.${product ?? "generic"}`)}</span>{" "}
-          <MadarWordmark lang={lang.startsWith("ar") ? "ar" : "en"} title={t("publicShell.signature.name")} className="h-[16.5px] rtl:h-5" />
-        </span>{" "}
-        <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
-      </a>
-      <div className="flex flex-col items-center gap-1.5">
-        <p className="text-[11px] text-muted-foreground">
-          {t("common.copyright", { year: currentYear(lang), defaultValue: "© {{year}} Madar. All rights reserved." })}
-        </p>
-        <LegalLinks />
+    <footer className="mt-12 flex justify-center border-t border-border/60 pb-2 pt-8">
+      {/* One column as wide as its widest line: the badge spans it, so it lines up
+          with the copyright and the links under it, and a longer product line
+          ("Loyalty cards by") widens the column instead of breaking the line-up. */}
+      <div className="inline-flex flex-col items-stretch gap-5">
+        {/* The store badge (Madar Design System, "Madar signature"): ink in both themes,
+            the orbit at its small optical size, the words, the wordmark, and an arrow
+            that says it goes somewhere. It pins --brand to the kit's teal, because a
+            shop's skin re-colours --brand and this is Madar's mark, not theirs. */}
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener"
+          className="group flex h-12 items-center gap-2.5 rounded-[11px] bg-(--madar-ink) pe-4 ps-3.5 text-(--madar-paper) shadow-md shadow-black/10 outline-none transition-[translate,box-shadow] [--brand:var(--madar-teal-light)] hover:-translate-y-px hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:shadow-none dark:ring-1 dark:ring-(--madar-paper)/20"
+        >
+          <MadarMark optical className="size-[26px] shrink-0 [&_.fill-brand]:fill-(--madar-teal-deep)" />
+          <span className="flex flex-col items-start gap-[5px] leading-none">
+            <span className="text-[10.5px] opacity-70">{t(`publicShell.signature.by.${product ?? "generic"}`)}</span>{" "}
+            <MadarWordmark lang={lang.startsWith("ar") ? "ar" : "en"} title={t("publicShell.signature.name")} className="h-[16.5px] rtl:h-5" />
+          </span>{" "}
+          <ArrowRight
+            aria-hidden
+            className="ms-auto size-4 shrink-0 opacity-70 transition-[translate,opacity] group-hover:translate-x-0.5 group-hover:opacity-100 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"
+          />
+          <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
+        </a>
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-[11px] text-muted-foreground">
+            {t("common.copyright", { year: currentYear(lang), defaultValue: "© {{year}} Madar. All rights reserved." })}
+          </p>
+          <LegalLinks />
+        </div>
       </div>
     </footer>
   );
