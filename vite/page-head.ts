@@ -22,7 +22,7 @@ export interface PageHead {
 }
 
 export const DASHBOARD_HEAD: PageHead = {
-  VITE_PAGE_TITLE: "Madar POS — Sign in",
+  VITE_PAGE_TITLE: "Madar POS — sign in | مدار",
   VITE_PAGE_DESCRIPTION:
     "Sign in to the Madar POS dashboard to run your restaurant or café: menus and prices, branches, staff, inventory, orders and sales reports.",
   VITE_PAGE_URL: "https://madar-pos.cloud/",
@@ -37,7 +37,7 @@ export const DEMO_HEAD: PageHead = {
 
 type Env = Record<string, string | undefined>;
 
-const isDemo = (env: Env) => env.VITE_DEMO === "1" || env.VITE_DEMO === "true";
+export const isDemo = (env: Env) => env.VITE_DEMO === "1" || env.VITE_DEMO === "true";
 
 /** Safe inside element text and inside a double-quoted attribute. */
 const escapeHtml = (s: string) =>

@@ -59,7 +59,7 @@ describe("withoutOwnAddress", () => {
  * (`url: null`): the tenant shell writes the shop's.
  */
 const ENTRIES = [
-  { name: "dashboard", html: fillPageHead(read("index.html"), {}), url: "https://madar-pos.cloud/", title: "Madar POS — Sign in", shell: false },
+  { name: "dashboard", html: fillPageHead(read("index.html"), {}), url: "https://madar-pos.cloud/", title: "Madar POS — sign in | مدار", shell: false },
   { name: "demo", html: fillPageHead(read("index.html"), { VITE_DEMO: "1" }), url: "https://demo.madar-pos.cloud/", title: "Madar POS — Live demo", shell: false },
   { name: "loyalty", html: read("loyalty.html"), url: null, title: "Madar POS — Rewards", shell: true },
   { name: "order", html: read("order.html"), url: "https://order.madar-pos.cloud/", title: "Madar POS — Order", shell: true },
@@ -99,7 +99,7 @@ describe.each(ENTRIES)("the $name head", ({ html, url, title, shell }) => {
 
   it("names Madar POS as one organisation", () => {
     const ld = doc.querySelector('script[type="application/ld+json"]')?.textContent ?? "";
-    expect(JSON.parse(ld)).toEqual(ORGANIZATION);
+    expect(JSON.parse(ld)).toMatchObject(ORGANIZATION);
   });
 
   it("explains itself, with a link, to a reader without JavaScript", () => {
@@ -108,7 +108,7 @@ describe.each(ENTRIES)("the $name head", ({ html, url, title, shell }) => {
     expect(noscript?.innerHTML).toContain('href="https://get.madar-pos.cloud/"');
     // Before the app's root, so it is the first thing in the body.
     const body = html.slice(html.indexOf("<body"));
-    expect(body.indexOf("<noscript>")).toBeLessThan(body.indexOf('<div id="root">'));
+    expect(body.indexOf("<noscript>")).toBeLessThan(body.indexOf('<div id="root"'));
   });
 
   // The tenant shell (backend) swaps these blocks per shop: the markers are a
@@ -133,5 +133,48 @@ describe.each(ENTRIES)("the $name head", ({ html, url, title, shell }) => {
     expect(noscript?.trim()).toMatch(/^<noscript>[\s\S]*<\/noscript>$/);
     expect(html.indexOf("<!-- /madar:noscript -->")).toBeLessThan(html.indexOf('<div id="root">'));
     expect(html.indexOf("<!-- madar:noscript -->")).toBeGreaterThan(html.indexOf("<body"));
+  });
+});
+
+/**
+ * madar-pos.cloud's sign-in page as an agent reads it, before any script: the
+ * business behind it (Organization with its contact point and address, the
+ * product with its offers) and a section about Madar POS in both languages,
+ * outside the app's root so React never replaces or repeats it.
+ */
+describe("the sign-in page, without JavaScript", () => {
+  const html = fillPageHead(read("index.html"), {});
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const ld = [...doc.querySelectorAll('script[type="application/ld+json"]')].map((s) => JSON.parse(s.textContent ?? ""));
+  const text = (el: Element | null) => el?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+
+  it("describes the business: contact point, address, socials", () => {
+    const org = ld.find((o) => o["@type"] === "Organization");
+    expect(org.contactPoint[0]).toMatchObject({ telephone: "+201211116899", email: "shawket.4@icloud.com", contactType: "sales" });
+    expect(org.address).toEqual({ "@type": "PostalAddress", addressLocality: "Cairo", addressCountry: "EG" });
+    expect(org.sameAs).toHaveLength(3);
+  });
+
+  it("describes the product with its two monthly prices per branch", () => {
+    const app = ld.find((o) => o["@type"] === "SoftwareApplication");
+    expect(app.offers.map((o: { price: number; priceCurrency: string }) => `${o.price} ${o.priceCurrency}`)).toEqual(["3000 EGP", "3500 EGP"]);
+  });
+
+  it("says what Madar POS is, in English and Arabic, after the app's root", () => {
+    const band = doc.getElementById("about-madar");
+    expect(band).not.toBeNull();
+    expect(band?.hasAttribute("hidden")).toBe(false);
+    expect(doc.querySelectorAll("h1")).toHaveLength(1);
+    expect(text(band?.querySelector("h1") ?? null)).toBe("Madar POS · مدار");
+    expect(text(band?.querySelector('[lang="en"]') ?? null).length).toBeGreaterThan(500);
+    expect(text(band?.querySelector('[lang="ar"][dir="rtl"]') ?? null).length).toBeGreaterThan(500);
+    const links = [...(band?.querySelectorAll("a") ?? [])].map((a) => a.getAttribute("href"));
+    for (const href of [
+      "https://get.madar-pos.cloud/en/", "https://get.madar-pos.cloud/ar/", "https://get.madar-pos.cloud/en/pricing/",
+      "https://get.madar-pos.cloud/en/contact/", "https://legal.madar-pos.cloud/privacy-policy.html",
+    ]) {
+      expect(links).toContain(href);
+    }
+    expect(html.indexOf('<section id="about-madar"')).toBeGreaterThan(html.indexOf('<div id="root"'));
   });
 });

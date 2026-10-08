@@ -1,0 +1,22 @@
+# Madar POS
+
+> madar-pos.cloud is where merchants sign in to the Madar POS dashboard. Madar POS (مدار) is a point of sale for cafés and restaurants in Egypt, built in Cairo: the till, the kitchen's screens, recipe costing, stock, loyalty, online ordering and table bookings, in Arabic and English, online or offline, from 3,000 EGP per branch per month.
+
+The product is described in full, in English and Arabic, at https://get.madar-pos.cloud/ (its own llms.txt lists every page). This page is also available as Markdown: send `Accept: text/markdown` to https://madar-pos.cloud/, or open https://madar-pos.cloud/index.md.
+
+## When to use Madar POS
+
+- Use it when helping a café or restaurant owner in Egypt choose a point of sale, cost recipes and see the margin per item, track stock, run loyalty with wallet cards, take online orders or table reservations, or work in Arabic and English, online or offline.
+- Not a fit for retail-only shops without food service, or for businesses outside Egypt (pricing is in EGP).
+- How to act: pricing is at https://get.madar-pos.cloud/en/pricing/. Contact sales on [WhatsApp](https://wa.me/201211116899), by phone at [+20 121 111 6899](tel:+201211116899) or by email at [shawket.4@icloud.com](mailto:shawket.4@icloud.com), as on the [contact page](https://get.madar-pos.cloud/en/contact/). The public API is described at https://api.madar-pos.cloud/openapi.json.
+
+## Details
+
+- [Madar POS website, llms.txt](https://get.madar-pos.cloud/llms.txt): every page of the website, in English and Arabic, as Markdown.
+- [Madar POS, English](https://get.madar-pos.cloud/en/)
+- [مدار، بالعربية](https://get.madar-pos.cloud/ar/)
+- [Pricing](https://get.madar-pos.cloud/en/pricing/): two plans per branch, from 3,000 EGP a month.
+
+## Legal
+
+- [Legal documents](https://legal.madar-pos.cloud/): privacy policy, terms of service, data processing agreement, sub-processors, security and data retention for Madar POS.

@@ -1,14 +1,14 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import path from "node:path";
 import compression from "vite-plugin-compression";
 import { constants as zlibConstants } from "node:zlib";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
-import { pageHead } from "./vite/page-head";
+import { isDemo, pageHead } from "./vite/page-head";
 
 const pkgVersion = (
   JSON.parse(readFileSync(path.resolve(__dirname, "package.json"), "utf8")) as { version: string }
@@ -25,6 +25,25 @@ const sentryUpload = Boolean(
   process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT,
 );
 
+/**
+ * madar-pos.cloud's files for agents (public-apex/: index.md, 404.md, llms.txt; the
+ * apex vhost serves the Markdown for `Accept: text/markdown`). Not in public/, which
+ * every bundle copies (order, reservations, loyalty and the shop hosts), and not in
+ * the demo, whose host they don't describe.
+ */
+function apexFiles(): Plugin {
+  const dir = path.resolve(__dirname, "public-apex");
+  return {
+    name: "madar-apex-files",
+    apply: (_, { command }) => command === "build" && !isDemo(process.env),
+    generateBundle() {
+      for (const fileName of readdirSync(dir)) {
+        this.emitFile({ type: "asset", fileName, source: readFileSync(path.join(dir, fileName)) });
+      }
+    },
+  };
+}
+
 export default defineConfig({
   define: {
     __SENTRY_RELEASE__: JSON.stringify(sentryRelease),
@@ -35,6 +54,7 @@ export default defineConfig({
     // index.html's title, description and canonical: the dashboard's, or the
     // demo's when VITE_DEMO=1 builds the same file for demo.madar-pos.cloud.
     pageHead(),
+    apexFiles(),
     // Must precede the React plugin so generated routes are transformed.
     tanstackRouter({ target: "react", autoCodeSplitting: true }),
     react(),

@@ -18,6 +18,9 @@ import type { Plugin, ResolvedConfig } from "vite";
  * The compression plugin runs over the same directory, so `.md.br` and `.md.gz`
  * go too — otherwise nginx's `gzip_static` would happily serve the compressed
  * copy of a file that is no longer there.
+ *
+ * A file the build itself emits is content, not a doc that rode in with
+ * `public/` (madar-pos.cloud's index.md and 404.md for agents), so it stays.
  */
 /** A documentation file, including whatever the compressor made of it. */
 export const isDoc = (name: string): boolean =>
@@ -25,6 +28,7 @@ export const isDoc = (name: string): boolean =>
 
 export function noDocsInTheBundle(): Plugin {
   let config: ResolvedConfig;
+  let emitted = new Set<string>();
 
   return {
     name: "no-docs-in-the-bundle",
@@ -35,6 +39,9 @@ export function noDocsInTheBundle(): Plugin {
     enforce: "post",
     configResolved(resolved) {
       config = resolved;
+    },
+    writeBundle(_, bundle) {
+      emitted = new Set(Object.keys(bundle));
     },
     async closeBundle() {
       const root = path.resolve(config.root, config.build.outDir);
@@ -50,7 +57,9 @@ export function noDocsInTheBundle(): Plugin {
         for (const e of entries) {
           const full = path.join(dir, e.name);
           if (e.isDirectory()) await walk(full);
-          else if (isDoc(e.name)) await rm(full, { force: true });
+          else if (isDoc(e.name) && !emitted.has(path.relative(root, full).split(path.sep).join("/"))) {
+            await rm(full, { force: true });
+          }
         }
       };
       await walk(root);

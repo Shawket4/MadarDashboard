@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 await import("@/i18n");
 const { useSignedInTitle } = await import("./use-signed-in-title");
 
-const SIGN_IN = "Madar POS — Sign in";
+const SIGN_IN = "Madar POS — sign in | مدار";
 
 describe("useSignedInTitle", () => {
   afterEach(() => {

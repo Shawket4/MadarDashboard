@@ -17,14 +17,53 @@
   <meta property="og:description" content="%VITE_PAGE_DESCRIPTION%" />
   <meta property="og:image" content="https://get.madar-pos.cloud/og/en-home.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://get.madar-pos.cloud/#organization","name":"Madar POS","alternateName":["Madar","مدار"],"url":"https://get.madar-pos.cloud/"}</script>
+  <!-- The same Organization and product as the marketing site (site/src/lib/schema.ts). -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://get.madar-pos.cloud/#organization","name":"Madar POS","alternateName":["Madar","مدار"],"url":"https://get.madar-pos.cloud/","logo":"https://get.madar-pos.cloud/icon-512.png","email":"shawket.4@icloud.com","address":{"@type":"PostalAddress","addressLocality":"Cairo","addressCountry":"EG"},"contactPoint":[{"@type":"ContactPoint","telephone":"+201211116899","email":"shawket.4@icloud.com","contactType":"sales","areaServed":"EG","availableLanguage":["en","ar"]}],"sameAs":["https://www.instagram.com/madar.cloud/","https://www.facebook.com/profile.php?id=61591636403380","https://apps.apple.com/app/id6815221877"],"founder":{"@type":"Person","name":"Shawket Ibrahim","alternateName":"شوكت إبراهيم"}}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Madar POS","alternateName":"مدار","applicationCategory":"BusinessApplication","operatingSystem":"iPadOS, Android, Web","url":"https://get.madar-pos.cloud/en/","inLanguage":"en","description":"Madar POS is the café point of sale for Egypt: recipe cost per cup, an inventory ledger, a till that counts blind and wallet loyalty. First month free.","publisher":{"@id":"https://get.madar-pos.cloud/#organization"},"offers":[{"@type":"Offer","name":"Essential Café","price":3000,"priceCurrency":"EGP","description":"Essential Café: per month, per branch","url":"https://get.madar-pos.cloud/en/pricing/"},{"@type":"Offer","name":"Advanced Operation","price":3500,"priceCurrency":"EGP","description":"Advanced Operation: per month, per branch","url":"https://get.madar-pos.cloud/en/pricing/"}]}</script>
 </head>
 
 <body class="bg-background text-foreground antialiased">
   <noscript>
     <p>This is the <a href="https://get.madar-pos.cloud/">Madar POS</a> dashboard, where restaurants and cafés manage their menus, branches, staff, stock and sales, and it needs JavaScript to run.</p>
   </noscript>
-  <div id="root"></div>
+  <!-- A screen tall even before the app mounts, so the band below never shows above the fold and then jumps. -->
+  <div id="root" class="min-h-svh"></div>
+  <!--
+    What Madar POS is, in the page itself for people and agents alike, under the
+    sign-in screen. Outside #root, so React never replaces or repeats it; once
+    someone is signed in, the app hides it (src/routes/__root.tsx). Both languages
+    at once, so it is plain HTML rather than i18n keys. Arabic is formal, as on
+    every dashboard screen.
+  -->
+  <section id="about-madar" aria-labelledby="about-madar-title" class="border-t border-border bg-muted/40 text-muted-foreground">
+    <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      <h1 id="about-madar-title" class="text-base font-semibold text-foreground">Madar POS · <span lang="ar">مدار</span></h1>
+      <div class="mt-4 grid gap-8 text-sm leading-relaxed md:grid-cols-2">
+        <div lang="en" dir="ltr">
+          <p>Madar POS is a point of sale for cafés and restaurants, built in Cairo, Egypt. It runs the till on an iPad or Android tablet, sends each order to the kitchen station that makes it, costs every recipe down to the gram and keeps the stock ledger. It also runs loyalty cards in Apple Wallet and Google Wallet, your own online ordering page and table bookings, in Arabic and English, online or offline.</p>
+          <p class="mt-3">Plans start at 3,000 EGP per branch per month, with no per-seat fee, and the first month is free. This page is where merchants sign in to their Madar POS dashboard.</p>
+          <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+            <li><a class="underline underline-offset-2 hover:text-foreground" href="https://get.madar-pos.cloud/en/">Madar POS website</a></li>
+            <li><a class="underline underline-offset-2 hover:text-foreground" href="https://get.madar-pos.cloud/en/pricing/">Pricing</a></li>
+            <li><a class="underline underline-offset-2 hover:text-foreground" href="https://get.madar-pos.cloud/en/contact/">Contact</a></li>
+            <li><a class="underline underline-offset-2 hover:text-foreground" href="https://legal.madar-pos.cloud/privacy-policy.html">Privacy policy</a></li>
+            <li><a class="underline underline-offset-2 hover:text-foreground" href="https://legal.madar-pos.cloud/terms-of-service.html">Terms of service</a></li>
+          </ul>
+        </div>
+        <div lang="ar" dir="rtl">
+          <p>مدار نظام نقاط بيع للمقاهي والمطاعم، مبني في القاهرة، مصر. يشغّل الكاشير على جهاز آيباد أو تابلت أندرويد، ويرسل كل طلب إلى محطة المطبخ التي تحضّره، ويحسب تكلفة كل وصفة حتى الجرام، ويحفظ دفتر المخزون. ويدير كذلك بطاقات الولاء في Apple Wallet وGoogle Wallet، وصفحة الطلب عبر الإنترنت الخاصة بك، وحجز الطاولات، بالعربية والإنجليزية، متصلًا بالإنترنت أو دون اتصال.</p>
+          <p class="mt-3">تبدأ الباقات من 3,000 جنيه للفرع شهريًا، دون رسوم على عدد المستخدمين، والشهر الأول مجاني. من هذه الصفحة يسجّل التجار الدخول إلى لوحة تحكم مدار.</p>
+          <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+            <li><a class="underline underline-offset-2 hover:text-foreground" href="https://get.madar-pos.cloud/ar/">موقع مدار</a></li>
+            <li><a class="underline underline-offset-2 hover:text-foreground" href="https://get.madar-pos.cloud/ar/pricing/">الأسعار</a></li>
+            <li><a class="underline underline-offset-2 hover:text-foreground" href="https://get.madar-pos.cloud/ar/contact/">تواصل معنا</a></li>
+            <li><a class="underline underline-offset-2 hover:text-foreground" href="https://legal.madar-pos.cloud/privacy-policy.html">سياسة الخصوصية</a></li>
+            <li><a class="underline underline-offset-2 hover:text-foreground" href="https://legal.madar-pos.cloud/terms-of-service.html">شروط الخدمة</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

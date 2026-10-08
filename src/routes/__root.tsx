@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Direction } from "radix-ui";
@@ -16,8 +17,13 @@ function RootLayout() {
   // Tabs, Popover, Dropdown…) so menus, positioning and keyboard nav mirror in
   // Arabic — <html dir> alone only covers CSS logical properties.
   const dir = i18n.dir() === "rtl" ? "rtl" : "ltr";
-  // index.html's title is for the signed-out visitor ("Madar POS — Sign in").
-  useSignedInTitle(useAuthStore((s) => !!s.token));
+  const signedIn = useAuthStore((s) => !!s.token);
+  // index.html's title is for the signed-out visitor ("Madar POS — sign in | مدار").
+  useSignedInTitle(signedIn);
+  // So is its band about Madar POS (#about-madar, outside #root): signed in, it hides.
+  useEffect(() => {
+    document.getElementById("about-madar")?.toggleAttribute("hidden", signedIn);
+  }, [signedIn]);
   return (
     <Direction.Provider dir={dir}>
       <Outlet />
