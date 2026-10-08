@@ -2,6 +2,7 @@ import { safeStorage } from "@/lib/safe-storage";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { apiContext } from "@/data/api/client";
+import { queryClient } from "@/data/api/query";
 import { APP_TZ, LS_KEYS } from "@/data/config/constants";
 import i18n from "@/i18n";
 
@@ -56,6 +57,11 @@ export const useAppStore = create<AppState>()(
           // foreign branch id and 403/404 into a stuck, data-less state.
           const orgChanged = s.selectedOrgId !== id;
           if (orgChanged) apiContext.setBranch(null);
+          // A query whose org rides only the X-Org-Id header (a paramless
+          // read such as listPaymentMethods) keeps its key across a switch:
+          // without this the last org's data showed until stale. A first
+          // pick has nothing to drop.
+          if (orgChanged && s.selectedOrgId !== null) void queryClient.resetQueries();
           return {
             selectedOrgId: id,
             selectedOrgLogo: logoUrl ?? null,

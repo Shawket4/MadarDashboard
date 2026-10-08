@@ -23,6 +23,7 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useLogin } from "@/data/api/generated/api";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { getErrorMessage } from "@/data/api/errors";
+import { isAxiosError } from "axios";
 import { fadeInUp, riseIn, staggerContainer } from "@/lib/motion";
 import { LegalLinks } from "@/components/legal-links";
 import { currentYear } from "@shared/dates";
@@ -61,7 +62,10 @@ export function LoginPage() {
         signIn(data.token, data.user);
         navigate({ to: search.redirect ?? "/" });
       },
-      onError: (e) => toast.error(getErrorMessage(e)),
+      // A refused sign-in is wrong credentials (not an expired session), in
+      // the reader's language: the server's sentence is English.
+      onError: (e) =>
+        toast.error(isAxiosError(e) && e.response?.status === 401 ? t("auth.errors.invalid") : getErrorMessage(e)),
     },
   });
 

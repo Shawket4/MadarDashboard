@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -70,11 +70,28 @@ interface NavRowProps {
 
 function NavRow({ entry, isActive, visible, pathname, pf, close, keepScope }: NavRowProps) {
   const { t } = useTranslation();
+  const { state, isMobile, setOpen } = useSidebar();
+  const groupActive = isParent(entry) && pathname.startsWith(entry.basePath);
+  const [groupOpen, setGroupOpen] = useState(groupActive);
 
   if (isParent(entry)) {
-    const groupActive = pathname.startsWith(entry.basePath);
+    // On the folded icon rail a parent cannot show its children: its click
+    // unfolds the sidebar with the group open, instead of toggling a group
+    // nobody can see.
+    const folded = state === "collapsed" && !isMobile;
     return (
-      <Collapsible defaultOpen={groupActive} className="group/collapsible">
+      <Collapsible
+        open={groupOpen}
+        onOpenChange={(open) => {
+          if (folded) {
+            setOpen(true);
+            setGroupOpen(true);
+            return;
+          }
+          setGroupOpen(open);
+        }}
+        className="group/collapsible"
+      >
         <SidebarMenuItem>
           <CollapsibleTrigger asChild>
             <SidebarMenuButton
@@ -191,6 +208,17 @@ export function AppSidebar() {
   const setup = useSetupProgress(authz.can(Cap.hrRulesEdit) && modules.includes("dawam"));
   const visible = (leaf: NavLeaf) => leafVisible(leaf, authz, modules, setup.ready && !setup.complete);
   const close = () => setOpenMobile(false);
+
+  // A deep link to a page low in the list scrolls its row into sight (a
+  // child row before its group's). "nearest": a row in view stays put. Again
+  // once permissions and modules answer: until then the row is not drawn.
+  const drawn = `${authz.ready}|${modules.join(",")}`;
+  useEffect(() => {
+    const row =
+      document.querySelector('[data-sidebar="menu-sub-button"][data-active="true"]') ??
+      document.querySelector('[data-sidebar="menu-button"][data-active="true"]');
+    row?.scrollIntoView?.({ block: "nearest" });
+  }, [pathname, drawn]);
 
   // Predictive preloading on hover/focus: route code chunk + the page's queries.
   const pf = useRoutePrefetch();

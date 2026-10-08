@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Image as ImageIcon, Loader2, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getErrorMessage } from "@/data/api/errors";
 import { Button } from "@/components/ui/button";
 import { AssetImage, useAssetJob, type AssetGroupRef, type AssetGroupReady } from "@/components/app/asset-image";
 
@@ -106,7 +107,7 @@ export function ImageUploader({
         else if (out.url) setJustUploaded(out.url);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(getErrorMessage(e));
     } finally {
       setUploading(false);
     }
@@ -120,7 +121,7 @@ export function ImageUploader({
       await onRemove();
       setJustUploaded(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(getErrorMessage(e));
     } finally {
       setRemoving(false);
     }

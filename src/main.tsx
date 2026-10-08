@@ -48,6 +48,7 @@ import { AppErrorBoundary } from "@/components/app/app-error-boundary";
 import { initSentry } from "@/lib/sentry";
 import { queryClient } from "@/data/api/query";
 import { DevTools } from "@/components/app/dev-tools";
+import { NotFound } from "@/components/app/not-found";
 import { routeTree } from "./routeTree.gen";
 
 initDeviceTheme();
@@ -60,6 +61,7 @@ const router = createRouter({
   // No-ops where unsupported; the reduced-motion guard in globals.css disables
   // the animation (but keeps the snapshot swap) for users who opt out.
   defaultViewTransition: true,
+  defaultNotFoundComponent: NotFound,
 });
 
 // Error/performance monitoring + masked session replay. No-op without a DSN.
