@@ -1,0 +1,91 @@
+# madar-pos.cloud — rebranded front for the same Rust backend (127.0.0.1:8081).
+# certbot --nginx upgrades this to 443 + redirect.
+upstream madar_api {
+    server 127.0.0.1:8081;
+    keepalive 32;
+}
+
+server {
+    server_name madar-pos.cloud www.madar-pos.cloud;
+
+    client_max_body_size 20M;
+    root /var/www/madar-dashboard/;
+    index index.html;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+        try_files $uri =404;
+    }
+
+
+
+    # Aggressive caching for static Vite assets
+    location /assets/ {
+        include snippets/madar-security-headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+        try_files $uri =404;
+    }
+
+    # SPA fallback (never cache index.html)
+    location / {
+        include snippets/madar-security-headers.conf;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        try_files $uri /index.html;
+    }
+
+    # The sales brochure (owner, 2026-09-26): a direct download. The file
+    # lives OUTSIDE the dashboard root, which every dashboard deploy replaces.
+    location = /madar-brochure.pdf {
+        include snippets/madar-security-headers.conf;
+        alias /var/www/madar-downloads/madar-brochure.pdf;
+        default_type application/pdf;
+        add_header Content-Disposition 'attachment; filename="Madar-Brochure.pdf"' always;
+        add_header Cache-Control "public, max-age=3600" always;
+    }
+
+    access_log /var/log/nginx/madar-pos.access.log;
+    error_log  /var/log/nginx/madar-pos.error.log;
+
+    listen 443 ssl; # managed by Certbot
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    ssl_certificate /etc/nginx/ssl/cloudflare-origin/cert.pem; # Cloudflare Origin CA (proxied host, valid to 2041)
+    ssl_certificate_key /etc/nginx/ssl/cloudflare-origin/key.pem; # Cloudflare Origin CA
+
+    # Restore the real client IP. Rate limits are per IP; without this every
+    # customer arrives as a Cloudflare address and shares one budget.
+    include /etc/nginx/cloudflare-real-ip.conf;
+
+    # Origin lockdown: this hostname is proxied, so legitimate traffic can only
+    # arrive from Cloudflare. The origin IP is publicly known, so without this
+    # anyone can address the box directly and skip the edge's rate limiting and
+    # WAF. NEVER add this to a DNS-only vhost (api, demo-api, sentry) or another
+    # tenant's config -- they are reached directly by design.
+    include /etc/nginx/cloudflare-only.conf;
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+}
+
+
+server {
+    if ($host = www.madar-pos.cloud) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = madar-pos.cloud) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    listen [::]:80;
+    server_name madar-pos.cloud www.madar-pos.cloud;
+    return 404; # managed by Certbot
+
+
+
+
+}

@@ -1,0 +1,92 @@
+# Marketing landing — ISOLATED static origin (its own bundle, no admin code, no
+# API proxy: the landing makes zero backend calls; CTAs link to the dashboard).
+# HTTPS added by certbot once DNS resolves.
+server {
+    server_name get.madar-pos.cloud;
+
+    location /.well-known/acme-challenge/ { root /var/www/letsencrypt; try_files $uri =404; }
+
+    root /var/www/madar-get;
+    index index.html;
+    absolute_redirect off;
+    charset utf-8;
+    charset_types text/plain text/markdown text/xml application/xml;
+    client_max_body_size 5M;
+
+    # Server level: covers responses made before a location is chosen (the index.html 301s)
+    include snippets/madar-security-headers.conf;
+
+    error_page 404 /404.html;
+    location = /404.html {
+        internal;
+        include snippets/madar-security-headers.conf;
+    }
+
+    # /en/pricing/index.html -> /en/pricing/ (checks the original request, so it can't loop)
+    if ($request_uri ~ ^([^?]*/)index\.html(\?.*)?$) { return 301 $1$2; }
+
+    location /assets/ {
+        include snippets/madar-security-headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        access_log off;
+        try_files $uri =404;
+    }
+
+    # Root: the language picker, until the root-page decision is made
+    location = / {
+        include snippets/madar-security-headers.conf;
+        add_header Content-Security-Policy-Report-Only "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+        add_header Cache-Control "no-cache" always;
+        add_header Vary "Accept" always;
+        add_header Link "</sitemap.xml>; rel=\"sitemap\", </llms.txt>; rel=\"describedby\"" always;
+        try_files /index$md_suffix /get.html =404;
+    }
+
+    location / {
+        include snippets/madar-security-headers.conf;
+        add_header Content-Security-Policy-Report-Only "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+        add_header Cache-Control "no-cache" always;
+        add_header Vary "Accept" always;
+
+        # /en/pricing -> /en/pricing/ when that folder exists
+        if (-d $request_filename) { rewrite ^(.*[^/])$ $1/ permanent; }
+
+        try_files $uri ${uri}index$md_suffix $uri/ =404;
+    }
+    access_log /var/log/nginx/get-madar.access.log;
+    error_log  /var/log/nginx/get-madar.error.log;
+
+    listen [::]:443 ssl; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/nginx/ssl/cloudflare-origin/cert.pem; # Cloudflare Origin CA (proxied host, valid to 2041)
+    ssl_certificate_key /etc/nginx/ssl/cloudflare-origin/key.pem; # Cloudflare Origin CA
+
+    # Restore the real client IP. Rate limits are per IP; without this every
+    # customer arrives as a Cloudflare address and shares one budget.
+    include /etc/nginx/cloudflare-real-ip.conf;
+
+    # Origin lockdown: this hostname is proxied, so legitimate traffic can only
+    # arrive from Cloudflare. The origin IP is publicly known, so without this
+    # anyone can address the box directly and skip the edge's rate limiting and
+    # WAF. NEVER add this to a DNS-only vhost (api, demo-api, sentry) or another
+    # tenant's config -- they are reached directly by design.
+    include /etc/nginx/cloudflare-only.conf;
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+    if ($host = get.madar-pos.cloud) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name get.madar-pos.cloud;
+
+    listen 80;
+    listen [::]:80;
+    return 404; # managed by Certbot
+
+
+}
