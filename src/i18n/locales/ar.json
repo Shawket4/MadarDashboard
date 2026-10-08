@@ -5208,11 +5208,16 @@
     "orderNow": "اطلب الآن"
   },
   "publicShell": {
+    "signature": {
+      "by": {
+        "loyalty": "بطاقات الولاء من",
+        "ordering": "الطلب أونلاين من",
+        "reservations": "الحجوزات من",
+        "generic": "بواسطة"
+      },
+      "name": "مدار"
+    },
     "poweredBy": {
-      "loyalty": "بطاقات الولاء بواسطة مدار",
-      "ordering": "الطلب عبر الإنترنت بواسطة مدار",
-      "reservations": "الحجوزات بواسطة مدار",
-      "madarPos": "مشغّل بواسطة مدار",
       "generic": "بواسطة مدار"
     },
     "formErrors": {

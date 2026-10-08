@@ -18,23 +18,22 @@ const renderShell = (brand: typeof shop | null) =>
   );
 
 describe("StorefrontShell footer", () => {
-  // One footer, full size, whoever's page it is: a branded shop's customers
-  // see the same signature as everyone else's.
+  // One footer, whoever's page it is: a branded shop's customers see the same
+  // signature as everyone else's.
   for (const [who, brand] of [["a branded shop", shop], ["Madar's own page", null]] as const) {
-    it(`signs ${who} in full`, () => {
+    it(`signs ${who} the same way`, () => {
       renderShell(brand);
       const footer = screen.getByRole("contentinfo");
-      expect(footer).toHaveTextContent("Loyalty cards powered by Madar POS");
+      expect(footer).toHaveTextContent("Loyalty cards by Madar POS");
       expect(footer).toHaveTextContent(/©/);
-      expect(footer.querySelector("img")).toHaveClass("h-6");
+      expect(footer.querySelector('img[src="/Icon.svg"]')).not.toBeNull();
     });
   }
 });
 
 describe("MadarFooter signature", () => {
-  // The whole signature, mark and line, is one link to Madar POS's own site,
-  // on every public page: a new tab, so a cart or a half-done sign-up is not
-  // lost, and it says so to a screen reader.
+  // The badge is one link to Madar POS's own site, on every public page: a new tab,
+  // so a cart or a half-done sign-up is not lost, and it says so to a screen reader.
   const expectSignature = (name: string, campaign: string) => {
     const link = screen.getByRole("link", { name: `${name} (opens in a new tab)` });
     expect(link).toHaveAttribute(
@@ -43,18 +42,17 @@ describe("MadarFooter signature", () => {
     );
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener");
-    // The mark is inside it, and the line looks like a link before any hover.
-    expect(link.querySelector("img")).not.toBeNull();
-    expect(link.querySelector("span.underline")).not.toBeNull();
+    // The mark is inside it, and so is the arrow.
+    expect(link.querySelector('img[src="/Icon.svg"]')).not.toBeNull();
     expect(link.querySelector("svg")).not.toBeNull();
   };
 
   it("names the product the page is", () => {
     render(<MadarFooter product="ordering" />);
-    expectSignature("Online ordering powered by Madar POS", "ordering");
+    expectSignature("Online ordering by Madar POS", "ordering");
   });
 
-  it("says Madar POS where the page names no product (the links page, the menu)", () => {
+  it("says Powered by where the page names no product (the links page, the menu)", () => {
     render(<MadarFooter />);
     expectSignature("Powered by Madar POS", "shop_page");
   });

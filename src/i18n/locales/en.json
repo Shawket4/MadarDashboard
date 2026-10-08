@@ -5141,11 +5141,16 @@
     "orderNow": "Order now"
   },
   "publicShell": {
+    "signature": {
+      "by": {
+        "loyalty": "Loyalty cards by",
+        "ordering": "Online ordering by",
+        "reservations": "Reservations by",
+        "generic": "Powered by"
+      },
+      "name": "Madar POS"
+    },
     "poweredBy": {
-      "loyalty": "Loyalty cards powered by Madar POS",
-      "ordering": "Online ordering powered by Madar POS",
-      "reservations": "Reservations powered by Madar POS",
-      "madarPos": "Powered by Madar POS",
       "generic": "Powered by Madar"
     },
     "formErrors": {

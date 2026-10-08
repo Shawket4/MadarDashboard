@@ -122,30 +122,34 @@ export function BrandMark({
 }
 
 /**
- * Madar's signature, on every public page at every tier, at ONE size.
- *
- * The mark, the product line, the copyright and the legal links, the same on a
- * shop's own page as on ours. It used to step back to a smaller mark on a
- * branded shop's page; at that size the footer read as an afterthought, and a
- * shop's customers saw two different footers depending on which page they hit.
- */
-/**
  * Which of Madar's products this page is.
  *
- * The signature names it. A restaurateur who sees "Reservations powered by
- * Madar" on a booking page has learnt something they might act on; "powered by
- * Madar" alone tells them nothing about what we would sell them. Recognition
- * rides on the MARK above the line, which is identical everywhere, so naming
- * the product costs nothing and buys the only thing a signature on someone
- * else's page is for.
+ * The signature names it. A restaurateur who sees "Reservations by Madar POS" on a
+ * booking page has learnt something they might act on; "powered by Madar" alone
+ * tells them nothing about what we would sell them. Recognition rides on the orbit
+ * mark beside the words, identical everywhere, so naming the product costs nothing
+ * and buys the only thing a signature on someone else's page is for.
  *
- * The default is the generic line, because a page that has not said which
- * product it is should not claim to be one — this used to be hardcoded to
- * online ordering, so a customer's loyalty card told them their stamp card was
- * powered by online ordering.
+ * The default is the generic line, because a page that has not said which product
+ * it is should not claim to be one: this used to be hardcoded to online ordering,
+ * so a customer's loyalty card told them their stamp card was powered by online
+ * ordering.
  */
 export type MadarProduct = "loyalty" | "ordering" | "reservations";
 
+/**
+ * Madar's signature, on every public page at every tier, the same on a shop's own
+ * page as on ours: a badge (the orbit mark, "Online ordering by / Madar POS", an
+ * arrow) that reads as a button before anyone hovers it, then the copyright and the
+ * legal links.
+ *
+ * It wears Madar's own mark and the theme's neutral tokens, never the shop's: the
+ * shop's brand skin recolours `primary` and `brand`, and this is Madar's, not
+ * theirs. It opens Madar POS's site in a new tab, so an order or a sign-up in
+ * progress is not lost, in the page's language and tagged with the shop and the
+ * product (madar-site.ts). `noopener` without `noreferrer`, so the site can tell
+ * which shop's page sent the visitor.
+ */
 export function MadarFooter({ product }: { product?: MadarProduct }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
@@ -153,40 +157,29 @@ export function MadarFooter({ product }: { product?: MadarProduct }) {
   const href = madarSiteHref(lang, signatureSource(host), product ?? "shop_page");
 
   return (
-    <footer className="mt-12 flex flex-col items-center gap-2 border-t border-border/60 pt-6 text-center">
-      {/* The whole signature, mark and line, is one link to Madar POS's own
-          site: always underlined and marked with an arrow, so it reads as a
-          link before anyone hovers it. A new tab, so an order or a sign-up in
-          progress is not lost. `noopener` without `noreferrer`, so the site
-          can tell which shop's page sent the visitor. */}
+    <footer className="mt-12 flex flex-col items-center gap-5 border-t border-border/60 pb-2 pt-8">
       <a
         href={href}
         target="_blank"
         rel="noopener"
-        className="group flex flex-col items-center gap-2 rounded-md px-3 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="group inline-flex items-center gap-3 rounded-2xl border border-border bg-card py-2 pe-3.5 ps-2 shadow-sm outline-none transition-[border-color,box-shadow] hover:border-foreground/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <img
-          src={lang.startsWith("ar") ? "/madar_ar.svg" : "/madar.svg"}
-          alt=""
-          className="h-6 opacity-80 transition-opacity group-hover:opacity-100 dark:brightness-0 dark:invert"
-        />
-        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground underline decoration-muted-foreground/40 underline-offset-4 transition-colors group-hover:text-foreground group-hover:decoration-current">
-          {t(
-            product ? `publicShell.poweredBy.${product}` : "publicShell.poweredBy.madarPos",
-            "Powered by Madar POS",
-          )}
-          <ArrowUpRight aria-hidden className="size-3 rtl:-scale-x-100" />{" "}
-          <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
+        <img src="/Icon.svg" alt="" className="size-10 shrink-0 rounded-[11px]" />
+        <span className="flex flex-col text-start leading-tight">
+          <span className="text-[11px] text-muted-foreground">{t(`publicShell.signature.by.${product ?? "generic"}`)}</span>{" "}
+          <span className="text-[15px] font-semibold tracking-tight text-foreground">{t("publicShell.signature.name")}</span>
         </span>
+        <span className="ms-2 grid size-7 place-items-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-foreground group-hover:text-background">
+          <ArrowUpRight aria-hidden className="size-4 rtl:-scale-x-100" />
+        </span>{" "}
+        <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
       </a>
-      <p className="text-[11px] text-muted-foreground/70">
-        {t("order.footer.rights", {
-          year: new Date().getFullYear(),
-          name: t("app.name"),
-          defaultValue: "© {{year}} {{name}}. All rights reserved.",
-        })}
-      </p>
-      <LegalLinks className="mt-1" />
+      <div className="flex flex-col items-center gap-1.5">
+        <p className="text-[11px] text-muted-foreground">
+          {t("common.copyright", { year: new Date().getFullYear(), defaultValue: "© {{year}} Madar. All rights reserved." })}
+        </p>
+        <LegalLinks />
+      </div>
     </footer>
   );
 }
