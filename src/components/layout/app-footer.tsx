@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { LegalLinks } from "@/components/legal-links";
 import { madarSiteHref } from "@/features/public-shell/madar-site";
+import { currentYear } from "@shared/dates";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { useOrgId } from "@/hooks/use-org-id";
 
@@ -16,7 +17,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 export function AppFooter() {
   const { t, i18n } = useTranslation();
   const brand = usePublicBrand(useOrgId());
-  const year = new Date().getFullYear();
+  const year = currentYear(i18n.resolvedLanguage ?? i18n.language ?? "en");
   return (
     <footer className="mt-auto border-t border-border/60 px-4 py-5">
       <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">

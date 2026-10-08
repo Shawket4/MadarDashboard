@@ -414,6 +414,7 @@ export const ar: Copy = {
     legal: "قانوني",
     terms: "الشروط",
     privacy: "الخصوصية",
+    owner: "مدار",
     rights: "متبني في القاهرة.",
     dashboard: "دخول التجار",
   },

@@ -4,6 +4,8 @@ import { ArrowUpRight, Languages, Moon, Sun } from "lucide-react";
 
 import { LegalLinks } from "@/components/legal-links";
 
+import { currentYear } from "@shared/dates";
+
 import { madarSiteHref, signatureSource } from "./madar-site";
 import { hostSlug } from "./use-brand";
 import { useShopFavicon } from "./use-favicon";
@@ -176,7 +178,7 @@ export function MadarFooter({ product }: { product?: MadarProduct }) {
       </a>
       <div className="flex flex-col items-center gap-1.5">
         <p className="text-[11px] text-muted-foreground">
-          {t("common.copyright", { year: new Date().getFullYear(), defaultValue: "© {{year}} Madar. All rights reserved." })}
+          {t("common.copyright", { year: currentYear(lang), defaultValue: "© {{year}} Madar. All rights reserved." })}
         </p>
         <LegalLinks />
       </div>

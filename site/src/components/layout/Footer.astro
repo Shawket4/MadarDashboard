@@ -2,6 +2,7 @@
 import Logo from "@/components/ui/Logo.astro";
 import Icon from "@/components/ui/Icon.astro";
 import { t } from "@/i18n";
+import { currentYear } from "@shared/dates";
 import {
   type Lang, type PageKey, pageHref, otherLang, whatsappHref, PHONE_HREF, PHONE_DISPLAY,
   EMAIL_HREF, EMAIL, INSTAGRAM, FACEBOOK, LEGAL_URL, DASHBOARD_URL,
@@ -11,7 +12,8 @@ interface Props { lang: Lang; page: PageKey | "notFound" }
 const { lang, page } = Astro.props;
 const c = t(lang);
 const other = otherLang(lang);
-const year = 2026;
+// Cairo's year, in the page's numerals (shared/dates.ts), at build time.
+const year = currentYear(lang);
 ---
 <footer class="on-ink border-t border-line-ink bg-ink text-paper">
   <div class="container-site grid gap-12 py-16 md:grid-cols-12 md:py-20">
@@ -57,7 +59,7 @@ const year = 2026;
     </nav>
   </div>
   <div class="container-site flex flex-col gap-2 border-t border-line-ink py-6 text-sm text-muted-ink sm:flex-row sm:items-center sm:justify-between">
-    <p>© {year} Madar. {c.footer.rights}</p>
+    <p>© {year} {c.footer.owner}. {c.footer.rights}</p>
     <p class="font-mono text-xs tracking-wide">get.madar-pos.cloud</p>
   </div>
 </footer>

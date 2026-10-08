@@ -414,6 +414,7 @@ export const en = {
     legal: "Legal",
     terms: "Terms",
     privacy: "Privacy",
+    owner: "Madar",
     rights: "Built in Cairo.",
     dashboard: "Merchant login",
   },

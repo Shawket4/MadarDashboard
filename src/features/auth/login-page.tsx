@@ -25,6 +25,7 @@ import { useAuthStore } from "@/data/stores/auth.store";
 import { getErrorMessage } from "@/data/api/errors";
 import { fadeInUp, riseIn, staggerContainer } from "@/lib/motion";
 import { LegalLinks } from "@/components/legal-links";
+import { currentYear } from "@shared/dates";
 import { MadarWordmark } from "@/components/brand/madar-wordmark";
 import { BrandShowcase } from "./brand-showcase";
 
@@ -64,7 +65,7 @@ export function LoginPage() {
     },
   });
 
-  const year = new Date().getFullYear();
+  const year = currentYear(i18n.resolvedLanguage ?? i18n.language ?? "en");
 
   return (
     <div className="flex min-h-svh bg-background">
