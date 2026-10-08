@@ -42,6 +42,8 @@ still point at the previous build's assets. Prune old assets by age now and then
   in both languages on one page, with buttons to `/en/` and `/ar/`. It never redirects.
 - Short addresses 301: `/pricing`, `/features`, `/faq`, `/about` and `/contact` (with or
   without the slash) to their English page, `/privacy` and `/terms` to the legal site.
+  `/docs`, `/api` and `/developers` 301 to `/en/developers/` (English only, no Arabic page);
+  `/openapi.json` and `/.well-known/mcp/server-card.json` 301 to the API's own.
 - Unknown paths get a real 404 with `/404.html`, or `/404.md` for `Accept: text/markdown`.
 - With `Accept: text/markdown`, a folder address serves its `index.md` (and `/` serves
   `/index.md`). Cloudflare bypasses its cache for those requests (a Cache Rule), so a
@@ -71,6 +73,7 @@ integration in `astro.config.mjs`):
 | `/llms.txt`, `/llms-full.txt` | "When to use Madar POS" (who it fits, who it doesn't, how to act), then the page list with descriptions; every page in full, English then Arabic |
 | `/sitemap.xml` (and `sitemap-index.xml`, `sitemap-0.xml`) | the language pages with `lastmod` (the last commit to `src/` or `public/`) and en, ar and x-default alternates |
 | `/robots.txt` | `public/robots.txt`, with Content Signals |
+| `/.well-known/mcp.json` | `public/.well-known/mcp.json`: a pointer to the MCP server on api.madar-pos.cloud, whose own server card lists the tools |
 
 JSON-LD comes from `src/lib/schema.ts`: Organization on every page; WebSite and
 SoftwareApplication on the home pages; SoftwareApplication on Pricing; FAQPage on
