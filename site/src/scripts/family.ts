@@ -152,6 +152,12 @@ export function familyScene(section: HTMLElement, kit: SceneKit) {
     trigger: section,
     start: "top bottom",
     end: "bottom top",
+    // The section holds the pinned panel, so this range is measured after the pin
+    // (story.ts sorts triggers by where they start, and this one starts first).
+    // Measured before, it ended about a screen into the pin, and the engine stopped
+    // drawing there with the scene still on screen: on phones, where the pin is
+    // longer than the panel, the objects froze part-way through.
+    refreshPriority: -1,
     onToggle: (self) => {
       onScreen = self.isActive;
       showcase?.setActive(onScreen);
