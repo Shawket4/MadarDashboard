@@ -338,7 +338,7 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
    the sides) and phones a fan (every phone on show, the current one lifted in the
    middle). On the home page an area with screens is a scene: the page pauses on it while
    scrolling turns the screens, and the progress line under them fills with every bit of
-   scrolling (story.ts). On the features page they turn as they scroll past. */
+   scrolling (story.ts). On the features page each set pins on its own the same way. */
 /* Without motion (no JavaScript, or reduced motion) every screen shows with its caption:
    one under another in a scene, in a grid on the features page. "motion" is set by the
    head script. */
@@ -388,7 +388,7 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
 @media (prefers-reduced-motion: reduce) { .motion .media-cue svg { animation: none; } }
 /* Phones: the WhatsApp bar steps aside while a scene holds the page. */
 .scene-on .sticky-wa { transform: translateY(140%); opacity: 0; pointer-events: none; }
-.motion .area-scene .media-progress { display: block; position: relative; height: 2px; margin-top: .85rem; border-radius: 2px; background: color-mix(in oklab, currentColor 16%, transparent); overflow: hidden; }
+.motion :is(.area-scene, [data-pin-set]) .media-progress { display: block; position: relative; height: 2px; margin-top: .85rem; border-radius: 2px; background: color-mix(in oklab, currentColor 16%, transparent); overflow: hidden; }
 .media-progress i { position: absolute; inset: 0; background: var(--color-teal); transform: scaleX(0); transform-origin: 0% 50%; }
 .on-ink .media-progress i { background: var(--color-teal-light); }
 [dir="rtl"] .media-progress i { transform-origin: 100% 50%; }
@@ -431,6 +431,12 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
   .motion .area-scene .media-meta { justify-content: center; margin-top: 1.1rem; }
   .motion .area-scene .media-meta-caption { display: none; }
   .motion .area-scene .area-texts { display: grid; margin-top: 1rem; min-height: 8.5rem; }
+  /* A pinned set on the features page: counter, dots and cue on one row, the caption
+     under them across the set's full width rather than squeezed between them. */
+  .motion [data-pin-set] [data-media] { --meta: 100%; }
+  .motion [data-pin-set] .media-meta { flex-wrap: wrap; row-gap: .4rem; }
+  .motion [data-pin-set] .media-cue { margin-inline-start: auto; }
+  .motion [data-pin-set] .media-meta-caption { order: 3; flex-basis: 100%; }
   .area-text { grid-area: 1 / 1; display: grid; gap: .55rem; align-content: start; }
   .area-text:not([data-active]) { opacity: 0; visibility: hidden; }
 }

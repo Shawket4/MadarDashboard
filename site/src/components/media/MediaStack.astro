@@ -8,7 +8,8 @@
  * Two ways to drive it:
  *  - scene (home): the area pins and scrolling turns the screens (story.ts), with a
  *    counter, dots, a caption and a progress line that fills as you scroll.
- *  - pass (features page): the screens turn as the set scrolls past; nothing pins.
+ *  - pass (features page): the set itself pins (FeatureArea wraps it) while scrolling
+ *    turns its screens, with the same counter, dots, caption, cue and progress line.
  * An optional floating phone sits over a strip on desktop (the guest's QR order on the
  * floor). With reduced motion or without JavaScript, every screen shows with its
  * caption: one under another in a scene, in a grid on the features page.
@@ -70,8 +71,8 @@ const first = items[order[0] ?? 0];
       <span class="ltr tabular font-mono text-xs" data-media-count>01 / {pad(order.length)}</span>
       <span class="media-dots">{order.map((_, k) => <i data-dot={k} data-on={k === 0 ? "" : undefined}></i>)}</span>
       <span class="media-meta-caption" data-media-caption>{first?.alt}</span>
-      {mode === "scene" && <span class="media-cue"><Icon name="arrow-down" size={16} /></span>}
+      <span class="media-cue"><Icon name="arrow-down" size={16} /></span>
     </div>
   )}
-  {mode === "scene" && order.length > 1 && <span class="media-progress" aria-hidden="true"><i data-media-progress></i></span>}
+  {order.length > 1 && <span class="media-progress" aria-hidden="true"><i data-media-progress></i></span>}
 </div>

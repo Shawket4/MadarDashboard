@@ -41,12 +41,14 @@ const wide = shots.filter((s) => s.frame !== "iphone");
     </div>
     <div class="flex flex-col gap-10 lg:col-span-7">
       <slot />
-      {/* Two screens or more turn as they scroll past (MediaStack, carousel.ts). */}
-      {wide.length > 1 && <MediaStack lang={lang} items={wide} layout="strip" mode="pass" data-reveal="" />}
+      {/* Two screens or more: the set pins (not the section, whose words can be taller
+          than the screen) while scrolling turns its screens (story.ts, carousel.ts). The
+          wrapper is what pins, so the set's own entrance stays on the set. */}
+      {wide.length > 1 && <div data-pin-set><MediaStack lang={lang} items={wide} layout="strip" mode="pass" data-reveal="" /></div>}
       {wide.length === 1 && wide[0] && (
         <Shot id={wide[0].id} lang={lang} alt={wide[0].alt} frame={wide[0].frame} sizes="(min-width: 1024px) 50vw, 92vw" data-reveal="" />
       )}
-      {phones.length > 1 && <MediaStack lang={lang} items={phones} layout="fan" mode="pass" data-reveal="" />}
+      {phones.length > 1 && <div data-pin-set><MediaStack lang={lang} items={phones} layout="fan" mode="pass" data-reveal="" /></div>}
       {phones.length === 1 && phones[0] && (
         <div class="grid grid-cols-2 gap-5 sm:grid-cols-3">
           <Shot id={phones[0].id} lang={lang} alt={phones[0].alt} frame="iphone" sizes="(min-width: 1024px) 14rem, (min-width: 640px) 30vw, 45vw" data-reveal="" />

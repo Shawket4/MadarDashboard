@@ -91,7 +91,8 @@ function run() {
 
   // Pins next, in page order: every trigger created after them measures the page with
   // the pins' extra scroll length already in place. (The cappuccino pins on desktop
-  // only; on phones its steps play while it is on screen.)
+  // only; on phones its steps play while it is on screen.) The features page's screen
+  // sets pin too (pinnedSets).
   const scenes = Array.from(document.querySelectorAll<HTMLElement>("[data-family], [data-order], [data-barista]"));
   // What the family scene (family.ts) borrows to behave like the area scenes.
   const sceneKit: SceneKit = { sequencer, whenSeen, hold };
@@ -100,11 +101,11 @@ function run() {
     else if (el.hasAttribute("data-family")) familyScene(el, sceneKit);
     else areaScene(el);
   }
+  const sets = pinnedSets();
   // With the page at its full length, land on a # address before anything below decides
   // what is on screen and what was passed.
-  if (scenes.length) ScrollTrigger.refresh();
+  if (scenes.length || sets) ScrollTrigger.refresh();
   landOnHash();
-  passes();
 
   if (desktop.matches) {
     root.classList.add("story-on");
@@ -547,15 +548,27 @@ function areaScene(area: HTMLElement) {
 }
 
 /**
- * Screens outside a scene (the features page): they turn as the set scrolls past, the
- * first as it comes into view and the last as it leaves. Nothing pins; every change
- * plays, as in the scenes.
+ * The features page's screen sets (MediaStack in "pass" mode). Each set pins on its own,
+ * not its section (some sections' words are taller than the screen), while scrolling
+ * turns its screens, as the home page's scenes do: about two-thirds of a screen of
+ * scrolling per screen, the progress line filling as it goes, and every change played
+ * however fast the page moves (sequencer). It holds below the header and the sticky jump
+ * nav, centred in the height left. On desktop the words stay beside it (their column is
+ * sticky); on phones they read above it. Returns how many sets it pinned.
  */
-function passes() {
-  for (const media of gsap.utils.toArray<HTMLElement>("[data-media-mode='pass']")) {
+function pinnedSets() {
+  const nav = document.querySelector<HTMLElement>("[data-jump-nav]");
+  // Where the free screen starts: under the jump nav (itself stuck under the header), or
+  // under the header alone; with a little air.
+  const clear = () => (nav ? (parseFloat(getComputedStyle(nav).top) || 0) + nav.offsetHeight : 64) + 16;
+  let pinned = 0;
+  for (const set of gsap.utils.toArray<HTMLElement>("[data-pin-set]")) {
+    const media = set.querySelector<HTMLElement>("[data-media-mode='pass']");
+    if (!media) continue;
     const order: number[] = JSON.parse(media.dataset.order || "[]");
     const n = order.length;
     if (n < 2) continue;
+    const bar = media.querySelector<HTMLElement>("[data-media-progress]");
     const screens = carousel(media, order);
     screens.place(0);
     const inView = () => {
@@ -563,13 +576,30 @@ function passes() {
       return r.bottom > 0 && r.top < window.innerHeight;
     };
     const go = sequencer(screens.turn, screens.place, inView);
+    const top = () => {
+      const free = window.innerHeight - clear();
+      return Math.round(clear() + Math.max(0, (free - set.offsetHeight) / 2));
+    };
     ScrollTrigger.create({
-      trigger: media,
-      start: "top 80%",
-      end: "bottom 25%",
-      onUpdate: (self) => go(Math.min(n - 1, Math.floor(self.progress * n))),
+      trigger: set,
+      pin: true,
+      // Spelled out: ScrollTrigger leaves the spacing off when the pin's parent is a flex
+      // box (this one is, a column), and without it the page below scrolls up through
+      // the held set instead of waiting for it.
+      pinSpacing: true,
+      anticipatePin: 1,
+      start: () => `top ${top()}px`,
+      end: () => `+=${Math.round(window.innerHeight * 0.65 * n)}`,
+      invalidateOnRefresh: true,
+      onUpdate: (self) => {
+        if (bar) gsap.set(bar, { scaleX: self.progress });
+        go(Math.min(n - 1, Math.floor(self.progress * n)));
+      },
+      onToggle: (self) => hold(self.isActive),
     });
+    pinned++;
   }
+  return pinned;
 }
 
 /** The floating pill: which part of the day we're in, and how far through it. */
