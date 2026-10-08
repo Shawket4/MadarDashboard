@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Languages, Moon, Sun } from "lucide-react";
+import { ArrowUpRight, Languages, Moon, Sun } from "lucide-react";
 
 import { MadarMark } from "@/components/brand/marks";
 import { MadarWordmark } from "@/components/brand/madar-wordmark";
@@ -181,9 +181,9 @@ export function MadarFooter({ product }: { product?: MadarProduct }) {
             <span className="text-[10.5px] opacity-70">{t(`publicShell.signature.by.${product ?? "generic"}`)}</span>{" "}
             <MadarWordmark lang={lang.startsWith("ar") ? "ar" : "en"} title={t("publicShell.signature.name")} className="h-[16.5px] rtl:h-5" />
           </span>{" "}
-          <ArrowRight
+          <ArrowUpRight
             aria-hidden
-            className="ms-auto size-4 shrink-0 opacity-70 transition-[translate,opacity] group-hover:translate-x-0.5 group-hover:opacity-100 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"
+            className="ms-auto size-4 shrink-0 opacity-70 transition-[translate,opacity] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"
           />
           <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
         </a>
