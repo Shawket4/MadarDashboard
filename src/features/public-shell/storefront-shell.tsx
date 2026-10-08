@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowUpRight, Languages, Moon, Sun } from "lucide-react";
+import { Languages, Moon, Sun } from "lucide-react";
 
+import { MadarMark } from "@/components/brand/marks";
+import { MadarWordmark } from "@/components/brand/madar-wordmark";
 import { LegalLinks } from "@/components/legal-links";
 
 import { currentYear } from "@shared/dates";
@@ -141,9 +143,9 @@ export type MadarProduct = "loyalty" | "ordering" | "reservations";
 
 /**
  * Madar's signature, on every public page at every tier, the same on a shop's own
- * page as on ours: a badge (the orbit mark, "Online ordering by / Madar POS", an
- * arrow) that reads as a button before anyone hovers it, then the copyright and the
- * legal links.
+ * page as on ours: an app-store-style badge (the orbit, "Online ordering by", the
+ * wordmark) that reads as a button before anyone hovers it, then the copyright and
+ * the legal links.
  *
  * It wears Madar's own mark and the theme's neutral tokens, never the shop's: the
  * shop's brand skin recolours `primary` and `brand`, and this is Madar's, not
@@ -160,19 +162,20 @@ export function MadarFooter({ product }: { product?: MadarProduct }) {
 
   return (
     <footer className="mt-12 flex flex-col items-center gap-5 border-t border-border/60 pb-2 pt-8">
+      {/* The store badge (Madar Design System, "Madar signature"): ink in both themes,
+          the orbit at its small optical size, the words, the wordmark. It pins
+          --brand to the kit's teal, because a shop's skin re-colours --brand and
+          this is Madar's mark, not theirs. */}
       <a
         href={href}
         target="_blank"
         rel="noopener"
-        className="group inline-flex items-center gap-3 rounded-2xl border border-border bg-card py-2 pe-3.5 ps-2 shadow-sm outline-none transition-[border-color,box-shadow] hover:border-foreground/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
+        className="inline-flex h-12 items-center gap-2.5 rounded-[11px] bg-(--madar-ink) pe-[18px] ps-3.5 text-(--madar-paper) shadow-md shadow-black/10 outline-none transition-[translate,box-shadow] [--brand:var(--madar-teal-light)] hover:-translate-y-px hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:shadow-none dark:ring-1 dark:ring-(--madar-paper)/20"
       >
-        <img src="/Icon.svg" alt="" className="size-10 shrink-0 rounded-[11px]" />
-        <span className="flex flex-col text-start leading-tight">
-          <span className="text-[11px] text-muted-foreground">{t(`publicShell.signature.by.${product ?? "generic"}`)}</span>{" "}
-          <span className="text-[15px] font-semibold tracking-tight text-foreground">{t("publicShell.signature.name")}</span>
-        </span>
-        <span className="ms-2 grid size-7 place-items-center rounded-full bg-muted text-muted-foreground transition-colors group-hover:bg-foreground group-hover:text-background">
-          <ArrowUpRight aria-hidden className="size-4 rtl:-scale-x-100" />
+        <MadarMark optical className="size-[26px] shrink-0 [&_.fill-brand]:fill-(--madar-teal-deep)" />
+        <span className="flex flex-col items-start gap-[5px] leading-none">
+          <span className="text-[10.5px] opacity-70">{t(`publicShell.signature.by.${product ?? "generic"}`)}</span>{" "}
+          <MadarWordmark lang={lang.startsWith("ar") ? "ar" : "en"} title={t("publicShell.signature.name")} className="h-[16.5px] rtl:h-5" />
         </span>{" "}
         <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
       </a>

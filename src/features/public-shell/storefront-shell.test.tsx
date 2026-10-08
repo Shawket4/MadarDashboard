@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 
@@ -24,9 +24,9 @@ describe("StorefrontShell footer", () => {
     it(`signs ${who} the same way`, () => {
       renderShell(brand);
       const footer = screen.getByRole("contentinfo");
-      expect(footer).toHaveTextContent("Loyalty cards by Madar POS");
+      expect(footer).toHaveTextContent("Loyalty cards by");
       expect(footer).toHaveTextContent(/©/);
-      expect(footer.querySelector('img[src="/Icon.svg"]')).not.toBeNull();
+      expect(screen.getByRole("img", { name: "Madar POS" })).toBeInTheDocument();
     });
   }
 });
@@ -42,9 +42,9 @@ describe("MadarFooter signature", () => {
     );
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener");
-    // The mark is inside it, and so is the arrow.
-    expect(link.querySelector('img[src="/Icon.svg"]')).not.toBeNull();
-    expect(link.querySelector("svg")).not.toBeNull();
+    // The orbit (the kit's optical size) and the wordmark, named for screen readers.
+    expect(link.querySelector('svg[viewBox="0 0 81 81"]')).not.toBeNull();
+    expect(within(link).getByRole("img", { name: "Madar POS" })).toBeInTheDocument();
   };
 
   it("names the product the page is", () => {

@@ -46,6 +46,12 @@
 
   /* Madar teal — brand marks only. */
   --brand: oklch(0.53 0.09 205);                 /* #0F7A8A */
+  /* The brand kit's own colours (Madar Design System/README.txt), for Madar's
+     signature on any page: a shop's skin re-colours --brand, never these. */
+  --madar-ink: #14181e;
+  --madar-paper: #eff3f4;
+  --madar-teal-deep: #0d6273;
+  --madar-teal-light: #2e94a6;
   --brand-foreground: oklch(1 0 0);
 
   /* Status */
