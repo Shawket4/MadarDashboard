@@ -333,6 +333,7 @@ import type {
   TimeseriesPoint,
   TopPer,
   TransferDifferenceRow,
+  TransferLocation,
   TransferStamp,
   TransferView,
   TransfersSyncResponse,
@@ -726,6 +727,8 @@ export const getGetInventorySettingsResponseMock = (overrideResponse: Partial<Ex
 export const getUpdateInventorySettingsResponseMock = (overrideResponse: Partial<Extract<OrgInventorySettings, object>> = {}): OrgInventorySettings => ({stocktake_variance_threshold_pct: faker.number.float({fractionDigits: 2}), ...overrideResponse})
 
 export const getTransferDifferencesResponseMock = (): TransferDifferenceRow[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({destination_branch_name: faker.string.alpha({length: {min: 10, max: 20}}), difference: faker.number.float({fractionDigits: 2}), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_ingredient_id: faker.string.uuid(), qty_received: faker.number.float({fractionDigits: 2}), qty_sent: faker.number.float({fractionDigits: 2}), received_at: faker.date.past().toISOString().slice(0, 19) + 'Z', reference: faker.string.alpha({length: {min: 10, max: 20}}), source_branch_name: faker.string.alpha({length: {min: 10, max: 20}}), transfer_id: faker.string.uuid(), unit: faker.string.alpha({length: {min: 10, max: 20}}), unit_cost: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), null]), undefined]), value_difference: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined])})))
+
+export const getTransferLocationsResponseMock = (): TransferLocation[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), kind: faker.string.alpha({length: {min: 10, max: 20}}), name: faker.string.alpha({length: {min: 10, max: 20}})})))
 
 export const getCreateTransferResponseTransferStampMock = (overrideResponse: Partial<TransferStamp> = {}): TransferStamp => ({...{at: faker.date.past().toISOString().slice(0, 19) + 'Z', by: faker.string.uuid(), by_name: faker.string.alpha({length: {min: 10, max: 20}})}, ...overrideResponse});
 
@@ -3725,6 +3728,18 @@ export const getTransferDifferencesMockHandler = (overrideResponse?: TransferDif
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getTransferDifferencesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getTransferLocationsMockHandler = (overrideResponse?: TransferLocation[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TransferLocation[]> | TransferLocation[]), options?: RequestHandlerOptions) => {
+  return http.get('*/inventory/orgs/:orgId/transfer-locations', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getTransferLocationsResponseMock(),
       { status: 200
       })
   }, options)
@@ -9263,6 +9278,7 @@ export const getMadarAPIMock = () => [
   getGetInventorySettingsMockHandler(),
   getUpdateInventorySettingsMockHandler(),
   getTransferDifferencesMockHandler(),
+  getTransferLocationsMockHandler(),
   getCreateTransferMockHandler(),
   getGetTransferMockHandler(),
   getUpdateTransferMockHandler(),

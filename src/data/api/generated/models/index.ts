@@ -995,6 +995,7 @@ export * from './topUpRequest';
 export * from './transferDifferenceRow';
 export * from './transferDifferencesParams';
 export * from './transferLineInput';
+export * from './transferLocation';
 export * from './transfersSyncResponse';
 export * from './transferStamp';
 export * from './transferStatus';

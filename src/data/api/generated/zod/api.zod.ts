@@ -6289,6 +6289,23 @@ export const TransferDifferencesResponseItem = zod.object({
 export const TransferDifferencesResponse = zod.array(TransferDifferencesResponseItem)
 
 
+/**
+ * @summary Every live location of the org, for the other side of a transfer. Someone
+who works at one shop still sends to, and requests from, the rest; `GET
+/branches` lists only where the caller works.
+ */
+export const TransferLocationsParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID')
+})
+
+export const TransferLocationsResponseItem = zod.object({
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`branch` | `warehouse`'),
+  "name": zod.string()
+}).describe('A location a transfer can go to or come from.')
+export const TransferLocationsResponse = zod.array(TransferLocationsResponseItem)
+
+
 export const CreateTransferBody = zod.object({
   "destination_branch_id": zod.uuid(),
   "lines": zod.array(zod.object({

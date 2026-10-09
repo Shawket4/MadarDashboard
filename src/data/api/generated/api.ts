@@ -668,6 +668,7 @@ import type {
   TopUpRequest,
   TransferDifferenceRow,
   TransferDifferencesParams,
+  TransferLocation,
   TransferView,
   TransfersSyncResponse,
   UnregisterPushDevice,
@@ -13741,6 +13742,103 @@ export function useTransferDifferences<TData = Awaited<ReturnType<typeof transfe
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getTransferDifferencesQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary Every live location of the org, for the other side of a transfer. Someone
+who works at one shop still sends to, and requests from, the rest; `GET
+/branches` lists only where the caller works.
+ */
+export const transferLocations = (
+    orgId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<TransferLocation[]>(
+      {url: `/inventory/orgs/${orgId}/transfer-locations`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getTransferLocationsQueryKey = (orgId: string,) => {
+    return [
+    `/inventory/orgs/${orgId}/transfer-locations`
+    ] as const;
+    }
+
+
+export const getTransferLocationsQueryOptions = <TData = Awaited<ReturnType<typeof transferLocations>>, TError = ErrorBody>(orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transferLocations>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTransferLocationsQueryKey(orgId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof transferLocations>>> = ({ signal }) => transferLocations(orgId, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof transferLocations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type TransferLocationsQueryResult = NonNullable<Awaited<ReturnType<typeof transferLocations>>>
+export type TransferLocationsQueryError = ErrorBody
+
+
+export function useTransferLocations<TData = Awaited<ReturnType<typeof transferLocations>>, TError = ErrorBody>(
+ orgId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof transferLocations>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof transferLocations>>,
+          TError,
+          Awaited<ReturnType<typeof transferLocations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTransferLocations<TData = Awaited<ReturnType<typeof transferLocations>>, TError = ErrorBody>(
+ orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transferLocations>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof transferLocations>>,
+          TError,
+          Awaited<ReturnType<typeof transferLocations>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useTransferLocations<TData = Awaited<ReturnType<typeof transferLocations>>, TError = ErrorBody>(
+ orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transferLocations>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Every live location of the org, for the other side of a transfer. Someone
+who works at one shop still sends to, and requests from, the rest; `GET
+/branches` lists only where the caller works.
+ */
+
+export function useTransferLocations<TData = Awaited<ReturnType<typeof transferLocations>>, TError = ErrorBody>(
+ orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof transferLocations>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getTransferLocationsQueryOptions(orgId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
