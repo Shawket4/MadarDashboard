@@ -10,6 +10,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useBlocker } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   ChevronDown, CircleDot, History, Lock, LockOpen, Maximize2, Minus, Network, Plus, Redo2, Trash2,
@@ -23,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useConfirm } from "@/components/app/confirm-dialog";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { Page, PageHeader } from "@/components/app/page";
 import { getErrorMessage } from "@/data/api/errors";
@@ -33,7 +35,7 @@ import { useFloorViewport } from "@/features/floor/use-floor-viewport";
 import { ZOOM_STEP } from "@/features/floor/util";
 
 import {
-  EMPTY_PLAN, NODE_H, NODE_W, addLink, boxesOf, checkPlan, linksOf, movePieces, pieceKey,
+  EMPTY_PLAN, NODE_H, NODE_W, addLink, boxesOf, checkPlan, movePieces, pieceKey,
   planForSetup, removeLink, removePieces, type DeviceKind, type PieceRef, type PlanLink,
   type PrinterRole, type Setup,
 } from "./plan";
@@ -313,13 +315,19 @@ function BranchBuilder({ branchId }: { branchId: string | null }) {
     }
   }, [branchId, draft, plan, t]);
 
-  // An unsaved plan must not vanish with a closing tab.
-  useEffect(() => {
-    if (!draft.dirty) return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [draft.dirty]);
+  // An unsaved plan must not vanish with a closing tab or a click elsewhere in the app.
+  const confirm = useConfirm();
+  useBlocker({
+    shouldBlockFn: async () =>
+      draft.dirty &&
+      !(await confirm({
+        title: t("builder.leaveTitle", "Leave without saving?"),
+        description: t("builder.leaveBody", "Your changes to this branch's plan will be lost."),
+        confirmLabel: t("builder.leave", "Leave"),
+        destructive: true,
+      })),
+    enableBeforeUnload: () => draft.dirty,
+  });
 
   // ── Keyboard ──────────────────────────────────────────────────────────────
 
@@ -430,10 +438,12 @@ function BranchBuilder({ branchId }: { branchId: string | null }) {
                     disabled={v.version === view?.version}
                     onSelect={() => {
                       const earlier = fromWire(v.plan);
-                      // A device retired since can't fill a place again.
+                      // A device retired since can't fill a place again, nor can a deleted category be routed.
+                      const live = new Set((view?.categories ?? []).map((c) => c.id));
                       draft.replace({
                         ...earlier,
                         devices: earlier.devices.map((d) => (d.device_id && !registered.has(d.device_id) ? { ...d, device_id: null } : d)),
+                        sections: earlier.sections.map((s) => ({ ...s, category_ids: s.category_ids.filter((c) => live.has(c)) })),
                       });
                       setEditable(true);
                     }}
@@ -580,11 +590,13 @@ function BranchBuilder({ branchId }: { branchId: string | null }) {
                 beginGesture={draft.beginGesture}
                 onMove={(moves) => draft.live((p) => movePieces(p, moves))}
                 onLink={(from, to) => {
-                  const before = linksOf(plan).length;
-                  draft.change((p) => addLink(p, from, to));
-                  if (linksOf(addLink(plan, from, to)).length === before) {
+                  // addLink hands back the same plan only when the two can't be linked;
+                  // redrawing a line or swapping a receipt printer is still a link.
+                  if (addLink(plan, from, to) === plan) {
                     toast.message(t("builder.cantLink", "Those two can't be connected that way."));
+                    return;
                   }
+                  draft.change((p) => addLink(p, from, to));
                 }}
                 onRemoveLink={(link) => {
                   draft.change((p) => removeLink(p, link));

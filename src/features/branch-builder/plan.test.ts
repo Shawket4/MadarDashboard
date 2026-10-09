@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  EMPTY_PLAN, addLink, checkPlan, diffPlans, linkKindFor, linksOf, planForSetup, removePieces, routeCategories,
+  EMPTY_PLAN, addLink, checkPlan, diffPlans, isIpv4, linkKindFor, linksOf, planForSetup, removePieces, routeCategories,
   routeCategory, setupOf, unroutedCategories, type Plan,
 } from "./plan";
 
@@ -97,6 +97,11 @@ describe("checks", () => {
     const problems = checkPlan(plan);
     expect(problems[0].blocking).toBe(true);
     expect(problems.at(-1)?.blocking).toBe(false);
+  });
+
+  it("takes a printer address the server takes, and no other", () => {
+    for (const ip of ["192.168.1.40", "10.0.0.0", "255.255.255.255", " 172.16.5.9 "]) expect(isIpv4(ip)).toBe(true);
+    for (const ip of ["192.168.1.05", "01.2.3.4", "256.1.1.1", "1.2.3", "printer.local", ""]) expect(isIpv4(ip)).toBe(false);
   });
 });
 

@@ -2162,6 +2162,8 @@
     "boundaryDescription": "This screen hit an unexpected error. It has been reported — try again, and if it keeps happening reload the page.",
     "boundaryRetry": "Try again",
     "codes": {
+      "PLAN_CHANGED": "Someone saved this branch's plan while you were editing. Reload to see their version.",
+      "SECTION_HAS_OPEN_TICKETS": "Items are still cooking in a section this plan removes. Finish or move them before removing it.",
       "SETTING_OUT_OF_RANGE": "{{field}} must be from {{min}} to {{max}}.",
       "SETTING_OUT_OF_RANGE_above": "{{field}} must be more than {{min}} and at most {{max}}.",
       "SETTING_OUT_OF_RANGE_below": "{{field}} must be from {{min}} and less than {{max}}.",
@@ -6590,6 +6592,9 @@
     "terms": "Terms of Service"
   },
   "builder": {
+    "leaveTitle": "Leave without saving?",
+    "leaveBody": "Your changes to this branch's plan will be lost.",
+    "leave": "Leave",
     "add": "Add",
     "allGood": "Every order has somewhere to go.",
     "assignDevice": "Registered device",

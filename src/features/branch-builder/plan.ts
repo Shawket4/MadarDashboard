@@ -418,7 +418,8 @@ export interface Problem {
   piece: PieceRef | null;
 }
 
-const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+// No leading zeros ("192.168.1.05"): the server's parser refuses them.
+const IPV4 = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
 export const isIpv4 = (s: string | null | undefined): boolean => !!s && IPV4.test(s.trim());
 
 /**
