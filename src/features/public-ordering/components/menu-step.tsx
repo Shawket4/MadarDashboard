@@ -22,6 +22,7 @@ import type { Channel, CartLine } from "../types";
 import { ItemCustomizer } from "./item-customizer";
 import { ComboCustomizer } from "./combo-customizer";
 import { isCombo } from "../combo";
+import { itemBasePrice } from "../utils";
 import { useHeaderHeight } from "@/features/public-shell/use-header-height";
 
 interface MenuStepProps {
@@ -459,9 +460,7 @@ function MenuCard({
 }) {
   const { t } = useTranslation();
   const hasSizes = item.sizes.length > 0;
-  const minSize = hasSizes
-    ? item.sizes.reduce((m, s) => Math.min(m, s.price), Number.POSITIVE_INFINITY)
-    : item.price;
+  const fromPrice = itemBasePrice(item, null);
   const description = getTranslatedDescription(item, lang);
 
   const inner = (
@@ -492,7 +491,7 @@ function MenuCard({
           <span className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{description}</span>
         )}
         <span className="mt-1 text-sm font-semibold text-brand">
-          {hasSizes ? t("order.menu.from", { price: fmtMoney(minSize) }) : fmtMoney(item.price)}
+          {hasSizes ? t("order.menu.from", { price: fmtMoney(fromPrice) }) : fmtMoney(item.price)}
         </span>
       </div>
     </>

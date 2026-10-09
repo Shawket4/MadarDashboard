@@ -1,6 +1,7 @@
 import { TZDate } from "@date-fns/tz";
 import { AxiosError } from "axios";
 
+import { averageTicket } from "@/lib/average-ticket";
 import { fmtDate, fmtWireTime, getActiveTz } from "@/lib/format";
 import type { TillSessionRow } from "@/data/api/generated/models";
 
@@ -94,7 +95,7 @@ export const salesStats = (rows: TillSessionRow[]): SalesStats => {
     tills: rows.length,
     orders,
     sales,
-    avgOrderValue: orders > 0 ? Math.round(sales / orders) : 0,
+    avgOrderValue: averageTicket(sales, orders),
     avgSalesPerTill: rows.length > 0 ? Math.round(sales / rows.length) : 0,
   };
 };

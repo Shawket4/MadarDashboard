@@ -252,21 +252,21 @@ export const fmtStamp = (iso: string | Date | null | undefined, now: Date = new 
 /** "now" in the active branch/org timezone — useful for date range logic */
 export const cairoNow = (): TZDate => new TZDate(Date.now(), getActiveTz());
 
-/** ISO instant for a calendar day (start or end) in the active timezone */
-export const cairoDateISO = (year: number, month: number, day: number, endOfDay = false): string => {
-  const d = new TZDate(
-    year,
-    month,
-    day,
-    endOfDay ? 23 : 0,
-    endOfDay ? 59 : 0,
-    endOfDay ? 59 : 0,
-    endOfDay ? 999 : 0,
-    getActiveTz(),
-  );
-  // TZDate#toISOString keeps the zone offset; send a plain UTC "Z" instant.
-  return new Date(+d).toISOString();
-};
+/**
+ * UTC ISO instant for the start (or last ms) of a calendar day in `tz` (month 0-based).
+ * madar-time `day_bounds`, pinned by day_bounds_vectors.json: the start is the
+ * same instant; the end is Rust's exclusive end (the next local midnight) minus
+ * 1 ms, because report endpoints filter `at <= to` (MadarRust reports/handlers.rs).
+ * Not wall-clock 23:59:59.999: Cairo and Beirut fall back AT midnight, so that
+ * time happens twice and the first one drops the day's last hour.
+ */
+export const dayBoundaryISO = (tz: string, y: number, m: number, d: number, endOfDay = false): string =>
+  // new TZDate normalises day overflow in `tz`; +date gives a plain UTC "Z" instant.
+  new Date(+new TZDate(y, m, endOfDay ? d + 1 : d, tz) - (endOfDay ? 1 : 0)).toISOString();
+
+/** {@link dayBoundaryISO} in the active timezone */
+export const cairoDateISO = (year: number, month: number, day: number, endOfDay = false): string =>
+  dayBoundaryISO(getActiveTz(), year, month, day, endOfDay);
 
 /** Extract calendar parts {y,m,d} from an ISO string in the active timezone */
 export const cairoParts = (iso: string): { y: number; m: number; d: number } => {

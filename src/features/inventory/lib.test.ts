@@ -1,12 +1,17 @@
+import vectors from "@/lib/inventory_vectors.json";
+import unitVectors from "@/lib/unit_vectors.json";
 import { describe, expect, it } from "vitest";
 
 import {
   formatUnitCost,
   estimateLineTotal,
   stockUnitsPer,
+  unitsForFamily,
   unitCostFromTotal,
   buildCountPayload,
+  checkReceiveLine,
   transferActions,
+  transferStep,
   milli,
   countsDue,
   isVarianceFlagged,
@@ -179,8 +184,8 @@ describe("purchase line costs", () => {
     expect(stockUnitsPer("kg", "g")).toBe(1000);
     expect(stockUnitsPer("g", "g")).toBe(1);
     expect(stockUnitsPer("l", "ml")).toBe(1000);
-    expect(stockUnitsPer("case", "pcs")).toBe(1);
-    expect(stockUnitsPer("kg", "ml")).toBe(1);
+    expect(stockUnitsPer("case", "pcs")).toBeNull();
+    expect(stockUnitsPer("kg", "ml")).toBeNull();
   });
 
   it("estimates a line total from the catalog cost per stock unit", () => {
@@ -188,5 +193,35 @@ describe("purchase line costs", () => {
     expect(estimateLineTotal(4.568, 12, "kg", "g")).toBe(54816);
     expect(estimateLineTotal(null, 12, "kg", "g")).toBeNull();
     expect(estimateLineTotal(4.568, 0, "g", "g")).toBeNull();
+    expect(estimateLineTotal(4.568, 12, "kg", "ml")).toBeNull();
   });
 });
+
+// madar-shared's unit_vectors.json (src/lib, pinned to its tag): madar-units'
+// conversions. Where plain `convert` (no density) answers like the case does,
+// the dashboard's factor must give that answer, rounded to 3 dp like the
+// server's (half away from zero), or `null` where the server refuses.
+describe("the unit rules match madar-shared's vectors", () => {
+  const round3 = (v: number) => (Math.sign(v) * Math.round(Math.abs(v) * 1000)) / 1000;
+  it.each(unitVectors.filter((v) => v.same_without_density))("$qty $from → $to", (v) => {
+    const per = stockUnitsPer(v.from, v.to);
+    expect(per == null ? null : round3(v.qty * per)).toBe(v.result);
+    if (v.result != null) expect(unitsForFamily(v.from)).toContain(v.to.trim().toLowerCase());
+  });
+});
+
+// madar-shared's inventory_vectors.json (src/lib, pinned to its tag): the cases
+// the backend's madar-inventory is tested against. The dashboard's copies of
+// the step table and the receive check must give the same answer on each.
+describe("the transfer rules match madar-shared's vectors", () => {
+  it.each(vectors.steps)("$status / $action", (v) => {
+    const step = transferStep(v.status, v.action as Parameters<typeof transferStep>[1]);
+    expect(step && { side: step.side, cap: step.cap }).toEqual(v.side ? { side: v.side, cap: v.cap } : null);
+  });
+
+  it.each(vectors.receives)("sent $qty_sent, got $qty_received, note $note", (v) => {
+    const out = checkReceiveLine(v.qty_sent, v.qty_received, v.note);
+    expect(out).toEqual(v.ok ?? { refused: v.refused });
+  });
+});
+

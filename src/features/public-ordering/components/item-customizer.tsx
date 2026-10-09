@@ -24,6 +24,7 @@ import i18n from "@/i18n";
 
 import type { CartLine, SelectedAddon, SelectedOptional } from "../types";
 import { itemBasePrice, lineUnitPrice, newUid } from "../utils";
+import { optionCharge, priceOptions, storefrontView } from "../pricing";
 import { FIELD_LIMITS } from "../limits";
 
 interface ItemCustomizerProps {
@@ -176,28 +177,13 @@ export function ItemCustomizer({
     );
   }, [extraGroup, addonQuery, lang]);
 
-  // Swap "base" price per swap-type, mirroring the POS sheet (_initBaseMilk /
-  // _adjustedPrice): the recipe's default milk is already included, so picking it
-  // costs nothing; swapping to a pricier milk costs only the delta (floored 0).
-  // coffee_type has no recipe default, so its base is 0 → full price. ESTIMATE
-  // ONLY — the cart still sends {addon_item_id, quantity} and the backend prices
-  // the true swap delta from the recipe at intake.
-  const baseSwapPrices = useMemo<Record<string, number>>(() => {
-    const out: Record<string, number> = {};
-    const dm = item?.default_milk_addon_id;
-    if (dm != null) {
-      const base = addons.find((a) => a.addon_item_id === dm);
-      if (base) out.milk_type = base.price;
-    }
-    return out;
-  }, [item, addons]);
-
+  // What each option costs on this line, as the server will charge it
+  // (madar-catalog's rule, ../pricing.ts): a milk swap over the recipe's milk,
+  // floored at 0. ESTIMATE ONLY — the backend prices the line at intake.
+  const view = useMemo(() => (item ? storefrontView(item, addons, size) : null), [item, addons, size]);
   const swapAdjustedPrice = useCallback(
-    (a: DeliveryAddonOption): number =>
-      a.type === "milk_type" || a.type === "coffee_type"
-        ? Math.max(0, a.price - (baseSwapPrices[a.type] ?? 0))
-        : a.price,
-    [baseSwapPrices],
+    (a: DeliveryAddonOption): number => (view && optionCharge(view, size, a.addon_item_id)) ?? a.price,
+    [view, size],
   );
 
   // (Re)initialize whenever a fresh item/edit is opened.
@@ -280,22 +266,30 @@ export function ItemCustomizer({
   // shown is an ESTIMATE; the backend computes the true price (incl. the milk /
   // coffee swap delta) and the confirmation shows authoritative totals.
   const draft = useMemo<CartLine | null>(() => {
-    if (!item) return null;
+    if (!item || !view) return null;
     const optionById = new Map(addons.map((a) => [a.addon_item_id, a]));
-    const selected: SelectedAddon[] = [];
-    for (const [addonId, n] of Object.entries(selections)) {
-      if (n <= 0) continue;
-      const opt = optionById.get(addonId);
-      if (!opt) continue;
-      selected.push({
-        addon_item_id: addonId,
-        quantity: n,
+    const picks = Object.entries(selections)
+      .filter(([addonId, n]) => n > 0 && optionById.has(addonId))
+      .map(([id, quantity]) => ({ id, quantity }));
+    // The line as the server will make and charge it: one of each swap family
+    // (the last pick, once), each priced over the recipe's own choice.
+    const priced = priceOptions(view, { size_label: size, options: picks });
+    // If the rule can't price a pick, send what was chosen at list price rather
+    // than drop it: the server prices the line at intake either way.
+    const lines = "error" in priced
+      ? picks.map((p) => ({ id: p.id, quantity: p.quantity, unit_price: optionById.get(p.id)!.price }))
+      : priced.options;
+    const selected: SelectedAddon[] = lines.map((o) => {
+      const opt = optionById.get(o.id)!;
+      return {
+        addon_item_id: o.id,
+        quantity: o.quantity,
         name: opt.name,
         name_translations: opt.name_translations,
-        price: swapAdjustedPrice(opt),
+        price: o.unit_price,
         type: opt.type,
-      });
-    }
+      };
+    });
     const opts: SelectedOptional[] = visibleOptionals
       .filter((o) => optionals.has(o.id))
       .map((o) => ({ id: o.id, name: o.name, name_translations: o.name_translations, price: o.price }));
@@ -310,7 +304,7 @@ export function ItemCustomizer({
       optionals: opts,
       notes: notes.trim() || null,
     };
-  }, [item, addons, selections, visibleOptionals, optionals, size, qty, notes, editing, swapAdjustedPrice]);
+  }, [item, view, addons, selections, visibleOptionals, optionals, size, qty, notes, editing]);
 
   if (!item) return null;
 
@@ -318,7 +312,7 @@ export function ItemCustomizer({
   const totalPrice = unitPrice * qty;
   const description = getTranslatedDescription(item, lang);
   const hasSizes = item.sizes.length > 0;
-  const fromPrice = hasSizes ? Math.min(...item.sizes.map((s) => s.price)) : item.price;
+  const fromPrice = itemBasePrice(item, null);
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>

@@ -53,6 +53,7 @@ import { useDebounced } from "@/lib/use-debounced";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { unitPrice } from "./unit-price";
 import { invalidatePricingOverrides } from "./util";
 
 // ── Scope columns ─────────────────────────────────────────────────────────────
@@ -137,20 +138,23 @@ interface ResolvedCell {
  * Resolve one editable cell for a target.
  *
  * @param col        the editable column (in_store or a channel).
- * @param catalog    the catalog default price (size.price / addon.default_price).
+ * @param inherited  what the target costs with no override here: a size's
+ *                   `unit_price` at the branch without its own price (an
+ *                   inactive size falls back to the item's lowest, as on the
+ *                   till), an add-on's default price.
  * @param branch     the `branch`-scope override for this target (or EMPTY_RAW).
  * @param channel    the `branch_channel`-scope override for this target (only
  *                   consulted for channel columns).
  */
 function resolveCell(
   col: ScopeCol,
-  catalog: number,
+  inherited: number,
   branch: RawOverride,
   channel: RawOverride,
 ): ResolvedCell {
   if (col.kind === "in_store") {
     return {
-      effectivePrice: branch.price ?? catalog,
+      effectivePrice: branch.price ?? inherited,
       priceExplicit: branch.price != null,
       priceFrom: "catalog",
       availEffective: branch.is_available ?? true,
@@ -160,7 +164,7 @@ function resolveCell(
   }
   // Channel column: branch_channel → branch → catalog.
   return {
-    effectivePrice: channel.price ?? branch.price ?? catalog,
+    effectivePrice: channel.price ?? branch.price ?? inherited,
     priceExplicit: channel.price != null,
     priceFrom: branch.price != null ? "branch" : "catalog",
     availEffective: channel.is_available ?? branch.is_available ?? true,
@@ -493,6 +497,8 @@ interface RowTarget {
   targetType: "menu_item_size" | "modifier_option";
   targetId: string;
   catalogPrice: number;
+  /** What its cells inherit with no override (see {@link resolveCell}). */
+  inherited: number;
   /** branch-scope override for this target. */
   branch: RawOverride;
   /** channel → branch_channel override for this target. */
@@ -516,7 +522,7 @@ function TargetCells({
       {EDITABLE_COLS.map((col) => {
         const channelRaw =
           col.kind === "channel" ? (target.byChannel.get(col.channel) ?? EMPTY_RAW) : EMPTY_RAW;
-        const resolved = resolveCell(col, target.catalogPrice, target.branch, channelRaw);
+        const resolved = resolveCell(col, target.inherited, target.branch, channelRaw);
         const draft = dirty.draftFor(col, target.targetId, resolved);
         return (
           <PricingCell
@@ -549,7 +555,7 @@ function collectPending(
   for (const col of EDITABLE_COLS) {
     const channelRaw =
       col.kind === "channel" ? (target.byChannel.get(col.channel) ?? EMPTY_RAW) : EMPTY_RAW;
-    const resolved = resolveCell(col, target.catalogPrice, target.branch, channelRaw);
+    const resolved = resolveCell(col, target.inherited, target.branch, channelRaw);
     const key = cellKey(col, target.targetId);
     const draft = dirty.drafts.get(key);
     if (!draft) continue;
@@ -612,6 +618,7 @@ function useItemSizeTargets(
         targetType: "menu_item_size" as const,
         targetId: size.id,
         catalogPrice: size.price,
+        inherited: unitPrice(sizes, size.label) ?? size.price,
         branch: { price: b?.price ?? null, is_available: b?.is_available ?? null },
         byChannel,
       } satisfies RowTarget;
@@ -854,7 +861,7 @@ function TargetScopeList({
       {EDITABLE_COLS.map((col) => {
         const channelRaw =
           col.kind === "channel" ? (target.byChannel.get(col.channel) ?? EMPTY_RAW) : EMPTY_RAW;
-        const resolved = resolveCell(col, target.catalogPrice, target.branch, channelRaw);
+        const resolved = resolveCell(col, target.inherited, target.branch, channelRaw);
         const draft = dirty.draftFor(col, target.targetId, resolved);
         const cellDirty = isDirty(draft, resolved);
         const { key, fallback } = colLabel(col);
@@ -1154,6 +1161,7 @@ export function PricingAvailabilityPage() {
         targetType: "modifier_option",
         targetId: addon.id,
         catalogPrice: addon.default_price,
+        inherited: addon.default_price,
         branch: { price: b?.price_override ?? null, is_available: b?.is_available ?? null },
         byChannel,
       });

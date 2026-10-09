@@ -1,3 +1,5 @@
+import { daysIntoWeek } from "@/lib/week";
+
 /**
  * The roster's week starts on Saturday (Egypt), in the server's `week_start`.
  * Dates are ISO `yyyy-mm-dd` strings, handled as calendar dates — never
@@ -15,11 +17,8 @@ export const addDays = (iso: string, n: number): string => {
   return toIso(d);
 };
 
-/** The Saturday on or before `iso`. */
-export const weekStartOf = (iso: string): string => {
-  const dow = toDate(iso).getUTCDay(); // 0 = Sunday … 6 = Saturday
-  return addDays(iso, -((dow + 1) % 7));
-};
+/** The week-start day (Saturday, `WEEK_START` in lib/week) on or before `iso`. */
+export const weekStartOf = (iso: string): string => addDays(iso, -daysIntoWeek(toDate(iso).getUTCDay()));
 
 export const weekDays = (start: string): string[] => Array.from({ length: 7 }, (_, i) => addDays(start, i));
 

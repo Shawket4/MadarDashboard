@@ -43,6 +43,7 @@ import { egpToPiastres, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { RecipeBuilder, type CleanRow, type RecipeRowInit } from "@/features/recipes/recipe-builder";
 import { invalidateRecipes } from "@/features/recipes/util";
+import { unitPrice } from "./pricing/unit-price";
 import { ONE_SIZE, arOf, invalidateCatalog } from "./util";
 
 interface Props {
@@ -127,12 +128,9 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
   const recipeSizes = Array.from(new Set([...(sizeLabels.length ? sizeLabels : ["one_size"]), ...initialRecipeRows.map((r) => r.size_label)]));
   const priceForSize = (size: string): number | null => {
     const toP = (v: unknown) => { const n = parseFloat(String(v ?? "")); return Number.isFinite(n) ? Math.round(n * 100) : null; };
-    // Price lives in the size. With no matching row, fall back to the item's
-    // "from" price — the LOWEST of its sizes — never to an item-level number.
-    const exact = toP(watchedSizes.find((s) => s.label === size)?.price_override);
-    if (exact !== null) return exact;
-    const all = watchedSizes.map((s) => toP(s.price_override)).filter((n): n is number => n !== null);
-    return all.length ? Math.min(...all) : null;
+    // The server's rule over the form's (active) sizes: a recipe size with no
+    // row costs the item's lowest size, never an item-level number.
+    return unitPrice(watchedSizes.map((s) => ({ label: s.label, price: toP(s.price_override), is_active: true })), size);
   };
 
   // A simple item: exactly one size, carrying the sentinel label. The editor

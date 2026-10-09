@@ -588,6 +588,7 @@ import type {
   ResolveFlag,
   ResolvedShift,
   ReviewAdvance,
+  ReviewedOut,
   RewardCatalogue,
   RolePermission,
   RoleView,
@@ -2683,7 +2684,7 @@ export const reviewFlag = (
 ) => {
 
 
-      return customInstance<ReplayFlag>(
+      return customInstance<ReviewedOut>(
       {url: `/authz/flags/${id}/review`, method: 'POST', signal
     },
       options);
