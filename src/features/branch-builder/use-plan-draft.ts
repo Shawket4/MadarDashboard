@@ -52,8 +52,10 @@ export function usePlanDraft(saved: Plan | null, savedVersion: number | null): P
 
   const draftRef = useRef(draft);
   const historyRef = useRef(history);
+  const baseRef = useRef(base);
   useEffect(() => { draftRef.current = draft; }, [draft]);
   useEffect(() => { historyRef.current = history; }, [history]);
+  useEffect(() => { baseRef.current = base; }, [base]);
 
   const dirty = !!draft && !!base && !samePlan(draft, base.plan);
 
@@ -61,6 +63,8 @@ export function usePlanDraft(saved: Plan | null, savedVersion: number | null): P
   useEffect(() => {
     if (!saved || savedVersion === null) return;
     if (dirty) return;
+    // Undo steps were taken against the older plan; redoing one would write it back.
+    if (baseRef.current && baseRef.current.version !== savedVersion) setHistory(emptyHistory());
     setBase({ plan: saved, version: savedVersion });
     setDraft(saved);
   }, [saved, savedVersion, dirty]);

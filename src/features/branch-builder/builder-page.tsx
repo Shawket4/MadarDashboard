@@ -52,10 +52,15 @@ type NewPiece = { device: DeviceKind } | { printer: PrinterRole } | { section: t
 
 const newId = () => crypto.randomUUID();
 
+// One editor per branch: a draft and its undo steps must never follow the
+// scope bar onto another branch, where Save would write them.
 export function BranchBuilderPage() {
+  const branchId = useScope().branchId ?? null;
+  return <BranchBuilder key={branchId ?? ""} branchId={branchId} />;
+}
+
+function BranchBuilder({ branchId }: { branchId: string | null }) {
   const { t } = useTranslation();
-  const scope = useScope();
-  const branchId = scope.branchId ?? null;
 
   const q = useBranchPlan(branchId);
   const view = q.data;
@@ -74,20 +79,17 @@ export function BranchBuilderPage() {
   const viewport = useFloorViewport();
   const { fitTo, attach } = viewport;
 
-  // A new branch, or another branch picked in the top bar: start clean.
-  useEffect(() => {
-    setSelection(new Set());
-    setSelectedLink(null);
-    setEditable(false);
-  }, [branchId]);
-
   const problems = useMemo(() => checkPlan(plan), [plan]);
   const blocking = problems.filter((p) => p.blocking).length;
 
   const registered = useMemo(() => new Map((view?.devices ?? []).map((d) => [d.id, d])), [view]);
   const openItems = useMemo(() => new Map((view?.open_items ?? []).map((c) => [c.section_id, c.count])), [view]);
   const itemOverrides = useMemo(() => new Map((view?.item_overrides ?? []).map((c) => [c.section_id, c.count])), [view]);
-  const savedSlots = useMemo(() => new Set(saved?.devices.map((d) => d.id) ?? []), [saved]);
+  // Only a saved plan's slots exist on the server; a never-saved plan's are assembled.
+  const savedSlots = useMemo(
+    () => new Set(view?.saved ? saved?.devices.map((d) => d.id) : []),
+    [view?.saved, saved],
+  );
 
   // "Seen 4 min ago" ages by the clock, not by a refetch.
   const [now, setNow] = useState(() => Date.now());
@@ -629,7 +631,8 @@ export function BranchBuilderPage() {
         <ReviewDialog
           open={reviewing}
           onOpenChange={setReviewing}
-          before={view?.saved ? saved : EMPTY_PLAN}
+          before={saved}
+          firstSave={!view?.saved}
           after={plan}
           routingNow={view?.routing_mode ?? "till"}
           openItems={openItems}

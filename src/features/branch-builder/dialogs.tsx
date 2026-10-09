@@ -82,8 +82,10 @@ const routingText = (t: ReturnType<typeof useTranslation>["t"], m: RoutingMode |
 export interface ReviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The plan as the branch has it now: saved, or assembled from its stations. */
   before: Plan;
   after: Plan;
+  firstSave: boolean;
   routingNow: string;
   /** Open kitchen items per section id. */
   openItems: Map<string, number>;
@@ -93,13 +95,12 @@ export interface ReviewDialogProps {
 
 /** What the save will do, in plain words, before it does it. */
 export function ReviewDialog({
-  open, onOpenChange, before, after, routingNow, openItems, saving, onConfirm,
+  open, onOpenChange, before, after, firstSave, routingNow, openItems, saving, onConfirm,
 }: ReviewDialogProps) {
   const { t } = useTranslation();
   const diff = diffPlans(before, after);
   const routingNext = routingModeFor(after);
   const busy = diff.removed.filter((r) => r.kind === "section" && (openItems.get(r.id) ?? 0) > 0);
-  const firstSave = before.devices.length + before.printers.length + before.sections.length === 0;
 
   const names = (refs: PieceRef[], plan: Plan) =>
     refs.map((r) => pieceName(plan, r) || t("builder.unnamed", "Unnamed")).join(", ");
