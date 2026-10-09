@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { BranchKind } from './branchKind';
 import type { PrinterBrand } from './printerBrand';
 
 /**
@@ -20,6 +21,7 @@ export interface UpdateBranchRequest {
   geo_radius_meters?: number | null;
   /** @nullable */
   is_active?: boolean | null;
+  kind?: null | BranchKind;
   /** @nullable */
   latitude?: number | null;
   /** @nullable */

@@ -1,20 +1,28 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { BranchKind } from './branchKind';
+import type { StockTransferLine } from './stockTransferLine';
+import type { TransferStamp } from './transferStamp';
+import type { TransferStatus } from './transferStatus';
 
 export interface StockTransfer {
+  cancelled?: null | TransferStamp;
+  created: TransferStamp;
   destination_branch_id: string;
   destination_branch_name: string;
+  destination_kind: BranchKind;
+  dispatched?: null | TransferStamp;
   id: string;
-  ingredient_name: string;
-  initiated_at: string;
-  initiated_by: string;
-  initiated_by_name: string;
+  lines: StockTransferLine[];
   /** @nullable */
   note?: string | null;
   org_id: string;
-  org_ingredient_id: string;
-  quantity: number;
+  received?: null | TransferStamp;
+  /** `TR-1043`, per org. */
+  reference: string;
+  requested?: null | TransferStamp;
   source_branch_id: string;
   source_branch_name: string;
-  unit: string;
+  source_kind: BranchKind;
+  status: TransferStatus;
 }

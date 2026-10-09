@@ -190,7 +190,7 @@ export function DashboardPage() {
         }
       />
       <KeepBuildingCard />
-      <motion.section variants={fadeInUp} initial="hidden" animate="show">
+      <motion.section variants={fadeInUp} initial="hidden" animate="show" className="space-y-4">
         <LedgerStrip items={kpiCards} dense />
         <OpenTillsCard branchId={branchId} />
       </motion.section>

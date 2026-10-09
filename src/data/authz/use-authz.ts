@@ -141,6 +141,23 @@ export function useAuthz(): Authz {
   }, [platform, data, q.isPlaceholderData, notDeployed, user?.id, user?.role]);
 }
 
+/**
+ * What the person holds AT one location (`/authz/me?branch_id=`), for an act
+ * the server checks at a given branch (a transfer's step at its side). Holds
+ * nothing until the answer is in, so nothing shows that would end in a 403.
+ */
+export function useAuthzAt(branchId: string | null | undefined): Authz {
+  const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const platform = user?.role === "super_admin";
+  const q = useGetMyAuthz(
+    { branch_id: branchId ?? undefined },
+    { query: { enabled: !!token && !!user && !platform && !!branchId, staleTime: 60_000 } },
+  );
+  const data = q.data;
+  return useMemo(() => authzFrom(platform ? null : data, { platform }), [platform, data]);
+}
+
 /** `useCan(Cap.x)` for a single check. */
 export function useCan(cap: Capability): boolean {
   return useAuthz().can(cap);

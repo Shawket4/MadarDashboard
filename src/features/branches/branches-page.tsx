@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { GitBranch, MapPin, Pencil, Plus, Printer, Trash2 } from "lucide-react";
+import { GitBranch, MapPin, Pencil, Plus, Printer, Trash2, Warehouse } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -38,8 +38,9 @@ export function BranchesPage() {
 
   const [s, update] = usePageSearch<{ edit: string }>();
   const editId = s.edit ?? null;
-  const editing = editId && editId !== "new" ? (branches.find((b) => b.id === editId) ?? null) : null;
-  const dlgOpen = editId === "new" || !!editing;
+  const isNew = editId === "new" || editId === "new-warehouse";
+  const editing = editId && !isNew ? (branches.find((b) => b.id === editId) ?? null) : null;
+  const dlgOpen = isNew || !!editing;
 
   const remove = async (b: Branch) => {
     if (await confirm({ title: t("branches.deleteTitle", { name: b.name, defaultValue: `Delete ${b.name}?` }), description: t("branches.deleteDescription", "Its tills, printer settings and stock levels go with it. Past orders stay in reports."), destructive: true, confirmLabel: t("common.delete", "Delete") })) {
@@ -53,9 +54,12 @@ export function BranchesPage() {
         accessorKey: "name", header: t("common.name", "Name"), meta: { label: t("common.name", "Name"), phone: "title" },
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground"><GitBranch className="size-4" /></span>
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground">{row.original.kind === "warehouse" ? <Warehouse className="size-4" /> : <GitBranch className="size-4" />}</span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{row.original.name}</p>
+              <p className="flex items-center gap-2 truncate text-sm font-semibold">
+                {row.original.name}
+                {row.original.kind === "warehouse" ? <StatusPill tone="info" size="sm">{t("branches.kindWarehouse", "Warehouse")}</StatusPill> : null}
+              </p>
               {row.original.address ? <p className="flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="size-3 shrink-0" /> {row.original.address}</p> : null}
             </div>
           </div>
@@ -112,12 +116,12 @@ export function BranchesPage() {
       <PageHeader
         title={t("branches.title", "Branches")}
         description={t("branches.subtitle", "Manage your branch locations and printer config")}
-        actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={!branches.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button></>}
+        actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={!branches.length} /><Button variant="outline" onClick={() => update({ edit: "new-warehouse" })}><Warehouse className="size-4" /> {t("branches.newWarehouse", "New warehouse")}</Button><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.new", "New")}</Button></>}
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label={t("common.total", "Total")} value={branches.length} loading={list.isLoading} />
         <StatCard label={t("common.active", "Active")} value={branches.filter((b) => b.is_active).length} loading={list.isLoading} />
-        <StatCard label={t("branches.withPrinter", "With Printer")} value={branches.filter((b) => b.printer_brand).length} loading={list.isLoading} />
+        <StatCard label={t("branches.warehouses", "Warehouses")} value={branches.filter((b) => b.kind === "warehouse").length} loading={list.isLoading} />
         <StatCard label={t("common.inactive", "Inactive")} value={branches.filter((b) => !b.is_active).length} loading={list.isLoading} />
       </div>
       <DataTable
@@ -137,7 +141,7 @@ export function BranchesPage() {
           searchPlaceholder={t("common.search", "Search…")}
           emptyState={<EmptyState icon={GitBranch} title={t("branches.empty", "Branches you add appear here")} />}
         />
-      {dlgOpen ? <BranchDialog orgId={orgId} branch={editing} open={dlgOpen} onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}
+      {dlgOpen ? <BranchDialog orgId={orgId} branch={editing} defaultKind={editId === "new-warehouse" ? "warehouse" : "branch"} open={dlgOpen} onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}
     </Page>
   );
 }

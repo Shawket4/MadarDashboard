@@ -19,6 +19,7 @@ import {
 import { createCredential, useListBranches } from "@/data/api/generated/api";
 import type { CredentialWithSecret } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { isSelling } from "@/lib/selling";
 import { buildUsername, invalidateCredentials, randomUsernameSuffix } from "./util";
 import { hasSecureRandom } from "./passphrase";
 
@@ -36,7 +37,7 @@ export function CredentialDialog({ orgId, open, onOpenChange, onIssued }: Props)
 
   const branchesQuery = useListBranches({ org_id: orgId }, { query: { enabled: open && !!orgId } });
   const branches = useMemo(
-    () => (branchesQuery.data ?? []).filter((b) => b.is_active),
+    () => (branchesQuery.data ?? []).filter((b) => b.is_active && isSelling(b)),
     [branchesQuery.data],
   );
 

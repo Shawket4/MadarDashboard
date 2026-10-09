@@ -23,6 +23,11 @@ export interface UpdateOrgRequest {
      */
   logo_url?: string | null;
   /**
+     * Warehouses this org may have. `null` = unlimited; absent = unchanged.
+     * @nullable
+     */
+  max_warehouses?: number | null;
+  /**
      * `pos`, `dawam`: at least one (PS-2, SA-5). Super admin only, like the
      * rest of this endpoint.
      * @nullable

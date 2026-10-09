@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { BranchKind } from './branchKind';
 import type { PrinterBrand } from './printerBrand';
 
 export interface Branch {
@@ -20,6 +21,8 @@ export interface Branch {
   geo_radius_meters?: number | null;
   id: string;
   is_active: boolean;
+  /** `branch` sells; `warehouse` only holds stock (WAREHOUSE_DESIGN.md). */
+  kind: BranchKind;
   /**
      * WGS-84 latitude for geofenced branch resolution.
      * @nullable

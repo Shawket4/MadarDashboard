@@ -178,6 +178,7 @@ describe("the backend fixes' refusal codes", () => {
     for (const code of [
       "NO_CLAIM_WAITING", "NO_SWAP_WAITING", "OPEN_SHIFT_CLOSED", "NO_COVER_WAITING", "NO_OVERTIME_WAITING",
       "NO_SWAP_TO_CANCEL", "NO_PENDING_CLAIM", "CLAIM_ALREADY_DECIDED", "PAYSLIP_ALREADY_PAID",
+      "TRANSFER_CHANGED", "TRANSFER_STEP_NOT_OPEN",
     ]) {
       expect(isStaleRefusal(apiError({ code, error: "x" })), code).toBe(true);
     }

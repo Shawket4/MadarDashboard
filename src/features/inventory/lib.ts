@@ -1,6 +1,7 @@
 import type { StatusTone } from "@/components/app/status-pill";
+import { Cap, type Capability } from "@/generated/capabilities";
 import { queryClient } from "@/data/api/query";
-import type { BranchStockRow, ItemCountInput, Stocktake, StocktakeItem } from "@/data/api/generated/models";
+import type { BranchStockRow, ItemCountInput, StockTransfer, Stocktake, StocktakeItem } from "@/data/api/generated/models";
 import { fmtNumber } from "@/lib/format";
 
 /**
@@ -251,3 +252,53 @@ export function wasteReceivedLate(m: {
 export function isBelowZero(onHand: number | null | undefined): boolean {
   return onHand != null && Number.isFinite(onHand) && onHand < 0;
 }
+
+// ── Transfers (WAREHOUSE_DESIGN.md) ──────────────────────────────────────────
+
+export type TransferAction = "edit" | "accept" | "decline" | "dispatch" | "receive" | "cancel";
+type Side = "source" | "destination";
+
+/**
+ * Which side may take which action in which status — the backend's table
+ * (madar_inventory::transfer::step), mirrored so the drawer offers only what
+ * the server would allow. The server still decides.
+ */
+const TRANSFER_STEPS: Record<string, Partial<Record<TransferAction, Side>>> = {
+  requested: { edit: "destination", cancel: "destination", accept: "source", decline: "source" },
+  draft: { edit: "source", dispatch: "source", cancel: "source" },
+  dispatched: { receive: "destination", cancel: "source" },
+};
+
+/** The capability each action needs (the same table's third column). */
+const TRANSFER_CAPS = (status: string, a: TransferAction): Capability =>
+  a === "receive" ? Cap.inventoryTransfersEdit
+    : a === "cancel" && status === "dispatched" ? Cap.inventoryTransfersDelete
+    : Cap.inventoryTransfersCreate;
+
+/**
+ * Actions open to someone who works at `myBranches` (owners: every location)
+ * and holds the capability AT the acting side's location (`can(cap, at)`),
+ * which is where the server checks it.
+ */
+export function transferActions(
+  t: Pick<StockTransfer, "status" | "source_branch_id" | "destination_branch_id">,
+  myBranches: Set<string>,
+  can: (cap: Capability, at: string) => boolean = () => true,
+): TransferAction[] {
+  const steps = TRANSFER_STEPS[t.status] ?? {};
+  return (Object.keys(steps) as TransferAction[]).filter((a) => {
+    const at = steps[a] === "source" ? t.source_branch_id : t.destination_branch_id;
+    return myBranches.has(at) && can(TRANSFER_CAPS(t.status, a), at);
+  });
+}
+
+/** A quantity in whole thousandths, as the server compares them (madar_inventory::milli). */
+export const milli = (q: number): number => Math.sign(q) * Math.round(Math.abs(q) * 1000);
+
+export const TRANSFER_TONES: Record<string, StatusTone> = {
+  requested: "info",
+  draft: "neutral",
+  dispatched: "accent",
+  received: "success",
+  cancelled: "danger",
+};

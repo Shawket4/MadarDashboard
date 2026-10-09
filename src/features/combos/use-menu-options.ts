@@ -15,6 +15,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { getTranslatedName } from "@/lib/translation";
 
 import { ONE_SIZE } from "@/features/menu/util";
+import { isSelling } from "@/lib/selling";
 
 export interface SizeOption {
   label: string;
@@ -84,7 +85,7 @@ export function useMenuOptions(enabled = true): MenuOptions {
     const byId = new Map(items.map((i) => [i.id, i]));
     const categories = (catsQ.data ?? []).map((c) => ({ id: c.id, name: getTranslatedName(c, lang) }));
     const catById = new Map(categories.map((c) => [c.id, c.name]));
-    const branches = (branchesQ.data ?? []).map((b) => ({ id: b.id, name: getTranslatedName(b as { name: string; name_translations?: unknown }, lang) }));
+    const branches = (branchesQ.data ?? []).filter(isSelling).map((b) => ({ id: b.id, name: getTranslatedName(b as { name: string; name_translations?: unknown }, lang) }));
     const branchById = new Map(branches.map((b) => [b.id, b.name]));
     const itemsOfCategory = (id: string) => items.filter((i) => i.category_id === id);
     return {
