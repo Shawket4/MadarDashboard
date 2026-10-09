@@ -6,7 +6,7 @@
  * "Show all add-ons". Only an item never set up in the unified model keeps the
  * legacy allowlist view with its "show all".
  */
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { DeliveryAddonOption } from "@/data/api/generated/models/deliveryAddonOption";
@@ -15,6 +15,7 @@ import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuI
 // The real i18n instance, so the words are the shipped ones.
 await import("@/i18n");
 const { ItemCustomizer } = await import("./item-customizer");
+const { lineUnitPrice } = await import("../utils");
 
 /** The org's add-on catalog: what a fallback would (wrongly) offer. */
 const CATALOG: DeliveryAddonOption[] = [
@@ -74,5 +75,45 @@ describe("ItemCustomizer — an item's add-ons", () => {
     open(item({ allowed_addon_ids: ["syrup"] }));
     expect(catalogShown()).toEqual(["Vanilla syrup"]);
     expect(screen.getByRole("button", { name: /Show all add-ons/ })).toBeInTheDocument();
+  });
+});
+
+describe("ItemCustomizer — what it charges (madar-catalog's rule, ../pricing.ts)", () => {
+  const coffee = (id: string, name: string, price: number): DeliveryAddonOption => ({
+    addon_item_id: id,
+    name,
+    name_translations: {},
+    price,
+    type: "coffee_type",
+    is_available: true,
+  });
+  const latte = item({
+    id: "latte",
+    name: "Latte",
+    price: 3500,
+    sizes: [
+      { label: "Small", price: 3000 },
+      { label: "Large", price: 4000 },
+    ],
+    allowed_addon_ids: ["decaf", "colombian"],
+  });
+
+  it("says 'from' what a sizeless line costs — the item's price — not the cheapest size", () => {
+    render(<ItemCustomizer item={latte} addons={[]} open onOpenChange={() => {}} onConfirm={vi.fn()} />);
+    expect(screen.getByText(/^from /)).toHaveTextContent(/35\.00/);
+  });
+
+  it("keeps one coffee — the last picked — as the server will", () => {
+    const onConfirm = vi.fn();
+    const addons = [coffee("decaf", "Decaf", 500), coffee("colombian", "Colombian", 200)];
+    render(<ItemCustomizer item={latte} addons={addons} open onOpenChange={() => {}} onConfirm={onConfirm} />);
+    fireEvent.click(screen.getByText("Decaf"));
+    fireEvent.click(screen.getByText("Colombian"));
+    fireEvent.click(screen.getByRole("button", { name: /^Add ·/ }));
+    const line = onConfirm.mock.calls[0][0];
+    expect(line.addons.map((a: { addon_item_id: string; quantity: number; price: number }) => [a.addon_item_id, a.quantity, a.price])).toEqual([
+      ["colombian", 1, 200],
+    ]);
+    expect(lineUnitPrice(line)).toBe(3000 + 200);
   });
 });

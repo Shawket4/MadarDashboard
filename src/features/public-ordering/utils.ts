@@ -2,6 +2,7 @@ import type { CartLineInput } from "@/data/api/generated/models/cartLineInput";
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
 import type { DeliveryMenuDiscount } from "@/data/api/generated/models/deliveryMenuDiscount";
 
+import { storefrontItem, unitPrice } from "./pricing";
 import type { CartLine, Channel } from "./types";
 import { rateOf } from "@/lib/format";
 
@@ -41,33 +42,50 @@ export const cartSubtotal = (lines: CartLine[]): number =>
   lines.reduce((s, l) => s + lineTotal(l), 0);
 
 /**
- * Estimated discount (piastres) the channel discount knocks off the subtotal.
- * Mirrors the backend `calc_discount`: a percentage `value` is a FRACTION
- * (0.14 = 14%, the same convention as the tax rate) and is MULTIPLIED, rounding
- * half-up; fixed is capped at the subtotal; the result is clamped to
- * `[0, subtotal]`. The server reprices authoritatively at intake — this is only
- * the customer-facing estimate.
+ * `amount × rate` in whole piastres, rounded half away from zero, the rate
+ * read through its shortest decimal string (so 0.145 is 0.145, not
+ * 0.14499…): madar-money's exact `Decimal` arithmetic, not a float's.
+ */
+const decimalProduct = (amount: number, rate: number): number => {
+  const m = /^(-?)(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$/i.exec(String(rate));
+  if (!m) return 0;
+  const [, minus, whole, frac = "", exp = "0"] = m;
+  const scale = frac.length - Number(exp);
+  let digits = BigInt(whole + frac) * BigInt(Math.round(Math.abs(amount)));
+  if (scale < 0) digits *= 10n ** BigInt(-scale);
+  const div = 10n ** BigInt(Math.max(scale, 0));
+  const rounded = Number((2n * digits + div) / (2n * div));
+  return (minus === "-") !== (amount < 0) ? -rounded : rounded;
+};
+
+/**
+ * Estimated discount (piastres) the channel discount knocks off the subtotal:
+ * madar-money's `bill::rule_of` + `discount_on`. A percentage is a FRACTION of
+ * the subtotal (0.14 = 14%), a fixed one an amount; either is rounded half
+ * away from zero and clamped to `[0, subtotal]`; any other type is no
+ * discount. The server reprices authoritatively at intake — this is only the
+ * customer-facing estimate.
  */
 export const calcDiscount = (
   subtotal: number,
   discount: DeliveryMenuDiscount | null | undefined,
 ): number => {
-  if (!discount) return 0;
   const d =
-    discount.dtype === "percentage"
-      ? Math.round(subtotal * rateOf(discount))
-      : Math.min(Math.round(rateOf(discount)), subtotal);
+    discount?.dtype === "percentage"
+      ? decimalProduct(subtotal, rateOf(discount))
+      : discount?.dtype === "fixed"
+        ? decimalProduct(1, rateOf(discount))
+        : 0;
   return Math.max(0, Math.min(d, subtotal));
 };
 
-/** The base unit price for an item at a given size (size price, or item base). */
-export const itemBasePrice = (item: DeliveryMenuItem, sizeLabel: string | null): number => {
-  if (sizeLabel) {
-    const size = item.sizes.find((s) => s.label === sizeLabel);
-    if (size) return size.price;
-  }
-  return item.price;
-};
+/**
+ * One unit of the item at `sizeLabel` (madar-catalog `unit_price`); with no
+ * size, what a sizeless line costs — the "from" price. An item with no active
+ * size is refused by the server; it shows its item price.
+ */
+export const itemBasePrice = (item: DeliveryMenuItem, sizeLabel: string | null): number =>
+  unitPrice(storefrontItem(item), sizeLabel) ?? item.price;
 
 /** Translate a configured line into the API's CartLineInput (server prices). */
 export const toCartLineInput = (line: CartLine): CartLineInput => {
