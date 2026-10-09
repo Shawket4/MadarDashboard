@@ -15,6 +15,12 @@ export interface ActivationCode {
   label?: string | null;
   /** @nullable */
   revoked_at?: string | null;
+  /**
+     * The branch-plan slot this code fills, when it was made from the
+     * branch builder. The device that uses it takes the slot.
+     * @nullable
+     */
+  slot_id?: string | null;
   state: ActivationCodeState;
   /** @nullable */
   used_at?: string | null;
