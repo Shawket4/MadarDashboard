@@ -34,6 +34,7 @@ import { APP_TZ, PAYMENT_COLORS, type PaymentMethod } from "@/data/config/consta
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useScope } from "@/data/scope/use-scope";
+import { averageTicket } from "@/lib/average-ticket";
 import {
   useBranchDeliverySales,
   useBranchSales,
@@ -112,7 +113,7 @@ export function DashboardPage() {
     );
   }, [branchId, branchSales.data, branches]);
 
-  const avgTicket = kpis.orders ? Math.round(kpis.revenue / kpis.orders) : 0;
+  const avgTicket = averageTicket(kpis.revenue, kpis.orders);
   const kpiLoading = branchId ? branchSales.isLoading : comparison.isLoading;
 
   const paymentData = useMemo(() => {

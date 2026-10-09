@@ -30,16 +30,23 @@ export const slotsAdmitting = (combo: Pick<Combo, "slots">, item: MealItem): Com
 const includedLabel = (c: ComboChoiceWrite, it: ItemOption | undefined): string | undefined =>
   c.included_size_label ?? it?.sizes[0]?.label;
 
+/**
+ * `unit_price` over the sizes the item sells (an ItemOption keeps only its
+ * active ones, cheapest first): a size it no longer sells costs its lowest.
+ */
+const priceAt = (it: ItemOption | undefined, label: string | undefined): number | undefined =>
+  it?.sizes.find((s) => s.label === label)?.price ?? it?.sizes[0]?.price;
+
 /** What one pick of `it` through choice `c` at `sizeLabel` adds on top of the combo price. */
-function pickExtra(c: ComboChoiceWrite, it: ItemOption | undefined, sizeLabel: string | null | undefined): number {
+export function pickExtra(c: ComboChoiceWrite, it: ItemOption | undefined, sizeLabel: string | null | undefined): number {
   const inc = includedLabel(c, it);
   let sizeExtra = 0;
   if (sizeLabel && inc && sizeLabel !== inc) {
     const owner = (c.size_surcharges ?? []).find((x) => x.size_label === sizeLabel);
     if (owner) sizeExtra = owner.surcharge;
     else {
-      const chosen = it?.sizes.find((s) => s.label === sizeLabel)?.price;
-      const base = it?.sizes.find((s) => s.label === inc)?.price;
+      const chosen = priceAt(it, sizeLabel);
+      const base = priceAt(it, inc);
       sizeExtra = chosen !== undefined && base !== undefined ? Math.max(0, chosen - base) : 0;
     }
   }
@@ -68,7 +75,7 @@ export function mealDelta(
   const own = slot ? choiceFor(slot, item) : undefined;
   if (!slot || !own) return null;
   const inc = includedLabel(own, item);
-  const alone = item.sizes.find((s) => s.label === inc)?.price;
+  const alone = priceAt(item, inc);
   if (alone === undefined) return null;
   let total = combo.price + pickExtra(own, item, null);
   for (const s of combo.slots) {
