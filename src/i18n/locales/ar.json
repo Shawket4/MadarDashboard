@@ -6908,6 +6908,7 @@
     "mustFix": "يجب إصلاحها قبل الحفظ:",
     "name": "الاسم",
     "names": {
+      "sectionPrinter": "طابعة {{section}}",
       "cold": "البارد",
       "coldScreen": "شاشة البارد",
       "hot": "الساخن",

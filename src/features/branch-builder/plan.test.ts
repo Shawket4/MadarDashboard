@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  EMPTY_PLAN, addLink, checkPlan, diffPlans, isIpv4, linkKindFor, linksOf, planForSetup, removePieces, routeCategories,
+  EMPTY_PLAN, addLink, checkPlan, diffPlans, isIpv4, linkKindFor, localizeServerNames, linksOf, planForSetup, removePieces, routeCategories,
   routeCategory, setupOf, unroutedCategories, type Plan,
 } from "./plan";
 
@@ -133,3 +133,24 @@ describe("select all categories", () => {
     expect(none.sections.every((s) => s.category_ids.length === 0)).toBe(true);
   });
 });
+
+describe("names the server gives", () => {
+  it("reads in the reader's words, and only the server's own names change", () => {
+    const plan = planForSetup("till_printer", names, [], seq());
+    const kp = plan.printers.find((p) => p.role === "kitchen");
+    const rp = plan.printers.find((p) => p.role === "receipt");
+    if (!kp || !rp) throw new Error("setup has both printers");
+    const hot = plan.sections.find((s) => s.printer_ids.includes(kp.id));
+    if (!hot) throw new Error("a section prints on the kitchen printer");
+    kp.name = `${hot.name} printer`;
+    rp.name = "Receipt printer";
+    const ar = localizeServerNames(plan, "طابعة الإيصالات", (s) => `طابعة ${s}`);
+    expect(ar.printers.find((p) => p.id === rp.id)?.name).toBe("طابعة الإيصالات");
+    expect(ar.printers.find((p) => p.id === kp.id)?.name).toBe(`طابعة ${hot.name}`);
+    // English reads the same, so nothing changes; a name someone typed stays.
+    expect(localizeServerNames(plan, "Receipt printer", (s) => `${s} printer`)).toBe(plan);
+    rp.name = "Front desk";
+    expect(localizeServerNames(plan, "x", (s) => s).printers.find((p) => p.id === rp.id)?.name).toBe("Front desk");
+  });
+});
+
