@@ -1,7 +1,7 @@
 import { worker } from "./browser";
 
 /**
- * Dev-only: start the MSW worker for the public ordering / landing apps. Unlike
+ * Dev-only: start the MSW worker for the public apps. Unlike
  * `enableMocks`, this seeds NO admin session — the public surfaces are
  * unauthenticated and (by design) never import the admin auth/app stores. Gated
  * behind VITE_MOCK in the order app's entry; tree-shaken from prod builds.

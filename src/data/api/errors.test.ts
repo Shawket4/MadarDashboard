@@ -87,3 +87,27 @@ describe("getErrorMessage", () => {
   });
 });
 
+
+describe("getErrorMessage: no English sentence on an Arabic screen", () => {
+  const withStatus = (status: number, data: Record<string, unknown>) =>
+    new AxiosError("Request failed", "ERR_BAD_REQUEST", undefined, undefined, {
+      status,
+      statusText: "",
+      headers: {},
+      config: { headers: new AxiosHeaders() },
+      data,
+    });
+
+  it("keeps the server's sentence in English, words its status in Arabic", async () => {
+    const conflict = withStatus(409, { error: "Conflict: Slug 'x' is already taken" });
+    await i18n.changeLanguage("en");
+    expect(getErrorMessage(conflict)).toBe("Slug 'x' is already taken");
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(conflict)).toBe(i18n.t("errors.conflict"));
+    // A 400 without a code reads as a validation problem, not axios's English.
+    expect(getErrorMessage(withStatus(400, { error: "Bad Request: name is empty" }))).toBe(i18n.t("errors.validation"));
+    // An Arabic sentence from the server is kept as it is.
+    expect(getErrorMessage(withStatus(409, { error: "الاسم مستخدم" }))).toBe("الاسم مستخدم");
+    await i18n.changeLanguage("en");
+  });
+});

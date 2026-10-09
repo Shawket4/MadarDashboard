@@ -66,12 +66,6 @@ jobs:
         env:
           VITE_API_URL: /api
 
-      - name: Build landing app (separate, isolated bundle)
-        run: npm run build:get
-        env:
-          VITE_API_URL: https://get.madar-pos.cloud/api
-          VITE_DASHBOARD_URL: https://madar-pos.cloud
-
       - name: Build reservations app (separate, isolated bundle)
         run: npm run build:reservations
         env:
@@ -99,55 +93,88 @@ jobs:
         env:
           VITE_API_URL: https://demo-api.madar-pos.cloud
 
-      - name: Deploy dashboard to VPS
-        uses: appleboy/scp-action@v0.1.7
+      # The marketing site (get.madar-pos.cloud) is its own Astro package in site/,
+      # with its own lockfile, and Astro 6 needs Node 22. The dashboard builds above
+      # stay on Node 20.
+      - uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist/*"
-          target: "/var/www/madar-dashboard"
-          strip_components: 1
+          node-version: 22
+
+      - name: Build marketing site (site/, Astro)
+        run: |
+          npm ci --prefix site
+          npm run build --prefix site
+        env:
+          # Cookieless Umami analytics: on once this repository variable is set.
+          PUBLIC_UMAMI_WEBSITE_ID: ${{ vars.UMAMI_WEBSITE_ID }}
+          ASTRO_TELEMETRY_DISABLED: 1
+
+      # Every SPA host below is deployed with rsync over SSH: it uploads what
+      # changed and DELETES what the build no longer has (old landing files,
+      # macOS ._ files), so a web root holds exactly one build. Hashed files in
+      # /assets/ are protected from deletion (`P /assets/***`): a tab still
+      # running the previous index.html can go on loading its chunks. Nothing
+      # else lives in these roots (the brochure is in /var/www/madar-downloads,
+      # uploads in /opt/madar-rust/uploads). The key is written once here and
+      # removed by the last step.
+      - name: Set up the SSH key for rsync
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Deploy dashboard to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: >-
+          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          dist/ "$VPS_USER@$VPS_HOST:/var/www/madar-dashboard/"
 
       - name: Deploy ordering app to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist-order/*"
-          target: "/var/www/madar-order"
-          strip_components: 1
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: >-
+          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          dist-order/ "$VPS_USER@$VPS_HOST:/var/www/madar-order/"
 
       - name: Deploy shop ordering bundle to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist-order-shop/*"
-          target: "/var/www/madar-order-shop"
-          strip_components: 1
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: >-
+          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          dist-order-shop/ "$VPS_USER@$VPS_HOST:/var/www/madar-order-shop/"
 
       - name: Deploy shop reservations bundle to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist-reservations-shop/*"
-          target: "/var/www/madar-reservations-shop"
-          strip_components: 1
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: >-
+          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          dist-reservations-shop/ "$VPS_USER@$VPS_HOST:/var/www/madar-reservations-shop/"
 
-      - name: Deploy landing app to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist-get/*"
-          target: "/var/www/madar-get"
-          strip_components: 1
+      # rsync --delete, so files the site no longer builds don't linger on the server
+      # (old landing leftovers, removed pages). Hashed files in assets/ are protected
+      # from the delete: Cloudflare keeps get's HTML for up to 5 minutes, and those
+      # cached pages still point at the previous build's assets. Old assets can be
+      # pruned by age now and then. --checksum sends only changed files, so unchanged
+      # pages keep their Last-Modified.
+      - name: Deploy marketing site to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: >-
+          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          site/dist/ "$VPS_USER@$VPS_HOST:/var/www/madar-get/"
 
       - name: Ensure reservations web root exists
         uses: appleboy/ssh-action@v1.0.3
@@ -158,14 +185,13 @@ jobs:
           script: sudo mkdir -p /var/www/madar-reservations && sudo chown -R $USER /var/www/madar-reservations
 
       - name: Deploy reservations app to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist-reservations/*"
-          target: "/var/www/madar-reservations"
-          strip_components: 1
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: >-
+          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          dist-reservations/ "$VPS_USER@$VPS_HOST:/var/www/madar-reservations/"
 
       - name: Ensure loyalty web root exists
         uses: appleboy/ssh-action@v1.0.3
@@ -176,15 +202,14 @@ jobs:
           script: sudo mkdir -p /var/www/madar-loyalty && sudo chown -R $USER /var/www/madar-loyalty
 
       - name: Deploy loyalty app to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist-loyalty/*"
-          # Matches the nginx root in MadarRust/deploy/loyalty/nginx-loyalty.conf.
-          target: "/var/www/madar-loyalty"
-          strip_components: 1
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        # Matches the nginx root in MadarRust/deploy/loyalty/nginx-loyalty.conf.
+        run: >-
+          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          dist-loyalty/ "$VPS_USER@$VPS_HOST:/var/www/madar-loyalty/"
 
       - name: Ensure demo web root exists
         uses: appleboy/ssh-action@v1.0.3
@@ -195,14 +220,13 @@ jobs:
           script: sudo mkdir -p /var/www/madar-demo && sudo chown -R $USER /var/www/madar-demo
 
       - name: Deploy demo dashboard to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dist-demo/*"
-          target: "/var/www/madar-demo"
-          strip_components: 1
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: >-
+          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          dist-demo/ "$VPS_USER@$VPS_HOST:/var/www/madar-demo/"
 
       - name: Reload Nginx
         uses: appleboy/ssh-action@v1.0.3
@@ -211,3 +235,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: sudo systemctl reload nginx
+
+      - name: Remove the SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

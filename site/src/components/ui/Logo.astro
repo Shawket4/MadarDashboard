@@ -1,0 +1,48 @@
+---
+/**
+ * The orbit symbol beside the wordmark: Latin on English pages, Arabic on Arabic pages.
+ * Files are the brand kit's outlined SVGs (Madar Design System/svg), inlined so they
+ * are crisp and cost no request. Colours follow the README: Ink (or Paper on dark
+ * grounds) ring and dot, Teal deep satellite on every ground; the Arabic wordmark is
+ * one solid colour, with tashkeel at display sizes.
+ */
+import symbolInk from "@/assets/brand/symbol-primary.svg?raw";
+import symbolPaper from "@/assets/brand/symbol-reversed.svg?raw";
+import latinInk from "@/assets/brand/wordmark-primary.svg?raw";
+import latinPaper from "@/assets/brand/wordmark-reversed.svg?raw";
+import arPlainInk from "@/assets/brand/arabic-plain-ink.svg?raw";
+import arPlainPaper from "@/assets/brand/arabic-plain-paper.svg?raw";
+import arTashkeelInk from "@/assets/brand/arabic-tashkeel-ink.svg?raw";
+import arTashkeelPaper from "@/assets/brand/arabic-tashkeel-paper.svg?raw";
+import type { Lang } from "@/lib/site";
+
+interface Props {
+  lang: Lang;
+  tone?: "ink" | "paper"; // the ground it sits on
+  display?: boolean; // large use: Arabic with full tashkeel
+  class?: string;
+}
+const { lang, tone = "paper", display = false, class: cls = "" } = Astro.props;
+
+const clean = (svg: string) =>
+  svg
+    .replace(/<svg([^>]*?)\swidth="[^"]*"\sheight="[^"]*"/, "<svg$1")
+    .replace("<svg", '<svg aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet"');
+
+const dark = tone === "ink";
+const symbol = clean(dark ? symbolPaper : symbolInk);
+const word =
+  lang === "ar"
+    ? clean(display ? (dark ? arTashkeelPaper : arTashkeelInk) : dark ? arPlainPaper : arPlainInk)
+    : clean(dark ? latinPaper : latinInk);
+---
+<span class:list={["logo inline-flex items-center gap-[0.42em]", cls]}>
+  <span class="logo-symbol block h-[1.25em] w-[1.25em] [&>svg]:h-full [&>svg]:w-full" set:html={symbol} />
+  <span
+    class:list={[
+      "logo-word block [&>svg]:h-full [&>svg]:w-auto",
+      lang === "ar" ? (display ? "h-[1.3em]" : "h-[1.02em]") : "h-[0.9em]",
+    ]}
+    set:html={word}
+  />
+</span>

@@ -96,6 +96,9 @@ export const isStaleRefusal = (err: unknown): boolean => {
 /** What a REASON_REQUIRED refusal was about: the caller knows, the server sends no vars (A5). */
 export type ReasonFor = "payLine" | "stopLine" | "punchFor" | "decline" | "correctAdvance";
 
+const ARABIC_LETTER = /[\u0600-\u06FF]/;
+const isArabicUi = (): boolean => (i18n.resolvedLanguage ?? i18n.language ?? "").startsWith("ar");
+
 export const getErrorMessage = (
   err: unknown,
   opts: {
@@ -159,8 +162,15 @@ export const getErrorMessage = (
     // Backend convention: { error: "..." } or { message: "..." }. The server
     // prefixes the error's kind ("Conflict: …", AppError's Display); the
     // reader wants the sentence (owner decision 43).
-    if (typeof data?.error === "string") return data.error.replace(SERVER_KIND_PREFIX, "");
-    if (typeof data?.message === "string") return data.message;
+    const sentence =
+      typeof data?.error === "string"
+        ? data.error.replace(SERVER_KIND_PREFIX, "")
+        : typeof data?.message === "string"
+          ? data.message
+          : undefined;
+    // The server writes English: inside the Arabic UI its sentence gives way
+    // to the status's own words below (an English line on an Arabic screen).
+    if (sentence !== undefined && !(isArabicUi() && !ARABIC_LETTER.test(sentence))) return sentence;
 
     // Network / offline
     if (!err.response) return t("errors.networkError");
@@ -174,6 +184,7 @@ export const getErrorMessage = (
         return t("errors.notFound");
       case 409:
         return t("errors.conflict");
+      case 400:
       case 422:
         return t("errors.validation");
       default:

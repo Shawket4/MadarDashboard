@@ -1,0 +1,14 @@
+// The service worker runs in a worker, not a page, so it has its own types
+// (npm run check covers it). integrations/pack.mjs builds it into /sw.js.
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "WebWorker"],
+    "types": [],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["sw.ts"]
+}

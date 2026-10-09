@@ -145,3 +145,25 @@ export function useAuthz(): Authz {
 export function useCan(cap: Capability): boolean {
   return useAuthz().can(cap);
 }
+
+/**
+ * A permission read that failed with nothing remembered (SH-10): every
+ * action would stay hidden with no reason given, so the page gate says so and
+ * offers Retry. Null while it loads, once it answers, for a platform admin
+ * and for an older server without the endpoint (the role defaults stand in).
+ */
+export function useAuthzLoadError(): { error: unknown; retry: () => void } | null {
+  const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const platform = user?.role === "super_admin";
+  const q = useGetMyAuthz(undefined, {
+    query: {
+      enabled: !!token && !!user && !platform,
+      staleTime: 60_000,
+      placeholderData: () => remembered(user?.id),
+    },
+  });
+  const notDeployed = q.error instanceof AxiosError && q.error.response?.status === 404;
+  if (platform || q.data || !q.error || notDeployed) return null;
+  return { error: q.error, retry: () => void q.refetch() };
+}

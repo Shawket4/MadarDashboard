@@ -7,6 +7,8 @@ let orgId: string | null = "org1";
 let answer: { modules: string[] } | undefined;
 let failure: Error | null = null;
 const refetch = vi.fn();
+let authzFailure: Error | null = null;
+const authzRefetch = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({ useLocation: () => ({ pathname }) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => orgId }));
@@ -17,6 +19,7 @@ vi.mock("@/data/api/generated/api", () => ({
     error: failure,
     refetch,
   }),
+  useGetMyAuthz: () => ({ data: undefined, error: authzFailure, refetch: authzRefetch }),
 }));
 await import("@/i18n");
 const { ModuleGate } = await import("./module-gate");
@@ -28,6 +31,7 @@ beforeEach(() => {
   orgId = "org1";
   answer = undefined;
   failure = null;
+  authzFailure = null;
 });
 
 describe("ModuleGate", () => {
@@ -83,5 +87,16 @@ describe("ModuleGate", () => {
     pathname = "/staff/employees";
     page();
     expect(screen.getByText("the page")).toBeInTheDocument();
+  });
+
+  it("when what this person may do can't be read, every page says so, with a retry (SH-10)", () => {
+    authzFailure = new Error("Network Error");
+    answer = { modules: ["pos", "dawam"] };
+    pathname = "/branches";
+    page();
+    expect(screen.queryByText("the page")).toBeNull();
+    expect(screen.getByText(/Couldn't load what you're allowed to do here/)).toBeInTheDocument();
+    screen.getByRole("button", { name: /retry/i }).click();
+    expect(authzRefetch).toHaveBeenCalled();
   });
 });

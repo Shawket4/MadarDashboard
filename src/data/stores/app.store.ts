@@ -2,6 +2,7 @@ import { safeStorage } from "@/lib/safe-storage";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { apiContext } from "@/data/api/client";
+import { queryClient } from "@/data/api/query";
 import { APP_TZ, LS_KEYS } from "@/data/config/constants";
 import i18n from "@/i18n";
 
@@ -56,6 +57,11 @@ export const useAppStore = create<AppState>()(
           // foreign branch id and 403/404 into a stuck, data-less state.
           const orgChanged = s.selectedOrgId !== id;
           if (orgChanged) apiContext.setBranch(null);
+          // A query whose org rides only the X-Org-Id header (a paramless
+          // read such as listPaymentMethods) keeps its key across a switch:
+          // without this the last org's data showed until stale. A first
+          // pick has nothing to drop.
+          if (orgChanged && s.selectedOrgId !== null) void queryClient.resetQueries();
           return {
             selectedOrgId: id,
             selectedOrgLogo: logoUrl ?? null,
@@ -93,7 +99,7 @@ export const useAppStore = create<AppState>()(
         // Only restore the persisted language when app state was ACTUALLY persisted
         // (a real dashboard session). Otherwise rehydration fires with the default
         // "en" and would clobber the i18next language detector on origins that have
-        // no dashboard session — the isolated order / landing apps, which would pull
+        // no dashboard session — the isolated public apps, which would pull
         // this store in transitively (via lib/format) and lose the visitor's
         // Arabic choice on every reload.
         if (state?.language && safeStorage.getItem(LS_KEYS.app)) {

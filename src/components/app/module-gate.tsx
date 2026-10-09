@@ -12,13 +12,26 @@ import { Blocks } from "lucide-react";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { getErrorMessage } from "@/data/api/errors";
 import { moduleOfPath } from "@/config/nav";
+import { useAuthzLoadError } from "@/data/authz/use-authz";
 import { useOrgModulesState } from "@/hooks/use-org-modules";
 
 export function ModuleGate({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const { modules, known, error, retry } = useOrgModulesState();
+  const authzFailed = useAuthzLoadError();
   const needs = moduleOfPath(pathname);
+  if (authzFailed) {
+    return (
+      <div className="p-6">
+        <ErrorState
+          title={t("shell.accessLoadError", "Couldn't load what you're allowed to do here.")}
+          message={getErrorMessage(authzFailed.error)}
+          onRetry={authzFailed.retry}
+        />
+      </div>
+    );
+  }
   if (!needs) return <>{children}</>;
   if (!known && error) {
     // Say so: a blank page (or every module on a guess) is worse.

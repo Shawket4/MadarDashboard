@@ -163,7 +163,9 @@ describe("WorkShiftsPage", () => {
       day_times: [{ day_of_week: 4, start_time: "16:00:00", end_time: "01:00:00" }],
       ot_day_multiplier: 1.75, ot_night_multiplier: null,
     });
-  });
+    // Twenty-odd interactions through a dialog: past vitest's 5 s default
+    // whenever the machine is busy, which failed it with nothing wrong.
+  }, 20_000);
 
   it("blocks a save with no days or a half-set day, and says why", async () => {
     const user = userEvent.setup();

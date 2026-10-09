@@ -1,0 +1,57 @@
+---
+/**
+ * An illustration of asking Basira a question (not a screenshot: Basira is opt-in and
+ * wasn't in the capture runs). The behaviour shown is what the brochure verified: the
+ * answer comes from a verified report and names it.
+ */
+import Icon from "@/components/ui/Icon.astro";
+import { t } from "@/i18n";
+import type { Lang } from "@/lib/site";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang).areas.basira.demo;
+const values = [41, 52, 57, 66]; // illustrative; three under the 60% target
+---
+<div class="relative ms-[4%] pt-[6%]" data-basira>
+  <div class="frame-browser">
+    <div class="frame-browser-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="bg-surface p-5 sm:p-8">
+      <div class="flex items-center gap-2 text-sm font-semibold text-ink">
+        <span class="grid h-7 w-7 place-items-center rounded-lg bg-ink text-paper">
+          <svg viewBox="0 0 100 100" class="h-4 w-4" aria-hidden="true"><circle cx="50" cy="50" r="34" stroke="currentColor" stroke-width="9" fill="none" /><circle cx="50" cy="50" r="12" fill="currentColor" /><circle cx="74" cy="26" r="9" fill="#2E94A6" /></svg>
+        </span>
+        Basira
+      </div>
+      <div class="mt-6 flex justify-end">
+        <p class="basira-q max-w-[85%] rounded-2xl rounded-ee-md bg-ink px-4 py-3 text-[0.98rem] text-paper" data-basira-q>{d.question}</p>
+      </div>
+      <div class="mt-4 max-w-[94%] rounded-2xl rounded-es-md border border-rule bg-white p-4 sm:p-5" data-basira-a>
+        <p class="text-[0.98rem] text-ink">{d.answer}</p>
+        <div class="mt-5 space-y-3.5" role="img" aria-label={d.answer}>
+          {d.bars.map((label, i) => (
+            <div class="grid grid-cols-[6.5rem_1fr] items-center gap-3 sm:grid-cols-[8rem_1fr]">
+              <span class="truncate text-xs text-muted">{label}</span>
+              <div class="relative h-2.5 rounded-full bg-rule/70">
+                <span
+                  class:list={["basira-bar absolute inset-y-0 start-0 rounded-full", (values[i] ?? 0) < 60 ? "bg-teal-light" : "bg-teal"]}
+                  style={`width:${values[i]}%`}
+                  data-bar
+                ></span>
+                <span class="absolute -inset-y-1.5 w-[2px] rounded bg-ink" style="inset-inline-start:60%"></span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div class="mt-4 flex items-center gap-4 text-[0.72rem] text-muted">
+          <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-teal-light"></span>{d.legendNow}</span>
+          <span class="flex items-center gap-1.5"><span class="h-3 w-[2px] bg-ink"></span>{d.legendTarget} 60%</span>
+        </div>
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-rule pt-3 text-xs">
+          <span class="text-muted">{d.report}</span>
+          <span class="inline-flex items-center gap-1 font-medium text-teal">{d.open} <Icon name="arrow" size={14} /></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

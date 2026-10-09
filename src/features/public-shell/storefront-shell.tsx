@@ -1,9 +1,14 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Languages, Moon, Sun } from "lucide-react";
+import { ArrowUpRight, Languages, Moon, Sun } from "lucide-react";
 
+import { MadarMark } from "@/components/brand/marks";
+import { MadarWordmark } from "@/components/brand/madar-wordmark";
 import { LegalLinks } from "@/components/legal-links";
 
+import { currentYear } from "@shared/dates";
+
+import { madarSiteHref, signatureSource } from "./madar-site";
 import { hostSlug } from "./use-brand";
 import { useShopFavicon } from "./use-favicon";
 import { useBrandSkin } from "./use-brand-skin";
@@ -121,55 +126,74 @@ export function BrandMark({
 }
 
 /**
- * Madar's signature, on every public page at every tier, at ONE size.
- *
- * The mark, the product line, the copyright and the legal links, the same on a
- * shop's own page as on ours. It used to step back to a smaller mark on a
- * branded shop's page; at that size the footer read as an afterthought, and a
- * shop's customers saw two different footers depending on which page they hit.
- */
-/**
  * Which of Madar's products this page is.
  *
- * The signature names it. A restaurateur who sees "Reservations powered by
- * Madar" on a booking page has learnt something they might act on; "powered by
- * Madar" alone tells them nothing about what we would sell them. Recognition
- * rides on the MARK above the line, which is identical everywhere, so naming
- * the product costs nothing and buys the only thing a signature on someone
- * else's page is for.
+ * The signature names it. A restaurateur who sees "Reservations by Madar POS" on a
+ * booking page has learnt something they might act on; "powered by Madar" alone
+ * tells them nothing about what we would sell them. Recognition rides on the orbit
+ * mark beside the words, identical everywhere, so naming the product costs nothing
+ * and buys the only thing a signature on someone else's page is for.
  *
- * The default is the generic line, because a page that has not said which
- * product it is should not claim to be one — this used to be hardcoded to
- * online ordering, so a customer's loyalty card told them their stamp card was
- * powered by online ordering.
+ * The default is the generic line, because a page that has not said which product
+ * it is should not claim to be one: this used to be hardcoded to online ordering,
+ * so a customer's loyalty card told them their stamp card was powered by online
+ * ordering.
  */
 export type MadarProduct = "loyalty" | "ordering" | "reservations";
 
+/**
+ * Madar's signature, on every public page at every tier, the same on a shop's own
+ * page as on ours: an app-store-style badge (the orbit, "Online ordering by", the
+ * wordmark) that reads as a button before anyone hovers it, then the copyright and
+ * the legal links.
+ *
+ * It wears Madar's own mark and the theme's neutral tokens, never the shop's: the
+ * shop's brand skin recolours `primary` and `brand`, and this is Madar's, not
+ * theirs. It opens Madar POS's site in a new tab, so an order or a sign-up in
+ * progress is not lost, in the page's language and tagged with the shop and the
+ * product (madar-site.ts). `noopener` without `noreferrer`, so the site can tell
+ * which shop's page sent the visitor.
+ */
 export function MadarFooter({ product }: { product?: MadarProduct }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  const host = typeof window === "undefined" ? "" : window.location.hostname;
+  const href = madarSiteHref(lang, signatureSource(host), product ?? "shop_page");
 
   return (
-    <footer className="mt-12 flex flex-col items-center gap-2 border-t border-border/60 pt-6 text-center">
-      <img
-        src={lang.startsWith("ar") ? "/madar_ar.svg" : "/madar.svg"}
-        alt={t("app.name")}
-        className="h-6 opacity-80 dark:brightness-0 dark:invert"
-      />
-      <p className="text-xs text-muted-foreground">
-        {t(
-          product ? `publicShell.poweredBy.${product}` : "publicShell.poweredBy.generic",
-          "Powered by Madar",
-        )}
-      </p>
-      <p className="text-[11px] text-muted-foreground/70">
-        {t("order.footer.rights", {
-          year: new Date().getFullYear(),
-          name: t("app.name"),
-          defaultValue: "© {{year}} {{name}}. All rights reserved.",
-        })}
-      </p>
-      <LegalLinks className="mt-1" />
+    <footer className="mt-12 flex justify-center border-t border-border/60 pb-2 pt-8">
+      {/* One column as wide as its widest line: the badge spans it, so it lines up
+          with the copyright and the links under it, and a longer product line
+          ("Loyalty cards by") widens the column instead of breaking the line-up. */}
+      <div className="inline-flex flex-col items-stretch gap-5">
+        {/* The store badge (Madar Design System, "Madar signature"): ink in both themes,
+            the orbit at its small optical size, the words, the wordmark, and an arrow
+            that says it goes somewhere. It pins --brand to the kit's teal, because a
+            shop's skin re-colours --brand and this is Madar's mark, not theirs. */}
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener"
+          className="group flex h-12 items-center gap-2.5 rounded-[11px] bg-(--madar-ink) pe-4 ps-3.5 text-(--madar-paper) shadow-md shadow-black/10 outline-none transition-[translate,box-shadow] [--brand:var(--madar-teal-light)] hover:-translate-y-px hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:shadow-none dark:ring-1 dark:ring-(--madar-paper)/20"
+        >
+          <MadarMark optical className="size-[26px] shrink-0 [&_.fill-brand]:fill-(--madar-teal-deep)" />
+          <span className="flex flex-col items-start gap-[5px] leading-none">
+            <span className="text-[10.5px] opacity-70">{t(`publicShell.signature.by.${product ?? "generic"}`)}</span>{" "}
+            <MadarWordmark lang={lang.startsWith("ar") ? "ar" : "en"} title={t("publicShell.signature.name")} className="h-[16.5px] rtl:h-5" />
+          </span>{" "}
+          <ArrowUpRight
+            aria-hidden
+            className="ms-auto size-4 shrink-0 opacity-70 transition-[translate,opacity] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"
+          />
+          <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
+        </a>
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-[11px] text-muted-foreground">
+            {t("common.copyright", { year: currentYear(lang), defaultValue: "© {{year}} Madar. All rights reserved." })}
+          </p>
+          <LegalLinks />
+        </div>
+      </div>
     </footer>
   );
 }

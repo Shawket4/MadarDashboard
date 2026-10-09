@@ -1,0 +1,49 @@
+---
+import Icon from "@/components/ui/Icon.astro";
+import { t } from "@/i18n";
+import { type Lang, whatsappHref, PHONE_HREF, PHONE_DISPLAY, EMAIL, EMAIL_HREF, INSTAGRAM, FACEBOOK } from "@/lib/site";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const c = t(lang);
+---
+<dialog id="contact-dialog" class="sheet" aria-labelledby="contact-title">
+  <div class="relative overflow-hidden rounded-[1.6rem] bg-paper p-6 text-ink shadow-2xl sm:p-8">
+    <form method="dialog" class="absolute end-4 top-4">
+      <button class="nav-link inline-flex h-10 w-10 items-center justify-center !p-0" aria-label={c.contact.close}><Icon name="close" /></button>
+    </form>
+    <p class="kicker text-teal">{c.freeMonth.badge}</p>
+    <h2 id="contact-title" class="text-h3 mt-3 pe-10">{c.contact.title}</h2>
+    <p class="mt-3 text-muted">{c.contact.subtitle}</p>
+
+    <a class="btn btn-ink btn-lg mt-7 w-full" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="contact-sheet">
+      {c.contact.whatsapp} <Icon name="arrow" size={18} />
+    </a>
+    <p class="mt-2 text-center text-sm text-muted">{c.contact.whatsappHint}</p>
+
+    <div class="mt-6 grid gap-3 sm:grid-cols-2">
+      <a class="card flex items-center gap-3 p-4 transition-colors hover:border-teal/40" href={PHONE_HREF} data-umami-event="call">
+        <span class="grid h-10 w-10 place-items-center rounded-xl bg-teal/10 text-teal"><Icon name="phone" /></span>
+        <span class="min-w-0">
+          <span class="block text-xs text-muted">{c.contact.call}</span>
+          <span class="ltr block truncate font-medium">{PHONE_DISPLAY}</span>
+        </span>
+      </a>
+      <a class="card flex items-center gap-3 p-4 transition-colors hover:border-teal/40" href={EMAIL_HREF} data-umami-event="email">
+        <span class="grid h-10 w-10 place-items-center rounded-xl bg-teal/10 text-teal"><Icon name="mail" /></span>
+        <span class="min-w-0">
+          <span class="block text-xs text-muted">{c.contact.email}</span>
+          <span class="ltr block truncate font-medium">{EMAIL}</span>
+        </span>
+      </a>
+    </div>
+
+    <div class="mt-6 flex items-center justify-between gap-3 border-t border-rule pt-5">
+      <span class="text-sm text-muted">{c.contact.follow}</span>
+      <div class="flex gap-2">
+        <a class="grid h-10 w-10 place-items-center rounded-full border border-rule hover:border-ink" href={INSTAGRAM} target="_blank" rel="noopener" aria-label="Instagram"><Icon name="instagram" size={18} /></a>
+        <a class="grid h-10 w-10 place-items-center rounded-full border border-rule hover:border-ink" href={FACEBOOK} target="_blank" rel="noopener" aria-label="Facebook"><Icon name="facebook" size={18} /></a>
+      </div>
+    </div>
+  </div>
+</dialog>

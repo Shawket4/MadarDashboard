@@ -9,6 +9,7 @@ import path from "node:path";
 import compression from "vite-plugin-compression";
 import { constants as zlibConstants } from "node:zlib";
 import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
+import { shopEntry } from "./vite/page-head";
 
 // Where this build will be mounted.
 //
@@ -28,6 +29,8 @@ export default defineConfig({
   plugins: [
     // `public/` is copied verbatim, so a README beside an asset ships with it.
     noDocsInTheBundle(),
+    // A shop build's page has no fixed address; the tenant shell writes it.
+    shopEntry(mount),
     react(),
     tailwindcss(),
     // Dev-only: the entry is order.html (not index.html), so serve it for every
@@ -58,7 +61,7 @@ export default defineConfig({
     compression({ algorithm: "gzip", ext: ".gz", threshold: 1024, deleteOriginFile: false, compressionOptions: { level: 9 } }),
   ],
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: { "@": path.resolve(__dirname, "./src"), "@shared": path.resolve(__dirname, "./shared") },
   },
   build: {
     outDir: mount === "/" ? "dist-order" : "dist-order-shop",

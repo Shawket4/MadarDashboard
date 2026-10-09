@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { Activity, Building2, Eye, EyeOff, LogIn, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, LogIn } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -23,16 +23,14 @@ import { LanguageToggle } from "@/components/layout/language-toggle";
 import { useLogin } from "@/data/api/generated/api";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { getErrorMessage } from "@/data/api/errors";
+import { isAxiosError } from "axios";
 import { fadeInUp, riseIn, staggerContainer } from "@/lib/motion";
 import { LegalLinks } from "@/components/legal-links";
+import { currentYear } from "@shared/dates";
+import { MadarWordmark } from "@/components/brand/madar-wordmark";
+import { BrandShowcase } from "./brand-showcase";
 
 type LoginValues = { email: string; password: string };
-
-const FEATURES = [
-  { icon: Activity, key: "realtime", descKey: "realtimeDesc" },
-  { icon: ShieldCheck, key: "rbac", descKey: "rbacDesc" },
-  { icon: Building2, key: "multi", descKey: "multiDesc" },
-] as const;
 
 export function LoginPage() {
   const { t, i18n } = useTranslation();
@@ -64,55 +62,47 @@ export function LoginPage() {
         signIn(data.token, data.user);
         navigate({ to: search.redirect ?? "/" });
       },
-      onError: (e) => toast.error(getErrorMessage(e)),
+      // A refused sign-in is wrong credentials (not an expired session), in
+      // the reader's language: the server's sentence is English.
+      onError: (e) =>
+        toast.error(isAxiosError(e) && e.response?.status === 401 ? t("auth.errors.invalid") : getErrorMessage(e)),
     },
   });
 
-  const year = new Date().getFullYear();
+  const year = currentYear(i18n.resolvedLanguage ?? i18n.language ?? "en");
 
   return (
     <div className="flex min-h-svh bg-background">
-      {/* Brand panel */}
-      <aside className="relative hidden w-1/2 overflow-hidden bg-primary text-primary-foreground dark:brand-panel lg:flex xl:w-[55%]">
-        <div className="pointer-events-none absolute -end-24 -top-24 size-96 rounded-full bg-brand/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -start-16 size-96 rounded-full bg-brand/20 blur-3xl" />
+      {/* Brand panel: the chrome's ink in both themes; the family on its orbit. */}
+      <aside className="relative isolate hidden w-1/2 overflow-hidden border-e border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex xl:w-[55%]">
         <motion.div
           initial="hidden"
           animate="show"
           variants={staggerContainer(0.14, 0.05)}
-          className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16"
+          className="relative flex w-full flex-col justify-between p-12 xl:p-16"
         >
           <motion.div variants={riseIn} className="flex items-center gap-3">
-            <img src="/Icon.svg" alt="" className="size-11 rounded-xl" draggable={false} />
+            <img src="/Icon.svg" alt="" className="size-11 rounded-xl ring-1 ring-sidebar-border" draggable={false} />
             <div className="leading-tight">
               <p className="text-xl font-semibold">{t("app.name", "Madar")}</p>
-              <p className="text-sm text-primary-foreground/60">{t("app.tagline", "Coffee Shop Management")}</p>
+              <p className="text-sm text-sidebar-muted">{t("app.tagline", "Coffee Shop Management")}</p>
             </div>
           </motion.div>
 
-          <motion.div variants={riseIn} className="max-w-md space-y-4">
-            <h1 className="font-serif text-4xl font-bold leading-tight tracking-tight xl:text-5xl">
+          <motion.div variants={riseIn} className="max-w-md">
+            <h1 className="font-serif text-4xl font-bold leading-tight tracking-tight text-balance xl:text-5xl">
               {t("auth.welcome", "Welcome back")}
             </h1>
-            <p className="text-base text-primary-foreground/70">
+            <p className="mt-4 text-base text-sidebar-muted">
               {t("auth.signInSubtitle", "Sign in to your account to continue")}
             </p>
-            <ul className="space-y-3 pt-4">
-              {FEATURES.map(({ icon: Icon, key, descKey }) => (
-                <li key={key} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10">
-                    <Icon className="size-4" />
-                  </span>
-                  <div>
-                    <p className="font-medium">{t(`auth.features.${key}`, key)}</p>
-                    <p className="text-sm text-primary-foreground/60">{t(`auth.features.${descKey}`, "")}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
           </motion.div>
 
-          <motion.p variants={riseIn} className="text-xs text-primary-foreground/50">
+          <motion.div variants={riseIn}>
+            <BrandShowcase />
+          </motion.div>
+
+          <motion.p variants={riseIn} className="text-xs text-sidebar-muted">
             {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
           </motion.p>
         </motion.div>
@@ -132,11 +122,10 @@ export function LoginPage() {
           className="w-full max-w-sm"
         >
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-start">
-            <img
-              src={isAr ? "/madar_ar.svg" : "/madar.svg"}
-              alt={t("app.name", "Madar")}
-              className="mb-6 h-9 w-auto select-none dark:brightness-0 dark:invert"
-              draggable={false}
+            <MadarWordmark
+              lang={isAr ? "ar" : "en"}
+              title={t("app.name", "Madar")}
+              className="mb-6 h-9 select-none"
             />
             <h2 className="text-2xl font-semibold tracking-tight">{t("auth.welcome", "Welcome back")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -195,10 +184,10 @@ export function LoginPage() {
             </form>
           </Form>
 
-          <p className="mt-8 text-center text-xs text-muted-foreground">
+          <p className="mt-8 text-center text-xs text-muted-foreground lg:hidden">
             {t("common.copyright", { year, defaultValue: `© ${year} Madar` })}
           </p>
-          <LegalLinks className="mt-2" />
+          <LegalLinks className="mt-2 lg:mt-8" />
         </motion.div>
       </main>
     </div>

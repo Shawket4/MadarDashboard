@@ -1,0 +1,41 @@
+#!/bin/sh
+# Prune the marketing site's old offline archives (get.madar-pos.cloud).
+#
+# Every site build writes a new assets/pack.<hash>.tar (site/integrations/
+# pack.mjs) and the deploy's rsync protects /assets/ from --delete, so a tab
+# still running an old build can finish loading it. Nothing ever removed them.
+# This deletes archives older than DAYS, but never one the live sw.js names:
+# rsync keeps a file's first upload time, so a site left undeployed for longer
+# than DAYS would otherwise lose its current archive.
+#
+# Installed on the box as /etc/cron.daily/madar-prune-get-packs (no dot in the
+# name, or run-parts skips it). `--dry-run` lists what it would delete.
+set -eu
+
+ROOT=${MADAR_GET_ROOT:-/var/www/madar-get}
+DAYS=30
+DRY=0
+[ "${1:-}" = "--dry-run" ] && DRY=1
+
+# The archive(s) the live service worker loads. If sw.js is missing or names
+# none, we cannot tell which one is live: delete nothing.
+live=$(grep -o 'pack\.[A-Za-z0-9_-]*\.tar' "$ROOT/sw.js" 2>/dev/null | sort -u || true)
+if [ -z "$live" ]; then
+  logger -t madar-prune-get-packs "no archive named in $ROOT/sw.js; nothing deleted"
+  exit 0
+fi
+
+find "$ROOT/assets" -maxdepth 1 -type f -name 'pack.*.tar*' -mtime +"$DAYS" | while read -r f; do
+  name=$(basename "$f")
+  keep=0
+  for l in $live; do
+    case "$name" in "$l" | "$l".*) keep=1 ;; esac
+  done
+  [ "$keep" -eq 1 ] && continue
+  if [ "$DRY" -eq 1 ]; then
+    echo "would delete $f"
+  else
+    rm -f -- "$f"
+    logger -t madar-prune-get-packs "deleted $f"
+  fi
+done

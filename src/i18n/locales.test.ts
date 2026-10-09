@@ -191,8 +191,8 @@ const STRICT = [
   "features/branches/branch-dialog.tsx",
 ];
 
-/** Gaps elsewhere in the app when this gate landed (POS pages, landing). */
-const RATCHET = 111;
+/** Gaps elsewhere in the app when this gate landed (POS pages; the old landing's 21 left with it). */
+const RATCHET = 90;
 
 function literalKeys(src: string): string[] {
   const keys: string[] = [];

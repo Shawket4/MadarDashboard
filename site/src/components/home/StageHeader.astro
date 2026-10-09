@@ -1,0 +1,24 @@
+---
+interface Props {
+  id: string;
+  time: string;
+  name: string;
+  line: string;
+  tone?: "paper" | "ink";
+}
+const { id, time, name, line, tone = "paper" } = Astro.props;
+const ink = tone === "ink";
+---
+<header class="container-site pt-24 md:pt-32" data-stage-head={id}>
+  <div class="flex flex-wrap items-end gap-x-8 gap-y-3">
+    <span
+      class:list={["ltr font-mono text-[clamp(3.6rem,2.2rem+6vw,8rem)] font-medium leading-[0.9] tracking-tight tabular", ink ? "text-teal-light" : "text-teal"]}
+      data-stage-time={time}
+    >{time}</span>
+    <div class="pb-1">
+      <h2 class="text-h2" data-split>{name}</h2>
+    </div>
+  </div>
+  <p class:list={["text-lead mt-5 max-w-xl", ink ? "text-muted-ink" : "text-muted"]} data-reveal>{line}</p>
+  <div class:list={["mt-12 h-px w-full", ink ? "bg-line-ink" : "bg-ink/10"]} data-draw-line></div>
+</header>

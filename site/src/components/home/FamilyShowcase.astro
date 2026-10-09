@@ -1,0 +1,108 @@
+---
+/**
+ * The family: Madar's products as 3D objects, one at a time, as the page scrolls.
+ *
+ * With motion, the panel pins and scrolling moves through the six objects
+ * (scripts/family.ts drives the shared 3D engine, shared/showcase, with GSAP),
+ * like the area scenes further down: the item that goes with the object on show
+ * stays bright, a progress line fills, a flick skips the pause.
+ *  - Desktop: the words and the list beside the stage.
+ *  - Phones: the words above the scene; inside it, the stage and its item.
+ * The stage starts as the 2D orbit (pure CSS) and the 3D fades in over it once
+ * it has loaded; where 3D can't run (no WebGL, data saving on, a lost GPU), the
+ * orbit stays. Without JavaScript or with reduced motion nothing pins: the orbit
+ * and the whole list show.
+ */
+import { t } from "@/i18n";
+import type { Lang } from "@/lib/site";
+import { DAWAM_STROKES } from "@shared/showcase/marks";
+import { SHOWCASE_KEYS, type ShowcaseKey } from "@shared/showcase/keys";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = t(lang).family;
+
+/** The 2D orbit: where each object rides (ring radius as % of the stage, angle in degrees) and its icon. */
+const BODIES: { key: ShowcaseKey; r: number; deg: number; icon?: string }[] = [
+  { key: "till", r: 25, deg: -70, icon: "M4 7h16v10H4zM8 7V4h8v3M8 12h3" },
+  { key: "kitchen", r: 25, deg: 110, icon: "M3 5h18v11H3zM8 20h8M12 16v4" },
+  { key: "ordering", r: 37, deg: -160, icon: "M7 7h10l-1.2 13H8.2zM6 4h12v3H6z" },
+  { key: "receipt", r: 37, deg: 20, icon: "M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6" },
+  { key: "rewards", r: 48, deg: -25, icon: "M4 7h16v10H4zM4 11h16M8 15h2" },
+  { key: "dawam", r: 48, deg: 155 },
+];
+const at = (r: number, deg: number) => {
+  const a = (deg * Math.PI) / 180;
+  return `left:${(50 + r * Math.cos(a)).toFixed(2)}%;top:${(50 + r * Math.sin(a)).toFixed(2)}%`;
+};
+---
+<section id="family" class="family on-ink relative bg-ink text-paper" aria-labelledby="family-title" data-family>
+  <div class="family-intro-m container-site pt-16" aria-hidden="true">
+    <p class="kicker text-teal-light">{c.kicker}</p>
+    <p class="text-h2 mt-4" data-split>{c.title}</p>
+    <p class="text-lead mt-5 text-muted-ink">{c.body}</p>
+  </div>
+
+  <div class="family-panel" data-family-pin>
+    <div class="family-grid container-site grid w-full gap-12 py-20 md:py-28 lg:grid-cols-12 lg:items-center lg:gap-14">
+      <div class="family-copy lg:col-span-5">
+        <p class="kicker text-teal-light">{c.kicker}</p>
+        <h2 id="family-title" class="text-h2 mt-4" data-split>{c.title}</h2>
+        <p class="text-lead mt-5 text-muted-ink">{c.body}</p>
+        <ol class="family-list mt-8">
+          {SHOWCASE_KEYS.map((k, i) => (
+            <li class="family-item" data-family-item={k} data-active={i === 0 ? "" : undefined}>
+              <p class="family-item-title">{c.items[k].title}</p>
+              <p class="family-item-line text-muted-ink">{c.items[k].line}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div class="family-side lg:col-span-7">
+        <div class="family-stage" data-family-stage>
+          <div class="family-orbit" aria-hidden="true">
+            <div class="family-orbit-turn">
+              <svg viewBox="0 0 200 200" class="family-orbit-rings">
+                <g fill="none" stroke="currentColor" stroke-width="0.5">
+                  <circle cx="100" cy="100" r="50" />
+                  <circle cx="100" cy="100" r="74" />
+                  <circle cx="100" cy="100" r="96" />
+                </g>
+                <circle cx="100" cy="4" r="2.2" class="fill-teal-light" />
+              </svg>
+              {BODIES.map(({ key, r, deg, icon }) => (
+                <div class="family-orbit-body" style={at(r, deg)}>
+                  <span class="family-chip">
+                    {icon ? (
+                      <svg viewBox="0 0 24 24" class="size-3.5 text-muted-ink" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d={icon} /></svg>
+                    ) : (
+                      <svg viewBox="15 8 70 84" class="h-3.5 w-auto"><g stroke="currentColor" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round">{DAWAM_STROKES.map((d) => <path d={d} />)}</g></svg>
+                    )}
+                    {c.items[key].name}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <svg viewBox="0 0 80 80" class="family-orbit-mark">
+              <circle cx="40" cy="40" r="22.5" fill="none" stroke="currentColor" stroke-width="4.3" />
+              <circle cx="40" cy="40" r="7.9" fill="currentColor" />
+              <circle cx="55.8" cy="24.1" r="5.3" class="fill-teal-light" />
+            </svg>
+          </div>
+        </div>
+        <span class="family-progress" aria-hidden="true"><i data-family-progress></i></span>
+        <div class="family-texts" aria-hidden="true">
+          {SHOWCASE_KEYS.map((k, i) => (
+            <div class="family-text" data-family-text={k} data-active={i === 0 ? "" : undefined}>
+              <p class="family-item-title">{c.items[k].title}</p>
+              <p class="family-item-line text-muted-ink">{c.items[k].line}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

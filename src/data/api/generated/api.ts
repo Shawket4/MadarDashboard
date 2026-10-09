@@ -392,6 +392,7 @@ import type {
   MarkPaid,
   MarketingLink,
   MaterialCostTrendRow,
+  McpBody,
   MeResponse,
   MealLinkWrite,
   MemberDetail,
@@ -516,6 +517,7 @@ import type {
   PublicOrgLinksParams,
   PublicSlots,
   PublicTable,
+  PublicTenantShellParams,
   PublishWeek,
   PullParams,
   PullRequest,
@@ -738,6 +740,196 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+/**
+ * @summary What this host is, for a person or an agent that opens it.
+ */
+export const apiRoot = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<unknown>(
+      {url: `/`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getApiRootQueryKey = () => {
+    return [
+    `/`
+    ] as const;
+    }
+
+
+export const getApiRootQueryOptions = <TData = Awaited<ReturnType<typeof apiRoot>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getApiRootQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof apiRoot>>> = ({ signal }) => apiRoot(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ApiRootQueryResult = NonNullable<Awaited<ReturnType<typeof apiRoot>>>
+export type ApiRootQueryError = unknown
+
+
+export function useApiRoot<TData = Awaited<ReturnType<typeof apiRoot>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof apiRoot>>,
+          TError,
+          Awaited<ReturnType<typeof apiRoot>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useApiRoot<TData = Awaited<ReturnType<typeof apiRoot>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof apiRoot>>,
+          TError,
+          Awaited<ReturnType<typeof apiRoot>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useApiRoot<TData = Awaited<ReturnType<typeof apiRoot>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary What this host is, for a person or an agent that opens it.
+ */
+
+export function useApiRoot<TData = Awaited<ReturnType<typeof apiRoot>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof apiRoot>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getApiRootQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary The MCP server card: how to reach this server and what it offers, built from
+the same tool list `tools/list` answers with, so the two cannot disagree. The
+marketing site's /.well-known/mcp/server-card.json redirects here.
+ */
+export const mcpServerCard = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<unknown>(
+      {url: `/.well-known/mcp/server-card.json`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getMcpServerCardQueryKey = () => {
+    return [
+    `/.well-known/mcp/server-card.json`
+    ] as const;
+    }
+
+
+export const getMcpServerCardQueryOptions = <TData = Awaited<ReturnType<typeof mcpServerCard>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mcpServerCard>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMcpServerCardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mcpServerCard>>> = ({ signal }) => mcpServerCard(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof mcpServerCard>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type McpServerCardQueryResult = NonNullable<Awaited<ReturnType<typeof mcpServerCard>>>
+export type McpServerCardQueryError = unknown
+
+
+export function useMcpServerCard<TData = Awaited<ReturnType<typeof mcpServerCard>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof mcpServerCard>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mcpServerCard>>,
+          TError,
+          Awaited<ReturnType<typeof mcpServerCard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpServerCard<TData = Awaited<ReturnType<typeof mcpServerCard>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mcpServerCard>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mcpServerCard>>,
+          TError,
+          Awaited<ReturnType<typeof mcpServerCard>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMcpServerCard<TData = Awaited<ReturnType<typeof mcpServerCard>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mcpServerCard>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The MCP server card: how to reach this server and what it offers, built from
+the same tool list `tools/list` answers with, so the two cannot disagree. The
+marketing site's /.well-known/mcp/server-card.json redirects here.
+ */
+
+export function useMcpServerCard<TData = Awaited<ReturnType<typeof mcpServerCard>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mcpServerCard>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMcpServerCardQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const listAddonItems = (
     params: ListAddonItemsParams,
@@ -16586,6 +16778,71 @@ export function useGetLoyaltyWalletStatus<TData = Awaited<ReturnType<typeof getL
 
 
 
+/**
+ * @summary One JSON-RPC message in, one answer out (a notification gets 202 and no body).
+ */
+export const mcp = (
+    mcpBody: McpBody,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/mcp`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: mcpBody, signal
+    },
+      options);
+    }
+
+
+
+
+export const getMcpMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcp>>, TError,{data: McpBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof mcp>>, TError,{data: McpBody}, TContext> => {
+
+const mutationKey = ['mcp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mcp>>, {data: McpBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  mcp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type McpMutationResult = NonNullable<Awaited<ReturnType<typeof mcp>>>
+    export type McpMutationBody = McpBody
+    export type McpMutationError = unknown
+
+    /**
+ * @summary One JSON-RPC message in, one answer out (a notification gets 202 and no body).
+ */
+export const useMcp = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mcp>>, TError,{data: McpBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mcp>>,
+        TError,
+        {data: McpBody},
+        TContext
+      > => {
+      return useMutation(getMcpMutationOptions(options), queryClient);
+    }
+
 export const putSizeBase = (
     sizeId: string,
     putSizeBaseRequest: PutSizeBaseRequest,
@@ -20202,6 +20459,99 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getVoidOpenTicketMutationOptions(options), queryClient);
     }
 
+/**
+ * @summary The public part of this API as OpenAPI 3.1.
+ */
+export const publicOpenapi = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<unknown>(
+      {url: `/openapi.json`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicOpenapiQueryKey = () => {
+    return [
+    `/openapi.json`
+    ] as const;
+    }
+
+
+export const getPublicOpenapiQueryOptions = <TData = Awaited<ReturnType<typeof publicOpenapi>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicOpenapiQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicOpenapi>>> = ({ signal }) => publicOpenapi(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicOpenapiQueryResult = NonNullable<Awaited<ReturnType<typeof publicOpenapi>>>
+export type PublicOpenapiQueryError = unknown
+
+
+export function usePublicOpenapi<TData = Awaited<ReturnType<typeof publicOpenapi>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicOpenapi>>,
+          TError,
+          Awaited<ReturnType<typeof publicOpenapi>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicOpenapi<TData = Awaited<ReturnType<typeof publicOpenapi>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicOpenapi>>,
+          TError,
+          Awaited<ReturnType<typeof publicOpenapi>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicOpenapi<TData = Awaited<ReturnType<typeof publicOpenapi>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The public part of this API as OpenAPI 3.1.
+ */
+
+export function usePublicOpenapi<TData = Awaited<ReturnType<typeof publicOpenapi>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicOpenapi>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicOpenapiQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const listOrders = (
     params?: ListOrdersParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -23637,6 +23987,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getDeleteUserPermissionMutationOptions(options), queryClient);
     }
 
+/**
+ * `org_id` names the shop. Only active branches with booking switched on are listed.
+ * @summary A shop's branches that take table bookings online.
+ */
 export const bookingBranches = (
     params: BookingBranchesParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -23706,6 +24060,9 @@ export function useBookingBranches<TData = Awaited<ReturnType<typeof bookingBran
  params: BookingBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof bookingBranches>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A shop's branches that take table bookings online.
+ */
 
 export function useBookingBranches<TData = Awaited<ReturnType<typeof bookingBranches>>, TError = ErrorBody>(
  params: BookingBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof bookingBranches>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -23725,6 +24082,10 @@ export function useBookingBranches<TData = Awaited<ReturnType<typeof bookingBran
 
 
 
+/**
+ * Answers 201 with the booking. The time must be a free slot after the branch's lead time. Where the branch's `require_otp` is on, send the `device_token` from `/public/otp/verify`.
+ * @summary Book a table at a branch.
+ */
 export const createPublicBooking = (
     publicBookingInput: PublicBookingInput,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -23773,7 +24134,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreatePublicBookingMutationBody = PublicBookingInput
     export type CreatePublicBookingMutationError = ErrorBody
 
-    export const useCreatePublicBooking = <TError = ErrorBody,
+    /**
+ * @summary Book a table at a branch.
+ */
+export const useCreatePublicBooking = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPublicBooking>>, TError,{data: PublicBookingInput}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createPublicBooking>>,
@@ -23784,6 +24148,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreatePublicBookingMutationOptions(options), queryClient);
     }
 
+/**
+ * @summary A booking, by the manage token from its confirmation link.
+ */
 export const getPublicBooking = (
     token: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -23852,6 +24219,9 @@ export function useGetPublicBooking<TData = Awaited<ReturnType<typeof getPublicB
  token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicBooking>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A booking, by the manage token from its confirmation link.
+ */
 
 export function useGetPublicBooking<TData = Awaited<ReturnType<typeof getPublicBooking>>, TError = ErrorBody>(
  token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPublicBooking>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -23871,6 +24241,10 @@ export function useGetPublicBooking<TData = Awaited<ReturnType<typeof getPublicB
 
 
 
+/**
+ * Only a confirmed booking, and only until the branch's lead time before it starts; after that, 409.
+ * @summary Change a booking's time, party size or notes, by its manage token.
+ */
 export const updatePublicBooking = (
     token: string,
     publicBookingChange: PublicBookingChange,
@@ -23920,7 +24294,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdatePublicBookingMutationBody = PublicBookingChange
     export type UpdatePublicBookingMutationError = ErrorBody
 
-    export const useUpdatePublicBooking = <TError = ErrorBody,
+    /**
+ * @summary Change a booking's time, party size or notes, by its manage token.
+ */
+export const useUpdatePublicBooking = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePublicBooking>>, TError,{token: string;data: PublicBookingChange}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updatePublicBooking>>,
@@ -23931,6 +24308,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getUpdatePublicBookingMutationOptions(options), queryClient);
     }
 
+/**
+ * Cancelling a booking that is already cancelled returns it unchanged. A party already seated is the venue's to cancel.
+ * @summary Cancel a booking, by its manage token.
+ */
 export const cancelPublicBooking = (
     token: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -23977,7 +24358,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CancelPublicBookingMutationError = ErrorBody
 
-    export const useCancelPublicBooking = <TError = ErrorBody,
+    /**
+ * @summary Cancel a booking, by its manage token.
+ */
+export const useCancelPublicBooking = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelPublicBooking>>, TError,{token: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof cancelPublicBooking>>,
@@ -23988,6 +24372,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCancelPublicBookingMutationOptions(options), queryClient);
     }
 
+/**
+ * `org_id` names the shop. With `browse=true` every active branch is listed, for a read-only menu.
+ * @summary A shop's branches that take online orders, with each channel's hours and settings.
+ */
 export const publicBranches = (
     params: PublicBranchesParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -24057,6 +24445,9 @@ export function usePublicBranches<TData = Awaited<ReturnType<typeof publicBranch
  params: PublicBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicBranches>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A shop's branches that take online orders, with each channel's hours and settings.
+ */
 
 export function usePublicBranches<TData = Awaited<ReturnType<typeof publicBranches>>, TError = ErrorBody>(
  params: PublicBranchesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicBranches>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -24076,6 +24467,10 @@ export function usePublicBranches<TData = Awaited<ReturnType<typeof publicBranch
 
 
 
+/**
+ * `require_otp` says whether a booking needs a phone verified through `/public/otp/verify`.
+ * @summary A branch's booking rules: party sizes, slot length, lead time and how far ahead.
+ */
 export const bookingInfo = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -24144,6 +24539,9 @@ export function useBookingInfo<TData = Awaited<ReturnType<typeof bookingInfo>>, 
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof bookingInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A branch's booking rules: party sizes, slot length, lead time and how far ahead.
+ */
 
 export function useBookingInfo<TData = Awaited<ReturnType<typeof bookingInfo>>, TError = ErrorBody>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof bookingInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -24163,6 +24561,10 @@ export function useBookingInfo<TData = Awaited<ReturnType<typeof bookingInfo>>, 
 
 
 
+/**
+ * Refused when the branch takes no online bookings, or the date or party size is outside its rules.
+ * @summary The free booking times at a branch for one date and party size.
+ */
 export const bookingSlots = (
     id: string,
     params: BookingSlotsParams,
@@ -24238,6 +24640,9 @@ export function useBookingSlots<TData = Awaited<ReturnType<typeof bookingSlots>>
     params: BookingSlotsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof bookingSlots>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The free booking times at a branch for one date and party size.
+ */
 
 export function useBookingSlots<TData = Awaited<ReturnType<typeof bookingSlots>>, TError = ErrorBody>(
  id: string,
@@ -24324,6 +24729,10 @@ export const usePublicBranchCartQuote = <TError = ErrorBody,
       return useMutation(getPublicBranchCartQuoteMutationOptions(options), queryClient);
     }
 
+/**
+ * Needs `lat`, `lng` and `channel`. `status` says whether the branch delivers there; the fee is in piastres.
+ * @summary The delivery fee and zone for a point, before ordering.
+ */
 export const deliveryQuote = (
     id: string,
     params: DeliveryQuoteParams,
@@ -24399,6 +24808,9 @@ export function useDeliveryQuote<TData = Awaited<ReturnType<typeof deliveryQuote
     params: DeliveryQuoteParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof deliveryQuote>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The delivery fee and zone for a point, before ordering.
+ */
 
 export function useDeliveryQuote<TData = Awaited<ReturnType<typeof deliveryQuote>>, TError = ErrorBody>(
  id: string,
@@ -24419,6 +24831,10 @@ export function useDeliveryQuote<TData = Awaited<ReturnType<typeof deliveryQuote
 
 
 
+/**
+ * `channel` is `in_mall`, `outside`, `umbrella` or `pickup`. `preview=true` shows a channel's menu while it is closed, and `channel=dine_in&preview=true` gives the read-only dine-in menu. Nothing can be ordered from a preview.
+ * @summary A branch's menu for one ordering channel, with prices in piastres.
+ */
 export const publicMenu = (
     id: string,
     params: PublicMenuParams,
@@ -24494,6 +24910,9 @@ export function usePublicMenu<TData = Awaited<ReturnType<typeof publicMenu>>, TE
     params: PublicMenuParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A branch's menu for one ordering channel, with prices in piastres.
+ */
 
 export function usePublicMenu<TData = Awaited<ReturnType<typeof publicMenu>>, TError = ErrorBody>(
  id: string,
@@ -24514,6 +24933,10 @@ export function usePublicMenu<TData = Awaited<ReturnType<typeof publicMenu>>, TE
 
 
 
+/**
+ * Answers 201 with the order; follow it at `/public/delivery-orders/{id}/track`. The server prices the cart in piastres. Where the branch requires a verified phone (the default), send the `device_token` from `/public/otp/verify`.
+ * @summary Place an online order (delivery or pickup) at a branch.
+ */
 export const createDeliveryOrder = (
     deliveryOrderInput: DeliveryOrderInput,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -24562,7 +24985,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateDeliveryOrderMutationBody = DeliveryOrderInput
     export type CreateDeliveryOrderMutationError = ErrorBody
 
-    export const useCreateDeliveryOrder = <TError = ErrorBody,
+    /**
+ * @summary Place an online order (delivery or pickup) at a branch.
+ */
+export const useCreateDeliveryOrder = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDeliveryOrder>>, TError,{data: DeliveryOrderInput}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createDeliveryOrder>>,
@@ -24573,6 +24999,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreateDeliveryOrderMutationOptions(options), queryClient);
     }
 
+/**
+ * Needs `phone` and the `device_token` from `/public/otp/verify`; a phone number alone unlocks nothing.
+ * @summary A customer's past orders at a shop, by their verified phone.
+ */
 export const guestOrderHistory = (
     params: GuestOrderHistoryParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -24642,6 +25072,9 @@ export function useGuestOrderHistory<TData = Awaited<ReturnType<typeof guestOrde
  params: GuestOrderHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof guestOrderHistory>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A customer's past orders at a shop, by their verified phone.
+ */
 
 export function useGuestOrderHistory<TData = Awaited<ReturnType<typeof guestOrderHistory>>, TError = ErrorBody>(
  params: GuestOrderHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof guestOrderHistory>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -24661,6 +25094,10 @@ export function useGuestOrderHistory<TData = Awaited<ReturnType<typeof guestOrde
 
 
 
+/**
+ * Needs `phone` and the `device_token` from `/public/otp/verify`.
+ * @summary A customer's saved delivery addresses at a shop, by their verified phone.
+ */
 export const guestPastLocations = (
     params: GuestPastLocationsParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -24730,6 +25167,9 @@ export function useGuestPastLocations<TData = Awaited<ReturnType<typeof guestPas
  params: GuestPastLocationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof guestPastLocations>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A customer's saved delivery addresses at a shop, by their verified phone.
+ */
 
 export function useGuestPastLocations<TData = Awaited<ReturnType<typeof guestPastLocations>>, TError = ErrorBody>(
  params: GuestPastLocationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof guestPastLocations>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -24749,6 +25189,10 @@ export function useGuestPastLocations<TData = Awaited<ReturnType<typeof guestPas
 
 
 
+/**
+ * Amounts are in piastres.
+ * @summary An online order's status, timeline and totals, from the id in its tracking link.
+ */
 export const trackDeliveryOrder = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -24817,6 +25261,9 @@ export function useTrackDeliveryOrder<TData = Awaited<ReturnType<typeof trackDel
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof trackDeliveryOrder>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary An online order's status, timeline and totals, from the id in its tracking link.
+ */
 
 export function useTrackDeliveryOrder<TData = Awaited<ReturnType<typeof trackDeliveryOrder>>, TError = ErrorBody>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof trackDeliveryOrder>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -24836,6 +25283,10 @@ export function useTrackDeliveryOrder<TData = Awaited<ReturnType<typeof trackDel
 
 
 
+/**
+ * The token is the one on the card's barcode.
+ * @summary A rewards card: the member's balance, progress to the next reward, rewards and wallet links.
+ */
 export const loyaltyCard = (
     token: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -24904,6 +25355,9 @@ export function useLoyaltyCard<TData = Awaited<ReturnType<typeof loyaltyCard>>, 
  token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCard>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A rewards card: the member's balance, progress to the next reward, rewards and wallet links.
+ */
 
 export function useLoyaltyCard<TData = Awaited<ReturnType<typeof loyaltyCard>>, TError = ErrorBody>(
  token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyCard>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -25025,6 +25479,10 @@ export function useLoyaltyCardOrders<TData = Awaited<ReturnType<typeof loyaltyCa
 
 
 
+/**
+ * The card's own token is the key. Answers 204.
+ * @summary Save a card holder's choices: no marketing messages, and the language to write in.
+ */
 export const setLoyaltyCardPreferences = (
     token: string,
     cardPreferences: CardPreferences,
@@ -25074,7 +25532,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type SetLoyaltyCardPreferencesMutationBody = CardPreferences
     export type SetLoyaltyCardPreferencesMutationError = ErrorBody
 
-    export const useSetLoyaltyCardPreferences = <TError = ErrorBody,
+    /**
+ * @summary Save a card holder's choices: no marketing messages, and the language to write in.
+ */
+export const useSetLoyaltyCardPreferences = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setLoyaltyCardPreferences>>, TError,{token: string;data: CardPreferences}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof setLoyaltyCardPreferences>>,
@@ -25186,6 +25647,10 @@ export function useLoyaltyCardQr<TData = Awaited<ReturnType<typeof loyaltyCardQr
 
 
 
+/**
+ * Where `require_otp` is on, send the `device_token` from `/public/otp/verify`; until the phone is proven the answer carries no card.
+ * @summary Join a shop's rewards programme.
+ */
 export const loyaltyJoin = (
     joinInput: JoinInput,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -25234,7 +25699,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type LoyaltyJoinMutationBody = JoinInput
     export type LoyaltyJoinMutationError = ErrorBody
 
-    export const useLoyaltyJoin = <TError = ErrorBody,
+    /**
+ * @summary Join a shop's rewards programme.
+ */
+export const useLoyaltyJoin = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyJoin>>, TError,{data: JoinInput}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof loyaltyJoin>>,
@@ -25245,6 +25713,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getLoyaltyJoinMutationOptions(options), queryClient);
     }
 
+/**
+ * Name the shop with `org_id`, or a branch with `branch_id` from its counter code.
+ * @summary What a rewards programme's join page shows: its brand, rewards and what joining asks for.
+ */
 export const loyaltyJoinInfo = (
     params?: LoyaltyJoinInfoParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -25314,6 +25786,9 @@ export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoin
  params?: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary What a rewards programme's join page shows: its brand, rewards and what joining asks for.
+ */
 
 export function useLoyaltyJoinInfo<TData = Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError = ErrorBody>(
  params?: LoyaltyJoinInfoParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof loyaltyJoinInfo>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -25429,6 +25904,10 @@ export function useLoyaltyApplePass<TData = Awaited<ReturnType<typeof loyaltyApp
 
 
 
+/**
+ * The card's token alone shows only a first name and a masked phone. With a `device_token` for the member's current phone it gives the full prefill and saved addresses.
+ * @summary "Order now" from a wallet card: the member's last branch and channel, to prefill an order.
+ */
 export const orderNowContext = (
     token: string,
     params?: OrderNowContextParams,
@@ -25504,6 +25983,9 @@ export function useOrderNowContext<TData = Awaited<ReturnType<typeof orderNowCon
     params?: OrderNowContextParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof orderNowContext>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary "Order now" from a wallet card: the member's last branch and channel, to prefill an order.
+ */
 
 export function useOrderNowContext<TData = Awaited<ReturnType<typeof orderNowContext>>, TError = ErrorBody>(
  token: string,
@@ -25524,6 +26006,10 @@ export function useOrderNowContext<TData = Awaited<ReturnType<typeof orderNowCon
 
 
 
+/**
+ * The answer to a `PHONE_BELONGS_TO_ANOTHER` refusal from replace-identity, with the same proofs. This card's customer is the one kept.
+ * @summary Merge the profile that already holds the new phone into this card's profile.
+ */
 export const orderNowCombine = (
     token: string,
     replaceIdentityRequest: ReplaceIdentityRequest,
@@ -25573,7 +26059,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type OrderNowCombineMutationBody = ReplaceIdentityRequest
     export type OrderNowCombineMutationError = ErrorBody
 
-    export const useOrderNowCombine = <TError = ErrorBody,
+    /**
+ * @summary Merge the profile that already holds the new phone into this card's profile.
+ */
+export const useOrderNowCombine = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof orderNowCombine>>, TError,{token: string;data: ReplaceIdentityRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof orderNowCombine>>,
@@ -25584,6 +26073,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getOrderNowCombineMutationOptions(options), queryClient);
     }
 
+/**
+ * Needs proof of both phones: `device_token` for the current one and `new_phone_device_token` for the new one. At most two changes in 30 days.
+ * @summary Change the phone number on a card's customer profile.
+ */
 export const orderNowReplaceIdentity = (
     token: string,
     replaceIdentityRequest: ReplaceIdentityRequest,
@@ -25633,7 +26126,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type OrderNowReplaceIdentityMutationBody = ReplaceIdentityRequest
     export type OrderNowReplaceIdentityMutationError = ErrorBody | void
 
-    export const useOrderNowReplaceIdentity = <TError = ErrorBody | void,
+    /**
+ * @summary Change the phone number on a card's customer profile.
+ */
+export const useOrderNowReplaceIdentity = <TError = ErrorBody | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof orderNowReplaceIdentity>>, TError,{token: string;data: ReplaceIdentityRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof orderNowReplaceIdentity>>,
@@ -25947,6 +26443,10 @@ export function usePublicOrgLinks<TData = Awaited<ReturnType<typeof publicOrgLin
 
 
 
+/**
+ * One live code per phone per minute (409 otherwise). Check it with `/public/otp/verify`.
+ * @summary Send a 4-digit code by WhatsApp to verify a phone number.
+ */
 export const otpRequest = (
     otpRequestInput: OtpRequestInput,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -25995,7 +26495,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type OtpRequestMutationBody = OtpRequestInput
     export type OtpRequestMutationError = ErrorBody
 
-    export const useOtpRequest = <TError = ErrorBody,
+    /**
+ * @summary Send a 4-digit code by WhatsApp to verify a phone number.
+ */
+export const useOtpRequest = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof otpRequest>>, TError,{data: OtpRequestInput}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof otpRequest>>,
@@ -26006,6 +26509,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getOtpRequestMutationOptions(options), queryClient);
     }
 
+/**
+ * Ordering, booking, the rewards card and order history take this token where a shop asks for a verified phone. A code allows five tries.
+ * @summary Check a WhatsApp code and get a `device_token` that proves the phone.
+ */
 export const otpVerify = (
     otpVerifyInput: OtpVerifyInput,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -26054,7 +26561,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type OtpVerifyMutationBody = OtpVerifyInput
     export type OtpVerifyMutationError = ErrorBody
 
-    export const useOtpVerify = <TError = ErrorBody,
+    /**
+ * @summary Check a WhatsApp code and get a `device_token` that proves the phone.
+ */
+export const useOtpVerify = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof otpVerify>>, TError,{data: OtpVerifyInput}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof otpVerify>>,
@@ -26133,6 +26643,9 @@ export const usePublicTableOrder = <TError = ErrorBody,
       return useMutation(getPublicTableOrderMutationOptions(options), queryClient);
     }
 
+/**
+ * @summary The table behind a QR code: its label, its branch, and whether the branch is taking orders now.
+ */
 export const publicTable = (
     id: string,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -26201,6 +26714,9 @@ export function usePublicTable<TData = Awaited<ReturnType<typeof publicTable>>, 
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTable>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The table behind a QR code: its label, its branch, and whether the branch is taking orders now.
+ */
 
 export function usePublicTable<TData = Awaited<ReturnType<typeof publicTable>>, TError = ErrorBody>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTable>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -26372,6 +26888,103 @@ export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTable
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getPublicTableMenuQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * Called by nginx for page requests on a shop's own host. Public by nature:
+ * it returns what the shop's public pages and the public JSON endpoints
+ * already show.
+ * @summary A shop page's HTML: the app entry with the shop's head and noscript.
+ */
+export const publicTenantShell = (
+    params?: PublicTenantShellParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<unknown>(
+      {url: `/public/tenant-shell`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicTenantShellQueryKey = (params?: PublicTenantShellParams,) => {
+    return [
+    `/public/tenant-shell`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPublicTenantShellQueryOptions = <TData = Awaited<ReturnType<typeof publicTenantShell>>, TError = unknown>(params?: PublicTenantShellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicTenantShellQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicTenantShell>>> = ({ signal }) => publicTenantShell(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicTenantShellQueryResult = NonNullable<Awaited<ReturnType<typeof publicTenantShell>>>
+export type PublicTenantShellQueryError = unknown
+
+
+export function usePublicTenantShell<TData = Awaited<ReturnType<typeof publicTenantShell>>, TError = unknown>(
+ params: undefined |  PublicTenantShellParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicTenantShell>>,
+          TError,
+          Awaited<ReturnType<typeof publicTenantShell>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicTenantShell<TData = Awaited<ReturnType<typeof publicTenantShell>>, TError = unknown>(
+ params?: PublicTenantShellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicTenantShell>>,
+          TError,
+          Awaited<ReturnType<typeof publicTenantShell>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicTenantShell<TData = Awaited<ReturnType<typeof publicTenantShell>>, TError = unknown>(
+ params?: PublicTenantShellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A shop page's HTML: the app entry with the shop's head and noscript.
+ */
+
+export function usePublicTenantShell<TData = Awaited<ReturnType<typeof publicTenantShell>>, TError = unknown>(
+ params?: PublicTenantShellParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTenantShell>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicTenantShellQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

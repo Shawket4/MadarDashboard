@@ -615,21 +615,21 @@ export const MOCK_PURCHASE_ORDERS = [
 /** Line items per PO id (PurchaseOrderFull = PurchaseOrder + lines[]). */
 export const MOCK_PO_LINES: Record<string, Array<Record<string, unknown>>> = {
   po_2041: [
-    { id: "pol_1", purchase_order_id: "po_2041", org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", unit: "kg", purchase_unit: "case", units_per_purchase_unit: 6, quantity_ordered: 4, quantity_received: 0, unit_cost: 270_000 },
+    { id: "pol_1", purchase_order_id: "po_2041", org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", unit: "kg", purchase_unit: "case", units_per_purchase_unit: 6, quantity_ordered: 4, quantity_received: 0, unit_cost: 270_000, unit_cost_exact: 270_000, line_cost: 1_080_000 },
   ],
   po_2040: [
-    { id: "pol_2", purchase_order_id: "po_2040", org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", unit: "l", purchase_unit: "case", units_per_purchase_unit: 12, quantity_ordered: 6, quantity_received: 4, unit_cost: 21_600 },
-    { id: "pol_3", purchase_order_id: "po_2040", org_ingredient_id: "ing_cream", ingredient_name: "Heavy Cream", unit: "l", purchase_unit: "l", units_per_purchase_unit: 1, quantity_ordered: 12, quantity_received: 12, unit_cost: 3_200 },
+    { id: "pol_2", purchase_order_id: "po_2040", org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", unit: "l", purchase_unit: "case", units_per_purchase_unit: 12, quantity_ordered: 6, quantity_received: 4, unit_cost: 21_600, unit_cost_exact: 21_600, line_cost: 129_600 },
+    { id: "pol_3", purchase_order_id: "po_2040", org_ingredient_id: "ing_cream", ingredient_name: "Heavy Cream", unit: "l", purchase_unit: "l", units_per_purchase_unit: 1, quantity_ordered: 12, quantity_received: 12, unit_cost: 3_200, unit_cost_exact: 3_200, line_cost: 38_400 },
   ],
   po_2039: [
-    { id: "pol_4", purchase_order_id: "po_2039", org_ingredient_id: "ing_sugar", ingredient_name: "Sugar", unit: "kg", purchase_unit: "sack", units_per_purchase_unit: 25, quantity_ordered: 2, quantity_received: 0, unit_cost: 20_000 },
-    { id: "pol_5", purchase_order_id: "po_2039", org_ingredient_id: "ing_vanilla", ingredient_name: "Vanilla Syrup", unit: "l", purchase_unit: "l", units_per_purchase_unit: 1, quantity_ordered: 4, quantity_received: 0, unit_cost: 12_000 },
+    { id: "pol_4", purchase_order_id: "po_2039", org_ingredient_id: "ing_sugar", ingredient_name: "Sugar", unit: "kg", purchase_unit: "sack", units_per_purchase_unit: 25, quantity_ordered: 2, quantity_received: 0, unit_cost: 20_000, unit_cost_exact: 20_000, line_cost: 40_000 },
+    { id: "pol_5", purchase_order_id: "po_2039", org_ingredient_id: "ing_vanilla", ingredient_name: "Vanilla Syrup", unit: "l", purchase_unit: "l", units_per_purchase_unit: 1, quantity_ordered: 4, quantity_received: 0, unit_cost: 12_000, unit_cost_exact: 12_000, line_cost: 48_000 },
   ],
   po_2038: [
-    { id: "pol_6", purchase_order_id: "po_2038", org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", unit: "l", purchase_unit: "case", units_per_purchase_unit: 12, quantity_ordered: 8, quantity_received: 8, unit_cost: 21_600 },
+    { id: "pol_6", purchase_order_id: "po_2038", org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", unit: "l", purchase_unit: "case", units_per_purchase_unit: 12, quantity_ordered: 8, quantity_received: 8, unit_cost: 21_600, unit_cost_exact: 21_600, line_cost: 172_800 },
   ],
   po_2037: [
-    { id: "pol_7", purchase_order_id: "po_2037", org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", unit: "kg", purchase_unit: "case", units_per_purchase_unit: 6, quantity_ordered: 2, quantity_received: 0, unit_cost: 270_000 },
+    { id: "pol_7", purchase_order_id: "po_2037", org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", unit: "kg", purchase_unit: "case", units_per_purchase_unit: 6, quantity_ordered: 2, quantity_received: 0, unit_cost: 270_000, unit_cost_exact: 270_000, line_cost: 540_000 },
   ],
 };
 
