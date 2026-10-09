@@ -127,7 +127,7 @@ function forDevelopers(site) {
     "## For developers",
     "",
     `- [Developers page](${site}/en/developers/): the public API (a café's brand, branches, menu with EGP prices, booking times and order tracking; no key), its versioning and rate-limit conventions, and the MCP server.`,
-    `- [OpenAPI 3.1](${API}/openapi.json): the public part of the API, base URL ${API}.`,
+    `- [OpenAPI 3.1](${API}/openapi.json): the public part of the API, version 1 (paths under /v1/public/), base URL ${API}.`,
     `- MCP server: ${API}/mcp (Streamable HTTP, stateless, no authentication, read-only). Five tools, and two resources (madar://about and the OpenAPI spec). See the [manifest](${site}/.well-known/mcp.json) and the [server card](${API}/.well-known/mcp/server-card.json).`,
     "",
   ];

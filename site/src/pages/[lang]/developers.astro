@@ -22,12 +22,12 @@ const CARD = `${API}/.well-known/mcp/server-card.json`;
 const WHATSAPP = `https://wa.me/${PHONE_E164.replace("+", "")}`;
 
 const endpoints = [
-  ["/public/orgs/brand?slug={shop}", "The shop's id, name, logo and colours. Pass org_id={uuid} instead of slug when you have the id."],
-  ["/public/orgs/links?slug={shop}", "The shop's links page in one call: brand, taglines, its buttons (order online, menu, book a table, rewards, its own links) with their addresses, social links, and branches with address, phone and directions."],
-  ["/public/branches?org_id={uuid}&browse=true", "The shop's active branches: id, name, and which ordering channels are on and open now. Without browse=true, only the branches that take online orders."],
-  ["/public/branches/{id}/menu?channel=dine_in&preview=true", "A branch's menu: categories, items with sizes, add-ons and deals. dine_in with preview=true is the read-only menu at branch prices. An ordering channel (pickup, outside, in_mall, umbrella) gives that channel's prices, and only while it is open unless preview=true."],
-  ["/public/branches/{id}/booking-slots?date=YYYY-MM-DD&party_size={n}", "The branch's bookable start times that day for that party size, each marked available or not, with the branch's time zone."],
-  ["/public/delivery-orders/{id}/track", "An online order's status, the time of each step, and its totals, by the order id in its tracking link."],
+  ["/v1/public/orgs/brand?slug={shop}", "The shop's id, name, logo and colours. Pass org_id={uuid} instead of slug when you have the id."],
+  ["/v1/public/orgs/links?slug={shop}", "The shop's links page in one call: brand, taglines, its buttons (order online, menu, book a table, rewards, its own links) with their addresses, social links, and branches with address, phone and directions."],
+  ["/v1/public/branches?org_id={uuid}&browse=true", "The shop's active branches: id, name, and which ordering channels are on and open now. Without browse=true, only the branches that take online orders."],
+  ["/v1/public/branches/{id}/menu?channel=dine_in&preview=true", "A branch's menu: categories, items with sizes, add-ons and deals. dine_in with preview=true is the read-only menu at branch prices. An ordering channel (pickup, outside, in_mall, umbrella) gives that channel's prices, and only while it is open unless preview=true."],
+  ["/v1/public/branches/{id}/booking-slots?date=YYYY-MM-DD&party_size={n}", "The branch's bookable start times that day for that party size, each marked available or not, with the branch's time zone."],
+  ["/v1/public/delivery-orders/{id}/track", "An online order's status, the time of each step, and its totals, by the order id in its tracking link."],
 ];
 
 const tools = [
@@ -39,7 +39,7 @@ const tools = [
 ];
 
 const ex = {
-  links: `curl -s '${API}/public/orgs/links?slug=drops'`,
+  links: `curl -s '${API}/v1/public/orgs/links?slug=drops'`,
   linksOut: `{
   "brand": { "org_id": "2f6c0d4e-…", "name": "Drops", "slug": "drops", "logo_url": "https://…", … },
   "tagline_en": "…",
@@ -52,7 +52,7 @@ const ex = {
     { "id": "8d1e5a2c-…", "name": "…", "address": "…", "phone": "…", "directions_url": "https://…" }
   ]
 }`,
-  menu: `curl -s "${API}/public/branches/$BRANCH_ID/menu?channel=dine_in&preview=true"`,
+  menu: `curl -s "${API}/v1/public/branches/$BRANCH_ID/menu?channel=dine_in&preview=true"`,
   menuOut: `{
   "categories": [{ "id": "…", "name": "Hot drinks", "name_translations": { "ar": "مشروبات سخنة" } }],
   "items": [
@@ -66,7 +66,7 @@ const ex = {
   "deals": [],
   "discount": null
 }`,
-  slots: `curl -s "${API}/public/branches/$BRANCH_ID/booking-slots?date=2026-10-10&party_size=4"`,
+  slots: `curl -s "${API}/v1/public/branches/$BRANCH_ID/booking-slots?date=2026-10-10&party_size=4"`,
   slotsOut: `{
   "date": "2026-10-10",
   "timezone": "Africa/Cairo",
@@ -75,7 +75,7 @@ const ex = {
     { "starts_at": "2026-10-10T15:30:00Z", "available": false }
   ]
 }`,
-  notFound: `curl -si '${API}/public/orgs/brand?slug=no-such-shop'
+  notFound: `curl -si '${API}/v1/public/orgs/brand?slug=no-such-shop'
 HTTP/2 404
 content-type: application/json
 
@@ -114,7 +114,8 @@ content-type: application/json
 
       <dl class="facts">
         <dt>Base URL</dt><dd><code>{API}</code></dd>
-        <dt>Authentication</dt><dd>None for paths under <code>/public/</code></dd>
+        <dt>Version</dt><dd>1, at <code>/v1/</code> (see <a href="#versioning">versioning</a>)</dd>
+        <dt>Authentication</dt><dd>None for paths under <code>/v1/public/</code></dd>
         <dt>Format</dt><dd>JSON over HTTPS</dd>
         <dt>OpenAPI</dt><dd><a href={SPEC}><code>{SPEC}</code></a></dd>
         <dt>MCP server</dt><dd><code>{MCP}</code> (Streamable HTTP)</dd>
@@ -167,11 +168,11 @@ content-type: application/json
 
       <h2>Ordering and booking</h2>
       <p>
-        Placing an order (<code>POST /public/delivery-orders</code>) or a booking
-        (<code>POST /public/bookings</code>) needs the customer's WhatsApp one-time code
-        (<code>POST /public/otp/request</code>, then <code>POST /public/otp/verify</code>). So an agent
+        Placing an order (<code>POST /v1/public/delivery-orders</code>) or a booking
+        (<code>POST /v1/public/bookings</code>) needs the customer's WhatsApp one-time code
+        (<code>POST /v1/public/otp/request</code>, then <code>POST /v1/public/otp/verify</code>). So an agent
         should not try to finish it for them: send the person the shop's order or booking link (the
-        <code>order</code> and <code>book</code> items of <code>/public/orgs/links</code>, such as
+        <code>order</code> and <code>book</code> items of <code>/v1/public/orgs/links</code>, such as
         <code>https://drops.madar-pos.cloud/order/</code>) and they finish there.
       </p>
 
@@ -201,10 +202,12 @@ content-type: application/json
         (<code>get.madar-pos.cloud/openapi.json</code> redirects there).
       </p>
 
-      <h2>Versioning and deprecation</h2>
+      <h2 id="versioning">Versioning and deprecation</h2>
       <p>
-        This is version 1 of the public API. Changes within it only add: new endpoints and new
-        optional fields, so ignore fields you don't know. A breaking change comes at a new path. The
+        This is version 1 of the public API, at <code>/v1/</code>: every path above starts with
+        <code>/v1/public/</code>. (The same routes also answer without the prefix, for Madar's own
+        pages.) Changes within version 1 only add: new endpoints and new optional fields, so ignore
+        fields you don't know. A breaking change comes as <code>/v2/</code>. The
         old endpoint keeps working for at least six months after it is marked
         <code>deprecated</code> in the spec, and meanwhile answers with a <code>Deprecation</code>
         header (RFC 9745), a <code>Sunset</code> header (RFC 8594) with its last day, and a
