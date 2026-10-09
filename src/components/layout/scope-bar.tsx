@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "@tanstack/react-router";
 import { Loader2, SlidersHorizontal, Store, Warehouse } from "lucide-react";
@@ -66,10 +66,24 @@ function ScopeControls({ className }: { className?: string }) {
   // org's list, yet every scoped query still fires against it and 403/404s — a
   // silent, data-less state that today only a logout clears. If the scoped
   // branch isn't a valid active branch here, fall back to "all branches".
+  // A warehouse picked on Inventory is set aside, not forgotten, while other
+  // pages list selling branches; back on Inventory it is the scope again
+  // unless something else was picked meanwhile.
+  const parkedWarehouse = useRef<string | null>(null);
   useEffect(() => {
     if (!canPickBranch || !orgId || branchesLoading || !branches) return;
-    if (branchId && !activeBranches.some((b) => b.id === branchId)) setBranch(null);
-  }, [canPickBranch, orgId, branchesLoading, branches, activeBranches, branchId, setBranch]);
+    if (branchId && !activeBranches.some((b) => b.id === branchId)) {
+      const warehouse = branches.some((b) => b.id === branchId && b.is_active && b.kind === "warehouse");
+      parkedWarehouse.current = warehouse ? branchId : null;
+      setBranch(null);
+    } else if (branchId) {
+      parkedWarehouse.current = null;
+    } else if (withWarehouses && parkedWarehouse.current) {
+      const id = parkedWarehouse.current;
+      parkedWarehouse.current = null;
+      if (activeBranches.some((b) => b.id === id)) setBranch(id);
+    }
+  }, [canPickBranch, orgId, branchesLoading, branches, activeBranches, branchId, setBranch, withWarehouses]);
 
   const presetOptions = useMemo(
     () => SCOPE_PRESETS.map((p) => ({ value: p, label: t(`scope.preset.${p}`, presetFallback[p]) })),

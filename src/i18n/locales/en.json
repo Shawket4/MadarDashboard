@@ -6761,6 +6761,7 @@
     "mustFix": "Must fix before saving:",
     "name": "Name",
     "names": {
+      "sectionPrinter": "{{section}} printer",
       "cold": "Cold",
       "coldScreen": "Cold screen",
       "hot": "Hot",

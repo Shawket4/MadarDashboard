@@ -515,3 +515,26 @@ export const routingModeFor = (plan: Plan): RoutingMode => {
   if (!plan.sections.some((s) => s.screen_ids.length > 0)) return "till";
   return plan.till_prints_kitchen ? "both" : "kds";
 };
+
+/**
+ * The printers the server assembles from a branch's old printer settings come
+ * named in English ("Receipt printer", "Grill printer"). Show those exact names
+ * in the reader's words; a printer someone named is left as it is.
+ */
+export const localizeServerNames = (plan: Plan, receipt: string, sectionPrinter: (section: string) => string): Plan => {
+  const sectionOf = new Map<string, string>();
+  for (const s of plan.sections) for (const id of s.printer_ids) if (!sectionOf.has(id)) sectionOf.set(id, s.name);
+  let changed = false;
+  const printers = plan.printers.map((p) => {
+    const section = sectionOf.get(p.id);
+    const name =
+      p.role === "receipt" && p.name === "Receipt printer" ? receipt
+      : p.role === "kitchen" && section !== undefined && p.name === `${section} printer` ? sectionPrinter(section)
+      : p.name;
+    if (name === p.name) return p;
+    changed = true;
+    return { ...p, name };
+  });
+  return changed ? { ...plan, printers } : plan;
+};
+

@@ -35,7 +35,7 @@ import { useFloorViewport } from "@/features/floor/use-floor-viewport";
 import { ZOOM_STEP } from "@/features/floor/util";
 
 import {
-  EMPTY_PLAN, NODE_H, NODE_W, addLink, boxesOf, checkPlan, movePieces, pieceKey,
+  EMPTY_PLAN, NODE_H, NODE_W, addLink, boxesOf, checkPlan, localizeServerNames, movePieces, pieceKey,
   planForSetup, removeLink, removePieces, type DeviceKind, type PieceRef, type PlanLink,
   type PrinterRole, type Setup,
 } from "./plan";
@@ -66,7 +66,17 @@ function BranchBuilder({ branchId }: { branchId: string | null }) {
 
   const q = useBranchPlan(branchId);
   const view = q.data;
-  const saved = useMemo(() => (view ? fromWire(view.plan) : null), [view]);
+  const saved = useMemo(
+    () =>
+      view
+        ? localizeServerNames(
+            fromWire(view.plan),
+            t("builder.kind.receiptPrinter", "Receipt printer"),
+            (section) => t("builder.names.sectionPrinter", "{{section}} printer", { section }),
+          )
+        : null,
+    [view, t],
+  );
   const draft = usePlanDraft(saved, view?.version ?? null);
   const plan = draft.plan ?? EMPTY_PLAN;
 
