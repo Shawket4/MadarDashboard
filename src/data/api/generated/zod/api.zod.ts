@@ -9,6 +9,14 @@ import * as zod from 'zod';
 export const ApiRootResponse = zod.unknown()
 
 
+/**
+ * @summary The MCP server card: how to reach this server and what it offers, built from
+the same tool list `tools/list` answers with, so the two cannot disagree. The
+marketing site's /.well-known/mcp/server-card.json redirects here.
+ */
+export const McpServerCardResponse = zod.unknown()
+
+
 export const ListAddonItemsQueryParams = zod.object({
   "org_id": zod.uuid(),
   "addon_type": zod.string().optional(),
@@ -548,7 +556,8 @@ export const ActivateResponse = zod.object({
 }),
   "device_token": zod.string().describe('The device\'s own credential. Returned ONCE; store it in the device\nvault. Sent later as `X-Madar-Device-Token`.'),
   "org_id": zod.uuid(),
-  "org_name": zod.string()
+  "org_name": zod.string(),
+  "slot_id": zod.uuid().nullish().describe('The branch-plan slot this device now fills, when the code was made for one.')
 })
 
 
@@ -1718,6 +1727,227 @@ export const DeleteBranchMenuOverrideQueryParams = zod.object({
 })
 
 export const DeleteBranchMenuOverrideResponse = zod.void()
+
+
+export const GetPlanQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const GetPlanResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "categories": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.unknown()
+})),
+  "devices": zod.array(zod.object({
+  "app_version": zod.string().nullish(),
+  "code": zod.string(),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `kds` | `waiter`'),
+  "label": zod.string().nullish(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "platform": zod.string().nullish()
+}).describe('A registered install at the branch, for showing which slot it fills and\nwhen it was last heard from.')),
+  "item_overrides": zod.array(zod.object({
+  "count": zod.number(),
+  "section_id": zod.uuid()
+}).describe('A count per section: open kitchen items, or items routed there one by one.')).describe('Items routed to a section one by one, bypassing their category.'),
+  "open_items": zod.array(zod.object({
+  "count": zod.number(),
+  "section_id": zod.uuid()
+}).describe('A count per section: open kitchen items, or items routed there one by one.')).describe('Kitchen items not yet bumped, per section. A section with any can\'t be\nremoved (spec KS-9, CH-4).'),
+  "plan": zod.object({
+  "devices": zod.array(zod.object({
+  "device_id": zod.uuid().nullish().describe('The registered install filling this slot, if any.'),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `waiter` | `kitchen`'),
+  "name": zod.string(),
+  "receipt_printer_id": zod.uuid().nullish().describe('For a POS or waiter device: the receipt printer its receipts go to.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "printers": zod.array(zod.object({
+  "brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
+  "connection": zod.string().describe('`network` | `usb` | `bluetooth`'),
+  "host_device_id": zod.uuid().nullish().describe('For a USB or Bluetooth printer: the device slot it is plugged into.'),
+  "id": zod.uuid(),
+  "ip": zod.string().nullish(),
+  "name": zod.string(),
+  "paper_mm": zod.number(),
+  "port": zod.number().nullish(),
+  "role": zod.string().describe('`receipt` | `kitchen`'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "sections": zod.array(zod.object({
+  "category_ids": zod.array(zod.uuid()).optional(),
+  "id": zod.uuid(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "printer_ids": zod.array(zod.uuid()).optional().describe('Kitchen printers this section prints on.'),
+  "screen_ids": zod.array(zod.uuid()).optional().describe('Kitchen screens (device slots of kind `kitchen`) this section shows on.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "till_prints_kitchen": zod.boolean().optional().describe('Case 1 (till only): the till\'s receipt printer also prints kitchen chits.')
+}),
+  "routing_mode": zod.string().describe('The branch\'s kitchen routing mode as stored now.'),
+  "saved": zod.boolean().describe('False until the plan is first saved. Until then it is assembled from the\nbranch\'s existing stations, printers and registered devices.'),
+  "version": zod.number().describe('Bumped by every save; send it back as `expected_version`.')
+})
+
+
+export const SavePlanBody = zod.object({
+  "branch_id": zod.uuid(),
+  "expected_version": zod.number().describe('The `version` the plan was loaded at. A save over a newer version is\nrefused (`PLAN_CHANGED`), so two people editing one branch never\nsilently overwrite each other.'),
+  "plan": zod.object({
+  "devices": zod.array(zod.object({
+  "device_id": zod.uuid().nullish().describe('The registered install filling this slot, if any.'),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `waiter` | `kitchen`'),
+  "name": zod.string(),
+  "receipt_printer_id": zod.uuid().nullish().describe('For a POS or waiter device: the receipt printer its receipts go to.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "printers": zod.array(zod.object({
+  "brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
+  "connection": zod.string().describe('`network` | `usb` | `bluetooth`'),
+  "host_device_id": zod.uuid().nullish().describe('For a USB or Bluetooth printer: the device slot it is plugged into.'),
+  "id": zod.uuid(),
+  "ip": zod.string().nullish(),
+  "name": zod.string(),
+  "paper_mm": zod.number(),
+  "port": zod.number().nullish(),
+  "role": zod.string().describe('`receipt` | `kitchen`'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "sections": zod.array(zod.object({
+  "category_ids": zod.array(zod.uuid()).optional(),
+  "id": zod.uuid(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "printer_ids": zod.array(zod.uuid()).optional().describe('Kitchen printers this section prints on.'),
+  "screen_ids": zod.array(zod.uuid()).optional().describe('Kitchen screens (device slots of kind `kitchen`) this section shows on.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "till_prints_kitchen": zod.boolean().optional().describe('Case 1 (till only): the till\'s receipt printer also prints kitchen chits.')
+})
+})
+
+export const SavePlanResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "categories": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.unknown()
+})),
+  "devices": zod.array(zod.object({
+  "app_version": zod.string().nullish(),
+  "code": zod.string(),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `kds` | `waiter`'),
+  "label": zod.string().nullish(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "platform": zod.string().nullish()
+}).describe('A registered install at the branch, for showing which slot it fills and\nwhen it was last heard from.')),
+  "item_overrides": zod.array(zod.object({
+  "count": zod.number(),
+  "section_id": zod.uuid()
+}).describe('A count per section: open kitchen items, or items routed there one by one.')).describe('Items routed to a section one by one, bypassing their category.'),
+  "open_items": zod.array(zod.object({
+  "count": zod.number(),
+  "section_id": zod.uuid()
+}).describe('A count per section: open kitchen items, or items routed there one by one.')).describe('Kitchen items not yet bumped, per section. A section with any can\'t be\nremoved (spec KS-9, CH-4).'),
+  "plan": zod.object({
+  "devices": zod.array(zod.object({
+  "device_id": zod.uuid().nullish().describe('The registered install filling this slot, if any.'),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `waiter` | `kitchen`'),
+  "name": zod.string(),
+  "receipt_printer_id": zod.uuid().nullish().describe('For a POS or waiter device: the receipt printer its receipts go to.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "printers": zod.array(zod.object({
+  "brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
+  "connection": zod.string().describe('`network` | `usb` | `bluetooth`'),
+  "host_device_id": zod.uuid().nullish().describe('For a USB or Bluetooth printer: the device slot it is plugged into.'),
+  "id": zod.uuid(),
+  "ip": zod.string().nullish(),
+  "name": zod.string(),
+  "paper_mm": zod.number(),
+  "port": zod.number().nullish(),
+  "role": zod.string().describe('`receipt` | `kitchen`'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "sections": zod.array(zod.object({
+  "category_ids": zod.array(zod.uuid()).optional(),
+  "id": zod.uuid(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "printer_ids": zod.array(zod.uuid()).optional().describe('Kitchen printers this section prints on.'),
+  "screen_ids": zod.array(zod.uuid()).optional().describe('Kitchen screens (device slots of kind `kitchen`) this section shows on.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "till_prints_kitchen": zod.boolean().optional().describe('Case 1 (till only): the till\'s receipt printer also prints kitchen chits.')
+}),
+  "routing_mode": zod.string().describe('The branch\'s kitchen routing mode as stored now.'),
+  "saved": zod.boolean().describe('False until the plan is first saved. Until then it is assembled from the\nbranch\'s existing stations, printers and registered devices.'),
+  "version": zod.number().describe('Bumped by every save; send it back as `expected_version`.')
+})
+
+
+export const ListVersionsQueryParams = zod.object({
+  "branch_id": zod.uuid()
+})
+
+export const ListVersionsResponseItem = zod.object({
+  "plan": zod.object({
+  "devices": zod.array(zod.object({
+  "device_id": zod.uuid().nullish().describe('The registered install filling this slot, if any.'),
+  "id": zod.uuid(),
+  "kind": zod.string().describe('`pos` | `waiter` | `kitchen`'),
+  "name": zod.string(),
+  "receipt_printer_id": zod.uuid().nullish().describe('For a POS or waiter device: the receipt printer its receipts go to.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "printers": zod.array(zod.object({
+  "brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
+  "connection": zod.string().describe('`network` | `usb` | `bluetooth`'),
+  "host_device_id": zod.uuid().nullish().describe('For a USB or Bluetooth printer: the device slot it is plugged into.'),
+  "id": zod.uuid(),
+  "ip": zod.string().nullish(),
+  "name": zod.string(),
+  "paper_mm": zod.number(),
+  "port": zod.number().nullish(),
+  "role": zod.string().describe('`receipt` | `kitchen`'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "sections": zod.array(zod.object({
+  "category_ids": zod.array(zod.uuid()).optional(),
+  "id": zod.uuid(),
+  "is_default": zod.boolean(),
+  "name": zod.string(),
+  "printer_ids": zod.array(zod.uuid()).optional().describe('Kitchen printers this section prints on.'),
+  "screen_ids": zod.array(zod.uuid()).optional().describe('Kitchen screens (device slots of kind `kitchen`) this section shows on.'),
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "till_prints_kitchen": zod.boolean().optional().describe('Case 1 (till only): the till\'s receipt printer also prints kitchen chits.')
+}),
+  "saved_at": zod.iso.datetime({"offset":true}),
+  "saved_by_name": zod.string().nullish(),
+  "version": zod.number()
+})
+export const ListVersionsResponse = zod.array(ListVersionsResponseItem)
 
 
 export const ListBranchesQueryParams = zod.object({
@@ -4454,6 +4684,7 @@ export const ListCodesResponseItem = zod.object({
   "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
   "label": zod.string().nullish(),
   "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "slot_id": zod.uuid().nullish().describe('The branch-plan slot this code fills, when it was made from the\nbranch builder. The device that uses it takes the slot.'),
   "state": zod.enum(['free', 'used', 'expired', 'revoked']),
   "used_at": zod.iso.datetime({"offset":true}).nullish(),
   "used_by_device": zod.uuid().nullish()
@@ -4464,7 +4695,8 @@ export const ListCodesResponse = zod.array(ListCodesResponseItem)
 export const CreateCodeBody = zod.object({
   "branch_id": zod.uuid(),
   "kind": zod.union([zod.null(),zod.enum(['pos', 'kds', 'waiter']).describe('`pos` (default) | `kds` | `waiter`')]).optional(),
-  "label": zod.string().nullish().describe('A name for the tablet it is meant for (\"Front counter\").')
+  "label": zod.string().nullish().describe('A name for the tablet it is meant for (\"Front counter\").'),
+  "slot_id": zod.uuid().nullish().describe('A slot of the branch plan (`GET \/branch-plan`). The code takes the\nslot\'s kind and name, and the device that uses it fills the slot.')
 })
 
 export const CreateCodeResponse = zod.object({
@@ -4476,6 +4708,7 @@ export const CreateCodeResponse = zod.object({
   "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
   "label": zod.string().nullish(),
   "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "slot_id": zod.uuid().nullish().describe('The branch-plan slot this code fills, when it was made from the\nbranch builder. The device that uses it takes the slot.'),
   "state": zod.enum(['free', 'used', 'expired', 'revoked']),
   "used_at": zod.iso.datetime({"offset":true}).nullish(),
   "used_by_device": zod.uuid().nullish()
@@ -4495,6 +4728,7 @@ export const RevokeCodeResponse = zod.object({
   "kind": zod.enum(['pos', 'kds', 'waiter']).describe('OpenAPI-only vocabulary for `devices.kind` (CHECK `kind IN (\'pos\',\'kds\',\'waiter\')`).\nThe struct fields stay `String`, so the wire strings are unchanged.'),
   "label": zod.string().nullish(),
   "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "slot_id": zod.uuid().nullish().describe('The branch-plan slot this code fills, when it was made from the\nbranch builder. The device that uses it takes the slot.'),
   "state": zod.enum(['free', 'used', 'expired', 'revoked']),
   "used_at": zod.iso.datetime({"offset":true}).nullish(),
   "used_by_device": zod.uuid().nullish()
@@ -6988,6 +7222,16 @@ export const GetLoyaltyWalletStatusResponse = zod.object({
   "reachable": zod.boolean().nullish().describe('Google only: what Google itself said when asked. `None` for Apple, which\nsigns locally and has nobody to ask.')
 }).describe('What a wallet needs before it will offer a button, and whether it has it.')
 })
+
+
+/**
+ * @summary One JSON-RPC message in, one answer out (a notification gets 202 and no body).
+ */
+export const McpBody = zod.looseObject({
+
+})
+
+export const McpResponse = zod.unknown()
 
 
 export const PutSizeBaseParams = zod.object({
@@ -11723,6 +11967,10 @@ export const DeleteUserPermissionParams = zod.object({
 export const DeleteUserPermissionResponse = zod.void()
 
 
+/**
+ * `org_id` names the shop. Only active branches with booking switched on are listed.
+ * @summary A shop's branches that take table bookings online.
+ */
 export const BookingBranchesQueryParams = zod.object({
   "org_id": zod.uuid()
 })
@@ -11735,6 +11983,10 @@ export const BookingBranchesResponseItem = zod.object({
 export const BookingBranchesResponse = zod.array(BookingBranchesResponseItem)
 
 
+/**
+ * Answers 201 with the booking. The time must be a free slot after the branch's lead time. Where the branch's `require_otp` is on, send the `device_token` from `/public/otp/verify`.
+ * @summary Book a table at a branch.
+ */
 export const CreatePublicBookingBody = zod.object({
   "branch_id": zod.uuid(),
   "device_token": zod.string().nullish().describe('From `\/public\/otp\/verify`; required when the branch requires OTP.'),
@@ -11762,6 +12014,9 @@ export const CreatePublicBookingResponse = zod.object({
 }).describe('What a guest sees on the manage page — no table ids, no staff fields.')
 
 
+/**
+ * @summary A booking, by the manage token from its confirmation link.
+ */
 export const GetPublicBookingParams = zod.object({
   "token": zod.string().describe('Manage token from the confirmation link')
 })
@@ -11782,6 +12037,10 @@ export const GetPublicBookingResponse = zod.object({
 }).describe('What a guest sees on the manage page — no table ids, no staff fields.')
 
 
+/**
+ * Only a confirmed booking, and only until the branch's lead time before it starts; after that, 409.
+ * @summary Change a booking's time, party size or notes, by its manage token.
+ */
 export const UpdatePublicBookingParams = zod.object({
   "token": zod.string().describe('Manage token')
 })
@@ -11808,6 +12067,10 @@ export const UpdatePublicBookingResponse = zod.object({
 }).describe('What a guest sees on the manage page — no table ids, no staff fields.')
 
 
+/**
+ * Cancelling a booking that is already cancelled returns it unchanged. A party already seated is the venue's to cancel.
+ * @summary Cancel a booking, by its manage token.
+ */
 export const CancelPublicBookingParams = zod.object({
   "token": zod.string().describe('Manage token')
 })
@@ -11828,6 +12091,10 @@ export const CancelPublicBookingResponse = zod.object({
 }).describe('What a guest sees on the manage page — no table ids, no staff fields.')
 
 
+/**
+ * `org_id` names the shop. With `browse=true` every active branch is listed, for a read-only menu.
+ * @summary A shop's branches that take online orders, with each channel's hours and settings.
+ */
 export const PublicBranchesQueryParams = zod.object({
   "org_id": zod.uuid(),
   "browse": zod.boolean().nullish().describe('The read-only menu (`\/menu`): every active branch, not only the ones\ntaking online orders — a shop with ordering switched off still has a\nmenu to show. Each branch\'s channel flags stay as they are, so a client\nnever offers an order where none is taken.')
@@ -11855,6 +12122,10 @@ export const PublicBranchesResponseItem = zod.object({
 export const PublicBranchesResponse = zod.array(PublicBranchesResponseItem)
 
 
+/**
+ * `require_otp` says whether a booking needs a phone verified through `/public/otp/verify`.
+ * @summary A branch's booking rules: party sizes, slot length, lead time and how far ahead.
+ */
 export const BookingInfoParams = zod.object({
   "id": zod.uuid().describe('Branch ID')
 })
@@ -11886,6 +12157,10 @@ export const BookingInfoResponse = zod.object({
 })
 
 
+/**
+ * Refused when the branch takes no online bookings, or the date or party size is outside its rules.
+ * @summary The free booking times at a branch for one date and party size.
+ */
 export const BookingSlotsParams = zod.object({
   "id": zod.uuid().describe('Branch ID')
 })
@@ -11995,6 +12270,10 @@ export const PublicBranchCartQuoteResponse = zod.object({
 })
 
 
+/**
+ * Needs `lat`, `lng` and `channel`. `status` says whether the branch delivers there; the fee is in piastres.
+ * @summary The delivery fee and zone for a point, before ordering.
+ */
 export const DeliveryQuoteParams = zod.object({
   "id": zod.uuid()
 })
@@ -12018,6 +12297,10 @@ export const DeliveryQuoteResponse = zod.object({
 })
 
 
+/**
+ * `channel` is `in_mall`, `outside`, `umbrella` or `pickup`. `preview=true` shows a channel's menu while it is closed, and `channel=dine_in&preview=true` gives the read-only dine-in menu. Nothing can be ordered from a preview.
+ * @summary A branch's menu for one ordering channel, with prices in piastres.
+ */
 export const PublicMenuParams = zod.object({
   "id": zod.uuid()
 })
@@ -12188,6 +12471,10 @@ export const PublicMenuResponse = zod.object({
 })
 
 
+/**
+ * Answers 201 with the order; follow it at `/public/delivery-orders/{id}/track`. The server prices the cart in piastres. Where the branch requires a verified phone (the default), send the `device_token` from `/public/otp/verify`.
+ * @summary Place an online order (delivery or pickup) at a branch.
+ */
 export const CreateDeliveryOrderBody = zod.object({
   "address_line": zod.string().nullish(),
   "branch_id": zod.uuid(),
@@ -12297,6 +12584,10 @@ export const CreateDeliveryOrderResponse = zod.object({
 })
 
 
+/**
+ * Needs `phone` and the `device_token` from `/public/otp/verify`; a phone number alone unlocks nothing.
+ * @summary A customer's past orders at a shop, by their verified phone.
+ */
 export const GuestOrderHistoryQueryParams = zod.object({
   "phone": zod.string(),
   "org_id": zod.uuid(),
@@ -12327,6 +12618,10 @@ export const GuestOrderHistoryResponseItem = zod.object({
 export const GuestOrderHistoryResponse = zod.array(GuestOrderHistoryResponseItem)
 
 
+/**
+ * Needs `phone` and the `device_token` from `/public/otp/verify`.
+ * @summary A customer's saved delivery addresses at a shop, by their verified phone.
+ */
 export const GuestPastLocationsQueryParams = zod.object({
   "phone": zod.string(),
   "org_id": zod.uuid(),
@@ -12349,6 +12644,10 @@ export const GuestPastLocationsResponseItem = zod.object({
 export const GuestPastLocationsResponse = zod.array(GuestPastLocationsResponseItem)
 
 
+/**
+ * Amounts are in piastres.
+ * @summary An online order's status, timeline and totals, from the id in its tracking link.
+ */
 export const TrackDeliveryOrderParams = zod.object({
   "id": zod.uuid()
 })
@@ -12386,6 +12685,10 @@ export const TrackDeliveryOrderResponse = zod.object({
 }).describe('Customer-safe tracking view of a delivery order, keyed by its opaque UUID\n(same capability-URL trust model as the device-token flow). No phone number\nis exposed; the destination fields are the customer\'s own inputs. Powers the\npublic `\/track\/{id}` page (polled, since the public surface has no SSE).')
 
 
+/**
+ * The token is the one on the card's barcode.
+ * @summary A rewards card: the member's balance, progress to the next reward, rewards and wallet links.
+ */
 export const LoyaltyCardParams = zod.object({
   "token": zod.string().describe('Member token from the pass barcode')
 })
@@ -12405,7 +12708,7 @@ export const LoyaltyCardResponse = zod.object({
   "social_links": zod.array(zod.object({
   "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
   "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
-  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+  "url": zod.string().describe('An https address and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('Whose card this is, and how it should look.'),
   "can_redeem": zod.boolean(),
@@ -12418,7 +12721,7 @@ export const LoyaltyCardResponse = zod.object({
   "passes": zod.object({
   "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
   "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
-  "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
+  "google_url": zod.string().nullish().describe('The Google Wallet save link: the signed JWT on pay.google.com\'s save path.')
 }).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.'),
   "points_to_next_reward": zod.number(),
   "progress_to_next": zod.number().describe('Progress towards the next one, after the earned ones are set aside.'),
@@ -12458,6 +12761,10 @@ export const LoyaltyCardOrdersResponse = zod.object({
 })
 
 
+/**
+ * The card's own token is the key. Answers 204.
+ * @summary Save a card holder's choices: no marketing messages, and the language to write in.
+ */
 export const SetLoyaltyCardPreferencesParams = zod.object({
   "token": zod.string().describe('Member token from the pass barcode')
 })
@@ -12488,6 +12795,10 @@ export const LoyaltyCardQrParams = zod.object({
 export const LoyaltyCardQrResponse = zod.unknown()
 
 
+/**
+ * Where `require_otp` is on, send the `device_token` from `/public/otp/verify`; until the phone is proven the answer carries no card.
+ * @summary Join a shop's rewards programme.
+ */
 export const LoyaltyJoinBody = zod.object({
   "birth_day": zod.number().nullish(),
   "birth_month": zod.number().nullish().describe('The day of their birthday, 1–12 and 1–31. Accepted ONLY where the org\nasked for one: a field the shop turned off must not be storable by\nposting past the form.\n\nNo year, deliberately. A greeting needs to know WHEN, not how old — and\na full date of birth is an identity credential, which is a great deal\nmore than an annual message needs.'),
@@ -12515,7 +12826,7 @@ export const LoyaltyJoinResponse = zod.object({
   "social_links": zod.array(zod.object({
   "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
   "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
-  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+  "url": zod.string().describe('An https address and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('How a tenant\'s card should look.\n\nEvery field is optional and the site falls back to Madar\'s own palette, so a\ntenant who has set nothing still gets a finished card rather than an\nunstyled one. `org_name` is NOT optional: whose card this is must always be\non it, however little else has been configured.'),
   "card_link_sent": zod.boolean().describe('While `verify_required`: the card link was also sent to the number on\nfile, by WhatsApp — the one channel that proves possession without a\ncode. False when no gateway is configured or there is no public base to\nbuild a link on; the page then offers only the OTP.'),
@@ -12526,12 +12837,16 @@ export const LoyaltyJoinResponse = zod.object({
   "passes": zod.union([zod.null(),zod.object({
   "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
   "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
-  "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
+  "google_url": zod.string().nullish().describe('The Google Wallet save link: the signed JWT on pay.google.com\'s save path.')
 }).describe('Absent when `verify_required`.')]).optional(),
   "verify_required": zod.boolean().describe('This phone already has a card and the device has not proved it owns the\nphone. The page should run the ordinary OTP flow (`\/public\/otp\/request`\nthen `\/public\/otp\/verify`) and POST here again with the `device_token`\nit is handed; the card comes back on that call.')
 }).describe('What the customer sees after signing up: their card, and the buttons — or,\nfor a phone that is already a member and has not been proved, an invitation\nto prove it.\n\nThe member token is a bearer credential: whoever holds it holds the card,\nthe balance, the purchase history and the wallet passes. So it is handed out\non exactly two occasions — to a NEW member, whose token nobody else could\nwant yet, and to an existing member whose device has verified THIS phone by\nOTP. Typing a phone number is not proof of owning it; anyone who knows a\ncustomer\'s number can type it.')
 
 
+/**
+ * Name the shop with `org_id`, or a branch with `branch_id` from its counter code.
+ * @summary What a rewards programme's join page shows: its brand, rewards and what joining asks for.
+ */
 export const LoyaltyJoinInfoQueryParams = zod.object({
   "branch_id": zod.uuid().optional().describe('The counter QR of one branch. Its settings and its catalogue apply.'),
   "org_id": zod.uuid().optional().describe('The organisation\'s own code, for a shop that wants ONE card to hand out\n— a poster, a receipt footer, a link in a bio. The programme\'s org-level\nsettings apply, which is also what the wallet pass has always used.')
@@ -12555,7 +12870,7 @@ export const LoyaltyJoinInfoResponse = zod.object({
   "social_links": zod.array(zod.object({
   "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
   "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
-  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+  "url": zod.string().describe('An https address and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('Whose programme this is, and how the page should look.'),
   "earn_piastres_per_point": zod.number().describe('EGP that earns one point — the page\'s \"a point for every N EGP\" line.\nPiastres on the wire, as everywhere; the page divides by 100. Only\nmeaningful when `mode` is `\"points\"`.'),
@@ -12586,6 +12901,10 @@ export const LoyaltyApplePassParams = zod.object({
 export const LoyaltyApplePassResponse = zod.unknown()
 
 
+/**
+ * The card's token alone shows only a first name and a masked phone. With a `device_token` for the member's current phone it gives the full prefill and saved addresses.
+ * @summary "Order now" from a wallet card: the member's last branch and channel, to prefill an order.
+ */
 export const OrderNowContextParams = zod.object({
   "token": zod.string().describe('Member token (the card\'s QR)')
 })
@@ -12641,6 +12960,10 @@ export const OrderNowContextResponse = zod.object({
 })
 
 
+/**
+ * The answer to a `PHONE_BELONGS_TO_ANOTHER` refusal from replace-identity, with the same proofs. This card's customer is the one kept.
+ * @summary Merge the profile that already holds the new phone into this card's profile.
+ */
 export const OrderNowCombineParams = zod.object({
   "token": zod.string().describe('Member token — this customer survives')
 })
@@ -12660,6 +12983,10 @@ export const OrderNowCombineResponse = zod.object({
 })
 
 
+/**
+ * Needs proof of both phones: `device_token` for the current one and `new_phone_device_token` for the new one. At most two changes in 30 days.
+ * @summary Change the phone number on a card's customer profile.
+ */
 export const OrderNowReplaceIdentityParams = zod.object({
   "token": zod.string().describe('Member token')
 })
@@ -12779,13 +13106,17 @@ export const PublicOrgLinksResponse = zod.object({
   "socials": zod.array(zod.object({
   "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
   "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
-  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+  "url": zod.string().describe('An https address and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')),
   "tagline_ar": zod.string().nullish(),
   "tagline_en": zod.string().nullish()
 }).describe('Everything the links page shows, in one request.')
 
 
+/**
+ * One live code per phone per minute (409 otherwise). Check it with `/public/otp/verify`.
+ * @summary Send a 4-digit code by WhatsApp to verify a phone number.
+ */
 export const OtpRequestBody = zod.object({
   "phone": zod.string()
 })
@@ -12795,6 +13126,10 @@ export const OtpRequestResponse = zod.object({
 })
 
 
+/**
+ * Ordering, booking, the rewards card and order history take this token where a shop asks for a verified phone. A code allows five tries.
+ * @summary Check a WhatsApp code and get a `device_token` that proves the phone.
+ */
 export const OtpVerifyBody = zod.object({
   "code": zod.string(),
   "phone": zod.string()
@@ -12903,6 +13238,9 @@ export const PublicTableOrderResponse = zod.object({
 })
 
 
+/**
+ * @summary The table behind a QR code: its label, its branch, and whether the branch is taking orders now.
+ */
 export const PublicTableParams = zod.object({
   "id": zod.uuid().describe('Table ID, from the QR')
 })

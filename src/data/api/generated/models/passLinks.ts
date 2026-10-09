@@ -19,7 +19,7 @@ export interface PassLinks {
      */
   apple_url?: string | null;
   /**
-     * `https://pay.google.com/gp/v/save/<jwt>`.
+     * The Google Wallet save link: the signed JWT on pay.google.com's save path.
      * @nullable
      */
   google_url?: string | null;

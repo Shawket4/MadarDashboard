@@ -17,7 +17,7 @@ export interface PublicSocialLink {
      */
   label: string;
   /**
-     * `https://…` and nothing else — checked on write and again on read, see
+     * An https address and nothing else — checked on write and again on read, see
      * `orgs::social::links_of`.
      */
   url: string;
