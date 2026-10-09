@@ -18,6 +18,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
+import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { cn } from "@/lib/utils";
 
 import { fmtDay, fmtSlot, fmtWhen, pickableDates } from "./util";
@@ -49,6 +50,8 @@ export function ManagePage({ token }: { token: string }) {
   const [date, setDate] = useState<string | null>(null);
   const [slot, setSlot] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Also as a toast: the inline copy sits where the customer may have scrolled from.
+  useErrorToast(error);
   const update = useUpdatePublicBooking();
   const cancel = useCancelPublicBooking();
 

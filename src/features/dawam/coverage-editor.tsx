@@ -17,7 +17,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { putCoverage, useGetCoverage } from "@/data/api/generated/api";
 import type { CoverageNeed } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { WEEKDAYS } from "@/features/staff/util";
+import { invalidateStaff, WEEKDAYS } from "@/features/staff/util";
+import { ErrorState } from "@/components/app/empty-state";
 
 /** Saturday first, as the roster's week runs; 0 = Sunday … 6 = Saturday. */
 const DAY_ORDER = [6, 0, 1, 2, 3, 4, 5];
@@ -78,6 +79,10 @@ export function CoverageEditor({ branchId }: { branchId: string }) {
     return Array.from({ length: 24 - from }, (_, i) => from + i);
   }, [grid, derived]);
 
+  // H2-D4: a failed read says so, never a skeleton for ever.
+  if (q.error && !view) {
+    return <ErrorState title={t("dawam.coverageLoadError", "Couldn't load the coverage needs")} message={getErrorMessage(q.error)} onRetry={() => void q.refetch()} />;
+  }
   if (!view) return <Skeleton className="h-64 w-full rounded-2xl" />;
 
   const set = (dow: number, h: number, v: string) => {
@@ -94,7 +99,9 @@ export function CoverageEditor({ branchId }: { branchId: string }) {
       const kept = view.needs.filter((n) => n.department_id);
       await putCoverage({ branch_id: branchId, needs: [...kept, ...fromGrid(grid)] });
       toast.success(t("dawam.coverageSaved", "Coverage needs saved"));
+      // H2-D5: the suggestions read the grid too, not only this card.
       void q.refetch();
+      void invalidateStaff();
     } catch (e) {
       toast.error(getErrorMessage(e));
     } finally {

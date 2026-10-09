@@ -1,4 +1,4 @@
-import { fmtElapsedMs, ltr } from "@/lib/format";
+import { fmtElapsedMs, getActiveTz, ltr } from "@/lib/format";
 import i18n from "@/i18n";
 import type { StatusTone } from "@/components/app/status-pill";
 import { queryClient } from "@/data/api/query";
@@ -107,14 +107,19 @@ export const fmtHours = (minutes: number | null | undefined): string => {
   return ar ? ltr(signed) : signed;
 };
 
-/** ISO date (yyyy-mm-dd) `n` days from today, for default report ranges. */
+/**
+ * ISO date (yyyy-mm-dd) `n` days from today, for default report ranges.
+ * "Today" is the active branch/business zone's calendar day (AT-1): UTC's
+ * (`toISOString`) is still yesterday from midnight to 03:00 in Cairo.
+ */
 export const isoDaysFromToday = (n: number): string => {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: getActiveTz() }).format(new Date());
+  const d = new Date(`${today}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 };
 
-export const todayIso = (): string => new Date().toISOString().slice(0, 10);
+export const todayIso = (): string => isoDaysFromToday(0);
 
 /** First and last day of the current month, the default payroll period. */
 export const currentMonthRange = (): { start: string; end: string; name: string } => {
@@ -129,3 +134,37 @@ export const currentMonthRange = (): { start: string; end: string; name: string 
     name: now.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
   };
 };
+
+/** The fields of an attendance record a cover is read from. */
+interface CoverRecord {
+  employee_id: string;
+  employee_name?: string | null;
+  business_date: string;
+  work_shift_id?: string | null;
+  covered_employee_id?: string | null;
+  cover_status?: string | null;
+}
+
+/**
+ * Who is covering `employeeId`'s shift on `date` (owner decision D1): a
+ * pending or confirmed cover by a colleague refuses every punch for the
+ * shift's owner (409 SHIFT_COVERED), so a punch isn't offered. A rejected
+ * cover blocks nothing. `workShiftId` narrows it to one shift; omitted, any
+ * of the day's shifts counts.
+ */
+export function coveredBy(
+  records: readonly CoverRecord[],
+  employeeId: string,
+  date: string,
+  workShiftId?: string | null,
+): string | null {
+  const c = records.find(
+    (r) =>
+      r.covered_employee_id === employeeId &&
+      r.employee_id !== employeeId &&
+      r.business_date === date &&
+      (r.cover_status === "pending" || r.cover_status === "confirmed") &&
+      (workShiftId === undefined || r.work_shift_id === workShiftId),
+  );
+  return c ? (c.employee_name ?? "—") : null;
+}

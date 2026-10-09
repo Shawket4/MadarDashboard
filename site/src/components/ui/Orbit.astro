@@ -1,0 +1,37 @@
+---
+/**
+ * The orbit's rings as a quiet background motif (about 10% opacity), as on the deck
+ * cover. Satellite in Teal deep on every ground (brand README, 2026-09-25).
+ * The scroll story draws the rings in (DrawSVG) and sets the satellite moving.
+ */
+interface Props {
+  tone?: "ink" | "paper";
+  class?: string;
+  rings?: number[];
+}
+const { tone = "ink", class: cls = "", rings = [170, 330, 520, 740] } = Astro.props;
+const line = tone === "ink" ? "#EFF3F4" : "#14181E";
+const size = 1600;
+const c = size / 2;
+const outer = rings[rings.length - 1] ?? 740;
+// The satellite sits on the second ring, up and to the start side, like the symbol (45°).
+const r2 = rings[1] ?? 330;
+const sx = c + r2 * Math.cos(-Math.PI / 4 - Math.PI / 2 + 0.35);
+const sy = c + r2 * Math.sin(-Math.PI / 4 - Math.PI / 2 + 0.35);
+---
+<svg
+  class:list={["orbit-motif pointer-events-none select-none", cls]}
+  viewBox={`0 0 ${size} ${size}`}
+  aria-hidden="true"
+  focusable="false"
+  data-orbit
+>
+  <g fill="none" stroke={line} stroke-opacity="0.1" stroke-width="2">
+    {rings.map((r) => <circle class="orbit-ring" cx={c} cy={c} r={r} data-draw />)}
+  </g>
+  <circle cx={c} cy={c} r="10" fill={line} fill-opacity="0.85" />
+  <g class="orbit-satellite" style={`transform-origin: ${c}px ${c}px`}>
+    <circle cx={sx} cy={sy} r="13" fill="#0D6273" />
+  </g>
+  <circle cx={c} cy={c} r={outer} fill="none" stroke="none" />
+</svg>

@@ -3,8 +3,8 @@
 import type { RecipeLineOut } from './recipeLineOut';
 
 /**
- * A priced optional — a member of the item-private `Options` group
- * (a modifier_group with `legacy_addon_type IS NULL` owned by this item).
+ * A priced optional — a member of the item's own `Options` group
+ * (what `PUT /menu-items/{id}/options` edits).
  */
 export interface ItemOptionOut {
   cost_incomplete: boolean;

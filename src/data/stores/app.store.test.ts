@@ -32,3 +32,22 @@ describe("app store language", () => {
     expect(useAppStore.getState().language).toBe("en");
   });
 });
+
+describe("app store org switch", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.resetModules();
+  });
+
+  it("drops the last org's cached reads, even one keyed without the org", async () => {
+    const { useAppStore } = await import("./app.store");
+    const { queryClient } = await import("@/data/api/query");
+    useAppStore.getState().setSelectedOrg("org-1");
+    queryClient.setQueryData(["/payment-methods"], [{ id: "cash-org-1" }]);
+    // The same org again: nothing dropped.
+    useAppStore.getState().setSelectedOrg("org-1");
+    expect(queryClient.getQueryData(["/payment-methods"])).toEqual([{ id: "cash-org-1" }]);
+    useAppStore.getState().setSelectedOrg("org-2");
+    expect(queryClient.getQueryData(["/payment-methods"])).toBeUndefined();
+  });
+});

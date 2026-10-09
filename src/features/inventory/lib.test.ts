@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  formatUnitCost,
+  estimateLineTotal,
+  stockUnitsPer,
+  unitCostFromTotal,
   buildCountPayload,
   countsDue,
   isVarianceFlagged,
@@ -111,5 +115,37 @@ describe("below zero", () => {
     expect(isBelowZero(0)).toBe(false);
     expect(isBelowZero(3)).toBe(false);
     expect(isBelowZero(null)).toBe(false);
+  });
+});
+
+describe("purchase line costs", () => {
+  it("derives the unit cost from the invoice total, unrounded", () => {
+    // The field report: 12 000 g of milk for 548.16 EGP is 4.568 piastres/g,
+    // not the 5 a whole-piastre unit cost made it (600.00 EGP).
+    expect(unitCostFromTotal(54816, 12000)).toBeCloseTo(4.568, 9);
+    expect(unitCostFromTotal(54816, 0)).toBeNull();
+    expect(unitCostFromTotal(-1, 10)).toBeNull();
+    expect(unitCostFromTotal(Number.NaN, 10)).toBeNull();
+  });
+
+  it("shows a unit cost with all six decimals, never a rounded-looking figure", () => {
+    expect(formatUnitCost(54816 / 12000)).toBe("0.045680");
+    expect(formatUnitCost(60000 / 12000)).toBe("0.050000");
+    expect(formatUnitCost(10000 / 3)).toBe("33.333333");
+  });
+
+  it("converts a purchase unit to stock units within a measure", () => {
+    expect(stockUnitsPer("kg", "g")).toBe(1000);
+    expect(stockUnitsPer("g", "g")).toBe(1);
+    expect(stockUnitsPer("l", "ml")).toBe(1000);
+    expect(stockUnitsPer("case", "pcs")).toBe(1);
+    expect(stockUnitsPer("kg", "ml")).toBe(1);
+  });
+
+  it("estimates a line total from the catalog cost per stock unit", () => {
+    expect(estimateLineTotal(4.568, 12000, "g", "g")).toBe(54816);
+    expect(estimateLineTotal(4.568, 12, "kg", "g")).toBe(54816);
+    expect(estimateLineTotal(null, 12, "kg", "g")).toBeNull();
+    expect(estimateLineTotal(4.568, 0, "g", "g")).toBeNull();
   });
 });

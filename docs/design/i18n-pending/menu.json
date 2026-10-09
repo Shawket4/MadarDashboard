@@ -3,7 +3,6 @@
   "kitchen.routingLoadFailed": {"en": "Couldn't load kitchen routing", "ar": "تعذّر تحميل توجيه المطبخ"},
   "kitchen.itemsLoadFailed": {"en": "Couldn't load menu items", "ar": "تعذّر تحميل أصناف القائمة"},
   "discounts.deleteConsequence": {"en": "Cashiers can no longer apply it at checkout. Past orders keep the discount they were given.", "ar": "لن يتمكن الكاشير من تطبيقه عند الدفع، وتحتفظ الطلبات السابقة بالخصم الذي حصلت عليه."},
-  "bundles.deleteConsequence": {"en": "The combo disappears from the POS menu. Past orders keep their bundle lines; archive instead to keep its sales history visible here.", "ar": "سيختفي العرض من قائمة نقطة البيع، وتحتفظ الطلبات السابقة بسطورها. استخدم الأرشفة بدلًا من ذلك لتبقى مبيعاته ظاهرة هنا."},
   "menu.deleteItemConsequence": {"en": "It leaves the POS menu at every branch, with its sizes, recipe and branch prices. Past orders keep their lines.", "ar": "سيُزال من قائمة نقطة البيع في كل الفروع مع أحجامه ووصفته وأسعار الفروع، وتحتفظ الطلبات السابقة بسطورها."},
   "menu.deleteAddonConsequence": {"en": "It is removed from every item that offers it. If orders used it, it is deactivated instead so history stays intact.", "ar": "ستُزال من كل الأصناف التي تقدّمها. وإن استُخدمت في طلبات فستُعطَّل بدلًا من حذفها حفاظًا على السجل."},
   "menu.deleteCategoryConsequence": {"en": "The category and its kitchen routing are removed. Its items stay on the menu without a category.", "ar": "ستُحذف الفئة وتوجيهها للمطبخ، وتبقى أصنافها في القائمة بدون فئة."},

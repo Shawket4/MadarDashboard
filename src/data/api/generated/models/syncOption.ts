@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { SyncOptionNameTranslations } from './syncOptionNameTranslations';
 import type { SyncRecipeLine } from './syncRecipeLine';
 
 /**
@@ -15,6 +16,11 @@ export interface SyncOption {
      */
   is_default?: boolean;
   name: string;
+  /**
+     * `{locale: name}`, as the dashboard authored it (`{}` when untranslated):
+     * a till shows the option in its own language. Additive.
+     */
+  name_translations?: SyncOptionNameTranslations;
   /** Effective price in piastres (branch_channel → branch → channel → catalog default). */
   price: number;
   recipe: SyncRecipeLine[];

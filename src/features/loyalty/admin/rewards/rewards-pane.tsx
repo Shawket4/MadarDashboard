@@ -269,7 +269,7 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
                 <p className="text-xs text-muted-foreground">
                   {t(
                     "loyalty.pickItemHint",
-                    "Only active menu items. Combos can't be rewards — a reward covers whole units of one item.",
+                    "Only active menu items. A reward covers whole units of one item.",
                   )}
                 </p>
               </div>

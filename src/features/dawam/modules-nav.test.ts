@@ -64,3 +64,21 @@ describe("Rules in the nav (owner decision 2026-09-23)", () => {
     expect(leafVisible(rules, as(["hr.attendance.read"]), ["dawam"])).toBe(false);
   });
 });
+
+describe("Approvals in the nav (O-17; E2E, team)", () => {
+  const as = (capabilities: string[]) =>
+    authzFrom({
+      user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
+      capabilities: capabilities as never, ask_manager: [], limits: {},
+    });
+  const approvals = leaves.find((l) => l.to === "/staff/approvals")!;
+
+  it("shows for anyone the page itself lets decide something, attendance edits included", () => {
+    expect(leafVisible(approvals, as(["hr.attendance.edit"]), ["dawam"])).toBe(true);
+    expect(leafVisible(approvals, as(["hr.leave.edit"]), ["dawam"])).toBe(true);
+  });
+
+  it("stays hidden from someone who decides nothing", () => {
+    expect(leafVisible(approvals, as(["hr.attendance.read"]), ["dawam"])).toBe(false);
+  });
+});

@@ -403,12 +403,12 @@ describe("the new figures in Arabic", () => {
     };
     const { container } = wrap(<StaffPoolReportPage />);
     expect(i18n.dir()).toBe("rtl");
-    expect(screen.getByRole("columnheader", { name: "اتقدّم ببلاش" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "إضافات اتحاسب عليها" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "قُدّم مجانًا" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "إضافات مدفوعة" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "افتح الطلب" })).toBeInTheDocument();
     expect(screen.getByTestId("comp-mismatch")).toHaveTextContent(/الكاشير سجّل .*؛ والسيرفر حسبها/);
-    expect(screen.getAllByTestId("comp-unpriced")[0]).toHaveTextContent("اتسجّل قبل ما مشروبات الموظفين تتسعّر");
-    expect(screen.getByText(/مشروب واحد منهم اتسجّل قبل/)).toBeInTheDocument();
+    expect(screen.getAllByTestId("comp-unpriced")[0]).toHaveTextContent("سُجّل قبل تسعير مشروبات الموظفين");
+    expect(screen.getByText(/مشروب واحد منها سُجّل قبل/)).toBeInTheDocument();
     expect(container.textContent).not.toMatch(/Given free|Extras charged|Till differs|View order|The till reported/);
     // Figures stay isolated so a minus or a currency never reorders in RTL.
     expect(screen.getByTestId("staff-summary").querySelectorAll("bdi").length).toBeGreaterThan(0);
@@ -449,7 +449,7 @@ describe("the pricing rule, said once under the items", () => {
     await i18n.changeLanguage("ar");
     try {
       wrap(<StaffPoolSettingsPage />);
-      expect(screen.getByText(/اللي ببلاش هو أصغر حجم والاختيار الأساسي في كل اختيار إجباري/)).toBeInTheDocument();
+      expect(screen.getByText(/المجاني هو أصغر حجم والاختيار الأساسي في كل اختيار إلزامي/)).toBeInTheDocument();
       expect(screen.queryByText(/What's free/)).not.toBeInTheDocument();
     } finally {
       await i18n.changeLanguage("en");

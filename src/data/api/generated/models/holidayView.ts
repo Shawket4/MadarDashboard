@@ -2,6 +2,13 @@
 // @ts-nocheck
 
 export interface HolidayView {
+  /** @nullable */
+  decided_at?: string | null;
+  /**
+     * Who decided it and when (AT-10); null while undecided.
+     * @nullable
+     */
+  decided_by?: string | null;
   /**
      * null = not decided yet: a normal day unless set up (RU-10).
      * @nullable

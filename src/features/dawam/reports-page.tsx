@@ -1,5 +1,7 @@
 /**
- * Dawam reports (DSH-3), over the period and branch in the scope bar:
+ * Dawam reports (DSH-3), over the branch in the scope bar and the dates on
+ * the page — opening on this pay period (the month payroll pays), with one
+ * tap to the last one, a month, or a week:
  * attendance & discipline, labour cost against sales (only with POS on —
  * there are no sales without it, DSH-4), payroll history with overtime, and
  * advances — salary advances with what's left, and the expense log (`via` =
@@ -29,14 +31,12 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useOrgModules } from "@/hooks/use-org-modules";
 import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";
-import { cairoParts, fmtDate, fmtMoney } from "@/lib/format";
+import { fmtDate, fmtMoney } from "@/lib/format";
+import { DateRangeField, quickRange, type DateRange } from "@/components/inputs";
 import { fmtHours } from "@/features/staff/util";
-
-/** A scope instant → the calendar day the backend's date params want, in the active zone. */
-const localDate = (iso: string) => {
-  const { y, m, d } = cairoParts(iso);
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-};
+import { dawamQuery } from "./live";
+import { usePeriodStartDay } from "./period";
+import { DawamRefreshButton } from "./refresh-button";
 
 /** One column: what the table shows and what the CSV gets. */
 interface Col<R> {
@@ -59,10 +59,14 @@ function columnsOf<R>(cols: Col<R>[]): ColumnDef<R>[] {
   }));
 }
 
-/** RFC 4180 CSV; money in pounds so a spreadsheet adds it up. */
+/** open · approved · paid, from a period's server status (as on the Payroll page). */
+const phaseOf = (status: string): "open" | "approved" | "paid" =>
+  status === "generated" ? "approved" : status === "paid" || status === "closed" ? "paid" : "open";
+
+/** RFC 4180 CSV; money in pounds so a spreadsheet adds it up; plain text (no bidi isolates). */
 export function toCsv<R>(cols: Col<R>[], rows: R[]): string {
   const q = (v: string | number) => {
-    const s = String(v);
+    const s = String(v).replace(/[\u2066-\u2069\u200e\u200f]/g, "");
     return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const lines = [cols.map((c) => q(c.header)).join(",")];
@@ -101,7 +105,11 @@ export function StaffReportsPage() {
   const { t } = useTranslation();
   const authz = useAuthz();
   const modules = useOrgModules();
-  const { branchId, from, to } = useScope();
+  const { branchId } = useScope();
+  const periodStartDay = usePeriodStartDay();
+  /** Picked by hand; until then, this pay period. */
+  const [range, setRange] = useState<DateRange | null>(null);
+  const shownRange = range ?? quickRange("this_period", { periodStartDay });
   const canAttendance = authz.can(Cap.hrAttendanceRead);
   const canPay = authz.can(Cap.hrPayrollRead);
   const hasPos = modules.includes("pos");
@@ -117,13 +125,25 @@ export function StaffReportsPage() {
   if (authz.ready && tabs.length === 0) {
     return <Restricted title={t("dawam.reports", "Reports")} who={t("dawam.reportsNoAccess", "Reports need attendance or payroll rights. The owner can give you access.")} />;
   }
-  const params = { from: localDate(from), to: localDate(to), branch_id: branchId ?? undefined };
+  const backwards = shownRange.to < shownRange.from;
+  const params = { from: shownRange.from, to: shownRange.to, branch_id: branchId ?? undefined };
 
   return (
     <Page>
       <PageHeader
         title={t("dawam.reports", "Reports")}
-        description={t("dawam.reportsSubtitle", "Attendance, labour cost, payroll and advances over the period above.")}
+        description={t("dawamOps.reportsSubtitle", "Attendance, labour cost, payroll and advances over the dates below. It opens on this pay period.")}
+        actions={<DawamRefreshButton />}
+        below={
+          <DateRangeField
+            id="reports"
+            className="max-w-xl"
+            value={shownRange}
+            onChange={setRange}
+            quick={["this_period", "last_period", "this_month", "last_month", "this_week"]}
+            periodStartDay={periodStartDay}
+          />
+        }
       />
       <Tabs value={tab} onValueChange={setPicked} className="gap-6">
         <PageTabsList>
@@ -132,10 +152,13 @@ export function StaffReportsPage() {
           {tabs.includes("payroll") ? <PageTabsTrigger value="payroll"><Banknote className="size-4" />{t("dawam.rPayroll", "Overtime & payroll")}</PageTabsTrigger> : null}
           {tabs.includes("advances") ? <PageTabsTrigger value="advances"><HandCoins className="size-4" />{t("dawam.salaryAdvances", "Salary advances")}</PageTabsTrigger> : null}
         </PageTabsList>
-        <TabsContent value="attendance">{tab === "attendance" ? <AttendanceTab params={params} /> : null}</TabsContent>
-        <TabsContent value="labour">{tab === "labour" ? <LabourTab params={params} /> : null}</TabsContent>
-        <TabsContent value="payroll">{tab === "payroll" ? <PayrollTab params={params} /> : null}</TabsContent>
-        <TabsContent value="advances">{tab === "advances" ? <AdvancesTab params={params} /> : null}</TabsContent>
+        {backwards ? (
+          <EmptyState icon={CalendarClock} title={t("dawamOps.rangeBackwards", "The end is before the start")} description={t("dawamOps.rangeBackwardsHint", "Pick an end on or after the start, or tap a quick range.")} />
+        ) : null}
+        <TabsContent value="attendance">{tab === "attendance" && !backwards ? <AttendanceTab params={params} /> : null}</TabsContent>
+        <TabsContent value="labour">{tab === "labour" && !backwards ? <LabourTab params={params} /> : null}</TabsContent>
+        <TabsContent value="payroll">{tab === "payroll" && !backwards ? <PayrollTab params={params} /> : null}</TabsContent>
+        <TabsContent value="advances">{tab === "advances" && !backwards ? <AdvancesTab params={params} /> : null}</TabsContent>
       </Tabs>
     </Page>
   );
@@ -146,7 +169,7 @@ const sum = <R,>(rows: R[], f: (r: R) => number) => rows.reduce((a, r) => a + f(
 
 function AttendanceTab({ params }: { params: Params }) {
   const { t } = useTranslation();
-  const q = useAttendanceSummary(params);
+  const q = useAttendanceSummary(params, { query: dawamQuery() });
   const rows = q.data ?? [];
   type R = (typeof rows)[number];
   const cols: Col<R>[] = [
@@ -175,7 +198,7 @@ function AttendanceTab({ params }: { params: Params }) {
 function LabourTab({ params }: { params: Params }) {
   const { t } = useTranslation();
   const orgId = useOrgId();
-  const q = useLabourVsSales(params);
+  const q = useLabourVsSales(params, { query: dawamQuery() });
   const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } }).data ?? [];
   const names = new Map(branches.map((b) => [b.id, b.name]));
   const rows = q.data ?? [];
@@ -204,7 +227,7 @@ function LabourTab({ params }: { params: Params }) {
 
 function PayrollTab({ params }: { params: Params }) {
   const { t } = useTranslation();
-  const q = usePayrollHistory(params);
+  const q = usePayrollHistory(params, { query: dawamQuery() });
   const rows = q.data ?? [];
   type R = (typeof rows)[number];
   const cols: Col<R>[] = [
@@ -217,7 +240,8 @@ function PayrollTab({ params }: { params: Params }) {
     { id: "deductions", header: t("dawam.deductions", "Deductions"), value: (r) => r.deductions_piastres, money: true },
     { id: "advances", header: t("dawam.advancesCollected", "Advances collected"), value: (r) => r.advances_piastres, money: true },
     { id: "net", header: t("dawam.net", "Net"), value: (r) => r.net_piastres, money: true },
-    { id: "status", header: t("common.status", "Status"), value: (r) => r.status },
+    // The reader's words for the phase, never the server's raw status (AT-13).
+    { id: "status", header: t("common.status", "Status"), value: (r) => t(`dawam.phase_${phaseOf(r.status)}`) },
   ];
   return (
     <div className="space-y-4">
@@ -233,7 +257,7 @@ function PayrollTab({ params }: { params: Params }) {
 
 function AdvancesTab({ params }: { params: Params }) {
   const { t } = useTranslation();
-  const q = useAdvances(params);
+  const q = useAdvances(params, { query: dawamQuery() });
   const salary = q.data?.salary ?? [];
   const expense = q.data?.expense ?? [];
   type S = (typeof salary)[number];

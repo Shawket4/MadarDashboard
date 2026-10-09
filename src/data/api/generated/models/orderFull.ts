@@ -1,10 +1,13 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { Order } from './order';
+import type { OrderDeal } from './orderDeal';
 import type { OrderDeliveryInfo } from './orderDeliveryInfo';
 import type { OrderItemFull } from './orderItemFull';
 
 export type OrderFull = Order & ({
+  /** The deals applied to this sale (combos module). Additive. */
+  deals?: OrderDeal[];
   delivery?: null | OrderDeliveryInfo;
   items: OrderItemFull[];
   /**

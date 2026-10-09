@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { DealApplicationInput } from './dealApplicationInput';
 import type { LoyaltyRedemptionInput } from './loyaltyRedemptionInput';
 import type { OrderItemInput } from './orderItemInput';
 import type { PaymentSplitInput } from './paymentSplitInput';
@@ -22,6 +23,11 @@ export interface CreateOrderRequest {
   customer_id?: string | null;
   /** @nullable */
   customer_name?: string | null;
+  /**
+     * Deals the teller applied (combos module, C8). Each names order lines
+     * by index and the units it takes. Needs `orders.deals.apply`. Additive.
+     */
+  deals?: DealApplicationInput[];
   /**
      * The device's code; with `device_id` + `order_number` the number is stored verbatim.
      * @nullable

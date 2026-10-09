@@ -1,6 +1,7 @@
 import type { StatusTone } from "@/components/app/status-pill";
 import { queryClient } from "@/data/api/query";
 import type { BranchStockRow, ItemCountInput, Stocktake, StocktakeItem } from "@/data/api/generated/models";
+import { fmtNumber } from "@/lib/format";
 
 /**
  * Shared vocabulary + helpers for the inventory screens.
@@ -65,6 +66,50 @@ export const unitsForFamily = (unit: string): string[] => {
       return ["pcs"];
   }
 };
+
+// ── Purchase costs: the invoice total is the truth ───────────────────────────
+
+/** Base stock units in one purchase unit (a kg of a gram item → 1000), the
+ *  same conversion the backend derives the pack factor with. A named pack is
+ *  the backend's business; it reads as 1 here. */
+export const stockUnitsPer = (purchaseUnit: string, stockUnit: string): number => {
+  const scale: Record<string, number> = { g: 1, kg: 1000, ml: 1, l: 1000, pcs: 1 };
+  if (!(purchaseUnit in scale) || !(stockUnit in scale)) return 1;
+  if (unitFamily(purchaseUnit) !== unitFamily(stockUnit)) return 1;
+  return scale[purchaseUnit] / scale[stockUnit];
+};
+
+/** A line's unit cost DERIVED from its total, in piastres per purchase unit,
+ *  unrounded. `null` until both are known. Never the other way round: a unit
+ *  cost rounded to whole piastres turned 12 000 g at 548.16 EGP into 600.00. */
+export const unitCostFromTotal = (linePiastres: number, qty: number): number | null =>
+  Number.isFinite(linePiastres) && linePiastres >= 0 && Number.isFinite(qty) && qty > 0
+    ? linePiastres / qty
+    : null;
+
+/** The catalog's estimate of a line's total, in whole piastres: its cost per
+ *  stock unit × the stock units ordered. `null` when the catalog has no cost. */
+export const estimateLineTotal = (
+  catalogCostPerStockUnit: number | null | undefined,
+  qty: number,
+  purchaseUnit: string,
+  stockUnit: string,
+): number | null =>
+  catalogCostPerStockUnit != null && Number.isFinite(qty) && qty > 0
+    ? Math.round(catalogCostPerStockUnit * qty * stockUnitsPer(purchaseUnit, stockUnit))
+    : null;
+
+/** Fraction digits a unit cost is shown with (EGP), always all of them:
+ *  enough for 0.04568 per gram, and a whole-looking figure still reads as
+ *  the exact quotient it is (0.050000, not a rounded-looking 0.05). */
+export const UNIT_COST_DIGITS = 6;
+
+/** A unit cost in EGP, from piastres per unit, at a fixed [UNIT_COST_DIGITS]. */
+export const formatUnitCost = (piastresPerUnit: number): string =>
+  fmtNumber(piastresPerUnit / 100, {
+    minimumFractionDigits: UNIT_COST_DIGITS,
+    maximumFractionDigits: UNIT_COST_DIGITS,
+  });
 
 // ── Stock counts ─────────────────────────────────────────────────────────────
 

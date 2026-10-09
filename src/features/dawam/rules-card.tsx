@@ -4,16 +4,20 @@
  * approves, its day and night rates, the public-holiday rate, the cap on
  * outstanding salary advances, the day a pay period starts, and how half-day
  * leave counts; the night window (RU-9), labour limits that warn and never
- * block (RU-13), POS-derived coverage and the owner's gender mode (SC-12).
+ * block (RU-13), POS-derived coverage and the owner's gender mode (SC-12),
+ * and how a confirmed cover is paid (owner decision D5).
  * Saved with the rest of the page's rules in one request.
  */
 import { useTranslation } from "react-i18next";
 
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { NumberField, TimeRangeField } from "@/components/inputs";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { fmtWireTime } from "@/lib/format";
 import type { AttendanceSettings, PutAttendanceSettingsRequest } from "@/data/api/generated/models";
+import { coverPayOf, type CoverPayMode } from "./phase-d";
 
 export interface DawamRules {
   overtimeMode: "off" | "automatic" | "approval";
@@ -32,7 +36,27 @@ export interface DawamRules {
   limitRest: string;
   limitOtDay: string;
   ordersPerStaff: string;
+  coverPayMode: CoverPayMode;
 }
+
+/**
+ * How each number of the card is typed: its step and unit, and the same range
+ * `rulesRequest` enforces (never a tighter one, so the field and the save
+ * always agree on what is refused).
+ */
+const NUM_FIELDS: Record<NumKey, { min: number; max?: number; step: number; decimals: number; unit?: "x" | "%" | "h" }> = {
+  otDay: { min: 1, step: 0.05, decimals: 2, unit: "x" },
+  otNight: { min: 1, step: 0.05, decimals: 2, unit: "x" },
+  holidayMult: { min: 1, step: 0.25, decimals: 2, unit: "x" },
+  advanceCap: { min: 0, max: 100, step: 5, decimals: 0, unit: "%" },
+  periodStartDay: { min: 1, max: 28, step: 1, decimals: 0 },
+  limitDay: { min: 0, max: 168, step: 0.5, decimals: 2, unit: "h" },
+  limitWeek: { min: 0, max: 168, step: 1, decimals: 2, unit: "h" },
+  limitPresence: { min: 0, max: 168, step: 0.5, decimals: 2, unit: "h" },
+  limitRest: { min: 0, max: 168, step: 0.5, decimals: 2, unit: "h" },
+  limitOtDay: { min: 0, max: 168, step: 0.5, decimals: 2, unit: "h" },
+  ordersPerStaff: { min: 1, step: 1, decimals: 0 },
+};
 
 type NumKey = "otDay" | "otNight" | "holidayMult" | "advanceCap" | "periodStartDay" | "limitDay" | "limitWeek" | "limitPresence" | "limitRest" | "limitOtDay" | "ordersPerStaff";
 
@@ -44,6 +68,7 @@ export const DEFAULT_RULES: DawamRules = {
   overtimeMode: "off", otDay: "1.35", otNight: "1.70", holidayMult: "2", advanceCap: "50", periodStartDay: "1", halfDay: "half_shift",
   nightStart: "22:00", nightEnd: "06:00", genderMode: "off",
   limitDay: "8", limitWeek: "48", limitPresence: "10", limitRest: "12", limitOtDay: "2", ordersPerStaff: "12",
+  coverPayMode: "minute_rate",
 };
 
 export const rulesFrom = (s: AttendanceSettings): DawamRules => ({
@@ -63,6 +88,7 @@ export const rulesFrom = (s: AttendanceSettings): DawamRules => ({
   limitRest: String(s.limit_rest_hours ?? DEFAULT_RULES.limitRest),
   limitOtDay: String(s.limit_overtime_day_hours ?? DEFAULT_RULES.limitOtDay),
   ordersPerStaff: String(s.orders_per_staff ?? DEFAULT_RULES.ordersPerStaff),
+  coverPayMode: coverPayOf(s),
 });
 
 /**
@@ -98,6 +124,7 @@ export function rulesRequest(r: DawamRules, canGender = false): { ok: PutAttenda
       limit_rest_hours: limits[3],
       limit_overtime_day_hours: limits[4],
       orders_per_staff: perStaff,
+      cover_pay_mode: r.coverPayMode,
       ...(canGender ? { gender_mode: r.genderMode } : {}),
     },
   };
@@ -109,24 +136,49 @@ export function rulesRequest(r: DawamRules, canGender = false): { ok: PutAttenda
  * business-only settings (the pay period start, the advance cap, gender mode).
  */
 export function DawamRulesCard({
-  value, onChange, canGender = false, readOnly = false, branch = false,
+  value, onChange, canGender = false, readOnly = false, branch = false, coverFollows, onCoverChoice,
 }: {
   value: DawamRules; onChange: (v: DawamRules) => void; canGender?: boolean; readOnly?: boolean; branch?: boolean;
+  /** A branch: whether it pays covers the business's way (no override of its own). */
+  coverFollows?: boolean;
+  /** A branch's choice: follow the business, or a mode of its own. */
+  onCoverChoice?: (c: CoverChoice) => void;
 }) {
   const { t } = useTranslation();
   const set = <K extends keyof DawamRules>(k: K, v: DawamRules[K]) => onChange({ ...value, [k]: v });
-  const num = (k: NumKey, label: string, hint?: string) => (
-    <div className="space-y-1">
-      <Label htmlFor={`rule-${k}`}>{label}</Label>
-      <Input id={`rule-${k}`} type="number" inputMode="decimal" value={value[k]} disabled={readOnly} onChange={(e) => set(k, e.target.value)} />
-      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
-    </div>
-  );
+  const num = (k: NumKey, label: string, hint?: string) => {
+    const f = NUM_FIELDS[k];
+    const n = value[k].trim() === "" ? null : Number(value[k]);
+    return (
+      <div className="space-y-1.5">
+        <Label htmlFor={`rule-${k}`}>{label}</Label>
+        <NumberField
+          id={`rule-${k}`}
+          value={n}
+          disabled={readOnly}
+          min={f.min}
+          max={f.max}
+          step={f.step}
+          decimals={f.decimals}
+          prefix={f.unit === "x" ? "×" : undefined}
+          suffix={f.unit === "%" ? "%" : f.unit === "h" ? t("inputs.unitHour", "h") : undefined}
+          hint={hint}
+          onChange={(v) => set(k, v === null ? "" : String(v))}
+        />
+      </div>
+    );
+  };
+  const rate = (k: "otDay" | "otNight" | "holidayMult") =>
+    t("dawam.rateExample", { n: value[k] || "—", defaultValue: `1 h pays ${value[k] || "—"} h` });
   return (
     <Card>
       <CardHeader>
         <CardTitle>{t("dawam.rulesTitle", "Overtime, holidays and pay")}</CardTitle>
-        <CardDescription>{t("dawam.rulesHint", "Overtime is off until you turn it on. Rates follow Egypt's labour law as read so far — check them with your lawyer.")}</CardDescription>
+        <CardDescription>
+          {/* Only while it is off: the card never says overtime is off when it is on. */}
+          {value.overtimeMode === "off" ? `${t("dawam.setupOtOff", "Overtime is off until you turn it on.")} ` : ""}
+          {t("dawam.rulesHintRates", "Rates follow Egypt's labour law as read so far — check them with your lawyer.")}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-1">
@@ -143,9 +195,9 @@ export function DawamRulesCard({
           />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          {num("otDay", t("dawam.otDay", "Day rate ×"))}
-          {num("otNight", t("dawam.otNight", "Night rate ×"), `${value.nightStart}–${value.nightEnd}`)}
-          {num("holidayMult", t("dawam.holidayRate", "Holiday rate ×"))}
+          {num("otDay", t("dawam.otDay", "Day rate ×"), rate("otDay"))}
+          {num("otNight", t("dawam.otNight", "Night rate ×"), `${rate("otNight")} · ${fmtWireTime(value.nightStart)} – ${fmtWireTime(value.nightEnd)}`)}
+          {num("holidayMult", t("dawam.holidayRate", "Holiday rate ×"), rate("holidayMult"))}
         </div>
         {branch ? null : (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -165,15 +217,24 @@ export function DawamRulesCard({
             ]}
           />
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(["nightStart", "nightEnd"] as const).map((k) => (
-            <div key={k} className="space-y-1">
-              <Label htmlFor={`rule-${k}`}>{k === "nightStart" ? t("dawam.nightStart", "Night starts") : t("dawam.nightEnd", "Night ends")}</Label>
-              <Input id={`rule-${k}`} type="time" value={value[k]} disabled={readOnly} onChange={(e) => set(k, e.target.value)} />
-            </div>
-          ))}
+        <div className="space-y-1.5">
+          <TimeRangeField
+            id="rule-night"
+            aria-label={t("dawam.nightWindow", "Night hours")}
+            startLabel={t("dawam.nightStart", "Night starts")}
+            endLabel={t("dawam.nightEnd", "Night ends")}
+            value={{ start: value.nightStart, end: value.nightEnd }}
+            disabled={readOnly}
+            onChange={(r) => onChange({ ...value, nightStart: r.start, nightEnd: r.end })}
+          />
+          <p className="text-xs text-muted-foreground">{t("dawam.nightUnconfirmed", "Night hours for the night rate and for suggestions. Unconfirmed: check them with your lawyer.")}</p>
         </div>
-        <p className="text-xs text-muted-foreground">{t("dawam.nightUnconfirmed", "Night hours for the night rate and for suggestions. Unconfirmed: check them with your lawyer.")}</p>
+        <CoverPayChoice
+          value={branch && coverFollows ? "business" : value.coverPayMode}
+          branch={branch}
+          disabled={readOnly}
+          onChange={(c) => (branch && onCoverChoice ? onCoverChoice(c) : c !== "business" && set("coverPayMode", c))}
+        />
       </CardContent>
       <CardHeader>
         <CardTitle>{t("dawam.limitsTitle", "Labour limits")}</CardTitle>
@@ -212,3 +273,63 @@ export function DawamRulesCard({
     </Card>
   );
 }
+
+/** A branch's cover-pay choice: the business's way, or its own mode. */
+export type CoverChoice = "business" | CoverPayMode;
+
+/**
+ * How a confirmed cover is paid (owner decision D5): the coverer's plain
+ * minute rate (spec CV-4, the default) or the covered block as a full day.
+ * A branch can also follow the business. Each option says what it does.
+ */
+function CoverPayChoice({
+  value, onChange, branch, disabled,
+}: {
+  value: CoverChoice; onChange: (c: CoverChoice) => void; branch: boolean; disabled: boolean;
+}) {
+  const { t } = useTranslation();
+  const options: { value: CoverChoice; label: string; hint: string }[] = [
+    ...(branch
+      ? [{
+          value: "business" as const,
+          label: t("dawam.coverPayBusiness", "Use the business setting"),
+          hint: t("dawam.coverPayBusinessHint", "This branch pays covers the way the business does."),
+        }]
+      : []),
+    {
+      value: "minute_rate",
+      label: t("dawam.coverPayMinute", "The coverer's minute rate"),
+      hint: t("dawam.coverPayMinuteHint", "Pay the covered minutes at the coverer's own minute rate (their day rate ÷ 8 hours)."),
+    },
+    {
+      value: "full_block",
+      label: t("dawam.coverPayBlock", "A full day for the block"),
+      hint: t("dawam.coverPayBlockHint", "Pay a covered block as a full day, however short it is."),
+    },
+  ];
+  return (
+    <div className="space-y-2">
+      <Label id="cover-pay-label">{t("dawam.coverPay", "Cover pay")}</Label>
+      <div role="radiogroup" aria-labelledby="cover-pay-label" className="grid gap-2">
+        {options.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            role="radio"
+            aria-checked={value === o.value}
+            disabled={disabled}
+            onClick={() => onChange(o.value)}
+            className={cn(
+              "rounded-lg border p-3 text-start transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-60",
+              value === o.value ? "border-primary bg-primary/5" : "hover:bg-accent",
+            )}
+          >
+            <span className="block text-sm font-medium">{o.label}</span>
+            <span className="block text-xs text-muted-foreground">{o.hint}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+

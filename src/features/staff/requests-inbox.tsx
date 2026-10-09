@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { useForm } from "react-hook-form";
@@ -23,6 +23,7 @@ import { Cap } from "@/generated/capabilities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField, TimeField, toHHMM } from "@/components/inputs";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -33,13 +34,16 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  createRequestAdmin, decideRequest,
+  createRequestAdmin, decideRequest, listAttendance,
   useListEmployees, useListRequests,
 } from "@/data/api/generated/api";
 import type { StaffRequest } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
+import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { useAuthStore } from "@/data/stores/auth.store";
-import { invalidateRequests, REQUEST_STATUS_TONE, todayIso } from "./util";
+import { dawamQuery, failedEmpty } from "@/features/dawam/live";
+import { DawamRefreshButton } from "@/features/dawam/refresh-button";
+import { RejectDialog } from "@/features/dawam/money-dialogs";
+import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "./util";
 
 const ALL = "__all__";
 
@@ -61,6 +65,41 @@ export const kindMeta = (kind: string) => KINDS.find((k) => k.value === kind) ??
 export const ASKS_PAY = ["leave", "excuse", "early_departure"];
 
 /**
+ * A mission approved over days the person already worked turns them into
+ * mission days: paid, with no penalty, and the punches are kept (owner
+ * decision 16). The approver is told first; false means they backed out.
+ * If the days can't be read, the approval goes ahead as before.
+ */
+export async function confirmMissionOverPunches(
+  r: StaffRequest,
+  confirm: (o: { title: string; description: string; confirmLabel: string }) => Promise<boolean>,
+  t: TFunction,
+): Promise<boolean> {
+  if (r.kind !== "mission") return true;
+  // The server names the worked days on the request; an older one doesn't, so read them.
+  let worked: string[] = r.worked_dates ?? [];
+  if (!r.worked_dates) {
+    try {
+      const days = await listAttendance({ from: r.on_date, to: r.end_date ?? r.on_date, employee_id: r.employee_id });
+      worked = days.filter((a) => a.check_in_at).map((a) => a.business_date);
+    } catch {
+      return true;
+    }
+  }
+  if (worked.length === 0) return true;
+  return confirm({
+    title: t("staff.missionOverPunchesTitle", { name: r.employee_name, defaultValue: `${r.employee_name} already has punches on those days` }),
+    description: `${workedDaysText(worked, t)} ${t("staff.missionOverPunchesHint", "Approving makes them mission days: paid, with no penalty. The punches are kept.")}`,
+    confirmLabel: t("common.approve", "Approve"),
+  });
+}
+
+/** "Clocked in on 20 Sept 2026, 21 Sept 2026." */
+function workedDaysText(dates: string[], t: TFunction): string {
+  return t("staff.workedOn", { dates: dates.map((d) => fmtDate(d)).join(t("common.listSeparator", ", ")), defaultValue: "Clocked in on {{dates}}." });
+}
+
+/**
  * The employee records linked to the signed-in user. Their own requests are
  * decided by someone above them (RQ-5): the server refuses a self-decision,
  * so the queue never offers one.
@@ -68,10 +107,19 @@ export const ASKS_PAY = ["leave", "excuse", "early_departure"];
 export function useOwnEmployeeIds(enabled = true): Set<string> {
   // Only a fallback for a server that doesn't say (see isMine / mayDecide).
   const userId = useAuthStore((s) => s.user?.id);
-  const q = useListEmployees({}, { query: { enabled: enabled && !!userId } });
+  const q = useListEmployees({}, { query: dawamQuery({ enabled: enabled && !!userId }) });
   return useMemo(
     () => new Set((q.data ?? []).filter((e) => !!userId && e.user_id === userId).map((e) => e.id)),
     [q.data, userId],
+  );
+}
+
+/** Who a user is, by the employee linked to them (a cancel names a user, RQ-F6). */
+function useNamesByUser(): Map<string, string> {
+  const q = useListEmployees({}, { query: dawamQuery() });
+  return useMemo(
+    () => new Map((q.data ?? []).filter((e) => !!e.user_id).map((e) => [e.user_id as string, e.name])),
+    [q.data],
   );
 }
 
@@ -97,13 +145,31 @@ export function RequestsInboxPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [deciding, setDeciding] = useState<StaffRequest | null>(null);
   const [cancelling, setCancelling] = useState<StaffRequest | null>(null);
+  /** Rejected with an optional reason the requester reads (D8 wording). */
+  const [rejecting, setRejecting] = useState<StaffRequest | null>(null);
+  /** The request being decided in one click: its buttons wait (H2-D8). */
+  const [busy, setBusy] = useState<string | null>(null);
   const own = useOwnEmployeeIds();
+  const names = useNamesByUser();
   const canFile = useAuthz().can(Cap.hrLeaveCreate);
+  // A cancel keeps the approval's note and names its own author (RQ-F6).
+  const cancelWords = (r: StaffRequest) => {
+    if (r.status !== "cancelled") return null;
+    // The server names the canceller (cancelled_by_name); else the user's linked employee.
+    const who = r.cancelled_by_name ?? (r.cancelled_by ? names.get(r.cancelled_by) : undefined);
+    const head = who
+      ? t("staff.cancelledBy", { name: who, defaultValue: `Cancelled by ${who}` })
+      : r.cancelled_by ? t("staff.req_cancelled", "Cancelled") : null;
+    return [head, r.cancel_note].filter(Boolean).join(": ") || null;
+  };
 
-  const requestsQ = useListRequests({
-    status: status === ALL ? undefined : status,
-    kind: kind === ALL ? undefined : kind,
-  });
+  const requestsQ = useListRequests(
+    {
+      status: status === ALL ? undefined : status,
+      kind: kind === ALL ? undefined : kind,
+    },
+    { query: dawamQuery() },
+  );
   const rows = useMemo(() => requestsQ.data ?? [], [requestsQ.data]);
 
   const confirm = useConfirm();
@@ -113,21 +179,24 @@ export function RequestsInboxPage() {
       setDeciding(r);
       return;
     }
+    if (next === "approved" && !(await confirmMissionOverPunches(r, confirm, t))) return;
     if (next === "rejected") {
-      const ok = await confirm({
-        title: t("staff.rejectRequestTitle", { name: r.employee_name, defaultValue: `Reject ${r.employee_name}'s request?` }),
-        description: t("staff.rejectRequestHint", "The day is treated as if no request was filed, so any lateness or absence penalty applies."),
-        confirmLabel: t("common.reject", "Reject"),
-        destructive: true,
-      });
-      if (!ok) return;
+      setRejecting(r);
+      return;
     }
+    if (busy) return;
+    setBusy(r.id);
     try {
       await decideRequest(r.id, { status: next });
       toast.success(t("staff.decisionSaved", "Decision saved"));
-      void invalidateRequests();
+      // The roster's leave, attendance and pay read it too (H2-D9).
+      void invalidateStaff();
     } catch (e) {
       toast.error(getErrorMessage(e));
+      // Decided by someone else first: the list reads again (H2-B2).
+      if (isStaleRefusal(e)) void invalidateStaff();
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -140,28 +209,34 @@ export function RequestsInboxPage() {
           "Approving a request waives the penalty for that day at its source — there is nothing to correct afterwards.",
         )}
         actions={
-          // Filing for someone is hr.leave.create; the server refuses anyone else (403).
-          canFile ? (
-            <Button onClick={() => setAddOpen(true)}>
-              <Plus className="size-4" />
-              {t("staff.newRequest", "New request")}
-            </Button>
-          ) : undefined
+          <>
+            <DawamRefreshButton />
+            {/* Filing for someone is hr.leave.create; the server refuses anyone else (403). */}
+            {canFile ? (
+              <Button onClick={() => setAddOpen(true)}>
+                <Plus className="size-4" />
+                {t("staff.newRequest", "New request")}
+              </Button>
+            ) : null}
+          </>
         }
         below={
-          <div className="flex flex-wrap gap-2">
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>{t("staff.allStatuses", "All statuses")}</SelectItem>
-                <SelectItem value="pending">{t("staff.req_pending", "Pending")}</SelectItem>
-                <SelectItem value="approved">{t("staff.req_approved", "Approved")}</SelectItem>
-                <SelectItem value="rejected">{t("staff.req_rejected", "Rejected")}</SelectItem>
-                <SelectItem value="cancelled">{t("staff.req_cancelled", "Cancelled")}</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* The queue first: what waits on a decision is one tap, never hidden in a menu. */}
+            <SegmentedControl
+              value={status}
+              onChange={setStatus}
+              aria-label={t("common.status", "Status")}
+              options={[
+                { value: "pending", label: t("staff.req_pending", "Pending") },
+                { value: "approved", label: t("staff.req_approved", "Approved") },
+                { value: "rejected", label: t("staff.req_rejected", "Rejected") },
+                { value: "cancelled", label: t("staff.req_cancelled", "Cancelled") },
+                { value: ALL, label: t("dawam.all", "All") },
+              ]}
+            />
             <Select value={kind} onValueChange={setKind}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-48" aria-label={t("staff.kind", "Kind")}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>{t("staff.allKinds", "All kinds")}</SelectItem>
                 {KINDS.map((k) => (
@@ -182,7 +257,7 @@ export function RequestsInboxPage() {
             </div>
           ))}
         </ListCard>
-      ) : requestsQ.error ? (
+      ) : failedEmpty(requestsQ) ? (
         <ErrorState
           title={t("staff.requestsLoadError", "Couldn't load requests")}
           message={getErrorMessage(requestsQ.error)}
@@ -190,14 +265,27 @@ export function RequestsInboxPage() {
           retrying={requestsQ.isFetching}
         />
       ) : rows.length === 0 ? (
-        <EmptyState
-          icon={CalendarOff}
-          title={t("staff.noRequestsTitle", "No requests match these filters")}
-          description={t(
-            "staff.noRequestsHint",
-            "Requests filed from the staff app land here for a decision.",
-          )}
-        />
+        status === "pending" && kind === ALL ? (
+          <EmptyState
+            icon={Check}
+            title={t("dawamOps.noPendingTitle", "Nothing is waiting for a decision")}
+            description={t("dawamOps.noPendingHint", "Requests filed from the staff app land here. To file one for someone who called in, use New request.")}
+          />
+        ) : (
+          <EmptyState
+            icon={CalendarOff}
+            title={t("staff.noRequestsTitle", "No requests match these filters")}
+            description={t(
+              "staff.noRequestsHint",
+              "Requests filed from the staff app land here for a decision.",
+            )}
+            action={
+              <Button variant="outline" size="sm" onClick={() => { setStatus("pending"); setKind(ALL); }}>
+                {t("dawamOps.showPending", "Show what's pending")}
+              </Button>
+            }
+          />
+        )
       ) : (
         <ListCard>
           {rows.map((r) => {
@@ -218,7 +306,22 @@ export function RequestsInboxPage() {
                     <RequestBadges r={r} mine={mine} />
                   </span>
                 }
-                meta={[describeWindow(r, t), r.reason, r.decision_note].filter(Boolean).join(" · ")}
+                // Who decided and who cancelled must stay readable on a phone.
+                wrapMeta
+                meta={<>{[
+                  // A mission's title says what it is (M43).
+                  describeWindow(r, t), r.title, r.reason,
+                  // Who decided, with their note; a cancel keeps both and names its own author (AT-10, B-TEAM-3, RQ-F6).
+                  r.decided_by_name && r.status !== "pending"
+                    ? t("staff.decidedBy", { name: r.decided_by_name, defaultValue: "Decided by {{name}}" })
+                    : null,
+                  r.decision_note,
+                  cancelWords(r),
+                ].filter(Boolean).join(" · ")}
+                {mayDecide(r, own) && !r.month_closed ? (
+                  <span className="mt-0.5 block text-xs text-foreground/80">{approveMeans(r, t)}</span>
+                ) : null}
+                </>}
                 trailing={
                   <>
                     <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
@@ -227,12 +330,12 @@ export function RequestsInboxPage() {
                     {mayDecide(r, own) ? (
                       <>
                         {r.month_closed ? null : (
-                          <Button size="sm" variant="outline" className="ms-2" onClick={() => void quickDecide(r, "approved")}>
+                          <Button size="sm" variant="outline" className="ms-2" disabled={busy === r.id} onClick={() => void quickDecide(r, "approved")}>
                             <Check className="size-4" />
                             {t("common.approve", "Approve")}
                           </Button>
                         )}
-                        <RowAction destructive label={t("common.reject", "Reject")} onClick={() => void quickDecide(r, "rejected")}>
+                        <RowAction destructive disabled={busy === r.id} label={t("common.reject", "Reject")} onClick={() => void quickDecide(r, "rejected")}>
                           <X className="size-4" />
                         </RowAction>
                       </>
@@ -252,6 +355,23 @@ export function RequestsInboxPage() {
 
       <NewRequestDialog open={addOpen} onOpenChange={setAddOpen} />
       <ApproveWithPayDialog key={deciding?.id} request={deciding} onOpenChange={(o) => !o && setDeciding(null)} />
+      <RejectDialog
+        key={`reject-${rejecting?.id}`}
+        open={!!rejecting}
+        onOpenChange={(o) => !o && setRejecting(null)}
+        title={t("staff.rejectRequestTitle", { name: rejecting?.employee_name ?? "", defaultValue: `Reject ${rejecting?.employee_name ?? ""}'s request?` })}
+        description={t("staff.rejectRequestHint", "The day is treated as if no request was filed, so any lateness or absence penalty applies.")}
+        optional
+        onReject={async (reason) => {
+          try {
+            await decideRequest(rejecting!.id, { status: "rejected", note: reason.trim() || null });
+          } catch (e) {
+            // Decided by someone else first: the list reads again (H2-B2).
+            if (isStaleRefusal(e)) void invalidateStaff();
+            throw e;
+          }
+        }}
+      />
       <CancelRequestDialog
         key={cancelling?.id}
         request={cancelling}
@@ -271,7 +391,12 @@ export function RequestBadges({ r, mine }: { r: StaffRequest; mine: boolean }) {
       {r.is_paid === false ? <Badge variant="outline">{t("staff.unpaidBadge", "unpaid")}</Badge> : null}
       {r.kind === "leave" && r.is_half_day ? (
         <Badge variant="outline">
-          {r.leave_half === "second" ? t("staff.halfSecond", "½ day · second half") : t("staff.halfFirst", "½ day · first half")}
+          {r.leave_half === "second"
+            ? t("staff.halfSecond", "½ day · second half")
+            : r.leave_half === "first"
+              ? t("staff.halfFirst", "½ day · first half")
+              : // No half picked (old seed data): say only what is known (M18).
+                t("staff.halfDayUnsaid", "½ day")}
         </Badge>
       ) : null}
       {mine ? <Badge variant="outline">{t("staff.yourRequest", "Yours — decided above you")}</Badge> : null}
@@ -309,11 +434,16 @@ export function describeWindow(r: StaffRequest, t: TFunction): string {
     case "correction": {
       // What changes: the record's punch now → the proposed time (branch-local).
       const parts = [fmtDate(r.on_date)];
+      // Once approved, the punch already reads the new time: say it once (M43).
       if (r.from_time) {
-        parts.push(t("staff.correctionIn", "in {{now}} → {{to}}", { now: fmtTime(r.record_check_in_at), to: time(r.from_time) }));
+        const now = fmtTime(r.record_check_in_at);
+        const to = time(r.from_time);
+        parts.push(now === to ? t("staff.correctionInSet", "in {{to}}", { to }) : t("staff.correctionIn", "in {{now}} → {{to}}", { now, to }));
       }
       if (r.to_time) {
-        parts.push(t("staff.correctionOut", "out {{now}} → {{to}}", { now: fmtTime(r.record_check_out_at), to: time(r.to_time) }));
+        const now = fmtTime(r.record_check_out_at);
+        const to = time(r.to_time);
+        parts.push(now === to ? t("staff.correctionOutSet", "out {{to}}", { to }) : t("staff.correctionOut", "out {{now}} → {{to}}", { now, to }));
       }
       return parts.join(" · ");
     }
@@ -328,6 +458,30 @@ export function describeWindow(r: StaffRequest, t: TFunction): string {
       return r.end_date && r.end_date !== r.on_date
         ? `${fmtDate(r.on_date)} → ${fmtDate(r.end_date)}`
         : fmtDate(r.on_date);
+  }
+}
+
+/**
+ * What approving a request DOES, in plain words: the queue says it before the
+ * click, so nobody approves a "Permission" without knowing it forgives time.
+ */
+export function approveMeans(r: StaffRequest, t: TFunction): string {
+  const time = (s?: string | null) => (s ? fmtWireTime(s.slice(0, 5)) : "");
+  switch (r.kind) {
+    case "leave":
+      return t("dawamOps.meansLeave", "Approving: they're off on these days, paid or unpaid as you choose, and no absence is charged.");
+    case "late_arrival":
+      return t("dawamOps.meansLate", { time: time(r.to_time), defaultValue: "Approving: arriving by {{time}} isn't charged as late." });
+    case "early_departure":
+      return t("dawamOps.meansEarly", { time: time(r.from_time), defaultValue: "Approving: leaving at {{time}} isn't charged as leaving early; you choose if the time is paid." });
+    case "excuse":
+      return t("dawamOps.meansExcuse", "Approving: the time away is excused; you choose if it is paid.");
+    case "mission":
+      return t("dawamOps.meansMission", "Approving: those days count as worked on a mission, paid and with no penalty.");
+    case "correction":
+      return t("dawamOps.meansCorrection", "Approving: the punch changes to the proposed time and lateness is worked out again.");
+    default:
+      return "";
   }
 }
 
@@ -347,7 +501,7 @@ export function ApproveWithPayDialog({
 }) {
   const { t } = useTranslation();
   const isLeave = request?.kind === "leave";
-  const schema = z.object({ paid: z.boolean(), touched: z.boolean(), note: z.string().max(500) });
+  const schema = z.object({ paid: z.boolean(), touched: z.boolean(), note: z.string().max(500, t("staff.noteTooLong", "Keep the note under 500 characters")) });
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: { paid: request?.paid_default ?? true, touched: false, note: "" },
@@ -364,7 +518,7 @@ export function ApproveWithPayDialog({
         note: v.note.trim() || null,
       });
       toast.success(t("staff.decisionSaved", "Decision saved"));
-      void invalidateRequests();
+      void invalidateStaff();
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -389,9 +543,19 @@ export function ApproveWithPayDialog({
                   ? t("staff.paidLeaveHint", "Off, the days are docked like an absence.")
                   : t(
                       "staff.paidTimeHint",
-                      "On, the excused hours still count toward the day. Off, they are excused but unpaid.",
+                      "Only the minutes they were actually away count. On, those minutes are forgiven; off, they are docked. Worked time is never more than real presence.",
                     )}
               </p>
+              {isLeave && (request as StaffRequest | null)?.worked_dates?.length ? (
+                // Leave over a worked day turns it into leave; the punches stay (M16).
+                <p className="text-xs font-medium text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]">
+                  {t("staff.leaveOverPunches", {
+                    name: request!.employee_name,
+                    dates: (request as StaffRequest).worked_dates!.map((d) => fmtDate(d)).join(t("common.listSeparator", ", ")),
+                    defaultValue: "{{name}} already clocked in on {{dates}}. Approving makes those days leave; the punches are kept.",
+                  })}
+                </p>
+              ) : null}
               {!isLeave && request?.paid_default != null ? (
                 <p className="text-xs text-muted-foreground">
                   {request.paid_default
@@ -412,6 +576,8 @@ export function ApproveWithPayDialog({
           <div className="space-y-1">
             <Label htmlFor="ap-note">{t("staff.note", "Note")}</Label>
             <Input id="ap-note" {...form.register("note")} />
+            {/* H2-D7: a refused note says why, never a dead Approve button. */}
+            {form.formState.errors.note?.message ? <p className="text-xs text-destructive">{form.formState.errors.note.message}</p> : null}
           </div>
         </form>
         <DialogFooter>
@@ -443,7 +609,7 @@ export function CancelRequestDialog({
   const schema = useMemo(
     () =>
       z.object({
-        note: z.string().trim().max(500).refine((s) => !noteRequired || s.length > 0, {
+        note: z.string().trim().max(500, t("staff.noteTooLong", "Keep the note under 500 characters")).refine((s) => !noteRequired || s.length > 0, {
           message: t("staff.cancelNoteRequired", "Say why it is cancelled"),
         }),
       }),
@@ -457,7 +623,7 @@ export function CancelRequestDialog({
     try {
       await decideRequest(request.id, { status: "cancelled", note: v.note.trim() || null });
       toast.success(t("staff.requestCancelled", "Request cancelled"));
-      void invalidateRequests();
+      void invalidateStaff();
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -496,7 +662,7 @@ const newRequestSchema = (t: TFunction) =>
     .object({
       kind: z.enum(["leave", "late_arrival", "early_departure", "excuse", "mission"]),
       employee_id: z.string().min(1, t("staff.pickEmployee", "Pick an employee")),
-      on_date: z.string().min(1),
+      on_date: z.string().min(1, t("staff.pickDate", "Pick a date")),
       end_date: z.string(),
       from_time: z.string(),
       to_time: z.string(),
@@ -504,8 +670,8 @@ const newRequestSchema = (t: TFunction) =>
       leave_half: z.enum(["first", "second"]),
       /** Paid or unpaid — asked when the leave is approved as it is filed. */
       pay: z.enum(["", "paid", "unpaid"]),
-      title: z.string().max(200),
-      reason: z.string().max(500),
+      title: z.string().max(200, t("staff.titleTooLong", "Keep the title under 200 characters")),
+      reason: z.string().max(500, t("staff.reasonTooLong", "Keep the reason under 500 characters")),
     })
     .superRefine((v, ctx) => {
       const span = v.kind === "mission" || (v.kind === "leave" && !v.half_day);
@@ -563,10 +729,20 @@ function NewRequestDialog({
   const form = useForm<NewRequestValues>({ resolver: zodResolver(schema), defaultValues: blank });
   const errors = form.formState.errors;
   const v = form.watch();
+  // "To" follows "From" until it is set by hand, and never sits before it (box verify).
+  const endByHand = useRef(false);
   useEffect(() => {
-    if (open) form.reset({ ...blank, on_date: todayIso(), end_date: todayIso() });
+    if (open) {
+      form.reset({ ...blank, on_date: todayIso(), end_date: todayIso() });
+      endByHand.current = false;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+  const followFrom = (from: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) return;
+    const end = form.getValues("end_date");
+    if (!endByHand.current || !end || end < from) form.setValue("end_date", from, { shouldValidate: true });
+  };
 
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled: open } });
   const authz = useAuthz();
@@ -596,7 +772,7 @@ function NewRequestDialog({
           ? t("staff.requestFiledApproved", "Request filed and approved")
           : t("staff.requestFiled", "Request filed"),
       );
-      void invalidateRequests();
+      void invalidateStaff();
       onOpenChange(false);
     } catch (e) {
       toast.error(getErrorMessage(e));
@@ -683,12 +859,23 @@ function NewRequestDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="nr-date">{isSpan ? t("staff.from", "From") : t("staff.date", "Date")}</Label>
-              <Input id="nr-date" type="date" {...form.register("on_date")} />
+              <DateField
+                id="nr-date"
+                value={v.on_date}
+                invalid={!!errors.on_date}
+                onChange={(d) => { form.setValue("on_date", d, { shouldValidate: form.formState.isSubmitted }); followFrom(d); }}
+              />
+              {err(errors.on_date?.message)}
             </div>
             {isSpan ? (
               <div className="space-y-1">
                 <Label htmlFor="nr-end">{t("staff.to", "To")}</Label>
-                <Input id="nr-end" type="date" {...form.register("end_date")} />
+                <DateField
+                  id="nr-end"
+                  value={v.end_date}
+                  invalid={!!errors.end_date}
+                  onChange={(d) => { endByHand.current = true; form.setValue("end_date", d, { shouldValidate: form.formState.isSubmitted }); }}
+                />
                 {err(errors.end_date?.message)}
               </div>
             ) : null}
@@ -699,7 +886,12 @@ function NewRequestDialog({
                     ? t("staff.leavingAt", "Leaving at")
                     : t("staff.windowFrom", "From")}
                 </Label>
-                <Input id="nr-from" type="time" {...form.register("from_time")} />
+                <TimeField
+                  id="nr-from"
+                  value={v.from_time}
+                  invalid={!!errors.from_time}
+                  onChange={(x) => form.setValue("from_time", toHHMM(x), { shouldValidate: form.formState.isSubmitted })}
+                />
                 {err(errors.from_time?.message)}
               </div>
             ) : null}
@@ -710,7 +902,12 @@ function NewRequestDialog({
                     ? t("staff.arrivingBy", "Arriving by")
                     : t("staff.windowTo", "To")}
                 </Label>
-                <Input id="nr-to" type="time" {...form.register("to_time")} />
+                <TimeField
+                  id="nr-to"
+                  value={v.to_time}
+                  invalid={!!errors.to_time}
+                  onChange={(x) => form.setValue("to_time", toHHMM(x), { shouldValidate: form.formState.isSubmitted })}
+                />
                 {err(errors.to_time?.message)}
               </div>
             ) : null}
@@ -723,6 +920,7 @@ function NewRequestDialog({
           <div className="space-y-1">
             <Label htmlFor="nr-reason">{t("staff.reason", "Reason")}</Label>
             <Input id="nr-reason" {...form.register("reason")} />
+            {err(errors.reason?.message)}
           </div>
         </form>
 

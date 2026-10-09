@@ -25,6 +25,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useOrderNowCombine, useOrderNowReplaceIdentity } from "@/data/api/generated/api";
 import { clearDeviceToken, getDeviceToken, setDeviceToken, setGuestPhone } from "@/features/public-shell/guest";
 import { IdentityChangeChoice } from "@/features/public-shell/identity-change-choice";
+import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { classifyIdentityEdit, type IdentityChange, type IdentityEdit } from "@/features/public-shell/identity-edit";
 import { otpRefusal, useOtpTransport } from "@/features/public-shell/use-phone-otp";
 import { canonicalPhone, formatPhoneDisplay, ltrIsolate } from "@/lib/phone";
@@ -81,6 +82,9 @@ export function useOrderIdentity({ session, typed, otpRequired, hasAddress, plac
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [otpError, setOtpError] = useState<string | null>(null);
+  // Also as a toast: the inline copy sits where the customer may have scrolled from.
+  useErrorToast(error);
+  useErrorToast(otpError);
 
   const edit = useMemo(
     () => (session ? classifyIdentityEdit(session.customer, { name: typed.name, phone: typed.phone }) : NO_EDIT),

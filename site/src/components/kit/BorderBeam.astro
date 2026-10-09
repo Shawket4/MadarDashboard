@@ -1,0 +1,45 @@
+---
+/**
+ * A short light that runs round the inside of a box's border. It is a dash on an SVG
+ * outline with the box's own inner corner radius, so it turns every corner exactly as
+ * the border does (the Magic UI beam this replaces moved a gradient square along a path
+ * rounded by the beam's size, and cut across the corners). Three stacked dashes share
+ * one leading edge: the head bright, the tail fading. Motion only: reduced motion and
+ * no-JS show the plain border.
+ *
+ *   radius  the box's corner radius in px (as in its rounded-[…] class)
+ *   border  the box's own border width in px, 0 when it has none
+ */
+interface Props {
+  radius: number;
+  border?: number;
+  width?: number;
+  duration?: number;
+}
+const { radius, border = 0, width = 1.5, duration = 12 } = Astro.props;
+// The box clips to its padding box, so the light runs just inside the border: its
+// centre line sits half a stroke in from the padding edge.
+const inset = width / 2;
+const r = Math.max(0, radius - border - inset);
+const dashes = [
+  { len: 14, opacity: 0.2 },
+  { len: 8, opacity: 0.5 },
+  { len: 3.5, opacity: 1 },
+];
+const lead = dashes[0]!.len;
+---
+<svg
+  class="border-beam"
+  aria-hidden="true"
+  style={`inset:${inset}px;width:calc(100% - ${2 * inset}px);height:calc(100% - ${2 * inset}px);--beam-duration:${duration}s`}
+>
+  {dashes.map((d) => (
+    <rect
+      x="0" y="0" width="100%" height="100%" rx={r} ry={r}
+      pathLength="100"
+      stroke-width={width}
+      stroke-dasharray={`${d.len} ${100 - d.len}`}
+      style={`--lead:${lead - d.len};opacity:${d.opacity}`}
+    />
+  ))}
+</svg>

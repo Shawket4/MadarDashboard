@@ -13,15 +13,17 @@ interface BranchStepProps {
   onSelect: (branch: PublicBranch) => void;
   /** Tapping a fully-closed (but deliverable) branch enters read-only browse. */
   onPreview?: (branch: PublicBranch) => void;
+  /** The read-only menu: list every branch, not only those taking orders. */
+  browse?: boolean;
 }
 
 /** A branch is offerable if at least one delivery channel is enabled. */
 const isDeliverable = (b: PublicBranch) =>
   b.in_mall_enabled || b.outside_enabled || b.umbrella_enabled || b.pickup_enabled;
 
-export function BranchStep({ orgId, onSelect, onPreview }: BranchStepProps) {
+export function BranchStep({ orgId, onSelect, onPreview, browse }: BranchStepProps) {
   const { t } = useTranslation();
-  const { data, isLoading, isError } = usePublicBranches({ org_id: orgId });
+  const { data, isLoading, isError } = usePublicBranches({ org_id: orgId, browse: browse || undefined });
 
   if (isLoading) {
     return (
@@ -56,7 +58,9 @@ export function BranchStep({ orgId, onSelect, onPreview }: BranchStepProps) {
     );
   }
 
-  const branches = (data ?? []).filter(isDeliverable);
+  // To order: the branches taking orders. To browse the menu: every active
+  // branch the server listed — a branch with ordering off still has a menu.
+  const branches = browse ? (data ?? []) : (data ?? []).filter(isDeliverable);
 
   if (branches.length === 0) {
     return (
@@ -79,23 +83,26 @@ export function BranchStep({ orgId, onSelect, onPreview }: BranchStepProps) {
         // A closed-but-deliverable branch is tappable into read-only browse, so it
         // is never a dead end. Falls back to onSelect when no preview handler.
         const canPreview = !anyOpen && !!onPreview;
-        const tappable = anyOpen || canPreview;
+        // Browsing the menu, every branch is simply a menu to open: none is
+        // "closed", and ordering's channel pills say nothing about a menu.
+        const lit = browse || anyOpen;
+        const tappable = lit || canPreview;
         return (
           <motion.li key={b.id} variants={listItem}>
             <button
               type="button"
-              onClick={() => (anyOpen || !onPreview ? onSelect(b) : onPreview(b))}
+              onClick={() => (lit || !onPreview ? onSelect(b) : onPreview(b))}
               className={cn(
                 "group flex w-full items-center gap-3 rounded-2xl p-4 text-start transition-all",
-                anyOpen
-                  ? "border border-border/70 bg-card shadow-sm hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0"
+                lit
+                  ? "border border-border/70 bg-card shadow-sm hover:border-brand/40 hover:shadow-md"
                   : "border border-dashed border-border/70 bg-muted/30 hover:border-brand/40 hover:bg-muted/50",
               )}
             >
               <span
                 className={cn(
                   "flex size-11 shrink-0 items-center justify-center rounded-xl",
-                  anyOpen ? "bg-brand/10 text-brand" : "bg-muted text-muted-foreground",
+                  lit ? "bg-brand/10 text-brand" : "bg-muted text-muted-foreground",
                 )}
               >
                 <MapPin className="size-5" />
@@ -104,12 +111,14 @@ export function BranchStep({ orgId, onSelect, onPreview }: BranchStepProps) {
                 <span
                   className={cn(
                     "block truncate font-serif font-medium",
-                    !anyOpen && "text-muted-foreground",
+                    !lit && "text-muted-foreground",
                   )}
                 >
                   {b.name}
                 </span>
-                <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                <span
+                  className={cn("mt-1.5 flex flex-wrap items-center gap-1.5", browse && "hidden")}
+                >
                   {anyOpen ? (
                     <>
                       {b.in_mall_enabled && (
@@ -146,7 +155,7 @@ export function BranchStep({ orgId, onSelect, onPreview }: BranchStepProps) {
                 </span>
               </span>
               {tappable && (
-                <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+                <ChevronRight className="size-5 shrink-0 text-muted-foreground rtl:rotate-180" />
               )}
             </button>
           </motion.li>

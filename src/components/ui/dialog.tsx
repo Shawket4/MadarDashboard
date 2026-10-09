@@ -4,6 +4,7 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
+import { keepOpenForConfirm } from "@/lib/dialog-outside"
 import { Button } from "@/components/ui/button"
 
 function Dialog({
@@ -50,6 +51,7 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  onPointerDownOutside,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
@@ -65,6 +67,10 @@ function DialogContent({
           className
         )}
         {...props}
+        onPointerDownOutside={(e) => {
+          keepOpenForConfirm(e)
+          onPointerDownOutside?.(e)
+        }}
       >
         {children}
         {showCloseButton && (

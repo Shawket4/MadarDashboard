@@ -10,9 +10,7 @@
  *    server's `ON CONFLICT DO NOTHING` would otherwise drop the duplicate
  *    without a word;
  *  - every item is a live, active menu item of this org ("reward items must be
- *    active menu items of this org"). Bundles cannot be picked at all: they are
- *    not menu items, and a redemption against a bundle line is refused
- *    (`redeem::plan`).
+ *    active menu items of this org").
  */
 import { z } from "zod";
 

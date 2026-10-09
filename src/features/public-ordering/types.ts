@@ -50,6 +50,26 @@ export interface SelectedOptional {
 }
 
 /**
+ * One pick inside a combo line: what the server needs (`slot_id`,
+ * `menu_item_id`, `size_label`, `quantity`) plus display snapshots so the
+ * basket can say "Coffee: Latte" in the customer's language without the menu.
+ */
+export interface ComboPick {
+  slot_id: string;
+  menu_item_id: string;
+  /** null = the choice's included size (and never the synthetic `one_size`). */
+  size_label: string | null;
+  /** units of this choice per ONE combo (the line's quantity multiplies it). */
+  quantity: number;
+  name: string;
+  name_translations: unknown;
+  slot_name: string;
+  slot_name_translations: unknown;
+  /** per-unit surcharge estimate (choice surcharge + size extra), piastres. */
+  extra: number;
+}
+
+/**
  * A fully-configured cart line, held in local state. Carries display snapshots
  * so the cart/checkout can render selections + an ESTIMATE; the server reprices
  * authoritatively on submit.
@@ -65,4 +85,6 @@ export interface CartLine {
   addons: SelectedAddon[];
   optionals: SelectedOptional[];
   notes: string | null;
+  /** Present only for a combo (`item.kind === "combo"`): the customer's picks. */
+  combo?: { picks: ComboPick[] };
 }

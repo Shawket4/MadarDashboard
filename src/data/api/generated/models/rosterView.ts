@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { DateSet } from './dateSet';
+import type { ElsewhereShift } from './elsewhereShift';
 import type { HolidayView } from './holidayView';
 import type { LabourWarning } from './labourWarning';
 import type { OpenShift } from './openShift';
@@ -11,10 +12,17 @@ import type { WorkShiftBrief } from './workShiftBrief';
 export interface RosterView {
   branch_id: string;
   /**
-     * The dates that hold their own set (a date change), a day off included:
-     * the ones "back to the pattern" applies to.
+     * The dates whose part at THIS branch is not the pattern's (a date
+     * change here, a day off included): the ones "back to the pattern"
+     * applies to on this board. A date changed only at another branch is
+     * not one (BUG-4).
      */
   date_sets?: DateSet[];
+  /**
+     * The staff's shifts at other branches in range, for display only
+     * (BUG-4).
+     */
+  elsewhere?: ElsewhereShift[];
   from: string;
   holidays: HolidayView[];
   /** The limits are not yet confirmed by a lawyer; say so beside them. */

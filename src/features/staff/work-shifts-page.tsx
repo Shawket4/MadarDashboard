@@ -16,25 +16,41 @@ import { deleteWorkShift, useListBranches, useListWorkShifts } from "@/data/api/
 import type { WorkShift } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
-import { invalidateWorkShifts, WEEKDAYS } from "./util";
+import { dawamQuery, failedEmpty } from "@/features/dawam/live";
+import { DawamRefreshButton } from "@/features/dawam/refresh-button";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+import { invalidateStaff } from "./util";
 import { ScheduleGrid } from "./schedule-grid";
-import { WEEK_ORDER, WorkShiftDialog } from "./work-shift-dialog";
+import { WorkShiftDialog } from "./work-shift-dialog";
+import { endsNextDay, formatSpan, spanMinutes, summarizeDays } from "@/components/inputs";
+import { useLang } from "@/components/inputs/use-lang";
+import { fmtWireTime } from "@/lib/format";
 
 export function WorkShiftsPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
-  const shiftsQ = useListWorkShifts();
+  const authz = useAuthz();
+  // Offer only what the server allows (AT-11): a branch manager edits their
+  // branch's blocks but can't add or remove blocks, and a business-wide block
+  // needs the roster right at every branch.
+  const canCreate = authz.can(Cap.hrScheduleCreate);
+  const canDelete = authz.can(Cap.hrScheduleDelete);
+  const canEdit = authz.can(Cap.hrScheduleEdit);
+  // A business-wide block needs the right at every branch (/authz/me `everywhere`, B-SETUP-3).
+  const canEditShift = (s: WorkShift) =>
+    canEdit && (!!s.branch_id || (authz.canEverywhere(Cap.hrScheduleEdit) && (authz.owner || canCreate)));
+  const canDeleteShift = (s: WorkShift) => canDelete && (!!s.branch_id || authz.canEverywhere(Cap.hrScheduleDelete));
+  const shiftsQ = useListWorkShifts({ query: dawamQuery() });
   const orgId = useOrgId();
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const branches = useMemo(() => branchesQ.data ?? [], [branchesQ.data]);
   const branchName = (id: string | null | undefined) =>
     id ? (branches.find((b) => b.id === id)?.name ?? "") : t("staff.wholeBusiness", "Every branch");
+  const { lang } = useLang();
+  // "Sat – Wed", "Thu, Fri", "Every day": a run of days reads as a range.
   const dayList = (days: number[]) =>
-    days.length === 7
-      ? t("staff.everyDay", "Every day")
-      : WEEK_ORDER.filter((d) => days.includes(d))
-          .map((d) => { const w = WEEKDAYS.find((x) => x.value === d)!; return t(w.labelKey, w.fallback); })
-          .join(" ");
+    summarizeDays(days, lang, t("staff.everyDay", "Every day"), t("inputs.noDays", "No days"));
   const [editing, setEditing] = useState<WorkShift | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -54,7 +70,8 @@ export function WorkShiftsPage() {
     try {
       await deleteWorkShift(shift.id);
       toast.success(t("staff.shiftDeleted", "Work shift deleted"));
-      void invalidateWorkShifts();
+      // The Dawam roster lists the blocks too (H2-D13).
+      void invalidateStaff();
     } catch (e) {
       toast.error(getErrorMessage(e));
     }
@@ -69,15 +86,20 @@ export function WorkShiftsPage() {
           "Working hours and the roster that assigns them. These are HR schedules — separate from cash-drawer shifts.",
         )}
         actions={
-          <Button onClick={() => setCreating(true)}>
-            <Plus className="size-4" />
-            {t("staff.newShift", "New shift")}
-          </Button>
+          <>
+            <DawamRefreshButton />
+            {canCreate ? (
+              <Button onClick={() => setCreating(true)}>
+                <Plus className="size-4" />
+                {t("staff.newShift", "New shift")}
+              </Button>
+            ) : null}
+          </>
         }
       />
 
       <section className="space-y-3">
-        <SectionHeader title={t("staff.shiftsSection", "Shifts")} count={shiftsQ.isLoading || shiftsQ.error ? undefined : shifts.length} />
+        <SectionHeader title={t("staff.shiftsSection", "Shifts")} count={shiftsQ.isLoading || failedEmpty(shiftsQ) ? undefined : shifts.length} />
       {shiftsQ.isLoading ? (
         <ListCard>
           {[0, 1, 2].map((i) => (
@@ -87,7 +109,7 @@ export function WorkShiftsPage() {
             </div>
           ))}
         </ListCard>
-      ) : shiftsQ.error ? (
+      ) : failedEmpty(shiftsQ) ? (
         <ErrorState
           title={t("staff.shiftsLoadError", "Couldn't load work shifts")}
           onRetry={() => void shiftsQ.refetch()}
@@ -97,11 +119,12 @@ export function WorkShiftsPage() {
         <EmptyState
           icon={Clock}
           title={t("staff.noShifts", "No work shifts yet")}
-          description={t(
-            "staff.noShiftsHint",
-            "Create a shift with its start and end time, then roster people onto it.",
-          )}
-          action={<Button onClick={() => setCreating(true)}>{t("staff.newShift", "New shift")}</Button>}
+          description={
+            canCreate
+              ? t("staff.noShiftsHintV2", "A shift is a block of time people are rostered on, like Morning 8 AM–4 PM or a night that ends after midnight. Start from a common one, then roster people onto it.")
+              : t("staff.noShiftsNoAccess", "Nobody has made a shift yet. Making shifts needs the right to create schedules: ask the owner.")
+          }
+          action={canCreate ? <Button onClick={() => setCreating(true)}><Plus className="size-4" />{t("staff.newShift", "New shift")}</Button> : undefined}
         />
       ) : (
         <ListCard>
@@ -113,8 +136,9 @@ export function WorkShiftsPage() {
               title={s.name}
               meta={
                 <>
-                  <bdi className="font-mono tabular-nums">{s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}</bdi>
-                  {s.crosses_midnight ? ` · ${t("staff.crossesMidnight", "Runs past midnight")}` : ""}
+                  <bdi className="tabular-nums">{fmtWireTime(s.start_time)} – {fmtWireTime(s.end_time)}</bdi>
+                  {(() => { const n = spanMinutes(s.start_time, s.end_time); return n ? ` (${formatSpan(n, lang)})` : ""; })()}
+                  {s.crosses_midnight || endsNextDay(s.start_time, s.end_time) ? ` · ${t("inputs.endsNextDay", "Ends the next day")}` : ""}
                   {" · "}
                   {t("staff.graceBadge", "{{n}} min grace", { n: s.grace_minutes })}
                   {" · "}
@@ -134,12 +158,16 @@ export function WorkShiftsPage() {
                     <StatusPill tone="warning" icon={TriangleAlert}>{t("staff.overCapShort", "Over the presence limit")}</StatusPill>
                   ) : null}
                   {!s.is_active ? <StatusPill tone="neutral">{t("staff.inactive", "Inactive")}</StatusPill> : null}
-                  <RowAction label={t("common.edit", "Edit")} onClick={() => setEditing(s)}>
-                    <Pencil className="size-4" />
-                  </RowAction>
-                  <RowAction destructive label={t("staff.deleteShift", "Delete work shift")} onClick={() => void removeShift(s)}>
-                    <Trash2 className="size-4" />
-                  </RowAction>
+                  {canEditShift(s) ? (
+                    <RowAction label={t("common.edit", "Edit")} onClick={() => setEditing(s)}>
+                      <Pencil className="size-4" />
+                    </RowAction>
+                  ) : null}
+                  {canDeleteShift(s) ? (
+                    <RowAction destructive label={t("staff.deleteShift", "Delete work shift")} onClick={() => void removeShift(s)}>
+                      <Trash2 className="size-4" />
+                    </RowAction>
+                  ) : null}
                 </>
               }
             />
@@ -152,6 +180,7 @@ export function WorkShiftsPage() {
 
       <WorkShiftDialog
         branches={branches}
+        wholeBusiness={authz.canEverywhere(editing ? Cap.hrScheduleEdit : Cap.hrScheduleCreate)}
         shift={editing}
         open={creating || !!editing}
         onOpenChange={(o) => {

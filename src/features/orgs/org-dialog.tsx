@@ -113,8 +113,10 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         social: socialLinksToForm(org?.social_links),
       });
     }
+    // Keyed on the org, not its row: a logo upload refetches the row, and
+    // re-filling then wiped whatever was typed and not yet saved (ADM-ORG-058).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, org]);
+  }, [open, org?.id]);
 
   useEffect(() => () => revoke(), []);
 

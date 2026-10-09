@@ -38,7 +38,10 @@ export type OrderIdentityFields = Pick<
 >;
 
 /** How placing the order went, for whoever has to decide what to do about it. */
-export type PlaceOutcome = { ok: true } | { ok: false; status?: number; code?: string };
+export type PlaceOutcome =
+  | { ok: true }
+  /** `message`: the server's coded refusal in the customer's words, when it had a code. */
+  | { ok: false; status?: number; code?: string; message?: string };
 
 export interface IdentityRefusal {
   status?: number;

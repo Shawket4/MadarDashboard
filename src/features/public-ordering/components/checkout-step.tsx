@@ -10,9 +10,12 @@ import { cn } from "@/lib/utils";
 
 import type { Channel, CartLine } from "../types";
 import { Totals } from "./cart-sheet";
+import { LineSummaryList } from "./cart-lines";
+import type { CartQuote } from "@/data/api/generated/models/cartQuote";
 import { cartSubtotal } from "../utils";
 import { isValidPhone } from "@/lib/phone";
 import { FIELD_LIMITS } from "../limits";
+import { toastFormError } from "@/features/public-shell/public-toaster";
 
 export interface CheckoutForm {
   name: string;
@@ -44,8 +47,10 @@ interface CheckoutStepProps {
   onChange: (patch: Partial<CheckoutForm>) => void;
   lines: CartLine[];
   deliveryFee: number | null;
-  /** estimated channel discount on the subtotal (piastres); 0 = none. */
+  /** estimated channel discount on the items after deals (piastres); 0 = none. */
   discountAmount?: number;
+  /** The server's quote for these lines, deals applied (null = use the estimate). */
+  quote?: CartQuote | null;
   submitting: boolean;
   error: string | null;
   /** The server's refusal of this phone (a code it would not send) — shown under the field. */
@@ -64,6 +69,7 @@ export function CheckoutStep({
   lines,
   deliveryFee,
   discountAmount = 0,
+  quote = null,
   submitting,
   error,
   phoneError,
@@ -72,8 +78,12 @@ export function CheckoutStep({
   identitySlot,
 }: CheckoutStepProps) {
   const { t } = useTranslation();
-  const subtotal = cartSubtotal(lines);
-  const total = subtotal - discountAmount + (deliveryFee ?? 0);
+  // The server's figures when it has quoted this cart (deals applied, as the
+  // order will be charged); the channel discount and the fee go on top of
+  // what is left after the deals, exactly as intake does it.
+  const subtotal = quote ? quote.items_total : cartSubtotal(lines);
+  const afterDeals = quote ? quote.total_after_deals : subtotal;
+  const total = afterDeals - discountAmount + (deliveryFee ?? 0);
   const isMall = channel === "in_mall";
   const isUmbrella = channel === "umbrella";
   const isPickup = channel === "pickup";
@@ -132,7 +142,11 @@ export function CheckoutStep({
     ev.preventDefault();
     const e = validate();
     setErrors(e);
-    if (Object.keys(e).length === 0) onSubmit();
+    const messages = Object.values(e).filter((m): m is string => !!m);
+    // The first problem, in the order the form asks — the customer tapped
+    // Place order at the bottom, and the name field is a screen above.
+    if (messages.length > 0) toastFormError(messages[0]!, messages.length > 1);
+    else onSubmit();
   };
 
   return (
@@ -342,7 +356,14 @@ export function CheckoutStep({
 
       {/* Summary */}
       <SectionCard icon={<ReceiptText className="size-4" />} title={t("order.checkout.summary")}>
-        <Totals subtotal={subtotal} deliveryFee={deliveryFee} total={total} discount={discountAmount} />
+        <LineSummaryList lines={lines} />
+        <Totals
+          subtotal={subtotal}
+          deals={quote?.deals ?? []}
+          deliveryFee={deliveryFee}
+          total={total}
+          discount={discountAmount}
+        />
         <p className="text-xs text-muted-foreground">
           {t("order.cart.estimate")}
         </p>
@@ -429,10 +450,10 @@ function PaymentChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition-all active:translate-y-0",
+        "flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition-colors",
         active
           ? "border-brand bg-brand/10 text-brand shadow-sm"
-          : "border-border/70 bg-card text-foreground hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md",
+          : "border-border/70 bg-card text-foreground hover:border-brand/40 hover:shadow-md",
       )}
     >
       {icon}

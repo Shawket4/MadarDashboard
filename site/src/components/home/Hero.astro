@@ -1,0 +1,80 @@
+---
+import Shot from "@/components/media/Shot.astro";
+import Icon from "@/components/ui/Icon.astro";
+import Orbit from "@/components/ui/Orbit.astro";
+import CountUp from "@/components/kit/CountUp.astro";
+import { t } from "@/i18n";
+import { type Lang, whatsappHref } from "@/lib/site";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const c = t(lang);
+---
+<section class="on-ink relative isolate overflow-hidden bg-ink text-paper" aria-labelledby="hero-title" data-hero>
+  <Orbit tone="ink" class="absolute -top-[30rem] -end-[34rem] -z-10 h-[78rem] w-[78rem] md:-end-[22rem]" />
+  <div aria-hidden="true" class="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-b from-transparent to-ink"></div>
+
+  <div class="container-site grid items-center gap-14 pb-20 pt-32 md:pt-36 lg:grid-cols-12 lg:gap-10 lg:pb-28 lg:pt-40">
+    <div class="lg:col-span-5">
+      <p class="kicker text-teal-light" data-hero-item>{c.hero.kicker}</p>
+      <h1 id="hero-title" class="text-display mt-6" data-hero-title>{c.hero.title}</h1>
+      <p class="text-lead mt-6 font-medium text-paper" data-hero-item>{c.hero.sub}</p>
+      <p class="mt-3 max-w-md text-muted-ink" data-hero-item>{c.hero.body}</p>
+      <div class="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3" data-hero-item>
+        <a class="btn btn-paper btn-lg" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="hero">
+          {c.hero.ctaPrimary} <Icon name="arrow" size={18} />
+        </a>
+        <a class="link-cta" href="#day">
+          {c.hero.ctaSecondary} <Icon name="arrow-down" size={18} />
+        </a>
+      </div>
+      <p class="mt-7 flex max-w-md items-start gap-2.5 text-sm text-muted-ink" data-hero-item>
+        <span class="mt-0.5 text-teal-light"><Icon name="spark" size={18} /></span>
+        <span>{c.freeMonth.line}</span>
+      </p>
+    </div>
+
+    <div class="relative lg:col-span-7" data-hero-media>
+      <div class="relative ms-[4%] lg:ms-0" data-parallax="0.06">
+        <Shot
+          id="dash-recipe"
+          lang={lang}
+          alt={c.hero.altRecipe}
+          frame="browser"
+          eager
+          sizes="(min-width: 1280px) 720px, (min-width: 1024px) 56vw, 92vw"
+          data-hero-browser=""
+        />
+        <!-- The cost line, called out: the headline's proof -->
+        <div
+          class="absolute -bottom-6 end-[3%] z-20 rounded-2xl border border-teal/25 bg-paper px-4 py-3 text-ink shadow-[0_24px_60px_-20px_rgba(11,14,18,0.6)] sm:end-[6%] sm:px-5 sm:py-4"
+          data-hero-chip
+        >
+          <p class="text-xs font-medium text-muted">{c.hero.chipItem}</p>
+          <div class="mt-1.5 flex items-baseline gap-5">
+            <p class="ltr">
+              <span class="chip-label block text-muted">{c.hero.chipCost}</span>
+              <span class="font-mono text-lg font-medium sm:text-xl">EGP <CountUp value={32} decimals={2} delay={0.4} /></span>
+            </p>
+            <p class="ltr">
+              <span class="chip-label block text-muted">{c.hero.chipMargin}</span>
+              <span class="font-mono text-lg font-medium text-teal sm:text-xl"><CountUp value={70.9} decimals={1} delay={0.55} />%</span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="absolute -bottom-14 start-0 z-10 w-[52%] max-w-[26rem] sm:-bottom-16 lg:-start-[8%]" data-parallax="-0.08">
+        <Shot
+          id="pos-cart"
+          lang={lang}
+          alt={c.hero.altPos}
+          frame="ipad"
+          eager
+          sizes="(min-width: 1024px) 26rem, 50vw"
+          data-hero-ipad=""
+        />
+      </div>
+    </div>
+  </div>
+  <div class="h-10 md:h-16" aria-hidden="true"></div>
+</section>

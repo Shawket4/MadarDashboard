@@ -105,7 +105,7 @@ describe("a staff drink in the orders export", () => {
     const i18n = (await import("@/i18n")).default;
     const ar = i18n.getFixedT("ar");
     const headers = lineItemColumns(ar).map((c) => c.header);
-    expect(headers).toContain("مشروبات موظفين اتقدّمت ببلاش");
+    expect(headers).toContain("مشروبات موظفين قُدّمت مجانًا");
     expect(headers).toContain("المدفوع في مشروب الموظفين (بالإضافات)");
   });
 });

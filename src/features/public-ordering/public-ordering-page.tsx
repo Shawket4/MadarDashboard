@@ -24,12 +24,13 @@ import { fmtMoney } from "@/lib/format";
 import { fadeIn } from "@/lib/motion";
 
 import { isFlatChannel, type CartLine, type Channel, type Step } from "./types";
-import { asChannel, calcDiscount, cartSubtotal, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
+import { asChannel, calcDiscount, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
 import { getDeviceToken, setDeviceToken } from "@/features/public-shell/guest";
 import { canonicalPhone, formatPhoneInput, isValidPhone, samePhone } from "@/lib/phone";
 import { FIELD_LIMITS } from "./limits";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
+import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { StepShell } from "./components/step-shell";
 import { BranchStep } from "./components/branch-step";
 import { BranchSelector } from "./components/branch-selector";
@@ -40,6 +41,10 @@ import { PhoneStep } from "./components/phone-step";
 import { LocationStep } from "./components/location-step";
 import { MenuStep } from "./components/menu-step";
 import { ItemCustomizer } from "./components/item-customizer";
+import { ComboCustomizer } from "./components/combo-customizer";
+import { isCombo } from "./combo";
+import { useCartQuote } from "./use-cart-quote";
+import { getErrorMessage } from "@/data/api/errors";
 import { CartSheet, CartPanel } from "./components/cart-sheet";
 import { CheckoutStep, emptyForm, type CheckoutForm } from "./components/checkout-step";
 import { CheckoutChannelSheet } from "./components/checkout-channel-sheet";
@@ -58,6 +63,12 @@ interface PublicOrderingPageProps {
   channel?: string;
   /** Browse-only menu preview (read-only): show the menu even when closed. */
   preview?: boolean;
+  /**
+   * The shop's read-only MENU (`/menu`): browse mode with the menu's own
+   * voice — its heading and tab title, no add buttons, no cart — and an
+   * "Order now" bar only where the branch takes orders.
+   */
+  menuMode?: boolean;
   prefillPlaceName?: string;
   prefillFloor?: string;
   prefillUnitNumber?: string;
@@ -79,6 +90,7 @@ export function PublicOrderingPage({
   branchLocked,
   channel,
   preview,
+  menuMode = false,
   prefillPlaceName,
   prefillFloor,
   prefillUnitNumber,
@@ -98,6 +110,12 @@ export function PublicOrderingPage({
   // "the shop's identity" — a shop off the branding tier gets Madar's palette
   // back under its own name, and the page never asks which it received.
   const brand = usePublicBrand(orgId);
+  // The tab says what the page is: the shop's menu, not "Madar — Order".
+  useEffect(() => {
+    if (menuMode && brand?.orgName) {
+      document.title = `${t("order.menuMode.title", "Menu")} · ${brand.orgName}`;
+    }
+  }, [menuMode, brand?.orgName, t]);
 
   // ── URL-bound selection (branch + channel) ───────────────────────────────
   // The route validates ?branch=&channel=; we mirror selection back into the URL
@@ -212,10 +230,18 @@ export function PublicOrderingPage({
   // OTP
   const [otpOpen, setOtpOpen] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
+  // Also as a toast: the inline copy sits where the customer may have scrolled from.
+  useErrorToast(submitError);
+  useErrorToast(phoneError);
+  useErrorToast(otpError);
   const idempotencyKey = useRef<string>(newUid());
 
   // ── Resolve the selected branch object (needed by channel step) ───────────
-  const { data: branches, isLoading: branchesLoading } = usePublicBranches({ org_id: orgId });
+  // Browsing lists every branch: a shop with ordering off still has a menu.
+  const { data: branches, isLoading: branchesLoading } = usePublicBranches({
+    org_id: orgId,
+    browse: preview || undefined,
+  });
   const branchObj = useMemo<PublicBranch | null>(
     () => branches?.find((b) => b.id === branchId) ?? null,
     [branches, branchId],
@@ -242,6 +268,10 @@ export function PublicOrderingPage({
       ),
     [branches],
   );
+  // Which branches the header's switcher offers: to ORDER, the ones taking
+  // orders; to BROWSE the menu, every active branch (the list was fetched with
+  // `browse`) — a branch with ordering off still has a menu to read.
+  const switchableBranches = preview ? (branches ?? []) : deliverableBranches;
 
   // ── Browse-only mode ──────────────────────────────────────────────────────
   // A deliberate read-only menu preview (e.g. when every channel is closed). It
@@ -261,15 +291,38 @@ export function PublicOrderingPage({
             ? "pickup"
             : null
     : null;
-  // The channel whose menu/prices we actually request.
-  const menuChannel: Channel = selectedChannel ?? browseChannel ?? "in_mall";
+  // The channel whose menu/prices we actually request. A branch that takes no
+  // online orders shows its dine-in menu, read-only.
+  const menuChannel: Channel | "dine_in" =
+    selectedChannel ?? browseChannel ?? (browseOnly ? "dine_in" : "in_mall");
+  const menuOnly = browseOnly && browseChannel == null;
+  const branchOpenNow =
+    !!branchObj &&
+    (branchObj.in_mall_open_now ||
+      branchObj.outside_open_now ||
+      branchObj.umbrella_open_now ||
+      branchObj.pickup_open_now);
   const enterBrowse = () => setUrl({ branch: branchId ?? undefined, channel: undefined, preview: true });
+  // From the MENU to an order at this branch: the ordering flow's own entry
+  // (this bundle's root), not a search-param flip — `/menu` is browse by route.
+  const startOrder = () =>
+    window.location.assign(
+      `${import.meta.env.BASE_URL}${branchId ? `?branch=${encodeURIComponent(branchId)}` : ""}`,
+    );
 
   // A selected channel that isn't open right now (direct link to a closed channel,
   // or one that closed mid-session). Drives the apologetic ChannelClosed state.
   // Suppressed in browse mode — there we intentionally ignore open-now.
   const channelClosed =
     !browseOnly && !!branchObj && !!selectedChannel && !channelOpenNow(branchObj, selectedChannel);
+
+  // The menu link of a one-branch shop opens straight on that branch's menu:
+  // a picker with one choice in it is a tap for nothing.
+  useEffect(() => {
+    if (preview && !branchId && branches?.length === 1) {
+      setUrl({ branch: branches[0].id, channel: undefined, preview: true });
+    }
+  }, [preview, branchId, branches, setUrl]);
 
   // No auto-selection: when no branch is in the URL (e.g. org-level QR) the
   // customer reaches the branch picker and chooses explicitly.
@@ -552,9 +605,15 @@ export function PublicOrderingPage({
   }, [lines]);
 
   const itemCount = lines.reduce((s, l) => s + l.quantity, 0);
-  const subtotal = cartSubtotal(lines);
-  // Estimated channel discount (server reprices authoritatively at intake).
-  const discountAmount = calcDiscount(subtotal, menu?.discount);
+  // The server's price for this cart on this channel, deals applied — what
+  // intake will charge for the items. Falls back to the estimate silently.
+  // A read-only menu has no cart to price; the quote needs a real channel.
+  const quoteChannel: Channel = menuChannel === "dine_in" ? "in_mall" : menuChannel;
+  const pricing = useCartQuote({ kind: "branch", id: branchId, channel: quoteChannel }, lines);
+  const itemsAfterDeals = pricing.afterDeals;
+  // Estimated channel discount. Intake takes it off what is left AFTER the
+  // deals, so this does too (server reprices authoritatively at intake).
+  const discountAmount = calcDiscount(itemsAfterDeals, menu?.discount);
 
   // Editing from the cart re-opens the menu customizer through MenuStep is not
   // direct; instead we open the cart's edit which mounts the customizer here.
@@ -586,7 +645,9 @@ export function PublicOrderingPage({
     setResolvedPhone({ phone, deviceToken });
     // Pre-fill phone in checkout form immediately; name will be filled when
     // the background profile query resolves (via the effect below).
-    setForm((f) => ({ ...f, phone }));
+    // The step hands over the CANONICAL number (201…); the field wants what a
+    // person types (01…), or it reads "+20 2010…" under its own +20 prefix.
+    setForm((f) => ({ ...f, phone: formatPhoneInput(phone) }));
   }, []);
 
   // When the background order history loads, pre-fill customer name if not yet set.
@@ -633,7 +694,7 @@ export function PublicOrderingPage({
   // customer (`useOrderIdentity`), not failures to report.
   const sendOrder = async (identity: OrderIdentityFields): Promise<PlaceOutcome> => {
     setSubmitError(null);
-    const estimate = subtotal - discountAmount + (deliveryFee ?? 0);
+    const estimate = itemsAfterDeals - discountAmount + (deliveryFee ?? 0);
     try {
       const order = await createOrder.mutateAsync({ data: { ...buildInput(identity.device_token), ...identity } });
       setOtpOpen(false);
@@ -649,7 +710,9 @@ export function PublicOrderingPage({
       // Fresh idempotency key for the retry (this attempt failed).
       idempotencyKey.current = newUid();
       const { status, code } = identityRefusal(e);
-      return { ok: false, status, code };
+      // A coded refusal reads in the customer's language (a combo missing
+      // its picks, an item that just sold out) rather than "try again".
+      return { ok: false, status, code, message: code ? getErrorMessage(e) : undefined };
     }
   };
 
@@ -661,7 +724,7 @@ export function PublicOrderingPage({
         ? t("order.checkout.errChannelClosed", {
             defaultValue: "Sorry — this branch just stopped accepting orders on this channel.",
           })
-        : t("order.checkout.errSubmit"),
+        : (outcome.message ?? t("order.checkout.errSubmit")),
     );
   };
 
@@ -821,11 +884,16 @@ export function PublicOrderingPage({
   // ── Per-step header copy ──────────────────────────────────────────────────
   const headers = channelClosed
     ? { title: t("order.channel.heading", "How would you like it?"), subtitle: undefined }
-    : stepHeaders(step, branchObj?.name ?? "", t);
+    : menuMode && step === "branch"
+      ? {
+          title: t("order.branch.heading", "Choose a branch"),
+          subtitle: t("order.menuMode.pickBranch", "Pick a branch to see its menu"),
+        }
+      : stepHeaders(step, branchObj?.name ?? "", t);
 
   // ── Sticky footer (view-cart bar on menu) ─────────────────────────────────
   const footer =
-    step === "menu" && itemCount > 0 && !channelClosed ? (
+    step === "menu" && itemCount > 0 && !channelClosed && !menuMode ? (
       <button
         type="button"
         onClick={() => setCartOpen(true)}
@@ -838,10 +906,17 @@ export function PublicOrderingPage({
           <span className="text-sm">{t("order.cart.units", { count: itemCount, defaultValue: "items" })}</span>
         </span>
         <span className="inline-flex items-center gap-2 text-sm font-semibold tabular-nums">
-          {fmtMoney(subtotal)}
+          {fmtMoney(itemsAfterDeals)}
           <ArrowRight className="size-4 rtl:rotate-180" />
         </span>
       </button>
+    ) : step === "menu" && itemCount === 0 && !menuMode ? (
+      // In the same floating slot as the cart bar it turns into, so the page
+      // keeps room for it — laid over the page, it sat on the footer's links.
+      <div className="pointer-events-none flex items-center justify-center gap-2 py-2 text-xs text-muted-foreground">
+        <ShoppingBag className="size-3.5" />
+        {t("order.cart.emptyHint")}
+      </div>
     ) : undefined;
 
   // Desktop menu search lives in the header (mobile renders its own inside MenuStep).
@@ -881,7 +956,7 @@ export function PublicOrderingPage({
         branchSelector={
           branchLocked ? undefined : (
             <BranchSelector
-              branches={deliverableBranches}
+              branches={switchableBranches}
               currentId={branchId ?? ""}
               onSelect={handleSwitchBranch}
             />
@@ -893,6 +968,12 @@ export function PublicOrderingPage({
         onOpenHistory={orders.length > 0 ? () => setHistoryOpen(true) : undefined}
         historyCount={orders.length}
         brand={brand}
+        hideProgress={menuMode}
+        menuHeading={
+          menuMode
+            ? { title: t("order.menuMode.title", "Menu"), subtitle: branchObj?.name }
+            : undefined
+        }
       >
         <AnimatePresence mode="wait">
           <motion.div key={step} variants={fadeIn} initial="hidden" animate="show" exit="hidden">
@@ -915,8 +996,13 @@ export function PublicOrderingPage({
             {step === "branch" && (
               <BranchStep
                 orgId={orgId}
-                onSelect={handleSelectBranch}
+                onSelect={
+                  preview
+                    ? (b) => setUrl({ branch: b.id, channel: undefined, preview: true })
+                    : handleSelectBranch
+                }
                 onPreview={(b) => setUrl({ branch: b.id, channel: undefined, preview: true })}
+                browse={preview}
               />
             )}
 
@@ -985,26 +1071,33 @@ export function PublicOrderingPage({
               />
             ) : null}
 
-            {step === "menu" && branchId && (selectedChannel ?? browseChannel) && (!channelClosed || browseOnly) && (
+            {step === "menu" && branchId && (selectedChannel ?? browseChannel ?? (browseOnly ? "dine_in" : null)) && (!channelClosed || browseOnly) && (
               <MenuStep
                 branchId={branchId}
                 channel={menuChannel}
                 browseOnly={browseOnly}
+                open={branchOpenNow}
+                readOnly={menuOnly}
+                menuMode={menuMode}
+                onOrder={menuMode && browseChannel ? startOrder : undefined}
                 onExitBrowse={() => setUrl({ branch: branchId ?? undefined, channel: undefined, preview: undefined })}
                 countByItem={countByItem}
                 onAdd={addOrUpdateLine}
                 query={menuQuery}
                 onQueryChange={setMenuQuery}
                 cartSlot={
-                  <CartPanel
-                    lines={lines}
-                    deliveryFee={deliveryFee}
-                    discountAmount={discountAmount}
-                    onEdit={startEdit}
-                    onRemove={removeLine}
-                    onSetQty={setLineQty}
-                    onCheckout={requestCheckout}
-                  />
+                  menuOnly || menuMode ? undefined : (
+                    <CartPanel
+                      lines={lines}
+                      deliveryFee={deliveryFee}
+                      discountAmount={discountAmount}
+                      onEdit={startEdit}
+                      onRemove={removeLine}
+                      onSetQty={setLineQty}
+                      onCheckout={requestCheckout}
+                      quote={pricing.quote}
+                    />
+                  )
                 }
               />
             )}
@@ -1020,6 +1113,7 @@ export function PublicOrderingPage({
                 lines={lines}
                 deliveryFee={deliveryFee}
                 discountAmount={discountAmount}
+                quote={pricing.quote}
                 submitting={createOrder.isPending || otp.sending || identity.busy}
                 error={submitError}
                 phoneError={phoneError}
@@ -1035,12 +1129,6 @@ export function PublicOrderingPage({
         </AnimatePresence>
 
         {/* Empty-cart hint on the menu footer area (mobile / tablet only) */}
-        {step === "menu" && itemCount === 0 && (
-          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-[480px] items-center justify-center gap-2 px-4 py-4 text-xs text-muted-foreground xl:hidden">
-            <ShoppingBag className="size-3.5" />
-            {t("order.cart.emptyHint")}
-          </div>
-        )}
       </StepShell>
 
       {/* Cart sheet (menu step) */}
@@ -1058,6 +1146,7 @@ export function PublicOrderingPage({
           requestCheckout();
         }}
         onAddMore={() => setCartOpen(false)}
+        quote={pricing.quote}
       />
 
       {/* Browse-mode checkout: pick a channel, or the warm "closed" state */}
@@ -1067,17 +1156,25 @@ export function PublicOrderingPage({
           onOpenChange={setCheckoutSheetOpen}
           branch={branchObj}
           itemCount={itemCount}
-          subtotal={subtotal}
+          subtotal={itemsAfterDeals}
           onChoose={handleChooseChannelFromBrowse}
         />
       )}
 
       {/* Edit customizer (re-opens a configured line from the cart) */}
       <ItemCustomizer
-        item={editing?.item ?? null}
+        item={editing && !isCombo(editing.item) ? editing.item : null}
         addons={addons}
         editing={editing}
-        open={!!editing}
+        open={!!editing && !isCombo(editing.item)}
+        onOpenChange={(o) => !o && setEditing(null)}
+        onConfirm={addOrUpdateLine}
+      />
+      {/* A combo line reopens its own picker, with its picks. */}
+      <ComboCustomizer
+        item={editing && isCombo(editing.item) ? editing.item : null}
+        editing={editing}
+        open={!!editing && isCombo(editing.item)}
         onOpenChange={(o) => !o && setEditing(null)}
         onConfirm={addOrUpdateLine}
       />

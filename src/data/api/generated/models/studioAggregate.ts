@@ -6,7 +6,6 @@ import type { ItemOptionOut } from './itemOptionOut';
 import type { ModifierGroupOut } from './modifierGroupOut';
 import type { RecipeStep } from './recipeStep';
 import type { SizeOut } from './sizeOut';
-import type { UsedInBundleOut } from './usedInBundleOut';
 
 /**
  * The full item aggregate the one-page Menu Studio editor renders.
@@ -41,5 +40,4 @@ export interface StudioAggregate {
      */
   recipe_steps: RecipeStep[];
   sizes: SizeOut[];
-  used_in_bundles: UsedInBundleOut[];
 }

@@ -1,6 +1,10 @@
 /* eslint-disable */
 // @ts-nocheck
 
+/**
+ * What a punch or ping recorded offline carries, so the server can date it
+ * without trusting the phone's wall clock.
+ */
 export interface OfflineStamp {
   /**
      * The `X-Dawam-Time` value of the last response the phone saw (signed).

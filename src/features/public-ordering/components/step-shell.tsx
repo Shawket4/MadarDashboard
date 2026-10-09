@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import i18n from "@/i18n";
 
 import type { Step } from "../types";
+import { useBrandSkin } from "@/features/public-shell/use-brand-skin";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import {
   BrandMark,
@@ -38,6 +39,14 @@ interface StepShellProps {
   onOpenHistory?: () => void;
   /** Number of past orders — used to badge the history icon. */
   historyCount?: number;
+  /**
+   * The menu step's heading, when this is the shop's read-only MENU rather
+   * than an order being built: "Menu" and the branch, in place of "What are
+   * you craving?" and the time-of-day greeting, which are ordering's voice.
+   */
+  menuHeading?: { title: string; subtitle?: string };
+  /** The menu is not a flow: no ordering progress bar over its branch picker. */
+  hideProgress?: boolean;
   /**
    * Whose shop this is.
    *
@@ -91,12 +100,17 @@ export function StepShell({
   onOpenHistory,
   historyCount = 0,
   brand,
+  menuHeading,
+  hideProgress = false,
 }: StepShellProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const toggleLang = () => void i18n.changeLanguage(lang.startsWith("ar") ? "en" : "ar");
   const mode = usePublicTheme((s) => s.mode);
   const toggleTheme = usePublicTheme((s) => s.toggle);
+  // The shop's colour on the controls — category chips, the cart pill, every
+  // sheet — the same way `StorefrontShell` puts it there.
+  useBrandSkin(brand?.background);
 
   // Time-of-day greeting shown under the menu heading.
   const hour = new Date().getHours();
@@ -111,7 +125,7 @@ export function StepShell({
 
   const dots = PROGRESS_STEPS.filter((s) => s !== "location" || showLocationDot);
   const activeIdx = dots.indexOf(step);
-  const showProgress = variant === "flow" && activeIdx >= 0;
+  const showProgress = variant === "flow" && activeIdx >= 0 && !hideProgress;
 
   // The menu step breathes out to a multi-pane width on desktop; every other
   // step stays a focused mobile-width column, centered on large screens too.
@@ -125,7 +139,7 @@ export function StepShell({
       <BrandWash brand={brand} />
 
       {variant !== "bare" && (
-        <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
+        <header data-sticky-header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
           <div className={cn("mx-auto flex w-full items-center gap-2 py-3", widthClass, padClass)}>
             {variant === "menu" ? (
               // The branch chip already says which of the shop's rooms you are
@@ -213,9 +227,15 @@ export function StepShell({
         {variant === "menu" && (
           <div className="mb-4 lg:hidden">
             <h1 className="font-serif text-2xl font-semibold leading-tight tracking-tight">
-              {t("order.menu.greeting", "What are you craving?")}
+              {menuHeading ? menuHeading.title : t("order.menu.greeting", "What are you craving?")}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t(greet.key, greet.fallback)}</p>
+            {menuHeading ? (
+              menuHeading.subtitle ? (
+                <p className="mt-1 text-sm text-muted-foreground">{menuHeading.subtitle}</p>
+              ) : null
+            ) : (
+              <p className="mt-1 text-sm text-muted-foreground">{t(greet.key, greet.fallback)}</p>
+            )}
           </div>
         )}
         {variant === "flow" && (
@@ -229,18 +249,20 @@ export function StepShell({
 
         <div className="flex-1">{children}</div>
 
-        {variant !== "bare" && <MadarFooter brand={brand} product="ordering" />}
+        {variant !== "bare" && <MadarFooter product={menuHeading ? undefined : "ordering"} />}
       </main>
 
       {footer && (
         <div
           className={cn(
-            "fixed inset-x-0 bottom-0 z-20 flex justify-center pb-4",
+            // The strip itself lets taps through to the menu under it; only
+            // what is in the slot takes them.
+            "pointer-events-none fixed inset-x-0 bottom-0 z-20 flex justify-center pb-4",
             padClass,
             wide && "xl:hidden",
           )}
         >
-          <div className={cn("w-full", widthClass)}>{footer}</div>
+          <div className={cn("pointer-events-auto w-full", widthClass)}>{footer}</div>
         </div>
       )}
     </div>

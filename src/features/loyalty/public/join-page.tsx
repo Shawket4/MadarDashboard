@@ -35,6 +35,7 @@ import { clearDeviceToken } from "@/features/public-shell/guest";
 import type { JoinInfo, JoinResult } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { PhoneVerify } from "@/features/public-shell/phone-verify";
+import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { DURATION, easeOutExpo } from "@/lib/motion";
 
 import { resolveBrand, type ResolvedBrand } from "../shared/brand";
@@ -134,6 +135,8 @@ function Form({
   const [name, setName] = useState("");
   const [birthday, setBirthday] = useState<Birthday>({ month: null, day: null });
   const [error, setError] = useState<string | null>(null);
+  // Also as a toast: the inline copy sits where the customer may have scrolled from.
+  useErrorToast(error);
   // The server answered "this number already has a card, and this device has
   // not proved it owns the number". The card is not shown; the ordinary OTP
   // step runs instead, and the same POST with the device token it hands back

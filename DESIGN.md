@@ -109,7 +109,7 @@ components:
 
 Madar is an honest accounting book bound in warm materials. Every figure is precise, auditable, and ledger-true — orders, shifts, and inventory are append-only, so the interface never implies a mutation the system can't make. But the surface is hospitable, not clinical: this is a tool for someone's livelihood in F&B, and it should feel like the warm front counter of a good coffee shop, not a grey ERP terminal. Harbor Navy carries trust, Terracotta Clay carries warmth, and Linen Cream carries hospitality.
 
-The system speaks in two complementary volumes, dictated by register. In the **authenticated dashboard** (product) the voice is quiet, professional, and precise — restraint is the feature, density is welcome where operators need it, and the tool disappears into the task. On the **customer surfaces** (brand) — the marketing landing, public ordering at `/order/:orgId`, order tracking at `/track/:id` — the voice turns bold and editorial, carried by weight, scale and confident terracotta rather than a second typeface. Never borrow dashboard flatness for the landing page, or landing-page flourish for a data table.
+The system speaks in two complementary volumes, dictated by register. In the **authenticated dashboard** (product) the voice is quiet, professional, and precise — restraint is the feature, density is welcome where operators need it, and the tool disappears into the task. On the **customer surfaces** (brand) — public ordering at `/order/:orgId`, order tracking at `/track/:id` (the marketing site is its own package in `site/`, styled from the brand kit) — the voice turns bold and editorial, carried by weight, scale and confident terracotta rather than a second typeface. Never borrow dashboard flatness for the landing page, or landing-page flourish for a data table.
 
 Everything is bilingual by symmetry. Arabic is a peer of English, not a translation — and since one superfamily carries both, they are literally the same face: layouts use logical properties so they flip cleanly for RTL, numerals localize to `ar-EG`, and dates anchor to Africa/Cairo. A screen that only reads right in one direction is unfinished. Color is the entire OKLCH semantic system in `src/styles/globals.css` — **never raw hex in components**.
 
@@ -178,7 +178,7 @@ Vietnamese too — most of a megabyte of glyphs this product has no text for,
 downloaded on a phone over whatever connection the shop has.
 
 ### Hierarchy
-- **Display** (600, brand headlines — public ordering, landing hero moments).
+- **Display** (600, brand headlines — public ordering hero moments).
 - **Headline** (600, 1.5rem, line-height 1.2): Dashboard page titles (`PageHeader`). Fixed rem — product headings don't fluid-scale.
 - **Title** (600, 1.125rem): Card titles, section headers, dialog titles.
 - **Body** (400, 0.875rem, line-height 1.5): The dashboard's default text size. Prose caps at 65–75ch; dense tables may run wider.

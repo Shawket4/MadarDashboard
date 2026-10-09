@@ -7,15 +7,21 @@
  * own address short of being told it in a chat — and no way to put it on a
  * menu, a receipt footer, or an Instagram bio.
  *
- * The three surfaces are ONE host with three mounts, decided at build time by
+ * The surfaces are ONE host with three bundles, decided at build time by
  * `MADAR_MOUNT` (see `vite.order.config.ts` / `vite.reservations.config.ts`):
- * the root is the loyalty card, `/order` is the menu, `/book` is bookings.
- * Keep this in step with those, or the dashboard will hand people a 404.
+ * the root is the loyalty bundle — the shop's LINKS PAGE at `/`, its rewards
+ * sign-up at `/rewards` — `/order` is ordering (its read-only menu at
+ * `/order/menu`), `/book` is bookings. Keep this in step with those and with
+ * the backend's `qr_card` addresses, or the dashboard will hand people a 404.
  */
 
 /** Where a shop's `/order` and `/book` bundles are mounted on its own host. */
 export const ORDER_MOUNT = "/order";
 export const BOOK_MOUNT = "/book";
+/** The read-only menu, inside the ordering mount. */
+export const MENU_PATH = "/order/menu";
+/** The rewards sign-up, in the loyalty bundle (the root is the links page). */
+export const REWARDS_PATH = "/rewards";
 
 /**
  * The domain shops are given subdomains of.
@@ -43,7 +49,10 @@ export function publicRootDomain(apiUrl?: string, fallbackHost?: string): string
   return labels.slice(1).join(".");
 }
 
-export type ShopAddress = { key: "card" | "order" | "book"; url: string };
+export type ShopAddress = {
+  key: "links" | "menu" | "order" | "rewards" | "book";
+  url: string;
+};
 
 /**
  * The addresses to show a shop, or `[]` when there is no subdomain to show —
@@ -64,8 +73,10 @@ export function shopAddresses(slug?: string | null, root?: string | null): ShopA
   if (!slug || !root) return [];
   const origin = `https://${slug}.${root}`;
   return [
-    { key: "card", url: `${origin}/` },
+    { key: "links", url: `${origin}/` },
+    { key: "menu", url: `${origin}${MENU_PATH}` },
     { key: "order", url: `${origin}${ORDER_MOUNT}/` },
+    { key: "rewards", url: `${origin}${REWARDS_PATH}` },
     { key: "book", url: `${origin}${BOOK_MOUNT}/` },
   ];
 }

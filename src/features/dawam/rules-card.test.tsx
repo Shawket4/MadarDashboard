@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -48,6 +48,14 @@ const { ConfirmProvider } = await import("@/components/app/confirm-dialog");
 const renderPage = () =>
   render(<QueryClientProvider client={new QueryClient()}><ConfirmProvider><AttendanceRulesPage /></ConfirmProvider></QueryClientProvider>);
 
+/** Save, and answer the "you're changing…" question the page asks for rules already in force. */
+async function saveAndConfirm(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getAllByRole("button", { name: /Save/ }).at(-1)!);
+  const dialog = await screen.findByRole("alertdialog");
+  await user.click(within(dialog).getByRole("button", { name: "Save the changes" }));
+}
+
+
 beforeEach(() => {
   put.mockClear();
   held = ["hr.rules.edit"];
@@ -64,8 +72,14 @@ describe("Dawam rules", () => {
         night_start: "22:00:00", night_end: "06:00:00",
         limit_day_hours: 8, limit_week_hours: 48, limit_presence_hours: 10, limit_rest_hours: 12, limit_overtime_day_hours: 2,
         orders_per_staff: 12,
+        // A server that doesn't send it yet means the default (D5).
+        cover_pay_mode: "minute_rate",
       },
     });
+    // D5: a business that pays a covered block as a full day keeps it.
+    const block = rulesFrom({ ...settings, cover_pay_mode: "full_block" } as typeof settings);
+    expect(block.coverPayMode).toBe("full_block");
+    expect((rulesRequest(block) as { ok: Record<string, unknown> }).ok.cover_pay_mode).toBe("full_block");
     // The gender mode only rides for someone who may change it (SC-12).
     expect((rulesRequest(r, true) as { ok: Record<string, unknown> }).ok.gender_mode).toBe("soft");
   });
@@ -87,7 +101,7 @@ describe("Dawam rules", () => {
     const day = screen.getByLabelText("Hours a day");
     await user.clear(day);
     await user.type(day, "7.5");
-    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalled());
     const body = (put.mock.calls[0] as unknown[])[0] as Record<string, unknown>;
     expect(body).toMatchObject({
@@ -106,9 +120,19 @@ describe("Dawam rules", () => {
     renderPage();
     expect(screen.queryByText("Require location to clock in")).not.toBeInTheDocument();
     expect(screen.getByText(/always checks the phone is inside the branch's radius/)).toBeInTheDocument();
+    // Nothing changed, so nothing to confirm.
     await user.click(screen.getByRole("button", { name: /Save/ }));
     await waitFor(() => expect(put).toHaveBeenCalled());
     expect((put.mock.calls[0] as unknown[])[0]).not.toHaveProperty("require_geofence");
+  });
+
+  it("T4: never says overtime is off while it is on; says so once it is turned off", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    expect(screen.queryByText(/Overtime is off until you turn it on/)).toBeNull();
+    expect(screen.getByText(/Rates follow Egypt's labour law/)).toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: "Off" }));
+    expect(screen.getByText(/Overtime is off until you turn it on/)).toBeInTheDocument();
   });
 
   it("let only the owner's capability change the gender mode (SC-12)", async () => {
@@ -120,7 +144,16 @@ describe("Dawam rules", () => {
     renderPage();
     const rule = screen.getAllByRole("radio", { name: "A rule" }).find((b) => !(b as HTMLButtonElement).disabled)!;
     await user.click(rule);
-    await user.click(screen.getAllByRole("button", { name: /Save/ }).at(-1)!);
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalledWith(expect.objectContaining({ gender_mode: "hard" })));
+  });
+});
+
+describe("rulesRequest refuses what a kit field refused", () => {
+  it("a number field's NaN and a time field's unreadable text never reach the PUT", () => {
+    expect(rulesRequest({ ...DEFAULT_RULES, limitDay: String(NaN) })).toEqual({ error: "dawam.rulesLimitRange" });
+    expect(rulesRequest({ ...DEFAULT_RULES, advanceCap: String(NaN) })).toEqual({ error: "dawam.rulesCapRange" });
+    expect(rulesRequest({ ...DEFAULT_RULES, otDay: String(NaN) })).toEqual({ error: "dawam.rulesRateLow" });
+    expect(rulesRequest({ ...DEFAULT_RULES, nightStart: "9x" })).toEqual({ error: "dawam.rulesNight" });
   });
 });

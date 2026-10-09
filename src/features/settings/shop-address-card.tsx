@@ -21,13 +21,24 @@ import { publicRootDomain, shopAddresses, type ShopAddress } from "./shop-addres
 function useLabels(): Record<ShopAddress["key"], { title: string; hint: string }> {
   const { t } = useTranslation();
   return {
-    card: {
-      title: t("settings.address.card", "Loyalty card"),
-      hint: t("settings.address.cardHint", "Where customers sign up and open their card."),
+    links: {
+      title: t("settings.address.links", "Links page"),
+      hint: t(
+        "settings.address.linksHint",
+        "Your main address — for your Instagram bio or a QR on the counter. Everything below is one tap from it.",
+      ),
+    },
+    menu: {
+      title: t("settings.address.menu", "Menu"),
+      hint: t("settings.address.menuHint", "Your menu to browse, for a QR code on the table."),
     },
     order: {
-      title: t("settings.address.order", "Menu and ordering"),
-      hint: t("settings.address.orderHint", "Your menu, for a QR code on the table or a link in a bio."),
+      title: t("settings.address.order", "Online ordering"),
+      hint: t("settings.address.orderHint", "Where customers order for pickup or delivery."),
+    },
+    rewards: {
+      title: t("settings.address.rewards", "Rewards card"),
+      hint: t("settings.address.rewardsHint", "Where customers sign up and get their wallet card."),
     },
     book: {
       title: t("settings.address.book", "Bookings"),

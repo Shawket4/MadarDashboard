@@ -15,16 +15,32 @@ import { todayIso } from "@/features/staff/util";
 import { addDays, weekStartOf } from "./week";
 
 let held: string[] = [];
+/** `/authz/me` `everywhere`: unset = an older server that doesn't send it. */
+let everywhere: string[] | undefined;
 const week = weekStartOf(todayIso());
 let publishedWeeks: string[] = [];
 let warnings: unknown[] = [];
 let suggestionsList: unknown[] = [];
 let coverage: unknown = null;
 let shiftsList: unknown[] = [];
+/** The staff's shifts at other branches (GET /staff/roster `elsewhere`). */
+let elsewhereList: unknown[] = [];
 let openShifts: unknown[] = [];
 let fairnessBranches: unknown[] = [];
 let audits: unknown[] = [];
 let prefsLog: unknown[] = [];
+/** H2: what a read answers when it fails. */
+let suggestionsError: unknown = null;
+let coverageError: unknown = null;
+let branchesError: unknown = null;
+let branchesList: unknown[] = [{ id: "b1", name: "Zamalek" }];
+let scopeBranch: string | null = "b1";
+/** Holidays in the viewed week's roster (not the 45-day read). */
+let weekHolidays: unknown[] = [];
+const refetchSuggestions = vi.fn();
+const refetchCoverage = vi.fn();
+/** Holidays in the 45-day read from today. */
+let holidaysList: unknown[] = [];
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
 vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const calls = {
@@ -42,6 +58,11 @@ const calls = {
 };
 
 const hook = (data: () => unknown) => () => ({ data: data(), isLoading: false, isFetching: false, error: null, refetch: vi.fn() });
+/** A read that may fail: no data, the error, and its refetch. */
+const failing = (data: () => unknown, error: () => unknown, refetch = vi.fn()) => () => {
+  const e = error();
+  return { data: e ? undefined : data(), isLoading: false, isFetching: false, error: e, refetch };
+};
 
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
@@ -51,10 +72,14 @@ vi.mock("@/data/authz/use-authz", async () => {
       real.authzFrom({
         user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
         capabilities: held as never, ask_manager: [], limits: {},
+        ...(everywhere ? { everywhere: everywhere as never } : {}),
       }),
   };
 });
-vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: "b1" }) }));
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ to, children, className }: { to: string; children: ReactNode; className?: string }) => <a href={to} className={className}>{children}</a>,
+}));
+vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: scopeBranch }) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
@@ -62,8 +87,8 @@ vi.mock("@/features/staff/util", async () => {
 });
 vi.mock("./rules-banner", () => ({ RulesFirstBanner: () => null }));
 vi.mock("@/data/api/generated/api", () => ({
-  useListBranches: hook(() => [{ id: "b1", name: "Zamalek" }]),
-  useRoster: hook(() => ({
+  useListBranches: failing(() => branchesList, () => branchesError),
+  useRoster: (p: { to: string }) => hook(() => ({
     branch_id: "b1", from: week, to: addDays(week, 6), published_weeks: publishedWeeks,
     work_shifts: [
       { id: "zM", name: "Morning", branch_id: "b1", start_time: "08:00:00", end_time: "16:00:00", crosses_midnight: false, grace_minutes: 10, valid_days: [0, 1, 2, 3, 4, 5, 6], day_times: [] },
@@ -77,17 +102,19 @@ vi.mock("@/data/api/generated/api", () => ({
       { employee_id: "e2", name: "Omar Nabil", cant_work_days: [5], pref_time: "evening", prefs_set_by: "manager" },
     ],
     shifts: shiftsList,
+    elsewhere: elsewhereList,
     open_shifts: openShifts,
-    holidays: [{ on_date: addDays(todayIso(), 10), name_en: "Armed Forces Day", name_ar: "عيد القوات المسلحة", decision: null }],
+    // The 45-day read from today carries holidaysList; the viewed week's read its own.
+    holidays: p.to === addDays(todayIso(), 45) ? holidaysList : weekHolidays,
     warnings, limits_unconfirmed: true,
     // Sara's first day holds its own set; Omar's second is a day off by date.
     date_sets: [
       { employee_id: "e1", date: week, day_off: false },
       { employee_id: "e2", date: addDays(week, 1), day_off: true },
     ],
-  })),
-  useSuggestions: hook(() => suggestionsList),
-  useGetCoverage: hook(() => coverage),
+  }))(),
+  useSuggestions: failing(() => suggestionsList, () => suggestionsError, refetchSuggestions),
+  useGetCoverage: failing(() => coverage, () => coverageError, refetchCoverage),
   useFairnessAudits: hook(() => audits),
   usePreferenceLog: hook(() => prefsLog),
   useFairness: hook(() => ({
@@ -121,19 +148,101 @@ const wrap = (node: ReactNode) =>
 beforeEach(() => {
   for (const f of Object.values(calls)) f.mockClear();
   held = ["hr.schedule.read", "hr.schedule.edit", "hr.schedule.publish"];
+  everywhere = undefined;
   publishedWeeks = [];
   warnings = [];
   coverage = null;
   toastMock.error.mockClear();
   toastMock.warning.mockClear();
   shiftsList = [{ employee_id: "e1", employee_name: "Sara Ahmed", date: week, branch_id: "b1", work_shift_id: "zM", shift_name: "Morning", start_at: "", end_at: "", start_time: "08:00:00", end_time: "16:00:00", crosses_midnight: false, times_edited: false, from_override: false, changed: false, on_leave: false }];
+  elsewhereList = [];
   openShifts = [];
   fairnessBranches = [];
   audits = [];
   prefsLog = [];
+  suggestionsError = null;
+  coverageError = null;
+  branchesError = null;
+  branchesList = [{ id: "b1", name: "Zamalek" }];
+  scopeBranch = "b1";
+  weekHolidays = [];
+  refetchSuggestions.mockClear();
+  refetchCoverage.mockClear();
+  toastMock.success.mockClear();
+  holidaysList = [{ on_date: addDays(todayIso(), 10), name_en: "Armed Forces Day", name_ar: "عيد القوات المسلحة", decision: null }];
   suggestionsList = [
     { id: "g1", date: addDays(week, 2), employee_id: "e4", employee_name: "Youssef Adel", shift_name: "Evening", work_shift_id: "zE", reason_key: "staff.sg_gap", reason_args: { shift: "Evening", short: 1 }, confidence: 72, by_default: true },
   ];
+});
+
+describe("SchedulePage: nothing fails in silence (H2)", () => {
+  const boom = new AxiosError("boom", "500", undefined, undefined, { status: 500, data: { error: "Database error" } } as AxiosResponse);
+
+  it("says the suggestions didn't load, never 'nothing to suggest' (H2-D1)", async () => {
+    suggestionsError = boom;
+    const user = userEvent.setup();
+    wrap(<SchedulePage />);
+    expect(screen.queryByText("Nothing to suggest for this week.")).not.toBeInTheDocument();
+    expect(screen.getByText("Couldn't load the suggestions")).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: /^Retry/ }).at(-1)!);
+    expect(refetchSuggestions).toHaveBeenCalled();
+  });
+
+  it("says the branches didn't load, or that there are none, never a skeleton for ever (H2-D2)", () => {
+    scopeBranch = null;
+    branchesError = boom;
+    const { unmount } = wrap(<SchedulePage />);
+    expect(screen.getByText("Couldn't load the branches")).toBeInTheDocument();
+    unmount();
+    branchesError = null;
+    branchesList = [];
+    wrap(<SchedulePage />);
+    expect(screen.getByText("Add a branch first: the schedule is kept per branch.")).toBeInTheDocument();
+  });
+
+  it("says an open shift in an unpublished week waits for the week to be published (H2-D3)", async () => {
+    const user = userEvent.setup();
+    const { unmount } = wrap(<SchedulePage />);
+    await user.click(screen.getAllByRole("button", { name: /Post an open shift on/ })[3]);
+    await user.click(await screen.findByRole("menuitem", { name: /^Evening/ }));
+    await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith("Open shift posted. Staff see it once you publish this week."));
+    unmount();
+    toastMock.success.mockClear();
+    publishedWeeks = [week];
+    wrap(<SchedulePage />);
+    await user.click(screen.getAllByRole("button", { name: /Post an open shift on/ })[3]);
+    await user.click(await screen.findByRole("menuitem", { name: /^Evening/ }));
+    await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith("Open shift posted"));
+  });
+
+  it("says the coverage grid didn't load, never a skeleton for ever (H2-D4)", async () => {
+    coverageError = boom;
+    const user = userEvent.setup();
+    wrap(<SchedulePage />);
+    await user.click(screen.getByRole("button", { name: /Coverage/ }));
+    expect(await screen.findByText("Couldn't load the coverage needs")).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: /^Retry/ }).at(0)!);
+    expect(refetchCoverage).toHaveBeenCalled();
+  });
+
+  it("saving coverage refreshes what reads it, the suggestions too (H2-D5)", async () => {
+    const { invalidateStaff } = await import("@/features/staff/util");
+    vi.mocked(invalidateStaff).mockClear();
+    coverage = { branch_id: "b1", source: "grid", needs: [], derived: [], orders_per_staff: 12 };
+    const user = userEvent.setup();
+    wrap(<SchedulePage />);
+    await user.click(screen.getByRole("button", { name: /Coverage/ }));
+    await user.click(await screen.findByRole("button", { name: /Save/ }));
+    await waitFor(() => expect(calls.putCoverage).toHaveBeenCalled());
+    await waitFor(() => expect(invalidateStaff).toHaveBeenCalled());
+  });
+
+  it("offers the viewed week's own holidays, not only the next 45 days' (H2-D6)", () => {
+    weekHolidays = [{ on_date: addDays(week, 3), name_en: "Sham El-Nessim", name_ar: "شم النسيم", decision: null }];
+    wrap(<SchedulePage />);
+    expect(screen.getByText(/Sham El-Nessim/)).toBeInTheDocument();
+    expect(screen.getByText(/Armed Forces Day/)).toBeInTheDocument();
+  });
 });
 
 describe("SchedulePage", () => {
@@ -142,7 +251,12 @@ describe("SchedulePage", () => {
     wrap(<SchedulePage />);
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Day off" }));
-    await waitFor(() => expect(calls.putDay).toHaveBeenCalledWith({ employee_id: "e1", on_date: week, shifts: [] }));
+    // Taking a worked day away is said first, with what comes off (UX-P).
+    const sure = await screen.findByRole("alertdialog");
+    expect(within(sure).getByText(/come off this date only; the pattern stays as it is/)).toBeInTheDocument();
+    expect(calls.putDay).not.toHaveBeenCalled();
+    await user.click(within(sure).getByRole("button", { name: "Day off" }));
+    await waitFor(() => expect(calls.putDay).toHaveBeenCalledWith({ employee_id: "e1", on_date: week, shifts: [], branch_id: "b1" }));
   });
 
   it("publishes only after confirming, and then shows it published (SC-3)", async () => {
@@ -167,14 +281,46 @@ describe("SchedulePage", () => {
     await waitFor(() => expect(calls.postOpenShift).toHaveBeenCalledWith({ branch_id: "b1", on_date: addDays(week, 3), work_shift_id: "zE" }));
   });
 
-  it("accepts a suggestion and sets up a holiday (SC-13, RU-10)", async () => {
+  it("accepts a suggestion (SC-13)", async () => {
     const user = userEvent.setup();
     wrap(<SchedulePage />);
     expect(screen.getByText(/Evening is 1 short/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Accept" }));
     await waitFor(() => expect(calls.decideSuggestion).toHaveBeenCalledWith({ branch_id: "b1", id: "g1", accept: true }));
+  });
+
+  it("D3: the owner (rules right at every branch) sets up a holiday (RU-10)", async () => {
+    held = [...held, "hr.rules.edit"];
+    everywhere = ["hr.schedule.read", "hr.schedule.edit", "hr.schedule.publish", "hr.rules.edit"];
+    const user = userEvent.setup();
+    wrap(<SchedulePage />);
     await user.click(screen.getByRole("button", { name: "Make it a holiday" }));
     await waitFor(() => expect(calls.decideHoliday).toHaveBeenCalledWith(addDays(todayIso(), 10), { decision: "holiday" }));
+  });
+
+  it("D3: a branch manager who publishes sees public holidays read-only", () => {
+    // Karim publishes Arkan's rota; holidays are the owner's, like the rules (OWNER_ONLY).
+    everywhere = ["hr.schedule.read"];
+    wrap(<SchedulePage />);
+    expect(screen.getByText("Armed Forces Day")).toBeInTheDocument();
+    expect(screen.getByText("The owner decides public holidays.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Make it a holiday" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Normal day" })).not.toBeInTheDocument();
+  });
+
+  it("D3: someone who only reads the schedule sees the holidays and how each was decided", () => {
+    held = ["hr.schedule.read"];
+    holidaysList = [
+      { on_date: addDays(todayIso(), 10), name_en: "Armed Forces Day", name_ar: "عيد القوات المسلحة", decision: null },
+      { on_date: addDays(todayIso(), 20), name_en: "Prophet's Birthday", name_ar: "المولد النبوي", decision: "holiday" },
+      { on_date: addDays(todayIso(), 30), name_en: "Coptic New Year", name_ar: "رأس السنة القبطية", decision: "dismissed" },
+    ];
+    wrap(<SchedulePage />);
+    expect(screen.getByText("Armed Forces Day")).toBeInTheDocument();
+    expect(screen.getByText("Not decided yet")).toBeInTheDocument();
+    expect(screen.getByText("Holiday")).toBeInTheDocument();
+    expect(screen.getByText("Normal day")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Make it a holiday" })).not.toBeInTheDocument();
   });
 
   it("is read-only for someone who can only read", () => {
@@ -268,12 +414,41 @@ describe("SchedulePage", () => {
     await waitFor(() =>
       expect(calls.putDay).toHaveBeenCalledWith({
         employee_id: "e1", on_date: week,
+        branch_id: "b1",
         shifts: [
           { work_shift_id: "zM", start_time: null, end_time: null },
           { work_shift_id: "zE", start_time: null, end_time: null },
         ],
       }),
     );
+  });
+
+  it("says an added shift overlaps before sending it, and waits (UX-P)", async () => {
+    shiftsList = [{ ...(shiftsList[0] as object), start_time: "10:00:00", end_time: "18:00:00", times_edited: true }];
+    const user = userEvent.setup();
+    wrap(<SchedulePage />);
+    await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("combobox", { name: "Add a shift" }));
+    const [evening] = await screen.findAllByRole("option");
+    expect(evening).toHaveTextContent("overlaps Morning");
+    await user.click(evening);
+    expect(within(dialog).getByRole("alert")).toHaveTextContent("It overlaps Morning 10:00–18:00 on this day.");
+    expect(within(dialog).getByRole("button", { name: "Add" })).toBeDisabled();
+    expect(calls.putDay).not.toHaveBeenCalled();
+  });
+
+  it("shows a week far past the seeded ones from one date pick, and says how far it is (UX-P)", async () => {
+    const { weeksFromNow } = await import("./schedule-week-bar");
+    expect(weeksFromNow(addDays(week, 42))).toBe(6);
+    expect(weeksFromNow(addDays(week, -7))).toBe(-1);
+    const user = userEvent.setup();
+    wrap(<SchedulePage />);
+    for (let i = 0; i < 6; i++) await user.click(screen.getByRole("button", { name: "Next week" }));
+    expect(screen.getByText("In 6 weeks")).toBeInTheDocument();
+    expect(screen.getByText("Staff can't see this week until you publish it.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Back to this week" }));
+    expect(screen.getAllByText("This week").length).toBeGreaterThan(0);
   });
 
   it("gives one assignment its own times across midnight, and back (owner, 2026-09-23)", async () => {
@@ -283,7 +458,9 @@ describe("SchedulePage", () => {
     const dialog = await screen.findByRole("dialog");
     await user.click(within(dialog).getByRole("button", { name: "Times of Morning" }));
     fireEvent.change(within(dialog).getByLabelText("From"), { target: { value: "18:00" } });
+    fireEvent.blur(within(dialog).getByLabelText("From"));
     fireEvent.change(within(dialog).getByLabelText("To"), { target: { value: "02:00" } });
+    fireEvent.blur(within(dialog).getByLabelText("To"));
     expect(within(dialog).getByText("Ends the next day")).toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Save times" }));
     await waitFor(() =>
@@ -308,6 +485,7 @@ describe("SchedulePage", () => {
     await waitFor(() =>
       expect(calls.putDay).toHaveBeenCalledWith({
         employee_id: "e1", on_date: week, shifts: [{ work_shift_id: "zM", start_time: "07:30:00", end_time: "11:30:00" }],
+        branch_id: "b1",
       }),
     );
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
@@ -324,7 +502,7 @@ describe("SchedulePage", () => {
     wrap(<SchedulePage />);
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Back to pattern" }));
-    await waitFor(() => expect(calls.resetDay).toHaveBeenCalledWith({ employee_id: "e1", on_date: week }));
+    await waitFor(() => expect(calls.resetDay).toHaveBeenCalledWith({ employee_id: "e1", on_date: week, branch_id: "b1" }));
 
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     const dialog = await screen.findByRole("dialog");
@@ -346,12 +524,14 @@ describe("SchedulePage", () => {
     wrap(<SchedulePage />);
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Day off" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Day off" }));
     await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith("Those shifts would overlap (a night shift runs into the next morning)."));
     // The dialog stays open on a refusal.
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
     calls.putDay.mockResolvedValueOnce({ warnings: [{ employee_id: "e1", date: week, kind: "day_hours", minutes: 600, limit_minutes: 480 }] });
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Day off" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Day off" }));
     await waitFor(() => expect(toastMock.warning).toHaveBeenCalledWith("Hours a day: 10h of 8h. Only a warning."));
   });
 
@@ -441,6 +621,28 @@ describe("SchedulePage", () => {
     expect(within(d2).getByText("Follows the standing pattern")).toBeInTheDocument();
   });
 
+  it("marks a shift at another branch 'at <branch>', never 'Off', and resets only this branch (BUG-4, P7)", async () => {
+    const user = userEvent.setup();
+    elsewhereList = [
+      { employee_id: "e2", date: week, branch_id: "b2", branch_name: "Maadi", work_shift_id: "mM", shift_name: "Maadi Morning", start_time: "09:00:00", end_time: "17:00:00", crosses_midnight: false },
+    ];
+    wrap(<SchedulePage />);
+    const cell = screen.getAllByRole("button", { name: /^Omar Nabil, / })[0];
+    expect(within(cell).getByText("at Maadi")).toBeInTheDocument();
+    expect(within(cell).getByText("Maadi Morning")).toBeInTheDocument();
+    expect(within(cell).queryByText("Off")).not.toBeInTheDocument();
+    await user.click(cell);
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("note")).toHaveTextContent("Also works at another branch that day: Maadi Morning (Maadi).");
+    // The other branch's shift is shown, never one of this day's own to edit or send.
+    expect(within(dialog).queryByRole("button", { name: "Take Maadi Morning off this day" })).not.toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    // Back to pattern says it is this branch's only, and sends the board's branch.
+    await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
+    const d1 = await screen.findByRole("dialog");
+    expect(within(d1).getByText("Only this branch's shifts go back to the pattern; shifts at other branches stay.")).toBeInTheDocument();
+  });
+
   it("reads in Arabic", async () => {
     const user = userEvent.setup();
     await i18n.changeLanguage("ar");
@@ -454,4 +656,31 @@ describe("SchedulePage", () => {
       await i18n.changeLanguage("en");
     }
   });
+
+  it("keeps the week arrows and the range together so a wrapped toolbar never splits them (L-12)", () => {
+    wrap(<SchedulePage />);
+    const prev = screen.getByRole("button", { name: "Previous week" });
+    const next = screen.getByRole("button", { name: "Next week" });
+    const group = prev.parentElement!;
+    expect(group).toBe(next.parentElement);
+    expect(group).toHaveClass("flex-nowrap");
+    expect(group).toHaveAttribute("role", "group");
+  });
+
+  it("gives each person's preferences button a 32 px tap target on a phone (L-13)", () => {
+    wrap(<SchedulePage />);
+    const btn = screen.getByRole("button", { name: "Sara Ahmed's preferences" });
+    expect(btn).toHaveClass("size-8");
+    expect(btn).not.toHaveClass("size-6");
+  });
+
+  it("gives each Post-an-open-shift button a 32 px tap target on a phone (box verify)", () => {
+    wrap(<SchedulePage />);
+    for (const btn of screen.getAllByRole("button", { name: /Post an open shift on/ })) {
+      expect(btn).toHaveClass("size-8");
+      expect(btn).toHaveClass("sm:size-7");
+      expect(btn).not.toHaveClass("size-7");
+    }
+  });
 });
+

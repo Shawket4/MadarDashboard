@@ -1,0 +1,88 @@
+---
+/**
+ * The root page (/): Madar POS in both languages on one page, readable as it is. No
+ * script and no redirect (owner, 2026-10-08): the English and Arabic blocks each carry
+ * their own language, and the two buttons lead to /en/ and /ar/. The build also writes
+ * it as get.html, which the get vhost serves for / (deploy/nginx/get.madar-pos.cloud).
+ */
+import "@/styles/global.css";
+import Logo from "@/components/ui/Logo.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { t, dirOf } from "@/i18n";
+import { LANGS, absoluteUrl, pageHref } from "@/lib/site";
+import { organization, website, softwareApplication } from "@/lib/schema";
+
+const title = "Madar POS — café & restaurant POS for Egypt | مدار";
+const description = "Madar POS, the café point of sale for Egypt that knows what every cup costs. مدار، سيستم كاشير للكافيهات بيحسب تكلفة كل كوباية.";
+const ogImage = absoluteUrl("/og/en-home.jpg");
+const links = ["pricing", "features", "faq", "about", "contact"] as const;
+---
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={absoluteUrl("/")} />
+    <link rel="alternate" hreflang="en" href={absoluteUrl("/en/")} />
+    <link rel="alternate" hreflang="ar" href={absoluteUrl("/ar/")} />
+    <link rel="alternate" hreflang="x-default" href={absoluteUrl("/en/")} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Madar POS" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={absoluteUrl("/")} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    {[organization(), website(), softwareApplication("en", "home")].map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
+    <meta name="theme-color" content="#14181E" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  </head>
+  <body class="bg-paper text-ink">
+    <main id="main">
+      <section class="on-ink bg-ink text-paper">
+        <div class="container-site pb-14 pt-12 md:pb-20 md:pt-16">
+          <div aria-hidden="true" class="text-[1.6rem]"><Logo lang="en" tone="ink" /></div>
+          <h1 class="text-h2 mt-10 max-w-4xl">Madar POS · <span lang="ar" dir="rtl">مدار</span> — café POS for Egypt</h1>
+          <nav aria-label="Language · اللغة" class="mt-8 flex flex-wrap gap-3">
+            <a class="btn btn-paper btn-lg" href="/en/" hreflang="en" lang="en">English</a>
+            <a class="btn btn-ghost-ink btn-lg" href="/ar/" hreflang="ar" lang="ar">العربية</a>
+          </nav>
+        </div>
+      </section>
+      <div class="container-site grid gap-16 py-16 md:grid-cols-2 md:py-24">
+        {LANGS.map((lang) => {
+          const c = t(lang);
+          const r = c.root;
+          const ar = lang === "ar";
+          return (
+            <section lang={lang} dir={dirOf(lang)} aria-labelledby={`root-${lang}`}>
+              <h2 id={`root-${lang}`} class:list={["text-h3", ar && "!leading-[1.35] !tracking-normal"]}>{r.title}</h2>
+              <p class:list={["text-lead mt-5 text-muted", ar && "!leading-[1.8]"]}>{r.lead}</p>
+              <h3 class="mt-10 text-lg font-semibold">{r.featuresTitle}</h3>
+              <ul class="mt-4 grid gap-2.5">{r.features.map((f) => <li class="bullet">{f}</li>)}</ul>
+              <p class="mt-5">{r.languages}</p>
+              <h3 class="mt-10 text-lg font-semibold">{r.pricingTitle}</h3>
+              <p class="mt-3">{r.pricing}</p>
+              <h3 class="mt-10 text-lg font-semibold">{r.linksTitle}</h3>
+              <ul class="mt-2 flex flex-wrap gap-x-5">
+                {links.map((k) => <li><a class="link-cta" href={pageHref(lang, k)}>{c.nav[k]}</a></li>)}
+                <li><a class="link-cta" href={pageHref("en", "developers")} hreflang="en">{c.footer.developers}</a></li>
+              </ul>
+              <a class="btn btn-ink btn-lg mt-8" href={pageHref(lang, "home")}>{r.cta} <Icon name="arrow" size={18} /></a>
+            </section>
+          );
+        })}
+      </div>
+    </main>
+  </body>
+</html>

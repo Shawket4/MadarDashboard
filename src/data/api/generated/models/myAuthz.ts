@@ -13,6 +13,13 @@ export interface MyAuthz {
   /** Capability keys held. */
   capabilities: string[];
   epoch: number;
+  /**
+     * The capabilities held at EVERY branch of the business — what an
+     * org-wide act (a department, a shift block, a public holiday, the
+     * rules) needs. `/authz/me` only; absent elsewhere. (E2E B-SETUP-3)
+     * @nullable
+     */
+  everywhere?: string[] | null;
   /** Limits on held capabilities, by key; absent = unlimited. */
   limits: MyAuthzLimits;
   owner: boolean;

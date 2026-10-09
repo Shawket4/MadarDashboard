@@ -14,6 +14,8 @@ import { useScope } from "@/data/scope/use-scope";
 import { useDisciplineReport } from "@/data/api/generated/api";
 import type { DisciplineRow } from "@/data/api/generated/models";
 import { cairoParts, fmtNumber } from "@/lib/format";
+import { dawamQuery } from "@/features/dawam/live";
+import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 
 const PRESET_FALLBACK: Record<string, string> = {
   today: "Today",
@@ -63,7 +65,7 @@ export function StaffDisciplinePage() {
   const canSee = authz.can(Cap.hrAttendanceRead);
   const q = useDisciplineReport(
     { from: localDate(from), to: localDate(to), branch_id: branchId ?? undefined },
-    { query: { enabled: canSee } },
+    { query: dawamQuery({ enabled: canSee }) },
   );
 
   const groups = useMemo(() => groupByDepartment(q.data?.rows ?? []), [q.data]);
@@ -82,6 +84,7 @@ export function StaffDisciplinePage() {
             {periodLabel}
           </span>
         }
+        actions={<DawamRefreshButton />}
       />
 
       {q.isLoading ? (
@@ -112,13 +115,22 @@ export function StaffDisciplinePage() {
                         </Badge>
                         <span className="truncate font-medium">{r.employee_name}</span>
                       </div>
-                      <span className="shrink-0 text-end text-xs text-muted-foreground">
-                        {t("reports.staff.rowSummary", {
-                          defaultValue: "{{late}} late · {{absent}} absent · {{minutes}}m",
-                          late: fmtNumber(r.late_days),
-                          absent: fmtNumber(r.absent_days),
-                          minutes: fmtNumber(r.total_late_minutes),
-                        })}
+                      <span className="flex shrink-0 flex-col items-end text-end text-xs text-muted-foreground">
+                        <span>
+                          {t("reports.staff.rowSummary", {
+                            defaultValue: "{{late}} late · {{absent}} absent · {{minutes}}m",
+                            late: fmtNumber(r.late_days),
+                            absent: fmtNumber(r.absent_days),
+                            minutes: fmtNumber(r.total_late_minutes),
+                          })}
+                        </span>
+                        {/* A cover shows for both people (CV-7). */}
+                        {(r.covers_given ?? 0) > 0 ? (
+                          <span>{t("reports.staff.coversGiven", { count: r.covers_given, n: fmtNumber(r.covers_given) })}</span>
+                        ) : null}
+                        {(r.covered_by_others ?? 0) > 0 ? (
+                          <span>{t("reports.staff.coveredByOthers", { count: r.covered_by_others, n: fmtNumber(r.covered_by_others) })}</span>
+                        ) : null}
                       </span>
                     </li>
                   ))}

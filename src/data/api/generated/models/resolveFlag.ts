@@ -4,7 +4,8 @@
 export interface ResolveFlag {
   /**
      * `ignore` · `excuse_paid` · `excuse_unpaid` · `deduct` · `revoke` (a new
-     * phone) · `confirm`
+     * phone) · `confirm`. A cover's flag takes only `confirm` or `reject`,
+     * which decide the cover itself (400 `FLAG_COVER_CONFIRM_OR_REJECT`).
      */
   action: string;
   /**

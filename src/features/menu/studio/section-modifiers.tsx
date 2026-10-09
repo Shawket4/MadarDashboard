@@ -48,8 +48,10 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
   const canEditGroups = useCan(Cap.menuItemsEdit);
 
   const attachedIds = useMemo(() => new Set(attached.map((a) => a.group_id)), [attached]);
+  // Another item's own "Options" set is not a reusable group: the server
+  // refuses to attach it, so it is never offered.
   const pickable = useMemo(
-    () => allGroups.filter((g) => g.is_active && !attachedIds.has(g.id)),
+    () => allGroups.filter((g) => g.is_active && !g.is_item_options && !attachedIds.has(g.id)),
     [allGroups, attachedIds],
   );
   const pickerOptions = pickable.map((g) => ({

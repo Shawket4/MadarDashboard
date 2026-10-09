@@ -7,7 +7,7 @@
  * owner, AD-5), the open month (AD-10) and the cap (AV-5), and answers in
  * words, which the toast shows. React Hook Form + Zod on every form.
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm, type UseFormReturn, type FieldValues, type Path } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -24,33 +24,63 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SegmentedControl } from "@/components/app/segmented-control";
+import { StatusPill } from "@/components/app/status-pill";
 import {
-  createAdjustment, logExpenseAdvance, markPaid, overrideDeduction, recordAdvance, reviewAdvance,
-  setPeriodStatus, unwaiveDeduction, useListBranches, useListEmployees, waiveDeduction,
+  clearExpenseAdvance, createAdjustment, logExpenseAdvance, reassignExpenseAdvance, markPaid, overrideDeduction, recordAdvance, reviewAdvance,
+  setPeriodStatus, stopAdjustment, unwaiveDeduction, useCurrent, useListBranches, useListEmployees, waiveDeduction,
 } from "@/data/api/generated/api";
-import { getErrorMessage } from "@/data/api/errors";
+import type { PayrollPeriod } from "@/data/api/generated/models";
+import { useAuthz } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
+import { getErrorMessage, type ReasonFor } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
-import { cairoNow, egpToPiastres } from "@/lib/format";
+import { useAuthStore } from "@/data/stores/auth.store";
+import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
+import { DateField, MoneyField, NumberField, latinDigits } from "@/components/inputs";
+import type { SalaryAdvance } from "@/data/api/generated/models";
+import { capView } from "./phase-d";
 
 /** Pounds as typed → piastres; null when it isn't a positive amount. */
 export const readPounds = (s: string): number | null => {
-  const n = Number(s.replace(/,/g, "").trim());
+  // Arabic digits and separators too: ٩٬٠٠٠٫٥٠ is 9,000.50.
+  const n = Number(latinDigits(s).replace(/٫/g, ".").replace(/[,٬]/g, "").trim());
   return Number.isFinite(n) && n > 0 ? egpToPiastres(n) : null;
 };
 
 /** Today in the active (branch) zone, as `YYYY-MM-DD` / `YYYY-MM`. */
 const isoToday = () => cairoNow().toISOString().slice(0, 10);
-const isoMonth = () => isoToday().slice(0, 7);
 /** A month picker's `YYYY-MM` → the first day the server files the line under. */
 export const monthToDate = (m: string) => `${m}-01`;
+
+/**
+ * The first month that can still take a line (AD-10, owner decision 27): the
+ * open period's month, or the next one once it is approved or paid (an early
+ * approval leaves no room this month). Today's month when the period is
+ * unknown (no payroll right).
+ */
+export function firstOpenMonth(period: Pick<PayrollPeriod, "status" | "end_date"> | undefined, today: string): string {
+  if (!period) return today.slice(0, 7);
+  const [y, m] = period.end_date.split("-").map(Number);
+  if (period.status === "draft") return period.end_date.slice(0, 7);
+  const next = new Date(Date.UTC(y, m, 1)); // month is 1-based here, so this is the month after
+  return next.toISOString().slice(0, 7);
+}
+
+/** The first open month, from the payroll run when this person may read it. */
+function useFirstOpenMonth(enabled: boolean): string {
+  const authz = useAuthz();
+  const canRead = authz.canAny(Cap.hrPayrollRead, Cap.hrPayrollRun);
+  const q = useCurrent({ query: { enabled: enabled && canRead } });
+  return firstOpenMonth(canRead ? q.data?.period : undefined, isoToday());
+}
 
 const pounds = (t: (k: string, d: string) => string) =>
   z.coerce.number<number>({ message: t("dawam.amountRequired", "Type an amount") }).positive(t("dawam.amountRequired", "Type an amount"));
 const nonEmpty = (t: (k: string, d: string) => string, msg: [string, string]) => z.string().trim().min(1, t(msg[0], msg[1]));
 
 function FormDialog<V extends FieldValues>({
-  open, onOpenChange, title, description, children, form, onSave, saveLabel, destructive,
+  open, onOpenChange, title, description, children, form, onSave, saveLabel, destructive, reasonFor, monthForm,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -61,6 +91,10 @@ function FormDialog<V extends FieldValues>({
   onSave: (values: V) => Promise<void>;
   saveLabel?: string;
   destructive?: boolean;
+  /** Which situation a REASON_REQUIRED refusal is worded for (A5). */
+  reasonFor?: ReasonFor;
+  /** Its date is a month picker (the pay-line form). */
+  monthForm?: boolean;
 }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
@@ -73,7 +107,7 @@ function FormDialog<V extends FieldValues>({
       onOpenChange(false);
     } catch (e) {
       // The server's words: over the limit, an approved month, the cap.
-      toast.error(getErrorMessage(e));
+      toast.error(getErrorMessage(e, { reasonFor, monthForm }));
     } finally {
       setBusy(false);
     }
@@ -101,9 +135,12 @@ function FormDialog<V extends FieldValues>({
   );
 }
 
-function PersonField<V extends FieldValues>({ form, name, enabled }: { form: UseFormReturn<V>; name: Path<V>; enabled: boolean }) {
+function PersonField<V extends FieldValues>({ form, name, enabled, notSelf = false }: { form: UseFormReturn<V>; name: Path<V>; enabled: boolean; notSelf?: boolean }) {
   const { t } = useTranslation();
   const employeesQ = useListEmployees({ employment_status: "active" }, { query: { enabled } });
+  // A pay line is never for yourself (AD-4): the server refuses it, so it isn't offered.
+  const me = useAuthStore((s) => s.user?.id);
+  const people = (employeesQ.data ?? []).filter((e) => !notSelf || !me || e.user_id !== me);
   return (
     <FormField
       control={form.control}
@@ -118,7 +155,7 @@ function PersonField<V extends FieldValues>({ form, name, enabled }: { form: Use
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {(employeesQ.data ?? []).map((e) => (
+              {people.map((e) => (
                 <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
               ))}
             </SelectContent>
@@ -130,18 +167,51 @@ function PersonField<V extends FieldValues>({ form, name, enabled }: { form: Use
   );
 }
 
-function TextField<V extends FieldValues>({ form, name, label, type = "text", hint, step, min, max }: {
-  form: UseFormReturn<V>; name: Path<V>; label: string; type?: string; hint?: string; step?: string; min?: string; max?: string;
+/**
+ * One form field. `money` / `number` / `date` are the input kit's fields (Arabic
+ * digits, steps, a calendar that starts on Saturday); the form keeps its own
+ * values as before — pounds, a count, `YYYY-MM-DD` — so every schema is unchanged.
+ */
+function TextField<V extends FieldValues>({ form, name, label, type = "text", hint, step, min }: {
+  form: UseFormReturn<V>; name: Path<V>; label: string; type?: "text" | "number" | "money" | "date" | "month"; hint?: string; step?: string; min?: string;
 }) {
+  const num = (v: unknown): number | null => (v === "" || v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v));
   return (
     <FormField
       control={form.control}
       name={name}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input type={type} step={step} min={min} max={max} inputMode={type === "number" ? "decimal" : undefined} {...field} value={field.value ?? ""} />
+            {type === "money" ? (
+              <MoneyField
+                name={field.name}
+                invalid={!!fieldState.error}
+                value={num(field.value) === null ? null : Math.round(num(field.value)! * 100)}
+                onChange={(piastres) => field.onChange(piastres === null ? "" : String(piastres / 100))}
+                onBlur={field.onBlur}
+                allowEmpty
+              />
+            ) : type === "number" ? (
+              <NumberField
+                name={field.name}
+                invalid={!!fieldState.error}
+                value={num(field.value)}
+                onChange={(n) => field.onChange(n === null ? "" : String(n))}
+                onBlur={field.onBlur}
+                // The form's schema judges the range (its words, and no save): the field
+                // refusing on its own would keep the last good value and let Save send that.
+                min={min === undefined ? undefined : Math.min(0, Number(min))}
+                step={step === undefined ? 1 : Number(step)}
+                stepper
+                allowEmpty
+              />
+            ) : type === "date" ? (
+              <DateField value={field.value ?? ""} onChange={field.onChange} invalid={!!fieldState.error} />
+            ) : (
+              <Input type={type} {...field} value={field.value ?? ""} />
+            )}
           </FormControl>
           {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
           <FormMessage />
@@ -176,12 +246,19 @@ export function AdjustmentDialog({
       message: t("dawam.amountRequired", "Type an amount"),
     });
   type Values = z.infer<typeof schema>;
+  // Lands in the first open month, not a closed one (owner decision 27).
+  const openMonth = useFirstOpenMonth(open);
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
-      employee_id: fixedUser ?? "", kind: initialBonus ? "bonus" : "deduction", by: "amount", amount: "", reason: "", recurring: false, month: isoMonth(),
+      employee_id: fixedUser ?? "", kind: initialBonus ? "bonus" : "deduction", by: "amount", amount: "", reason: "", recurring: false, month: openMonth,
     },
   });
+  // The run may arrive after the form: follow it until the month is touched.
+  const monthTouched = form.formState.dirtyFields.month;
+  useEffect(() => {
+    if (!monthTouched && form.getValues("month") !== openMonth) form.setValue("month", openMonth);
+  }, [openMonth, monthTouched, form]);
   const kind = form.watch("kind");
   const recurring = form.watch("recurring");
   // A deduction is always an amount (AD-2); only a bonus can be a % of salary.
@@ -191,6 +268,8 @@ export function AdjustmentDialog({
       open={open}
       onOpenChange={onOpenChange}
       form={form}
+      reasonFor="payLine"
+      monthForm
       title={t("dawam.addPayLine", "Add a bonus or deduction")}
       description={t("dawam.addPayLineHint", "Over your limit, it waits for the owner before it counts.")}
       onSave={async (v) => {
@@ -208,7 +287,7 @@ export function AdjustmentDialog({
         else toast.success(t("dawam.payLineAdded", "Pay line added"));
       }}
     >
-      {fixedUser ? null : <PersonField form={form} name="employee_id" enabled={open} />}
+      {fixedUser ? null : <PersonField form={form} name="employee_id" enabled={open} notSelf />}
       <FormField
         control={form.control}
         name="kind"
@@ -239,7 +318,7 @@ export function AdjustmentDialog({
           )}
         />
       ) : null}
-      <TextField form={form} name="amount" type="number" label={by === "percent" ? t("dawam.percent", "Percent") : t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={form} name="amount" type={by === "percent" ? "number" : "money"} step={by === "percent" ? "0.5" : undefined} label={by === "percent" ? t("dawam.percent", "Percent") : t("dawam.amountEgp", "Amount (EGP)")} />
       <TextField form={form} name="reason" label={t("staff.reason", "Reason")} hint={t("dawam.reasonShown", "The employee sees this reason on their payslip.")} />
       <TextField
         form={form}
@@ -297,8 +376,8 @@ export function RecordAdvanceDialog({ open, onOpenChange }: { open: boolean; onO
       }}
     >
       <PersonField form={form as unknown as UseFormReturn<Values>} name="employee_id" enabled={open} />
-      <TextField form={form as unknown as UseFormReturn<Values>} name="amount" type="number" step="0.01" label={t("dawam.amountEgp", "Amount (EGP)")} />
-      <TextField form={form as unknown as UseFormReturn<Values>} name="installments" type="number" min="1" max="24" label={t("dawam.installments", "Monthly installments")} hint={t("dawam.installmentsHint", "1 to 24 monthly installments")} />
+      <TextField form={form as unknown as UseFormReturn<Values>} name="amount" type="money" label={t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={form as unknown as UseFormReturn<Values>} name="installments" type="number" min="1" label={t("dawam.installments", "Monthly installments")} hint={t("dawam.installmentsHint", "1 to 24 monthly installments")} />
       <TextField form={form as unknown as UseFormReturn<Values>} name="reason" label={t("dawam.whatFor", "What for (optional)")} />
     </FormDialog>
   );
@@ -345,7 +424,7 @@ export function ExpenseAdvanceDialog({ open, onOpenChange }: { open: boolean; on
       }}
     >
       <PersonField form={f} name="employee_id" enabled={open} />
-      <TextField form={f} name="amount" type="number" step="0.01" label={t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={f} name="amount" type="money" label={t("dawam.amountEgp", "Amount (EGP)")} />
       <TextField form={f} name="purpose" label={t("dawam.purpose", "What it's for")} />
       <TextField form={f} name="given_on" type="date" label={t("dawam.givenOn", "Handed over on")} />
       <FormField
@@ -388,16 +467,81 @@ export function ExpenseAdvanceDialog({ open, onOpenChange }: { open: boolean; on
   );
 }
 
+/**
+ * Correct a till-tagged expense advance (owner decision 39, AV-10): clear the
+ * tag, or move it to the person who really took the cash, with why. The
+ * pay-out itself stays in the till's count.
+ */
+export function CorrectExpenseTagDialog({
+  expense, onOpenChange,
+}: {
+  expense: { id: string; employee_id: string; employee_name: string } | null;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const { t } = useTranslation();
+  const schema = z
+    .object({
+      action: z.enum(["reassign", "clear"]),
+      employee_id: z.string(),
+      reason: nonEmpty(t, ["dawam.reasonRequired", "A reason is needed"]).max(500),
+    })
+    .refine((v) => v.action === "clear" || (!!v.employee_id && v.employee_id !== expense?.employee_id), {
+      path: ["employee_id"],
+      message: t("dawam.pickSomeoneElse", "Pick who really took it"),
+    });
+  type Values = z.infer<typeof schema>;
+  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { action: "reassign", employee_id: "", reason: "" } });
+  const action = form.watch("action");
+  return (
+    <FormDialog
+      open={!!expense}
+      onOpenChange={onOpenChange}
+      form={form}
+      reasonFor="correctAdvance"
+      title={t("dawam.correctTagTitle", { name: expense?.employee_name ?? "", defaultValue: `Correct ${expense?.employee_name ?? ""}'s till tag` })}
+      description={t("dawam.correctTagHint", "The cash that left the till stays as it is. Only who it is logged against changes, and the reason is kept in the audit log.")}
+      onSave={async (v) => {
+        if (v.action === "clear") {
+          await clearExpenseAdvance(expense!.id, { reason: v.reason.trim() });
+          toast.success(t("dawam.tagCleared", "Tag cleared: it stays a plain till pay-out"));
+        } else {
+          await reassignExpenseAdvance(expense!.id, { employee_id: v.employee_id, reason: v.reason.trim() });
+          toast.success(t("dawam.tagReassigned", "Moved to the right person"));
+        }
+      }}
+    >
+      <FormField
+        control={form.control}
+        name="action"
+        render={({ field }) => (
+          <SegmentedControl
+            value={field.value}
+            onChange={field.onChange}
+            options={[
+              { value: "reassign", label: t("dawam.reassignTag", "Someone else took it") },
+              { value: "clear", label: t("dawam.clearTag", "Clear the tag") },
+            ]}
+          />
+        )}
+      />
+      {action === "reassign" ? <PersonField form={form} name="employee_id" enabled={!!expense} /> : null}
+      <TextField form={form} name="reason" label={t("staff.reason", "Reason")} />
+    </FormDialog>
+  );
+}
+
 export const PAY_METHODS = ["cash", "bank", "wallet"] as const;
 export const PAY_METHOD_FALLBACK: Record<string, string> = { cash: "Cash", bank: "Bank transfer", wallet: "Mobile wallet", none: "Nothing to pay" };
 
 /** Paid, per person, with how (PAY-7). */
 export function MarkPaidDialog({
-  periodId, person, onOpenChange,
+  periodId, person, onOpenChange, first = false,
 }: {
   periodId: string;
-  person: { employee_id: string; name: string; pay_method?: string } | null;
+  person: { employee_id: string; name: string; pay_method?: string; net?: number } | null;
   onOpenChange: (o: boolean) => void;
+  /** Nobody is paid yet: this payment is the one that ends reopening (PAY-6). */
+  first?: boolean;
 }) {
   const { t } = useTranslation();
   const schema = z.object({ method: z.enum(PAY_METHODS) });
@@ -412,7 +556,14 @@ export function MarkPaidDialog({
       onOpenChange={onOpenChange}
       form={form}
       title={t("dawam.markPaidTitle", { name: person?.name ?? "", defaultValue: `Mark ${person?.name ?? ""} paid` })}
-      description={t("dawam.markPaidHint", "Once anyone is paid, the month can't be reopened.")}
+      description={[
+        person?.net != null
+          ? t("dawamOps.markPaidAmount", { amount: fmtMoney(person.net), name: person.name, defaultValue: "{{amount}} to {{name}}, recorded as handed over." })
+          : null,
+        first
+          ? t("dawamOps.markPaidFirst", "This is the first payment: after it, this month can't be reopened.")
+          : t("dawam.markPaidHint", "Once anyone is paid, the month can't be reopened."),
+      ].filter(Boolean).join(" ")}
       saveLabel={t("dawam.markPaid", "Mark paid")}
       onSave={async (v) => {
         await markPaid(periodId, person!.employee_id, { method: v.method });
@@ -436,7 +587,7 @@ export function MarkPaidDialog({
 
 /** A one-field reason form shared by waive, un-waive and reopen. */
 function ReasonDialog({
-  open, onOpenChange, title, description, saveLabel, destructive, onSave, done,
+  open, onOpenChange, title, description, saveLabel, destructive, onSave, done, reasonFor, optional = false, hint, children,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -446,9 +597,20 @@ function ReasonDialog({
   destructive?: boolean;
   onSave: (reason: string) => Promise<unknown>;
   done: string;
+  reasonFor?: ReasonFor;
+  /** The reason may be left empty (a request's rejection note; the server takes none as none). */
+  optional?: boolean;
+  /** Under the reason: who reads it. */
+  hint?: string;
+  /** What the decision does, above the reason. */
+  children?: ReactNode;
 }) {
   const { t } = useTranslation();
-  const schema = z.object({ reason: nonEmpty(t, ["dawam.reasonRequired", "A reason is needed"]).max(500) });
+  const schema = z.object({
+    reason: optional
+      ? z.string().trim().max(500, t("staff.noteTooLong", "Keep the note under 500 characters"))
+      : nonEmpty(t, ["dawam.reasonRequired", "A reason is needed"]).max(500),
+  });
   type Values = z.infer<typeof schema>;
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { reason: "" } });
   return (
@@ -460,13 +622,53 @@ function ReasonDialog({
       description={description}
       saveLabel={saveLabel}
       destructive={destructive}
+      reasonFor={reasonFor}
       onSave={async (v) => {
         await onSave(v.reason.trim());
         toast.success(done);
       }}
     >
-      <TextField form={form} name="reason" label={t("staff.reason", "Reason")} />
+      {children}
+      <TextField
+        form={form}
+        name="reason"
+        label={optional ? t("dawamOps.reasonOptional", "Reason (optional)") : t("staff.reason", "Reason")}
+        hint={hint}
+      />
     </FormDialog>
+  );
+}
+
+/** Reject an advance or a pay line, with why (owner decision 8, AD-9): the server refuses one without (REASON_REQUIRED). */
+export function RejectDialog({
+  open, onOpenChange, title, description, onReject, optional, children,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  title: string;
+  description: string;
+  onReject: (reason: string) => Promise<unknown>;
+  /** A request's reason is optional (sent as its note); money's is required (D8). */
+  optional?: boolean;
+  children?: ReactNode;
+}) {
+  const { t } = useTranslation();
+  return (
+    <ReasonDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description={description}
+      saveLabel={t("common.reject", "Reject")}
+      destructive
+      onSave={onReject}
+      reasonFor="decline"
+      optional={optional}
+      hint={t("dawamOps.reasonSeen", "They see it with the decision.")}
+      done={t("staff.decisionSaved", "Decision saved")}
+    >
+      {children}
+    </ReasonDialog>
   );
 }
 
@@ -510,6 +712,29 @@ export function UnwaiveDialog({
       saveLabel={t("dawam.unwaive", "Undo the waiver")}
       onSave={(reason) => unwaiveDeduction(deductionId!, { reason })}
       done={t("dawam.unwaived", "Waiver undone")}
+    />
+  );
+}
+
+/** Stop a monthly line from next month, with why (AD-3, AD-9): the open month keeps it (owner decision 6). */
+export function StopDialog({
+  line, onOpenChange,
+}: {
+  line: { kind: string; id: string; reason: string } | null;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <ReasonDialog
+      open={!!line}
+      onOpenChange={onOpenChange}
+      title={t("dawam.stopTitle", { line: line?.reason ?? "", defaultValue: `Stop "${line?.reason ?? ""}"?` })}
+      description={t("dawam.stopHint", "This month keeps it; it stops from next month. The reason is kept in the audit log.")}
+      saveLabel={t("dawam.stop", "Stop")}
+      destructive
+      onSave={(reason) => stopAdjustment(line!.kind, line!.id, { reason })}
+      reasonFor="stopLine"
+      done={t("dawam.stoppedToast", "Stopped from next month")}
     />
   );
 }
@@ -565,7 +790,7 @@ export function OverrideDialog({
         toast.success(t("dawam.overridden", "Deduction overridden"));
       }}
     >
-      <TextField form={f} name="amount" type="number" step="0.01" min="0" label={t("dawam.newAmount", "New amount (EGP)")} />
+      <TextField form={f} name="amount" type="money" label={t("dawam.newAmount", "New amount (EGP)")} />
       <TextField form={f} name="reason" label={t("staff.reason", "Reason")} />
     </FormDialog>
   );
@@ -610,9 +835,37 @@ export function ReviewAdvanceDialog({
         toast.success(t("staff.decisionSaved", "Decision saved"));
       }}
     >
-      <TextField form={f} name="amount" type="number" step="0.01" label={t("dawam.amountEgp", "Amount (EGP)")} />
-      <TextField form={f} name="installments" type="number" min="1" max="24" label={t("dawam.installments", "Monthly installments")} />
+      <TextField form={f} name="amount" type="money" label={t("dawam.amountEgp", "Amount (EGP)")} />
+      <TextField form={f} name="installments" type="number" min="1" label={t("dawam.installments", "Monthly installments")} />
       <TextField form={f} name="note" label={t("staff.note", "Note")} />
     </FormDialog>
   );
 }
+
+/**
+ * An advance against the owner's cap (AV-5, owner decision 7): "Within cap"
+ * or "Over cap" for everyone. The figures show only when the server sends the
+ * cap (it reveals the salary). Someone who may not pass the cap reads that
+ * only the owner can approve it.
+ */
+export function AdvanceCapNote({ advance, mayPassCap }: { advance: SalaryAdvance; mayPassCap: boolean }) {
+  const { t } = useTranslation();
+  const { within, owed, cap } = capView(advance);
+  if (within === null) return null;
+  const figures = cap != null
+    ? t("dawam.capFigures", { owed: fmtMoney(owed), cap: fmtMoney(cap), defaultValue: `Owes ${fmtMoney(owed)} of a ${fmtMoney(cap)} cap` })
+    : null;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1">
+      <StatusPill tone={within ? "success" : "warning"}>
+        {within
+          ? t("dawam.withinCap", "Within cap")
+          : mayPassCap
+            ? t("dawam.overCap", "Over cap")
+            : t("dawam.overCapOwner", "Over the cap: only the owner can approve")}
+      </StatusPill>
+      {figures ? <span className="text-xs text-muted-foreground">{figures}</span> : null}
+    </span>
+  );
+}
+

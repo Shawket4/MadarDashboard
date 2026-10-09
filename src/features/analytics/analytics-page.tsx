@@ -448,8 +448,6 @@ export function ItemsTab({ branchId, range }: { branchId: string; range: Range }
   const rows = useMemo(() => items.data ?? [], [items.data]);
   const itemCols = useMemo<ColumnDef<NonNullable<typeof items.data>[number]>[]>(() => [
     { id: "name", header: t("common.name", "Name"), meta: { label: t("common.name", "Name"), phone: "title" }, cell: ({ row: { original: r } }) => <span className="font-medium">{tName(r.item_name, r.item_name_translations, i18n.language)}</span> },
-    { id: "standalone", header: t("analytics.standalone", "Standalone"), meta: { label: t("analytics.standalone", "Standalone"), numeric: true }, cell: ({ row: { original: r } }) => fmtNumber(r.standalone_qty) },
-    { id: "bundles", header: t("analytics.inBundles", "In bundles"), meta: { label: t("analytics.inBundles", "In bundles"), numeric: true }, cell: ({ row: { original: r } }) => fmtNumber(r.bundle_qty) },
     { id: "total", header: t("analytics.totalSold", "Total sold"), meta: { label: t("analytics.totalSold", "Total sold"), numeric: true }, cell: ({ row: { original: r } }) => <span className="font-semibold">{fmtNumber(r.total_qty)}</span> },
   ], [t, i18n.language]);
   const addonCols = useMemo<ColumnDef<NonNullable<typeof addons.data>[number]>[]>(() => [
@@ -461,7 +459,7 @@ export function ItemsTab({ branchId, range }: { branchId: string; range: Range }
   return (
     <div className="space-y-4">
       <ChartCard title={t("analytics.tabs.items", "Items")} contentClassName="px-0 sm:px-0">
-        <DataTable framed={false} hideViewOptions columns={itemCols} data={rows} loading={items.isLoading} error={items.error} onRetry={() => items.refetch()} emptyState={<ChartEmpty />} getRowId={(r) => r.item_id ?? r.item_name} pageSize={50} />
+        <DataTable framed={false} hideViewOptions columns={itemCols} data={rows} loading={items.isLoading} error={items.error} onRetry={() => items.refetch()} emptyState={<ChartEmpty />} getRowId={(r) => r.item_id} pageSize={50} />
       </ChartCard>
 
       <ChartCard title={t("analytics.addonSales", "Addon Sales")} contentClassName="px-0 sm:px-0">

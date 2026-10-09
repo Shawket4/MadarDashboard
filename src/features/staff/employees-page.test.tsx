@@ -28,6 +28,7 @@ Element.prototype.releasePointerCapture ??= () => {};
 Element.prototype.scrollIntoView ??= () => {};
 
 let held: string[] = [];
+let everywhere: string[] | undefined;
 const revokeDevice = vi.fn(async (_id: string) => ({}));
 const deleteEmployee = vi.fn(async (_id: string) => ({}));
 const createEmployee = vi.fn(async (_b: unknown) => ({}));
@@ -57,7 +58,7 @@ vi.mock("@/data/authz/use-authz", async () => {
   const me = () =>
     real.authzFrom({
       user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [],
-      capabilities: held as never, ask_manager: [], limits: {},
+      capabilities: held as never, ask_manager: [], limits: {}, everywhere: everywhere as never,
     });
   return { ...real, useAuthz: me };
 });
@@ -67,8 +68,10 @@ vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateStaff: vi.fn(), invalidateEmployees: vi.fn(), invalidateDepartments: vi.fn() };
 });
+let employeeRows: unknown[] = EMPLOYEES;
 vi.mock("@/data/api/generated/api", () => ({
-  useListEmployees: q(EMPLOYEES),
+  useListEmployees: () => q(employeeRows)(),
+  useGetAttendanceSettings: q({ working_days_per_month: 26, limit_day_hours: 8, period_start_day: 1 }),
   useListDepartments: q([]),
   useListBranches: q([{ id: "b1", name: "Zamalek" }, { id: "b2", name: "Maadi" }]),
   useLinkableUsers: q([]),
@@ -94,6 +97,8 @@ const wrap = (node: ReactNode) =>
 const rowOf = (name: string) => screen.getAllByText(name)[0].closest("tr") as HTMLElement;
 
 beforeEach(() => {
+  everywhere = undefined;
+  employeeRows = EMPLOYEES;
   held = ["hr.staff.read", "hr.staff.create", "hr.staff.edit", "hr.staff.delete"];
   revokeDevice.mockClear();
   deleteEmployee.mockClear();
@@ -101,6 +106,24 @@ beforeEach(() => {
 });
 
 describe("EmployeesPage", () => {
+  it("offers adding and deleting departments only to someone who may do it at every branch (O-2, B-SETUP-3)", async () => {
+    const user = userEvent.setup();
+    // A branch manager: may add staff at their branch, not departments (every branch).
+    held = ["hr.staff.read", "hr.staff.create", "hr.staff.edit"];
+    everywhere = [];
+    const { unmount } = wrap(<EmployeesPage />);
+    await user.click(screen.getByRole("button", { name: "Departments" }));
+    const d = await screen.findByRole("dialog", { name: "Departments" });
+    expect(within(d).queryByPlaceholderText("New department")).toBeNull();
+    unmount();
+    // The owner: held everywhere.
+    held = ["hr.staff.read", "hr.staff.create", "hr.staff.edit", "hr.staff.delete"];
+    everywhere = ["hr.staff.create", "hr.staff.delete"];
+    wrap(<EmployeesPage />);
+    await user.click(screen.getByRole("button", { name: "Departments" }));
+    expect(within(await screen.findByRole("dialog", { name: "Departments" })).getByPlaceholderText("New department")).toBeInTheDocument();
+  });
+
   it("shows each person's kind, branches, number, app access, role and phone", () => {
     wrap(<EmployeesPage />);
     const sara = rowOf("Sara Ahmed");
@@ -167,3 +190,30 @@ describe("EmployeesPage", () => {
     );
   });
 });
+
+describe("D9: salaries on the list", () => {
+  it("the owner reads 'Not set' for a salary nobody set, and the figure for the others", () => {
+    held = [...held, "hr.payroll.edit", "hr.payroll.read"];
+    employeeRows = [
+      { ...EMPLOYEES[0], base_salary_piastres: 900_000, salary_set: true },
+      { ...EMPLOYEES[1], base_salary_piastres: null, salary_set: false },
+    ];
+    wrap(<EmployeesPage />);
+    expect(within(rowOf("Sara Ahmed")).getByText("EGP 9,000.00")).toBeInTheDocument();
+    expect(within(rowOf("Hassan Ali")).getByText("Not set")).toBeInTheDocument();
+  });
+
+  it("the owner still sees the column when nobody has a salary yet", () => {
+    held = [...held, "hr.payroll.edit", "hr.payroll.read"];
+    employeeRows = [{ ...EMPLOYEES[1], base_salary_piastres: null, salary_set: false }];
+    wrap(<EmployeesPage />);
+    expect(within(rowOf("Hassan Ali")).getByText("Not set")).toBeInTheDocument();
+  });
+
+  it("a manager sees no salary column", () => {
+    employeeRows = [{ ...EMPLOYEES[1], base_salary_piastres: null, salary_set: false }];
+    wrap(<EmployeesPage />);
+    expect(screen.queryByText("Not set")).not.toBeInTheDocument();
+  });
+});
+

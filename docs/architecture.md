@@ -20,7 +20,7 @@ src/
   styles/globals.css    # Tailwind v4 import + design tokens (@theme)
   routes/               # file-based routes
     __root.tsx
-    login.tsx  landing.tsx  menu.$orgId.tsx
+    login.tsx  onboarding.tsx
     _app/               # pathless layout = authenticated shell (auth guard + sidebar/header)
       route.tsx  index.tsx (dashboard)  orders.tsx  ...  menu/*  settings/*
   data/                 # PRESERVED data contract — do not casually rewrite

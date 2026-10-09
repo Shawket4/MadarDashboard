@@ -21,6 +21,7 @@ import {
   MessageCircle,
   Music,
   Play,
+  ShoppingBag,
   ThumbsUp,
   X,
   type LucideIcon,
@@ -50,6 +51,7 @@ export const SOCIAL_PLATFORMS = [
   { key: "x", label: "X", Icon: X, sample: "https://x.com/yourshop" },
   { key: "youtube", label: "YouTube", Icon: Play, sample: "https://youtube.com/@yourshop" },
   { key: "whatsapp", label: "WhatsApp", Icon: MessageCircle, sample: "https://wa.me/201234567890" },
+  { key: "talabat", label: "Talabat", Icon: ShoppingBag, sample: "https://www.talabat.com/egypt/yourshop" },
   { key: "website", label: "Website", Icon: Globe, sample: "https://yourshop.com" },
 ] as const satisfies ReadonlyArray<{
   key: string;
@@ -96,6 +98,7 @@ export const socialLinksSchema = (t: TFunction) => {
     x: link,
     youtube: link,
     whatsapp: link,
+    talabat: link,
     website: link,
   });
 };
@@ -115,6 +118,7 @@ export function socialLinksToForm(saved: OrgSocialLinks | null | undefined): Soc
     x: read("x"),
     youtube: read("youtube"),
     whatsapp: read("whatsapp"),
+    talabat: read("talabat"),
     website: read("website"),
   };
 }
@@ -162,7 +166,7 @@ export function SocialLinksFields() {
         <p className="text-xs text-muted-foreground">
           {t(
             "orgs.socialLinksHint",
-            "These print on your customers' loyalty cards. Paste the full address, starting with https://. Clear a box to remove that link.",
+            "These show on your links page and on your customers' loyalty cards. Paste the full address, starting with https://. Clear a box to remove that link.",
           )}
         </p>
       </div>

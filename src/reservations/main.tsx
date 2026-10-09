@@ -70,6 +70,7 @@ import "@/styles/globals.css";
 // Customer surface: the brand register, where the primary is Madar teal.
 document.documentElement.classList.add("brand-surface");
 import { initPublicTheme } from "@/features/public-shell/use-public-theme";
+import { PublicToaster } from "@/features/public-shell/public-toaster";
 
 import { queryClient } from "@/data/api/query";
 import { useHostOrg } from "@/features/public-shell/use-brand";
@@ -144,7 +145,7 @@ const router = createRouter({
 // NOTE: deliberately no `declare module "@tanstack/react-router"` Register
 // block. That augmentation is GLOBAL — declaring it here would replace the
 // dashboard's own router type for the whole project, and every typed `<Link
-// to>` in the admin app would stop compiling. The ordering and landing apps
+// to>` in the admin app would stop compiling. The ordering and loyalty apps
 // omit it for the same reason.
 
 createRoot(document.getElementById("root")!).render(
@@ -152,6 +153,7 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion="user">
         <RouterProvider router={router} />
+        <PublicToaster />
       </MotionConfig>
     </QueryClientProvider>
   </StrictMode>,

@@ -52,6 +52,19 @@ describe("the sweep", () => {
     expect(await at("wallet/deeper")).toEqual(["pass.png"]);
   });
 
+  it("keeps Markdown the build emitted itself (the apex's index.md for agents)", async () => {
+    const out = await mkdtemp(path.join(tmpdir(), "no-docs-"));
+    await writeFile(path.join(out, "index.md"), "# Madar POS");
+    await writeFile(path.join(out, "README.md"), "doc");
+
+    const plugin = noDocsInTheBundle();
+    (plugin.configResolved as (c: ResolvedConfig) => void)({ root: out, build: { outDir: "." } } as unknown as ResolvedConfig);
+    (plugin.writeBundle as (o: unknown, b: Record<string, unknown>) => void)({}, { "index.md": {} });
+    await (plugin.closeBundle as () => Promise<void>)();
+
+    expect((await readdir(out)).sort()).toEqual(["index.md"]);
+  });
+
   it("does not fail a build when there is no output directory", async () => {
     const plugin = noDocsInTheBundle();
     const configResolved = plugin.configResolved as (c: ResolvedConfig) => void;

@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { AddonInput } from './addonInput';
+import type { ComboInput } from './comboInput';
 
 /**
  * One line of a public cart. Prices are NOT taken from the client — the server
@@ -8,6 +9,7 @@ import type { AddonInput } from './addonInput';
  */
 export interface CartLineInput {
   addons?: AddonInput[];
+  combo?: null | ComboInput;
   menu_item_id: string;
   /** @nullable */
   notes?: string | null;

@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { AdjustmentReasonVars } from './adjustmentReasonVars';
 
 export interface Adjustment {
   /** @nullable */
@@ -7,6 +8,16 @@ export interface Adjustment {
   created_at: string;
   /** @nullable */
   created_by?: string | null;
+  /** @nullable */
+  decided_at?: string | null;
+  /**
+     * Who decided a line that waited for the owner, when, and why (a
+     * rejection always says why, D8).
+     * @nullable
+     */
+  decided_by?: string | null;
+  /** @nullable */
+  decision_note?: string | null;
   /** The month it lands in (the first day of a recurring line, AD-1/AD-3). */
   effective_date: string;
   employee_id: string;
@@ -23,6 +34,16 @@ export interface Adjustment {
   /** @nullable */
   percent_of_base?: number | null;
   reason: string;
+  /**
+     * A rule-made line's reason as a code and its figures (`late`
+     * `{minutes}`, `absent_no_punch`, …), the payslip breakdown's own, so a
+     * client words it in its language (AT-13, E2E B-PAY-4). Null for a
+     * bonus and for a manual line (its `reason` is what was typed).
+     * @nullable
+     */
+  reason_code?: string | null;
+  /** @nullable */
+  reason_vars?: AdjustmentReasonVars;
   recurring: boolean;
   source: string;
   /** `pending` (waits for the owner) · `approved` · `rejected` */

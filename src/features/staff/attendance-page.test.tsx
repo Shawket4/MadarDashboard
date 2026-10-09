@@ -55,21 +55,46 @@ vi.mock("@/data/authz/use-authz", async () => {
       }),
   };
 });
-vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: "b1" }) }));
+let scopeBranch: string | null = "b1";
+/** H3: the window's summary read fails with this. */
+let summaryError: unknown = null;
+vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: scopeBranch }) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o1" }));
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
 vi.mock("./util", async () => {
   const real = await vi.importActual<typeof import("./util")>("./util");
   return { ...real, invalidateAttendance: vi.fn() };
 });
+/** Blocks at the record's branch (b1), another branch (b2), and the whole business. */
+let shifts: { id: string; name: string; branch_id: string | null }[] = [];
+// The kit's fields are calendar buttons and a typed time (tested in their own
+// suites); the dialogs' logic (branch clock, only-what-changed) runs through plain inputs.
+vi.mock("@/components/inputs", async () => {
+  const real = await vi.importActual<typeof import("@/components/inputs")>("@/components/inputs");
+  return {
+    ...real,
+    DateField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+      <input id={id} type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+    ),
+  };
+});
+vi.mock("./date-time-field", () => ({
+  DateTimeField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+    <input id={id} type="datetime-local" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+  ),
+}));
 vi.mock("@/data/api/generated/api", () => ({
+  useGetAttendanceSettings: () => ({ data: { period_start_day: 1 } }),
   listAttendance: vi.fn(async () => []),
   useListAttendance: () => q(records),
-  useAttendanceSummary: () => q([]),
-  useListEmployees: () => q([{ id: "e1", name: "Sara Ahmed" }]),
-  useListWorkShifts: () => q([]),
+  useAttendanceSummary: () => (summaryError ? { ...q(undefined), error: summaryError } : q([])),
+  useListEmployees: () => q([
+    { id: "e1", name: "Sara Ahmed", branch_ids: ["b1"] }, { id: "e2", name: "Omar Nabil", branch_ids: ["b1"] },
+    { id: "e3", name: "Hana Adel", branch_ids: ["b1", "b2"] },
+  ]),
+  useListWorkShifts: () => q(shifts),
   // The browser here runs in UTC; the branch is in Cairo.
-  useListBranches: () => q([{ id: "b1", name: "Zamalek", timezone: "Africa/Cairo" }]),
+  useListBranches: () => q([{ id: "b1", name: "Zamalek", timezone: "Africa/Cairo" }, { id: "b2", name: "Maadi", timezone: "Africa/Cairo" }]),
   correctRecord: (...a: unknown[]) => correctRecord(...(a as [])),
   createManualRecord: (...a: unknown[]) => createManualRecord(...(a as [])),
 }));
@@ -90,6 +115,43 @@ beforeEach(() => {
   correctRecord.mockClear();
   createManualRecord.mockClear();
   held = ["hr.attendance.read", "hr.attendance.edit", "hr.attendance.create"];
+  shifts = [];
+});
+
+describe("Attendance: a failed summary is no reassuring zero (H3)", () => {
+  it("the headline counts read '—' when the summary fails", () => {
+    summaryError = new Error("boom");
+    try {
+      wrap(<AttendancePage />);
+      const card = screen.getByText("Absent days").closest("div")!.parentElement!;
+      expect(card.textContent).toMatch(/—/);
+      expect(card.textContent).not.toMatch(/\b0\b/);
+    } finally {
+      summaryError = null;
+    }
+  });
+});
+
+describe("Attendance reads plainly (UX-P)", () => {
+  it("says what late and left early are measured from, and explains the words", async () => {
+    records = [{ ...record, scheduled_start_at: "2026-09-22T06:00:00Z", scheduled_end_at: "2026-09-22T14:30:00Z", early_leave_minutes: 30 }];
+    try {
+      wrap(<AttendancePage />);
+      // 09:00 and 17:30 on the Cairo branch's clock, not the browser's UTC.
+      expect(screen.getAllByText("after 09:00 AM").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("before 05:30 PM").length).toBeGreaterThan(0);
+      expect(screen.getByText("What late, left early and absent mean")).toBeInTheDocument();
+    } finally {
+      records = [record];
+    }
+  });
+
+  it("offers one-tap ranges, the pay period among them", () => {
+    wrap(<AttendancePage />);
+    const quick = screen.getByRole("group", { name: "Quick ranges" });
+    expect(within(quick).getByRole("button", { name: "This pay period" })).toBeInTheDocument();
+    expect(within(quick).getByRole("button", { name: "This week" })).toBeInTheDocument();
+  });
 });
 
 describe("Attendance actions follow capabilities", () => {
@@ -171,6 +233,23 @@ describe("Correct a record", () => {
 });
 
 describe("Add a record by hand", () => {
+  it("offers only the record's branch's blocks and business-wide ones (E2E team re-verify)", async () => {
+    // The owner at Arkan was offered Maadi's "Evening" and saved an Arkan record on it.
+    shifts = [
+      { id: "w1", name: "Morning", branch_id: "b1" },
+      { id: "w2", name: "Evening Maadi", branch_id: "b2" },
+      { id: "w3", name: "Anywhere", branch_id: null },
+    ];
+    const user = userEvent.setup();
+    wrap(<AttendancePage />);
+    await user.click(screen.getByRole("button", { name: /add record/i }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("combobox", { name: "Work shift" }));
+    expect(await screen.findByRole("option", { name: "Morning" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Anywhere" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Evening Maadi" })).not.toBeInTheDocument();
+  });
+
   it("needs an employee and a reason, and writes the branch's clock with a derived status", async () => {
     const user = userEvent.setup();
     wrap(<AttendancePage />);
@@ -201,3 +280,103 @@ describe("Add a record by hand", () => {
     });
   });
 });
+
+/** Omar's absent day, and Salma covering it (D1). */
+const absent = {
+  ...record, id: "r2", employee_id: "e2", employee_name: "Omar Nabil", check_in_at: null, check_out_at: null,
+  status: "absent", late_minutes: 0, worked_minutes: 0, work_shift_id: "w1",
+};
+const cover = {
+  ...record, id: "c1", employee_id: "e7", employee_name: "Salma Adel", covered_employee_id: "e2", cover_status: "pending",
+  work_shift_id: "w1", check_in_method: "cover",
+};
+
+describe("D1: a shift a colleague covers", () => {
+  it("says who covers the owner's day", () => {
+    records = [absent, cover];
+    wrap(<AttendancePage />);
+    expect(screen.getByText("Covered by Salma Adel")).toBeInTheDocument();
+    records = [record];
+  });
+
+  it("a correction can't clock the owner in while it's covered", async () => {
+    records = [absent, cover];
+    const user = userEvent.setup();
+    wrap(<AttendancePage />);
+    const omar = screen.getByText("Omar Nabil").closest("tr") as HTMLElement;
+    await user.click(within(omar).getByRole("button", { name: /^correct$/i }));
+    const dialog = await screen.findByRole("dialog");
+    await user.type(within(dialog).getByLabelText("In"), "2026-09-22T09:30");
+    await user.type(within(dialog).getByLabelText("Reason"), "He came in");
+    expect(within(dialog).getByText(/Covered by Salma Adel/)).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Save" })).toBeDisabled();
+    expect(correctRecord).not.toHaveBeenCalled();
+    records = [record];
+  });
+
+  it("Add record can't clock the owner in on the covered shift", async () => {
+    records = [absent, cover];
+    shifts = [{ id: "w1", name: "Morning", branch_id: "b1" }];
+    const user = userEvent.setup();
+    wrap(<AttendancePage />);
+    await user.click(screen.getByRole("button", { name: /add record/i }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("combobox", { name: "Employee" }));
+    await user.click(await screen.findByRole("option", { name: "Omar Nabil" }));
+    const date = within(dialog).getByLabelText("Date");
+    await user.clear(date);
+    await user.type(date, "2026-09-22");
+    await user.click(within(dialog).getByRole("combobox", { name: "Work shift" }));
+    await user.click(await screen.findByRole("option", { name: "Morning" }));
+    await user.type(within(dialog).getByLabelText("In"), "2026-09-22T09:30");
+    expect(within(dialog).getByText(/Covered by Salma Adel/)).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Save" })).toBeDisabled();
+    records = [record];
+  });
+});
+
+describe("A closed month (box verify, BC-3 decision a)", () => {
+  it("Add record says the day is in an approved month and won't save", async () => {
+    records = [{ ...record, month_closed: true }];
+    const user = userEvent.setup();
+    wrap(<AttendancePage />);
+    await user.click(screen.getByRole("button", { name: /add record/i }));
+    const dialog = await screen.findByRole("dialog");
+    const date = within(dialog).getByLabelText("Date");
+    await user.clear(date);
+    await user.type(date, "2026-09-20");
+    expect(await within(dialog).findByText(/That day is in an approved payroll month/)).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Save" })).toBeDisabled();
+    records = [record];
+  });
+});
+
+describe("Add record with every branch in scope (box verify: Karim has one branch)", () => {
+  it("takes the branch from someone who works at one, and asks among theirs otherwise", async () => {
+    scopeBranch = null;
+    const user = userEvent.setup();
+    wrap(<AttendancePage />);
+    await user.click(screen.getByRole("button", { name: /add record/i }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("combobox", { name: "Employee" }));
+    await user.click(await screen.findByRole("option", { name: "Sara Ahmed" }));
+    expect(within(dialog).queryByRole("combobox", { name: "Branch" })).not.toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText("Reason"), "The app missed the day");
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(createManualRecord).toHaveBeenCalledWith(expect.objectContaining({ employee_id: "e1", branch_id: "b1" })));
+
+    // Someone at two branches: pick which.
+    createManualRecord.mockClear();
+    await user.click(screen.getByRole("button", { name: /add record/i }));
+    const again = await screen.findByRole("dialog");
+    await user.click(within(again).getByRole("combobox", { name: "Employee" }));
+    await user.click(await screen.findByRole("option", { name: "Hana Adel" }));
+    await user.click(within(again).getByRole("combobox", { name: "Branch" }));
+    await user.click(await screen.findByRole("option", { name: "Maadi" }));
+    await user.type(within(again).getByLabelText("Reason"), "Covered at Maadi");
+    await user.click(within(again).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(createManualRecord).toHaveBeenCalledWith(expect.objectContaining({ employee_id: "e3", branch_id: "b2" })));
+    scopeBranch = "b1";
+  });
+});
+

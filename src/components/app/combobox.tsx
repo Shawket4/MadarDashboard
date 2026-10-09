@@ -31,10 +31,15 @@ interface Props {
   emptyText?: string;
   disabled?: boolean;
   className?: string;
+  id?: string;
+  invalid?: boolean;
+  "aria-label"?: string;
 }
 
 /** Accessible searchable single-select built on Popover + cmdk. */
-export function Combobox({ options, value, onChange, placeholder, searchPlaceholder, emptyText, disabled, className }: Props) {
+export function Combobox({
+  options, value, onChange, placeholder, searchPlaceholder, emptyText, disabled, className, id, invalid, "aria-label": ariaLabel,
+}: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const selected = options.find((o) => o.value === value);
@@ -46,6 +51,9 @@ export function Combobox({ options, value, onChange, placeholder, searchPlacehol
           type="button"
           variant="outline"
           role="combobox"
+          id={id}
+          aria-label={ariaLabel}
+          aria-invalid={invalid || undefined}
           aria-expanded={open}
           disabled={disabled}
           className={cn("h-9 w-full justify-between font-normal", !selected && "text-muted-foreground", className)}

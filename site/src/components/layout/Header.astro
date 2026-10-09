@@ -1,0 +1,90 @@
+---
+import Logo from "@/components/ui/Logo.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { t } from "@/i18n";
+import { type Lang, type PageKey, pageHref, otherLang, switchHref as switchTo, DASHBOARD_URL, whatsappHref } from "@/lib/site";
+
+interface Props {
+  lang: Lang;
+  page: PageKey | "notFound";
+  tone: "ink" | "paper";
+}
+const { lang, page, tone } = Astro.props;
+const c = t(lang);
+const other = otherLang(lang);
+const switchHref = switchTo(lang, page);
+const links: { key: PageKey; label: string }[] = [
+  { key: "features", label: c.nav.features },
+  { key: "pricing", label: c.nav.pricing },
+  { key: "faq", label: c.nav.faq },
+  { key: "about", label: c.nav.about },
+];
+---
+<header class="vt-header site-header fixed inset-x-0 top-0 z-50" data-tone={tone} data-solid="false">
+  <div class="container-site flex h-16 items-center justify-between gap-4">
+    <a href={pageHref(lang, "home")} aria-label={c.nav.home} class="flex items-center text-[1.4rem] md:text-[1.55rem]">
+      <Logo lang={lang} tone="paper" class="logo-on-paper" />
+      <Logo lang={lang} tone="ink" class="logo-on-ink" />
+    </a>
+
+    <nav aria-label={c.nav.primary} class="hidden items-center gap-1 lg:flex">
+      {links.map((l) => (
+        <a class="nav-link" href={pageHref(lang, l.key)} aria-current={page === l.key ? "page" : undefined}>{l.label}</a>
+      ))}
+    </nav>
+
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <a
+        class="nav-link hidden sm:inline-flex"
+        href={switchHref}
+        hreflang={other}
+        lang={other}
+        aria-label={c.nav.langSwitchAria}
+        data-umami-event="lang-switch"
+      >{c.nav.langSwitch}</a>
+      <a class="nav-link hidden md:inline-flex" href={DASHBOARD_URL} rel="noopener">{c.nav.login}</a>
+      <a
+        class="btn btn-ink btn-sm hidden sm:inline-flex"
+        href={whatsappHref(lang)}
+        data-open-contact
+        data-umami-event="talk-to-us"
+      >{c.nav.talk}</a>
+      <button type="button" class="nav-link inline-flex h-10 w-10 items-center justify-center !p-0 lg:hidden" data-open-menu aria-haspopup="dialog" aria-controls="mobile-menu" aria-label={c.nav.menu}>
+        <Icon name="menu" size={22} />
+      </button>
+    </div>
+  </div>
+</header>
+
+<dialog id="mobile-menu" class="menu-sheet" aria-label={c.nav.menu}>
+  <div class="menu-panel">
+    <svg class="menu-rings" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+      <g stroke="currentColor" stroke-width="1.5"><circle cx="200" cy="200" r="70" /><circle cx="200" cy="200" r="130" /><circle cx="200" cy="200" r="195" /></g>
+      <circle cx="200" cy="200" r="7" fill="currentColor" />
+    </svg>
+    <div class="container-site flex h-16 shrink-0 items-center justify-between">
+      <a href={pageHref(lang, "home")} aria-label={c.nav.home} class="flex items-center text-[1.4rem]"><Logo lang={lang} tone="ink" /></a>
+      <form method="dialog">
+        <button class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line-ink text-paper" aria-label={c.nav.close}><Icon name="close" size={20} /></button>
+      </form>
+    </div>
+    <nav aria-label={c.nav.primary} class="container-site mt-6 flex flex-col">
+      {[{ key: "home" as PageKey, label: c.nav.homeLabel }, ...links].map((l, i) => (
+        <a class="menu-link" style={`--i:${i}`} href={pageHref(lang, l.key)} aria-current={page === l.key ? "page" : undefined}>
+          <span class="menu-index ltr">{String(i + 1).padStart(2, "0")}</span>
+          <span>{l.label}</span>
+          <Icon name="arrow" size={20} />
+        </a>
+      ))}
+    </nav>
+    <div class="menu-foot container-site mt-auto flex flex-col gap-3 pt-10" style={`--i:${links.length + 1}`}>
+      <a class="btn btn-paper btn-lg w-full" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="menu">
+        {c.contact.whatsapp} <Icon name="arrow" size={18} />
+      </a>
+      <div class="grid grid-cols-2 gap-3">
+        <a class="btn btn-ghost-ink" href={switchHref} hreflang={other} lang={other} data-umami-event="lang-switch"><Icon name="globe" size={18} /> {c.nav.langSwitch}</a>
+        <a class="btn btn-ghost-ink" href={DASHBOARD_URL} rel="noopener">{c.nav.login}</a>
+      </div>
+    </div>
+  </div>
+</dialog>

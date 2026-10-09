@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, X } from "lucide-react";
+import { Lock, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -11,14 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AnimatedFigure } from "@/components/app/animated-figure";
 import { Combobox } from "@/components/app/combobox";
 import { DatePicker } from "@/components/app/date-picker";
 import { Separator } from "@/components/ui/separator";
 import type { OrgIngredient, POLineInput, Supplier } from "@/data/api/generated/models";
 import { createPurchaseOrder } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
-import { cairoDateISO, egpToPiastres, fmtMoney } from "@/lib/format";
-import { invalidateInventory, unitsForFamily } from "./lib";
+import { cairoDateISO, egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
+import { estimateLineTotal, formatUnitCost, invalidateInventory, unitCostFromTotal, unitsForFamily } from "./lib";
 
 export interface POPrefillLine {
   org_ingredient_id: string;
@@ -35,15 +36,21 @@ interface Props {
   prefillLines?: POPrefillLine[];
 }
 
+/** One line. The TOTAL (EGP, as on the supplier's invoice) is what is typed
+ *  and sent; the unit cost is derived from it and only shown. Until someone
+ *  types a total it follows the catalog's estimate for the quantity. */
 interface LineState {
   key: number;
   ingredientId: string | null;
   purchaseUnit: string;
   qty: string;
-  cost: string;
+  total: string;
+  totalTouched: boolean;
 }
 
-const emptyLine = (key: number): LineState => ({ key, ingredientId: null, purchaseUnit: "", qty: "", cost: "" });
+const emptyLine = (key: number): LineState => ({
+  key, ingredientId: null, purchaseUnit: "", qty: "", total: "", totalTouched: false,
+});
 
 export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, catalog, prefillSupplierId, prefillLines }: Props) {
   const { t } = useTranslation();
@@ -67,13 +74,14 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
       setLines(
         prefillLines.map((p) => {
           const ing = catalogById.get(p.org_ingredient_id);
-          return {
+          return withEstimate({
             key: nextKey(),
             ingredientId: p.org_ingredient_id,
             purchaseUnit: ing?.unit ?? "",
             qty: String(p.quantity_ordered),
-            cost: ing?.cost_per_unit != null ? String(ing.cost_per_unit / 100) : "",
-          };
+            total: "",
+            totalTouched: false,
+          });
         }),
       );
     } else {
@@ -88,25 +96,33 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
   );
   const catalogOptions = useMemo(() => catalog.map((c) => ({ value: c.id, label: c.name })), [catalog]);
 
+  /** Refill an untouched total from the catalog's cost for the quantity. */
+  function withEstimate(l: LineState): LineState {
+    if (l.totalTouched) return l;
+    const ing = l.ingredientId ? catalogById.get(l.ingredientId) : undefined;
+    const est = ing ? estimateLineTotal(ing.cost_per_unit, parseFloat(l.qty), l.purchaseUnit, ing.unit) : null;
+    return { ...l, total: est != null ? piastresToEgp(est).toFixed(2) : "" };
+  }
+
   const setLine = (key: number, patch: Partial<LineState>) =>
-    setLines((prev) => prev.map((l) => (l.key === key ? { ...l, ...patch } : l)));
+    setLines((prev) => prev.map((l) => (l.key === key ? withEstimate({ ...l, ...patch }) : l)));
   const onPickIngredient = (key: number, id: string) => {
     const ing = catalogById.get(id);
-    setLine(key, { ingredientId: id, purchaseUnit: ing?.unit ?? "", cost: ing?.cost_per_unit != null ? String(ing.cost_per_unit / 100) : "" });
+    setLine(key, { ingredientId: id, purchaseUnit: ing?.unit ?? "" });
+  };
+
+  const linePiastres = (l: LineState): number => {
+    const egp = parseFloat(l.total);
+    return Number.isFinite(egp) && egp >= 0 ? egpToPiastres(egp) : Number.NaN;
   };
 
   const total = useMemo(
-    () =>
-      lines.reduce((sum, l) => {
-        const q = parseFloat(l.qty);
-        const c = parseFloat(l.cost);
-        return Number.isFinite(q) && Number.isFinite(c) ? sum + q * egpToPiastres(c) : sum;
-      }, 0),
+    () => lines.reduce((sum, l) => (Number.isFinite(linePiastres(l)) ? sum + linePiastres(l) : sum), 0),
     [lines],
   );
 
   const validLines = lines.filter(
-    (l) => l.ingredientId && parseFloat(l.qty) > 0 && Number.isFinite(parseFloat(l.cost)),
+    (l) => l.ingredientId && parseFloat(l.qty) > 0 && Number.isFinite(linePiastres(l)),
   );
   const canSubmit = validLines.length > 0;
 
@@ -120,7 +136,8 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
         // derives the pack factor from it (e.g. kg for a gram ingredient → 1000).
         purchase_unit: l.purchaseUnit || (catalogById.get(l.ingredientId as string)?.unit ?? "pcs"),
         quantity_ordered: parseFloat(l.qty),
-        unit_cost: egpToPiastres(parseFloat(l.cost)),
+        // The invoice total, whole piastres; the server derives the unit cost.
+        line_cost: linePiastres(l),
         units_per_purchase_unit: null,
       }));
       let expected_at: string | null = null;
@@ -174,6 +191,7 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
             {lines.map((l) => {
               const ing = l.ingredientId ? catalogById.get(l.ingredientId) : undefined;
               const puOptions = ing ? unitsForFamily(ing.unit) : [];
+              const unitCost = unitCostFromTotal(linePiastres(l), parseFloat(l.qty));
               return (
                 <div key={l.key} className="space-y-1.5 rounded-lg border p-2">
                   <div className="flex items-center gap-2">
@@ -204,9 +222,38 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
                       <Input type="number" min="0" step="0.0001" value={l.qty} onChange={(e) => setLine(l.key, { qty: e.target.value })} className="h-8 tabular" />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">{t("inventory.purchasing.unitCost", "Unit cost (EGP)")}</Label>
-                      <Input type="number" min="0" step="0.0001" value={l.cost} onChange={(e) => setLine(l.key, { cost: e.target.value })} className="h-8 tabular" />
+                      <Label className="text-xs">{t("inventory.purchasing.lineTotal", "Line total (EGP)")}</Label>
+                      <Input
+                        type="number" min="0" step="0.01" inputMode="decimal"
+                        value={l.total}
+                        onChange={(e) => setLine(l.key, { total: e.target.value, totalTouched: true })}
+                        className="h-8 tabular"
+                      />
                     </div>
+                  </div>
+                  {/* Locked: nothing types here. It is the line total ÷ the
+                      quantity, recomputed as either changes, and animates like
+                      the POS charge amount when it does. */}
+                  <div
+                    className="flex items-center justify-between gap-3 rounded-md border border-dashed bg-muted/50 px-3 py-2"
+                    title={t("inventory.purchasing.unitCostLockedHint", "Worked out from the line total ÷ the quantity. Change either to change it.")}
+                  >
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Lock className="size-3.5 shrink-0" aria-hidden />
+                      {t("inventory.purchasing.unitCostLocked", "Unit cost (EGP per {{unit}})", {
+                        unit: l.purchaseUnit
+                          ? t(`units.${l.purchaseUnit}`, l.purchaseUnit)
+                          : t("inventory.purchasing.unitCostUnit", "unit"),
+                      })}
+                    </span>
+                    <output
+                      aria-readonly="true"
+                      className="font-mono text-sm font-medium text-foreground"
+                    >
+                      <bdi>
+                        <AnimatedFigure text={unitCost != null ? formatUnitCost(unitCost) : "—"} />
+                      </bdi>
+                    </output>
                   </div>
                 </div>
               );

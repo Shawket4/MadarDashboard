@@ -25,6 +25,12 @@ export interface AttendanceRecord {
   /** @nullable */
   check_out_method?: string | null;
   /**
+     * Why someone else punched this person OUT; the in-reason stays in
+     * `punch_reason` (AT-10, Mac E2E BC-1).
+     * @nullable
+     */
+  check_out_reason?: string | null;
+  /**
      * `pending` · `confirmed` · `rejected` for a cover.
      * @nullable
      */
@@ -64,7 +70,7 @@ export interface AttendanceRecord {
      */
   overtime_status?: string | null;
   /**
-     * Why someone else punched for this person.
+     * Why someone else punched this person IN (or the only punch they made).
      * @nullable
      */
   punch_reason?: string | null;

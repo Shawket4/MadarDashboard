@@ -83,6 +83,34 @@ describe("payslipLines", () => {
     expect(lines.find((l) => l.key === "d|d1")).toMatchObject({ waivedId: "d1", deductionId: undefined });
   });
 
+  it("M29: carries why a line was waived, when the server says (AD-6)", () => {
+    const lines = payslipLines(
+      slip({
+        breakdown: {
+          paid_days: 31, window_days: 31, bonuses: [], advances: [],
+          deductions: [
+            { id: "d1", reason: "Late", piastres: 5_000, source: "late_penalty", waived: true, waive_reason: "Traffic accident" },
+            { id: "d3", reason: "Late", piastres: 5_000, source: "late_penalty", waived: true },
+          ],
+        },
+      }),
+    );
+    expect(lines.find((l) => l.key === "d|d1")?.waiveReason).toBe("Traffic accident");
+    expect(lines.find((l) => l.key === "d|d3")?.waiveReason).toBeUndefined();
+  });
+
+  it("M29: carries why a rule line was overridden", () => {
+    const lines = payslipLines(
+      slip({
+        breakdown: {
+          paid_days: 31, window_days: 31, bonuses: [], advances: [],
+          deductions: [{ id: "d4", reason: "Absent", piastres: 10_000, source: "absence", override_reason: "Half: he called in" }],
+        },
+      }),
+    );
+    expect(lines.find((l) => l.key === "d|d4")?.overrideReason).toBe("Half: he called in");
+  });
+
   it("names the capped part so the lines add up to a net of zero (PAY-12)", () => {
     const lines = payslipLines(
       slip({
@@ -125,7 +153,10 @@ describe("the server's own wording in the reader's language (D-B2)", () => {
     };
     expect(label("a")).toBe("تأخير 24 دقيقة");
     expect(label("b")).toBe("غياب — لم يُسجَّل حضور");
-    expect(label("c")).toBe("وقت إذن غير مدفوع: 40 دقيقة");
+    // D2: the minutes counted are the minutes actually away inside the excuse.
+    expect(label("c")).toBe("غياب أثناء إذن غير مدفوع: 40 دقيقة");
+    const c = lines.find((x) => x.key === "d|c")!;
+    expect(i18n.getFixedT("en")(c.labelKey!, { ...c.vars, defaultValue: c.label })).toBe("Away during an unpaid excuse: 40 minutes");
     expect(label("d")).toBe("غادرت الفرع بدون إذن");
     expect(label("e")).toBe("Something new");
     expect(label("f")).toBe("Unpaid leave");

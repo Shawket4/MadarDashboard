@@ -7,9 +7,21 @@ import { Select as SelectPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 function Select({
+  onValueChange,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
+  // Radix keeps a hidden native <select> for forms. When `value` changes after
+  // mount (a form.reset from loaded data) to an option the closed list hasn't
+  // registered, the native select reads "" and Radix reports that as a pick,
+  // wiping the value just loaded. An item can never have the value "" (Radix
+  // refuses it), so "" is never a real choice: drop it.
+  const onChange = React.useCallback(
+    (v: string) => {
+      if (v !== "") onValueChange?.(v)
+    },
+    [onValueChange],
+  )
+  return <SelectPrimitive.Root data-slot="select" onValueChange={onChange} {...props} />
 }
 
 function SelectGroup({

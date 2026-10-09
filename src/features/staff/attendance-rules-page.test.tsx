@@ -38,13 +38,14 @@ const BUSINESS = {
 };
 let business: Record<string, unknown> = BUSINESS;
 const ARKAN = { ...BUSINESS, branch_id: "b1", overtime_mode: "automatic", absence_deduction_days: 2, overridden: ["overtime_mode", "absence_deduction_days"] };
+let arkan: Record<string, unknown> = ARKAN;
 let settingsError: unknown = null;
 
 vi.mock("@/data/api/generated/api", () => ({
   useGetAttendanceSettings: (params: { branch_id?: string }) => {
     seenParams.push(params);
     return {
-      data: settingsError ? undefined : ((params.branch_id === "b1" ? ARKAN : business) as unknown as AttendanceSettings),
+      data: settingsError ? undefined : ((params.branch_id === "b1" ? arkan : business) as unknown as AttendanceSettings),
       isLoading: false, isFetching: false, error: settingsError, refetch: vi.fn(),
     };
   },
@@ -89,6 +90,14 @@ const renderPage = () =>
     </QueryClientProvider>,
   );
 
+/** Save, and answer the "you're changing…" question the page asks for rules already in force. */
+async function saveAndConfirm(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getAllByRole("button", { name: /Save/ }).at(-1)!);
+  const dialog = await screen.findByRole("alertdialog");
+  await user.click(within(dialog).getByRole("button", { name: "Save the changes" }));
+}
+
+
 const pickBranch = async (user: ReturnType<typeof userEvent.setup>, name: RegExp) => {
   await user.click(screen.getByRole("combobox", { name: "Rules for" }));
   await user.click(await screen.findByRole("option", { name }));
@@ -100,6 +109,7 @@ beforeEach(() => {
   toastError.mockClear();
   seenParams.length = 0;
   business = BUSINESS;
+  arkan = ARKAN;
   settingsError = null;
   held = ["hr.rules.edit"];
 });
@@ -165,6 +175,15 @@ describe("Rules page for the owner", () => {
     });
   });
 
+  it("doesn't claim a suggested ladder when it shows the business's own unsaved one (E2E D-257)", () => {
+    // An HR org from before Dawam: a ladder is stored, the rules were never saved.
+    business = { ...BUSINESS, rules_saved_at: null };
+    renderPage();
+    expect(screen.getByText("Save the rules before anyone can clock in")).toBeInTheDocument();
+    expect(screen.queryByText(/A suggested ladder is filled in/)).toBeNull();
+    expect(screen.getByText(/1–30 min late → 15 minutes of pay/)).toBeInTheDocument();
+  });
+
   it("refuses overlapping rungs and a zero working month before asking the server", async () => {
     const user = userEvent.setup();
     renderPage();
@@ -172,6 +191,7 @@ describe("Rules page for the owner", () => {
     const from = screen.getAllByLabelText("From (min)").at(-1)!;
     await user.clear(from);
     await user.type(from, "10");
+    await user.tab();
     expect(await screen.findByText("Rungs overlap at 10 minutes")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Save/ })).toBeDisabled();
     await user.click(screen.getAllByRole("button", { name: "Remove rung" }).at(-1)!);
@@ -192,6 +212,28 @@ describe("Rules page for the owner", () => {
     await waitFor(() => expect(toastError).toHaveBeenCalled());
   });
 
+  it("reads a SETTING_OUT_OF_RANGE refusal in the page language, naming the rule (B-SETUP-1)", async () => {
+    const { AxiosError } = await import("axios");
+    const refusal = (vars: Record<string, unknown>) => {
+      const e = new AxiosError("Request failed with status code 400");
+      e.response = { status: 400, data: { error: "x must be…", code: "SETTING_OUT_OF_RANGE", vars } } as never;
+      return e;
+    };
+    const user = userEvent.setup();
+    put.mockRejectedValueOnce(refusal({ field: "advance_cap_percent", min: 0, max: 100, min_inclusive: true, max_inclusive: true }));
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith("Advance cap (% of salary) must be from 0 to 100."));
+    put.mockRejectedValueOnce(refusal({ field: "overtime_mode", allowed: ["off", "automatic", "approval"] }));
+    await i18n.changeLanguage("ar");
+    try {
+      await user.click(screen.getByRole("button", { name: /حفظ/ }));
+      await waitFor(() => expect(toastError).toHaveBeenLastCalledWith("الوقت الإضافي: هذه القيمة ليست من الخيارات المسموحة."));
+    } finally {
+      await i18n.changeLanguage("en");
+    }
+  });
+
   it("saves a branch's changed rule only, as an override (RU-2)", async () => {
     const user = userEvent.setup();
     renderPage();
@@ -204,7 +246,7 @@ describe("Rules page for the owner", () => {
     const day = screen.getByLabelText("Hours a day");
     await user.clear(day);
     await user.type(day, "7");
-    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalled());
     expect(put.mock.calls[0][0]).toEqual({ branch_id: "b1", limit_day_hours: 7 });
   });
@@ -226,7 +268,7 @@ describe("Rules page for the owner", () => {
     const absence = screen.getByLabelText("Days docked per absence");
     await user.clear(absence);
     await user.type(absence, "1.5");
-    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalled());
     expect(put.mock.calls[0][0]).toEqual({ branch_id: "b2", absence_deduction_days: 1.5 });
   });
@@ -236,7 +278,7 @@ describe("Rules page for the owner", () => {
     renderPage();
     await pickBranch(user, /Arkan/);
     await user.click(screen.getByRole("button", { name: "Use the business's Overtime" }));
-    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await saveAndConfirm(user);
     await waitFor(() => expect(put).toHaveBeenCalled());
     expect(put.mock.calls[0][0]).toEqual({ branch_id: "b1", inherit: ["overtime_mode"] });
   });
@@ -269,3 +311,60 @@ describe("branchBody", () => {
     expect(branchBody("b1", base, base, [])).toBeNull();
   });
 });
+
+describe("D5: cover pay (owner decision 5)", () => {
+  it("the business picks how a cover is paid, each option said in one line, minute rate by default", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const group = screen.getByRole("radiogroup", { name: "Cover pay" });
+    expect(within(group).getByRole("radio", { name: /The coverer's minute rate/ })).toHaveAttribute("aria-checked", "true");
+    expect(within(group).getByText(/Pay the covered minutes at the coverer's own minute rate/)).toBeInTheDocument();
+    expect(within(group).getByText(/Pay a covered block as a full day/)).toBeInTheDocument();
+    await user.click(within(group).getByRole("radio", { name: /A full day for the block/ }));
+    await saveAndConfirm(user);
+    await waitFor(() => expect(put).toHaveBeenCalled());
+    expect(put.mock.calls[0][0]).toMatchObject({ cover_pay_mode: "full_block" });
+  });
+
+  it("a branch that follows the business says so, and choosing a mode makes it the branch's own", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await pickBranch(user, /Maadi/);
+    const group = screen.getByRole("radiogroup", { name: "Cover pay" });
+    expect(within(group).getByRole("radio", { name: /Use the business setting/ })).toHaveAttribute("aria-checked", "true");
+    // The same value as the business's still becomes this branch's own.
+    await user.click(within(group).getByRole("radio", { name: /The coverer's minute rate/ }));
+    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await waitFor(() => expect(put).toHaveBeenCalled());
+    expect(put.mock.calls[0][0]).toEqual({ branch_id: "b2", cover_pay_mode: "minute_rate" });
+  });
+
+  it("a branch with its own cover pay hands it back with inherit", async () => {
+    arkan = { ...ARKAN, cover_pay_mode: "full_block", overridden: [...ARKAN.overridden, "cover_pay_mode"] };
+    const user = userEvent.setup();
+    renderPage();
+    await pickBranch(user, /Arkan/);
+    const own = screen.getByText("This branch's own rules").closest("[data-slot=card]") as HTMLElement;
+    expect(within(own).getByText("Cover pay")).toBeInTheDocument();
+    const group = screen.getByRole("radiogroup", { name: "Cover pay" });
+    expect(within(group).getByRole("radio", { name: /A full day for the block/ })).toHaveAttribute("aria-checked", "true");
+    await user.click(within(group).getByRole("radio", { name: /Use the business setting/ }));
+    await saveAndConfirm(user);
+    await waitFor(() => expect(put).toHaveBeenCalled());
+    expect(put.mock.calls[0][0]).toEqual({ branch_id: "b1", inherit: ["cover_pay_mode"] });
+  });
+
+  it("is read-only for a manager", () => {
+    held = ["hr.rules.view"];
+    renderPage();
+    const group = screen.getByRole("radiogroup", { name: "Cover pay" });
+    for (const r of within(group).getAllByRole("radio")) expect(r).toBeDisabled();
+  });
+
+  it("branchBody sends a forced field even when its value didn't change", () => {
+    const base = valuesFrom(BUSINESS as unknown as AttendanceSettings);
+    expect(branchBody("b2", base, base, [], ["cover_pay_mode"])).toEqual({ branch_id: "b2", cover_pay_mode: "minute_rate" });
+    expect(branchBody("b2", base, base, ["cover_pay_mode"], ["cover_pay_mode"])).toEqual({ branch_id: "b2", inherit: ["cover_pay_mode"] });
+  });
+});
+

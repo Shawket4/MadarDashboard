@@ -14,6 +14,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorkShift } from "@/data/api/generated/models";
 
 let shifts: WorkShift[] = [];
+let employees: { id: string; name: string; branch_ids: string[] }[] = [];
+let assignments: unknown[] = [];
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
 vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const calls = {
@@ -26,15 +28,30 @@ const calls = {
 const hook = (data: () => unknown) => () => ({ data: data(), isLoading: false, isFetching: false, error: null, refetch: vi.fn() });
 
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
+/** Who is looking: the owner by default; a branch manager holds edit but not create/delete. */
+let me: { owner: boolean; caps: string[]; everywhere?: string[] } = { owner: true, caps: [] };
+vi.mock("@/data/authz/use-authz", async () => {
+  const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
+  return {
+    ...real,
+    useAuthz: () =>
+      real.authzFrom({
+        user_id: "u", epoch: 0, spec_version: 0, owner: me.owner, platform: false, role_kinds: [],
+        capabilities: me.caps as never, ask_manager: [], limits: {},
+        ...(me.everywhere ? { everywhere: me.everywhere as never } : {}),
+      }),
+  };
+});
+const OWNER_CAPS = ["hr.schedule.read", "hr.schedule.edit", "hr.schedule.create", "hr.schedule.delete"];
 vi.mock("./util", async () => {
   const real = await vi.importActual<typeof import("./util")>("./util");
-  return { ...real, invalidateWorkShifts: vi.fn(), invalidateSchedules: vi.fn() };
+  return { ...real, invalidateWorkShifts: vi.fn(), invalidateSchedules: vi.fn(), invalidateStaff: vi.fn() };
 });
 vi.mock("@/data/api/generated/api", () => ({
   useListWorkShifts: hook(() => shifts),
   useListBranches: hook(() => [{ id: "b1", name: "Zamalek" }, { id: "b2", name: "Maadi" }]),
-  useListEmployees: hook(() => [{ id: "e1", name: "Sara Ahmed" }]),
-  useListAssignments: hook(() => []),
+  useListEmployees: hook(() => employees),
+  useListAssignments: hook(() => assignments),
   ...calls,
 }));
 
@@ -69,7 +86,15 @@ beforeEach(() => {
   for (const f of Object.values(calls)) f.mockClear();
   toastMock.warning.mockClear();
   shifts = [];
+  employees = [{ id: "e1", name: "Sara Ahmed", branch_ids: ["b1"] }];
+  me = { owner: true, caps: OWNER_CAPS };
 });
+
+/** Type a time into a kit TimeField and leave it, as a person would. */
+const setTime = (el: HTMLElement, value: string) => {
+  fireEvent.change(el, { target: { value } });
+  fireEvent.blur(el);
+};
 
 describe("the shift body", () => {
   const tr = (_k: string, d: string) => d;
@@ -97,6 +122,17 @@ describe("the shift body", () => {
     // A night crossing midnight is a shift.
     expect(shiftSchema(tr).safeParse({ ...v, start_time: "18:00", end_time: "02:00" }).success).toBe(true);
   });
+
+  it("refuses what a kit field refused, never a stand-in: NaN numbers and times that aren't times", () => {
+    const v = valuesOf(evening);
+    const bad = (patch: object) => shiftSchema(tr).safeParse({ ...v, ...patch });
+    expect(bad({ grace_minutes: NaN }).success).toBe(false);
+    expect(bad({ overtime_multiplier: NaN }).success).toBe(false);
+    expect(bad({ ot_day_multiplier: NaN }).success).toBe(false);
+    expect(bad({ start_time: "9x" }).success).toBe(false);
+    expect(bad({ day_times: { ...v.day_times, "4": { start: "9x", end: "01:00" } } }).success).toBe(false);
+    expect(bad({ grace_minutes: NaN }).error?.issues[0].message).toBe("Type a number");
+  });
 });
 
 describe("WorkShiftsPage", () => {
@@ -106,16 +142,18 @@ describe("WorkShiftsPage", () => {
     await user.click(screen.getAllByRole("button", { name: "New shift" })[0]);
     const dialog = await screen.findByRole("dialog");
     await user.type(within(dialog).getByLabelText("Name"), "Evening");
-    fireEvent.change(within(dialog).getByLabelText("Start"), { target: { value: "16:00" } });
-    fireEvent.change(within(dialog).getByLabelText("End"), { target: { value: "00:00" } });
+    setTime(within(dialog).getByLabelText("Start"), "16:00");
+    setTime(within(dialog).getByLabelText("End"), "00:00");
     expect(within(dialog).getAllByText("Ends the next day").length).toBeGreaterThan(0);
     await user.click(within(dialog).getByRole("combobox", { name: "Branch" }));
     await user.click(await screen.findByRole("option", { name: "Zamalek" }));
     // Not a Friday shift.
-    await user.click(within(dialog).getByRole("button", { name: "Fri", pressed: true }));
+    await user.click(within(dialog).getByRole("button", { name: "Friday", pressed: true }));
+    await user.click(within(dialog).getByRole("button", { name: /Its own times on some days/ }));
     expect(within(dialog).queryByLabelText("Fri start")).not.toBeInTheDocument();
-    fireEvent.change(within(dialog).getByLabelText("Thu start"), { target: { value: "16:00" } });
-    fireEvent.change(within(dialog).getByLabelText("Thu end"), { target: { value: "01:00" } });
+    setTime(within(dialog).getByLabelText("Thu start"), "16:00");
+    setTime(within(dialog).getByLabelText("Thu end"), "01:00");
+    await user.click(within(dialog).getByRole("button", { name: /Overtime and check-in/ }));
     await user.type(within(dialog).getByLabelText("Day overtime rate"), "1.75");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() => expect(calls.createWorkShift).toHaveBeenCalledTimes(1));
@@ -125,7 +163,9 @@ describe("WorkShiftsPage", () => {
       day_times: [{ day_of_week: 4, start_time: "16:00:00", end_time: "01:00:00" }],
       ot_day_multiplier: 1.75, ot_night_multiplier: null,
     });
-  });
+    // Twenty-odd interactions through a dialog: past vitest's 5 s default
+    // whenever the machine is busy, which failed it with nothing wrong.
+  }, 20_000);
 
   it("blocks a save with no days or a half-set day, and says why", async () => {
     const user = userEvent.setup();
@@ -133,10 +173,11 @@ describe("WorkShiftsPage", () => {
     await user.click(screen.getAllByRole("button", { name: "New shift" })[0]);
     const dialog = await screen.findByRole("dialog");
     await user.type(within(dialog).getByLabelText("Name"), "Day");
-    fireEvent.change(within(dialog).getByLabelText("Mon start"), { target: { value: "09:00" } });
+    await user.click(within(dialog).getByRole("button", { name: /Its own times on some days/ }));
+    setTime(within(dialog).getByLabelText("Mon start"), "09:00");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     expect(await within(dialog).findByText("Set both times, or neither")).toBeInTheDocument();
-    for (const d of ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]) {
+    for (const d of ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]) {
       await user.click(within(dialog).getByRole("button", { name: d }));
     }
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
@@ -154,7 +195,7 @@ describe("WorkShiftsPage", () => {
     await user.click(screen.getByRole("button", { name: "Edit" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("status")).toHaveTextContent(/presence limit/);
-    expect(within(dialog).getByLabelText("Thu end")).toHaveValue("01:00");
+    expect(within(dialog).getByLabelText("Thu end")).toHaveValue("01:00 AM");
     await user.clear(within(dialog).getByLabelText("Night overtime rate"));
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
     await waitFor(() => expect(calls.updateWorkShift).toHaveBeenCalledTimes(1));
@@ -172,10 +213,30 @@ describe("WorkShiftsPage", () => {
     const table = screen.getByRole("table");
     const row = within(table).getByText("Sara Ahmed").closest("tr")!;
     const cells = within(row).getAllByRole("button");
-    // Columns: Every day, Sun … Sat; Friday is index 6.
-    await user.click(cells[6]);
+    // Columns: Every day, then the week as the business reads it, Sat … Fri; Friday is last.
+    await user.click(cells[7]);
     const fri = await screen.findAllByRole("menuitem");
     expect(fri.map((m) => m.textContent)).toEqual(["Evening16:00–01:00", "Rest day"]);
+  });
+
+  it("a replaced slot whose new shift is refused still refreshes, and says why (H2-D12)", async () => {
+    const { invalidateStaff } = await import("./util");
+    vi.mocked(invalidateStaff).mockClear();
+    const user = userEvent.setup();
+    shifts = [evening, { ...evening, id: "w2", name: "Brunch", start_time: "10:00:00", end_time: "14:00:00", crosses_midnight: false, valid_days: [6, 0, 1, 2, 3, 4], day_times: [] }];
+    assignments = [{ id: "a1", employee_id: employees[0].id, work_shift_id: "w1", day_of_week: 6 }];
+    calls.createAssignment.mockRejectedValueOnce(new Error("Brunch overlaps"));
+    wrap(<WorkShiftsPage />);
+    const row = within(screen.getByRole("table")).getByText(employees[0].name).closest("tr")!;
+    // Saturday: the first weekday column, after "Every day".
+    await user.click(within(row).getAllByRole("button")[1]);
+    await user.click(await screen.findByRole("menuitem", { name: /^Brunch/ }));
+    await waitFor(() => expect(calls.deleteAssignment).toHaveBeenCalledWith("a1"));
+    await waitFor(() => expect(toastMock.error).toHaveBeenCalled());
+    // The old row is gone on the server: the grid must read it again, and so
+    // must the Dawam roster that shows the pattern (H2-D12).
+    expect(invalidateStaff).toHaveBeenCalled();
+    assignments = [];
   });
 
   it("reads in Arabic", async () => {
@@ -183,12 +244,65 @@ describe("WorkShiftsPage", () => {
     await i18n.changeLanguage("ar");
     try {
       wrap(<WorkShiftsPage />);
-      await user.click(screen.getAllByRole("button", { name: "جدول عمل جديدة" })[0]);
+      await user.click(screen.getAllByRole("button", { name: "وردية جديدة" })[0]);
       const dialog = await screen.findByRole("dialog");
       expect(within(dialog).getByRole("group", { name: "أيام العمل بها" })).toBeInTheDocument();
+      await user.click(within(dialog).getByRole("button", { name: /الإضافي وتسجيل الحضور/ }));
       expect(within(dialog).getByLabelText("معدل الإضافي الليلي")).toBeInTheDocument();
+      // Weekday chips name the day in Arabic, and times read ص/م with Latin digits.
+      expect(within(dialog).getByRole("button", { name: "الجمعة" })).toBeInTheDocument();
+      expect(within(dialog).getByLabelText("البداية")).toHaveValue("09:00 ص");
     } finally {
       await i18n.changeLanguage("en");
     }
+  });
+
+  it("runs the pattern's week from Saturday, like every other week view (O-16)", () => {
+    shifts = [evening];
+    wrap(<WorkShiftsPage />);
+    const heads = within(screen.getByRole("table")).getAllByRole("columnheader").map((h) => h.textContent);
+    expect(heads.slice(2)).toEqual(["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]);
+  });
+
+  it("offers a person only the blocks of their own branches and business-wide ones (D-076)", async () => {
+    const user = userEvent.setup();
+    shifts = [
+      evening,
+      { ...evening, id: "w2", name: "Maadi late", branch_id: "b2", day_times: [] },
+      { ...evening, id: "w3", name: "Anywhere", branch_id: null, day_times: [] },
+    ];
+    wrap(<WorkShiftsPage />);
+    const row = within(screen.getByRole("table")).getByText("Sara Ahmed").closest("tr")!;
+    await user.click(within(row).getAllByRole("button")[1]); // Saturday
+    const items = (await screen.findAllByRole("menuitem")).map((m) => m.textContent);
+    expect(items.some((t) => t?.startsWith("Evening"))).toBe(true);
+    expect(items.some((t) => t?.startsWith("Anywhere"))).toBe(true);
+    expect(items.some((t) => t?.startsWith("Maadi late"))).toBe(false);
+  });
+
+  it("does not offer a branch manager what the server refuses: new, delete, a business-wide block (O-1)", () => {
+    me = { owner: false, caps: ["hr.schedule.read", "hr.schedule.edit"] };
+    shifts = [evening, { ...evening, id: "w3", name: "Anywhere", branch_id: null, day_times: [] }];
+    wrap(<WorkShiftsPage />);
+    expect(screen.queryByRole("button", { name: "New shift" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete work shift" })).not.toBeInTheDocument();
+    // Their own branch's block stays editable; the business-wide one does not.
+    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(1);
+  });
+
+  it("keeps business-wide blocks to someone holding the right at every branch (B-SETUP-3, /authz/me everywhere)", async () => {
+    // Karim holds the roster rights at Arkan only: his branch's block is his, a business-wide one is not.
+    me = { owner: false, caps: OWNER_CAPS, everywhere: ["hr.schedule.read"] };
+    shifts = [evening, { ...evening, id: "w3", name: "Anywhere", branch_id: null, day_times: [] }];
+    const user = userEvent.setup();
+    wrap(<WorkShiftsPage />);
+    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Delete work shift" })).toHaveLength(1);
+    // A new block is his branch's: "Every branch" isn't offered.
+    await user.click(screen.getAllByRole("button", { name: "New shift" })[0]);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("combobox", { name: "Branch" }));
+    expect(screen.queryByRole("option", { name: "Every branch" })).not.toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Zamalek" })).toBeInTheDocument();
   });
 });

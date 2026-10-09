@@ -17,6 +17,7 @@ import {
   CreditCard,
   Languages,
   Layers,
+  Link2,
   MessageCircle,
   Palette,
   Plug,
@@ -24,6 +25,7 @@ import {
   Star,
   Truck,
   Utensils,
+  Sandwich,
 } from "lucide-react";
 import type { OrgModule } from "@/config/nav";
 import type { Authz } from "@/data/authz/use-authz";
@@ -73,6 +75,17 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         desc: "Your mark and your links, on receipts and on your customers' loyalty cards.",
         icon: ImageIcon,
       },
+      {
+        // The page the shop's own address opens on. Same rule as Brand: the
+        // shop's own face, edited by its manager.
+        to: "/settings/links",
+        module: "pos",
+        labelKey: "settings.linksPage",
+        fallback: "Links page",
+        descKey: "settings.linksPageDesc",
+        desc: "The page your address opens on: order, menu, rewards, your socials.",
+        icon: Link2,
+      },
     ],
   },
   {
@@ -117,6 +130,24 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         descKey: "settings.qrDesc",
         desc: "The codes on your tables, counters and receipts.",
         icon: QrCode,
+      },
+    ],
+  },
+  {
+    labelKey: "settings.groupMenu",
+    fallback: "Menu",
+    items: [
+      {
+        // Where combos and deals are sold: one switch per channel for the whole
+        // org, with branch exceptions (owner answer §11.1), and the margin floor.
+        to: "/settings/combos",
+        module: "pos",
+        labelKey: "nav.combosSettings",
+        fallback: "Combos and deals",
+        descKey: "settings.combosDesc",
+        desc: "Where combos and deals are sold, per channel and branch, and the margin that warns you.",
+        icon: Sandwich,
+        caps: [Cap.orgSettingsRead, Cap.menuCombosEdit],
       },
     ],
   },

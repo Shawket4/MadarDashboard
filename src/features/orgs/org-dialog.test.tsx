@@ -92,3 +92,25 @@ describe("OrgDialog modules", () => {
     await waitFor(() => expect(updateOrg).toHaveBeenCalledWith("new-org", { modules: ["pos", "dawam"] }));
   });
 });
+
+describe("OrgDialog keeps what was typed (ADM-ORG-058)", () => {
+  it("a refetched row of the same org (after a logo upload) does not re-fill the form", async () => {
+    as("super_admin");
+    const user = userEvent.setup();
+    const ui = (org: unknown) => (
+      <QueryClientProvider client={new QueryClient()}>
+        <OrgDialog org={org as never} open onOpenChange={vi.fn()} />
+      </QueryClientProvider>
+    );
+    const { rerender } = render(ui(ORG));
+    const name = screen.getByRole("textbox", { name: "Organization Name" });
+    await user.clear(name);
+    await user.type(name, "Rue Café");
+    // The logo upload refetches /orgs: a new row object, same org.
+    rerender(ui({ ...(ORG as object), logo_url: "https://cdn/logo.png" }));
+    expect(screen.getByRole("textbox", { name: "Organization Name" })).toHaveValue("Rue Café");
+    // Another org is a fresh form.
+    rerender(ui({ ...(ORG as object), id: "o2", name: "Nakhla" }));
+    expect(screen.getByRole("textbox", { name: "Organization Name" })).toHaveValue("Nakhla");
+  });
+});

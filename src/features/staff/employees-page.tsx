@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { FileSpreadsheet, Plus, Smartphone, Trash2, UserRound, UserX, Users } from "lucide-react";
+import { CircleAlert, FileSpreadsheet, Plus, Smartphone, Trash2, UserRound, UserX, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -25,12 +25,15 @@ import {
   useListBranches, useListDepartments, useListEmployees,
 } from "@/data/api/generated/api";
 import { useAuthz } from "@/data/authz/use-authz";
+import { salaryState } from "@/features/dawam/phase-d";
 import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { AddEmployeeDialog, ImportPeopleDialog } from "@/features/dawam/add-employees";
 import type { Department, Employee } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate, fmtMoney } from "@/lib/format";
+import { dawamQuery } from "@/features/dawam/live";
+import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { EmployeeDialog } from "./employee-dialog";
 import { EMPLOYMENT_STATUS_TONE, invalidateDepartments, invalidateEmployees } from "./util";
 
@@ -59,18 +62,22 @@ export function EmployeesPage() {
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const branchName = useMemo(() => new Map((branchesQ.data ?? []).map((b) => [b.id, b.name])), [branchesQ.data]);
 
-  const employeesQ = useListEmployees({
-    employment_status: status === ALL ? undefined : status,
-    department_id: department === ALL ? undefined : department,
-  });
-  const departmentsQ = useListDepartments();
+  const employeesQ = useListEmployees(
+    {
+      employment_status: status === ALL ? undefined : status,
+      department_id: department === ALL ? undefined : department,
+    },
+    { query: dawamQuery() },
+  );
+  const departmentsQ = useListDepartments({ query: dawamQuery() });
   const employees = useMemo(() => employeesQ.data ?? [], [employeesQ.data]);
 
   // Redaction is per-caller, not per-row: if the first row hides salary, the
-  // whole column is hidden rather than rendered as a wall of dashes.
+  // whole column is hidden rather than rendered as a wall of dashes. Whoever
+  // sets pay (the owner) sees it even while nobody has a salary yet (D9).
   const showSalary = employees.some(
     (e) => e.base_salary_piastres !== null && e.base_salary_piastres !== undefined,
-  );
+  ) || authz.canEverywhere(Cap.hrPayrollEdit);
 
   // An employee with history is never deleted (AT-6): removing one ends
   // their employment, signs their phone out and keeps every record.
@@ -199,7 +206,19 @@ export function EmployeesPage() {
         id: "salary",
         header: t("staff.baseSalary", "Base salary (monthly)"),
         meta: { label: t("staff.baseSalary", "Base salary (monthly)"), numeric: true },
-        cell: ({ row }) => fmtMoney(row.original.base_salary_piastres),
+        cell: ({ row }) => {
+          const state = salaryState(row.original);
+          // Nobody set one (owner decision 9): payroll won't approve until it is.
+          if (state === "not_set") {
+            return (
+              <Badge variant="outline" className="gap-1 border-warning/50 bg-warning/10 text-[color-mix(in_oklab,var(--color-warning)_50%,var(--color-foreground))]" title={t("dawam.salaryNotSetHint", "No salary yet: payroll can't be approved until it's set, or they're marked not paid through Dawam.")}>
+                <CircleAlert aria-hidden className="size-3" />
+                {t("dawam.notSet", "Not set")}
+              </Badge>
+            );
+          }
+          return state === "hidden" ? "—" : fmtMoney(row.original.base_salary_piastres);
+        },
       });
     }
     return base;
@@ -217,6 +236,7 @@ export function EmployeesPage() {
         )}
         actions={
           <>
+            <DawamRefreshButton />
             <Button variant="outline" onClick={() => setDeptOpen(true)}>
               <Users className="size-4" />
               {t("staff.departments", "Departments")}
@@ -310,6 +330,10 @@ export function EmployeesPage() {
         open={deptOpen}
         onOpenChange={setDeptOpen}
         departments={departmentsQ.data ?? []}
+        // A department spans the business: the server wants the right at
+        // every branch, so a branch manager only reads the list (O-2).
+        canAdd={authz.canEverywhere(Cap.hrStaffCreate)}
+        canDelete={authz.canEverywhere(Cap.hrStaffDelete)}
       />
 
     </Page>
@@ -320,10 +344,14 @@ function DepartmentsDialog({
   open,
   onOpenChange,
   departments,
+  canAdd,
+  canDelete,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   departments: Department[];
+  canAdd: boolean;
+  canDelete: boolean;
 }) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
@@ -370,6 +398,7 @@ function DepartmentsDialog({
           <DialogTitle>{t("staff.departments", "Departments")}</DialogTitle>
         </DialogHeader>
 
+        {canAdd ? (
         <div className="flex gap-2">
           <Input
             value={name}
@@ -383,6 +412,7 @@ function DepartmentsDialog({
             <Plus className="size-4" />
           </Button>
         </div>
+        ) : null}
 
         <div className="space-y-2">
           {departments.length === 0 ? (
@@ -398,9 +428,11 @@ function DepartmentsDialog({
                     <Badge variant="secondary" className="tabular-nums">
                       {t("staff.employeeCount", "{{count}} staff", { count: d.employee_count })}
                     </Badge>
-                    <RowAction destructive label={t("common.delete", "Delete")} onClick={() => void remove(d)}>
-                      <Trash2 className="size-4" />
-                    </RowAction>
+                    {canDelete ? (
+                      <RowAction destructive label={t("common.delete", "Delete")} onClick={() => void remove(d)}>
+                        <Trash2 className="size-4" />
+                      </RowAction>
+                    ) : null}
                   </div>
                 </CardHeader>
                 {d.manager_name ? (

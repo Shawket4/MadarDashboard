@@ -26,13 +26,31 @@ const record = (id: string, name: string, inMethod: string, outMethod: string | 
 
 const rows = [
   record("e1", "Sara Ahmed", "mobile_gps", "mobile_gps"),
-  record("e2", "Omar Khaled", "manager", "till"),
+  { ...record("e2", "Omar Khaled", "manager", "manager"), punch_reason: "Phone died", check_out_reason: "Forgot to clock out" },
   record("e3", "Hana Mostafa", "correction", "offline"),
   record("e4", "Youssef Adel", "mobile_gps", "auto"),
+  record("e5", "Nada Samir", "mobile_gps", "till"),
 ];
 
 const q = (data: unknown) => () => ({ data, isLoading: false, isFetching: false, error: null, refetch: vi.fn() });
+// The kit's fields are calendar buttons and a typed time (tested in their own
+// suites); the dialogs' logic (branch clock, only-what-changed) runs through plain inputs.
+vi.mock("@/components/inputs", async () => {
+  const real = await vi.importActual<typeof import("@/components/inputs")>("@/components/inputs");
+  return {
+    ...real,
+    DateField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+      <input id={id} type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+    ),
+  };
+});
+vi.mock("./date-time-field", () => ({
+  DateTimeField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+    <input id={id} type="datetime-local" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+  ),
+}));
 vi.mock("@/data/api/generated/api", () => ({
+  useGetAttendanceSettings: () => ({ data: { period_start_day: 1 } }),
   useListAttendance: q(rows),
   useAttendanceSummary: q([]),
   useListEmployees: q([]),
@@ -76,8 +94,8 @@ describe("AttendancePage punch methods (CL-16)", () => {
     await i18n.changeLanguage("en");
     page();
     const omar = within(rowOf("Omar Khaled"));
-    expect(omar.getByText("by a manager")).toBeInTheDocument();
-    expect(omar.getByText("till PIN")).toBeInTheDocument();
+    expect(omar.getAllByText("by a manager")).toHaveLength(2);
+    expect(within(rowOf("Nada Samir")).getByText("till PIN")).toBeInTheDocument();
     const hana = within(rowOf("Hana Mostafa"));
     expect(hana.getByText("corrected")).toBeInTheDocument();
     expect(hana.getByText("queued offline")).toBeInTheDocument();
@@ -91,8 +109,28 @@ describe("AttendancePage punch methods (CL-16)", () => {
     await i18n.changeLanguage("ar");
     page();
     const omar = within(rowOf("Omar Khaled"));
-    expect(omar.getByText("من المدير")).toBeInTheDocument();
-    expect(omar.getByText("رقم سري على الكاشير")).toBeInTheDocument();
+    expect(omar.getAllByText("من المدير")).toHaveLength(2);
+    expect(within(rowOf("Nada Samir")).getByText("رقم سري على الكاشير")).toBeInTheDocument();
     await i18n.changeLanguage("en");
+  });
+
+  it("shows why a manager punched someone in and why they punched them out (AT-10, BC-1)", async () => {
+    await i18n.changeLanguage("en");
+    page();
+    const omar = within(rowOf("Omar Khaled"));
+    expect(omar.getByText(/Phone died/)).toBeInTheDocument();
+    expect(omar.getByText(/Forgot to clock out/)).toBeInTheDocument();
+    expect(within(rowOf("Sara Ahmed")).queryByText(/Phone died|Forgot/)).not.toBeInTheDocument();
+  });
+
+  it("keeps the reasons readable on a phone: the punch wraps and the reason takes its own line (E2E team re-verify)", async () => {
+    await i18n.changeLanguage("en");
+    page();
+    const reason = within(rowOf("Omar Khaled")).getByText("Phone died");
+    const chip = reason.closest("span[title]")!;
+    expect(chip).toHaveClass("basis-full");
+    // A phone can't hover, so the whole reason wraps rather than ending in "…".
+    expect(chip).not.toHaveClass("truncate");
+    expect(chip.parentElement).toHaveClass("flex-wrap");
   });
 });

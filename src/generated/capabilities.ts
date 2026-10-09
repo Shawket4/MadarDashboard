@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "b79e9c7e15eec025";
+export const SPEC_HASH = "24c0f2b2c6520bbe";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -210,6 +210,10 @@ export type Capability =
   | "hr.rules.edit"
   | "hr.rules.view"
   | "hr.deductions.create"
+  | "menu.combos.edit"
+  | "menu.deals.edit"
+  | "orders.deals.apply"
+  | "reports.bundles"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -409,6 +413,10 @@ export const Cap = {
   hrRulesEdit: "hr.rules.edit" as Capability,
   hrRulesView: "hr.rules.view" as Capability,
   hrDeductionsCreate: "hr.deductions.create" as Capability,
+  menuCombosEdit: "menu.combos.edit" as Capability,
+  menuDealsEdit: "menu.deals.edit" as Capability,
+  ordersDealsApply: "orders.deals.apply" as Capability,
+  reportsBundles: "reports.bundles" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -610,7 +618,7 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 219, key: "customers.erase", legacy: null, group: "customers", tier: "advanced", risk: "pii", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Erase a customer's personal data (PDPL)", ar: "محو البيانات الشخصية للعميل", hintEn: null, hintAr: null },
   { id: 220, key: "reports.legal", legacy: null, group: "reports", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See legal reports: tax, refunds, voids, discounts, waivers and price overrides", ar: "عرض التقارير القانونية: الضريبة والمرتجعات والإلغاءات والخصومات والإعفاءات وتعديلات الأسعار", hintEn: "They name the staff who gave money back. A manager sees only their own branches.", hintAr: "تُظهر أسماء الموظفين الذين أعادوا المال. يرى المدير فروعه فقط." },
   { id: 221, key: "menu.packaging_rules.apply", legacy: null, group: "menu", tier: "advanced", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Re-apply packaging rules to every menu item", ar: "إعادة تطبيق قواعد التغليف على جميع أصناف القائمة", hintEn: null, hintAr: null },
-  { id: 223, key: "orders.staff_drink.record", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Record a staff drink", ar: "تسجيل مشروب موظفين", hintEn: "Off for tellers by default. Turn it on to let the till put a drink on the branch's daily staff pool. A note saying who it is for is always required.", hintAr: "مقفول للكاشير في الأصل. افتحه عشان الكاشير يحسب المشروب على رصيد الموظفين اليومي بتاع الفرع. لازم دايمًا يكتب ملاحظة بالمشروب ده لمين." },
+  { id: 223, key: "orders.staff_drink.record", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Record a staff drink", ar: "تسجيل مشروب موظفين", hintEn: "On for tellers by default: the till can put a drink on the branch's daily staff pool. A note saying who it is for is always required. Turn it off to have a manager approve each one.", hintAr: "مفتوح للكاشير في الأصل: الكاشير يقدر يحسب المشروب على رصيد الموظفين اليومي بتاع الفرع. لازم دايمًا يكتب ملاحظة بالمشروب ده لمين. اقفله لو عايز المدير يوافق على كل مشروب." },
   { id: 224, key: "customers.merge", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Merge duplicate customers", ar: "دمج العملاء المكررين", hintEn: "Merging cannot be undone. When both are loyalty members, the points move to the customer that stays and the other card stops working.", hintAr: "الدمج لا يمكن التراجع عنه. لو الاتنين أعضاء في برنامج الولاء، النقاط بتتنقل للعميل اللي هيفضل والكارت التاني بيتوقف." },
   { id: 225, key: "customers.addresses.view", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: false, limits: [], pos: true, protected: false, en: "See customers' saved addresses", ar: "عرض عناوين العملاء المحفوظة", hintEn: "The delivery addresses a customer has ordered to. Needed to dispatch an order; not needed to take one at a table.", hintAr: "عناوين التوصيل اللي العميل طلب عليها قبل كده. مطلوبة لتجهيز طلب توصيل، ومش مطلوبة لأخذ طلب على ترابيزة." },
   { id: 226, key: "hr.requests.self_approve", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Approve your own requests", ar: "الموافقة على طلباتك بنفسك", hintEn: "Held: your own requests are approved as you send them. Not held: they wait for someone above you, and the owner is told.", hintAr: "لو معاك: طلباتك بتتوافق أول ما تبعتها. لو مش معاك: بتستنى حد أعلى منك، والمالك بيتبلغ." },
@@ -626,6 +634,10 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 236, key: "hr.rules.edit", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: true, en: "Change attendance and pay rules", ar: "تغيير قواعد الحضور والمرتبات", hintEn: "The business-wide rules: lateness and absence costs, working days, overtime, the pay period and the advance cap. Needs every branch.", hintAr: "قواعد النشاط كله: خصم التأخير والغياب، أيام الشغل، الوقت الإضافي، فترة المرتب وحد السلف. محتاج كل الفروع." },
   { id: 241, key: "hr.rules.view", legacy: null, group: "hr", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See attendance and pay rules", ar: "عرض قواعد الحضور والمرتبات", hintEn: "Read-only: the business's rules and the overrides of your branches. Changing them needs the owner.", hintAr: "للعرض بس: قواعد النشاط وتعديلات فروعك. تغييرها محتاج المالك." },
   { id: 245, key: "hr.deductions.create", legacy: null, group: "hr", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: true, limits: ["max_amount"], pos: false, protected: false, en: "Add deductions", ar: "إضافة خصومات", hintEn: "Up to the amount set here. Above it, the deduction waits for someone with a higher limit, usually the owner. Bonuses have their own limit.", hintAr: "لحد المبلغ المحدد هنا. فوقه، الخصم بيستنى حد عنده حد أعلى، غالبًا المالك. المكافآت ليها حد منفصل." },
+  { id: 250, key: "menu.combos.edit", legacy: null, group: "menu", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Create and change combos, meal deals and \"make it a meal\"", ar: "إنشاء وتعديل الكومبو والوجبات و«اجعلها وجبة»", hintEn: null, hintAr: null },
+  { id: 251, key: "menu.deals.edit", legacy: null, group: "menu", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Create and change deals (mix & match, buy X get Y)", ar: "إنشاء وتعديل العروض (اختر أي صنفين، اشترِ واحصل)", hintEn: null, hintAr: null },
+  { id: 252, key: "orders.deals.apply", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Apply a deal the till suggests", ar: "تطبيق عرض يقترحه الكاشير", hintEn: null, hintAr: null },
+  { id: 253, key: "reports.bundles", legacy: null, group: "reports", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See the combos and deals report", ar: "عرض تقرير الكومبو والعروض", hintEn: null, hintAr: null },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [

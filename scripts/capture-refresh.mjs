@@ -22,7 +22,7 @@ export const ROUTES = [
   "/delivery/settings", "/insights/sales", "/insights/profitability", "/insights/tables",
   "/insights/inventory-reports", "/inventory/today", "/inventory/items", "/inventory/counts",
   "/inventory/purchasing", "/inventory/transfers", "/inventory/waste", "/inventory/reports",
-  "/inventory/settings", "/kitchen/stations", "/kitchen/routing", "/menu/items", "/menu/bundles",
+  "/inventory/settings", "/kitchen/stations", "/kitchen/routing", "/menu/items",
   "/menu/pricing", "/menu/recipes", "/menu/overrides", "/settings/brand", "/settings/integrations",
   "/settings/loyalty", "/settings/whatsapp", "/settings/bookings", "/staff/employees",
   "/staff/attendance", "/staff/shifts", "/staff/requests", "/staff/rules", "/shifts", "/tills",

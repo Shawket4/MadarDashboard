@@ -33,6 +33,12 @@ export interface Authz {
   roleKinds: readonly string[];
   can: (cap: Capability) => boolean;
   canAny: (...caps: Capability[]) => boolean;
+  /**
+   * Held at EVERY branch of the business (`/authz/me` `everywhere`), what an
+   * org-wide act needs: a department, a shift block, a public holiday. A
+   * backend that doesn't send the list falls back to `can`.
+   */
+  canEverywhere: (cap: Capability) => boolean;
   /** Not held, but the owner lets this person ask a manager. */
   canAsk: (cap: Capability) => boolean;
   limitsOf: (cap: Capability) => Limits | undefined;
@@ -50,6 +56,7 @@ export function authzFrom(me: MyAuthz | null | undefined, opts: { platform?: boo
       roleKinds: ["org_admin"],
       can: () => true,
       canAny: () => true,
+      canEverywhere: () => true,
       canAsk: () => false,
       limitsOf: () => undefined,
     };
@@ -59,6 +66,8 @@ export function authzFrom(me: MyAuthz | null | undefined, opts: { platform?: boo
   const limits = (me?.limits ?? {}) as Record<string, Limits>;
   const platform = !!me?.platform;
   const can = (cap: Capability) => platform || held.has(cap);
+  const everywhere = me?.everywhere ? new Set(me.everywhere) : null;
+  const canEverywhere = (cap: Capability) => platform || (everywhere ? everywhere.has(cap) : can(cap));
   return {
     ready: !!me,
     platform,
@@ -66,6 +75,7 @@ export function authzFrom(me: MyAuthz | null | undefined, opts: { platform?: boo
     roleKinds: me?.role_kinds ?? [],
     can,
     canAny: (...caps) => caps.some(can),
+    canEverywhere,
     canAsk: (cap) => !can(cap) && ask.has(cap),
     limitsOf: (cap) => limits[cap],
   };
@@ -134,4 +144,26 @@ export function useAuthz(): Authz {
 /** `useCan(Cap.x)` for a single check. */
 export function useCan(cap: Capability): boolean {
   return useAuthz().can(cap);
+}
+
+/**
+ * A permission read that failed with nothing remembered (SH-10): every
+ * action would stay hidden with no reason given, so the page gate says so and
+ * offers Retry. Null while it loads, once it answers, for a platform admin
+ * and for an older server without the endpoint (the role defaults stand in).
+ */
+export function useAuthzLoadError(): { error: unknown; retry: () => void } | null {
+  const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const platform = user?.role === "super_admin";
+  const q = useGetMyAuthz(undefined, {
+    query: {
+      enabled: !!token && !!user && !platform,
+      staleTime: 60_000,
+      placeholderData: () => remembered(user?.id),
+    },
+  });
+  const notDeployed = q.error instanceof AxiosError && q.error.response?.status === 404;
+  if (platform || q.data || !q.error || notDeployed) return null;
+  return { error: q.error, retry: () => void q.refetch() };
 }

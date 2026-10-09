@@ -1,14 +1,12 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { AddonInput } from './addonInput';
-import type { BundleComponentInput } from './bundleComponentInput';
+import type { ComboInput } from './comboInput';
 import type { StaffDrinkLine } from './staffDrinkLine';
 
 export interface OrderItemInput {
   addons?: AddonInput[];
-  bundle_components?: BundleComponentInput[];
-  /** @nullable */
-  bundle_id?: string | null;
+  combo?: null | ComboInput;
   /** @nullable */
   menu_item_id?: string | null;
   /** @nullable */

@@ -21,6 +21,11 @@ export interface MenuItem {
   /** @nullable */
   image_url?: string | null;
   is_active: boolean;
+  /**
+     * `item` | `combo` (combos module). A combo's price is its `one_size`
+     * row like any item; its slots are on `GET /combos/{id}`. Additive.
+     */
+  kind?: string;
   name: string;
   name_translations: MenuItemNameTranslations;
   org_id: string;

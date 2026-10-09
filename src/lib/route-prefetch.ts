@@ -14,7 +14,6 @@ import {
   getListBranchMenuOverridesQueryOptions,
   getListBranchStockQueryOptions,
   getListBranchesQueryOptions,
-  getListBundlesQueryOptions,
   getListCatalogQueryOptions,
   getListCategoriesQueryOptions,
   getListDiscountsQueryOptions,
@@ -123,10 +122,6 @@ export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId,
         void qc.prefetchQuery(getListAddonItemsQueryOptions({ org_id: orgId }));
         void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
       }
-      break;
-    case "/menu/bundles":
-      // Mirrors bundles-page's first server page (default sort/filter omitted).
-      if (orgId) void qc.prefetchQuery(getListBundlesQueryOptions({ org_id: orgId, page: 1, per_page: 20 }));
       break;
     case "/discounts":
       if (orgId) void qc.prefetchQuery(getListDiscountsQueryOptions({ org_id: orgId }));

@@ -17,6 +17,8 @@ Element.prototype.scrollIntoView ??= () => {};
 const decideRequest = vi.fn(async (_id: string, _body: unknown) => ({}));
 const createRequestAdmin = vi.fn(async (_body: unknown) => ({ status: "pending" }));
 const toastError = vi.fn();
+/** The days' records a mission's approval checks for punches (M16). */
+const listAttendance = vi.fn(async (_p: unknown) => [] as unknown[]);
 const toastSuccess = vi.fn();
 
 const LEAVE = { id: "q1", employee_id: "e1", employee_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", end_date: "2026-09-26", is_half_day: false, created_at: "2026-09-22T07:00:00Z" };
@@ -34,6 +36,7 @@ vi.mock("@/data/api/generated/api", () => ({
   }),
   decideRequest: (id: string, body: unknown) => decideRequest(id, body),
   createRequestAdmin: (body: unknown) => createRequestAdmin(body),
+  listAttendance: (params: unknown) => listAttendance(params),
 }));
 let held = ["hr.leave.create", "hr.leave.edit", "hr.attendance.edit"];
 vi.mock("@/data/authz/use-authz", async () => {
@@ -46,7 +49,18 @@ vi.mock("@/data/authz/use-authz", async () => {
 });
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
-  return { ...real, invalidateRequests: vi.fn(), todayIso: () => "2026-09-23" };
+  return { ...real, invalidateRequests: vi.fn(), invalidateStaff: vi.fn(), todayIso: () => "2026-09-23" };
+});
+// The kit's DateField is a calendar button (tested in its own suite); here the
+// form's own logic (From/To following, refusals) is driven through a plain input.
+vi.mock("@/components/inputs", async () => {
+  const real = await vi.importActual<typeof import("@/components/inputs")>("@/components/inputs");
+  return {
+    ...real,
+    DateField: ({ id, value, onChange }: { id?: string; value: string; onChange: (v: string) => void }) => (
+      <input id={id} type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+    ),
+  };
 });
 vi.mock("sonner", () => ({
   toast: { success: (m: string) => toastSuccess(m), info: vi.fn(), error: (m: string) => toastError(m) },
@@ -85,11 +99,118 @@ beforeEach(() => {
   held = ["hr.leave.create", "hr.leave.edit", "hr.attendance.edit"];
 });
 
+describe("Requests inbox: nothing fails in silence (H2)", () => {
+  it("a cleared date says why Save does nothing (H2-D7)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /New request/ }));
+    const dialog = await screen.findByRole("dialog");
+    await pick(user, "Kind", "Late arrival");
+    await pick(user, "Employee", "Youssef Adel");
+    await user.clear(within(dialog).getByLabelText("Date"));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    expect(await within(dialog).findByText("Pick a date")).toBeInTheDocument();
+    expect(createRequestAdmin).not.toHaveBeenCalled();
+  });
+
+  it("a leave with its From date emptied says why Save does nothing (H3-4)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /New request/ }));
+    const dialog = await screen.findByRole("dialog");
+    await pick(user, "Kind", "Leave");
+    await pick(user, "Employee", "Youssef Adel");
+    await user.clear(within(dialog).getByLabelText("From"));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    expect(await within(dialog).findByText("Pick a date")).toBeInTheDocument();
+    expect(createRequestAdmin).not.toHaveBeenCalled();
+  });
+
+  it("a reason or a mission title too long says so, in the reader's words (H3 silent Save)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /New request/ }));
+    const dialog = await screen.findByRole("dialog");
+    await pick(user, "Kind", "Mission");
+    await pick(user, "Employee", "Youssef Adel");
+    await user.click(within(dialog).getByLabelText("Reason"));
+    await user.paste("x".repeat(501));
+    await user.click(within(dialog).getByLabelText("Title (optional)"));
+    await user.paste("t".repeat(201));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    expect(await within(dialog).findByText("Keep the reason under 500 characters")).toBeInTheDocument();
+    expect(within(dialog).getByText("Keep the title under 200 characters")).toBeInTheDocument();
+    expect(createRequestAdmin).not.toHaveBeenCalled();
+  });
+
+  it("a cancel note too long says so (H3 silent Save)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getAllByRole("button", { name: "Cancel request" }).at(-1)!);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByLabelText("Why"));
+    await user.paste("x".repeat(501));
+    await user.click(within(dialog).getByRole("button", { name: "Cancel request" }));
+    expect(await within(dialog).findByText("Keep the note under 500 characters")).toBeInTheDocument();
+    expect(decideRequest).not.toHaveBeenCalled();
+  });
+
+  it("a note too long to approve with says so (H2-D7)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(within(rowOf("Youssef Adel")).getByRole("button", { name: "Approve" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByLabelText("Note"));
+    await user.paste("x".repeat(501));
+    await user.click(within(dialog).getByRole("button", { name: "Approve" }));
+    expect(await within(dialog).findByText("Keep the note under 500 characters")).toBeInTheDocument();
+    expect(decideRequest).not.toHaveBeenCalled();
+  });
+
+  it("a decision goes once however fast it is tapped (H2-D8)", async () => {
+    let finish: (v: object) => void = () => {};
+    decideRequest.mockImplementationOnce(() => new Promise<object>((r) => { finish = r; }));
+    rows = [{ ...LEAVE, kind: "mission", title: "Bank" }];
+    const user = userEvent.setup();
+    renderPage();
+    const approve = within(rowOf("Youssef Adel")).getByRole("button", { name: "Approve" });
+    await user.click(approve);
+    await user.click(approve);
+    expect(decideRequest).toHaveBeenCalledTimes(1);
+    finish({});
+    await waitFor(() => expect(toastSuccess).toHaveBeenCalledTimes(1));
+  });
+
+  it("a decision refreshes everything that reads it: the roster, attendance, pay (H2-D9)", async () => {
+    const { invalidateStaff } = await import("@/features/staff/util");
+    vi.mocked(invalidateStaff).mockClear();
+    rows = [{ ...LEAVE, kind: "mission", title: "Bank" }];
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(within(rowOf("Youssef Adel")).getByRole("button", { name: "Approve" }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalled());
+    await waitFor(() => expect(invalidateStaff).toHaveBeenCalled());
+  });
+});
+
 describe("Requests inbox", () => {
   it("offers filing for someone only with hr.leave.create (E2E: a branch manager got a 403)", () => {
     held = ["hr.leave.edit", "hr.attendance.edit"];
     renderPage();
     expect(screen.queryByRole("button", { name: /New request/ })).not.toBeInTheDocument();
+  });
+
+  it("a cancelled request says who cancelled it and why, keeping the approval's note (RQ-F6)", () => {
+    rows = [
+      { ...APPROVED, id: "q8", employee_name: "Omar Cancelled", status: "cancelled", decided_by: "u-other", decision_note: "Enjoy the trip",
+        cancelled_by: "u-me", cancel_note: "Trip called off" },
+      { ...LEAVE, id: "q9", employee_name: "Nada Self", status: "cancelled", cancelled_by: null, cancel_note: null },
+    ];
+    renderPage();
+    const row = screen.getByText(/Trip called off/);
+    expect(row.textContent).toContain("Enjoy the trip");
+    expect(row.textContent).toContain("Cancelled by Karim Manager: Trip called off");
+    expect(screen.queryByText(/Cancelled by .*Nada/)).not.toBeInTheDocument();
   });
 
   it("never offers a manager their own request, and marks it (RQ-5)", () => {
@@ -161,6 +282,24 @@ describe("Requests inbox", () => {
     await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("q2", { status: "cancelled", note: null }));
   });
 
+  it("rejects with an optional reason the requester reads, and says what approving would do (UX-P)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    expect(within(rowOf("Youssef Adel")).getByText(/Approving: they're off on these days/)).toBeInTheDocument();
+    await user.click(within(rowOf("Youssef Adel")).getByRole("button", { name: "Reject" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/any lateness or absence penalty applies/)).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText("Reason (optional)"), "We are short that day");
+    await user.click(within(dialog).getByRole("button", { name: "Reject" }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("q1", { status: "rejected", note: "We are short that day" }));
+  });
+
+  it("says nothing is waiting, not 'no match', when the pending queue is empty (UX-P)", () => {
+    rows = [];
+    renderPage();
+    expect(screen.getByText("Nothing is waiting for a decision")).toBeInTheDocument();
+  });
+
   it("shows the server's refusal of a decision", async () => {
     decideRequest.mockRejectedValueOnce(new Error("This month is closed"));
     rows = [{ ...LEAVE, kind: "late_arrival", to_time: "10:00:00" }];
@@ -172,6 +311,18 @@ describe("Requests inbox", () => {
 });
 
 describe("Requests inbox, server answers", () => {
+  it("shows why an approved request was cancelled, beside the approver's note (B-TEAM-3)", () => {
+    rows = [{ ...APPROVED, status: "cancelled", decision_note: "Go ahead", cancel_note: "Trip postponed", decided_by_name: "Tasbeeh", cancelled_by_name: "Karim Mostafa" }];
+    renderPage();
+    expect(screen.getByText(/Go ahead/)).toBeInTheDocument();
+    expect(screen.getByText(/Trip postponed/)).toBeInTheDocument();
+    // Who decided and who cancelled (backend 68078ac, AT-10).
+    expect(screen.getByText(/Decided by Tasbeeh/)).toBeInTheDocument();
+    expect(screen.getByText(/Cancelled by Karim Mostafa/)).toBeInTheDocument();
+    // On a phone the whole line wraps rather than cutting off who cancelled (E2E team re-verify).
+    expect(screen.getByText(/Cancelled by Karim Mostafa/)).not.toHaveClass("truncate");
+  });
+
   it("never offers to cancel an approved correction, which the server refuses (409)", () => {
     rows = [{ id: "q5", employee_id: "e1", employee_name: "Youssef Adel", kind: "correction", status: "approved", on_date: "2026-09-20", from_time: "09:00:00", is_half_day: false, created_at: "2026-09-19T08:00:00Z" }];
     renderPage();
@@ -208,6 +359,27 @@ describe("Filing for someone", () => {
     const body = createRequestAdmin.mock.calls[0][0] as Record<string, unknown>;
     expect(body).toMatchObject({ employee_id: "e1", kind: "leave", on_date: "2026-09-23", end_date: null, is_half_day: true, leave_half: "second" });
     expect(body).not.toHaveProperty("leave_type_id");
+  });
+
+  it("'To' follows 'From' until it is set on its own, and never sits before it (box verify)", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /New request/ }));
+    const dialog = await screen.findByRole("dialog");
+    await pick(user, "Kind", "Mission");
+    const from = within(dialog).getByLabelText("From");
+    const to = within(dialog).getByLabelText("To");
+    await user.clear(from);
+    await user.type(from, "2026-10-05");
+    expect(to).toHaveValue("2026-10-05");
+    await user.clear(to);
+    await user.type(to, "2026-10-07");
+    await user.clear(from);
+    await user.type(from, "2026-10-06");
+    expect(to).toHaveValue("2026-10-07");
+    await user.clear(from);
+    await user.type(from, "2026-10-09");
+    expect(to).toHaveValue("2026-10-09");
   });
 
   it("files a mission with only a note, and refuses one with neither title nor note", async () => {
@@ -278,3 +450,86 @@ describe("Filing for someone", () => {
     });
   });
 });
+
+describe("Owner decisions 18 and 43: small wording", () => {
+  it("M18: a half-day leave with no half picked reads '½ day', not 'first half'", () => {
+    rows = [
+      { ...LEAVE, id: "h1", employee_name: "Old Seed", is_half_day: true, leave_half: null, end_date: null },
+      { ...LEAVE, id: "h2", employee_name: "New Filing", is_half_day: true, leave_half: "second", end_date: null },
+    ];
+    renderPage();
+    expect(screen.getByText("½ day")).toBeInTheDocument();
+    expect(screen.getByText("½ day · second half")).toBeInTheDocument();
+    expect(screen.queryByText("½ day · first half")).not.toBeInTheDocument();
+  });
+
+  it("M43: a mission shows its title in the list and in Approvals' detail", () => {
+    rows = [APPROVED];
+    renderPage();
+    expect(screen.getByText(/Supplier visit/)).toBeInTheDocument();
+  });
+
+  it("M43: an approved correction shows the time it set once, not 'out 05:45 PM → 05:45 PM'", () => {
+    rows = [{
+      id: "c1", employee_id: "e1", employee_name: "Youssef Adel", kind: "correction", status: "approved", on_date: "2026-09-21",
+      to_time: "17:45:00", record_check_out_at: "2026-09-21T14:45:00Z", is_half_day: false, created_at: "2026-09-21T18:00:00Z",
+    }];
+    renderPage();
+    const meta = screen.getByText(/out /);
+    expect(meta.textContent).not.toMatch(/→/);
+    expect(meta.textContent).toMatch(/out 0?5:45\s?PM/i);
+  });
+});
+
+describe("M16: a mission over days already worked", () => {
+  const MISSION = { id: "m1", employee_id: "e1", employee_name: "Youssef Adel", kind: "mission", status: "pending", on_date: "2026-09-20", end_date: "2026-09-21", title: "Supplier visit", is_half_day: false, created_at: "2026-09-19T08:00:00Z", can_decide: true };
+
+  it("warns before approving when a day already has punches, and approves once confirmed", async () => {
+    rows = [MISSION];
+    listAttendance.mockResolvedValueOnce([{ id: "a1", employee_id: "e1", business_date: "2026-09-20", check_in_at: "2026-09-20T06:00:00Z" }]);
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Approve/ }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(listAttendance).toHaveBeenCalledWith({ from: "2026-09-20", to: "2026-09-21", employee_id: "e1" });
+    expect(within(dialog).getByText(/already has punches/)).toBeInTheDocument();
+    expect(decideRequest).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole("button", { name: /Approve/ }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("m1", { status: "approved" }));
+  });
+
+  it("reads the worked days from the request when the server sends them, and names them", async () => {
+    const { fmtDate } = await import("@/lib/format");
+    rows = [{ ...MISSION, worked_dates: ["2026-09-20"] }];
+    listAttendance.mockClear();
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Approve/ }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByText(new RegExp(fmtDate("2026-09-20")))).toBeInTheDocument();
+    expect(listAttendance).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole("button", { name: /Approve/ }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("m1", { status: "approved" }));
+  });
+
+  it("warns in the pay dialog when leave covers a worked day", async () => {
+    const { fmtDate } = await import("@/lib/format");
+    rows = [{ ...LEAVE, can_decide: true, worked_dates: ["2026-09-25"] }];
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Approve/ }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(new RegExp(`already clocked in on ${fmtDate("2026-09-25")}`))).toBeInTheDocument();
+  });
+
+  it("approves in one click when no day was worked", async () => {
+    rows = [MISSION];
+    listAttendance.mockResolvedValueOnce([]);
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole("button", { name: /Approve/ }));
+    await waitFor(() => expect(decideRequest).toHaveBeenCalledWith("m1", { status: "approved" }));
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+  });
+});
+

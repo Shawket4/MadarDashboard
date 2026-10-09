@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { DotLottieReact, setWasmUrl } from "@lottiefiles/dotlottie-react";
+// The player's engine, from our own build. Left to itself the library fetches
+// it from jsDelivr (then unpkg) the first time an animation plays: the one
+// third-party download in the dashboard. Pinned to the exact version the React
+// wrapper depends on, so the engine always matches its player.
+import dotLottieWasmUrl from "@lottiefiles/dotlottie-web/dotlottie-player.wasm?url";
 import { Sparkles } from "lucide-react";
 
 import { env } from "@/data/config/env";
 import { cn } from "@/lib/utils";
+
+setWasmUrl(dotLottieWasmUrl);
 
 /**
  * One step animation, drawn only while it is on screen.

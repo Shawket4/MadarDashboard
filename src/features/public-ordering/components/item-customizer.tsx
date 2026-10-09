@@ -35,6 +35,11 @@ interface ItemCustomizerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (line: CartLine) => void;
+  /**
+   * The shop's read-only menu: every option can be picked and the price
+   * follows, but there is no cart to add to — the footer shows the total.
+   */
+  viewOnly?: boolean;
 }
 
 /**
@@ -56,6 +61,7 @@ export function ItemCustomizer({
   open,
   onOpenChange,
   onConfirm,
+  viewOnly = false,
 }: ItemCustomizerProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
@@ -130,7 +136,15 @@ export function ItemCustomizer({
       }))
       .filter((g) => g.options.length > 0);
   }, [item, addons, lang]);
-  const useServerGroups = serverGroups.length > 0 && !showAll;
+  // An item that lists ANY group has its add-ons SET, even when its groups
+  // hold nothing (its own empty Options group once every group was
+  // detached): only its groups' options are offered — none at all when they
+  // are empty — and there is no "show all". It never falls back to the org's
+  // whole add-on catalog (the till's reading of the same list). Only an item
+  // that lists no group (never set up in the unified model) keeps the
+  // legacy allowlist view with its "show all".
+  const groupsSet = (item?.modifier_groups?.length ?? 0) > 0;
+  const useServerGroups = groupsSet || (serverGroups.length > 0 && !showAll);
 
   // Groups whose min/max constraint the current selection breaks — the confirm
   // CTA stays disabled until every group is satisfied.
@@ -374,18 +388,20 @@ export function ItemCustomizer({
               </Section>
             )}
 
-            {/* "Show all add-ons" — always present; default view is the item's configured set (or nothing) */}
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => setShowAll((v) => !v)}
-                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-              >
-                {showAll
-                  ? t("order.customize.showConfigured", "Show customized options")
-                  : t("order.customize.showAllAddons", "Show all add-ons")}
-              </button>
-            </div>
+            {/* "Show all add-ons" — only for an item whose add-ons were never set up: its default view is its allowlist (or nothing) */}
+            {!groupsSet && (
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowAll((v) => !v)}
+                  className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                >
+                  {showAll
+                    ? t("order.customize.showConfigured", "Show customized options")
+                    : t("order.customize.showAllAddons", "Show all add-ons")}
+                </button>
+              </div>
+            )}
 
             {/* Unified modifier groups (server-authoritative constraints) */}
             {useServerGroups &&
@@ -484,16 +500,18 @@ export function ItemCustomizer({
               </Section>
             )}
 
-            {/* Notes */}
-            <Section title={t("order.customize.notes")}>
-              <Textarea
-                rows={2}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder={t("order.customize.notesPlaceholder")}
-                maxLength={FIELD_LIMITS.lineNotes}
-              />
-            </Section>
+            {/* Notes — for the kitchen, so not on a menu that sends nothing there. */}
+            {viewOnly ? null : (
+              <Section title={t("order.customize.notes")}>
+                <Textarea
+                  rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder={t("order.customize.notesPlaceholder")}
+                  maxLength={FIELD_LIMITS.lineNotes}
+                />
+              </Section>
+            )}
           </div>
         </div>
 
@@ -523,18 +541,32 @@ export function ItemCustomizer({
               <Plus className="size-4" />
             </Button>
           </div>
-          <Button
-            className="flex-1"
-            size="lg"
-            disabled={!draft || groupViolations.length > 0}
-            onClick={() => draft && (onConfirm(draft), onOpenChange(false))}
-          >
-            {groupViolations.length > 0
-              ? `${groupViolations[0].title}: ${t("order.customize.required", "Required")}`
-              : editing
-                ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
-                : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
-          </Button>
+          {viewOnly ? (
+            // Nothing to add to: the price of what was picked, where the add
+            // button stands when the shop is taking the order.
+            <p
+              aria-live="polite"
+              className="flex h-10 flex-1 items-center justify-end gap-2 text-base font-semibold tabular-nums"
+            >
+              <span className="text-sm font-normal text-muted-foreground">
+                {t("order.cart.total", "Total")}
+              </span>
+              {fmtMoney(totalPrice)}
+            </p>
+          ) : (
+            <Button
+              className="flex-1"
+              size="lg"
+              disabled={!draft || groupViolations.length > 0}
+              onClick={() => draft && (onConfirm(draft), onOpenChange(false))}
+            >
+              {groupViolations.length > 0
+                ? `${groupViolations[0].title}: ${t("order.customize.required", "Required")}`
+                : editing
+                  ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
+                  : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
+            </Button>
+          )}
         </div>
       </DrawerContent>
     </Drawer>

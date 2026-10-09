@@ -5,15 +5,18 @@
  * `image_url` silently blanked every asset-pipeline row.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
+const navigate = vi.fn();
 
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
   return { ...real, useAuthz: () => real.authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: true, platform: false, role_kinds: ["org_admin"], capabilities: ["recipes.read", "recipes.edit", "menu.items.read", "menu.items.edit"], ask_manager: [], limits: {} }) };
 });
 vi.mock("@tanstack/react-router", () => ({
-  useNavigate: () => vi.fn(),
+  useNavigate: () => navigate,
 }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
 vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: null }) }));
@@ -47,6 +50,17 @@ const ITEMS = [
     id: "m-3",
     name: "No image item",
     base_price: 200,
+    is_active: true,
+    category_id: "c-1",
+    sku_costs: [],
+    image_url: null,
+    image: null,
+  },
+  {
+    id: "combo-1",
+    kind: "combo",
+    name: "Lunch deal",
+    base_price: 15000,
     is_active: true,
     category_id: "c-1",
     sku_costs: [],
@@ -113,5 +127,30 @@ describe("MenuItemsPage grid images", () => {
     wrap();
     const cell = screen.getByText("No image item").closest("div[class]");
     expect(cell?.parentElement?.querySelector("img")).toBeNull();
+  });
+});
+
+describe("MenuItemsPage combos", () => {
+  it("opens a combo in the combo editor, not the studio, and offers no Duplicate", async () => {
+    const user = userEvent.setup();
+    navigate.mockReset();
+    wrap();
+    const card = screen.getByText("Lunch deal").closest("div[class]")?.parentElement?.parentElement as HTMLElement;
+    const trigger = within(card).getAllByRole("button").find((b) => b.getAttribute("aria-haspopup") === "menu") as HTMLElement;
+    await user.click(trigger);
+    expect(screen.queryByRole("menuitem", { name: /Duplicate/ })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("menuitem", { name: /combo editor/ }));
+    expect(navigate).toHaveBeenCalledWith({ to: "/menu/combos/$comboId", params: { comboId: "combo-1" } });
+  });
+
+  it("still opens a plain item in the studio", async () => {
+    const user = userEvent.setup();
+    navigate.mockReset();
+    wrap();
+    const card = screen.getByText("Legacy item").closest("div[class]")?.parentElement?.parentElement as HTMLElement;
+    const trigger = within(card).getAllByRole("button").find((b) => b.getAttribute("aria-haspopup") === "menu") as HTMLElement;
+    await user.click(trigger);
+    await user.click(screen.getByRole("menuitem", { name: /full editor/ }));
+    expect(navigate).toHaveBeenCalledWith({ to: "/menu/items/$itemId", params: { itemId: "m-2" }, search: {} });
   });
 });

@@ -13,7 +13,8 @@ export interface PayslipDoc {
   company: string;
   period: { start_date: string; end_date: string } | null;
   person: string;
-  lines: { label: string; line: PayLine }[];
+  /** `waivedNote`: the waived line's note ("Waived: <why>"); `labels.waived` otherwise. */
+  lines: { label: string; line: PayLine; waivedNote?: string }[];
   net: number;
   /** Deductions past what was earned, carried to the next payslip (PAY-12). */
   carryOut?: number;
@@ -25,9 +26,9 @@ export interface PayslipDoc {
 /** The page's HTML. Pure, so it is tested without a window. */
 export function payslipHtml(d: PayslipDoc): string {
   const rows = d.lines
-    .map(({ label, line }) => {
+    .map(({ label, line, waivedNote }) => {
       const style = line.waived ? ' style="text-decoration:line-through;color:#888"' : "";
-      const note = line.waived ? ` <small>(${esc(d.labels.waived)})</small>` : "";
+      const note = line.waived ? ` <small>(${esc(waivedNote ?? d.labels.waived)})</small>` : "";
       return `<tr${style}><td>${esc(label)}${note}</td><td class="n">${esc(fmtMoneySigned(line.amount))}</td></tr>`;
     })
     .join("");

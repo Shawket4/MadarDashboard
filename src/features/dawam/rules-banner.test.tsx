@@ -3,7 +3,7 @@
  * were never saved, and a clock-in refused for that reason reads as words,
  * not as "conflict".
  */
-import { render, screen } from "@testing-library/react";
+import { render, renderHook, screen } from "@testing-library/react";
 import { AxiosError, AxiosHeaders } from "axios";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -15,16 +15,24 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ to, children }: { to: string; children: ReactNode }) => <a href={to}>{children}</a>,
 }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
+/** The `query` options each read was given, in call order. */
+const seen: (Record<string, unknown> | undefined)[] = [];
+const read = (data: () => unknown) => (...args: unknown[]) => {
+  const opts = args.find((a) => typeof a === "object" && a !== null && "query" in a) as { query?: Record<string, unknown> } | undefined;
+  seen.push(opts?.query);
+  return { data: data() };
+};
 vi.mock("@/data/api/generated/api", () => ({
-  useGetAttendanceSettings: () => ({ data: settings }),
-  useListBranches: () => ({ data: branches }),
-  useListEmployees: () => ({ data: employees }),
-  useListWorkShifts: () => ({ data: [{ is_active: true }] }),
+  useGetAttendanceSettings: read(() => settings),
+  useListBranches: read(() => branches),
+  useListEmployees: read(() => employees),
+  useListWorkShifts: read(() => [{ is_active: true }]),
 }));
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");
 const { RulesFirstBanner } = await import("./rules-banner");
+const { useSetupData } = await import("./setup");
 const { getErrorMessage } = await import("@/data/api/errors");
 
 describe("rules first", () => {
@@ -52,6 +60,19 @@ describe("rules first", () => {
     settings = undefined;
     const { container } = render(<RulesFirstBanner />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("refetches when the tab comes back on a Dawam page; the sidebar's copy keeps the app defaults", () => {
+    settings = { rules_saved_at: null };
+    seen.length = 0;
+    render(<RulesFirstBanner />);
+    expect(seen).toHaveLength(4);
+    expect(seen.every((q) => q?.refetchOnWindowFocus === true)).toBe(true);
+
+    seen.length = 0;
+    renderHook(() => useSetupData(true)); // how the sidebar and the command palette read it
+    expect(seen).toHaveLength(4);
+    expect(seen.some((q) => q?.refetchOnWindowFocus)).toBe(false);
   });
 
   it("reads a punch refused with RULES_NOT_SET in the user's language", () => {

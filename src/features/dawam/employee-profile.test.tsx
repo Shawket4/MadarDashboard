@@ -13,13 +13,14 @@ import type { Employee } from "@/data/api/generated/models";
 const putEmployee = vi.fn(async () => ({}));
 const revokeDevice = vi.fn(async () => ({}));
 let held = ["hr.staff.edit", "hr.payroll.edit"];
-vi.mock("@/data/authz/use-authz", () => ({ useAuthz: () => ({ can: (c: string) => held.includes(c) }) }));
+vi.mock("@/data/authz/use-authz", () => ({ useAuthz: () => ({ can: (c: string) => held.includes(c), canEverywhere: (c: string) => held.includes(c) }) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
 vi.mock("@/data/api/generated/api", () => ({
   useListDepartments: () => ({ data: [], isLoading: false }),
   useListBranches: () => ({ data: [{ id: "b1", name: "Zamalek" }, { id: "b2", name: "Maadi" }] }),
   putEmployee: (...a: unknown[]) => putEmployee(...(a as [])),
   revokeDevice: (...a: unknown[]) => revokeDevice(...(a as [])),
+  useGetAttendanceSettings: () => ({ data: { working_days_per_month: 26, limit_day_hours: 8, period_start_day: 1 }, isLoading: false }),
 }));
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
@@ -66,6 +67,19 @@ describe("EmployeeDialog · Dawam", () => {
     );
   });
 
+  it("an account number too long says why Save does nothing (H3 silent Save)", async () => {
+    const user = userEvent.setup();
+    putEmployee.mockClear();
+    open(sara);
+    const iban = await screen.findByLabelText("Account (IBAN)");
+    await user.clear(iban);
+    await user.click(iban);
+    await user.paste("E".repeat(65));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("At most 64 characters")).toBeInTheDocument();
+    expect(putEmployee).not.toHaveBeenCalled();
+  });
+
   it("sends no account for someone paid in cash", async () => {
     const user = userEvent.setup();
     putEmployee.mockClear();
@@ -102,11 +116,53 @@ describe("EmployeeDialog · Dawam", () => {
     await user.type(screen.getByLabelText("WhatsApp number"), "0111 222 3333");
     await user.click(screen.getByRole("checkbox", { name: "Maadi" }));
     await user.click(screen.getByRole("button", { name: "Save" }));
+    // A new number signs the phone in use out: said first (T4).
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Save and sign it out" }));
     await waitFor(() =>
       expect(putEmployee).toHaveBeenCalledWith("e1", expect.objectContaining({
         name: "Sara Ahmed", phone: "201112223333", app_access: true, branch_ids: ["b1", "b2"],
       })),
     );
+  });
+
+  it("T4: a new number with a phone signed in says the phone is signed out; Cancel sends nothing", async () => {
+    const user = userEvent.setup();
+    putEmployee.mockClear();
+    open(sara);
+    await user.clear(screen.getByLabelText("WhatsApp number"));
+    await user.type(screen.getByLabelText("WhatsApp number"), "0111 222 3333");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    const ask = await screen.findByRole("alertdialog");
+    expect(within(ask).getByText(/Galaxy A54/)).toBeInTheDocument();
+    await user.click(within(ask).getByRole("button", { name: "Cancel" }));
+    expect(putEmployee).not.toHaveBeenCalled();
+  });
+
+  it("T4: turning app access off with a phone signed in asks first too", async () => {
+    const user = userEvent.setup();
+    putEmployee.mockClear();
+    open(sara);
+    await user.click(screen.getByRole("checkbox", { name: "May sign in to the staff app" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Save and sign it out" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalledWith("e1", expect.objectContaining({ app_access: false })));
+  });
+
+  it("T4: no phone signed in, or the same number: nothing to ask", async () => {
+    const user = userEvent.setup();
+    putEmployee.mockClear();
+    const { unmount } = open({ ...sara, device_model: null } as Employee);
+    await user.clear(screen.getByLabelText("WhatsApp number"));
+    await user.type(screen.getByLabelText("WhatsApp number"), "0111 222 3333");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    unmount();
+    putEmployee.mockClear();
+    open(sara);
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
   it("flips 'paid through Dawam' only for someone with hr.payroll.edit (owner decision, PAY-3)", async () => {
@@ -141,3 +197,37 @@ describe("EmployeeDialog · Dawam", () => {
     expect(putEmployee).not.toHaveBeenCalled();
   });
 });
+
+describe("D9: a salary nobody set (owner decision 9)", () => {
+  it("the owner reads 'Not set', and saving without typing one keeps it unset", async () => {
+    held = ["hr.staff.edit", "hr.payroll.edit"];
+    putEmployee.mockClear();
+    const user = userEvent.setup();
+    open({ ...sara, base_salary_piastres: null, salary_set: false } as unknown as Employee);
+    const field = await screen.findByLabelText("Base salary (monthly)");
+    expect(field).toHaveValue("");
+    expect(field).toHaveAttribute("placeholder", "Not set");
+    expect(screen.getByText(/No salary yet/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalled());
+    expect((putEmployee.mock.calls[0] as unknown[])[1]).not.toHaveProperty("base_salary_piastres");
+  });
+
+  it("the owner sets it from a day rate with the calculator", async () => {
+    held = ["hr.staff.edit", "hr.payroll.edit"];
+    putEmployee.mockClear();
+    const user = userEvent.setup();
+    open({ ...sara, base_salary_piastres: null, salary_set: false } as unknown as Employee);
+    await user.type(await screen.findByLabelText("Daily rate (EGP)"), "250");
+    expect(screen.getByLabelText("Base salary (monthly)")).toHaveValue("6500");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(putEmployee).toHaveBeenCalledWith("e1", expect.objectContaining({ base_salary_piastres: 650_000 })));
+  });
+
+  it("someone the salary is hidden from gets no field", () => {
+    held = ["hr.staff.edit"];
+    open({ ...sara, base_salary_piastres: null, salary_set: true } as unknown as Employee);
+    expect(screen.queryByLabelText("Base salary (monthly)")).toBeNull();
+  });
+});
+

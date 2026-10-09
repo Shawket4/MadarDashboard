@@ -17,11 +17,12 @@
     "noFallthroughCasesInSwitch": true,
     "verbatimModuleSyntax": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared/*": ["./shared/*"]
     },
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "src/**/*.json"],
+  "include": ["src", "src/**/*.json", "shared"],
   "exclude": ["src/order"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

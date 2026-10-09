@@ -12,4 +12,11 @@ export interface ContextSettings {
   period_start_day: number;
   /** The business saved its rules; nobody clocks in before (RU-1, DSH-6). */
   rules_saved: boolean;
+  /**
+     * When the rules were first saved; null until then. The sweep never
+     * marks absent (or charges) a shift that started before it (B-SETUP-5),
+     * so neither does the app (B-ONB-1).
+     * @nullable
+     */
+  rules_saved_at?: string | null;
 }

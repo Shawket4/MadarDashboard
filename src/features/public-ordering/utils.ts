@@ -9,8 +9,25 @@ import { rateOf } from "@/lib/format";
 export const asChannel = (v: string | null | undefined): Channel =>
   v === "outside" || v === "umbrella" || v === "pickup" ? v : "in_mall";
 
+/**
+ * The server's placeholder size for an item without sizes. It is a label for
+ * the database, not a word for a customer: never show it.
+ */
+export const SYNTHETIC_SIZE = "one_size";
+
+/** A size label fit to show a customer, or null when there is nothing to say. */
+export const displaySize = (label: string | null | undefined): string | null =>
+  label && label !== SYNTHETIC_SIZE ? label : null;
+
+/** What a combo's picks add to its price, per combo unit (surcharges × pick quantity). */
+export const comboExtras = (line: Pick<CartLine, "combo">): number =>
+  (line.combo?.picks ?? []).reduce((s, p) => s + p.extra * p.quantity, 0);
+
 /** The unit (per-quantity) price of a configured line, in piastres — an estimate. */
 export const lineUnitPrice = (line: CartLine): number => {
+  // A combo: its own price plus whatever the picks add (a bigger size, a
+  // premium choice). The server prices it authoritatively.
+  if (line.combo) return line.base_price + comboExtras(line);
   const addons = line.addons.reduce((s, a) => s + a.price * a.quantity, 0);
   const optionals = line.optionals.reduce((s, o) => s + o.price, 0);
   return line.base_price + addons + optionals;
@@ -53,14 +70,45 @@ export const itemBasePrice = (item: DeliveryMenuItem, sizeLabel: string | null):
 };
 
 /** Translate a configured line into the API's CartLineInput (server prices). */
-export const toCartLineInput = (line: CartLine): CartLineInput => ({
-  menu_item_id: line.item.id,
-  size_label: line.size_label,
-  quantity: line.quantity,
-  addons: line.addons.map((a) => ({ addon_item_id: a.addon_item_id, quantity: a.quantity })),
-  optional_field_ids: line.optionals.map((o) => o.id),
-  notes: line.notes?.trim() ? line.notes.trim() : null,
-});
+export const toCartLineInput = (line: CartLine): CartLineInput => {
+  const notes = line.notes?.trim() ? line.notes.trim() : null;
+  if (line.combo) {
+    // A combo line names the combo; the sizes live on its picks. No add-ons
+    // inside a slot yet (v1) — the server takes picks without them.
+    return {
+      menu_item_id: line.item.id,
+      size_label: null,
+      quantity: line.quantity,
+      addons: [],
+      optional_field_ids: [],
+      notes,
+      combo: {
+        picks: line.combo.picks.map((p) => ({
+          slot_id: p.slot_id,
+          menu_item_id: p.menu_item_id,
+          size_label: displaySize(p.size_label),
+          quantity: p.quantity,
+        })),
+      },
+    };
+  }
+  return {
+    menu_item_id: line.item.id,
+    size_label: line.size_label,
+    quantity: line.quantity,
+    addons: line.addons.map((a) => ({ addon_item_id: a.addon_item_id, quantity: a.quantity })),
+    optional_field_ids: line.optionals.map((o) => o.id),
+    notes,
+  };
+};
+
+/**
+ * A stable fingerprint of what the server would price: it changes exactly
+ * when the cart's content does, so a quote can be keyed on it and a stale one
+ * recognised.
+ */
+export const cartContentKey = (lines: CartLine[]): string =>
+  JSON.stringify(lines.map(toCartLineInput));
 
 const CART_KEY_PREFIX = "madar_order_cart:";
 const cartKey = (orgId: string, branchId: string) => `${CART_KEY_PREFIX}${orgId}:${branchId}`;
@@ -109,3 +157,14 @@ export const newUid = (): string => {
     return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   }
 };
+
+/**
+ * The tracking page for an order, as a plain link (it opens in a new tab).
+ *
+ * Under the bundle's mount, not the host's root: on a shop's own hostname the
+ * ordering app is served at `/order/`, and a bare `/track/<id>` there is the
+ * shop's links page asking for a path it has never heard of — a not-found.
+ * `BASE_URL` is the same base the router is given, so the two cannot disagree.
+ */
+export const trackHref = (orderId: string, base: string = import.meta.env.BASE_URL): string =>
+  `${base.endsWith("/") ? base : `${base}/`}track/${encodeURIComponent(orderId)}`;

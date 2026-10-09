@@ -43,5 +43,11 @@ export interface ComputedPayslip {
   net_piastres: number;
   overtime_minutes: number;
   overtime_piastres: number;
+  /**
+     * On payroll with no salary set (owner decision D9): everything prices
+     * at 0, and approval is refused (409 SALARY_MISSING) until the owner
+     * sets it or marks them not on payroll.
+     */
+  salary_missing?: boolean;
   worked_days: number;
 }

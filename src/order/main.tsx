@@ -12,6 +12,8 @@
 //   /now/<memberToken>     — "Order now" from a loyalty card: the same flow, opened
 //                            knowing who is ordering (+search: branch, channel)
 //   /order/<orgId>         — back-compat alias (tracking page links here)
+//   /menu                  — the shop's read-only menu (its own hostname): the
+//                            same page in browse mode, +search: branch
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -24,6 +26,8 @@ import {
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "motion/react";
 import { z } from "zod";
+
+import { orderSearchSchema } from "./search";
 
 // Self-hosted fonts (work offline in Tauri).
 //
@@ -62,6 +66,7 @@ document.documentElement.classList.add("brand-surface");
 // intentionally NOT imported — this origin never holds a session.
 import "@/i18n";
 import { initPublicTheme } from "@/features/public-shell/use-public-theme";
+import { PublicToaster } from "@/features/public-shell/public-toaster";
 
 import { queryClient } from "@/data/api/query";
 import { PublicOrderingPage } from "@/features/public-ordering/public-ordering-page";
@@ -75,18 +80,6 @@ import { OrderNowPage } from "@/features/public-ordering/order-now/order-now-pag
 // preference. A storefront should look the same to every customer.
 initPublicTheme();
 
-const orderSearchSchema = z.object({
-  branch: z.string().optional(),
-  channel: z.string().optional(),
-  table: z.string().optional(),
-  preview: z
-    .union([z.boolean(), z.string()])
-    .optional()
-    .transform((v) => (v === true || v === "1" || v === "true" ? true : undefined)),
-  place_name: z.string().optional(),
-  floor: z.coerce.string().optional(),
-  unit_number: z.coerce.string().optional(),
-});
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
 
@@ -117,6 +110,23 @@ const indexRoute = createRoute({
         prefillUnitNumber={s.unit_number}
       />
     );
+  },
+});
+
+// The digital menu: a link-in-bio or a table card that shows the menu without
+// asking anything first. It is the ordering page in browse mode — one menu
+// surface, not a second copy — and on a shop that takes online orders its
+// banner offers the way into an order.
+const menuRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/menu",
+  validateSearch: z.object({ branch: z.string().optional() }),
+  component: function Menu() {
+    const { orgId, resolving } = useHostOrg();
+    const s = menuRoute.useSearch();
+    if (resolving) return null;
+    if (!orgId) return <ScanToOrder />;
+    return <PublicOrderingPage orgId={orgId} branch={s.branch} preview menuMode />;
   },
 });
 
@@ -216,6 +226,7 @@ const branchRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  menuRoute,
   trackRoute,
   nowRoute,
   orderCompatRoute,
@@ -246,6 +257,7 @@ function render() {
       <QueryClientProvider client={queryClient}>
         <MotionConfig reducedMotion="user">
           <RouterProvider router={router} />
+          <PublicToaster />
         </MotionConfig>
       </QueryClientProvider>
     </StrictMode>,

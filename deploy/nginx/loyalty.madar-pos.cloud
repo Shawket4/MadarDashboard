@@ -1,0 +1,112 @@
+# Loyalty / Apple Wallet — ISOLATED origin (separate bundle, no admin code, no
+# shared cookies/storage with the dashboard), mirroring reservations.madar-pos.cloud.
+# Apple devices hit the pass web service through /api/, so the chain here must be
+# a real publicly-trusted cert (certbot below) — self-signed silently kills updates.
+server {
+    server_name loyalty.madar-pos.cloud;
+
+    # `^~` on every prefix location in this server: a regex location (the
+    # file-like paths below) otherwise beats a prefix one, and would take
+    # /assets/*.js from its cache headers and /api/... from the backend.
+    location ^~ /.well-known/acme-challenge/ { root /var/www/letsencrypt; try_files $uri =404; }
+    # The rest of /.well-known/ is a file in the build or a real 404, never the app.
+    location ^~ /.well-known/ { try_files $uri =404; }
+
+    root /var/www/madar-loyalty;
+    index loyalty.html;
+
+    client_max_body_size 10M;
+
+    # Hardened headers for a public origin anyone can reach.
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+
+    # Uploads are served directly, shared with the backend upload dir.
+    location ^~ /api/uploads/ {
+        alias /opt/madar-rust/uploads/;
+        expires 30d; access_log off; try_files $uri =404;
+    }
+
+    # Apple refuses a pass served under any other type, and some proxies hand back
+    # application/octet-stream and leave the customer with a file iOS will not open.
+
+    # Public API + the Apple Wallet pass web service (same backend).
+    # .pkpass downloads are binary and must never be gzipped or buffered small.
+    # `^~` is load-bearing here: Apple's calls end in the pass type id
+    # (.../registrations/pass.cloud.madar-pos.loyalty) and the card QR in
+    # /qr.png, which the file-like regex below would otherwise answer with a 404.
+    location ^~ /api/ {
+        proxy_pass http://madar_api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        proxy_read_timeout 60s;
+        gzip off;
+        proxy_max_temp_file_size 0;
+    }
+
+    location ^~ /assets/ {
+        include snippets/madar-security-headers.conf;
+        expires 1y; add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off; try_files $uri =404;
+    }
+
+    # A path that looks like a file (/openapi.json, /llms.txt, /x.md) is a
+    # file in the build or a real 404, never the app shell. The same headers
+    # as the fallback below: every top-level file (icons, robots.txt) is
+    # served here now, and so is the shell itself, because `try_files ... /loyalty.html`
+    # re-runs location matching and /loyalty.html matches this regex.
+    # No client route ends in ".<letters/digits>": org and branch ids are
+    # UUIDs, and the /card/ token is base64url.
+    location ~ \.[A-Za-z0-9]+$ {
+        include snippets/madar-security-headers.conf;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        try_files $uri =404;
+    }
+
+    # SPA fallback
+    location / {
+        include snippets/madar-security-headers.conf;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        try_files $uri /loyalty.html;
+    }
+
+    listen [::]:443 ssl; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/nginx/ssl/cloudflare-origin/cert.pem; # Cloudflare Origin CA (proxied host, valid to 2041)
+    ssl_certificate_key /etc/nginx/ssl/cloudflare-origin/key.pem; # Cloudflare Origin CA
+
+    # Restore the real client IP. Rate limits are per IP; without this every
+    # customer arrives as a Cloudflare address and shares one budget.
+    include /etc/nginx/cloudflare-real-ip.conf;
+
+    # Origin lockdown: this hostname is proxied, so legitimate traffic can only
+    # arrive from Cloudflare. The origin IP is publicly known, so without this
+    # anyone can address the box directly and skip the edge's rate limiting and
+    # WAF. NEVER add this to a DNS-only vhost (api, demo-api, sentry) or another
+    # tenant's config -- they are reached directly by design.
+    include /etc/nginx/cloudflare-only.conf;
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+    if ($host = loyalty.madar-pos.cloud) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name loyalty.madar-pos.cloud;
+
+    listen 80;
+    listen [::]:80;
+    return 404; # managed by Certbot
+
+
+}

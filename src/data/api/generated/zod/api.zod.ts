@@ -3,6 +3,20 @@
 import * as zod from 'zod';
 
 
+/**
+ * @summary What this host is, for a person or an agent that opens it.
+ */
+export const ApiRootResponse = zod.unknown()
+
+
+/**
+ * @summary The MCP server card: how to reach this server and what it offers, built from
+the same tool list `tools/list` answers with, so the two cannot disagree. The
+marketing site's /.well-known/mcp/server-card.json redirects here.
+ */
+export const McpServerCardResponse = zod.unknown()
+
+
 export const ListAddonItemsQueryParams = zod.object({
   "org_id": zod.uuid(),
   "addon_type": zod.string().optional(),
@@ -820,6 +834,7 @@ export const GetMyAuthzResponse = zod.object({
   "branch_id": zod.uuid().nullish(),
   "capabilities": zod.array(zod.string()).describe('Capability keys held.'),
   "epoch": zod.number(),
+  "everywhere": zod.array(zod.string()).nullish().describe('The capabilities held at EVERY branch of the business — what an\norg-wide act (a department, a shift block, a public holiday, the\nrules) needs. `\/authz\/me` only; absent elsewhere. (E2E B-SETUP-3)'),
   "limits": zod.record(zod.string(), zod.object({
   "max_age_minutes": zod.number().nullish().describe('How old the thing acted on may be, in minutes.'),
   "max_amount": zod.number().nullish().describe('Money, minor units.'),
@@ -2378,716 +2393,6 @@ export const TableQrResponse = zod.object({
 }).describe('JSON returned from every QR-generation endpoint.')
 
 
-export const ListBundlesQueryParams = zod.object({
-  "org_id": zod.uuid().optional(),
-  "status": zod.enum(['draft', 'active', 'archived']).optional(),
-  "branch_id": zod.uuid().optional(),
-  "search": zod.string().optional(),
-  "page": zod.number().optional(),
-  "per_page": zod.number().optional(),
-  "sort": zod.string().optional().describe('Sort: name_asc | name_desc | price_asc | price_desc | created_asc |\ncreated_desc (default).')
-})
-
-export const ListBundlesResponse = zod.object({
-  "data": zod.array(zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))),
-  "page": zod.number(),
-  "per_page": zod.number(),
-  "total": zod.number(),
-  "total_pages": zod.number()
-})
-
-
-export const CreateBundleBody = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "branch_ids": zod.array(zod.uuid()).nullish(),
-  "components": zod.array(zod.object({
-  "item_id": zod.uuid(),
-  "position": zod.number().nullish(),
-  "quantity": zod.number()
-})),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown().optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown().optional(),
-  "org_id": zod.uuid(),
-  "price": zod.number()
-})
-
-export const CreateBundleResponse = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-
-
-export const AvailableBundlesQueryParams = zod.object({
-  "branch_id": zod.uuid(),
-  "at": zod.iso.datetime({"offset":true}).optional()
-})
-
-export const AvailableBundlesResponseItem = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-export const AvailableBundlesResponse = zod.array(AvailableBundlesResponseItem)
-
-
-/**
- * @summary Suggest menu items frequently ordered alongside the given item set, to help
-a manager pick the next component while building a bundle. Anchors on
-whichever items are already added: an item is suggested if it co-occurred,
-on the same order, with at least one anchor item at least `min_count`
-times across the org's branches in the given window.
- */
-export const SuggestedComponentsQueryParams = zod.object({
-  "org_id": zod.uuid(),
-  "item_ids": zod.string().describe('Comma-separated menu item IDs already added to the in-progress bundle.'),
-  "start_date": zod.iso.datetime({"offset":true}).optional(),
-  "end_date": zod.iso.datetime({"offset":true}).optional(),
-  "limit": zod.number().optional().describe('Max suggestions to return. Default 10.'),
-  "min_count": zod.number().optional().describe('Minimum number of orders an item must co-occur with the anchor set in\nto be suggested. Default 3.')
-})
-
-export const SuggestedComponentsResponseItem = zod.object({
-  "co_occurrence_count": zod.number().describe('Number of orders (across the anchor items\' order set) this item appeared in.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string()
-})
-export const SuggestedComponentsResponse = zod.array(SuggestedComponentsResponseItem)
-
-
-export const GetBundleParams = zod.object({
-  "id": zod.uuid().describe('Bundle ID')
-})
-
-export const GetBundleResponse = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-
-
-export const DeleteBundleParams = zod.object({
-  "id": zod.uuid().describe('Bundle ID')
-})
-
-export const DeleteBundleResponse = zod.unknown()
-
-
-export const UpdateBundleParams = zod.object({
-  "id": zod.uuid().describe('Bundle ID')
-})
-
-export const UpdateBundleBody = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish().describe('`null`  → clear the field (no start time restriction)\nomitted → keep the existing value\na value → set to that time'),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "branch_ids": zod.array(zod.uuid()).nullish(),
-  "components": zod.array(zod.object({
-  "item_id": zod.uuid(),
-  "position": zod.number().nullish(),
-  "quantity": zod.number()
-})).nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown().optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string().nullish(),
-  "name_translations": zod.unknown().optional(),
-  "price": zod.number().nullish()
-})
-
-export const UpdateBundleResponse = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-
-
-export const ActivateBundleParams = zod.object({
-  "id": zod.uuid().describe('Bundle ID')
-})
-
-export const ActivateBundleResponse = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-
-
-export const ArchiveBundleParams = zod.object({
-  "id": zod.uuid().describe('Bundle ID')
-})
-
-export const ArchiveBundleResponse = zod.object({
-  "available_from_date": zod.iso.date().nullish(),
-  "available_from_time": zod.string().nullish(),
-  "available_until_date": zod.iso.date().nullish(),
-  "available_until_time": zod.string().nullish(),
-  "created_at": zod.iso.datetime({"offset":true}),
-  "created_by": zod.uuid().nullish(),
-  "description": zod.string().nullish(),
-  "description_translations": zod.unknown(),
-  "id": zod.uuid(),
-  "image": zod.union([zod.null(),zod.union([zod.object({
-  "group_id": zod.uuid().nullish().describe('Always null while processing.'),
-  "job_id": zod.uuid(),
-  "status": zod.string().describe('`processing`')
-}),zod.object({
-  "group_id": zod.uuid(),
-  "has_alpha": zod.boolean(),
-  "height": zod.number().nullish(),
-  "label": zod.string().nullish(),
-  "variants": zod.object({
-  "animation": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "full": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "original": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "thumb": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional(),
-  "tile": zod.union([zod.null(),zod.object({
-  "bytes": zod.number(),
-  "content_hash": zod.string(),
-  "height": zod.number().nullish(),
-  "url": zod.string(),
-  "width": zod.number().nullish()
-})]).optional()
-}),
-  "width": zod.number().nullish()
-})]).describe('Asset refs (WebP variants, signed); absent when the bundle has no asset\ngroup. Additive: `image_url` keeps its legacy value.')]).optional(),
-  "image_url": zod.string().nullish(),
-  "name": zod.string(),
-  "name_translations": zod.unknown(),
-  "org_id": zod.uuid(),
-  "price": zod.number(),
-  "status": zod.enum(['draft', 'active', 'archived']),
-  "updated_at": zod.iso.datetime({"offset":true})
-}).and(zod.object({
-  "branch_ids": zod.array(zod.uuid()),
-  "components": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "id": zod.uuid(),
-  "item_cost": zod.number().describe('Cost of the component (at its base size) in piastres. When\n`item_cost_missing` is true this is a PARTIAL figure (unknown = 0 on the\nwire for old-client compat) — display it as unknown, not as money.'),
-  "item_cost_missing": zod.boolean().nullish().describe('True when the component\'s cost could not be fully resolved.'),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "item_price": zod.number(),
-  "position": zod.number(),
-  "quantity": zod.number()
-})),
-  "computed_cost": zod.number().describe('Sum of the KNOWN component costs × quantity, in piastres. When\n`cost_missing` is true this is a partial rollup (old-wire semantics) —\nrender it as unknown, never as 0.'),
-  "cost_missing": zod.boolean().nullish().describe('True when at least one component\'s cost is unknown.')
-}))
-
-
-export const BundlePerformanceParams = zod.object({
-  "id": zod.uuid()
-})
-
-export const BundlePerformanceQueryParams = zod.object({
-  "start_date": zod.iso.datetime({"offset":true}).optional(),
-  "end_date": zod.iso.datetime({"offset":true}).optional()
-})
-
-export const BundlePerformanceResponse = zod.object({
-  "component_popularity": zod.array(zod.object({
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "quantity_sold": zod.number()
-})),
-  "gross_revenue": zod.number(),
-  "net_profit": zod.number(),
-  "sales_volume": zod.number()
-})
-
-
 export const CatalogSyncQueryParams = zod.object({
   "branch_id": zod.uuid().describe('Branch whose resolved prices\/availability to return'),
   "channel": zod.string().optional().describe('delivery_channel: in_mall | outside | umbrella | pickup — omit for branch-only resolution (in-store POS)'),
@@ -3106,7 +2411,58 @@ export const CatalogSyncResponse = zod.object({
 }).describe('An org ingredient referenced by a returned option recipe.')).optional(),
   "items": zod.array(zod.object({
   "category_id": zod.uuid().nullish(),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "sell": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org\'s channel toggles, resolved for the requested branch.'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
   "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).describe('Only the windows for this branch or for every branch.')
+}).describe('A kind=combo row: its slots, windows and resolved channel toggles.')]).optional(),
+  "id": zod.uuid(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). Additive.'),
+  "meal": zod.union([zod.null(),zod.object({
+  "combo_id": zod.uuid(),
+  "slot_id": zod.uuid()
+}).describe('A kind=item row: its \"make it a meal\" upsell (C14).')]).optional(),
   "modifier_groups": zod.array(zod.object({
   "effect": zod.string().optional().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "group_id": zod.uuid(),
@@ -3123,6 +2479,9 @@ export const CatalogSyncResponse = zod.object({
   "is_available": zod.boolean().describe('Effective availability (branch_channel → branch → channel → TRUE).'),
   "is_default": zod.boolean().optional().describe('Explicit preselect for non-swap groups (e.g. \"White bread\"). Swap groups\nderive their default from the drink\'s recipe; this is always `false` there.'),
   "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional().describe('`{locale: name}`, as the dashboard authored it (`{}` when untranslated):\na till shows the option in its own language. Additive.'),
   "price": zod.number().describe('Effective price in piastres (branch_channel → branch → channel → catalog default).'),
   "recipe": zod.array(zod.object({
   "ingredient_id": zod.uuid(),
@@ -3443,6 +2802,449 @@ export const UpdateCategoryResponse = zod.object({
 })
 
 
+export const ListCombosQueryParams = zod.object({
+  "q": zod.string().optional().describe('Name search (EN or AR).'),
+  "category_id": zod.uuid().optional(),
+  "is_active": zod.boolean().optional(),
+  "page": zod.number().optional(),
+  "per_page": zod.number().optional()
+})
+
+export const ListCombosResponse = zod.object({
+  "data": zod.array(zod.object({
+  "available_now": zod.boolean().describe('Org-level: active, a window open now (org time zone), POS channel on.'),
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "is_fixed": zod.boolean(),
+  "margin_default": zod.string().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "price": zod.number(),
+  "slot_count": zod.number(),
+  "warning_count": zod.number(),
+  "window_count": zod.number()
+}).describe('One row of `GET \/combos`.')),
+  "page": zod.number(),
+  "per_page": zod.number(),
+  "total": zod.number(),
+  "total_pages": zod.number()
+})
+
+
+export const CreateComboBody = zod.object({
+  "category_id": zod.uuid().nullish(),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}).optional(),
+  "is_active": zod.boolean().optional(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "price": zod.number().describe('P, piastres: the combo\'s `one_size` price (its `base_price`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid().nullish().describe('The choice\'s id, to keep it on an edit; omit for a new choice.'),
+  "included_size_label": zod.string().nullish().describe('The size the combo price covers; `null` = the item\'s cheapest active size.'),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')).optional(),
+  "sort": zod.number().optional(),
+  "surcharge": zod.number().optional().describe('Per pick unit, piastres (C9 \"per-choice surcharge\").')
+}).describe('What a slot allows: exactly one of `menu_item_id` (an item) or\n`category_id` (every kind=item item of that category).')),
+  "default_item_id": zod.uuid().nullish().describe('Pre-selected on the till and used for unpicked replays; must be one of\nthe slot\'s choices (by id, or by its category).'),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('The slot\'s id, to keep it on an edit; omit for a new slot.'),
+  "max": zod.number().describe('Picks allowed (1–10, ≥ min).'),
+  "min": zod.number().describe('Picks required (0–10). 0 = optional slot.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "sort": zod.number().optional()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).optional()
+}).describe('`POST \/combos`, `PUT \/combos\/{id}`, `POST \/combos\/economics`.')
+
+export const CreateComboResponse = zod.object({
+  "available_now": zod.boolean().describe('Sellable right now on the till at the requested branch (or anywhere,\norg-level): active, the POS channel on, a window open, every required\nslot with an available choice.'),
+  "category_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}),
+  "economics": zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "cost_default": zod.number().nullish().describe('`null` when any cost involved is unknown.'),
+  "cost_max": zod.number().nullish(),
+  "list_default": zod.number().describe('À la carte value of the default picks at their included sizes.'),
+  "list_max": zod.number(),
+  "list_min": zod.number().describe('The cheapest and dearest valid pick sets, at their included sizes.'),
+  "margin_default": zod.string().nullish().describe('Fractions as strings (\"0.5933\"); `null` when the cost is unknown or P is 0.'),
+  "margin_worst": zod.string().nullish(),
+  "min_margin": zod.string().nullish(),
+  "price": zod.number().describe('P at this branch.'),
+  "saving_default": zod.number().describe('`list_default − price`.'),
+  "warnings": zod.array(zod.object({
+  "code": zod.string(),
+  "vars": zod.looseObject({
+
+}).optional()
+}).describe('A margin\/saving warning (C11). Never a refusal: a combo saves with any.\nCodes: `MARGIN_BELOW_MIN {margin, min}`, `NO_SAVING`,\n`COST_UNKNOWN {menu_item_id}`, `SLOT_EMPTY_NOW {slot_id}`,\n`CHOICE_INACTIVE {menu_item_id}`.'))
+}).describe('The editor\'s live panel: list value, cost, margin and saving of a combo at\na branch (or the org\'s catalogue prices when `branch_id` is null).'),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "is_fixed": zod.boolean().describe('C1\'s fixed bundle: every slot has exactly one item choice with min == max.'),
+  "kind": zod.string().describe('Always `combo`.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "price": zod.number().describe('P, piastres (the catalogue price; branch prices live in `\/menu\/pricing`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('`GET \/combos\/{id}`, `POST \/combos`, `PUT \/combos\/{id}`.')
+
+
+export const ComboEconomicsBody = zod.object({
+  "category_id": zod.uuid().nullish(),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}).optional(),
+  "is_active": zod.boolean().optional(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "price": zod.number().describe('P, piastres: the combo\'s `one_size` price (its `base_price`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid().nullish().describe('The choice\'s id, to keep it on an edit; omit for a new choice.'),
+  "included_size_label": zod.string().nullish().describe('The size the combo price covers; `null` = the item\'s cheapest active size.'),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')).optional(),
+  "sort": zod.number().optional(),
+  "surcharge": zod.number().optional().describe('Per pick unit, piastres (C9 \"per-choice surcharge\").')
+}).describe('What a slot allows: exactly one of `menu_item_id` (an item) or\n`category_id` (every kind=item item of that category).')),
+  "default_item_id": zod.uuid().nullish().describe('Pre-selected on the till and used for unpicked replays; must be one of\nthe slot\'s choices (by id, or by its category).'),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('The slot\'s id, to keep it on an edit; omit for a new slot.'),
+  "max": zod.number().describe('Picks allowed (1–10, ≥ min).'),
+  "min": zod.number().describe('Picks required (0–10). 0 = optional slot.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "sort": zod.number().optional()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).optional()
+}).describe('`POST \/combos`, `PUT \/combos\/{id}`, `POST \/combos\/economics`.').and(zod.object({
+  "branch_id": zod.uuid().nullish()
+})).describe('`POST \/combos\/economics`: a draft, priced for a branch (or the org).')
+
+export const ComboEconomicsResponse = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "cost_default": zod.number().nullish().describe('`null` when any cost involved is unknown.'),
+  "cost_max": zod.number().nullish(),
+  "list_default": zod.number().describe('À la carte value of the default picks at their included sizes.'),
+  "list_max": zod.number(),
+  "list_min": zod.number().describe('The cheapest and dearest valid pick sets, at their included sizes.'),
+  "margin_default": zod.string().nullish().describe('Fractions as strings (\"0.5933\"); `null` when the cost is unknown or P is 0.'),
+  "margin_worst": zod.string().nullish(),
+  "min_margin": zod.string().nullish(),
+  "price": zod.number().describe('P at this branch.'),
+  "saving_default": zod.number().describe('`list_default − price`.'),
+  "warnings": zod.array(zod.object({
+  "code": zod.string(),
+  "vars": zod.looseObject({
+
+}).optional()
+}).describe('A margin\/saving warning (C11). Never a refusal: a combo saves with any.\nCodes: `MARGIN_BELOW_MIN {margin, min}`, `NO_SAVING`,\n`COST_UNKNOWN {menu_item_id}`, `SLOT_EMPTY_NOW {slot_id}`,\n`CHOICE_INACTIVE {menu_item_id}`.'))
+}).describe('The editor\'s live panel: list value, cost, margin and saving of a combo at\na branch (or the org\'s catalogue prices when `branch_id` is null).')
+
+
+export const GetComboParams = zod.object({
+  "id": zod.uuid().describe('The combo\'s menu item id')
+})
+
+export const GetComboQueryParams = zod.object({
+  "branch_id": zod.uuid().optional().describe('Price the economics for this branch; omitted = the org\'s catalogue.')
+})
+
+export const GetComboResponse = zod.object({
+  "available_now": zod.boolean().describe('Sellable right now on the till at the requested branch (or anywhere,\norg-level): active, the POS channel on, a window open, every required\nslot with an available choice.'),
+  "category_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}),
+  "economics": zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "cost_default": zod.number().nullish().describe('`null` when any cost involved is unknown.'),
+  "cost_max": zod.number().nullish(),
+  "list_default": zod.number().describe('À la carte value of the default picks at their included sizes.'),
+  "list_max": zod.number(),
+  "list_min": zod.number().describe('The cheapest and dearest valid pick sets, at their included sizes.'),
+  "margin_default": zod.string().nullish().describe('Fractions as strings (\"0.5933\"); `null` when the cost is unknown or P is 0.'),
+  "margin_worst": zod.string().nullish(),
+  "min_margin": zod.string().nullish(),
+  "price": zod.number().describe('P at this branch.'),
+  "saving_default": zod.number().describe('`list_default − price`.'),
+  "warnings": zod.array(zod.object({
+  "code": zod.string(),
+  "vars": zod.looseObject({
+
+}).optional()
+}).describe('A margin\/saving warning (C11). Never a refusal: a combo saves with any.\nCodes: `MARGIN_BELOW_MIN {margin, min}`, `NO_SAVING`,\n`COST_UNKNOWN {menu_item_id}`, `SLOT_EMPTY_NOW {slot_id}`,\n`CHOICE_INACTIVE {menu_item_id}`.'))
+}).describe('The editor\'s live panel: list value, cost, margin and saving of a combo at\na branch (or the org\'s catalogue prices when `branch_id` is null).'),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "is_fixed": zod.boolean().describe('C1\'s fixed bundle: every slot has exactly one item choice with min == max.'),
+  "kind": zod.string().describe('Always `combo`.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "price": zod.number().describe('P, piastres (the catalogue price; branch prices live in `\/menu\/pricing`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('`GET \/combos\/{id}`, `POST \/combos`, `PUT \/combos\/{id}`.')
+
+
+export const UpdateComboParams = zod.object({
+  "id": zod.uuid().describe('The combo\'s menu item id')
+})
+
+export const UpdateComboBody = zod.object({
+  "category_id": zod.uuid().nullish(),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}).optional(),
+  "is_active": zod.boolean().optional(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "price": zod.number().describe('P, piastres: the combo\'s `one_size` price (its `base_price`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid().nullish().describe('The choice\'s id, to keep it on an edit; omit for a new choice.'),
+  "included_size_label": zod.string().nullish().describe('The size the combo price covers; `null` = the item\'s cheapest active size.'),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')).optional(),
+  "sort": zod.number().optional(),
+  "surcharge": zod.number().optional().describe('Per pick unit, piastres (C9 \"per-choice surcharge\").')
+}).describe('What a slot allows: exactly one of `menu_item_id` (an item) or\n`category_id` (every kind=item item of that category).')),
+  "default_item_id": zod.uuid().nullish().describe('Pre-selected on the till and used for unpicked replays; must be one of\nthe slot\'s choices (by id, or by its category).'),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('The slot\'s id, to keep it on an edit; omit for a new slot.'),
+  "max": zod.number().describe('Picks allowed (1–10, ≥ min).'),
+  "min": zod.number().describe('Picks required (0–10). 0 = optional slot.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "sort": zod.number().optional()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).optional()
+}).describe('`POST \/combos`, `PUT \/combos\/{id}`, `POST \/combos\/economics`.')
+
+export const UpdateComboResponse = zod.object({
+  "available_now": zod.boolean().describe('Sellable right now on the till at the requested branch (or anywhere,\norg-level): active, the POS channel on, a window open, every required\nslot with an available choice.'),
+  "category_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "description": zod.string().nullish(),
+  "description_translations": zod.looseObject({
+
+}),
+  "economics": zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "cost_default": zod.number().nullish().describe('`null` when any cost involved is unknown.'),
+  "cost_max": zod.number().nullish(),
+  "list_default": zod.number().describe('À la carte value of the default picks at their included sizes.'),
+  "list_max": zod.number(),
+  "list_min": zod.number().describe('The cheapest and dearest valid pick sets, at their included sizes.'),
+  "margin_default": zod.string().nullish().describe('Fractions as strings (\"0.5933\"); `null` when the cost is unknown or P is 0.'),
+  "margin_worst": zod.string().nullish(),
+  "min_margin": zod.string().nullish(),
+  "price": zod.number().describe('P at this branch.'),
+  "saving_default": zod.number().describe('`list_default − price`.'),
+  "warnings": zod.array(zod.object({
+  "code": zod.string(),
+  "vars": zod.looseObject({
+
+}).optional()
+}).describe('A margin\/saving warning (C11). Never a refusal: a combo saves with any.\nCodes: `MARGIN_BELOW_MIN {margin, min}`, `NO_SAVING`,\n`COST_UNKNOWN {menu_item_id}`, `SLOT_EMPTY_NOW {slot_id}`,\n`CHOICE_INACTIVE {menu_item_id}`.'))
+}).describe('The editor\'s live panel: list value, cost, margin and saving of a combo at\na branch (or the org\'s catalogue prices when `branch_id` is null).'),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "is_active": zod.boolean(),
+  "is_fixed": zod.boolean().describe('C1\'s fixed bundle: every slot has exactly one item choice with min == max.'),
+  "kind": zod.string().describe('Always `combo`.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "price": zod.number().describe('P, piastres (the catalogue price; branch prices live in `\/menu\/pricing`).'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('`GET \/combos\/{id}`, `POST \/combos`, `PUT \/combos\/{id}`.')
+
+
 export const ListAddonCostsQueryParams = zod.object({
   "org_id": zod.uuid(),
   "branch_id": zod.uuid().nullish().describe('Optional: resolve costs at this branch\'s actual cost (falling back to the\norg default per ingredient). Omit for the org default \/ standard cost.')
@@ -3534,6 +3336,7 @@ export const ListMenuCatalogResponse = zod.object({
 })]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). A combo\'s price is its `one_size`\nrow like any item; its slots are on `GET \/combos\/{id}`. Additive.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -3864,6 +3667,254 @@ export const MergeCustomerResponse = zod.object({
 })),
   "resolved_from": zod.uuid().nullish().describe('Set when the id asked for was merged: the id that was asked for.')
 })
+
+
+export const ListDealsQueryParams = zod.object({
+  "is_active": zod.boolean().optional()
+})
+
+export const ListDealsResponseItem = zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "is_active": zod.boolean()
+})),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "get_percent": zod.number().nullish(),
+  "get_qty": zod.number().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price: the price of `qty` units, piastres.'),
+  "qty": zod.number(),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).describe('buy_get only; `[]` = the rewarded units come from `pool`.'),
+  "sell": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('Feed rows only: the branch\'s channel toggles (§11.1). Absent elsewhere.')]).optional(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('A deal rule. `n_for_price`: any `qty` units of the pool for `price`.\n`buy_get`: buy `qty`, get `get_qty` at `get_percent`% off (100 = free),\nthe rewarded units drawn from `reward_pool` (or the pool when empty).\nA deal covers the item\'s size price only; add-ons always pay.\n\nAlso the `deal_rule` feed row of `\/sync\/pull`, where `is_active` is\nresolved for the device\'s branch and `sell` carries the branch\'s channel\ntoggles.')
+export const ListDealsResponse = zod.array(ListDealsResponseItem)
+
+
+export const CreateDealBody = zod.object({
+  "get_percent": zod.number().nullish().describe('buy_get only (1–100; 100 = free).'),
+  "get_qty": zod.number().nullish().describe('buy_get only (1–20).'),
+  "is_active": zod.boolean().optional(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price only.'),
+  "qty": zod.number().describe('N (n_for_price, 2–20) or the \"buy\" count (buy_get, 1–20).'),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).optional(),
+  "sort": zod.number().optional(),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).optional()
+}).describe('`POST \/deals`, `PUT \/deals\/{id}`.')
+
+export const CreateDealResponse = zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "is_active": zod.boolean()
+})),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "get_percent": zod.number().nullish(),
+  "get_qty": zod.number().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price: the price of `qty` units, piastres.'),
+  "qty": zod.number(),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).describe('buy_get only; `[]` = the rewarded units come from `pool`.'),
+  "sell": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('Feed rows only: the branch\'s channel toggles (§11.1). Absent elsewhere.')]).optional(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('A deal rule. `n_for_price`: any `qty` units of the pool for `price`.\n`buy_get`: buy `qty`, get `get_qty` at `get_percent`% off (100 = free),\nthe rewarded units drawn from `reward_pool` (or the pool when empty).\nA deal covers the item\'s size price only; add-ons always pay.\n\nAlso the `deal_rule` feed row of `\/sync\/pull`, where `is_active` is\nresolved for the device\'s branch and `sell` carries the branch\'s channel\ntoggles.')
+
+
+export const UpdateDealParams = zod.object({
+  "id": zod.uuid().describe('Deal rule ID')
+})
+
+export const UpdateDealBody = zod.object({
+  "get_percent": zod.number().nullish().describe('buy_get only (1–100; 100 = free).'),
+  "get_qty": zod.number().nullish().describe('buy_get only (1–20).'),
+  "is_active": zod.boolean().optional(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price only.'),
+  "qty": zod.number().describe('N (n_for_price, 2–20) or the \"buy\" count (buy_get, 1–20).'),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).optional(),
+  "sort": zod.number().optional(),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).optional()
+}).describe('`POST \/deals`, `PUT \/deals\/{id}`.')
+
+export const UpdateDealResponse = zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "is_active": zod.boolean()
+})),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "get_percent": zod.number().nullish(),
+  "get_qty": zod.number().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price: the price of `qty` units, piastres.'),
+  "qty": zod.number(),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).describe('buy_get only; `[]` = the rewarded units come from `pool`.'),
+  "sell": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('Feed rows only: the branch\'s channel toggles (§11.1). Absent elsewhere.')]).optional(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('A deal rule. `n_for_price`: any `qty` units of the pool for `price`.\n`buy_get`: buy `qty`, get `get_qty` at `get_percent`% off (100 = free),\nthe rewarded units drawn from `reward_pool` (or the pool when empty).\nA deal covers the item\'s size price only; add-ons always pay.\n\nAlso the `deal_rule` feed row of `\/sync\/pull`, where `is_active` is\nresolved for the device\'s branch and `sell` carries the branch\'s channel\ntoggles.')
+
+
+export const DeleteDealParams = zod.object({
+  "id": zod.uuid().describe('Deal rule ID')
+})
+
+export const DeleteDealResponse = zod.void()
+
+
+export const PutDealBranchParams = zod.object({
+  "id": zod.uuid().describe('Deal rule ID'),
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const PutDealBranchBody = zod.object({
+  "is_active": zod.boolean()
+}).describe('`PUT \/deals\/{id}\/branches\/{branch_id}`.')
+
+export const PutDealBranchResponse = zod.void()
+
+
+export const DeleteDealBranchParams = zod.object({
+  "id": zod.uuid().describe('Deal rule ID'),
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const DeleteDealBranchResponse = zod.void()
 
 
 export const ListDeliveryOrdersQueryParams = zod.object({
@@ -7173,6 +7224,16 @@ export const GetLoyaltyWalletStatusResponse = zod.object({
 })
 
 
+/**
+ * @summary One JSON-RPC message in, one answer out (a notification gets 202 and no body).
+ */
+export const McpBody = zod.looseObject({
+
+})
+
+export const McpResponse = zod.unknown()
+
+
 export const PutSizeBaseParams = zod.object({
   "size_id": zod.uuid().describe('menu_item_sizes ID')
 })
@@ -7287,6 +7348,7 @@ export const ListMenuItemsResponseItem = zod.object({
 })]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). A combo\'s price is its `one_size`\nrow like any item; its slots are on `GET \/combos\/{id}`. Additive.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -7373,6 +7435,7 @@ export const CreateMenuItemResponse = zod.object({
 })]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). A combo\'s price is its `one_size`\nrow like any item; its slots are on `GET \/combos\/{id}`. Additive.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -7401,6 +7464,56 @@ export const CreateMenuItemResponse = zod.object({
   "price_override": zod.number()
 })).optional().describe('Every size row, INCLUDING the synthetic `one_size` one. Additive: this is\nwhere price actually lives, and it is what the dashboard\'s size editor\nand new POS builds read. An item always has at least one entry.'),
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist. Empty = no restriction (use org catalog).'),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "sell": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org\'s channel toggles, resolved for the requested branch.'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).describe('Only the windows for this branch or for every branch.')
+}).describe('A kind=combo row: its slots, windows and channel toggles for the\nrequested branch; `null` for an item. Combo rows are served only to a\nclient that can sell them (a browser, POS ≥ 0.9.0, the KDS).')]).optional(),
+  "meal": zod.union([zod.null(),zod.object({
+  "combo_id": zod.uuid(),
+  "slot_id": zod.uuid()
+}).describe('A kind=item row: its \"make it a meal\" upsell (C14), or `null`.')]).optional(),
   "optional_fields": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
@@ -7517,6 +7630,7 @@ export const GetMenuItemResponse = zod.object({
 })]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). A combo\'s price is its `one_size`\nrow like any item; its slots are on `GET \/combos\/{id}`. Additive.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -7545,6 +7659,56 @@ export const GetMenuItemResponse = zod.object({
   "price_override": zod.number()
 })).optional().describe('Every size row, INCLUDING the synthetic `one_size` one. Additive: this is\nwhere price actually lives, and it is what the dashboard\'s size editor\nand new POS builds read. An item always has at least one entry.'),
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist. Empty = no restriction (use org catalog).'),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "sell": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org\'s channel toggles, resolved for the requested branch.'),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "id": zod.uuid(),
+  "included_size_label": zod.string().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string().optional().describe('The item\'s or the category\'s name (display only).'),
+  "name_translations": zod.looseObject({
+
+}).optional(),
+  "size_surcharges": zod.array(zod.object({
+  "size_label": zod.string(),
+  "surcharge": zod.number()
+}).describe('C9: an owner-set surcharge for picking this size instead of the included\none. Without a row, a bigger size costs its usual price difference.')),
+  "sort": zod.number(),
+  "surcharge": zod.number()
+}).describe('A choice as stored, with its target\'s display name.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+})),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.')).describe('Only the windows for this branch or for every branch.')
+}).describe('A kind=combo row: its slots, windows and channel toggles for the\nrequested branch; `null` for an item. Combo rows are served only to a\nclient that can sell them (a browser, POS ≥ 0.9.0, the KDS).')]).optional(),
+  "meal": zod.union([zod.null(),zod.object({
+  "combo_id": zod.uuid(),
+  "slot_id": zod.uuid()
+}).describe('A kind=item row: its \"make it a meal\" upsell (C14), or `null`.')]).optional(),
   "optional_fields": zod.array(zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "id": zod.uuid(),
@@ -7683,6 +7847,7 @@ export const UpdateMenuItemResponse = zod.object({
 })]).describe('Asset refs (Track B4, §11.10); null when no asset or not attached by this endpoint.')]).optional(),
   "image_url": zod.string().nullish(),
   "is_active": zod.boolean(),
+  "kind": zod.string().optional().describe('`item` | `combo` (combos module). A combo\'s price is its `one_size`\nrow like any item; its slots are on `GET \/combos\/{id}`. Additive.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -7936,7 +8101,7 @@ export const DuplicateItemResponse = zod.object({
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
-}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+}).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
   "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
@@ -7971,12 +8136,20 @@ export const DuplicateItemResponse = zod.object({
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
-}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
-  "used_in_bundles": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "name": zod.string()
-}))
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
+
+
+export const PutMealParams = zod.object({
+  "id": zod.uuid().describe('A kind=item menu item')
+})
+
+export const PutMealBody = zod.object({
+  "combo_id": zod.uuid().nullish(),
+  "slot_id": zod.uuid().nullish()
+}).describe('`PUT \/menu-items\/{id}\/meal`. Both set = link; both `null` (or a JSON\n`null` body) = unlink.')
+
+export const PutMealResponse = zod.void()
 
 
 export const PutModifierGroupsParams = zod.object({
@@ -7991,7 +8164,7 @@ export const PutModifierGroupsBody = zod.object({
   "max_override": zod.number().nullish(),
   "min_override": zod.number().nullish(),
   "sort": zod.number().optional()
-}))
+})).nullish().describe('The item\'s full set of reusable groups, in order. `[]` detaches every\ngroup (the item then offers none). Omitted or `null` changes nothing,\nso a partial update or an older client never detaches by accident.\nThe item\'s own priced options are not in this set: they belong to\n`PUT \/menu-items\/{id}\/options`.')
 })
 
 export const PutModifierGroupsResponse = zod.object({
@@ -8121,7 +8294,7 @@ export const PutModifierGroupsResponse = zod.object({
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
-}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+}).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
   "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
@@ -8156,11 +8329,7 @@ export const PutModifierGroupsResponse = zod.object({
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
-}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
-  "used_in_bundles": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "name": zod.string()
-}))
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
 
 
@@ -8306,7 +8475,7 @@ export const PutItemOptionsResponseItem = zod.object({
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
-}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')
+}).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')
 export const PutItemOptionsResponse = zod.array(PutItemOptionsResponseItem)
 
 
@@ -8590,7 +8759,7 @@ export const PutSizesResponse = zod.object({
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
-}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+}).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
   "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
@@ -8625,11 +8794,7 @@ export const PutSizesResponse = zod.object({
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
-}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
-  "used_in_bundles": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "name": zod.string()
-}))
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
 
 
@@ -8790,7 +8955,7 @@ export const GetStudioResponse = zod.object({
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
-}).describe('A priced optional — a member of the item-private `Options` group\n(a modifier_group with `legacy_addon_type IS NULL` owned by this item).')),
+}).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
   "recipe_source_item_id": zod.uuid().nullish().describe('The item this one\'s recipe follows (linked copy), or `null`.'),
   "recipe_steps": zod.array(zod.object({
@@ -8825,11 +8990,7 @@ export const GetStudioResponse = zod.object({
   "unit": zod.string()
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
-}).describe('A size (menu_item_sizes row) with its recipe and live cost.')),
-  "used_in_bundles": zod.array(zod.object({
-  "bundle_id": zod.uuid(),
-  "name": zod.string()
-}))
+}).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
 }).describe('The full item aggregate the one-page Menu Studio editor renders.')
 
 
@@ -9035,6 +9196,7 @@ export const ListGroupsResponseItem = zod.object({
   "effect": zod.string().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "is_item_options": zod.boolean().optional().describe('An item\'s own priced Options group (what `PUT \/menu-items\/{id}\/options`\nedits), not a reusable group: never offered for attaching to an item.'),
   "is_required": zod.boolean(),
   "legacy_addon_type": zod.string().nullish(),
   "max_selections": zod.number().nullish(),
@@ -9084,6 +9246,7 @@ export const CreateGroupResponse = zod.object({
   "effect": zod.string().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "is_item_options": zod.boolean().optional().describe('An item\'s own priced Options group (what `PUT \/menu-items\/{id}\/options`\nedits), not a reusable group: never offered for attaching to an item.'),
   "is_required": zod.boolean(),
   "legacy_addon_type": zod.string().nullish(),
   "max_selections": zod.number().nullish(),
@@ -9144,6 +9307,7 @@ export const PatchGroupResponse = zod.object({
   "effect": zod.string().describe('What choosing does: `none` | `adds` | `swaps`.'),
   "id": zod.uuid(),
   "is_active": zod.boolean(),
+  "is_item_options": zod.boolean().optional().describe('An item\'s own priced Options group (what `PUT \/menu-items\/{id}\/options`\nedits), not a reusable group: never offered for attaching to an item.'),
   "is_required": zod.boolean(),
   "legacy_addon_type": zod.string().nullish(),
   "max_selections": zod.number().nullish(),
@@ -9371,20 +9535,25 @@ export const CreateOpenTicketBody = zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "bundle_components": zod.array(zod.object({
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "item_id": zod.uuid(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
-  "bundle_id": zod.uuid().nullish(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -9395,7 +9564,7 @@ export const CreateOpenTicketBody = zod.object({
   "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
   "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
   "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
-}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })).describe('Client-priced items (same shape as a POS order line) — recorded verbatim.'),
   "notes": zod.string().nullish(),
@@ -9594,20 +9763,25 @@ export const AddRoundBody = zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "bundle_components": zod.array(zod.object({
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "item_id": zod.uuid(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
-  "bundle_id": zod.uuid().nullish(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -9618,7 +9792,7 @@ export const AddRoundBody = zod.object({
   "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
   "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
   "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
-}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 }))
 })
@@ -9916,6 +10090,12 @@ export const VoidOpenTicketResponse = zod.object({
 })
 
 
+/**
+ * @summary The public part of this API as OpenAPI 3.1.
+ */
+export const PublicOpenapiResponse = zod.unknown()
+
+
 export const ListOrdersQueryParams = zod.object({
   "branch_id": zod.uuid().optional(),
   "till_id": zod.uuid().optional(),
@@ -9930,8 +10110,8 @@ export const ListOrdersQueryParams = zod.object({
   "to": zod.iso.datetime({"offset":true}).optional(),
   "order_type": zod.string().optional().describe('Filter by order origin: \"dine_in\" or \"delivery\".'),
   "channel": zod.string().optional().describe('Filter delivery orders by channel: \"in_mall\" or \"outside\".'),
-  "include_items": zod.boolean().optional().describe('When true, each order in `data` embeds its full line items\n(addons\/optionals\/bundle components) — the response shape becomes\n[PaginatedOrdersFull]. Lets offline-first clients cache complete\norders in one round trip instead of fetching each order separately.'),
-  "exclude_items": zod.string().optional().describe('Comma-separated menu_item\/bundle UUIDs left out of the summary\'s\n`line_items` count (units sold) — e.g. water bottles or service\npseudo-items that inflate it. Affects ONLY that KPI: revenue, order\ncounts, and the order rows themselves are untouched.')
+  "include_items": zod.boolean().optional().describe('When true, each order in `data` embeds its full line items\n(addons\/optionals) — the response shape becomes\n[PaginatedOrdersFull]. Lets offline-first clients cache complete\norders in one round trip instead of fetching each order separately.'),
+  "exclude_items": zod.string().optional().describe('Comma-separated menu_item UUIDs left out of the summary\'s\n`line_items` count (units sold) — e.g. water bottles or service\npseudo-items that inflate it. Affects ONLY that KPI: revenue, order\ncounts, and the order rows themselves are untouched.')
 })
 
 export const ListOrdersResponse = zod.object({
@@ -10043,6 +10223,15 @@ export const CreateOrderBody = zod.object({
   "created_at": zod.iso.datetime({"offset":true}).nullish(),
   "customer_id": zod.uuid().nullish().describe('A manual customer (phase 6), attached when the actor holds\n`customers.attach`. A merged id resolves; an unknown one is ignored —\na sale is never refused over its customer.'),
   "customer_name": zod.string().nullish(),
+  "deals": zod.array(zod.object({
+  "deal_rule_id": zod.uuid(),
+  "discount": zod.number().nullish().describe('Replay only: what the till took off, piastres.'),
+  "lines": zod.array(zod.object({
+  "line_index": zod.number().describe('Index into the order\'s `items[]`.'),
+  "units": zod.number()
+}).describe('Units of one order line a deal takes.')),
+  "times": zod.number()
+}).describe('An applied deal on an order (the till\'s teller applied it). Live, the\nserver re-prices it exactly over these units (`409 DEAL_NOT_ELIGIBLE` when\nthey don\'t satisfy the rule; `orders.deals.apply` required). On replay the\ntill\'s `discount` is kept and the server\'s verdict stored beside it.')).optional().describe('Deals the teller applied (combos module, C8). Each names order lines\nby index and the units it takes. Needs `orders.deals.apply`. Additive.'),
   "device_code": zod.string().nullish().describe('The device\'s code; with `device_id` + `order_number` the number is stored verbatim.'),
   "device_id": zod.uuid().nullish().describe('The device ringing the order (else `X-Madar-Device`).'),
   "discount_amount": zod.number().nullish(),
@@ -10058,20 +10247,25 @@ export const CreateOrderBody = zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "bundle_components": zod.array(zod.object({
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "item_id": zod.uuid(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
-  "bundle_id": zod.uuid().nullish(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -10082,7 +10276,7 @@ export const CreateOrderBody = zod.object({
   "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
   "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
   "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
-}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })),
   "live_approval": zod.union([zod.null(),zod.object({
@@ -10192,6 +10386,22 @@ export const CreateOrderResponse = zod.object({
   "waiter_id": zod.uuid().nullish().describe('The WAITER who opened this order\'s ticket (`open_tickets.opened_by`),\nstamped server-side at settle time. `null` for direct teller sales and\ndelivery orders (they never pass through a waiter\'s ticket).'),
   "waiter_name": zod.string().nullish()
 }).and(zod.object({
+  "deals": zod.array(zod.object({
+  "deal_rule_id": zod.uuid(),
+  "discount": zod.number().describe('What came off the lines (the till\'s figure on a replay).'),
+  "discount_server": zod.number().nullish().describe('The server\'s verdict; equals `discount` live; `null` when not computable.'),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "discount": zod.number(),
+  "order_item_id": zod.uuid(),
+  "units": zod.number()
+})),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "times": zod.number()
+}).describe('An applied deal as stored: `OrderFull.deals[]`.')).optional().describe('The deals applied to this sale (combos module). Additive.'),
   "delivery": zod.union([zod.null(),zod.object({
   "address_line": zod.string().nullish(),
   "channel": zod.string().describe('\"in_mall\" or \"outside\".'),
@@ -10207,14 +10417,23 @@ export const CreateOrderResponse = zod.object({
   "zone_name": zod.string().nullish().describe('Name of the matched delivery zone ring, when an outside order matched one.')
 }).describe('Delivery context (customer phone, address, channel, zone), populated\nonly on the single-order detail endpoint and only when the order\noriginated from a delivery order. `null`\/absent for dine-in orders.')]).optional(),
   "items": zod.array(zod.object({
-  "bundle_id": zod.uuid().nullish(),
-  "bundle_unit_price": zod.number().nullish(),
+  "combo_line_id": zod.uuid().nullish().describe('A part: its header\'s `id`.'),
+  "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
+  "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
+  "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_slot_name_translations": zod.looseObject({
+
+}).optional().describe('A part: the slot\'s names by language at the sale (`{\"ar\": \"مشروب\"}`),\nbeside `combo_slot_name` as `name_translations` is beside `item_name`.\n`{}` on any other line, and on a part whose slot had none; a reader\nfalls back to `combo_slot_name`. Additive.'),
+  "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
+  "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
+  "deal_minor": zod.number().optional().describe('A plain line: what an applied deal took off it, already out of\n`line_total` (print it as a line discount, never subtract it again).'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
   "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
-  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
+  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals).\n`null` ⟺ unknown.'),
+  "line_kind": zod.string().optional().describe('Combos (additive). `item` = a plain line; `combo` = a combo\'s HEADER\n(its `menu_item_id` is the combo; it carries no money: `unit_price` and\n`line_total` are 0, P is in `combo_unit_price`); `combo_part` = one\nchosen item of a combo, a real line of that item whose `line_total` is\n`combo_share + combo_surcharge` and whose `unit_price` stays the item\'s\nnormal price at its size. Lines come header first, then its parts in\nslot order.'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
   "name_translations": zod.looseObject({
@@ -10228,7 +10447,7 @@ export const CreateOrderResponse = zod.object({
   "size_label": zod.string().nullish(),
   "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
   "staff_drink_id": zod.uuid().nullish().describe('The `staff_drinks` row this line is (`GET \/staff-pool\/drinks`).'),
-  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
+  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown.'),
   "unit_price": zod.number()
 }).and(zod.object({
   "addons": zod.array(zod.object({
@@ -10245,39 +10464,6 @@ export const CreateOrderResponse = zod.object({
   "staff_comp_minor": zod.number().optional().describe('The part of a staff drink\'s comp this pick absorbed (whole line), already\ntaken off `line_total`. 0 everywhere else.'),
   "unit_price": zod.number()
 })),
-  "bundle_components": zod.array(zod.object({
-  "addons": zod.array(zod.object({
-  "addon_item_id": zod.uuid(),
-  "addon_name": zod.string(),
-  "component_item_id": zod.uuid(),
-  "id": zod.uuid(),
-  "line_total": zod.number(),
-  "name_translations": zod.looseObject({
-
-}),
-  "order_line_id": zod.uuid(),
-  "quantity": zod.number(),
-  "unit_price": zod.number()
-})),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optionals": zod.array(zod.object({
-  "component_item_id": zod.uuid(),
-  "field_name": zod.string(),
-  "id": zod.uuid(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optional_field_id": zod.uuid().nullish(),
-  "order_line_id": zod.uuid(),
-  "price": zod.number()
-})),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
   "optionals": zod.array(zod.object({
   "cost": zod.number().nullish().describe('Ingredient cost per parent-item unit in piastres. `null` ⟺ unknown or\nno ingredient linked.'),
   "field_name": zod.string(),
@@ -10385,14 +10571,23 @@ export const ExportOrdersResponse = zod.object({
   "waiter_name": zod.string().nullish()
 }).and(zod.object({
   "items": zod.array(zod.object({
-  "bundle_id": zod.uuid().nullish(),
-  "bundle_unit_price": zod.number().nullish(),
+  "combo_line_id": zod.uuid().nullish().describe('A part: its header\'s `id`.'),
+  "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
+  "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
+  "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_slot_name_translations": zod.looseObject({
+
+}).optional().describe('A part: the slot\'s names by language at the sale (`{\"ar\": \"مشروب\"}`),\nbeside `combo_slot_name` as `name_translations` is beside `item_name`.\n`{}` on any other line, and on a part whose slot had none; a reader\nfalls back to `combo_slot_name`. Additive.'),
+  "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
+  "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
+  "deal_minor": zod.number().optional().describe('A plain line: what an applied deal took off it, already out of\n`line_total` (print it as a line discount, never subtract it again).'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
   "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
-  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
+  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals).\n`null` ⟺ unknown.'),
+  "line_kind": zod.string().optional().describe('Combos (additive). `item` = a plain line; `combo` = a combo\'s HEADER\n(its `menu_item_id` is the combo; it carries no money: `unit_price` and\n`line_total` are 0, P is in `combo_unit_price`); `combo_part` = one\nchosen item of a combo, a real line of that item whose `line_total` is\n`combo_share + combo_surcharge` and whose `unit_price` stays the item\'s\nnormal price at its size. Lines come header first, then its parts in\nslot order.'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
   "name_translations": zod.looseObject({
@@ -10406,7 +10601,7 @@ export const ExportOrdersResponse = zod.object({
   "size_label": zod.string().nullish(),
   "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
   "staff_drink_id": zod.uuid().nullish().describe('The `staff_drinks` row this line is (`GET \/staff-pool\/drinks`).'),
-  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
+  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown.'),
   "unit_price": zod.number()
 }).and(zod.object({
   "addons": zod.array(zod.object({
@@ -10423,39 +10618,6 @@ export const ExportOrdersResponse = zod.object({
   "staff_comp_minor": zod.number().optional().describe('The part of a staff drink\'s comp this pick absorbed (whole line), already\ntaken off `line_total`. 0 everywhere else.'),
   "unit_price": zod.number()
 })),
-  "bundle_components": zod.array(zod.object({
-  "addons": zod.array(zod.object({
-  "addon_item_id": zod.uuid(),
-  "addon_name": zod.string(),
-  "component_item_id": zod.uuid(),
-  "id": zod.uuid(),
-  "line_total": zod.number(),
-  "name_translations": zod.looseObject({
-
-}),
-  "order_line_id": zod.uuid(),
-  "quantity": zod.number(),
-  "unit_price": zod.number()
-})),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optionals": zod.array(zod.object({
-  "component_item_id": zod.uuid(),
-  "field_name": zod.string(),
-  "id": zod.uuid(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optional_field_id": zod.uuid().nullish(),
-  "order_line_id": zod.uuid(),
-  "price": zod.number()
-})),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
   "optionals": zod.array(zod.object({
   "cost": zod.number().nullish().describe('Ingredient cost per parent-item unit in piastres. `null` ⟺ unknown or\nno ingredient linked.'),
   "field_name": zod.string(),
@@ -10601,6 +10763,22 @@ export const GetOrderResponse = zod.object({
   "waiter_id": zod.uuid().nullish().describe('The WAITER who opened this order\'s ticket (`open_tickets.opened_by`),\nstamped server-side at settle time. `null` for direct teller sales and\ndelivery orders (they never pass through a waiter\'s ticket).'),
   "waiter_name": zod.string().nullish()
 }).and(zod.object({
+  "deals": zod.array(zod.object({
+  "deal_rule_id": zod.uuid(),
+  "discount": zod.number().describe('What came off the lines (the till\'s figure on a replay).'),
+  "discount_server": zod.number().nullish().describe('The server\'s verdict; equals `discount` live; `null` when not computable.'),
+  "id": zod.uuid(),
+  "lines": zod.array(zod.object({
+  "discount": zod.number(),
+  "order_item_id": zod.uuid(),
+  "units": zod.number()
+})),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "times": zod.number()
+}).describe('An applied deal as stored: `OrderFull.deals[]`.')).optional().describe('The deals applied to this sale (combos module). Additive.'),
   "delivery": zod.union([zod.null(),zod.object({
   "address_line": zod.string().nullish(),
   "channel": zod.string().describe('\"in_mall\" or \"outside\".'),
@@ -10616,14 +10794,23 @@ export const GetOrderResponse = zod.object({
   "zone_name": zod.string().nullish().describe('Name of the matched delivery zone ring, when an outside order matched one.')
 }).describe('Delivery context (customer phone, address, channel, zone), populated\nonly on the single-order detail endpoint and only when the order\noriginated from a delivery order. `null`\/absent for dine-in orders.')]).optional(),
   "items": zod.array(zod.object({
-  "bundle_id": zod.uuid().nullish(),
-  "bundle_unit_price": zod.number().nullish(),
+  "combo_line_id": zod.uuid().nullish().describe('A part: its header\'s `id`.'),
+  "combo_share": zod.number().optional().describe('A part: its share of the combo price, whole line.'),
+  "combo_slot_id": zod.uuid().nullish().describe('A part: the slot it filled (soft: the slot may be gone since).'),
+  "combo_slot_name": zod.string().nullish().describe('A part: the slot\'s name at the sale.'),
+  "combo_slot_name_translations": zod.looseObject({
+
+}).optional().describe('A part: the slot\'s names by language at the sale (`{\"ar\": \"مشروب\"}`),\nbeside `combo_slot_name` as `name_translations` is beside `item_name`.\n`{}` on any other line, and on a part whose slot had none; a reader\nfalls back to `combo_slot_name`. Additive.'),
+  "combo_surcharge": zod.number().optional().describe('A part: its choice and size surcharges, whole line.'),
+  "combo_unit_price": zod.number().nullish().describe('A header: P per combo unit, as charged.'),
   "cost_missing": zod.boolean().describe('True when any cost component could not be resolved.'),
+  "deal_minor": zod.number().optional().describe('A plain line: what an applied deal took off it, already out of\n`line_total` (print it as a line discount, never subtract it again).'),
   "deductions_snapshot": zod.unknown(),
   "id": zod.uuid(),
   "is_reward": zod.boolean().optional().describe('A loyalty reward paid for some or all of this line. The receipt and the\nkitchen say \"Reward\" beside it.'),
   "item_name": zod.string(),
-  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals + components).\n`null` ⟺ unknown.'),
+  "line_cost": zod.number().nullish().describe('Full line COGS in piastres (recipe + addons + optionals).\n`null` ⟺ unknown.'),
+  "line_kind": zod.string().optional().describe('Combos (additive). `item` = a plain line; `combo` = a combo\'s HEADER\n(its `menu_item_id` is the combo; it carries no money: `unit_price` and\n`line_total` are 0, P is in `combo_unit_price`); `combo_part` = one\nchosen item of a combo, a real line of that item whose `line_total` is\n`combo_share + combo_surcharge` and whose `unit_price` stays the item\'s\nnormal price at its size. Lines come header first, then its parts in\nslot order.'),
   "line_total": zod.number(),
   "menu_item_id": zod.uuid().nullish(),
   "name_translations": zod.looseObject({
@@ -10637,7 +10824,7 @@ export const GetOrderResponse = zod.object({
   "size_label": zod.string().nullish(),
   "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
   "staff_drink_id": zod.uuid().nullish().describe('The `staff_drinks` row this line is (`GET \/staff-pool\/drinks`).'),
-  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown\nor bundle line.'),
+  "unit_cost": zod.number().nullish().describe('Recipe-only cost per unit in piastres (incl. swaps). `null` ⟺ unknown.'),
   "unit_price": zod.number()
 }).and(zod.object({
   "addons": zod.array(zod.object({
@@ -10654,39 +10841,6 @@ export const GetOrderResponse = zod.object({
   "staff_comp_minor": zod.number().optional().describe('The part of a staff drink\'s comp this pick absorbed (whole line), already\ntaken off `line_total`. 0 everywhere else.'),
   "unit_price": zod.number()
 })),
-  "bundle_components": zod.array(zod.object({
-  "addons": zod.array(zod.object({
-  "addon_item_id": zod.uuid(),
-  "addon_name": zod.string(),
-  "component_item_id": zod.uuid(),
-  "id": zod.uuid(),
-  "line_total": zod.number(),
-  "name_translations": zod.looseObject({
-
-}),
-  "order_line_id": zod.uuid(),
-  "quantity": zod.number(),
-  "unit_price": zod.number()
-})),
-  "item_id": zod.uuid(),
-  "item_name": zod.string(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optionals": zod.array(zod.object({
-  "component_item_id": zod.uuid(),
-  "field_name": zod.string(),
-  "id": zod.uuid(),
-  "name_translations": zod.looseObject({
-
-}),
-  "optional_field_id": zod.uuid().nullish(),
-  "order_line_id": zod.uuid(),
-  "price": zod.number()
-})),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
   "optionals": zod.array(zod.object({
   "cost": zod.number().nullish().describe('Ingredient cost per parent-item unit in piastres. `null` ⟺ unknown or\nno ingredient linked.'),
   "field_name": zod.string(),
@@ -11102,6 +11256,154 @@ export const UploadOrgCardImageResponse = zod.object({
   "tax_rate": zod.number().describe('Tax rate as a decimal (e.g. `0.14` for 14% VAT).\nStored as `BigDecimal` internally; transmitted as a JSON number.'),
   "timezone": zod.string().describe('IANA timezone name. The org-level default that branches inherit when\ntheir own timezone is unset. Defaults to `Africa\/Cairo`.')
 })
+
+
+/**
+ * @summary The links page, as the editor sees it.
+ */
+export const GetLinksPageParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const GetLinksPageResponse = zod.object({
+  "branches": zod.array(zod.object({
+  "address": zod.string().nullish(),
+  "id": zod.uuid(),
+  "maps_url": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "visible": zod.boolean()
+}).describe('A branch, as the editor lists it.')).describe('Every active branch, with its settings.'),
+  "card_image_url": zod.string().nullish().describe('The shop\'s card image, which the page uses as its cover.'),
+  "custom_branding": zod.boolean().describe('Whether the shop wears its own colours on the page.'),
+  "items": zod.array(zod.object({
+  "id": zod.uuid().nullish().describe('Custom links only: a stable id, so the editor can tell two links with\nthe same title apart. Minted by the server when missing.'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "title_ar": zod.string().nullish().describe('Custom links only. Falls back to the English title when empty.'),
+  "title_en": zod.string().nullish().describe('Custom links only.'),
+  "url": zod.string().nullish().describe('Custom links only — a full `https:\/\/` address.'),
+  "visible": zod.boolean().optional().describe('Off = kept in the list (and its place) but not shown.')
+}).describe('One button, as stored and as edited.')),
+  "loyalty_mode": zod.string().nullish(),
+  "modules": zod.array(zod.object({
+  "available": zod.boolean().describe('The switch that governs it is on somewhere. A hidden module that is\navailable is the shop\'s choice; an unavailable one cannot be shown.'),
+  "branch_names": zod.array(zod.string()).describe('The branches where it is on (menu: every active branch; rewards: none,\nthe programme is the org\'s).'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "path": zod.string().describe('Where it opens on the shop\'s own host.')
+}).describe('Whether a module can be shown, and why — the editor\'s hint line.')),
+  "public_url": zod.string().nullish().describe('Where the page is: the root of the shop\'s own host, for a shop on the\nbranding tier with a slug. `None` otherwise — there is no generic links\nhost.'),
+  "show_branches": zod.boolean(),
+  "show_cover": zod.boolean(),
+  "social_links": zod.looseObject({
+
+}).describe('`organizations.social_links`, as stored.'),
+  "tagline_ar": zod.string().nullish(),
+  "tagline_en": zod.string().nullish()
+}).describe('The editor\'s view: what is saved, plus what it is built from.')
+
+
+/**
+ * The organisation settings capability, as every other settings screen —
+ * and the same one that lets a manager change the shop's logo. The social
+ * links ride along because the page shows them; they are written to the
+ * organisation's own column, under the same rules as `PATCH /orgs/{id}`.
+ * @summary Save the links page.
+ */
+export const PutLinksPageParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const PutLinksPageBody = zod.object({
+  "branches": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "maps_url": zod.string().nullish().describe('A Google Maps (or any https) link, so Directions opens the shop\'s own\npin. Without one, Directions searches the branch\'s coordinates or\naddress.'),
+  "visible": zod.boolean().optional()
+}).describe('Per-branch settings for \"Visit us\".')).optional(),
+  "items": zod.array(zod.object({
+  "id": zod.uuid().nullish().describe('Custom links only: a stable id, so the editor can tell two links with\nthe same title apart. Minted by the server when missing.'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "title_ar": zod.string().nullish().describe('Custom links only. Falls back to the English title when empty.'),
+  "title_en": zod.string().nullish().describe('Custom links only.'),
+  "url": zod.string().nullish().describe('Custom links only — a full `https:\/\/` address.'),
+  "visible": zod.boolean().optional().describe('Off = kept in the list (and its place) but not shown.')
+}).describe('One button, as stored and as edited.')),
+  "show_branches": zod.boolean().optional(),
+  "show_cover": zod.boolean().optional(),
+  "social_links": zod.looseObject({
+
+}).nullish().describe('The organisation\'s social links — the SAME map `PATCH \/orgs\/{id}`\ntakes, stored in the same column, under the same closed list and\nhttps rule. Omitted = unchanged.'),
+  "tagline_ar": zod.string().nullish(),
+  "tagline_en": zod.string().nullish()
+}).describe('What the editor saves.')
+
+export const PutLinksPageResponse = zod.object({
+  "branches": zod.array(zod.object({
+  "address": zod.string().nullish(),
+  "id": zod.uuid(),
+  "maps_url": zod.string().nullish(),
+  "name": zod.string(),
+  "phone": zod.string().nullish(),
+  "visible": zod.boolean()
+}).describe('A branch, as the editor lists it.')).describe('Every active branch, with its settings.'),
+  "card_image_url": zod.string().nullish().describe('The shop\'s card image, which the page uses as its cover.'),
+  "custom_branding": zod.boolean().describe('Whether the shop wears its own colours on the page.'),
+  "items": zod.array(zod.object({
+  "id": zod.uuid().nullish().describe('Custom links only: a stable id, so the editor can tell two links with\nthe same title apart. Minted by the server when missing.'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "title_ar": zod.string().nullish().describe('Custom links only. Falls back to the English title when empty.'),
+  "title_en": zod.string().nullish().describe('Custom links only.'),
+  "url": zod.string().nullish().describe('Custom links only — a full `https:\/\/` address.'),
+  "visible": zod.boolean().optional().describe('Off = kept in the list (and its place) but not shown.')
+}).describe('One button, as stored and as edited.')),
+  "loyalty_mode": zod.string().nullish(),
+  "modules": zod.array(zod.object({
+  "available": zod.boolean().describe('The switch that governs it is on somewhere. A hidden module that is\navailable is the shop\'s choice; an unavailable one cannot be shown.'),
+  "branch_names": zod.array(zod.string()).describe('The branches where it is on (menu: every active branch; rewards: none,\nthe programme is the org\'s).'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "path": zod.string().describe('Where it opens on the shop\'s own host.')
+}).describe('Whether a module can be shown, and why — the editor\'s hint line.')),
+  "public_url": zod.string().nullish().describe('Where the page is: the root of the shop\'s own host, for a shop on the\nbranding tier with a slug. `None` otherwise — there is no generic links\nhost.'),
+  "show_branches": zod.boolean(),
+  "show_cover": zod.boolean(),
+  "social_links": zod.looseObject({
+
+}).describe('`organizations.social_links`, as stored.'),
+  "tagline_ar": zod.string().nullish(),
+  "tagline_en": zod.string().nullish()
+}).describe('The editor\'s view: what is saved, plus what it is built from.')
+
+
+/**
+ * @summary The code for the shop's links page — the one address that leads to
+everything else (menu, ordering, rewards, bookings, socials).
+ */
+export const OrgLinksQrParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const orgLinksQrQueryDpiMin = 0;
+
+export const orgLinksQrQueryModulePxMin = 0;
+
+
+
+export const OrgLinksQrQueryParams = zod.object({
+  "card": zod.boolean().optional().describe('`true` (default) → branded A6 card PNG; `false` → plain receipt QR PNG.'),
+  "caption": zod.string().optional().describe('Dynamic caption line beneath the tagline (A6 card only).'),
+  "dpi": zod.number().min(orgLinksQrQueryDpiMin).optional().describe('Raster DPI for the A6 card (clamped 72–2400). Default 600.'),
+  "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
+  "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
+  "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
+  "module_px": zod.number().min(orgLinksQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+})
+
+export const OrgLinksQrResponse = zod.object({
+  "kind": zod.string(),
+  "long_url": zod.string(),
+  "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
+  "short_code": zod.string(),
+  "short_url": zod.string()
+}).describe('JSON returned from every QR-generation endpoint.')
 
 
 export const UploadOrgLogoParams = zod.object({
@@ -11665,6 +11967,10 @@ export const DeleteUserPermissionParams = zod.object({
 export const DeleteUserPermissionResponse = zod.void()
 
 
+/**
+ * `org_id` names the shop. Only active branches with booking switched on are listed.
+ * @summary A shop's branches that take table bookings online.
+ */
 export const BookingBranchesQueryParams = zod.object({
   "org_id": zod.uuid()
 })
@@ -11677,6 +11983,10 @@ export const BookingBranchesResponseItem = zod.object({
 export const BookingBranchesResponse = zod.array(BookingBranchesResponseItem)
 
 
+/**
+ * Answers 201 with the booking. The time must be a free slot after the branch's lead time. Where the branch's `require_otp` is on, send the `device_token` from `/public/otp/verify`.
+ * @summary Book a table at a branch.
+ */
 export const CreatePublicBookingBody = zod.object({
   "branch_id": zod.uuid(),
   "device_token": zod.string().nullish().describe('From `\/public\/otp\/verify`; required when the branch requires OTP.'),
@@ -11704,6 +12014,9 @@ export const CreatePublicBookingResponse = zod.object({
 }).describe('What a guest sees on the manage page — no table ids, no staff fields.')
 
 
+/**
+ * @summary A booking, by the manage token from its confirmation link.
+ */
 export const GetPublicBookingParams = zod.object({
   "token": zod.string().describe('Manage token from the confirmation link')
 })
@@ -11724,6 +12037,10 @@ export const GetPublicBookingResponse = zod.object({
 }).describe('What a guest sees on the manage page — no table ids, no staff fields.')
 
 
+/**
+ * Only a confirmed booking, and only until the branch's lead time before it starts; after that, 409.
+ * @summary Change a booking's time, party size or notes, by its manage token.
+ */
 export const UpdatePublicBookingParams = zod.object({
   "token": zod.string().describe('Manage token')
 })
@@ -11750,6 +12067,10 @@ export const UpdatePublicBookingResponse = zod.object({
 }).describe('What a guest sees on the manage page — no table ids, no staff fields.')
 
 
+/**
+ * Cancelling a booking that is already cancelled returns it unchanged. A party already seated is the venue's to cancel.
+ * @summary Cancel a booking, by its manage token.
+ */
 export const CancelPublicBookingParams = zod.object({
   "token": zod.string().describe('Manage token')
 })
@@ -11770,8 +12091,13 @@ export const CancelPublicBookingResponse = zod.object({
 }).describe('What a guest sees on the manage page — no table ids, no staff fields.')
 
 
+/**
+ * `org_id` names the shop. With `browse=true` every active branch is listed, for a read-only menu.
+ * @summary A shop's branches that take online orders, with each channel's hours and settings.
+ */
 export const PublicBranchesQueryParams = zod.object({
-  "org_id": zod.uuid()
+  "org_id": zod.uuid(),
+  "browse": zod.boolean().nullish().describe('The read-only menu (`\/menu`): every active branch, not only the ones\ntaking online orders — a shop with ordering switched off still has a\nmenu to show. Each branch\'s channel flags stay as they are, so a client\nnever offers an order where none is taken.')
 })
 
 export const PublicBranchesResponseItem = zod.object({
@@ -11796,6 +12122,10 @@ export const PublicBranchesResponseItem = zod.object({
 export const PublicBranchesResponse = zod.array(PublicBranchesResponseItem)
 
 
+/**
+ * `require_otp` says whether a booking needs a phone verified through `/public/otp/verify`.
+ * @summary A branch's booking rules: party sizes, slot length, lead time and how far ahead.
+ */
 export const BookingInfoParams = zod.object({
   "id": zod.uuid().describe('Branch ID')
 })
@@ -11827,6 +12157,10 @@ export const BookingInfoResponse = zod.object({
 })
 
 
+/**
+ * Refused when the branch takes no online bookings, or the date or party size is outside its rules.
+ * @summary The free booking times at a branch for one date and party size.
+ */
 export const BookingSlotsParams = zod.object({
   "id": zod.uuid().describe('Branch ID')
 })
@@ -11846,6 +12180,100 @@ export const BookingSlotsResponse = zod.object({
 })
 
 
+/**
+ * @summary Price an online (storefront) cart at a branch, deals applied.
+ */
+export const PublicBranchCartQuoteParams = zod.object({
+  "id": zod.uuid().describe('Branch ID')
+})
+
+export const PublicBranchCartQuoteBody = zod.object({
+  "channel": zod.string().nullish().describe('Online only: the delivery sub-channel whose prices apply\n(`in_mall` | `outside` | `umbrella` | `pickup`); default `pickup`.'),
+  "items": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
+  "menu_item_id": zod.uuid().nullish(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish(),
+  "staff_drink": zod.union([zod.null(),zod.object({
+  "comp_minor": zod.number().nullish().describe('What the TILL comped on this line (whole line, minor units). Read ONLY\nwhen a queued offline sale is replayed; live, the server prices the comp\nand this is ignored.'),
+  "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
+  "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
+  "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
+  "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
+}))
+}).describe('`POST \/public\/branches\/{id}\/cart-quote` (online) and\n`POST \/public\/tables\/{id}\/cart-quote` (QR): the cart priced by the server\nexactly as the order will be, with the best deals applied automatically.')
+
+export const PublicBranchCartQuoteResponse = zod.object({
+  "deal_discount": zod.number().describe('Σ deals\' discount.'),
+  "deals": zod.array(zod.object({
+  "deal_rule_id": zod.uuid(),
+  "discount": zod.number(),
+  "lines": zod.array(zod.object({
+  "line_index": zod.number().describe('Index into the order\'s `items[]`.'),
+  "units": zod.number()
+}).describe('Units of one order line a deal takes.')),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "times": zod.number()
+}).describe('A deal the server applied to the cart.')),
+  "items_total": zod.number().describe('Σ line_total, before deals.'),
+  "lines": zod.array(zod.object({
+  "combo": zod.union([zod.null(),zod.object({
+  "parts": zod.array(zod.object({
+  "addons_total": zod.number().describe('Its add-ons and optional fields, whole line.'),
+  "combo_share": zod.number(),
+  "combo_surcharge": zod.number(),
+  "line_total": zod.number().describe('`combo_share + combo_surcharge`.'),
+  "menu_item_id": zod.uuid(),
+  "quantity": zod.number(),
+  "size_label": zod.string(),
+  "slot_id": zod.uuid(),
+  "unit_price": zod.number().describe('The item\'s normal price at this size.')
+}).describe('One part of a quoted combo line.')),
+  "price": zod.number().describe('P per combo unit.'),
+  "saving_unit": zod.number().describe('À la carte value of one combo minus `unit_total` (may be ≤ 0).'),
+  "unit_total": zod.number().describe('One combo with its surcharges and add-ons.')
+})]).optional(),
+  "deal_minor": zod.number().describe('What the applied deals took off this line.'),
+  "index": zod.number().describe('Index into the request\'s `items[]`.'),
+  "line_total": zod.number().describe('The whole line with its add-ons, before deals.'),
+  "quantity": zod.number(),
+  "unit_price": zod.number().describe('The size price per unit (a combo: 0; see `combo`).')
+})),
+  "total_after_deals": zod.number().describe('`items_total − deal_discount` (before the channel discount, tax and fees).')
+})
+
+
+/**
+ * Needs `lat`, `lng` and `channel`. `status` says whether the branch delivers there; the fee is in piastres.
+ * @summary The delivery fee and zone for a point, before ordering.
+ */
 export const DeliveryQuoteParams = zod.object({
   "id": zod.uuid()
 })
@@ -11869,12 +12297,16 @@ export const DeliveryQuoteResponse = zod.object({
 })
 
 
+/**
+ * `channel` is `in_mall`, `outside`, `umbrella` or `pickup`. `preview=true` shows a channel's menu while it is closed, and `channel=dine_in&preview=true` gives the read-only dine-in menu. Nothing can be ordered from a preview.
+ * @summary A branch's menu for one ordering channel, with prices in piastres.
+ */
 export const PublicMenuParams = zod.object({
   "id": zod.uuid()
 })
 
 export const PublicMenuQueryParams = zod.object({
-  "channel": zod.string(),
+  "channel": zod.string().describe('A delivery channel, or `dine_in` — the dine-in menu (branch prices, no\nchannel discount), accepted ONLY with `preview=true`: the read-only\nmenu of a shop that takes no online orders. Nothing can be ordered\nagainst it; quote and intake know no such channel.'),
   "preview": zod.boolean().nullish().describe('Read-only browse preview. When `true`, the menu is returned even if the\nchannel is closed right now, so customers can browse while a branch is\nclosed. This NEVER relaxes the channel-\*enabled\* check, and the\ndelivery-quote \/ order-intake endpoints stay gated on open-now — so a\npreview can never become a real order against a closed channel.')
 })
 
@@ -11897,6 +12329,52 @@ export const PublicMenuResponse = zod.object({
 
 })
 })),
+  "deals": zod.array(zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "is_active": zod.boolean()
+})),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "get_percent": zod.number().nullish(),
+  "get_qty": zod.number().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price: the price of `qty` units, piastres.'),
+  "qty": zod.number(),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).describe('buy_get only; `[]` = the rewarded units come from `pool`.'),
+  "sell": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('Feed rows only: the branch\'s channel toggles (§11.1). Absent elsewhere.')]).optional(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('A deal rule. `n_for_price`: any `qty` units of the pool for `price`.\n`buy_get`: buy `qty`, get `get_qty` at `get_percent`% off (100 = free),\nthe rewarded units drawn from `reward_pool` (or the pool when empty).\nA deal covers the item\'s size price only; add-ons always pay.\n\nAlso the `deal_rule` feed row of `\/sync\/pull`, where `is_active` is\nresolved for the device\'s branch and `sell` carries the branch\'s channel\ntoggles.')).describe('The deals on offer on this channel now (§11.2): checkout applies the\nbest ones automatically (`POST …\/cart-quote` shows them). Additive.'),
   "discount": zod.union([zod.null(),zod.object({
   "dtype": zod.string().describe('\"percentage\" | \"fixed\".'),
   "id": zod.uuid(),
@@ -11910,10 +12388,47 @@ export const PublicMenuResponse = zod.object({
   "items": zod.array(zod.object({
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist (IDs from `menu_item_allowed_addons`).\nWhen non-empty the customizer filters the global catalog to these IDs by\ndefault, with a \"show all\" escape hatch. Empty = no restriction.'),
   "category_id": zod.uuid().nullish(),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "available": zod.boolean().optional().describe('`false`: the item is not sold on this menu right now (switched off at\nthe branch or on the channel, or inactive). The page shows it greyed\nwith \"Unavailable\" and never lets it be picked (an order that picks it\nis refused `COMBO_ITEM_UNAVAILABLE`); it has no `sizes` and is never\nthe slot\'s default. Absent from an older server: available.'),
+  "base_price": zod.number().describe('The included size\'s channel price (what the split weighs it by).'),
+  "image_url": zod.string().nullish(),
+  "included_size_label": zod.string(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sizes": zod.array(zod.object({
+  "extra": zod.number().describe('What picking it adds inside the combo (the owner\'s surcharge, else the\ndifference over the included size, floored at 0; 0 for the included size).'),
+  "label": zod.string(),
+  "price": zod.number().describe('Its normal channel price.')
+}).describe('A size of a public combo choice.')),
+  "surcharge": zod.number().describe('The choice\'s own surcharge, per pick unit.')
+}).describe('One concrete item a public combo slot offers (categories expanded to the\ncategory\'s active items), with whether this channel and branch sell it now.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+}))
+}).describe('A kind=combo row: its slots with every choice priced for this channel\n(categories expanded to their available items). The server still\nprices the order.')]).optional(),
   "default_milk_addon_id": zod.uuid().nullish().describe('The item\'s base\/default milk: the `milk_type` addon whose ingredient\nmatches the item recipe\'s milk ingredient. The online customizer\npre-selects it (mirrors the POS default-milk selection). `None` when the\nitem has no milk in its recipe or no matching milk addon exists.'),
   "description": zod.string().nullish(),
   "id": zod.uuid(),
   "image_url": zod.string().nullish(),
+  "kind": zod.string().describe('`item` | `combo` (combos module). Additive.'),
+  "meal": zod.union([zod.null(),zod.object({
+  "combo_id": zod.uuid(),
+  "slot_id": zod.uuid()
+}).describe('A kind=item row: its \"make it a meal\" upsell (C14), when that combo is\non this menu.')]).optional(),
   "modifier_groups": zod.array(zod.object({
   "addon_type": zod.string().nullish().describe('The group\'s legacy addon type (`milk_type` \/ `coffee_type` \/ `extra` \/\ncustom) — the swap-family hint the customizer keys its delta-price\nestimate on. `None` for groups with no legacy lineage.'),
   "group_id": zod.uuid(),
@@ -11933,7 +12448,7 @@ export const PublicMenuResponse = zod.object({
   "price": zod.number().describe('Channel-effective surcharge (piastres): branch_channel → branch →\nchannel → catalog default. Unavailable options are excluded entirely.')
 }).describe('One option inside a per-item modifier group. `option_id` is the STABLE id —\nit equals the legacy `addon_item_id`, so order intake accepts it unchanged in\n`addons[].addon_item_id` (menu-unification stable-id rule).')),
   "selection_type": zod.string().describe('\"single\" | \"multi\".')
-}).describe('A per-item modifier group from the unified model (`menu_item_modifier_groups`\n→ `modifier_groups`\/`modifier_options`), constraints resolved (attachment\noverrides beat group defaults) and options already filtered to the\nattachment\'s `included_option_ids`. Only addon-sourced options appear here —\nthe item\'s priced optionals stay in `optionals`. Empty until the org\'s\ncatalog is backfilled onto the unified tables; the customizer falls back to\nthe flat `addons` catalog + `allowed_addon_ids` in that case.')).describe('The item\'s modifier groups (unified model), channel-effective. Empty ⇒\nthe customizer falls back to `addons` + `allowed_addon_ids`.'),
+}).describe('A per-item modifier group from the unified model (`menu_item_modifier_groups`\n→ `modifier_groups`\/`modifier_options`), constraints resolved (attachment\noverrides beat group defaults) and options already filtered to the\nattachment\'s `included_option_ids`. Only addon-sourced options appear here —\nthe item\'s priced optionals stay in `optionals`. Empty until the org\'s\ncatalog is backfilled onto the unified tables; the customizer falls back to\nthe flat `addons` catalog + `allowed_addon_ids` in that case.')).describe('The item\'s modifier groups (unified model), channel-effective: every\nactive attached group, a group with no option here included (options\n`[]`). Non-empty ⇒ the item\'s add-ons are SET: the page offers only\nwhat these groups hold, and no \"show all\" (none at all when every\ngroup is empty). Empty ⇒ not set up in the unified model: the page\nfalls back to `addons` + `allowed_addon_ids`.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -11956,6 +12471,10 @@ export const PublicMenuResponse = zod.object({
 })
 
 
+/**
+ * Answers 201 with the order; follow it at `/public/delivery-orders/{id}/track`. The server prices the cart in piastres. Where the branch requires a verified phone (the default), send the `device_token` from `/public/otp/verify`.
+ * @summary Place an online order (delivery or pickup) at a branch.
+ */
 export const CreateDeliveryOrderBody = zod.object({
   "address_line": zod.string().nullish(),
   "branch_id": zod.uuid(),
@@ -11973,8 +12492,25 @@ export const CreateDeliveryOrderBody = zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A combo line\'s picks (§3.1); the server prices every part. Additive.')]).optional(),
   "menu_item_id": zod.uuid(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -12048,6 +12584,10 @@ export const CreateDeliveryOrderResponse = zod.object({
 })
 
 
+/**
+ * Needs `phone` and the `device_token` from `/public/otp/verify`; a phone number alone unlocks nothing.
+ * @summary A customer's past orders at a shop, by their verified phone.
+ */
 export const GuestOrderHistoryQueryParams = zod.object({
   "phone": zod.string(),
   "org_id": zod.uuid(),
@@ -12078,6 +12618,10 @@ export const GuestOrderHistoryResponseItem = zod.object({
 export const GuestOrderHistoryResponse = zod.array(GuestOrderHistoryResponseItem)
 
 
+/**
+ * Needs `phone` and the `device_token` from `/public/otp/verify`.
+ * @summary A customer's saved delivery addresses at a shop, by their verified phone.
+ */
 export const GuestPastLocationsQueryParams = zod.object({
   "phone": zod.string(),
   "org_id": zod.uuid(),
@@ -12100,6 +12644,10 @@ export const GuestPastLocationsResponseItem = zod.object({
 export const GuestPastLocationsResponse = zod.array(GuestPastLocationsResponseItem)
 
 
+/**
+ * Amounts are in piastres.
+ * @summary An online order's status, timeline and totals, from the id in its tracking link.
+ */
 export const TrackDeliveryOrderParams = zod.object({
   "id": zod.uuid()
 })
@@ -12137,6 +12685,10 @@ export const TrackDeliveryOrderResponse = zod.object({
 }).describe('Customer-safe tracking view of a delivery order, keyed by its opaque UUID\n(same capability-URL trust model as the device-token flow). No phone number\nis exposed; the destination fields are the customer\'s own inputs. Powers the\npublic `\/track\/{id}` page (polled, since the public surface has no SSE).')
 
 
+/**
+ * The token is the one on the card's barcode.
+ * @summary A rewards card: the member's balance, progress to the next reward, rewards and wallet links.
+ */
 export const LoyaltyCardParams = zod.object({
   "token": zod.string().describe('Member token from the pass barcode')
 })
@@ -12156,7 +12708,7 @@ export const LoyaltyCardResponse = zod.object({
   "social_links": zod.array(zod.object({
   "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
   "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
-  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+  "url": zod.string().describe('An https address and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('Whose card this is, and how it should look.'),
   "can_redeem": zod.boolean(),
@@ -12169,7 +12721,7 @@ export const LoyaltyCardResponse = zod.object({
   "passes": zod.object({
   "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
   "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
-  "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
+  "google_url": zod.string().nullish().describe('The Google Wallet save link: the signed JWT on pay.google.com\'s save path.')
 }).describe('What signup hands the customer. Either side may be absent: a tenant with only\nGoogle credentials configured shows one button, not a broken one.'),
   "points_to_next_reward": zod.number(),
   "progress_to_next": zod.number().describe('Progress towards the next one, after the earned ones are set aside.'),
@@ -12209,6 +12761,10 @@ export const LoyaltyCardOrdersResponse = zod.object({
 })
 
 
+/**
+ * The card's own token is the key. Answers 204.
+ * @summary Save a card holder's choices: no marketing messages, and the language to write in.
+ */
 export const SetLoyaltyCardPreferencesParams = zod.object({
   "token": zod.string().describe('Member token from the pass barcode')
 })
@@ -12239,6 +12795,10 @@ export const LoyaltyCardQrParams = zod.object({
 export const LoyaltyCardQrResponse = zod.unknown()
 
 
+/**
+ * Where `require_otp` is on, send the `device_token` from `/public/otp/verify`; until the phone is proven the answer carries no card.
+ * @summary Join a shop's rewards programme.
+ */
 export const LoyaltyJoinBody = zod.object({
   "birth_day": zod.number().nullish(),
   "birth_month": zod.number().nullish().describe('The day of their birthday, 1–12 and 1–31. Accepted ONLY where the org\nasked for one: a field the shop turned off must not be storable by\nposting past the form.\n\nNo year, deliberately. A greeting needs to know WHEN, not how old — and\na full date of birth is an identity credential, which is a great deal\nmore than an annual message needs.'),
@@ -12266,7 +12826,7 @@ export const LoyaltyJoinResponse = zod.object({
   "social_links": zod.array(zod.object({
   "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
   "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
-  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+  "url": zod.string().describe('An https address and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('How a tenant\'s card should look.\n\nEvery field is optional and the site falls back to Madar\'s own palette, so a\ntenant who has set nothing still gets a finished card rather than an\nunstyled one. `org_name` is NOT optional: whose card this is must always be\non it, however little else has been configured.'),
   "card_link_sent": zod.boolean().describe('While `verify_required`: the card link was also sent to the number on\nfile, by WhatsApp — the one channel that proves possession without a\ncode. False when no gateway is configured or there is no public base to\nbuild a link on; the page then offers only the OTP.'),
@@ -12277,12 +12837,16 @@ export const LoyaltyJoinResponse = zod.object({
   "passes": zod.union([zod.null(),zod.object({
   "any": zod.boolean().describe('False when neither wallet is configured — the site shows the member\'s\nQR on the page instead of dead buttons.'),
   "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
-  "google_url": zod.string().nullish().describe('`https:\/\/pay.google.com\/gp\/v\/save\/<jwt>`.')
+  "google_url": zod.string().nullish().describe('The Google Wallet save link: the signed JWT on pay.google.com\'s save path.')
 }).describe('Absent when `verify_required`.')]).optional(),
   "verify_required": zod.boolean().describe('This phone already has a card and the device has not proved it owns the\nphone. The page should run the ordinary OTP flow (`\/public\/otp\/request`\nthen `\/public\/otp\/verify`) and POST here again with the `device_token`\nit is handed; the card comes back on that call.')
 }).describe('What the customer sees after signing up: their card, and the buttons — or,\nfor a phone that is already a member and has not been proved, an invitation\nto prove it.\n\nThe member token is a bearer credential: whoever holds it holds the card,\nthe balance, the purchase history and the wallet passes. So it is handed out\non exactly two occasions — to a NEW member, whose token nobody else could\nwant yet, and to an existing member whose device has verified THIS phone by\nOTP. Typing a phone number is not proof of owning it; anyone who knows a\ncustomer\'s number can type it.')
 
 
+/**
+ * Name the shop with `org_id`, or a branch with `branch_id` from its counter code.
+ * @summary What a rewards programme's join page shows: its brand, rewards and what joining asks for.
+ */
 export const LoyaltyJoinInfoQueryParams = zod.object({
   "branch_id": zod.uuid().optional().describe('The counter QR of one branch. Its settings and its catalogue apply.'),
   "org_id": zod.uuid().optional().describe('The organisation\'s own code, for a shop that wants ONE card to hand out\n— a poster, a receipt footer, a link in a bio. The programme\'s org-level\nsettings apply, which is also what the wallet pass has always used.')
@@ -12306,7 +12870,7 @@ export const LoyaltyJoinInfoResponse = zod.object({
   "social_links": zod.array(zod.object({
   "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
   "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
-  "url": zod.string().describe('`https:\/\/…` and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+  "url": zod.string().describe('An https address and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('Whose programme this is, and how the page should look.'),
   "earn_piastres_per_point": zod.number().describe('EGP that earns one point — the page\'s \"a point for every N EGP\" line.\nPiastres on the wire, as everywhere; the page divides by 100. Only\nmeaningful when `mode` is `\"points\"`.'),
@@ -12337,6 +12901,10 @@ export const LoyaltyApplePassParams = zod.object({
 export const LoyaltyApplePassResponse = zod.unknown()
 
 
+/**
+ * The card's token alone shows only a first name and a masked phone. With a `device_token` for the member's current phone it gives the full prefill and saved addresses.
+ * @summary "Order now" from a wallet card: the member's last branch and channel, to prefill an order.
+ */
 export const OrderNowContextParams = zod.object({
   "token": zod.string().describe('Member token (the card\'s QR)')
 })
@@ -12392,6 +12960,10 @@ export const OrderNowContextResponse = zod.object({
 })
 
 
+/**
+ * The answer to a `PHONE_BELONGS_TO_ANOTHER` refusal from replace-identity, with the same proofs. This card's customer is the one kept.
+ * @summary Merge the profile that already holds the new phone into this card's profile.
+ */
 export const OrderNowCombineParams = zod.object({
   "token": zod.string().describe('Member token — this customer survives')
 })
@@ -12411,6 +12983,10 @@ export const OrderNowCombineResponse = zod.object({
 })
 
 
+/**
+ * Needs proof of both phones: `device_token` for the current one and `new_phone_device_token` for the new one. At most two changes in 30 days.
+ * @summary Change the phone number on a card's customer profile.
+ */
 export const OrderNowReplaceIdentityParams = zod.object({
   "token": zod.string().describe('Member token')
 })
@@ -12485,6 +13061,62 @@ export const PublicOrgFaviconQueryParams = zod.object({
 export const PublicOrgFaviconResponse = zod.unknown()
 
 
+/**
+ * Public for the same reason `/public/orgs/brand` is — it is the first thing
+ * a customer's browser asks — and it answers "no shop" identically for a shop
+ * that does not exist and one that is switched off, for the same reason.
+ * @summary The shop's links page, in one request.
+ */
+export const PublicOrgLinksQueryParams = zod.object({
+  "org_id": zod.uuid().optional().describe('The shop, when the page already knows which one it is.'),
+  "slug": zod.string().optional().describe('The first label of the hostname, when it does not — `rue` for\n`rue.madar-pos.cloud`.')
+})
+
+export const PublicOrgLinksResponse = zod.object({
+  "branches": zod.array(zod.object({
+  "address": zod.string().nullish(),
+  "directions_url": zod.string().nullish().describe('The shop\'s Maps link, else a search for the coordinates, else for the\naddress. `None` when the branch has none of the three.'),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "phone": zod.string().nullish()
+})).describe('Empty when \"Visit us\" is off.'),
+  "brand": zod.object({
+  "accent_color": zod.string(),
+  "background_color": zod.string().describe('`#RRGGBB`. Madar\'s own when the shop is not on the tier.'),
+  "card_image_url": zod.string().nullish(),
+  "custom_branding": zod.boolean().describe('Whether the rest of this is the shop\'s or Madar\'s.\n\nThe page does not need it to render — the palette below is already\nresolved — but it decides how loudly Madar signs the footer.'),
+  "foreground_color": zod.string(),
+  "logo_is_mark": zod.boolean().describe('True when the logo is a shape on transparency and may be repainted for\ncontrast. See `orgs::branding::is_mark`.'),
+  "logo_url": zod.string().nullish(),
+  "name": zod.string().describe('Always the shop\'s own name, at every tier. A page that does not say\nwhose it is helps nobody, and that was never the thing being sold.'),
+  "org_id": zod.uuid(),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own — reached by `org_id`,\nwhich every page that already knows the shop uses.')
+}).describe('A shop, as a guest page needs to know it.'),
+  "cover_image_url": zod.string().nullish().describe('The card image, when the shop uses it as the cover (and is on the\nbranding tier — the loader already applied that).'),
+  "items": zod.array(zod.object({
+  "branch_names": zod.array(zod.string()).describe('Order \/ book: the branches where it is on.'),
+  "channels": zod.array(zod.string()).describe('Order: the channels on anywhere — `pickup`, `delivery`, `in_mall`,\n`umbrella`.'),
+  "href": zod.string().describe('Absolute. For a module: the shop\'s own host when it has one, else the\ngeneric host. For a custom link: the shop\'s URL.'),
+  "kind": zod.enum(['order', 'menu', 'rewards', 'book', 'custom']).describe('What a button is. The four modules are a closed list, like the social\nplatforms: each one is a page we serve, and `custom` is the shop\'s own link.'),
+  "path": zod.string().nullish().describe('Modules only: the same place as a path on the shop\'s own host, for a\npage being read ON that host.'),
+  "title_ar": zod.string().nullish(),
+  "title_en": zod.string().nullish().describe('Custom links only (a module\'s title is the page\'s own words).')
+}).describe('One button on the public page, already resolved.')).describe('Visible, available buttons, in the shop\'s order.'),
+  "loyalty_mode": zod.string().nullish().describe('`points` or `visits`, when the rewards button is shown.'),
+  "socials": zod.array(zod.object({
+  "key": zod.string().describe('One of `orgs::social::PLATFORMS` — what the page picks its glyph by.'),
+  "label": zod.string().describe('What a human calls it. The page falls back to this where it has no\nglyph for `key`, so a platform added on the server still renders.'),
+  "url": zod.string().describe('An https address and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
+}).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')),
+  "tagline_ar": zod.string().nullish(),
+  "tagline_en": zod.string().nullish()
+}).describe('Everything the links page shows, in one request.')
+
+
+/**
+ * One live code per phone per minute (409 otherwise). Check it with `/public/otp/verify`.
+ * @summary Send a 4-digit code by WhatsApp to verify a phone number.
+ */
 export const OtpRequestBody = zod.object({
   "phone": zod.string()
 })
@@ -12494,6 +13126,10 @@ export const OtpRequestResponse = zod.object({
 })
 
 
+/**
+ * Ordering, booking, the rewards card and order history take this token where a shop asks for a verified phone. A code allows five tries.
+ * @summary Check a WhatsApp code and get a `device_token` that proves the phone.
+ */
 export const OtpVerifyBody = zod.object({
   "code": zod.string(),
   "phone": zod.string()
@@ -12518,20 +13154,25 @@ export const PublicTableOrderBody = zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "bundle_components": zod.array(zod.object({
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
   "addons": zod.array(zod.object({
   "addon_item_id": zod.uuid(),
   "quantity": zod.number().optional(),
-  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used. Bundle-component addons ignore this (server-priced).')
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
 })).optional(),
-  "item_id": zod.uuid(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
-  "quantity": zod.number(),
-  "size_label": zod.string().nullish()
-})).optional(),
-  "bundle_id": zod.uuid().nullish(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
   "menu_item_id": zod.uuid().nullish(),
   "notes": zod.string().nullish(),
   "optional_field_ids": zod.array(zod.uuid()).optional(),
@@ -12542,7 +13183,7 @@ export const PublicTableOrderBody = zod.object({
   "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
   "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
   "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
-}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a bundle line (`item_not_eligible`) nor by a ticket\'s line.')]).optional(),
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
   "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
 })).describe('What they want. Named, never priced — see the module docs.'),
   "table_id": zod.uuid()
@@ -12597,6 +13238,9 @@ export const PublicTableOrderResponse = zod.object({
 })
 
 
+/**
+ * @summary The table behind a QR code: its label, its branch, and whether the branch is taking orders now.
+ */
 export const PublicTableParams = zod.object({
   "id": zod.uuid().describe('Table ID, from the QR')
 })
@@ -12626,6 +13270,96 @@ export const PublicTableResponse = zod.object({
   "org_id": zod.uuid(),
   "table_id": zod.uuid()
 }).describe('A table, as the page that opened from its code needs to know it.')
+
+
+/**
+ * @summary Price a QR table cart, deals applied.
+ */
+export const PublicTableCartQuoteParams = zod.object({
+  "id": zod.uuid().describe('Table ID, from the QR')
+})
+
+export const PublicTableCartQuoteBody = zod.object({
+  "channel": zod.string().nullish().describe('Online only: the delivery sub-channel whose prices apply\n(`in_mall` | `outside` | `umbrella` | `pickup`); default `pickup`.'),
+  "items": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "combo": zod.union([zod.null(),zod.object({
+  "picks": zod.array(zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "quantity": zod.number().optional(),
+  "unit_price": zod.number().nullish().describe('Charged unit price (piastres) the POS applied for this addon. When present\nit is RECORDED as the addon\'s unit_price; absent → the server\'s expected\n(catalog) price is used.')
+})).optional(),
+  "menu_item_id": zod.uuid(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number().optional().describe('Units per combo unit; the part line\'s quantity is this × the line\'s.'),
+  "share": zod.number().nullish().describe('Replay only: this pick\'s share of P, per combo unit.'),
+  "size_label": zod.string().nullish(),
+  "slot_id": zod.uuid(),
+  "surcharge": zod.number().nullish().describe('Replay only: this pick\'s surcharge (choice + size), per combo unit.')
+}).describe('One pick of a combo line. On replay the till\'s `share` and `surcharge`\n(per combo unit) and add-on prices are stored as charged; live they are\nignored and the server prices every part.'))
+}).describe('A line naming a combo item (`kind=combo`) carries its picks here; see\nCOMBOS_CONTRACT.md §3.1. On replay `unit_price` is P as the till\ncharged it and each pick\'s `share`\/`surcharge` are per combo unit.\nAdditive.')]).optional(),
+  "menu_item_id": zod.uuid().nullish(),
+  "notes": zod.string().nullish(),
+  "optional_field_ids": zod.array(zod.uuid()).optional(),
+  "quantity": zod.number(),
+  "size_label": zod.string().nullish(),
+  "staff_drink": zod.union([zod.null(),zod.object({
+  "comp_minor": zod.number().nullish().describe('What the TILL comped on this line (whole line, minor units). Read ONLY\nwhen a queued offline sale is replayed; live, the server prices the comp\nand this is ignored.'),
+  "id": zod.uuid().describe('Client-minted; the idempotency key AND the `staff_drinks` row\'s id. A\nrow an older flow already recorded under this id is reused and the\norder attached to it — never a second drink off the allowance.'),
+  "note": zod.string().describe('REQUIRED. Who the drink is for and why, in the teller\'s own words.'),
+  "overspent": zod.boolean().nullish().describe('Whether the till believed this drink went past the allowance. Replay\nonly, and only to tell a convergence from a surprise.')
+}).describe('Put this line on the branch\'s STAFF POOL: a normal sale whose base\nconfiguration (cheapest size + the default of each required choice) is\ncomped, extras still charged. Needs `orders.staff_drink.record`. The\nserver prices the comp; see `docs\/staff-drink-comp-contract.md`.\nAdditive — a client that omits it rings an ordinary paid line. Not\ncarried by a ticket\'s line.')]).optional(),
+  "unit_price": zod.number().nullish().describe('What the customer was actually charged, in piastres.\n\nRead ONLY when a queued offline sale is replayed — see [`ClientPrices`].\nOn the live path the server prices the line and this is ignored, so a\ntill cannot charge a price of its own choosing and no manual override\nexists to let anyone try.')
+}))
+}).describe('`POST \/public\/branches\/{id}\/cart-quote` (online) and\n`POST \/public\/tables\/{id}\/cart-quote` (QR): the cart priced by the server\nexactly as the order will be, with the best deals applied automatically.')
+
+export const PublicTableCartQuoteResponse = zod.object({
+  "deal_discount": zod.number().describe('Σ deals\' discount.'),
+  "deals": zod.array(zod.object({
+  "deal_rule_id": zod.uuid(),
+  "discount": zod.number(),
+  "lines": zod.array(zod.object({
+  "line_index": zod.number().describe('Index into the order\'s `items[]`.'),
+  "units": zod.number()
+}).describe('Units of one order line a deal takes.')),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "times": zod.number()
+}).describe('A deal the server applied to the cart.')),
+  "items_total": zod.number().describe('Σ line_total, before deals.'),
+  "lines": zod.array(zod.object({
+  "combo": zod.union([zod.null(),zod.object({
+  "parts": zod.array(zod.object({
+  "addons_total": zod.number().describe('Its add-ons and optional fields, whole line.'),
+  "combo_share": zod.number(),
+  "combo_surcharge": zod.number(),
+  "line_total": zod.number().describe('`combo_share + combo_surcharge`.'),
+  "menu_item_id": zod.uuid(),
+  "quantity": zod.number(),
+  "size_label": zod.string(),
+  "slot_id": zod.uuid(),
+  "unit_price": zod.number().describe('The item\'s normal price at this size.')
+}).describe('One part of a quoted combo line.')),
+  "price": zod.number().describe('P per combo unit.'),
+  "saving_unit": zod.number().describe('À la carte value of one combo minus `unit_total` (may be ≤ 0).'),
+  "unit_total": zod.number().describe('One combo with its surcharges and add-ons.')
+})]).optional(),
+  "deal_minor": zod.number().describe('What the applied deals took off this line.'),
+  "index": zod.number().describe('Index into the request\'s `items[]`.'),
+  "line_total": zod.number().describe('The whole line with its add-ons, before deals.'),
+  "quantity": zod.number(),
+  "unit_price": zod.number().describe('The size price per unit (a combo: 0; see `combo`).')
+})),
+  "total_after_deals": zod.number().describe('`items_total − deal_discount` (before the channel discount, tax and fees).')
+})
 
 
 /**
@@ -12659,6 +13393,52 @@ export const PublicTableMenuResponse = zod.object({
 
 })
 })),
+  "deals": zod.array(zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "is_active": zod.boolean()
+})),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "get_percent": zod.number().nullish(),
+  "get_qty": zod.number().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "kind": zod.string().describe('`n_for_price` | `buy_get`.'),
+  "max_per_order": zod.number().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')),
+  "price": zod.number().nullish().describe('n_for_price: the price of `qty` units, piastres.'),
+  "qty": zod.number(),
+  "reward_pool": zod.array(zod.object({
+  "category_id": zod.uuid().nullish(),
+  "menu_item_id": zod.uuid().nullish(),
+  "size_label": zod.string().nullish()
+}).describe('An item or a category (every kind=item item of it) a deal counts, at one\nsize or any (`size_label` null).')).describe('buy_get only; `[]` = the rewarded units come from `pool`.'),
+  "sell": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('Feed rows only: the branch\'s channel toggles (§11.1). Absent elsewhere.')]).optional(),
+  "sort": zod.number(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "windows": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish().describe('`null` = every branch.'),
+  "ends_at": zod.string().nullish(),
+  "id": zod.uuid().nullish().describe('Ignored on write (windows are replaced as a set).'),
+  "starts_at": zod.string().nullish().describe('\"HH:MM\"; with `ends_at`, or neither (the whole day). `ends_at` before\n`starts_at` crosses midnight: the part after midnight belongs to the day\nthe window started (its weekday and date range).'),
+  "valid_from": zod.iso.date().nullish().describe('Optional date range, inclusive, judged on the day the window started.'),
+  "valid_to": zod.iso.date().nullish(),
+  "weekdays": zod.number().optional().describe('bit0 = Sunday … bit6 = Saturday; 127 = every day (the default).')
+}).describe('An availability window. A combo or deal with no window is always\navailable; with windows, it is available while any window that applies to\nthe branch (its own, or an all-branch one) is open.'))
+}).describe('A deal rule. `n_for_price`: any `qty` units of the pool for `price`.\n`buy_get`: buy `qty`, get `get_qty` at `get_percent`% off (100 = free),\nthe rewarded units drawn from `reward_pool` (or the pool when empty).\nA deal covers the item\'s size price only; add-ons always pay.\n\nAlso the `deal_rule` feed row of `\/sync\/pull`, where `is_active` is\nresolved for the device\'s branch and `sell` carries the branch\'s channel\ntoggles.')).describe('The deals on offer on this channel now (§11.2): checkout applies the\nbest ones automatically (`POST …\/cart-quote` shows them). Additive.'),
   "discount": zod.union([zod.null(),zod.object({
   "dtype": zod.string().describe('\"percentage\" | \"fixed\".'),
   "id": zod.uuid(),
@@ -12672,10 +13452,47 @@ export const PublicTableMenuResponse = zod.object({
   "items": zod.array(zod.object({
   "allowed_addon_ids": zod.array(zod.uuid()).describe('Explicit per-item addon allowlist (IDs from `menu_item_allowed_addons`).\nWhen non-empty the customizer filters the global catalog to these IDs by\ndefault, with a \"show all\" escape hatch. Empty = no restriction.'),
   "category_id": zod.uuid().nullish(),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "available": zod.boolean().optional().describe('`false`: the item is not sold on this menu right now (switched off at\nthe branch or on the channel, or inactive). The page shows it greyed\nwith \"Unavailable\" and never lets it be picked (an order that picks it\nis refused `COMBO_ITEM_UNAVAILABLE`); it has no `sizes` and is never\nthe slot\'s default. Absent from an older server: available.'),
+  "base_price": zod.number().describe('The included size\'s channel price (what the split weighs it by).'),
+  "image_url": zod.string().nullish(),
+  "included_size_label": zod.string(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sizes": zod.array(zod.object({
+  "extra": zod.number().describe('What picking it adds inside the combo (the owner\'s surcharge, else the\ndifference over the included size, floored at 0; 0 for the included size).'),
+  "label": zod.string(),
+  "price": zod.number().describe('Its normal channel price.')
+}).describe('A size of a public combo choice.')),
+  "surcharge": zod.number().describe('The choice\'s own surcharge, per pick unit.')
+}).describe('One concrete item a public combo slot offers (categories expanded to the\ncategory\'s active items), with whether this channel and branch sell it now.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+}))
+}).describe('A kind=combo row: its slots with every choice priced for this channel\n(categories expanded to their available items). The server still\nprices the order.')]).optional(),
   "default_milk_addon_id": zod.uuid().nullish().describe('The item\'s base\/default milk: the `milk_type` addon whose ingredient\nmatches the item recipe\'s milk ingredient. The online customizer\npre-selects it (mirrors the POS default-milk selection). `None` when the\nitem has no milk in its recipe or no matching milk addon exists.'),
   "description": zod.string().nullish(),
   "id": zod.uuid(),
   "image_url": zod.string().nullish(),
+  "kind": zod.string().describe('`item` | `combo` (combos module). Additive.'),
+  "meal": zod.union([zod.null(),zod.object({
+  "combo_id": zod.uuid(),
+  "slot_id": zod.uuid()
+}).describe('A kind=item row: its \"make it a meal\" upsell (C14), when that combo is\non this menu.')]).optional(),
   "modifier_groups": zod.array(zod.object({
   "addon_type": zod.string().nullish().describe('The group\'s legacy addon type (`milk_type` \/ `coffee_type` \/ `extra` \/\ncustom) — the swap-family hint the customizer keys its delta-price\nestimate on. `None` for groups with no legacy lineage.'),
   "group_id": zod.uuid(),
@@ -12695,7 +13512,7 @@ export const PublicTableMenuResponse = zod.object({
   "price": zod.number().describe('Channel-effective surcharge (piastres): branch_channel → branch →\nchannel → catalog default. Unavailable options are excluded entirely.')
 }).describe('One option inside a per-item modifier group. `option_id` is the STABLE id —\nit equals the legacy `addon_item_id`, so order intake accepts it unchanged in\n`addons[].addon_item_id` (menu-unification stable-id rule).')),
   "selection_type": zod.string().describe('\"single\" | \"multi\".')
-}).describe('A per-item modifier group from the unified model (`menu_item_modifier_groups`\n→ `modifier_groups`\/`modifier_options`), constraints resolved (attachment\noverrides beat group defaults) and options already filtered to the\nattachment\'s `included_option_ids`. Only addon-sourced options appear here —\nthe item\'s priced optionals stay in `optionals`. Empty until the org\'s\ncatalog is backfilled onto the unified tables; the customizer falls back to\nthe flat `addons` catalog + `allowed_addon_ids` in that case.')).describe('The item\'s modifier groups (unified model), channel-effective. Empty ⇒\nthe customizer falls back to `addons` + `allowed_addon_ids`.'),
+}).describe('A per-item modifier group from the unified model (`menu_item_modifier_groups`\n→ `modifier_groups`\/`modifier_options`), constraints resolved (attachment\noverrides beat group defaults) and options already filtered to the\nattachment\'s `included_option_ids`. Only addon-sourced options appear here —\nthe item\'s priced optionals stay in `optionals`. Empty until the org\'s\ncatalog is backfilled onto the unified tables; the customizer falls back to\nthe flat `addons` catalog + `allowed_addon_ids` in that case.')).describe('The item\'s modifier groups (unified model), channel-effective: every\nactive attached group, a group with no option here included (options\n`[]`). Non-empty ⇒ the item\'s add-ons are SET: the page offers only\nwhat these groups hold, and no \"show all\" (none at all when every\ngroup is empty). Empty ⇒ not set up in the unified model: the page\nfalls back to `addons` + `allowed_addon_ids`.'),
   "name": zod.string(),
   "name_translations": zod.looseObject({
 
@@ -12716,6 +13533,20 @@ export const PublicTableMenuResponse = zod.object({
 }))
 }))
 })
+
+
+/**
+ * Called by nginx for page requests on a shop's own host. Public by nature:
+ * it returns what the shop's public pages and the public JSON endpoints
+ * already show.
+ * @summary A shop page's HTML: the app entry with the shop's head and noscript.
+ */
+export const PublicTenantShellQueryParams = zod.object({
+  "host": zod.string().optional().describe('The shop\'s host, e.g. `rue.madar-pos.cloud`. nginx sends it as the\n`X-Shell-Host` header; the query parameter is for tests and probes.'),
+  "path": zod.string().optional().describe('The page\'s path and query, e.g. `\/order\/menu?branch=…`. nginx sends it\nas the `X-Shell-Path` header.')
+})
+
+export const PublicTenantShellResponse = zod.unknown()
 
 
 export const ListPurchaseOrdersParams = zod.object({
@@ -12754,10 +13585,11 @@ export const CreatePurchaseOrderParams = zod.object({
 export const CreatePurchaseOrderBody = zod.object({
   "expected_at": zod.iso.datetime({"offset":true}).nullish(),
   "lines": zod.array(zod.object({
+  "line_cost": zod.number().nullish().describe('Piastres for the whole line, as invoiced. Preferred: the unit cost is\nderived from it exactly (12 000 g for 548.16 EGP is 4.568 piastres\/g,\nwhere a whole-piastre unit cost made it 5 and the order 600.00).'),
   "org_ingredient_id": zod.uuid(),
   "purchase_unit": zod.string(),
   "quantity_ordered": zod.number(),
-  "unit_cost": zod.number().describe('Piastres per purchase unit.'),
+  "unit_cost": zod.number().nullish().describe('Piastres per purchase unit, for clients that predate `line_cost`.\nIgnored when `line_cost` is sent; one of the two is required.'),
   "units_per_purchase_unit": zod.number().nullish().describe('Stock units per purchase unit. Ignored when `purchase_unit` is a known\ninventory unit (the factor is derived from the ingredient\'s base unit).')
 })),
   "note": zod.string().nullish(),
@@ -12785,13 +13617,15 @@ export const CreatePurchaseOrderResponse = zod.object({
   "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "line_cost": zod.number().describe('Piastres for the whole line, as on the supplier\'s invoice. The unit\ncost is derived from it, never the other way round.'),
   "org_ingredient_id": zod.uuid(),
   "purchase_order_id": zod.uuid(),
   "purchase_unit": zod.string(),
   "quantity_ordered": zod.number(),
   "quantity_received": zod.number(),
   "unit": zod.string().describe('Ingredient\'s base stock unit.'),
-  "unit_cost": zod.number().describe('Piastres per PURCHASE unit.'),
+  "unit_cost": zod.number().describe('Piastres per PURCHASE unit, rounded to whole piastres (older readers;\nthe truth is `line_cost`, the precise figure `unit_cost_exact`).'),
+  "unit_cost_exact": zod.number().describe('Piastres per PURCHASE unit, exact: `line_cost \/ quantity_ordered`.'),
   "units_per_purchase_unit": zod.number()
 }))
 }))
@@ -12848,10 +13682,12 @@ export const CreateReturnResponse = zod.object({
   "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "line_cost": zod.number().nullish().describe('Piastres this delivery cost (negative for a return); null when unknown.'),
   "org_ingredient_id": zod.uuid(),
   "purchase_order_line_id": zod.uuid().nullish(),
   "quantity": zod.number().describe('Base stock units received (+) or returned (−).'),
-  "unit_cost": zod.number().nullish().describe('Piastres per base stock unit (actual).')
+  "unit_cost": zod.number().nullish().describe('Piastres per base stock unit (actual), rounded to whole piastres.'),
+  "unit_cost_exact": zod.number().nullish().describe('Piastres per base stock unit at full precision.')
 })),
   "note": zod.string().nullish(),
   "purchase_order_id": zod.uuid().nullish(),
@@ -12888,13 +13724,15 @@ export const GetPurchaseOrderResponse = zod.object({
   "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "line_cost": zod.number().describe('Piastres for the whole line, as on the supplier\'s invoice. The unit\ncost is derived from it, never the other way round.'),
   "org_ingredient_id": zod.uuid(),
   "purchase_order_id": zod.uuid(),
   "purchase_unit": zod.string(),
   "quantity_ordered": zod.number(),
   "quantity_received": zod.number(),
   "unit": zod.string().describe('Ingredient\'s base stock unit.'),
-  "unit_cost": zod.number().describe('Piastres per PURCHASE unit.'),
+  "unit_cost": zod.number().describe('Piastres per PURCHASE unit, rounded to whole piastres (older readers;\nthe truth is `line_cost`, the precise figure `unit_cost_exact`).'),
+  "unit_cost_exact": zod.number().describe('Piastres per PURCHASE unit, exact: `line_cost \/ quantity_ordered`.'),
   "units_per_purchase_unit": zod.number()
 }))
 }))
@@ -12938,10 +13776,12 @@ export const ListPoReceiptsResponseItem = zod.object({
   "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "line_cost": zod.number().nullish().describe('Piastres this delivery cost (negative for a return); null when unknown.'),
   "org_ingredient_id": zod.uuid(),
   "purchase_order_line_id": zod.uuid().nullish(),
   "quantity": zod.number().describe('Base stock units received (+) or returned (−).'),
-  "unit_cost": zod.number().nullish().describe('Piastres per base stock unit (actual).')
+  "unit_cost": zod.number().nullish().describe('Piastres per base stock unit (actual), rounded to whole piastres.'),
+  "unit_cost_exact": zod.number().nullish().describe('Piastres per base stock unit at full precision.')
 })),
   "note": zod.string().nullish(),
   "purchase_order_id": zod.uuid().nullish(),
@@ -12961,9 +13801,10 @@ export const ReceivePurchaseOrderParams = zod.object({
 
 export const ReceivePurchaseOrderBody = zod.object({
   "lines": zod.array(zod.object({
+  "line_cost": zod.number().nullish().describe('Optional ACTUAL invoice total (piastres) for what this delivery brought,\nwhen it differs from the ordered price. Preferred over `unit_cost`.\nDrives weighted-average cost + the ledger; omitted (with `unit_cost`)\n⟹ the ordered line total, pro rata to the quantity received.'),
   "line_id": zod.uuid(),
   "quantity_received": zod.number(),
-  "unit_cost": zod.number().nullish().describe('Optional ACTUAL invoice cost (piastres per purchase unit) for this\ndelivery, when it differs from the ordered price. Drives weighted-average\ncost + the ledger; omitted ⟹ the PO line\'s ordered cost is used.')
+  "unit_cost": zod.number().nullish().describe('Optional ACTUAL invoice cost in piastres per purchase unit (older\nclients). Ignored when `line_cost` is sent.')
 }))
 })
 
@@ -12987,13 +13828,15 @@ export const ReceivePurchaseOrderResponse = zod.object({
   "lines": zod.array(zod.object({
   "id": zod.uuid(),
   "ingredient_name": zod.string(),
+  "line_cost": zod.number().describe('Piastres for the whole line, as on the supplier\'s invoice. The unit\ncost is derived from it, never the other way round.'),
   "org_ingredient_id": zod.uuid(),
   "purchase_order_id": zod.uuid(),
   "purchase_unit": zod.string(),
   "quantity_ordered": zod.number(),
   "quantity_received": zod.number(),
   "unit": zod.string().describe('Ingredient\'s base stock unit.'),
-  "unit_cost": zod.number().describe('Piastres per PURCHASE unit.'),
+  "unit_cost": zod.number().describe('Piastres per PURCHASE unit, rounded to whole piastres (older readers;\nthe truth is `line_cost`, the precise figure `unit_cost_exact`).'),
+  "unit_cost_exact": zod.number().describe('Piastres per PURCHASE unit, exact: `line_cost \/ quantity_ordered`.'),
   "units_per_purchase_unit": zod.number()
 }))
 }))
@@ -13705,25 +14548,6 @@ export const BranchAddonSalesResponseItem = zod.object({
 export const BranchAddonSalesResponse = zod.array(BranchAddonSalesResponseItem)
 
 
-export const BranchBundleSalesParams = zod.object({
-  "branch_id": zod.uuid()
-})
-
-export const BranchBundleSalesQueryParams = zod.object({
-  "from": zod.iso.datetime({"offset":true}).optional(),
-  "to": zod.iso.datetime({"offset":true}).optional(),
-  "limit": zod.number().optional()
-})
-
-export const BranchBundleSalesResponseItem = zod.object({
-  "bundle_id": zod.uuid().nullish(),
-  "bundle_name": zod.string(),
-  "quantity_sold": zod.number(),
-  "revenue": zod.number()
-})
-export const BranchBundleSalesResponse = zod.array(BranchBundleSalesResponseItem)
-
-
 export const BranchChannelBreakdownParams = zod.object({
   "branch_id": zod.uuid().describe('Branch ID')
 })
@@ -13823,13 +14647,12 @@ export const BranchCombinedItemSalesQueryParams = zod.object({
 })
 
 export const BranchCombinedItemSalesResponseItem = zod.object({
-  "bundle_qty": zod.number(),
-  "item_id": zod.uuid().nullish(),
+  "item_id": zod.uuid(),
   "item_name": zod.string(),
   "item_name_translations": zod.looseObject({
 
 }),
-  "standalone_qty": zod.number(),
+  "standalone_qty": zod.number().describe('Equal to `total_qty` since combos were removed (it used to exclude\nunits sold inside a combo). Kept so dashboards built before still render.'),
   "total_qty": zod.number()
 })
 export const BranchCombinedItemSalesResponse = zod.array(BranchCombinedItemSalesResponseItem)
@@ -13937,7 +14760,7 @@ export const BranchPosMetricsResponse = zod.object({
   "timezone": zod.string().describe('The IANA zone the days were cut in.'),
   "to": zod.iso.date(),
   "top_items": zod.array(zod.object({
-  "item_id": zod.uuid().nullish().describe('The menu item or bundle; null for a line with neither.'),
+  "item_id": zod.uuid().nullish().describe('The menu item; null for a line with none.'),
   "item_name": zod.string(),
   "quantity": zod.number(),
   "revenue": zod.number().describe('Σ line totals (before refunds), as `branch_sales.top_items.revenue`.')
@@ -13957,7 +14780,7 @@ export const BranchSalesQueryParams = zod.object({
   "from": zod.iso.datetime({"offset":true}).optional(),
   "to": zod.iso.datetime({"offset":true}).optional(),
   "limit": zod.number().optional(),
-  "exclude_items": zod.string().optional().describe('Comma-separated menu_item\/bundle UUIDs left out of `total_line_items`\n(units sold) ONLY — revenue, top items, and categories are untouched.')
+  "exclude_items": zod.string().optional().describe('Comma-separated menu_item UUIDs left out of `total_line_items`\n(units sold) ONLY — revenue, top items, and categories are untouched.')
 })
 
 export const BranchSalesResponse = zod.object({
@@ -14254,6 +15077,76 @@ export const BranchWasteReportResponseItem = zod.object({
 export const BranchWasteReportResponse = zod.array(BranchWasteReportResponseItem)
 
 
+export const BundlesReportQueryParams = zod.object({
+  "from": zod.iso.date().describe('Business date, inclusive.'),
+  "to": zod.iso.date().describe('Business date, inclusive.'),
+  "branch_id": zod.uuid().optional(),
+  "kind": zod.string().optional().describe('`combo` | `deal`; omitted = both.')
+})
+
+export const BundlesReportResponse = zod.object({
+  "from": zod.iso.date(),
+  "rows": zod.array(zod.object({
+  "cost": zod.number(),
+  "cost_missing": zod.boolean().describe('True when any line\'s cost was unknown (`cost` then counts the known part).'),
+  "id": zod.uuid().describe('The combo\'s menu item id, or the deal rule\'s id.'),
+  "kind": zod.string().describe('`combo` | `deal`.'),
+  "list_value": zod.number().describe('The same lines at their normal prices.'),
+  "margin": zod.string().nullish().describe('`(revenue − cost) \/ revenue` as a fraction string; `null` when revenue is 0.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "orders": zod.number(),
+  "revenue": zod.number().describe('A combo: Σ its parts\' line_total + their add-ons. A deal: Σ the\nconsumed lines\' line_total (after the deal).'),
+  "saving": zod.number().describe('`list_value − revenue`.'),
+  "sold": zod.number().describe('Combo units (Σ header quantity, refunds netted) or deal applications (Σ times).')
+}).describe('One combo or deal over the period.')),
+  "to": zod.iso.date(),
+  "totals": zod.object({
+  "cost": zod.number(),
+  "list_value": zod.number(),
+  "revenue": zod.number(),
+  "saving": zod.number(),
+  "sold": zod.number()
+})
+})
+
+
+export const ComboMixParams = zod.object({
+  "id": zod.uuid().describe('The combo\'s menu item id')
+})
+
+export const ComboMixQueryParams = zod.object({
+  "from": zod.iso.date(),
+  "to": zod.iso.date(),
+  "branch_id": zod.uuid().optional()
+})
+
+export const ComboMixResponse = zod.object({
+  "combo_id": zod.uuid(),
+  "from": zod.iso.date(),
+  "slots": zod.array(zod.object({
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}).optional().describe('The slot\'s names by language: the catalogue\'s when it has any, else\nwhat the sales stored (a deleted slot\'s). `{}` when neither has any.'),
+  "picks": zod.array(zod.object({
+  "count": zod.number().describe('Units picked (Σ part quantity, refunds netted).'),
+  "menu_item_id": zod.uuid().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "size_label": zod.string().nullish(),
+  "surcharge_total": zod.number()
+})),
+  "slot_id": zod.uuid().nullish().describe('`null` for parts whose slot was deleted since.')
+})),
+  "to": zod.iso.date()
+}).describe('What customers picked in each slot of one combo.')
+
+
 export const AttendanceCorrectionsAuditParams = zod.object({
   "org_id": zod.uuid()
 })
@@ -14267,16 +15160,19 @@ export const AttendanceCorrectionsAuditQueryParams = zod.object({
 export const AttendanceCorrectionsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14296,6 +15192,21 @@ export const AttendanceCorrectionsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14366,16 +15277,19 @@ export const DeductionOverridesAuditQueryParams = zod.object({
 export const DeductionOverridesAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14395,6 +15309,21 @@ export const DeductionOverridesAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14414,16 +15343,19 @@ export const DiscountsAuditQueryParams = zod.object({
 export const DiscountsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14443,6 +15375,21 @@ export const DiscountsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14500,16 +15447,19 @@ export const LoyaltyAdjustmentsAuditQueryParams = zod.object({
 export const LoyaltyAdjustmentsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14529,6 +15479,21 @@ export const LoyaltyAdjustmentsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14548,16 +15513,19 @@ export const ManualDeductionsAuditQueryParams = zod.object({
 export const ManualDeductionsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14577,6 +15545,21 @@ export const ManualDeductionsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14645,16 +15628,19 @@ export const PriceOverridesQueryParams = zod.object({
 export const PriceOverridesResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14674,6 +15660,21 @@ export const PriceOverridesResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14693,16 +15694,19 @@ export const RefundsAuditQueryParams = zod.object({
 export const RefundsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14722,6 +15726,21 @@ export const RefundsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14807,16 +15826,19 @@ export const VoidsAuditQueryParams = zod.object({
 export const VoidsAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14836,6 +15858,21 @@ export const VoidsAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -14855,16 +15892,19 @@ export const WaiversAuditQueryParams = zod.object({
 export const WaiversAuditResponse = zod.object({
   "by_issuer": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
   "by_kind": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })).nullish().describe('Discounts audit only: by act (`preset` \/ `manual_amount` \/\n`manual_percent`; `unattributed` for sales from before). Additive.'),
   "by_reason": zod.array(zod.object({
   "amount_minor": zod.number(),
+  "code": zod.string().nullish().describe('A stable code for a label the SERVER wrote (`unspecified`,\n`correction_request`, `auto_closed`, a void reason), so a client\nwords it in its own language (AT-13, E2E B-PAY-5). Absent for a\nperson\'s own words (a typed reason, a name): `label` is the text.'),
   "count": zod.number(),
   "label": zod.string()
 })),
@@ -14884,6 +15924,21 @@ export const WaiversAuditResponse = zod.object({
   "preset_name": zod.string().nullish()
 }).describe('One discounted sale in the discounts audit.')).nullish().describe('Discounts audit only: the most recent discounted sales, newest first\n(at most 200). Additive.'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
+  "history": zod.array(zod.object({
+  "action": zod.string().describe('`waive` · `unwaive` · `override`'),
+  "actor_id": zod.uuid().nullish(),
+  "actor_name": zod.string().nullish(),
+  "amount_after_piastres": zod.number().nullish(),
+  "amount_before_piastres": zod.number().nullish().describe('What the line charged before and after this event (a waiver: after\n0; undoing one: before 0).'),
+  "at": zod.iso.datetime({"offset":true}),
+  "deduction_id": zod.uuid(),
+  "effective_date": zod.iso.date().nullish().describe('The line itself: its day, what made it (`absence`, `late_penalty`,\n…) and its rule\'s reason code. Null if the line is gone.'),
+  "employee_id": zod.uuid().nullish(),
+  "employee_name": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "reason_code": zod.string().nullish(),
+  "source": zod.string().nullish()
+}).describe('One waive, unwaive or override of a payroll deduction, from the money\naudit log (D8).')).nullish().describe('Deduction overrides audit only: every waive, unwaive and override\nevent with who, when and why, newest first (at most 500) — the\nhistory, so a waiver later undone still shows (owner decision D8,\nAT-10). Additive.'),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "total_amount_minor": zod.number(),
   "total_count": zod.number()
@@ -15027,6 +16082,89 @@ export const TillSummaryResponse = zod.object({
   "total_tips": zod.number().optional().describe('Tips, standalone — matches `total_tips` on `GET \/shifts\/{id}\/report`.'),
   "voided_orders": zod.number()
 })
+
+
+export const GetSettingsResponse = zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "effective": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org\'s toggles with this override applied.'),
+  "sell": zod.object({
+  "delivery": zod.boolean().nullish(),
+  "online": zod.boolean().nullish(),
+  "pos": zod.boolean().nullish(),
+  "qr": zod.boolean().nullish()
+}).describe('A branch\'s override of the org\'s toggles. `null` (or absent) inherits.')
+}).describe('One branch\'s override, with what it resolves to.')).describe('Every branch that overrides at least one toggle.'),
+  "channels": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org-wide toggles.'),
+  "min_margin": zod.string().nullish().describe('The owner\'s minimum margin as a decimal fraction string (\"0.5500\");\n`null` = no margin warning.')
+}).describe('`GET \/settings\/combos`: the minimum margin (C11) and the channel toggles\n(§11.1) that gate every combo and every deal.')
+
+
+export const PutSettingsBody = zod.object({
+  "channels": zod.union([zod.null(),zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The four sale channels\' toggles, resolved: `pos` (the till), `qr` (the\ntable QR menu), `online` (the storefront, all four delivery sub-channels)\nand `delivery` (aggregator apps; stored and returned, honoured by the\nfuture menu push). Every channel is on until the owner switches it off.')]).optional(),
+  "min_margin": zod.string().nullish().describe('A fraction between \"0\" and \"1\", e.g. \"0.55\".')
+}).describe('`PUT \/settings\/combos`. `min_margin` is replaced (omitted or `null` = no\nwarning); `channels`, when present, replaces the org-wide toggles.')
+
+export const PutSettingsResponse = zod.object({
+  "branch_overrides": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "effective": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org\'s toggles with this override applied.'),
+  "sell": zod.object({
+  "delivery": zod.boolean().nullish(),
+  "online": zod.boolean().nullish(),
+  "pos": zod.boolean().nullish(),
+  "qr": zod.boolean().nullish()
+}).describe('A branch\'s override of the org\'s toggles. `null` (or absent) inherits.')
+}).describe('One branch\'s override, with what it resolves to.')).describe('Every branch that overrides at least one toggle.'),
+  "channels": zod.object({
+  "delivery": zod.boolean().optional(),
+  "online": zod.boolean().optional(),
+  "pos": zod.boolean().optional(),
+  "qr": zod.boolean().optional()
+}).describe('The org-wide toggles.'),
+  "min_margin": zod.string().nullish().describe('The owner\'s minimum margin as a decimal fraction string (\"0.5500\");\n`null` = no margin warning.')
+}).describe('`GET \/settings\/combos`: the minimum margin (C11) and the channel toggles\n(§11.1) that gate every combo and every deal.')
+
+
+export const PutBranchChannelsParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const PutBranchChannelsBody = zod.object({
+  "delivery": zod.boolean().nullish(),
+  "online": zod.boolean().nullish(),
+  "pos": zod.boolean().nullish(),
+  "qr": zod.boolean().nullish()
+}).describe('A branch\'s override of the org\'s toggles. `null` (or absent) inherits.')
+
+export const PutBranchChannelsResponse = zod.void()
+
+
+export const DeleteBranchChannelsParams = zod.object({
+  "branch_id": zod.uuid().describe('Branch ID')
+})
+
+export const DeleteBranchChannelsResponse = zod.void()
 
 
 export const ListShiftsParams = zod.object({
@@ -15650,6 +16788,9 @@ export const ListAdjustmentsResponseItem = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided a line that waited for the owner, when, and why (a\nrejection always says why, D8).'),
+  "decision_note": zod.string().nullish(),
   "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -15660,6 +16801,10 @@ export const ListAdjustmentsResponseItem = zod.object({
   "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
+  "reason_code": zod.string().nullish().describe('A rule-made line\'s reason as a code and its figures (`late`\n`{minutes}`, `absent_no_punch`, …), the payslip breakdown\'s own, so a\nclient words it in its language (AT-13, E2E B-PAY-4). Null for a\nbonus and for a manual line (its `reason` is what was typed).'),
+  "reason_vars": zod.looseObject({
+
+}).nullish(),
   "recurring": zod.boolean(),
   "source": zod.string(),
   "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
@@ -15677,7 +16822,7 @@ and waits for the owner (AD-5). Bonuses and deductions have separate limits.
  */
 export const CreateAdjustmentBody = zod.object({
   "amount_piastres": zod.number().nullish(),
-  "effective_date": zod.iso.date().nullish().describe('The month it lands in (AD-1): any day of that month; the first month\nof a recurring line (AD-3). Defaults to today. Must be an open month.'),
+  "effective_date": zod.iso.date().nullish().describe('The month it lands in (AD-1): any day of that month; the first month\nof a recurring line (AD-3). Defaults to today, or, when today\'s month\nis already approved, the first day of the next open month (M27).\nGiven explicitly, it must be in an open month (409 PERIOD_CLOSED).'),
   "employee_id": zod.uuid(),
   "kind": zod.string().describe('`bonus` · `deduction`'),
   "percent_of_base": zod.number().nullish().describe('A bonus may be a % of salary.'),
@@ -15689,6 +16834,9 @@ export const CreateAdjustmentResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided a line that waited for the owner, when, and why (a\nrejection always says why, D8).'),
+  "decision_note": zod.string().nullish(),
   "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -15699,6 +16847,10 @@ export const CreateAdjustmentResponse = zod.object({
   "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
+  "reason_code": zod.string().nullish().describe('A rule-made line\'s reason as a code and its figures (`late`\n`{minutes}`, `absent_no_punch`, …), the payslip breakdown\'s own, so a\nclient words it in its language (AT-13, E2E B-PAY-4). Null for a\nbonus and for a manual line (its `reason` is what was typed).'),
+  "reason_vars": zod.looseObject({
+
+}).nullish(),
   "recurring": zod.boolean(),
   "source": zod.string(),
   "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
@@ -15719,13 +16871,17 @@ export const DecideAdjustmentParams = zod.object({
 })
 
 export const DecideAdjustmentBody = zod.object({
-  "approve": zod.boolean()
+  "approve": zod.boolean(),
+  "reason": zod.string().nullish().describe('Why. Required to reject (400 `REASON_REQUIRED`, D8); optional to\napprove.')
 })
 
 export const DecideAdjustmentResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided a line that waited for the owner, when, and why (a\nrejection always says why, D8).'),
+  "decision_note": zod.string().nullish(),
   "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -15736,6 +16892,10 @@ export const DecideAdjustmentResponse = zod.object({
   "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
+  "reason_code": zod.string().nullish().describe('A rule-made line\'s reason as a code and its figures (`late`\n`{minutes}`, `absent_no_punch`, …), the payslip breakdown\'s own, so a\nclient words it in its language (AT-13, E2E B-PAY-4). Null for a\nbonus and for a manual line (its `reason` is what was typed).'),
+  "reason_vars": zod.looseObject({
+
+}).nullish(),
   "recurring": zod.boolean(),
   "source": zod.string(),
   "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
@@ -15747,7 +16907,8 @@ export const DecideAdjustmentResponse = zod.object({
 
 
 /**
- * @summary Stop a monthly line from the next period on; past payslips keep it (AD-3).
+ * @summary Stop a monthly line from the next period on: the open month and past
+payslips keep it (AD-3, owner decision D6).
  */
 export const StopAdjustmentParams = zod.object({
   "kind": zod.string(),
@@ -15762,6 +16923,9 @@ export const StopAdjustmentResponse = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided a line that waited for the owner, when, and why (a\nrejection always says why, D8).'),
+  "decision_note": zod.string().nullish(),
   "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -15772,6 +16936,10 @@ export const StopAdjustmentResponse = zod.object({
   "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
+  "reason_code": zod.string().nullish().describe('A rule-made line\'s reason as a code and its figures (`late`\n`{minutes}`, `absent_no_punch`, …), the payslip breakdown\'s own, so a\nclient words it in its language (AT-13, E2E B-PAY-4). Null for a\nbonus and for a manual line (its `reason` is what was typed).'),
+  "reason_vars": zod.looseObject({
+
+}).nullish(),
   "recurring": zod.boolean(),
   "source": zod.string(),
   "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
@@ -15796,7 +16964,7 @@ export const RecordAdvanceBody = zod.object({
 
 export const RecordAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -15811,7 +16979,8 @@ export const RecordAdvanceResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
@@ -15827,12 +16996,13 @@ export const ReviewAdvanceBody = zod.object({
   "amount_piastres": zod.number().nullish().describe('Approve a different amount than asked.'),
   "approve": zod.boolean(),
   "installments": zod.number().nullish(),
-  "note": zod.string().nullish()
+  "note": zod.string().nullish().describe('Why (kept as the decision note). Required to reject: `note` or\n`reason`, `reason` wins (400 `REASON_REQUIRED`, D8).'),
+  "reason": zod.string().nullish()
 })
 
 export const ReviewAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -15847,16 +17017,19 @@ export const ReviewAdvanceResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
 export const ListAttendanceQueryParams = zod.object({
-  "from": zod.iso.date(),
-  "to": zod.iso.date(),
+  "from": zod.iso.date().optional().describe('Required unless `cover_status` or `overtime_status` is `pending`.'),
+  "to": zod.iso.date().optional().describe('Required unless `cover_status` or `overtime_status` is `pending`.'),
   "branch_id": zod.uuid().optional(),
   "employee_id": zod.uuid().optional(),
-  "status": zod.string().optional()
+  "status": zod.string().optional(),
+  "cover_status": zod.string().optional().describe('`pending` · `confirmed` · `rejected`: covers in that state.'),
+  "overtime_status": zod.string().optional().describe('`pending` · `approved` · `rejected`: overtime in that state.')
 })
 
 export const ListAttendanceResponseItem = zod.object({
@@ -15872,6 +17045,7 @@ export const ListAttendanceResponseItem = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -15889,7 +17063,7 @@ export const ListAttendanceResponseItem = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -15928,6 +17102,7 @@ export const CreateManualRecordResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -15945,7 +17120,7 @@ export const CreateManualRecordResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -15973,7 +17148,7 @@ export const PunchForBody = zod.object({
   "rebooted": zod.boolean().optional().describe('The phone restarted after `server_time`, so `elapsed_ms` means nothing.'),
   "server_time": zod.iso.datetime({"offset":true}).describe('The last server time the phone saw. Only a guide: a valid `anchor`\nreplaces it, and without one the punch is marked unverified.')
 }).describe('Set when the manager\'s phone queued the punch offline: it is dated at\nits own time, not when the phone got a signal back (audit 03 bug 6).')]).optional(),
-  "reason": zod.string().describe('Required (CL-13): a dead phone, a forgotten one.')
+  "reason": zod.string().optional().describe('Required (CL-13): a dead phone, a forgotten one. Missing reads as\nblank, so the answer is \"A reason is required.\" (Mac E2E BC-4).')
 })
 
 export const PunchForResponse = zod.object({
@@ -15989,6 +17164,7 @@ export const PunchForResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16006,7 +17182,7 @@ export const PunchForResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -16028,6 +17204,7 @@ export const GetAttendanceSettingsResponse = zod.object({
   "advance_cap_percent": zod.number().describe('Salary advances owed may reach this share of monthly salary (AV-5).'),
   "auto_checkout_buffer_minutes": zod.number(),
   "branch_id": zod.uuid().nullish(),
+  "cover_pay_mode": zod.string().describe('How a confirmed cover is paid (owner decision D5): `minute_rate` (the\ncoverer\'s day rate ÷ 8 h × the minutes covered, CV-4; the default) or\n`full_block` (the covered block as a full day). A branch may override\nit (listed in `overridden`).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "default_overtime_multiplier": zod.number(),
   "excused_time_paid_default": zod.boolean().describe('Whether an approved mid-shift permission or early departure is PAID by\ndefault. The approver may override it on any individual request.'),
@@ -16068,6 +17245,7 @@ export const PutAttendanceSettingsBody = zod.object({
   "advance_cap_percent": zod.number().nullish(),
   "auto_checkout_buffer_minutes": zod.number().nullish(),
   "branch_id": zod.uuid().nullish().describe('`None` = the org-wide default row.'),
+  "cover_pay_mode": zod.string().nullish().describe('`minute_rate` · `full_block` (D5). On a branch: its own override;\n`inherit: [\"cover_pay_mode\"]` goes back to the business\'s.'),
   "default_overtime_multiplier": zod.number().nullish(),
   "excused_time_paid_default": zod.boolean().nullish(),
   "gender_mode": zod.string().nullish().describe('`off` · `soft` · `hard`; owner only (`hr.roster.settings`).'),
@@ -16101,6 +17279,7 @@ export const PutAttendanceSettingsResponse = zod.object({
   "advance_cap_percent": zod.number().describe('Salary advances owed may reach this share of monthly salary (AV-5).'),
   "auto_checkout_buffer_minutes": zod.number(),
   "branch_id": zod.uuid().nullish(),
+  "cover_pay_mode": zod.string().describe('How a confirmed cover is paid (owner decision D5): `minute_rate` (the\ncoverer\'s day rate ÷ 8 h × the minutes covered, CV-4; the default) or\n`full_block` (the covered block as a full day). A branch may override\nit (listed in `overridden`).'),
   "created_at": zod.iso.datetime({"offset":true}),
   "default_overtime_multiplier": zod.number(),
   "excused_time_paid_default": zod.boolean().describe('Whether an approved mid-shift permission or early departure is PAID by\ndefault. The approver may override it on any individual request.'),
@@ -16212,6 +17391,7 @@ export const TillPunchResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16229,7 +17409,7 @@ export const TillPunchResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -16279,6 +17459,7 @@ export const CorrectRecordResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16296,7 +17477,7 @@ export const CorrectRecordResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -16334,6 +17515,7 @@ export const DecideCoverResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16351,7 +17533,7 @@ export const DecideCoverResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -16388,6 +17570,7 @@ export const DecideOvertimeResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16405,7 +17588,7 @@ export const DecideOvertimeResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -16535,8 +17718,9 @@ export const ListEmployeesQueryParams = zod.object({
 
 export const ListEmployeesResponseItem = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
-  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
+  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module\ndocs — or when no salary is set (`salary_set` tells the two apart).'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
   "cant_work_days": zod.array(zod.number()).describe('Days they can\'t work: 0 = Sunday … 6 = Saturday.'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16566,6 +17750,7 @@ export const ListEmployeesResponseItem = zod.object({
   "photo_url": zod.string().nullish(),
   "pref_time": zod.string().nullish().describe('`morning` · `evening` · null'),
   "role": zod.string().nullish().describe('The linked user\'s POS role; null for an unlinked employee.'),
+  "salary_set": zod.boolean().describe('A salary is on file (owner decision D9): false = \"not set\" (someone a\nmanager added or imported), shown as \"—\" and flagged by payroll.\nNever hidden: it says nothing about the amount.'),
   "termination_date": zod.iso.date().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid().nullish().describe('The linked Madar user, when this employee is one (a cashier, a manager,\nthe owner). Null for someone who is only on payroll.')
@@ -16595,8 +17780,9 @@ export const CreateEmployeeBody = zod.object({
 
 export const CreateEmployeeResponse = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
-  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
+  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module\ndocs — or when no salary is set (`salary_set` tells the two apart).'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
   "cant_work_days": zod.array(zod.number()).describe('Days they can\'t work: 0 = Sunday … 6 = Saturday.'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16626,6 +17812,7 @@ export const CreateEmployeeResponse = zod.object({
   "photo_url": zod.string().nullish(),
   "pref_time": zod.string().nullish().describe('`morning` · `evening` · null'),
   "role": zod.string().nullish().describe('The linked user\'s POS role; null for an unlinked employee.'),
+  "salary_set": zod.boolean().describe('A salary is on file (owner decision D9): false = \"not set\" (someone a\nmanager added or imported), shown as \"—\" and flagged by payroll.\nNever hidden: it says nothing about the amount.'),
   "termination_date": zod.iso.date().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid().nullish().describe('The linked Madar user, when this employee is one (a cashier, a manager,\nthe owner). Null for someone who is only on payroll.')
@@ -16652,8 +17839,9 @@ export const GetEmployeeParams = zod.object({
 
 export const GetEmployeeResponse = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
-  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
+  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module\ndocs — or when no salary is set (`salary_set` tells the two apart).'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
   "cant_work_days": zod.array(zod.number()).describe('Days they can\'t work: 0 = Sunday … 6 = Saturday.'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16683,6 +17871,7 @@ export const GetEmployeeResponse = zod.object({
   "photo_url": zod.string().nullish(),
   "pref_time": zod.string().nullish().describe('`morning` · `evening` · null'),
   "role": zod.string().nullish().describe('The linked user\'s POS role; null for an unlinked employee.'),
+  "salary_set": zod.boolean().describe('A salary is on file (owner decision D9): false = \"not set\" (someone a\nmanager added or imported), shown as \"—\" and flagged by payroll.\nNever hidden: it says nothing about the amount.'),
   "termination_date": zod.iso.date().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid().nullish().describe('The linked Madar user, when this employee is one (a cashier, a manager,\nthe owner). Null for someone who is only on payroll.')
@@ -16702,15 +17891,15 @@ export const PutEmployeeBody = zod.object({
   "emergency_contact_phone": zod.string().nullish(),
   "employee_code": zod.string().nullish(),
   "employment_status": zod.string().nullish().describe('`active` | `suspended` | `terminated`. Defaults to `active`. Anything\nbut `active` signs the phone out (RO-10).'),
-  "gender": zod.string().nullish().describe('`m` · `f`; omitted keeps what is there.'),
+  "gender": zod.string().nullish().describe('`m` · `f`; `null` or empty = not set; omitted keeps what is there.'),
   "hire_date": zod.iso.date().nullish(),
   "job_title": zod.string().nullish(),
   "name": zod.string().nullish(),
   "national_id": zod.string().nullish(),
   "notes": zod.string().nullish(),
   "on_payroll": zod.boolean().nullish().describe('Paid through Dawam. Like the salary, ignored unless the caller has\n`hr.payroll.edit` for every branch.'),
-  "pay_account": zod.string().nullish(),
-  "pay_method": zod.string().nullish().describe('`cash` · `bank` · `wallet`; omitted keeps what is there.'),
+  "pay_account": zod.string().nullish().describe('The IBAN or wallet number; `null` or empty clears it; omitted keeps\nit. Always cleared when the method is (or stays) `cash`.'),
+  "pay_method": zod.string().nullish().describe('`cash` · `bank` · `wallet`; omitted keeps what is there. Cash clears\nthe account.'),
   "phone": zod.string().nullish().describe('A new number signs the old phone out (RO-10). Empty clears it.'),
   "photo_url": zod.string().nullish(),
   "termination_date": zod.iso.date().nullish()
@@ -16718,8 +17907,9 @@ export const PutEmployeeBody = zod.object({
 
 export const PutEmployeeResponse = zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in salary advances, in\npiastres (AV-5): the server\'s figure, so no client recomputes it.\nHidden with the salary.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances (pending ones counted) is within the\ncap. Never hidden: what a manager sees instead of the cap (D7).'),
   "app_access": zod.boolean().describe('May sign in to the staff app with a WhatsApp code.'),
-  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module docs.'),
+  "base_salary_piastres": zod.number().nullish().describe('`None` when the caller may not read this person\'s pay — see the module\ndocs — or when no salary is set (`salary_set` tells the two apart).'),
   "branch_ids": zod.array(zod.uuid()).describe('Where they work; managers see the people of their branches (RO-6).'),
   "cant_work_days": zod.array(zod.number()).describe('Days they can\'t work: 0 = Sunday … 6 = Saturday.'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -16749,6 +17939,7 @@ export const PutEmployeeResponse = zod.object({
   "photo_url": zod.string().nullish(),
   "pref_time": zod.string().nullish().describe('`morning` · `evening` · null'),
   "role": zod.string().nullish().describe('The linked user\'s POS role; null for an unlinked employee.'),
+  "salary_set": zod.boolean().describe('A salary is on file (owner decision D9): false = \"not set\" (someone a\nmanager added or imported), shown as \"—\" and flagged by payroll.\nNever hidden: it says nothing about the amount.'),
   "termination_date": zod.iso.date().nullish(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "user_id": zod.uuid().nullish().describe('The linked Madar user, when this employee is one (a cashier, a manager,\nthe owner). Null for someone who is only on payroll.')
@@ -16896,6 +18087,51 @@ export const LogExpenseAdvanceResponse = zod.object({
 
 
 /**
+ * @summary Clear an expense advance (a till pay-out's "expense advance to" tag, or
+a logged one) with a reason: the record goes, a till's cash movement
+stays exactly as it is (AV-10, minor default M39). Owner only.
+ */
+export const ClearExpenseAdvanceParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ClearExpenseAdvanceQueryParams = zod.object({
+  "reason": zod.string().optional()
+})
+
+export const ClearExpenseAdvanceResponse = zod.void()
+
+
+/**
+ * @summary Give an expense advance to the person who really received the cash, with
+a reason; a till's cash movement stays as it is (minor default M39).
+Owner only.
+ */
+export const ReassignExpenseAdvanceParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ReassignExpenseAdvanceBody = zod.object({
+  "employee_id": zod.uuid().describe('Who really received the cash.'),
+  "reason": zod.string().nullish().describe('Why (required).')
+})
+
+export const ReassignExpenseAdvanceResponse = zod.object({
+  "amount_piastres": zod.number(),
+  "branch_id": zod.uuid().nullish(),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "employee_id": zod.uuid(),
+  "employee_name": zod.string(),
+  "given_on": zod.iso.date(),
+  "handed_by": zod.uuid().nullish(),
+  "handed_by_name": zod.string().nullish(),
+  "id": zod.uuid(),
+  "purpose": zod.string(),
+  "via": zod.string().describe('`safe` · `bank` · `till`')
+})
+
+
+/**
  * @summary The flags a manager should look at, for their branches (RO-6).
  */
 export const ListAttendanceFlagsQueryParams = zod.object({
@@ -16906,6 +18142,8 @@ export const ListAttendanceFlagsQueryParams = zod.object({
 export const ListAttendanceFlagsResponseItem = zod.object({
   "attendance_record_id": zod.uuid().nullish(),
   "branch_id": zod.uuid().nullish(),
+  "deduction_id": zod.uuid().nullish().describe('The deduction the flag was handled with (a deduct or an unpaid\nexcuse), and its status: `approved`, or `pending` = over the\nmanager\'s limit, it waits for the owner (minor default M33).'),
+  "deduction_status": zod.string().nullish(),
   "detected_at": zod.iso.datetime({"offset":true}),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -16927,7 +18165,7 @@ export const ResolveFlagParams = zod.object({
 })
 
 export const ResolveFlagBody = zod.object({
-  "action": zod.string().describe('`ignore` · `excuse_paid` · `excuse_unpaid` · `deduct` · `revoke` (a new\nphone) · `confirm`'),
+  "action": zod.string().describe('`ignore` · `excuse_paid` · `excuse_unpaid` · `deduct` · `revoke` (a new\nphone) · `confirm`. A cover\'s flag takes only `confirm` or `reject`,\nwhich decide the cover itself (400 `FLAG_COVER_CONFIRM_OR_REJECT`).'),
   "amount_piastres": zod.number().nullish().describe('For `deduct`: the amount the manager typed (CL-7).'),
   "reason": zod.string().nullish().describe('For `deduct`: why, on the pay line the employee sees (AD-9).')
 })
@@ -16935,6 +18173,8 @@ export const ResolveFlagBody = zod.object({
 export const ResolveFlagResponse = zod.object({
   "attendance_record_id": zod.uuid().nullish(),
   "branch_id": zod.uuid().nullish(),
+  "deduction_id": zod.uuid().nullish().describe('The deduction the flag was handled with (a deduct or an unpaid\nexcuse), and its status: `approved`, or `pending` = over the\nmanager\'s limit, it waits for the owner (minor default M33).'),
+  "deduction_status": zod.string().nullish(),
   "detected_at": zod.iso.datetime({"offset":true}),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -16956,6 +18196,8 @@ export const DecideHolidayBody = zod.object({
 })
 
 export const DecideHolidayResponse = zod.object({
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided it and when (AT-10); null while undecided.'),
   "decision": zod.string().nullish().describe('null = not decided yet: a normal day unless set up (RU-10).'),
   "name_ar": zod.string(),
   "name_en": zod.string(),
@@ -16967,6 +18209,9 @@ export const MyAdjustmentsResponseItem = zod.object({
   "amount_piastres": zod.number().nullish(),
   "created_at": zod.iso.datetime({"offset":true}),
   "created_by": zod.uuid().nullish(),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided a line that waited for the owner, when, and why (a\nrejection always says why, D8).'),
+  "decision_note": zod.string().nullish(),
   "effective_date": zod.iso.date().describe('The month it lands in (the first day of a recurring line, AD-1\/AD-3).'),
   "employee_id": zod.uuid(),
   "employee_name": zod.string(),
@@ -16977,6 +18222,10 @@ export const MyAdjustmentsResponseItem = zod.object({
   "overridden_at": zod.iso.datetime({"offset":true}).nullish(),
   "percent_of_base": zod.number().nullish(),
   "reason": zod.string(),
+  "reason_code": zod.string().nullish().describe('A rule-made line\'s reason as a code and its figures (`late`\n`{minutes}`, `absent_no_punch`, …), the payslip breakdown\'s own, so a\nclient words it in its language (AT-13, E2E B-PAY-4). Null for a\nbonus and for a manual line (its `reason` is what was typed).'),
+  "reason_vars": zod.looseObject({
+
+}).nullish(),
   "recurring": zod.boolean(),
   "source": zod.string(),
   "status": zod.string().describe('`pending` (waits for the owner) · `approved` · `rejected`'),
@@ -16990,7 +18239,7 @@ export const MyAdjustmentsResponse = zod.array(MyAdjustmentsResponseItem)
 
 export const MyAdvancesResponseItem = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -17005,7 +18254,8 @@ export const MyAdvancesResponseItem = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 export const MyAdvancesResponse = zod.array(MyAdvancesResponseItem)
 
@@ -17019,7 +18269,7 @@ export const CreateMyAdvanceBody = zod.object({
 
 export const CreateMyAdvanceResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -17034,7 +18284,8 @@ export const CreateMyAdvanceResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
@@ -17056,6 +18307,7 @@ export const MyAttendanceResponseItem = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -17073,7 +18325,7 @@ export const MyAttendanceResponseItem = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -17116,6 +18368,7 @@ export const CheckInResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -17133,7 +18386,7 @@ export const CheckInResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -17173,6 +18426,7 @@ export const CheckOutResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -17190,7 +18444,7 @@ export const CheckOutResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -17215,15 +18469,18 @@ export const MyContextResponse = zod.object({
   "timezone": zod.string()
 })),
   "caps": zod.array(zod.string()).describe('The HR capabilities I hold (`hr.\*` keys) — through my Madar account;\nempty for an employee with none. The app gates tabs on these (PM-4).'),
+  "caps_everywhere": zod.array(zod.string()).describe('The capabilities I hold at EVERY branch: the list `GET \/authz\/me`\nputs in `everywhere`, for the business-wide acts (the rules, payroll,\npublic holidays: `hr.rules.edit`, D3). Empty without a Madar account.'),
   "deduction_limit_piastres": zod.number().nullish().describe('My ceiling on a deduction (AD-5: separate from the bonus limit).'),
   "employee_id": zod.uuid().describe('Who is signed in: the employee.'),
+  "first_open_date": zod.iso.date().describe('The first day (from my today) not inside an approved or paid month:\nwhere a new bonus or deduction lands by default (\"lands in October\'s\npay\", minor default M27).'),
   "modules": zod.array(zod.string()).describe('The org\'s modules (`pos`, `dawam`); POS on means till punches (CL-13).'),
   "name": zod.string(),
   "org_id": zod.uuid(),
   "org_name": zod.string(),
   "people": zod.array(zod.object({
   "advance_cap_piastres": zod.number().nullish().describe('Their salary-advance cap, decided by the server (AV-5, AT-3); shown\nunder the same visibility as the salary.'),
-  "base_salary_piastres": zod.number().nullish().describe('Only for people whose pay the caller may see.'),
+  "advance_within_cap": zod.boolean().describe('What they owe in salary advances is within the cap; never hidden, so\na manager sees \"within cap\" \/ \"over cap\" without the figure (D7).'),
+  "base_salary_piastres": zod.number().nullish().describe('Only for people whose pay the caller may see (null too when no\nsalary is set: `salary_set`).'),
   "branch_ids": zod.array(zod.uuid()),
   "cant_work_days": zod.array(zod.number()),
   "device_model": zod.string().nullish(),
@@ -17237,6 +18494,7 @@ export const MyContextResponse = zod.object({
   "phone": zod.string().nullish(),
   "pref_time": zod.string().nullish(),
   "role": zod.string().describe('`owner` · `manager` · `employee` (from the linked account; an employee\nwith no account is `employee`).'),
+  "salary_set": zod.boolean().describe('A salary is on file (D9); false = \"not set\". Never hidden.'),
   "user_id": zod.uuid().nullish().describe('Their Madar account, when they have one.')
 })),
   "privacy_accepted_at": zod.iso.datetime({"offset":true}).nullish().describe('When THIS phone accepted the location notice; null = show it before\nany location is taken (AT-5). A new phone, or a restored session on\none that never accepted, starts null.'),
@@ -17250,7 +18508,8 @@ export const MyContextResponse = zod.object({
   "overtime_mode": zod.string(),
   "overtime_night_multiplier": zod.number(),
   "period_start_day": zod.number(),
-  "rules_saved": zod.boolean().describe('The business saved its rules; nobody clocks in before (RU-1, DSH-6).')
+  "rules_saved": zod.boolean().describe('The business saved its rules; nobody clocks in before (RU-1, DSH-6).'),
+  "rules_saved_at": zod.iso.datetime({"offset":true}).nullish().describe('When the rules were first saved; null until then. The sweep never\nmarks absent (or charges) a shift that started before it (B-SETUP-5),\nso neither does the app (B-ONB-1).')
 }),
   "user_id": zod.uuid().nullish().describe('Their Madar account, when they have one; manager acts go through it.'),
   "work_shifts": zod.array(zod.object({
@@ -17306,6 +18565,7 @@ export const OpenCoverResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -17323,7 +18583,7 @@ export const OpenCoverResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -17432,6 +18692,7 @@ export const MyEstimateResponse = zod.object({
   "net_piastres": zod.number(),
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
+  "salary_missing": zod.boolean().optional().describe('On payroll with no salary set (owner decision D9): everything prices\nat 0, and approval is refused (409 SALARY_MISSING) until the owner\nsets it or marks them not on payroll.'),
   "worked_days": zod.number()
 }).describe('So far this period, from the same engine payroll uses (PAY-9). Null\nfor someone not on payroll.')]).optional()
 })
@@ -17535,9 +18796,11 @@ export const MyRequestsResponseItem = zod.object({
   "cancel_note": zod.string().nullish(),
   "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
   "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
+  "cancelled_by_name": zod.string().nullish().describe('Who cancelled it, by name, the same way.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
+  "decided_by_name": zod.string().nullish().describe('Who decided it, by name — their employee\'s name when linked, else\ntheir account\'s — so a phone that can\'t look up the owner\'s account\nstill names them (RQ-F6).'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -17564,7 +18827,8 @@ export const MyRequestsResponseItem = zod.object({
   "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
   "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).'),
+  "worked_dates": zod.array(zod.iso.date()).optional().describe('For a leave or mission: the days it covers that the person already\nclocked in on. Approving turns those worked days into leave (the\npunches are kept), so the approver is warned first (minor default\nM16). Empty for every other kind.')
 })
 export const MyRequestsResponse = zod.array(MyRequestsResponseItem)
 
@@ -17593,9 +18857,11 @@ export const CreateMyRequestResponse = zod.object({
   "cancel_note": zod.string().nullish(),
   "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
   "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
+  "cancelled_by_name": zod.string().nullish().describe('Who cancelled it, by name, the same way.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
+  "decided_by_name": zod.string().nullish().describe('Who decided it, by name — their employee\'s name when linked, else\ntheir account\'s — so a phone that can\'t look up the owner\'s account\nstill names them (RQ-F6).'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -17622,7 +18888,8 @@ export const CreateMyRequestResponse = zod.object({
   "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
   "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).'),
+  "worked_dates": zod.array(zod.iso.date()).optional().describe('For a leave or mission: the days it covers that the person already\nclocked in on. Approving turns those worked days into leave (the\npunches are kept), so the approver is warned first (minor default\nM16). Empty for every other kind.')
 })
 
 
@@ -17637,8 +18904,20 @@ export const MyRosterQueryParams = zod.object({
 export const MyRosterResponse = zod.object({
   "cant_work_days": zod.array(zod.number()),
   "from": zod.iso.date(),
+  "my_claims": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}),
+  "decided_at": zod.iso.datetime({"offset":true}).nullish().describe('When it was decided or withdrawn; null while pending, and on a claim\ndecided before the server kept this history.'),
+  "id": zod.uuid(),
+  "on_date": zod.iso.date(),
+  "open_shift_id": zod.uuid(),
+  "shift_name": zod.string(),
+  "status": zod.string().describe('`pending` · `approved` · `declined` · `withdrawn`. A shift the\nmanager took back while the claim waited is `declined`.'),
+  "work_shift_id": zod.uuid()
+}).describe('One of my claims on an open shift, and how it ended (SC-9, S-162): a\nrequest like any other, so it stays in my Requests once decided.')).describe('My claims on open shifts, decided ones included: those on dates in\nrange, and every pending one wherever it falls (SC-9, S-162).'),
   "open_shifts": zod.array(zod.object({
   "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
   "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
   "claimed_by_name": zod.string().nullish(),
   "end_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -17855,6 +19134,7 @@ export const MyTodayResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -17872,7 +19152,7 @@ export const MyTodayResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -17896,6 +19176,7 @@ export const MyTodayResponse = zod.object({
   "check_out_latitude": zod.number().nullish(),
   "check_out_longitude": zod.number().nullish(),
   "check_out_method": zod.string().nullish(),
+  "check_out_reason": zod.string().nullish().describe('Why someone else punched this person OUT; the in-reason stays in\n`punch_reason` (AT-10, Mac E2E BC-1).'),
   "cover_status": zod.string().nullish().describe('`pending` · `confirmed` · `rejected` for a cover.'),
   "covered_employee_id": zod.uuid().nullish().describe('A cover: whose shift this person worked (CV-\*).'),
   "created_at": zod.iso.datetime({"offset":true}),
@@ -17913,7 +19194,7 @@ export const MyTodayResponse = zod.object({
   "org_id": zod.uuid(),
   "overtime_minutes": zod.number(),
   "overtime_status": zod.string().nullish().describe('`pending` · `approved` · `rejected` when overtime needs a decision.'),
-  "punch_reason": zod.string().nullish().describe('Why someone else punched for this person.'),
+  "punch_reason": zod.string().nullish().describe('Why someone else punched this person IN (or the only punch they made).'),
   "scheduled_end_at": zod.iso.datetime({"offset":true}).nullish(),
   "scheduled_start_at": zod.iso.datetime({"offset":true}).nullish(),
   "status": zod.string(),
@@ -17960,6 +19241,7 @@ export const ListOpenShiftsQueryParams = zod.object({
 
 export const ListOpenShiftsResponseItem = zod.object({
   "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
   "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
   "claimed_by_name": zod.string().nullish(),
   "end_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -17981,6 +19263,7 @@ export const PostOpenShiftBody = zod.object({
 
 export const PostOpenShiftResponse = zod.object({
   "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
   "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
   "claimed_by_name": zod.string().nullish(),
   "end_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -18013,6 +19296,7 @@ export const ClaimOpenShiftParams = zod.object({
 
 export const ClaimOpenShiftResponse = zod.object({
   "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
   "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
   "claimed_by_name": zod.string().nullish(),
   "end_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -18037,7 +19321,42 @@ export const DecideClaimBody = zod.object({
   "approve": zod.boolean()
 })
 
-export const DecideClaimResponse = zod.void()
+export const DecideClaimResponse = zod.object({
+  "status": zod.string().describe('`approved` · `rejected`'),
+  "warnings": zod.array(zod.object({
+  "date": zod.iso.date().describe('The day (or, for a week\'s limit, the Saturday it starts).'),
+  "employee_id": zod.uuid(),
+  "kind": zod.string().describe('`day_hours` · `week_hours` · `presence` · `rest` · `weekly_rest` · `overtime_day`'),
+  "limit_minutes": zod.number(),
+  "minutes": zod.number()
+}).describe('A roster past a labour limit. Warns, never blocks (RU-13).'))
+}).describe('A claim decision: the labour limits the approved day now breaks (a long\nday, a short rest). A warning, never a block (RU-13, minor default M26).')
+
+
+/**
+ * @summary Take back my claim while it waits (SC-9, S-162), as the one who asked can
+cancel any pending request: the shift is open again, the claim stays in
+my Requests as `withdrawn`, and the managers told of it hear. 409
+`NO_PENDING_CLAIM` when I have no claim waiting on it, 409
+`CLAIM_ALREADY_DECIDED` once it was approved or declined.
+ */
+export const WithdrawClaimParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const WithdrawClaimResponse = zod.object({
+  "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
+  "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
+  "claimed_by_name": zod.string().nullish(),
+  "end_at": zod.iso.datetime({"offset":true}).nullish(),
+  "id": zod.uuid(),
+  "on_date": zod.iso.date(),
+  "shift_name": zod.string(),
+  "start_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`open` · `claimed` · `filled` · `cancelled`'),
+  "work_shift_id": zod.uuid()
+})
 
 
 export const ListAdvancesQueryParams = zod.object({
@@ -18048,7 +19367,7 @@ export const ListAdvancesQueryParams = zod.object({
 
 export const ListAdvancesResponseItem = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -18063,7 +19382,8 @@ export const ListAdvancesResponseItem = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 export const ListAdvancesResponse = zod.array(ListAdvancesResponseItem)
 
@@ -18082,7 +19402,7 @@ export const CreateAdvanceAdminBody = zod.object({
 
 export const CreateAdvanceAdminResponse = zod.object({
   "amount_piastres": zod.number(),
-  "cap_piastres": zod.number().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it.'),
+  "cap_piastres": zod.number().nullish().describe('The owner\'s cap on what this person may owe in advances, in piastres\n(AV-5) — the server\'s figure, so no client recomputes it. Null for a\ncaller who may not read this person\'s salary: the cap is half the\nsalary, so it would give it away (owner decision D7). The person\nalways sees their own.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish(),
@@ -18097,7 +19417,8 @@ export const CreateAdvanceAdminResponse = zod.object({
   "reason": zod.string().nullish(),
   "remaining_piastres": zod.number().describe('Derived from the collection ledger (AV-6).'),
   "status": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true})
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "within_cap": zod.boolean().describe('What is owed (pending ones counted) is within the cap: what a manager\nsees instead of the cap (D7). False = over it: only the owner can\napprove more.')
 })
 
 
@@ -18183,6 +19504,7 @@ export const CurrentResponse = zod.object({
   "total_net_piastres": zod.number(),
   "updated_at": zod.iso.datetime({"offset":true})
 })).describe('Earlier periods, newest first.'),
+  "missing_salary_count": zod.number().describe('People on payroll with no salary set (D9): the preview rows with\n`salary_missing`; approval is refused until it is 0.'),
   "paid_count": zod.number().describe('How many payslips are marked paid (a \'none\' mark counts).'),
   "payslips": zod.array(zod.object({
   "absent_days": zod.number(),
@@ -18245,6 +19567,7 @@ export const CurrentResponse = zod.object({
   "net_piastres": zod.number(),
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
+  "salary_missing": zod.boolean().optional().describe('On payroll with no salary set (owner decision D9): everything prices\nat 0, and approval is refused (409 SALARY_MISSING) until the owner\nsets it or marks them not on payroll.'),
   "worked_days": zod.number()
 }).describe('One employee\'s pay for a period, computed but not yet written.\n\nPREVIEW AND GENERATE SHARE THIS. The preview endpoint exists so a manager can\nsee what payroll is about to do — a figure that would be worthless if it came\nfrom a second implementation that could drift from the real one. So the\ngenerator computes these first and then persists them, and the preview\ncomputes exactly the same values and persists nothing.')).describe('A live computation while the period is still a draft.'),
   "totals": zod.object({
@@ -18253,10 +19576,20 @@ export const CurrentResponse = zod.object({
   "bonuses_piastres": zod.number(),
   "carry_out_piastres": zod.number(),
   "deductions_piastres": zod.number(),
+  "missing_salary_count": zod.number().optional().describe('People on payroll with no salary set (D9); approval waits for them.'),
   "net_piastres": zod.number(),
   "overtime_piastres": zod.number(),
   "people": zod.number()
-}).describe('The run added up by the server (AT-3).')
+}).describe('The run added up by the server (AT-3).'),
+  "unsettled": zod.array(zod.object({
+  "ends_on": zod.iso.date(),
+  "net_total_piastres": zod.number().describe('The month\'s net pay: live for a draft, the frozen payslips once\napproved.'),
+  "paid_count": zod.number().describe('Payslips marked paid (a \'none\' mark counts); 0 for a draft.'),
+  "people": zod.number().describe('People on the month\'s payroll.'),
+  "period_id": zod.uuid(),
+  "starts_on": zod.iso.date(),
+  "status": zod.string().describe('`draft` (never approved) · `generated` (approved, someone unpaid)')
+}).describe('An older month still to settle (hunt H2-P1).')).describe('Older months that aren\'t fully paid, oldest first (hunt H2-P1): a\nmonth that rolled over while still a draft, or approved with someone\nunpaid. Each is settled by its id (approve, mark paid, reopen,\nexport); a paid or closed month isn\'t listed.')
 })
 
 
@@ -18457,7 +19790,7 @@ export const ExportPeriodCsvParams = zod.object({
 })
 
 export const ExportPeriodCsvQueryParams = zod.object({
-  "method": zod.string().optional().describe('`bank` (a transfer file: name, account, amount) · `wallet` (numbers\nand amounts) · `cash`; omitted = everyone, every figure (PAY-8).')
+  "method": zod.string().optional().describe('`bank` (a transfer file: name, account, amount) · `wallet` (numbers\nand amounts) · `cash` (the envelope list: name and amount, nobody with\n0 to pay); omitted = everyone, every figure (PAY-8).')
 })
 
 export const ExportPeriodCsvResponse = zod.unknown()
@@ -18603,6 +19936,7 @@ export const PreviewPeriodResponseItem = zod.object({
   "net_piastres": zod.number(),
   "overtime_minutes": zod.number(),
   "overtime_piastres": zod.number(),
+  "salary_missing": zod.boolean().optional().describe('On payroll with no salary set (owner decision D9): everything prices\nat 0, and approval is refused (409 SALARY_MISSING) until the owner\nsets it or marks them not on payroll.'),
   "worked_days": zod.number()
 }).describe('One employee\'s pay for a period, computed but not yet written.\n\nPREVIEW AND GENERATE SHARE THIS. The preview endpoint exists so a manager can\nsee what payroll is about to do — a figure that would be worthless if it came\nfrom a second implementation that could drift from the real one. So the\ngenerator computes these first and then persists them, and the preview\ncomputes exactly the same values and persists nothing.')
 export const PreviewPeriodResponse = zod.array(PreviewPeriodResponseItem)
@@ -18736,9 +20070,11 @@ export const ListRequestsResponseItem = zod.object({
   "cancel_note": zod.string().nullish(),
   "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
   "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
+  "cancelled_by_name": zod.string().nullish().describe('Who cancelled it, by name, the same way.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
+  "decided_by_name": zod.string().nullish().describe('Who decided it, by name — their employee\'s name when linked, else\ntheir account\'s — so a phone that can\'t look up the owner\'s account\nstill names them (RQ-F6).'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18765,7 +20101,8 @@ export const ListRequestsResponseItem = zod.object({
   "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
   "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).'),
+  "worked_dates": zod.array(zod.iso.date()).optional().describe('For a leave or mission: the days it covers that the person already\nclocked in on. Approving turns those worked days into leave (the\npunches are kept), so the approver is warned first (minor default\nM16). Empty for every other kind.')
 })
 export const ListRequestsResponse = zod.array(ListRequestsResponseItem)
 
@@ -18794,9 +20131,11 @@ export const CreateRequestAdminResponse = zod.object({
   "cancel_note": zod.string().nullish(),
   "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
   "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
+  "cancelled_by_name": zod.string().nullish().describe('Who cancelled it, by name, the same way.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
+  "decided_by_name": zod.string().nullish().describe('Who decided it, by name — their employee\'s name when linked, else\ntheir account\'s — so a phone that can\'t look up the owner\'s account\nstill names them (RQ-F6).'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18823,7 +20162,8 @@ export const CreateRequestAdminResponse = zod.object({
   "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
   "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).'),
+  "worked_dates": zod.array(zod.iso.date()).optional().describe('For a leave or mission: the days it covers that the person already\nclocked in on. Approving turns those worked days into leave (the\npunches are kept), so the approver is warned first (minor default\nM16). Empty for every other kind.')
 })
 
 
@@ -18843,9 +20183,11 @@ export const DecideRequestResponse = zod.object({
   "cancel_note": zod.string().nullish(),
   "cancelled_at": zod.iso.datetime({"offset":true}).nullish(),
   "cancelled_by": zod.uuid().nullish().describe('Who cancelled it (the person themselves or a manager), when and why.'),
+  "cancelled_by_name": zod.string().nullish().describe('Who cancelled it, by name, the same way.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "decided_at": zod.iso.datetime({"offset":true}).nullish(),
   "decided_by": zod.uuid().nullish().describe('Who approved or rejected it, when and why. A later cancellation keeps\nthese (the approval stays on record) and fills `cancelled_\*`.'),
+  "decided_by_name": zod.string().nullish().describe('Who decided it, by name — their employee\'s name when linked, else\ntheir account\'s — so a phone that can\'t look up the owner\'s account\nstill names them (RQ-F6).'),
   "decision_note": zod.string().nullish(),
   "employee_id": zod.uuid(),
   "employee_name": zod.string().nullish(),
@@ -18872,7 +20214,8 @@ export const DecideRequestResponse = zod.object({
   "to_owner": zod.boolean().optional().describe('A manager\'s own request waiting for someone above them (RQ-5): the\nowner decides it. Worked out by the server from capabilities.'),
   "to_time": zod.string().nullish().describe('End of the excused window. `None` = open to the shift\'s end.\nFor a `correction`: the proposed check-out, branch-local (earlier on the\nclock than the check-in = the next morning, a night shift).'),
   "updated_at": zod.iso.datetime({"offset":true}),
-  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).')
+  "work_shift_id": zod.uuid().nullish().describe('The shift a late arrival, early departure or excuse is for (split days).'),
+  "worked_dates": zod.array(zod.iso.date()).optional().describe('For a leave or mission: the days it covers that the person already\nclocked in on. Approving turns those worked days into leave (the\npunches are kept), so the approver is warned first (minor default\nM16). Empty for every other kind.')
 })
 
 
@@ -18891,9 +20234,22 @@ export const RosterResponse = zod.object({
   "date": zod.iso.date(),
   "day_off": zod.boolean().describe('The date is a day off by date change (it holds no shift).'),
   "employee_id": zod.uuid()
-}).describe('A person\'s date that holds its own set (a date change), not the pattern.')).optional().describe('The dates that hold their own set (a date change), a day off included:\nthe ones \"back to the pattern\" applies to.'),
+}).describe('A person\'s date that holds its own set (a date change), not the pattern.')).optional().describe('The dates whose part at THIS branch is not the pattern\'s (a date\nchange here, a day off included): the ones \"back to the pattern\"\napplies to on this board. A date changed only at another branch is\nnot one (BUG-4).'),
+  "elsewhere": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "crosses_midnight": zod.boolean(),
+  "date": zod.iso.date(),
+  "employee_id": zod.uuid(),
+  "end_time": zod.string(),
+  "shift_name": zod.string(),
+  "start_time": zod.string(),
+  "work_shift_id": zod.uuid()
+}).describe('A person\'s shift at ANOTHER branch that date (BUG-4): the board shows it\n(\"at <branch>\") so the cell never reads \"Off\", but it is not this\nboard\'s: never one of `shifts`, never sent back by a PUT from here.')).optional().describe('The staff\'s shifts at other branches in range, for display only\n(BUG-4).'),
   "from": zod.iso.date(),
   "holidays": zod.array(zod.object({
+  "decided_at": zod.iso.datetime({"offset":true}).nullish(),
+  "decided_by": zod.uuid().nullish().describe('Who decided it and when (AT-10); null while undecided.'),
   "decision": zod.string().nullish().describe('null = not decided yet: a normal day unless set up (RU-10).'),
   "name_ar": zod.string(),
   "name_en": zod.string(),
@@ -18902,6 +20258,7 @@ export const RosterResponse = zod.object({
   "limits_unconfirmed": zod.boolean().describe('The limits are not yet confirmed by a lawyer; say so beside them.'),
   "open_shifts": zod.array(zod.object({
   "branch_id": zod.uuid(),
+  "claimed_at": zod.iso.datetime({"offset":true}).nullish().describe('When the live claim was made; null while open.'),
   "claimed_by": zod.uuid().nullish().describe('The employee who claimed it.'),
   "claimed_by_name": zod.string().nullish(),
   "end_at": zod.iso.datetime({"offset":true}).nullish(),
@@ -19135,6 +20492,7 @@ export const ListAssignmentsQueryParams = zod.object({
 })
 
 export const ListAssignmentsResponseItem = zod.object({
+  "branch_id": zod.uuid().nullish().describe('Where a business-wide block is worked (hunt H2-B8b); null = the\nblock\'s own branch, else the person\'s first.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "day_of_week": zod.number().nullish().describe('Postgres `EXTRACT(DOW)` convention: 0 = Sunday … 6 = Saturday.\n`None` = every day of the week.'),
   "effective_from": zod.iso.date(),
@@ -19149,6 +20507,7 @@ export const ListAssignmentsResponse = zod.array(ListAssignmentsResponseItem)
 
 
 export const CreateAssignmentBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch whose board sets the pattern: a business-wide block is\nworked there every week (one of the person\'s branches, else 400\n`EMPLOYEE_NOT_AT_BRANCH`). Omitted = the person\'s first branch.'),
   "day_of_week": zod.number().nullish().describe('0 = Sunday … 6 = Saturday. Omit for \"every day\".'),
   "effective_from": zod.iso.date().nullish(),
   "effective_to": zod.iso.date().nullish(),
@@ -19157,6 +20516,7 @@ export const CreateAssignmentBody = zod.object({
 })
 
 export const CreateAssignmentResponse = zod.object({
+  "branch_id": zod.uuid().nullish().describe('Where a business-wide block is worked (hunt H2-B8b); null = the\nblock\'s own branch, else the person\'s first.'),
   "created_at": zod.iso.datetime({"offset":true}),
   "day_of_week": zod.number().nullish().describe('Postgres `EXTRACT(DOW)` convention: 0 = Sunday … 6 = Saturday.\n`None` = every day of the week.'),
   "effective_from": zod.iso.date(),
@@ -19204,6 +20564,7 @@ export const GetScheduledDayResponse = zod.array(GetScheduledDayResponseItem)
 own times, or a day off (SC-5, SC-11).
  */
 export const PutDayBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch whose board sets the day: a business-wide block is worked\nthere (one of the person\'s branches, else 400\n`EMPLOYEE_NOT_AT_BRANCH`). Omitted = each block stays where the date\nhad it (a new one at the person\'s first branch).'),
   "employee_id": zod.uuid(),
   "on_date": zod.iso.date(),
   "reason": zod.string().nullish(),
@@ -19254,7 +20615,8 @@ export const PutDayResponse = zod.object({
  */
 export const ResetDayQueryParams = zod.object({
   "employee_id": zod.uuid(),
-  "on_date": zod.iso.date()
+  "on_date": zod.iso.date(),
+  "branch_id": zod.uuid().optional().describe('The board it is reset from (BUG-4): only the blocks worked at that\nbranch go back to the pattern; the other branches\' stay (one of the\nperson\'s branches, else 400 `EMPLOYEE_NOT_AT_BRANCH`). Omitted (an\nold client) = the branches the caller may edit the roster at: an\nowner resets the whole date, as before.')
 })
 
 export const ResetDayResponse = zod.object({
@@ -19536,6 +20898,7 @@ export const TeamPresenceResponse = zod.object({
   "employee_name": zod.string(),
   "job_title": zod.string().nullish(),
   "late_minutes": zod.number(),
+  "punch_opens_at": zod.iso.datetime({"offset":true}).nullish().describe('When a punch for them opens: the next shift of their today (not yet\nended; else the first) less its check-in window (CL-3). Null when not\nrostered. The dashboard offers Punch from then, as the app does\n(minor default M15).'),
   "scheduled_minutes": zod.number().describe('Minutes this person is rostered for today — the denominator of the\nlabour-vs-plan bar.'),
   "state": zod.string().describe('`in` | `late` | `absent` | `on_leave` | `off` | `done`.'),
   "worked_minutes": zod.number()
@@ -19577,7 +20940,7 @@ export const ListWorkShiftsResponse = zod.array(ListWorkShiftsResponseItem)
 
 
 export const CreateWorkShiftBody = zod.object({
-  "branch_id": zod.uuid().nullish(),
+  "branch_id": zod.uuid().nullish().describe('The block\'s branch; null = the whole business. On an update, omitted\nkeeps the block\'s branch (E2E B-ROTA-8); on a create, omitted = the\nwhole business.'),
   "break_minutes": zod.number().nullish(),
   "checkin_window_minutes": zod.number().nullish(),
   "day_times": zod.array(zod.object({
@@ -19641,7 +21004,7 @@ export const UpdateWorkShiftParams = zod.object({
 })
 
 export const UpdateWorkShiftBody = zod.object({
-  "branch_id": zod.uuid().nullish(),
+  "branch_id": zod.uuid().nullish().describe('The block\'s branch; null = the whole business. On an update, omitted\nkeeps the block\'s branch (E2E B-ROTA-8); on a create, omitted = the\nwhole business.'),
   "break_minutes": zod.number().nullish(),
   "checkin_window_minutes": zod.number().nullish(),
   "day_times": zod.array(zod.object({
@@ -20852,21 +22215,6 @@ of truth: DB enum → this endpoint → select options).
  */
 export const ListTimezonesResponseItem = zod.string()
 export const ListTimezonesResponse = zod.array(ListTimezonesResponseItem)
-
-
-export const UploadBundleImageParams = zod.object({
-  "bundle_id": zod.uuid().describe('Bundle ID')
-})
-
-export const UploadBundleImageBody = zod.object({
-  "image": zod.instanceof(File)
-})
-
-export const UploadBundleImageResponse = zod.object({
-  "asset_job_id": zod.uuid(),
-  "image_url": zod.string().nullish(),
-  "status": zod.string().describe('`processing`')
-}).describe('Upload accepted: the picture is converted by the background asset worker.\n`image_url` is the row\'s current legacy URL (unchanged until the job is\ndone); poll `GET \/assets\/jobs\/{asset_job_id}`.')
 
 
 export const UploadCategoryImageParams = zod.object({

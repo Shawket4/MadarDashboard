@@ -27,4 +27,26 @@ describe("ImageUploader", () => {
     await vi.waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
     expect(container.querySelector("img")?.getAttribute("src")).toBe("https://a/tile.webp");
   });
+
+  it("a refused upload reads in the app's words, never axios's English (ADM-ORG-042)", async () => {
+    const { AxiosError, AxiosHeaders } = await import("axios");
+    const refused = new AxiosError("Request failed with status code 403", "ERR_BAD_REQUEST", undefined, undefined, {
+      status: 403,
+      statusText: "Forbidden",
+      headers: {},
+      config: { headers: new AxiosHeaders() },
+      data: undefined,
+    });
+    const onUpload = vi.fn().mockRejectedValue(refused);
+    const { container } = render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ImageUploader value={null} onUpload={onUpload} />
+      </QueryClientProvider>,
+    );
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await userEvent.upload(input, new File(["x"], "a.png", { type: "image/png" }));
+    expect(await screen.findByText("You don't have permission to perform this action.")).toBeInTheDocument();
+    expect(screen.queryByText(/Request failed/)).toBeNull();
+  });
 });
+

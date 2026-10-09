@@ -25,6 +25,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
+import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { getGuestPhone, setGuestPhone } from "@/features/public-shell/guest";
 import { formatPhoneInput } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -62,6 +63,8 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
   const [notes, setNotes] = useState("");
   const [done, setDone] = useState<PublicBookingView | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Also as a toast: the inline copy sits where the customer may have scrolled from.
+  useErrorToast(error);
 
   const branchesQ = useBookingBranches({ org_id: orgId }, { query: { enabled: step === "branch" } });
   const infoQ = useBookingInfo(branchId ?? "", { query: { enabled: !!branchId, retry: false } });

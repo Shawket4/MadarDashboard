@@ -1,12 +1,15 @@
 # Wallet badges
 
 Apple and Google both publish official "Add to Wallet" artwork with brand
-guidelines that forbid altering it. The two SVGs here follow the documented
-specification — black pill, the platform mark, the exact wording each requires —
-but they are **recreations, not the official files**.
+guidelines that forbid altering it. The two SVGs here are now the **official
+files, unmodified** (placed 2026-09-25; the hand-made recreations are gone):
 
-**To use the real ones, replace the file and change nothing else.** The button
-component renders these by path and does not care what is inside them:
+- `add-to-apple-wallet.svg` = Apple's `Add_to_Apple_Wallet_badge.svg` (English), viewBox 110.095 × 34.016.
+- `add-to-google-wallet.svg` = Google's `enGB_add_to_google_wallet_add-wallet-badge.svg` (English), viewBox 199 × 55.
+
+Never edit them: to update, replace the file and change nothing else. The button
+component renders these by path at a fixed height with `w-auto`, so each badge keeps
+its own aspect ratio:
 
 | File | Official source |
 |---|---|

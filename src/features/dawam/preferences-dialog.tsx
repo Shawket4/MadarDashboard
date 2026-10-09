@@ -24,6 +24,7 @@ import { fmtDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { invalidateStaff, WEEKDAYS } from "@/features/staff/util";
 import { WEEK_ORDER } from "@/features/staff/work-shift-dialog";
+import { failedEmpty } from "./live";
 
 const NONE = "none";
 
@@ -156,7 +157,7 @@ export function PreferencesDialog({
 
         <section className="space-y-1.5">
           <h3 className="text-sm font-semibold text-muted-foreground">{t("dawam.prefsLog", "Changes")}</h3>
-          {logQ.error ? (
+          {failedEmpty(logQ) ? (
             <p className="text-sm text-destructive">{getErrorMessage(logQ.error)}</p>
           ) : (logQ.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("dawam.prefsLogEmpty", "No changes yet.")}</p>

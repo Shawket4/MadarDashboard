@@ -3,7 +3,7 @@ import { AssetImage, assetOf } from "@/components/app/asset-image";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { BadgePercent, Clock, Plus, Search, UtensilsCrossed } from "lucide-react";
+import { BadgePercent, ChevronRight, Clock, Plus, Search, UtensilsCrossed } from "lucide-react";
 
 import { usePublicMenu } from "@/data/api/generated/api";
 import type { DeliveryMenu } from "@/data/api/generated/models/deliveryMenu";
@@ -20,10 +20,15 @@ import i18n from "@/i18n";
 
 import type { Channel, CartLine } from "../types";
 import { ItemCustomizer } from "./item-customizer";
+import { ComboCustomizer } from "./combo-customizer";
+import { isCombo } from "../combo";
+import { useHeaderHeight } from "@/features/public-shell/use-header-height";
 
 interface MenuStepProps {
   branchId: string;
-  channel: Channel;
+  /** A delivery channel, or `dine_in`: the read-only menu of a shop that takes
+   *  no online orders (the backend serves it only as a preview). */
+  channel: Channel | "dine_in";
   /**
    * A menu supplied by the caller instead of fetched here.
    *
@@ -52,6 +57,19 @@ interface MenuStepProps {
   browseOnly?: boolean;
   /** Browse CTA — leave the preview to choose how to order. */
   onExitBrowse?: () => void;
+  /** Browse: whether the branch is taking orders right now. The banner says
+   *  "we're closed" only when it really is. */
+  open?: boolean;
+  /** Browse of a shop that takes no online orders: the menu to read, nothing
+   *  to add — no customizer, no way to an order that could never be placed. */
+  readOnly?: boolean;
+  /**
+   * The shop's MENU (`/menu`), not a preview inside the ordering flow: no
+   * browse banner, no add buttons. When the branch does take orders,
+   * `onOrder` puts one slim "Order now" bar above the list instead.
+   */
+  menuMode?: boolean;
+  onOrder?: () => void;
 }
 
 interface Group {
@@ -60,7 +78,7 @@ interface Group {
   items: DeliveryMenuItem[];
 }
 
-export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAdd, query, onQueryChange, cartSlot, browseOnly, onExitBrowse }: MenuStepProps) {
+export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAdd, query, onQueryChange, cartSlot, browseOnly, onExitBrowse, open, readOnly, menuMode, onOrder }: MenuStepProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
   const fetched = usePublicMenu(
@@ -80,7 +98,9 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
         ? t("order.channel.umbrella", "To my umbrella")
         : channel === "pickup"
           ? t("order.channel.pickup", "Pickup")
-          : t("order.channel.outside", "Delivery");
+          : channel === "dine_in"
+            ? t("order.channel.dineIn", "Dine in")
+            : t("order.channel.outside", "Delivery");
 
   const [active, setActive] = useState<DeliveryMenuItem | null>(null);
   const [customizerOpen, setCustomizerOpen] = useState(false);
@@ -92,8 +112,42 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const [activeCat, setActiveCat] = useState<string | null>(null);
 
-  const scrollToCat = (id: string) =>
-    sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Mobile/tablet: the category bar sticks under the page header, and follows
+  // the section being read — scrolled sideways so its chip stays in view.
+  const headerH = useHeaderHeight();
+  const barRef = useRef<HTMLDivElement>(null);
+  const chipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  // A section lands under the header AND the sticky bar, not behind them. The
+  // bar measures 0 where it is hidden (desktop, where the rail does this job).
+  // A tapped category is the answer until the scroll it started settles: the
+  // spy would otherwise re-pick whatever the smooth scroll passes, and a last
+  // section too short to reach the top of the window would never be picked.
+  const spyPaused = useRef(false);
+  const scrollToCat = (id: string) => {
+    const el = sectionRefs.current[id];
+    if (!el) return;
+    setActiveCat(id);
+    spyPaused.current = true;
+    const resume = () => {
+      spyPaused.current = false;
+      window.removeEventListener("scrollend", resume);
+    };
+    window.addEventListener("scrollend", resume);
+    window.setTimeout(resume, 1200); // no `scrollend` (older Safari), or nothing to scroll
+    const covered = headerH + (barRef.current?.offsetHeight ?? 0) + 12;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - covered, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const bar = barRef.current;
+    const chip = activeCat ? chipRefs.current[activeCat] : null;
+    if (!bar || !chip || bar.offsetHeight === 0) return;
+    // Relative, so it reads the same in RTL, where scrollLeft counts backwards.
+    const b = bar.getBoundingClientRect();
+    const c = chip.getBoundingClientRect();
+    bar.scrollBy({ left: c.left + c.width / 2 - (b.left + b.width / 2), behavior: "smooth" });
+  }, [activeCat]);
 
   useEffect(() => {
     const els = groups
@@ -102,6 +156,7 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
     if (els.length === 0) return;
     const obs = new IntersectionObserver(
       (entries) => {
+        if (spyPaused.current) return;
         const top = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
@@ -144,6 +199,8 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
   const openItem = (item: DeliveryMenuItem) => {
     // Cart-building is allowed even in browse mode (closed branch preview): the
     // customer can fill a cart now and check out the moment a channel reopens.
+    // On a menu with no cart (`readOnly`, `menuMode`) the same sheet opens to
+    // look: the real options, and what the drink comes to with them.
     setActive(item);
     setCustomizerOpen(true);
   };
@@ -206,7 +263,21 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
         {/* Center column */}
         <div className="min-w-0 space-y-4 lg:space-y-6">
           {/* Browse-only banner: we're closed, this is a read-only preview. */}
-          {browseOnly && (
+          {menuMode && onOrder ? (
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-3 ps-4">
+              <p className="text-sm font-medium">
+                {open
+                  ? t("order.menuMode.orderPrompt", "Want it now? Order for pickup or delivery.")
+                  : t("order.menuMode.closedPrompt", "We're closed right now — ordering reopens when we're back.")}
+              </p>
+              {open ? (
+                <Button variant="brand" size="sm" className="shrink-0" onClick={onOrder}>
+                  {t("order.menuMode.orderNow", "Order now")}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+          {browseOnly && !menuMode && (
             <div className="flex flex-col gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
@@ -214,19 +285,27 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
                 </span>
                 <div className="min-w-0">
                   <p className="font-serif text-base font-semibold leading-tight">
-                    {t("order.browse.bannerTitle", "We're closed right now")}
+                    {readOnly
+                      ? t("order.browse.menuTitle", "Our menu")
+                      : open
+                        ? t("order.browse.viewingTitle", "You're viewing our menu")
+                        : t("order.browse.bannerTitle", "We're closed right now")}
                   </p>
                   <p className="mt-0.5 text-sm text-muted-foreground">
-                    {t("order.browse.bannerBody", "You're previewing the menu — ordering reopens when we're back.")}
+                    {readOnly
+                      ? t("order.browse.menuOnlyBody", "Order at the counter — these are our prices.")
+                      : open
+                        ? t("order.browse.viewingBody", "Ready? Start your order and choose how you'd like it.")
+                        : t("order.browse.bannerBody", "You're previewing the menu — ordering reopens when we're back.")}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground/80">
                     {t("order.browse.priceNote", { channel: channelLabel, defaultValue: "Prices shown for {{channel}}" })}
                   </p>
                 </div>
               </div>
-              {onExitBrowse && (
+              {onExitBrowse && !readOnly && (
                 <Button variant="brand" size="sm" className="shrink-0 self-start sm:self-center" onClick={onExitBrowse}>
-                  {t("order.browse.exit", "See how to order")}
+                  {open ? t("order.browse.start", "Start your order") : t("order.browse.exit", "See how to order")}
                 </Button>
               )}
             </div>
@@ -244,12 +323,20 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
             />
           </div>
 
-          {/* Category pills — mobile only (desktop uses the rail) */}
+          {/* Category pills — mobile only (desktop uses the rail). Sticky under
+              the header for the whole menu, like the rail beside it. */}
           {!noResults && groups.length > 1 && (
-            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
+            <div
+              ref={barRef}
+              style={{ top: headerH }}
+              className="no-scrollbar sticky z-10 -mx-4 flex gap-2 overflow-x-auto border-b border-border/60 bg-background/90 px-4 py-2 backdrop-blur-md lg:hidden"
+            >
               {groups.map((group) => (
                 <button
                   key={group.id}
+                  ref={(el) => {
+                    chipRefs.current[group.id] = el;
+                  }}
                   type="button"
                   onClick={() => scrollToCat(group.id)}
                   className={cn(
@@ -319,6 +406,7 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
                           lang={lang}
                           count={countByItem[item.id] ?? 0}
                           onOpen={() => openItem(item)}
+                          readOnly={readOnly || menuMode}
                         />
                       </motion.li>
                     ))}
@@ -335,12 +423,21 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
         )}
       </div>
 
+      {/* A combo has slots to fill, not add-ons: it gets its own picker. */}
       <ItemCustomizer
-        item={active}
+        item={isCombo(active) ? null : active}
         addons={data.addons}
-        open={customizerOpen}
+        open={customizerOpen && !isCombo(active)}
         onOpenChange={setCustomizerOpen}
         onConfirm={onAdd}
+        viewOnly={readOnly || menuMode}
+      />
+      <ComboCustomizer
+        item={isCombo(active) ? active : null}
+        open={customizerOpen && isCombo(active)}
+        onOpenChange={setCustomizerOpen}
+        onConfirm={onAdd}
+        viewOnly={readOnly || menuMode}
       />
     </>
   );
@@ -351,11 +448,14 @@ function MenuCard({
   lang,
   count,
   onOpen,
+  readOnly = false,
 }: {
   item: DeliveryMenuItem;
   lang: string;
   count: number;
   onOpen: () => void;
+  /** A menu to read: tapping opens the item to look, so no add button on the card. */
+  readOnly?: boolean;
 }) {
   const { t } = useTranslation();
   const hasSizes = item.sizes.length > 0;
@@ -380,7 +480,14 @@ function MenuCard({
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate font-medium">{getTranslatedName(item, lang)}</span>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate font-medium">{getTranslatedName(item, lang)}</span>
+          {isCombo(item) ? (
+            <span className="shrink-0 rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
+              {t("order.combo.badge", "Combo")}
+            </span>
+          ) : null}
+        </span>
         {description && (
           <span className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{description}</span>
         )}
@@ -397,18 +504,25 @@ function MenuCard({
       onClick={onOpen}
       className={cn(
         "group flex h-full w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 text-start shadow-sm transition-all",
-        "hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md active:translate-y-0",
+        "hover:border-brand/40 hover:shadow-md",
       )}
     >
       {inner}
 
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm transition-transform group-hover:scale-105">
-        {count > 0 ? (
-          <span className="text-xs font-bold tabular-nums">{count}</span>
-        ) : (
-          <Plus className="size-4" />
-        )}
-      </span>
+      {readOnly ? (
+        <ChevronRight
+          aria-hidden
+          className="size-4 shrink-0 text-muted-foreground rtl:rotate-180"
+        />
+      ) : (
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm">
+          {count > 0 ? (
+            <span className="text-xs font-bold tabular-nums">{count}</span>
+          ) : (
+            <Plus className="size-4" />
+          )}
+        </span>
+      )}
     </button>
   );
 }
