@@ -54,12 +54,14 @@ export function rates(from: { monthly: number } | { daily: number } | { hourly: 
 const iso = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10);
 const dayDiff = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
 
-/** The pay period holding `date`, for periods opening on `startDay` (PAY-1: the 26th means 26th–25th). */
+/** The pay period holding `date`, for periods opening on `startDay` (PAY-1: the 26th means 26th–25th).
+ *  madar-dawam `pay::period_window`, pinned by src/lib/dawam_vectors.json: `startDay` clamps to 1–28. */
 export function periodOf(date: string, startDay: number): { start: string; end: string; days: number } {
+  const s = Math.min(28, Math.max(1, startDay));
   const [y, m, d] = date.split("-").map(Number);
-  const month = d >= startDay ? m - 1 : m - 2; // 0-based month the period opens in
-  const start = iso(y, month, startDay);
-  const end = iso(y, month + 1, startDay - 1);
+  const month = d >= s ? m - 1 : m - 2; // 0-based month the period opens in
+  const start = iso(y, month, s);
+  const end = iso(y, month + 1, s - 1);
   return { start, end, days: dayDiff(start, end) + 1 };
 }
 
