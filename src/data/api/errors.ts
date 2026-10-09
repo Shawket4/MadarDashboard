@@ -79,6 +79,8 @@ const STALE_CODES = new Set([
   // Nothing waiting any more: decided, withdrawn, filled or cancelled elsewhere (H2-B9).
   "NO_CLAIM_WAITING", "NO_SWAP_WAITING", "NO_SWAP_TO_CANCEL", "OPEN_SHIFT_CLOSED",
   "NO_COVER_WAITING", "NO_OVERTIME_WAITING", "PAYSLIP_ALREADY_PAID",
+  // A stock transfer moved on under this person (another side acted first).
+  "TRANSFER_CHANGED", "TRANSFER_STEP_NOT_OPEN",
 ]);
 /** The server's limiter said "not now" (429): ask again later, keep what is shown. */
 export const isRateLimited = (err: unknown): boolean => err instanceof AxiosError && err.response?.status === 429;

@@ -32,6 +32,7 @@ import type { LedgerEntry, MemberDetail, MemberView } from "@/data/api/generated
 import { useOrgId } from "@/hooks/use-org-id";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { isSelling } from "@/lib/selling";
 
 import type { LoyaltyAccess } from "../../shared/access";
 import { currencyLabel } from "../../shared/util";
@@ -77,7 +78,7 @@ export function MemberSection({
   const orgId = useOrgId() ?? "";
   const branches = useListBranches({ org_id: orgId }, { query: { enabled: !!orgId && canAdjust } });
   const activeBranches = useMemo(
-    () => (branches.data ?? []).filter((b) => b.is_active).map((b) => ({ id: b.id, name: b.name })),
+    () => (branches.data ?? []).filter((b) => b.is_active && isSelling(b)).map((b) => ({ id: b.id, name: b.name })),
     [branches.data],
   );
 

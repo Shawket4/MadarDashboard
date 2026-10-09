@@ -33,6 +33,7 @@ import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { getTranslatedName } from "@/lib/translation";
 import { PaneHeader } from "@/features/settings/pane-header";
+import { isSelling } from "@/lib/selling";
 
 import { deleteBranchChannels, putBranchChannels, saveComboSettings, useComboSettings } from "./api";
 import { COMBO_CHANNELS, type ChannelOverride, type ComboChannel, type ComboSettings } from "./types";
@@ -78,7 +79,7 @@ export function ComboSettingsPage() {
   const q = useComboSettings({ enabled: canRead && !!orgId });
   const branchesQ = useListBranches({ org_id: orgId }, { query: { enabled: canRead && !!orgId } });
   const branches = useMemo(
-    () => (branchesQ.data ?? []).map((b) => ({ id: b.id, name: getTranslatedName(b, i18n.language) })),
+    () => (branchesQ.data ?? []).filter(isSelling).map((b) => ({ id: b.id, name: getTranslatedName(b, i18n.language) })),
     [branchesQ.data, i18n.language],
   );
 

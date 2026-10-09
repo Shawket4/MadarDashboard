@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useListBranches } from "@/data/api/generated/api";
 import { BookingSettingsDialog } from "@/features/bookings/settings-dialog";
+import { isSelling } from "@/lib/selling";
 
 import { PaneHeader } from "./pane-header";
 
@@ -50,7 +51,7 @@ export function BookingsSettingsPane() {
               <SelectValue placeholder={t("settings.pickBranch", "Pick a branch")} />
             </SelectTrigger>
             <SelectContent>
-              {(branches.data ?? []).map((b) => (
+              {(branches.data ?? []).filter(isSelling).map((b) => (
                 <SelectItem key={b.id} value={b.id}>
                   {b.name}
                 </SelectItem>

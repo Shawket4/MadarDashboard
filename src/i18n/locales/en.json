@@ -2452,7 +2452,14 @@
       "MEAL_TARGET_INVALID": "That combo has no slot for this item.",
       "DEAL_NOT_ELIGIBLE": "This deal no longer applies to the cart.",
       "DEAL_INVALID": "Check the deal's \"{{field}}\".",
-      "DEAL_UNITS_OVERLAP": "An item can only count toward one deal."
+      "DEAL_UNITS_OVERLAP": "An item can only count toward one deal.",
+      "TRANSFER_STEP_NOT_OPEN": "This transfer has moved on, so that step isn't open any more.",
+      "TRANSFER_CHANGED": "Someone else just changed this transfer. Check it and try again.",
+      "TRANSFER_INSUFFICIENT_STOCK": "The sending location doesn't have enough on hand to send this.",
+      "OVER_RECEIVE_NEEDS_NOTE": "More arrived than was sent. Add a note saying why.",
+      "WAREHOUSE_LIMIT": "This business already has as many warehouses as it can have.",
+      "BRANCH_STILL_SELLING": "This branch is still selling. Close its tills, finish its open orders and bills, unpair its devices, and turn off its delivery apps, delivery, pickup and bookings first.",
+      "WAREHOUSE_CANNOT_SELL": "This is a warehouse: it holds stock and doesn't sell."
     },
     "tooManyRequests": "Too many requests just now. Try again in a moment."
   },

@@ -17,12 +17,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatusPill } from "@/components/app/status-pill";
 import { useConfirm } from "@/components/app/confirm-dialog";
-import { useAuthz } from "@/data/authz/use-authz";
+import { useAuthzAt } from "@/data/authz/use-authz";
 import type { Branch, StockTransfer, TransferStamp } from "@/data/api/generated/models";
 import { cancelStockTransfer, declineTransfer, dispatchTransfer, receiveTransfer } from "@/data/api/generated/api";
-import { getErrorMessage } from "@/data/api/errors";
+import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
-import { TRANSFER_TONES, invalidateInventory, transferActions } from "./lib";
+import { TRANSFER_TONES, invalidateInventory, milli, transferActions } from "./lib";
 import { TransferDialog, type TransferDialogMode } from "./transfer-dialog";
 
 interface Props {
@@ -48,14 +48,16 @@ export function transferStatusLabel(t: TFunction, status: string) {
 export function TransferDrawer({ transfer: tr, onOpenChange, onChanged, branches, myBranchIds }: Props) {
   const { t } = useTranslation();
   const confirm = useConfirm();
-  const { can } = useAuthz();
+  // Each step is checked at its side's location, so read what's held at each.
+  const atSource = useAuthzAt(tr?.source_branch_id);
+  const atDest = useAuthzAt(tr?.destination_branch_id);
   const [busy, setBusy] = useState(false);
   const [dialog, setDialog] = useState<TransferDialogMode | null>(null);
   const [receiving, setReceiving] = useState(false);
   const [closing, setClosing] = useState<"decline" | "cancel" | null>(null);
 
   if (!tr) return <Sheet open={false} onOpenChange={onOpenChange} />;
-  const actions = transferActions(tr, myBranchIds, can);
+  const actions = transferActions(tr, myBranchIds, (cap, at) => (at === tr.source_branch_id ? atSource : atDest).can(cap));
   const received = tr.status === "received";
   const loss = received
     ? tr.lines.reduce((s, l) => (l.unit_cost != null && l.qty_received != null ? s + (l.qty_received - l.qty_sent) * l.unit_cost : s), 0)
@@ -70,6 +72,7 @@ export function TransferDrawer({ transfer: tr, onOpenChange, onChanged, branches
       onChanged(next);
     } catch (e) {
       toast.error(getErrorMessage(e));
+      if (isStaleRefusal(e)) void invalidateInventory();
     } finally {
       setBusy(false);
     }
@@ -229,7 +232,7 @@ function ReceiveDialog({ transfer: tr, onClose, onDone }: { transfer: StockTrans
   const rows = tr.lines.map((l) => {
     const got = parseFloat(qty[l.id] ?? "");
     const ok = Number.isFinite(got) && got >= 0;
-    const over = ok && got - l.qty_sent > 0.0005;
+    const over = ok && milli(got) > milli(l.qty_sent);
     return { l, got, ok, over, needsNote: over && !(notes[l.id] ?? "").trim() };
   });
   const valid = rows.every((r) => r.ok && !r.needsNote);
@@ -246,6 +249,7 @@ function ReceiveDialog({ transfer: tr, onClose, onDone }: { transfer: StockTrans
       onClose();
     } catch (e) {
       toast.error(getErrorMessage(e));
+      if (isStaleRefusal(e)) void invalidateInventory();
     } finally {
       setBusy(false);
     }
@@ -272,10 +276,10 @@ function ReceiveDialog({ transfer: tr, onClose, onDone }: { transfer: StockTrans
                   aria-label={t("inventory.transfers.received", "Received")} aria-invalid={!ok}
                 />
               </div>
-              {ok && got < l.qty_sent - 0.0005 ? (
+              {ok && milli(got) < milli(l.qty_sent) ? (
                 <p className="text-xs text-[color-mix(in_oklab,var(--color-destructive)_50%,var(--color-foreground))]">{t("inventory.transfers.shortBy", { qty: fmtNumber(l.qty_sent - got), defaultValue: `Short by ${fmtNumber(l.qty_sent - got)}` })}</p>
               ) : null}
-              {over || (ok && got < l.qty_sent - 0.0005) ? (
+              {over || (ok && milli(got) < milli(l.qty_sent)) ? (
                 <Input
                   value={notes[l.id] ?? ""} onChange={(e) => setNotes((p) => ({ ...p, [l.id]: e.target.value }))}
                   placeholder={over ? t("inventory.transfers.overNote", "Why did more arrive? (required)") : t("inventory.transfers.shortNote", "What happened? (optional)")}
@@ -315,6 +319,7 @@ function CloseDialog({ transfer: tr, kind, onClose, onDone }: { transfer: StockT
       onClose();
     } catch (e) {
       toast.error(getErrorMessage(e));
+      if (isStaleRefusal(e)) void invalidateInventory();
     } finally {
       setBusy(false);
     }

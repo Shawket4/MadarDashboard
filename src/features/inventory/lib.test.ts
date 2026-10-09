@@ -7,6 +7,7 @@ import {
   unitCostFromTotal,
   buildCountPayload,
   transferActions,
+  milli,
   countsDue,
   isVarianceFlagged,
   missingReasons,
@@ -135,6 +136,26 @@ describe("transferActions", () => {
     const noDelete = (c: string) => c !== "inventory.transfers.delete";
     expect(transferActions(tr("dispatched"), both, noDelete as never)).toEqual(["receive"]);
     expect(transferActions(tr("draft"), both, noDelete as never).sort()).toEqual(["cancel", "dispatch", "edit"]);
+  });
+
+  it("checks the capability at the acting side's location, not anywhere", () => {
+    // Works at both, but may receive (.edit) only at the warehouse: the shop is the receiving side.
+    const editAtWh = (c: string, at: string) => c !== "inventory.transfers.edit" || at === "wh";
+    expect(transferActions(tr("dispatched"), both, editAtWh as never)).toEqual(["cancel"]);
+    // Creates only at the shop: it can withdraw its own request but not answer one.
+    const createAtShop = (c: string, at: string) => c !== "inventory.transfers.create" || at === "shop";
+    expect(transferActions(tr("requested"), both, createAtShop as never).sort()).toEqual(["cancel", "edit"]);
+    expect(transferActions(tr("draft"), both, createAtShop as never)).toEqual([]);
+  });
+});
+
+describe("milli (the server's thousandths)", () => {
+  it("compares received against sent in whole thousandths", () => {
+    expect(milli(0.1 + 0.2)).toBe(milli(0.3));
+    expect(milli(1.0004) > milli(1)).toBe(false);
+    expect(milli(1.0006) > milli(1)).toBe(true);
+    expect(milli(2.9996) < milli(3)).toBe(false);
+    expect(milli(-0.0005)).toBe(-1);
   });
 });
 

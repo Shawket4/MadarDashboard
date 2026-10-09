@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PackageSearch } from "lucide-react";
 
@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Branch, TransferLineInput } from "@/data/api/generated/models";
+import type { Branch, TransferLineInput, TransferLocation } from "@/data/api/generated/models";
 import { useReplenishment } from "@/data/api/generated/api";
 import { fmtNumber, fmtUnit } from "@/lib/format";
 
@@ -21,7 +21,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   warehouse: Branch;
   /** Selling branches this warehouse can fill. */
-  branches: Branch[];
+  branches: TransferLocation[];
   /** Hands the picked lines to the transfer dialog as a draft. */
   onPick: (branchId: string, lines: TransferLineInput[]) => void;
 }
@@ -36,17 +36,23 @@ export function ReplenishDialog({ open, onOpenChange, warehouse, branches, onPic
   const [branchId, setBranchId] = useState("");
   const [qty, setQty] = useState<Record<string, string>>({});
   const [on, setOn] = useState<Record<string, boolean>>({});
+  const seededFor = useRef<string | null>(null);
 
   useEffect(() => {
-    if (open) setBranchId(branches.length === 1 ? branches[0].id : "");
-  }, [open, branches]);
+    if (!open) return;
+    setBranchId(branches.length === 1 ? branches[0].id : "");
+    seededFor.current = null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const rows = useReplenishment(warehouse.id, { branch_id: branchId }, { query: { enabled: open && !!branchId } });
   useEffect(() => {
-    const data = rows.data ?? [];
-    setQty(Object.fromEntries(data.map((r) => [r.org_ingredient_id, r.suggested > 0 ? String(r.suggested) : ""])));
-    setOn(Object.fromEntries(data.map((r) => [r.org_ingredient_id, r.suggested > 0])));
-  }, [rows.data]);
+    // Seed once per branch picked: a background refetch keeps the person's edits.
+    if (!rows.data || seededFor.current === branchId) return;
+    seededFor.current = branchId;
+    setQty(Object.fromEntries(rows.data.map((r) => [r.org_ingredient_id, r.suggested > 0 ? String(r.suggested) : ""])));
+    setOn(Object.fromEntries(rows.data.map((r) => [r.org_ingredient_id, r.suggested > 0])));
+  }, [rows.data, branchId]);
 
   const picked = useMemo(
     () =>

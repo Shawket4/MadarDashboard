@@ -12,9 +12,9 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { StatusPill } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import type { StockTransfer, TransferDifferenceRow, TransferLineInput } from "@/data/api/generated/models";
-import { listTransfers, useListBranches, useListTransfers, useTransferDifferences } from "@/data/api/generated/api";
+import { listTransfers, useListBranches, useListTransfers, useTransferDifferences, useTransferLocations } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
-import { useAuthz } from "@/data/authz/use-authz";
+import { useAuthz, useAuthzAt } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -55,7 +55,11 @@ export function TransfersPage() {
   const active = useMemo(() => (branches.data ?? []).filter((b) => b.is_active), [branches.data]);
   const myBranchIds = useMemo(() => new Set(active.map((b) => b.id)), [active]);
   const here = active.find((b) => b.id === branchId) ?? null;
-  const selling = useMemo(() => active.filter((b) => b.kind !== "warehouse"), [active]);
+  // A person at one location still sends to, and asks from, the rest of the org.
+  const canCreate = can(Cap.inventoryTransfersCreate);
+  const locations = useTransferLocations(orgId ?? "", { query: { enabled: !!orgId && canCreate } });
+  const selling = useMemo(() => (locations.data ?? []).filter((b) => b.kind === "branch"), [locations.data]);
+  const canCreateHere = useAuthzAt(here?.id).can(Cap.inventoryTransfersCreate);
 
   const status = tab === "all" || tab === "differences" ? undefined : tab;
   const transfers = useListTransfers(
@@ -120,7 +124,18 @@ export function TransfersPage() {
     () => [
       { accessorKey: "reference", header: t("inventory.transfers.reference", "Ref"), meta: { label: t("inventory.transfers.reference", "Ref"), phone: "title" }, cell: ({ row }) => <span className="font-mono text-sm">{row.original.reference}</span> },
       { accessorKey: "received_at", header: t("inventory.transfers.received", "Received"), meta: { label: t("inventory.transfers.received", "Received"), numeric: true, align: "start" }, cell: ({ row }) => fmtDateTime(row.original.received_at) },
-      { id: "route", header: t("inventory.transfers.direction", "Direction"), meta: { label: t("inventory.transfers.direction", "Direction") }, cell: ({ row }) => `${row.original.source_branch_name} → ${row.original.destination_branch_name}` },
+      {
+        id: "route",
+        header: t("inventory.transfers.direction", "Direction"),
+        meta: { label: t("inventory.transfers.direction", "Direction") },
+        cell: ({ row }) => (
+          <span className="flex items-center gap-1.5">
+            {row.original.source_branch_name}
+            <ArrowRight className="size-3.5 text-muted-foreground rtl:rotate-180" />
+            {row.original.destination_branch_name}
+          </span>
+        ),
+      },
       { accessorKey: "ingredient_name", header: t("inventory.transfers.ingredient", "Ingredient"), meta: { label: t("inventory.transfers.ingredient", "Ingredient") } },
       { accessorKey: "difference", header: t("inventory.transfers.difference", "Difference"), meta: { label: t("inventory.transfers.difference", "Difference"), numeric: true }, cell: ({ row }) => `${row.original.difference > 0 ? "+" : ""}${fmtNumber(row.original.difference)} ${fmtUnit(row.original.unit)}` },
       { accessorKey: "value_difference", header: t("inventory.transfers.value", "Value"), meta: { label: t("inventory.transfers.value", "Value"), numeric: true }, cell: ({ row }) => fmtMoney(row.original.value_difference, { signed: true }) },
@@ -158,8 +173,6 @@ export function TransfersPage() {
     }
   };
 
-  const canCreate = can(Cap.inventoryTransfersCreate) && active.length >= 2;
-
   return (
     <Page>
       <PageHeader
@@ -167,7 +180,7 @@ export function TransfersPage() {
         actions={
           <>
             <ExportButton onExport={handleExport} loading={exporting} disabled={tab === "differences" || !(transfers.data?.length)} />
-            {here?.kind === "warehouse" && canCreate && selling.length ? (
+            {here?.kind === "warehouse" && canCreateHere && selling.length ? (
               <Button variant="outline" onClick={() => setReplenishOpen(true)}>
                 <PackageSearch className="size-4" />
                 {t("inventory.transfers.replenish", "Replenish a branch")}
