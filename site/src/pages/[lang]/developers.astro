@@ -80,6 +80,8 @@ HTTP/2 404
 content-type: application/json
 
 {"error":"Not found"}`,
+  headers: `ratelimit-policy: "caller";q=400;w=60
+ratelimit: "caller";r=397;t=1`,
   limited: `HTTP/2 429
 retry-after: 12
 content-type: application/json
@@ -89,7 +91,7 @@ content-type: application/json
   -H 'Content-Type: application/json' \\
   -H 'Accept: application/json, text/event-stream' \\
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"my-agent","version":"1.0"}}}'`,
-  initOut: `{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{"listChanged":false}},"serverInfo":{"name":"madar-pos","title":"Madar POS","version":"…"},"instructions":"…"}}`,
+  initOut: `{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"resources":{"listChanged":false},"tools":{"listChanged":false}},"serverInfo":{"name":"madar-pos","title":"Madar POS","version":"…"},"instructions":"…"}}`,
   list: `curl -s ${MCP} \\
   -H 'Content-Type: application/json' \\
   -H 'Accept: application/json, text/event-stream' \\
@@ -175,8 +177,15 @@ content-type: application/json
 
       <h2>Limits and errors</h2>
       <p>
-        Requests are limited per client IP. Over the limit, the answer is <code>429</code> with a
-        <code>Retry-After</code> header and a JSON body that says how long to wait:
+        Requests are limited per client IP. Every answer says where you stand, in the IETF
+        <code>RateLimit</code> header fields: <code>RateLimit-Policy</code> is the quota per
+        60-second window, and <code>RateLimit</code> is what is left (<code>r</code>) and the seconds
+        until it is full again (<code>t</code>):
+      </p>
+      <pre tabindex="0"><code class="language-http">{ex.headers}</code></pre>
+      <p>
+        Some endpoints, such as the WhatsApp codes, have tighter limits of their own. Over any limit,
+        the answer is <code>429</code> with a <code>Retry-After</code> header and a JSON body:
       </p>
       <pre tabindex="0"><code class="language-http">{ex.limited}</code></pre>
       <p>
@@ -192,9 +201,19 @@ content-type: application/json
         (<code>get.madar-pos.cloud/openapi.json</code> redirects there).
       </p>
 
+      <h2>Versioning and deprecation</h2>
+      <p>
+        This is version 1 of the public API. Changes within it only add: new endpoints and new
+        optional fields, so ignore fields you don't know. A breaking change comes at a new path. The
+        old endpoint keeps working for at least six months after it is marked
+        <code>deprecated</code> in the spec, and meanwhile answers with a <code>Deprecation</code>
+        header (RFC 9745), a <code>Sunset</code> header (RFC 8594) with its last day, and a
+        <code>Link</code> to its replacement.
+      </p>
+
       <h2>MCP server</h2>
       <p>
-        The same data as tools for AI assistants, over the Model Context Protocol. Read-only, no
+        The same data as tools and resources for AI assistants, over the Model Context Protocol. Read-only, no
         authentication, and the same per-IP rate limits as the API.
       </p>
       <dl class="facts">
@@ -214,6 +233,17 @@ content-type: application/json
             {tools.map(([name, input, what]) => (
               <tr><td><code>{name}</code></td><td><code>{input}</code></td><td>{what}</td></tr>
             ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Resources</h3>
+      <div class="table-wrap" tabindex="0">
+        <table>
+          <thead><tr><th scope="col">URI</th><th scope="col">Type</th><th scope="col">Holds</th></tr></thead>
+          <tbody>
+            <tr><td><code>madar://about</code></td><td><code>application/json</code></td><td>What Madar POS is, its plans and prices, and how to reach sales (the <code>about_madar</code> answer)</td></tr>
+            <tr><td><code>{SPEC}</code></td><td><code>application/json</code></td><td>The public API as OpenAPI 3.1</td></tr>
           </tbody>
         </table>
       </div>
