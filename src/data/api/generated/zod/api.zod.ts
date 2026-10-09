@@ -807,18 +807,8 @@ export const ReviewFlagParams = zod.object({
 })
 
 export const ReviewFlagResponse = zod.object({
-  "author_id": zod.uuid(),
-  "author_name": zod.string().nullish(),
-  "branch_id": zod.uuid().nullish(),
-  "capability": zod.string().describe('The `resource:action` cell the author did not hold.'),
-  "created_at": zod.iso.datetime({"offset":true}).describe('When it reached us. The gap is the offline window.'),
-  "id": zod.number(),
-  "occurred_at": zod.iso.datetime({"offset":true}).describe('When the act happened on the device.'),
-  "op": zod.string().describe('The replayed op, e.g. `CashMovement`.'),
-  "reason": zod.string().describe('`stale_snapshot` — they held it when they acted and the device had not\nheard the revocation yet. `unauthorized_offline` — nothing explains it.\n`pin_wrong_branch` — their correct PIN was typed at a branch they may\nnot sign in at (`op` = `PinSignIn`, `details.attempts` counts the tries).'),
-  "reviewed_at": zod.iso.datetime({"offset":true}).nullish(),
-  "reviewed_by": zod.uuid().nullish()
-}).describe('One offline act that was accepted despite failing the permission re-check\n(PERMISSIONS_ARCHITECTURE §4.4.5). The money already moved; this is the\nowner\'s notice, not a rollback.')
+  "reviewed": zod.boolean()
+}).describe('`POST \/authz\/flags\/{id}\/review` answers only that it was done.')
 
 
 export const GetMyAuthzQueryParams = zod.object({
@@ -1952,7 +1942,8 @@ export const ListVersionsResponse = zod.array(ListVersionsResponseItem)
 
 export const ListBranchesQueryParams = zod.object({
   "org_id": zod.uuid().describe('Organization whose branches to list. Must match the caller\'s JWT org.'),
-  "kind": zod.enum(['branch', 'warehouse']).optional().describe('Only this kind; omitted = branches and warehouses.')
+  "kind": zod.enum(['branch', 'warehouse']).optional().describe('Only this kind. Omitted: selling branches, plus warehouses when\n`include_warehouses` is set.'),
+  "include_warehouses": zod.boolean().optional().describe('Also list warehouses (when `kind` is omitted). Off by default so a\nclient that predates warehouses (POS and KDS device setup, the staff\napp) never offers one as a branch to sell from.')
 })
 
 export const listBranchesResponseOldBillHoursMax = 168;
@@ -5597,7 +5588,7 @@ export const ListDecisionsResponseItem = zod.object({
   "id": zod.uuid(),
   "impact": zod.looseObject({
 
-}).describe('Measured after-window aggregate; `null` until ≥1 day of after-data.'),
+}).nullish().describe('Measured after-window aggregate; `null` until ≥1 day of after-data.'),
   "impact_complete": zod.boolean().describe('True once the full baseline window has elapsed since the decision.'),
   "item_name": zod.string(),
   "menu_item_id": zod.uuid(),
@@ -5636,7 +5627,7 @@ export const CreateDecisionResponse = zod.object({
   "id": zod.uuid(),
   "impact": zod.looseObject({
 
-}).describe('Measured after-window aggregate; `null` until ≥1 day of after-data.'),
+}).nullish().describe('Measured after-window aggregate; `null` until ≥1 day of after-data.'),
   "impact_complete": zod.boolean().describe('True once the full baseline window has elapsed since the decision.'),
   "item_name": zod.string(),
   "menu_item_id": zod.uuid(),

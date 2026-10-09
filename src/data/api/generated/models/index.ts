@@ -869,6 +869,7 @@ export * from './resultBlock';
 export * from './resultBlockRowsItem';
 export * from './returnLineInput';
 export * from './reviewAdvance';
+export * from './reviewedOut';
 export * from './rewardCatalogue';
 export * from './rewardItem';
 export * from './rewardItemInput';

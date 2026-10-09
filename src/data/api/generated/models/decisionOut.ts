@@ -14,8 +14,11 @@ export interface DecisionOut {
   created_by?: string | null;
   detail: DecisionOutDetail;
   id: string;
-  /** Measured after-window aggregate; `null` until ≥1 day of after-data. */
-  impact: DecisionOutImpact;
+  /**
+     * Measured after-window aggregate; `null` until ≥1 day of after-data.
+     * @nullable
+     */
+  impact?: DecisionOutImpact;
   /** True once the full baseline window has elapsed since the decision. */
   impact_complete: boolean;
   item_name: string;

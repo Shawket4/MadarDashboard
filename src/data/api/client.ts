@@ -56,7 +56,20 @@ export const apiClient: AxiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+/**
+ * The dashboard knows warehouses. GET /branches lists them only when asked, so
+ * POS builds released before warehouses never offer one as a branch; every
+ * read here asks (an explicit `include_warehouses` or `kind` still wins).
+ */
+export function askForWarehouses(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
+  if ((config.method ?? "get").toLowerCase() === "get" && config.url === "/branches") {
+    config.params = { include_warehouses: true, ...config.params };
+  }
+  return config;
+}
+
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  askForWarehouses(config);
   if (ctx.token) {
     config.headers.set("Authorization", `Bearer ${ctx.token}`);
   }
