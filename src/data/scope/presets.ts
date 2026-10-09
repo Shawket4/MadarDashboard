@@ -1,5 +1,7 @@
 import { TZDate } from "@date-fns/tz";
-import { getActiveTz } from "@/lib/format";
+import { dayBoundaryISO, getActiveTz } from "@/lib/format";
+
+export { dayBoundaryISO };
 
 export type ScopePreset = "today" | "yesterday" | "7d" | "30d" | "mtd" | "custom";
 
@@ -7,11 +9,6 @@ export const SCOPE_PRESETS: Exclude<ScopePreset, "custom">[] = ["today", "yester
 
 /** Not `custom`: a default period has to be one the app can resolve on its own. */
 export const DEFAULT_PRESET: Exclude<ScopePreset, "custom"> = "30d";
-
-/** UTC ISO instant for the start (or last ms) of a calendar day in `tz`. */
-export const dayBoundaryISO = (tz: string, y: number, m: number, d: number, endOfDay = false): string =>
-  // TZDate#toISOString keeps the zone offset; normalise to a plain UTC "Z" instant.
-  new Date(+(endOfDay ? new TZDate(y, m, d, 23, 59, 59, 999, tz) : new TZDate(y, m, d, 0, 0, 0, 0, tz))).toISOString();
 
 /**
  * [from, to] UTC instants for a named preset, day-bounded in the calendar of
