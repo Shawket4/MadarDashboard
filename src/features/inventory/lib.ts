@@ -51,33 +51,48 @@ export type POStatus = (typeof PO_STATUSES)[number];
 export const UNITS = ["g", "kg", "ml", "l", "pcs"] as const;
 
 // ── Measure families (the backend converts only within a family) ─────────────
+// madar-units (`unit_spec`, `units_of`, `convert`), pinned by
+// src/lib/unit_vectors.json; no density bridge here.
 
 export type MeasureFamily = "weight" | "volume" | "count";
 
-export const unitFamily = (unit: string): MeasureFamily =>
-  unit === "g" || unit === "kg" ? "weight" : unit === "ml" || unit === "l" ? "volume" : "count";
+/** A unit's family and its factor to the family's smallest unit; case and
+ *  surrounding spaces ignored, anything else unknown. */
+const UNIT_SPECS = new Map<string, [MeasureFamily, number]>([
+  ["g", ["weight", 1]],
+  ["kg", ["weight", 1000]],
+  ["ml", ["volume", 1]],
+  ["l", ["volume", 1000]],
+  ["pcs", ["count", 1]],
+]);
+const unitSpec = (unit: string) => UNIT_SPECS.get(unit.trim().toLowerCase());
 
+/** `null` for a unit the backend doesn't know. */
+export const unitFamily = (unit: string): MeasureFamily | null => unitSpec(unit)?.[0] ?? null;
+
+/** The units something stocked in `unit` may be typed in (an unknown unit only in itself). */
 export const unitsForFamily = (unit: string): string[] => {
   switch (unitFamily(unit)) {
     case "weight":
       return ["g", "kg"];
     case "volume":
       return ["ml", "l"];
-    default:
+    case "count":
       return ["pcs"];
+    default:
+      return [unit];
   }
 };
 
 // ── Purchase costs: the invoice total is the truth ───────────────────────────
 
 /** Base stock units in one purchase unit (a kg of a gram item → 1000), the
- *  same conversion the backend derives the pack factor with. A named pack is
- *  the backend's business; it reads as 1 here. */
-export const stockUnitsPer = (purchaseUnit: string, stockUnit: string): number => {
-  const scale: Record<string, number> = { g: 1, kg: 1000, ml: 1, l: 1000, pcs: 1 };
-  if (!(purchaseUnit in scale) || !(stockUnit in scale)) return 1;
-  if (unitFamily(purchaseUnit) !== unitFamily(stockUnit)) return 1;
-  return scale[purchaseUnit] / scale[stockUnit];
+ *  same conversion the backend derives the pack factor with. `null` where the
+ *  backend refuses to convert: an unknown unit, or across families. */
+export const stockUnitsPer = (purchaseUnit: string, stockUnit: string): number | null => {
+  const from = unitSpec(purchaseUnit);
+  const to = unitSpec(stockUnit);
+  return from && to && from[0] === to[0] ? from[1] / to[1] : null;
 };
 
 /** A line's unit cost DERIVED from its total, in piastres per purchase unit,
@@ -89,16 +104,19 @@ export const unitCostFromTotal = (linePiastres: number, qty: number): number | n
     : null;
 
 /** The catalog's estimate of a line's total, in whole piastres: its cost per
- *  stock unit × the stock units ordered. `null` when the catalog has no cost. */
+ *  stock unit × the stock units ordered. `null` when the catalog has no cost
+ *  or the units don't convert (no figure rather than a wrong one). */
 export const estimateLineTotal = (
   catalogCostPerStockUnit: number | null | undefined,
   qty: number,
   purchaseUnit: string,
   stockUnit: string,
-): number | null =>
-  catalogCostPerStockUnit != null && Number.isFinite(qty) && qty > 0
-    ? Math.round(catalogCostPerStockUnit * qty * stockUnitsPer(purchaseUnit, stockUnit))
+): number | null => {
+  const per = stockUnitsPer(purchaseUnit, stockUnit);
+  return catalogCostPerStockUnit != null && per != null && Number.isFinite(qty) && qty > 0
+    ? Math.round(catalogCostPerStockUnit * qty * per)
     : null;
+};
 
 /** Fraction digits a unit cost is shown with (EGP), always all of them:
  *  enough for 0.04568 per gram, and a whole-looking figure still reads as
@@ -275,6 +293,12 @@ const TRANSFER_CAPS = (status: string, a: TransferAction): Capability =>
     : a === "cancel" && status === "dispatched" ? Cap.inventoryTransfersDelete
     : Cap.inventoryTransfersCreate;
 
+/** One cell of the table: who acts and what they need, or null when the action is closed. */
+export function transferStep(status: string, a: TransferAction): { side: Side; cap: Capability } | null {
+  const side = TRANSFER_STEPS[status]?.[a];
+  return side ? { side, cap: TRANSFER_CAPS(status, a) } : null;
+}
+
 /**
  * Actions open to someone who works at `myBranches` (owners: every location)
  * and holds the capability AT the acting side's location (`can(cap, at)`),
@@ -285,15 +309,34 @@ export function transferActions(
   myBranches: Set<string>,
   can: (cap: Capability, at: string) => boolean = () => true,
 ): TransferAction[] {
-  const steps = TRANSFER_STEPS[t.status] ?? {};
-  return (Object.keys(steps) as TransferAction[]).filter((a) => {
-    const at = steps[a] === "source" ? t.source_branch_id : t.destination_branch_id;
-    return myBranches.has(at) && can(TRANSFER_CAPS(t.status, a), at);
+  return (Object.keys(TRANSFER_STEPS[t.status] ?? {}) as TransferAction[]).filter((a) => {
+    const step = transferStep(t.status, a);
+    if (!step) return false;
+    const at = step.side === "source" ? t.source_branch_id : t.destination_branch_id;
+    return myBranches.has(at) && can(step.cap, at);
   });
 }
 
 /** A quantity in whole thousandths, as the server compares them (madar_inventory::milli). */
 export const milli = (q: number): number => Math.sign(q) * Math.round(Math.abs(q) * 1000);
+
+export type Arrival = "exact" | "short" | "over";
+
+/**
+ * One received line, judged as the server judges it
+ * (madar_inventory::transfer::check_receive_line): in whole thousandths; more
+ * than was sent needs a note; `difference` = received − sent.
+ */
+export function checkReceiveLine(
+  sent: number,
+  got: number,
+  note: string | null | undefined,
+): { arrival: Arrival; difference: number } | { refused: "negative" | "over_needs_note" } {
+  const [s, g] = [milli(sent), milli(got)];
+  if (g < 0) return { refused: "negative" };
+  if (g > s && !(note ?? "").trim()) return { refused: "over_needs_note" };
+  return { arrival: g === s ? "exact" : g < s ? "short" : "over", difference: (g - s) / 1000 };
+}
 
 export const TRANSFER_TONES: Record<string, StatusTone> = {
   requested: "info",

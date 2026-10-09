@@ -22,7 +22,7 @@ import type { Branch, StockTransfer, TransferStamp } from "@/data/api/generated/
 import { cancelStockTransfer, declineTransfer, dispatchTransfer, receiveTransfer } from "@/data/api/generated/api";
 import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
-import { TRANSFER_TONES, invalidateInventory, milli, transferActions } from "./lib";
+import { TRANSFER_TONES, checkReceiveLine, invalidateInventory, milli, transferActions } from "./lib";
 import { TransferDialog, type TransferDialogMode } from "./transfer-dialog";
 
 interface Props {
@@ -233,7 +233,9 @@ function ReceiveDialog({ transfer: tr, onClose, onDone }: { transfer: StockTrans
     const got = parseFloat(qty[l.id] ?? "");
     const ok = Number.isFinite(got) && got >= 0;
     const over = ok && milli(got) > milli(l.qty_sent);
-    return { l, got, ok, over, needsNote: over && !(notes[l.id] ?? "").trim() };
+    // The server's own rule decides whether the line can go (an over-receive needs a note).
+    const needsNote = ok && "refused" in checkReceiveLine(l.qty_sent, got, notes[l.id]);
+    return { l, got, ok, over, needsNote };
   });
   const valid = rows.every((r) => r.ok && !r.needsNote);
 
