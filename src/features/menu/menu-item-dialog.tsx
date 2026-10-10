@@ -33,6 +33,7 @@ import {
   updateMenuItem,
   uploadMenuItemImage,
   useGetMenuItem,
+  useGetStudio,
   useListAddonItems,
   useListCatalog,
   useListGroups,
@@ -78,6 +79,9 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
 
   // Full item (sizes + recipes + allowed_addon_ids) for edit mode.
   const { data: liveItem } = useGetMenuItem(item?.id ?? "", { query: { enabled: open && !!item?.id } });
+  // The recipe comes from the Studio aggregate: its lines carry the amount as typed
+  // (before yield loss), which the save sends back so the server keeps the line.
+  const { data: aggregate } = useGetStudio(item?.id ?? "", { query: { enabled: open && !!item?.id } });
   const catalog = useListCatalog(orgId, { query: { enabled: open && !!orgId } });
   const { data: allAddons } = useListAddonItems({ org_id: orgId }, { query: { enabled: open && !!orgId } });
   // Reusable modifier groups — the allowlist picker writes group ATTACHMENTS
@@ -118,10 +122,10 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
 
   // ── Recipe wiring (embedded builder, committed with the form) ──────────────
   const initialRecipeRows = useMemo<RecipeRowInit[]>(
-    () => (liveItem?.recipes ?? []).map((r) => ({
-      size_label: r.size_label, org_ingredient_id: r.org_ingredient_id ?? null, ingredient_name: r.ingredient_name, ingredient_unit: r.ingredient_unit, quantity_used: r.quantity_used,
-    })),
-    [liveItem?.recipes],
+    () => (aggregate?.sizes ?? []).flatMap((z) => z.recipe.map((r) => ({
+      size_label: z.label, org_ingredient_id: r.ingredient_id, ingredient_name: r.ingredient_name, ingredient_unit: r.unit, quantity_used: Number(r.usable_quantity ?? r.quantity),
+    }))),
+    [aggregate?.sizes],
   );
   const watchedSizes = form.watch("sizes") ?? [];
   const sizeLabels = watchedSizes.map((s) => s.label).filter(Boolean);
@@ -216,7 +220,8 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
 
       // Recipe — replace-set per size on `recipe_lines` (id-keyed: only rows
       // linked to a catalog ingredient are writable; the builder always links).
-      for (const size of studio.sizes) {
+      // Never while an existing item's recipe has not loaded: that would wipe it.
+      for (const size of item && !aggregate ? [] : studio.sizes) {
         const lines = recipeRows
           .filter((r) => r.size_label === size.label && r.org_ingredient_id)
           .map((r) => ({

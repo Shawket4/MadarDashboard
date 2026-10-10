@@ -15,4 +15,10 @@ export interface GroupOptionRecipeLine {
      */
   size_label?: string | null;
   unit: string;
+  /**
+     * The usable amount before yield loss: `quantity` × the ingredient's yield,
+     * 3 dp (madar-units `usable_qty`). What the editor shows and sends back; a
+     * line sent back unchanged keeps its stored `quantity`.
+     */
+  usable_quantity: number;
 }
