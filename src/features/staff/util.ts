@@ -1,4 +1,4 @@
-import { fmtElapsedMs, getActiveTz, ltr } from "@/lib/format";
+import { businessDate, fmtElapsedMs, ltr } from "@/lib/format";
 import i18n from "@/i18n";
 import type { StatusTone } from "@/components/app/status-pill";
 import { queryClient } from "@/data/api/query";
@@ -113,27 +113,12 @@ export const fmtHours = (minutes: number | null | undefined): string => {
  * (`toISOString`) is still yesterday from midnight to 03:00 in Cairo.
  */
 export const isoDaysFromToday = (n: number): string => {
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: getActiveTz() }).format(new Date());
-  const d = new Date(`${today}T00:00:00Z`);
+  const d = new Date(`${businessDate()}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 };
 
 export const todayIso = (): string => isoDaysFromToday(0);
-
-/** First and last day of the current month, the default payroll period. */
-export const currentMonthRange = (): { start: string; end: string; name: string } => {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  const iso = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  return {
-    start: iso(start),
-    end: iso(end),
-    name: now.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
-  };
-};
 
 /** The fields of an attendance record a cover is read from. */
 interface CoverRecord {

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { APP_TZ } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
-import { fmtDate } from "@/lib/format";
+import { cairoParts, fmtDate } from "@/lib/format";
 import { dayBoundaryISO } from "@/data/scope/presets";
 import { daysIntoWeek, WEEK_ORDER } from "@/lib/week";
 
@@ -16,10 +16,6 @@ type DayParts = { y: number; m: number; d: number };
 
 const toNum = (p?: DayParts | null) => (p ? p.y * 10000 + p.m * 100 + p.d : null);
 
-const todayIn = (tz: string): DayParts => {
-  const d = new TZDate(Date.now(), tz);
-  return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
-};
 
 export interface PeriodPreset {
   value: string;
@@ -57,11 +53,8 @@ export function DateRangePicker({ preset, from, to, presets, onSelectPreset, onA
 
   // Day boundaries follow the active branch/org timezone (re-renders on change).
   const tz = useAppStore((s) => s.activeTimezone) || APP_TZ;
-  const today = todayIn(tz);
-  const partsOf = (iso: string): DayParts => {
-    const d = new TZDate(iso, tz);
-    return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
-  };
+  const today = cairoParts(Date.now(), tz);
+  const partsOf = (iso: string): DayParts => cairoParts(iso, tz);
   const cairoDateISO = (y: number, m: number, d: number, endOfDay = false) => dayBoundaryISO(tz, y, m, d, endOfDay);
   const [month, setMonth] = React.useState(today.m);
   const [year, setYear] = React.useState(today.y);

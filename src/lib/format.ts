@@ -1,7 +1,7 @@
 import { APP_TZ, DEFAULT_CURRENCY, DEFAULT_LOCALE_AR, DEFAULT_LOCALE_EN } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
 import i18n from "@/i18n";
-import { TZDate } from "@date-fns/tz";
+import { rules } from "@/lib/rules";
 
 type Lang = "en" | "ar";
 
@@ -233,11 +233,9 @@ export const fmtStamp = (iso: string | Date | null | undefined, now: Date = new 
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(+d)) return "—";
-  const tz = getActiveTz();
-  const dayKey = (x: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(x);
   const time = upMeridiem(new Intl.DateTimeFormat(getLocale(), withTZ({ hour: "2-digit", minute: "2-digit" })).format(d));
-  if (dayKey(d) === dayKey(now)) return time;
-  const sameYear = dayKey(d).slice(0, 4) === dayKey(now).slice(0, 4);
+  if (businessDate(d) === businessDate(now)) return time;
+  const sameYear = businessDate(d).slice(0, 4) === businessDate(now).slice(0, 4);
   const date = new Intl.DateTimeFormat(
     getLocale(),
     withTZ(sameYear ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" }),
@@ -248,31 +246,38 @@ export const fmtStamp = (iso: string | Date | null | undefined, now: Date = new 
 // NOTE: these `cairo*` helpers are named for the historical default but resolve
 // the *active* branch/org timezone (getActiveTz()), so report day-boundaries
 // follow the configured zone rather than the device's. Names kept to avoid churn.
+// The rules are madar-time's, called through WebAssembly (`@/lib/rules`), and
+// pinned by day_bounds_vectors.json / business_date_vectors.json (madar-time.test.ts).
 
-/** "now" in the active branch/org timezone — useful for date range logic */
-export const cairoNow = (): TZDate => new TZDate(Date.now(), getActiveTz());
+/** The business date (`YYYY-MM-DD`) an instant falls on in `tz`: madar-time `business_date_of`. */
+export const businessDate = (at: Date | number | string = Date.now(), tz: string = getActiveTz()): string =>
+  rules.business_date(tz, typeof at === "string" ? Date.parse(at) : +at);
 
 /**
- * UTC ISO instant for the start (or last ms) of a calendar day in `tz` (month 0-based).
- * madar-time `day_bounds`, pinned by day_bounds_vectors.json: the start is the
- * same instant; the end is Rust's exclusive end (the next local midnight) minus
- * 1 ms, because report endpoints filter `at <= to` (MadarRust reports/handlers.rs).
- * Not wall-clock 23:59:59.999: Cairo and Beirut fall back AT midnight, so that
- * time happens twice and the first one drops the day's last hour.
+ * UTC ISO instant for the start (or last ms) of a calendar day in `tz` (month 0-based;
+ * day overflow rolls into the next month, `d = 0` is the previous month's last day).
+ * madar-time `day_bounds`: the start is the same instant; the end is Rust's exclusive
+ * end (the next local midnight) minus 1 ms, because report endpoints filter
+ * `at <= to` (MadarRust reports/handlers.rs).
  */
-export const dayBoundaryISO = (tz: string, y: number, m: number, d: number, endOfDay = false): string =>
-  // new TZDate normalises day overflow in `tz`; +date gives a plain UTC "Z" instant.
-  new Date(+new TZDate(y, m, endOfDay ? d + 1 : d, tz) - (endOfDay ? 1 : 0)).toISOString();
+export const dayBoundaryISO = (tz: string, y: number, m: number, d: number, endOfDay = false): string => {
+  const [start, end] = rules.day_bounds(tz, new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10));
+  return new Date(endOfDay ? end - 1 : start).toISOString();
+};
 
 /** {@link dayBoundaryISO} in the active timezone */
 export const cairoDateISO = (year: number, month: number, day: number, endOfDay = false): string =>
   dayBoundaryISO(getActiveTz(), year, month, day, endOfDay);
 
-/** Extract calendar parts {y,m,d} from an ISO string in the active timezone */
-export const cairoParts = (iso: string): { y: number; m: number; d: number } => {
-  const d = new TZDate(iso, getActiveTz());
-  return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
+/** A `YYYY-MM-DD` as calendar parts {y, m (0-based), d}. */
+export const dateParts = (ymd: string): { y: number; m: number; d: number } => {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return { y, m: m - 1, d };
 };
+
+/** Calendar parts of the business date an instant falls on in `tz` (default: the active one) */
+export const cairoParts = (at: Date | number | string, tz: string = getActiveTz()): { y: number; m: number; d: number } =>
+  dateParts(businessDate(at, tz));
 
 /** Format a period timestamp for charts based on granularity */
 export const fmtPeriod = (iso: string, granularity: "hourly" | "daily" | "monthly" | "peak_hours" | "peak_days"): string => {

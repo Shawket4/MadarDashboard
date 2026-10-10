@@ -7,7 +7,8 @@ import { TZDate } from "@date-fns/tz";
 import { z } from "zod";
 
 import { queryClient } from "@/data/api/query";
-import { fmtHour, getActiveTz } from "@/lib/format";
+import { businessDate, fmtHour, getActiveTz } from "@/lib/format";
+import { rules } from "@/lib/rules";
 import { canonicalPhone, formatPhoneInput, phoneSchema } from "@/lib/phone";
 import type { BookingSettings } from "@/data/api/generated/models/bookingSettings";
 import type { BookingView } from "@/data/api/generated/models/bookingView";
@@ -62,10 +63,9 @@ export const invalidateBookings = () =>
 const pad = (n: number) => String(n).padStart(2, "0");
 export const ymd = (y: number, m0: number, d: number) => `${y}-${pad(m0 + 1)}-${pad(d)}`;
 
-/** Today's calendar date (`YYYY-MM-DD`) in `tz` for the instant `now`; rolls over at midnight. */
+/** Today's calendar date (`YYYY-MM-DD`) in `tz` for the instant `now`; rolls over at midnight (madar-time `business_date`). */
 export function serviceToday(now: Date = new Date(), tz: string = getActiveTz()): string {
-  const z = new TZDate(now.getTime(), tz);
-  return ymd(z.getFullYear(), z.getMonth(), z.getDate());
+  return businessDate(now, tz);
 }
 
 /** The calendar date (`YYYY-MM-DD`) an instant falls on in `tz` — the day a booking is listed under. */
@@ -130,7 +130,7 @@ export function timelineSpan(
   window: { open: number; close: number },
   tz: string = getActiveTz(),
 ): { left: number; width: number } {
-  const dayStart = new TZDate(...(date.split("-").map(Number) as [number, number, number]).map((v, i) => (i === 1 ? v - 1 : v)) as [number, number, number], tz).getTime();
+  const [dayStart] = rules.day_bounds(tz, date);
   const toMin = (iso: string) => (new Date(iso).getTime() - dayStart) / 60_000;
   const span = window.close - window.open;
   const start = Math.max(toMin(b.starts_at), window.open);

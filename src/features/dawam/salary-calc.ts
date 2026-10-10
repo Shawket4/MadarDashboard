@@ -7,6 +7,7 @@
  * backend's joiner rule. Money is integer piastres; every figure multiplies
  * before it divides and rounds half away from zero.
  */
+import { rules } from "@/lib/rules";
 
 /** How a salary divides: working days a month (may be a half) and a working day's minutes. */
 export interface PayBasis {
@@ -51,17 +52,12 @@ export function rates(from: { monthly: number } | { daily: number } | { hourly: 
   return { monthly: roundDiv(h * mins * d100, 60 * 100), daily: roundDiv(h * mins, 60), hourly: h };
 }
 
-const iso = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10);
 const dayDiff = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
 
 /** The pay period holding `date`, for periods opening on `startDay` (PAY-1: the 26th means 26th–25th).
- *  madar-dawam `pay::period_window`, pinned by src/lib/dawam_vectors.json: `startDay` clamps to 1–28. */
+ *  madar-dawam `pay::period_window` (WebAssembly), pinned by src/lib/dawam_vectors.json: `startDay` clamps to 1–28. */
 export function periodOf(date: string, startDay: number): { start: string; end: string; days: number } {
-  const s = Math.min(28, Math.max(1, startDay));
-  const [y, m, d] = date.split("-").map(Number);
-  const month = d >= s ? m - 1 : m - 2; // 0-based month the period opens in
-  const start = iso(y, month, s);
-  const end = iso(y, month + 1, s - 1);
+  const [start, end] = rules.pay_period(date, startDay);
   return { start, end, days: dayDiff(start, end) + 1 };
 }
 

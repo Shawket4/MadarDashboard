@@ -1,12 +1,11 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { TZDate } from "@date-fns/tz";
 import { ArrowRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { DatePicker } from "@/components/app/date-picker";
-import { getActiveTz } from "@/lib/format";
-import { weekStartOf } from "@/lib/week";
+import { businessDate, dateParts, getActiveTz } from "@/lib/format";
+import { rules } from "@/lib/rules";
 import { errorTextClass } from "./shell";
 
 export interface DateFieldProps {
@@ -44,42 +43,43 @@ export function DateField({ value, onChange, className, ...rest }: DateFieldProp
   );
 }
 
-const pad = (n: number) => String(n).padStart(2, "0");
-const ymd = (d: TZDate) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+/** `YYYY-MM-DD` of a calendar day (month 0-based; overflow rolls over). */
+const ymd = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10);
+const addDays = (day: string, n: number) => {
+  const p = dateParts(day);
+  return ymd(p.y, p.m, p.d + n);
+};
 
 export type QuickRange = "this_period" | "last_period" | "this_month" | "last_month" | "this_week" | "last_week";
 
 /**
- * The days a quick range covers, as `YYYY-MM-DD`. A pay period starts on
- * `periodStartDay` (1–28): with 26, "this period" on 10 March is 26 Feb – 25 Mar.
+ * The days a quick range covers, as `YYYY-MM-DD`, from the business's today
+ * (madar-time `business_date`). A pay period is madar-dawam's `period_window`
+ * for `periodStartDay` (1–28): with 26, "this period" on 10 March is 26 Feb – 25 Mar.
  */
 export function quickRange(
   kind: QuickRange,
   opts: { periodStartDay?: number; now?: number; tz?: string } = {},
 ): { from: string; to: string } {
-  const tz = opts.tz ?? getActiveTz();
-  const now = new TZDate(opts.now ?? Date.now(), tz);
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  const at = (yy: number, mm: number, dd: number) => new TZDate(yy, mm, dd, tz);
+  const today = businessDate(opts.now ?? Date.now(), opts.tz ?? getActiveTz());
+  const { y, m } = dateParts(today);
   switch (kind) {
     case "this_month":
-      return { from: ymd(at(y, m, 1)), to: ymd(at(y, m + 1, 0)) };
+      return { from: ymd(y, m, 1), to: ymd(y, m + 1, 0) };
     case "last_month":
-      return { from: ymd(at(y, m - 1, 1)), to: ymd(at(y, m, 0)) };
+      return { from: ymd(y, m - 1, 1), to: ymd(y, m, 0) };
     case "this_week":
     case "last_week": {
-      const s = weekStartOf(+now, tz);
+      const s = rules.week_start(today);
       const off = kind === "this_week" ? 0 : -7;
-      return { from: ymd(at(s.y, s.m, s.d + off)), to: ymd(at(s.y, s.m, s.d + off + 6)) };
+      return { from: addDays(s, off), to: addDays(s, off + 6) };
     }
     case "this_period":
     case "last_period": {
-      const start = Math.min(28, Math.max(1, opts.periodStartDay ?? 1));
-      // The month the current period started in.
-      let sm = now.getDate() >= start ? m : m - 1;
-      if (kind === "last_period") sm -= 1;
-      return { from: ymd(at(y, sm, start)), to: ymd(at(y, sm + 1, start - 1)) };
+      const startDay = opts.periodStartDay ?? 1;
+      let [from, to] = rules.pay_period(today, startDay);
+      if (kind === "last_period") [from, to] = rules.pay_period(addDays(from, -1), startDay);
+      return { from, to };
     }
   }
 }
