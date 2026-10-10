@@ -36,6 +36,7 @@ export default defineConfig({
       ext: ".br",
       threshold: 1024,
       deleteOriginFile: false,
+      filter: /\.(js|mjs|json|css|html|wasm)$/i, // the default list, plus the rules' wasm
       compressionOptions: {
         params: {
           [zlibConstants.BROTLI_PARAM_QUALITY]: 11,
@@ -43,7 +44,7 @@ export default defineConfig({
         },
       },
     }),
-    compression({ algorithm: "gzip", ext: ".gz", threshold: 1024, deleteOriginFile: false, compressionOptions: { level: 9 } }),
+    compression({ algorithm: "gzip", ext: ".gz", threshold: 1024, deleteOriginFile: false, filter: /\.(js|mjs|json|css|html|wasm)$/i, compressionOptions: { level: 9 } }),
   ],
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src"), "@shared": path.resolve(__dirname, "./shared") },

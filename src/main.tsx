@@ -48,6 +48,8 @@ import { AppErrorBoundary } from "@/components/app/app-error-boundary";
 import { initSentry } from "@/lib/sentry";
 import { queryClient } from "@/data/api/query";
 import { DevTools } from "@/components/app/dev-tools";
+import { initRules } from "@/lib/rules";
+import * as rulesWasm from "@/lib/rules/wasm/full/madar_web.js";
 import { NotFound } from "@/components/app/not-found";
 import { routeTree } from "./routeTree.gen";
 
@@ -135,7 +137,7 @@ function render() {
   );
 }
 
-// Bootstrap order:
+// Bootstrap order (once the rules have loaded, at the bottom):
 //  • VITE_DEMO  → public playground: provision a throwaway org via the demo
 //    backend, sign in, then render. Tree-shaken out of non-demo builds.
 //  • VITE_MOCK (dev) → mock preview harness: seed a session + serve mock data.
@@ -152,17 +154,22 @@ function safeRender() {
   }
 }
 
-if (demoFlag === "1" || demoFlag === "true") {
-  void import("@/data/api/demo/enable")
-    .then(({ enableDemo }) => enableDemo().then(safeRender).catch(safeRender))
-    .catch(renderFatal);
-} else if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
-  void import("@/data/api/mock/enable")
-    .then(({ enableMocks }) => enableMocks().then(safeRender))
-    .catch(renderFatal);
-} else {
-  safeRender();
+function boot() {
+  if (demoFlag === "1" || demoFlag === "true") {
+    void import("@/data/api/demo/enable")
+      .then(({ enableDemo }) => enableDemo().then(safeRender).catch(safeRender))
+      .catch(renderFatal);
+  } else if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
+    void import("@/data/api/mock/enable")
+      .then(({ enableMocks }) => enableMocks().then(safeRender))
+      .catch(renderFatal);
+  } else {
+    safeRender();
+  }
 }
+
+// The madar-shared rules (WebAssembly) come first: every rule call after this is synchronous.
+initRules(rulesWasm).then(boot, renderFatal);
 
 // A module-level failure upstream of `render()` — a store, i18n, a browser API
 // a stricter engine refuses — throws before anything above runs, leaving a

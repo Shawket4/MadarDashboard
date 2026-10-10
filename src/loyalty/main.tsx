@@ -67,6 +67,8 @@ import { initPublicTheme } from "@/features/public-shell/use-public-theme";
 import { PublicToaster } from "@/features/public-shell/public-toaster";
 
 import { queryClient } from "@/data/api/query";
+import { initRules } from "@/lib/rules";
+import * as rulesWasm from "@/lib/rules/wasm/public/madar_web.js";
 import { JoinPage } from "@/features/loyalty/public/join-page";
 import { CardPage } from "@/features/loyalty/public/card-page";
 import { useHostOrg } from "@/features/public-shell/use-brand";
@@ -219,13 +221,16 @@ const router = createRouter({
 // in the admin app would stop compiling. The ordering and reservations apps omit
 // it for the same reason.
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <MotionConfig reducedMotion="user">
-        <RouterProvider router={router} />
-        <PublicToaster />
-      </MotionConfig>
-    </QueryClientProvider>
-  </StrictMode>,
+// The madar-shared rules (WebAssembly, the public package) load before the first render.
+void initRules(rulesWasm).then(() =>
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <MotionConfig reducedMotion="user">
+          <RouterProvider router={router} />
+          <PublicToaster />
+        </MotionConfig>
+      </QueryClientProvider>
+    </StrictMode>,
+  ),
 );

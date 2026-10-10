@@ -1,6 +1,15 @@
 // Vitest global setup (referenced by vitest.config.ts `setupFiles`).
 // Registers jest-dom matchers (toBeInTheDocument, etc.) for component tests.
 import "@testing-library/jest-dom/vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import { initRules } from "@/lib/rules";
+import * as fullRules from "@/lib/rules/wasm/full/madar_web.js";
+
+// The madar-shared rules (WebAssembly), as the dashboard's main.tsx loads them
+// before its first render; Node cannot fetch it, so it gets the bytes.
+await initRules(fullRules, readFileSync(resolve(__dirname, "../lib/rules/wasm/full/madar_web_bg.wasm")));
 
 // jsdom implements no media queries at all, and `window.matchMedia` is simply
 // absent. Anything that reaches the theme store (`lib/theme`) or the mobile

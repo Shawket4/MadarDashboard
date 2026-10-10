@@ -69,6 +69,8 @@ import { initPublicTheme } from "@/features/public-shell/use-public-theme";
 import { PublicToaster } from "@/features/public-shell/public-toaster";
 
 import { queryClient } from "@/data/api/query";
+import { initRules } from "@/lib/rules";
+import * as rulesWasm from "@/lib/rules/wasm/public/madar_web.js";
 import { PublicOrderingPage } from "@/features/public-ordering/public-ordering-page";
 import { TableOrderingPage } from "@/features/public-ordering/table-ordering-page";
 import { useHostOrg } from "@/features/public-shell/use-brand";
@@ -267,10 +269,13 @@ function render() {
 // Dev-only mock harness (VITE_MOCK=1): serve curated public data so the ordering
 // flow can be previewed/screenshotted without a backend. Tree-shaken from prod.
 const mockFlag = (import.meta.env as Record<string, string | undefined>).VITE_MOCK;
-if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
-  void import("@/data/api/mock/enable-public").then(({ enablePublicMocks }) =>
-    enablePublicMocks().then(render),
-  );
-} else {
-  render();
-}
+// The madar-shared rules (WebAssembly, the public package) load before the first render.
+void initRules(rulesWasm).then(() => {
+  if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
+    void import("@/data/api/mock/enable-public").then(({ enablePublicMocks }) =>
+      enablePublicMocks().then(render),
+    );
+  } else {
+    render();
+  }
+});

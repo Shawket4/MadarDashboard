@@ -64,6 +64,7 @@ export default defineConfig({
       ext: ".br",
       threshold: 1024,
       deleteOriginFile: false,
+      filter: /\.(js|mjs|json|css|html|wasm)$/i, // the default list, plus the rules' wasm
       compressionOptions: {
         params: {
           [zlibConstants.BROTLI_PARAM_QUALITY]: 11,
@@ -76,6 +77,7 @@ export default defineConfig({
       ext: ".gz",
       threshold: 1024,
       deleteOriginFile: false,
+      filter: /\.(js|mjs|json|css|html|wasm)$/i, // the default list, plus the rules' wasm
       compressionOptions: { level: 9 },
     }),
     // Must stay last: it consumes the emitted bundle + maps.

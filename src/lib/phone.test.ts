@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import vectors from "./phone_vectors.json";
 import { canonicalPhone, formatPhoneDisplay, formatPhoneInput, isValidPhone, phoneSchema, samePhone } from "./phone";
 
-describe("canonicalPhone — the shared vectors", () => {
+describe("canonicalPhone (madar-shared's Rust, via wasm) — the shared vectors", () => {
   it.each(vectors.valid as [string, string][])("%s → %s", (raw, canonical) => {
     expect(canonicalPhone(raw)).toBe(canonical);
     expect(isValidPhone(raw)).toBe(true);
