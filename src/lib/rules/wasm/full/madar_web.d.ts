@@ -47,6 +47,30 @@ export interface ComboView {
 }
 
 /**
+ * A combo choice as the public menu offers it (the server's
+ * `PublicComboChoice`): its surcharge and what each of its sizes adds over
+ * the included one, which the server works out as [`quote`] does (0 at the
+ * included size, the owner's price for a bigger one, else the difference,
+ * floored at 0).
+ */
+export interface MenuChoice {
+    surcharge: number;
+    sizes: MenuSize[];
+}
+
+/**
+ * A combo line: its price P per combo unit and its picks.
+ */
+export interface ComboShape {
+    quantity: Minor;
+    /**
+     * P: the combo's own price.
+     */
+    price: Minor;
+    picks: PickShape[];
+}
+
+/**
  * A line as the till or the order payload states it.
  */
 export interface Selection {
@@ -84,6 +108,28 @@ export interface PricedOptions {
      * What the rule set aside or dropped, for a log or a preview.
      */
     notes?: Note[];
+}
+
+/**
+ * A member's card for a balance against the next reward's cost.
+ */
+export interface LoyaltyCard {
+    /**
+     * Rewards the balance has already earned.
+     */
+    rewards_ready: number;
+    /**
+     * Progress towards the next reward, the earned ones set aside.
+     */
+    progress_to_next: number;
+    /**
+     * What the next reward still needs: the full cost on an exact multiple.
+     */
+    points_to_next_reward: number;
+    /**
+     * At least one reward is earned.
+     */
+    can_redeem: boolean;
 }
 
 /**
@@ -190,6 +236,31 @@ export interface SalaryRates {
     monthly: number;
     daily: number;
     hourly: number;
+}
+
+/**
+ * A sale line as both sides state it.
+ */
+export interface LineShape {
+    quantity: Minor;
+    /**
+     * The size-resolved unit price.
+     */
+    unit_price: Minor;
+    addons: Addon[];
+    /**
+     * Optional-field prices.
+     */
+    optionals: Minor[];
+}
+
+/**
+ * A selected add-on: its CHARGED delta per unit (already resolved at
+ * selection time — swap families clamp upstream) and how many.
+ */
+export interface Addon {
+    price_modifier: Minor;
+    quantity: Minor;
 }
 
 /**
@@ -362,6 +433,12 @@ export interface ReplenishInput {
      */
     warehouse_drafted_out: number;
 }
+
+/**
+ * One line of a cart: a menu item (`{ "item": … }`) or a combo
+ * (`{ "combo": … }`).
+ */
+export type CartLineShape = { item: LineShape } | { combo: ComboShape };
 
 /**
  * One menu item, priced for one branch.
@@ -560,6 +637,27 @@ export interface SizedLine {
 }
 
 /**
+ * One pick of a combo line, per ONE combo unit: madar-catalog's
+ * `combo::PartQuote` figures the line is charged by.
+ */
+export interface PickShape {
+    /**
+     * Units of the pick per combo unit.
+     */
+    quantity: Minor;
+    /**
+     * What one unit of it adds to the combo's price: its choice's surcharge
+     * plus a bigger size's extra (`PartQuote::surcharge_unit`).
+     */
+    surcharge_unit: Minor;
+    /**
+     * Its add-ons and optional fields, per unit (`PartQuote::extras_unit`);
+     * 0 for a pick without any.
+     */
+    extras_unit?: Minor;
+}
+
+/**
  * One pick, with its item's view (branch-priced) and its category.
  */
 export interface PickIn {
@@ -609,6 +707,14 @@ export interface LateTier {
     to_minutes: number | null;
     kind: "minutes" | "piastres" | "day_fraction";
     value: number;
+}
+
+/**
+ * One size of a [`MenuChoice`].
+ */
+export interface MenuSize {
+    label: string;
+    extra: number;
 }
 
 /**
@@ -792,6 +898,9 @@ export interface TillRefusal {
     method: string;
 }
 
+/** Whole piastres. */
+export type Minor = number;
+
 export interface ReplenishSuggestion {
     /**
      * What the branch is short of after what is already coming.
@@ -844,15 +953,44 @@ export function bill_discount(subtotal: number, discount_type: string | null | u
 export function business_date(tz: string, at_ms: number): string;
 
 /**
+ * What a cart line is charged: one unit × its quantity.
+ */
+export function cart_line_total(line: CartLineShape): number;
+
+/**
+ * One unit of a cart line: an item's unit price and its extras, or a
+ * combo's price and what its picks add.
+ */
+export function cart_line_unit(line: CartLineShape): number;
+
+/**
+ * A cart's items total, before any deal, discount, tax or fee (the
+ * cart quote's `items_total`).
+ */
+export function cart_subtotal(lines: CartLineShape[]): number;
+
+/**
  * One received line, judged (a note of only whitespace is no note).
  */
 export function check_receive_line(qty_sent: number, qty_received: number, note?: string | null): LineCheck | ReceiveRefusal;
+
+/**
+ * What one unit of a pick adds to the combo's price, from the public
+ * menu's choice (its surcharge plus its size's extra); `null` is the
+ * included size.
+ */
+export function combo_choice_extra(choice: MenuChoice, size_label?: string | null): number;
 
 /**
  * The choice of `slot` that admits an item: its own item choice first,
  * else the category choice; `null` when none does.
  */
 export function combo_choice_for(slot: SlotView, menu_item_id: string, category_id?: string | null): ChoiceView | null;
+
+/**
+ * What a combo's picks add to ONE combo unit.
+ */
+export function combo_extras(picks: PickShape[]): number;
 
 /**
  * A combo line of `n` units (madar-catalog `combo::quote`).
@@ -929,6 +1067,17 @@ export function local_instant(tz: string, date: string, hour: number, minute: nu
  * An instant (epoch ms) read on `tz`'s wall clock.
  */
 export function local_parts(tz: string, at_ms: number): LocalParts;
+
+/**
+ * The card for `balance` against `next_reward_cost`.
+ */
+export function loyalty_card(balance: number, next_reward_cost: number): LoyaltyCard;
+
+/**
+ * How many steps of a `cost`-step stamp row `earned` fills; `null` when
+ * the card has no row (a cost of 0 or less, or above 12).
+ */
+export function loyalty_stamps(earned: number, cost: number): number | null;
 
 /**
  * `(price − cost) / price`; `null` unless `price > 0`.
@@ -1061,8 +1210,13 @@ export interface InitOutput {
     readonly average_ticket: (a: number, b: number) => [number, number, number];
     readonly bill_discount: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly business_date: (a: number, b: number, c: number) => [number, number, number, number];
+    readonly cart_line_total: (a: any) => [number, number, number];
+    readonly cart_line_unit: (a: any) => [number, number, number];
+    readonly cart_subtotal: (a: number, b: number) => [number, number, number];
     readonly check_receive_line: (a: number, b: number, c: number, d: number) => [number, number, number];
+    readonly combo_choice_extra: (a: any, b: number, c: number) => [number, number, number];
     readonly combo_choice_for: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];
+    readonly combo_extras: (a: number, b: number) => [number, number, number];
     readonly combo_quote: (a: any, b: number, c: number, d: number) => [number, number, number];
     readonly convert: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly convert_with_density: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
@@ -1076,6 +1230,8 @@ export interface InitOutput {
     readonly line_cost: (a: number, b: number) => number;
     readonly local_instant: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly local_parts: (a: number, b: number, c: number) => [number, number, number];
+    readonly loyalty_card: (a: number, b: number) => [number, number, number];
+    readonly loyalty_stamps: (a: number, b: number) => [number, number, number];
     readonly margin: (a: number, b: number) => [number, number, number];
     readonly option_charge: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly pay_period: (a: number, b: number, c: number) => [number, number, number];

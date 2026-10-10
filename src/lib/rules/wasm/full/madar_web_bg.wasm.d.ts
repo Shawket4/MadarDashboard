@@ -5,8 +5,13 @@ export const absence_deduction_piastres: (a: number, b: number, c: number, d: nu
 export const average_ticket: (a: number, b: number) => [number, number, number];
 export const bill_discount: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
 export const business_date: (a: number, b: number, c: number) => [number, number, number, number];
+export const cart_line_total: (a: any) => [number, number, number];
+export const cart_line_unit: (a: any) => [number, number, number];
+export const cart_subtotal: (a: number, b: number) => [number, number, number];
 export const check_receive_line: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const combo_choice_extra: (a: any, b: number, c: number) => [number, number, number];
 export const combo_choice_for: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];
+export const combo_extras: (a: number, b: number) => [number, number, number];
 export const combo_quote: (a: any, b: number, c: number, d: number) => [number, number, number];
 export const convert: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
 export const convert_with_density: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
@@ -20,6 +25,8 @@ export const late_deduction_piastres: (a: any, b: number, c: number, d: number) 
 export const line_cost: (a: number, b: number) => number;
 export const local_instant: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
 export const local_parts: (a: number, b: number, c: number) => [number, number, number];
+export const loyalty_card: (a: number, b: number) => [number, number, number];
+export const loyalty_stamps: (a: number, b: number) => [number, number, number];
 export const margin: (a: number, b: number) => [number, number, number];
 export const option_charge: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];
 export const pay_period: (a: number, b: number, c: number) => [number, number, number];

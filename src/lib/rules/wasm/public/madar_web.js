@@ -49,6 +49,82 @@ export function business_date(tz, at_ms) {
 }
 
 /**
+ * What a cart line is charged: one unit × its quantity.
+ * @param {CartLineShape} line
+ * @returns {number}
+ */
+export function cart_line_total(line) {
+    const ret = wasm.cart_line_total(line);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0];
+}
+
+/**
+ * One unit of a cart line: an item's unit price and its extras, or a
+ * combo's price and what its picks add.
+ * @param {CartLineShape} line
+ * @returns {number}
+ */
+export function cart_line_unit(line) {
+    const ret = wasm.cart_line_unit(line);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0];
+}
+
+/**
+ * A cart's items total, before any deal, discount, tax or fee (the
+ * cart quote's `items_total`).
+ * @param {CartLineShape[]} lines
+ * @returns {number}
+ */
+export function cart_subtotal(lines) {
+    const ptr0 = passArrayJsValueToWasm0(lines, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.cart_subtotal(ptr0, len0);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0];
+}
+
+/**
+ * What one unit of a pick adds to the combo's price, from the public
+ * menu's choice (its surcharge plus its size's extra); `null` is the
+ * included size.
+ * @param {MenuChoice} choice
+ * @param {string | null} [size_label]
+ * @returns {number}
+ */
+export function combo_choice_extra(choice, size_label) {
+    var ptr0 = isLikeNone(size_label) ? 0 : passStringToWasm0(size_label, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    const ret = wasm.combo_choice_extra(choice, ptr0, len0);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0];
+}
+
+/**
+ * What a combo's picks add to ONE combo unit.
+ * @param {PickShape[]} picks
+ * @returns {number}
+ */
+export function combo_extras(picks) {
+    const ptr0 = passArrayJsValueToWasm0(picks, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.combo_extras(ptr0, len0);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0];
+}
+
+/**
  * A combo line of `n` units (madar-catalog `combo::quote`).
  * @param {ComboView} combo
  * @param {PickIn[]} picks
@@ -59,6 +135,35 @@ export function combo_quote(combo, picks, n) {
     const ptr0 = passArrayJsValueToWasm0(picks, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ret = wasm.combo_quote(combo, ptr0, len0, n);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * The card for `balance` against `next_reward_cost`.
+ * @param {number} balance
+ * @param {number} next_reward_cost
+ * @returns {LoyaltyCard}
+ */
+export function loyalty_card(balance, next_reward_cost) {
+    const ret = wasm.loyalty_card(balance, next_reward_cost);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * How many steps of a `cost`-step stamp row `earned` fills; `null` when
+ * the card has no row (a cost of 0 or less, or above 12).
+ * @param {number} earned
+ * @param {number} cost
+ * @returns {number | null}
+ */
+export function loyalty_stamps(earned, cost) {
+    const ret = wasm.loyalty_stamps(earned, cost);
     if (ret[2]) {
         throw takeFromExternrefTable0(ret[1]);
     }
@@ -239,10 +344,18 @@ function __wbg_get_imports() {
             const ret = arg0.done;
             return ret;
         },
+        __wbg_entries_fb6397112b1de25f: function(arg0) {
+            const ret = Object.entries(arg0);
+            return ret;
+        },
         __wbg_get_658f6698067d9515: function() { return handleError(function (arg0, arg1) {
             const ret = Reflect.get(arg0, arg1);
             return ret;
         }, arguments); },
+        __wbg_get_6c896e0571ddae51: function(arg0, arg1) {
+            const ret = arg0[arg1 >>> 0];
+            return ret;
+        },
         __wbg_get_unchecked_288889d017702237: function(arg0, arg1) {
             const ret = arg0[arg1 >>> 0];
             return ret;
