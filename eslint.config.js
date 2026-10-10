@@ -14,6 +14,8 @@ export default [
       'src/routeTree.gen.ts',
       'src/data/api/generated/**',
       'src/generated/**',
+      // madar-shared's wasm-bindgen output, vendored by `npm run sync:rules`.
+      'src/lib/rules/wasm/**',
     ],
   },
   js.configs.recommended,

@@ -1,0 +1,11 @@
+{
+  "about": "Built by madar-shared's scripts/build-wasm.sh at this ref and copied here by `npm run sync:rules`; never edit these files. scripts/check-shared-vectors.sh checks the hashes.",
+  "repo": "Shawket4/madar-shared",
+  "ref": "1a8a257c8d8d08a1bb1f7e5a586356cff3fb7629",
+  "files": {
+    "madar_web.d.ts": "676896445801bd8d38e0e3f3673d278801629e0dd0fe9e8da585530817a5b4ce",
+    "madar_web.js": "18e56318dd78f19070ab29cdef0601b0d7f8aaac8308b24a9b090e51b248fee5",
+    "madar_web_bg.wasm": "fa9bfe95bc135e3461da002c681eb1ca51a41502e2bea291abcacb5c88a0ccc0",
+    "madar_web_bg.wasm.d.ts": "cc9bf70dbf71940dbb371d5acb31d6c22e2c2a363d57016c5a9cd50d5368f95f"
+  }
+}
