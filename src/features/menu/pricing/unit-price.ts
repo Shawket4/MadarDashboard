@@ -1,3 +1,5 @@
+import { rules } from "@/lib/rules";
+
 /** A size as `madar_catalog::price::unit_price` reads it. */
 export interface PricedSize {
   label: string;
@@ -10,19 +12,10 @@ export interface PricedSize {
 
 /**
  * What one unit of an item costs at `label`, as the server and the till price
- * it (`madar_catalog::price::unit_price`): the branch's price for the size,
- * else its catalogue price while it is active, else the item's branch price,
- * else the item's lowest active catalogue price. Null when no active size has
- * a price (the server refuses the line).
+ * it: madar-catalog's `unit_price`, through WebAssembly. Null when no active
+ * size has a price (the server refuses the line).
  */
 export function unitPrice(sizes: PricedSize[], label: string | null, itemBranchPrice: number | null = null): number | null {
-  const active = sizes.flatMap((s) => (s.is_active && s.price != null ? [s.price] : []));
-  if (!active.length) return null;
-  const fallback = itemBranchPrice ?? Math.min(...active);
-  if (label === null) return fallback;
-  return (
-    sizes.find((s) => s.label === label)?.branch_price ??
-    sizes.find((s) => s.label === label && s.is_active)?.price ??
-    fallback
-  );
+  const p = rules.unit_price({ id: "", branch_price: itemBranchPrice, sizes }, label);
+  return typeof p === "number" ? p : null;
 }
