@@ -22,6 +22,7 @@ import type { Branch, StockTransfer, TransferStamp } from "@/data/api/generated/
 import { cancelStockTransfer, declineTransfer, dispatchTransfer, receiveTransfer } from "@/data/api/generated/api";
 import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
+import { rules } from "@/lib/rules";
 import { TRANSFER_TONES, checkReceiveLine, invalidateInventory, transferActions } from "./lib";
 import { TransferDialog, type TransferDialogMode } from "./transfer-dialog";
 
@@ -60,7 +61,7 @@ export function TransferDrawer({ transfer: tr, onOpenChange, onChanged, branches
   const actions = transferActions(tr, myBranchIds, (cap, at) => (at === tr.source_branch_id ? atSource : atDest).can(cap));
   const received = tr.status === "received";
   const loss = received
-    ? tr.lines.reduce((s, l) => (l.unit_cost != null && l.qty_received != null ? s + (l.qty_received - l.qty_sent) * l.unit_cost : s), 0)
+    ? tr.lines.reduce((s, l) => (l.unit_cost != null && l.qty_received != null ? s + rules.line_cost(l.qty_received - l.qty_sent, l.unit_cost) : s), 0)
     : 0;
 
   const act = async (fn: () => Promise<StockTransfer>, done: string) => {

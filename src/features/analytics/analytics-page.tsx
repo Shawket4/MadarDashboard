@@ -18,6 +18,7 @@ import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ExcludeItemsControl, excludeItemsParam, useExcludedItems } from "@/components/app/exclude-items-control";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fadeInUp, staggerContainer } from "@/lib/motion";
+import { averageTicket } from "@/lib/average-ticket";
 import { fmtHour, fmtPercent, fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod } from "@/lib/format";
 import { PAYMENT_COLORS, type PaymentMethod } from "@/data/config/constants";
 import {
@@ -66,7 +67,7 @@ export function OverviewTab({ branchId, range }: { branchId: string; range: Rang
     { query: { enabled: !!branchId } },
   );
   const d = q.data;
-  const aov = d && d.total_orders ? Math.round(d.total_revenue / d.total_orders) : 0;
+  const aov = d ? averageTicket(d.total_revenue, d.total_orders) : 0;
 
   const payment = useMemo(() => {
     const map = (d?.revenue_by_method ?? {}) as MethodMap;

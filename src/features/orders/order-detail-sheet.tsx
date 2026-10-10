@@ -22,6 +22,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { fmtDateTimeFull, fmtMoney, fmtNumber, fmtPercent, fmtUnit } from "@/lib/format";
+import { rules } from "@/lib/rules";
 import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 
@@ -99,7 +100,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
   const deductionCost = (d: Deduction): number | null => {
     if (d.cost != null) return d.cost;
     if (d.org_ingredient_id && costPerUnit.has(d.org_ingredient_id)) {
-      return d.quantity * (costPerUnit.get(d.org_ingredient_id) as number);
+      return rules.line_cost(d.quantity, costPerUnit.get(d.org_ingredient_id) as number);
     }
     return null;
   };
