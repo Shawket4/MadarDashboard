@@ -45,7 +45,9 @@ import { capView } from "./phase-d";
 export const readPounds = (s: string): number | null => {
   // Arabic digits and separators too: ٩٬٠٠٠٫٥٠ is 9,000.50.
   const n = Number(latinDigits(s).replace(/٫/g, ".").replace(/[,٬]/g, "").trim());
-  return Number.isFinite(n) && n > 0 ? egpToPiastres(n) : null;
+  const p = Number.isFinite(n) && n > 0 ? egpToPiastres(n) : null;
+  // Past 2^53 piastres a figure is no longer exact, and the rules' wasm refuses it.
+  return p !== null && Number.isSafeInteger(p) ? p : null;
 };
 
 /** Today in the active (branch) zone, as `YYYY-MM-DD` / `YYYY-MM`. */

@@ -1,11 +1,13 @@
 /**
- * What a rule would charge, worked out the way the server does it, for the
- * Rules page's "try it" preview. Mirrors `MadarRust/src/staff/rules.rs`:
- * `select_late_tier` (the FIRST rung whose range holds the minutes) and
- * `late_deduction_piastres` over `PayRates` (multiply before dividing, then
- * round half away from zero). A preview only: payroll prices from what the
- * server stored, never from this.
+ * What a rule would charge, worked out by the server's own code, for the
+ * Rules page's "try it" preview: madar-dawam's ladder (`select_late_tier`, the
+ * FIRST rung whose range holds the minutes; `late_deduction_piastres`;
+ * `absence_deduction_piastres`) through WebAssembly (`@/lib/rules`);
+ * rules-preview.test.ts runs it against the pinned ladder_vectors.json. A
+ * preview only: payroll prices from what the server stored, never from this.
  */
+import { rules } from "@/lib/rules";
+
 import type { RulesValues, Tier } from "./rules-form";
 import { fullBody } from "./rules-form";
 
@@ -17,26 +19,28 @@ export interface PayExample {
   shiftMinutes: number;
 }
 
-/** The rung `lateMinutes` falls on, or null (on time, or past a ladder that stops). */
+// A preview only: a rung still being typed (a number the form will refuse) previews as nothing, never a crashed page.
+const orNone = <T>(f: () => T, none: T): T => {
+  try {
+    return f();
+  } catch {
+    return none;
+  }
+};
+
+/** The rung `lateMinutes` falls on, or null (on time, or past a ladder that stops): madar-dawam `select_late_tier`. */
 export function selectTier(tiers: Tier[], lateMinutes: number): Tier | null {
-  if (lateMinutes <= 0) return null;
-  return tiers.find((t) => lateMinutes >= Math.max(0, t.from_minutes) && (t.to_minutes === null || lateMinutes <= t.to_minutes)) ?? null;
+  const i = orNone(() => rules.select_late_tier(tiers, lateMinutes), null);
+  return i === null ? null : tiers[i];
 }
 
-const roundHalfAway = (x: number) => Math.sign(x) * Math.round(Math.abs(x));
+/** What a rung costs in piastres for one pay example: madar-dawam `late_deduction_piastres`. */
+export const tierPiastres = (tier: Tier, ex: PayExample): number =>
+  orNone(() => rules.late_deduction_piastres(tier, ex.salary, ex.workingDays, ex.shiftMinutes), 0);
 
-/** What a rung costs in piastres for one pay example. */
-export function tierPiastres(tier: Tier, ex: PayExample): number {
-  if (tier.kind === "piastres") return Math.max(0, roundHalfAway(tier.value));
-  if (ex.workingDays <= 0) return 0;
-  if (tier.kind === "day_fraction") return Math.max(0, roundHalfAway((ex.salary * tier.value) / ex.workingDays));
-  if (ex.shiftMinutes <= 0) return 0;
-  return Math.max(0, roundHalfAway((ex.salary * tier.value) / (ex.workingDays * ex.shiftMinutes)));
-}
-
-/** One day's pay for the example (what an absence of 1 day docks). */
+/** What an absence docking `days` days costs for the example: madar-dawam `absence_deduction_piastres`. */
 export const dayPiastres = (ex: PayExample, days = 1): number =>
-  ex.workingDays > 0 ? Math.max(0, roundHalfAway((ex.salary * days) / ex.workingDays)) : 0;
+  orNone(() => rules.absence_deduction_piastres(ex.salary, ex.workingDays, 1, days), 0);
 
 /** Key order never matters when comparing two rule values. */
 const canonical = (v: unknown): unknown =>

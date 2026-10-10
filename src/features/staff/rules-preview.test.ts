@@ -1,7 +1,29 @@
 import { describe, expect, it } from "vitest";
 
+import vectors from "@/lib/ladder_vectors.json";
+
 import { EMPTY_VALUES, tierProblem, type Tier } from "./rules-form";
 import { changedRules, dayPiastres, selectTier, tierPiastres } from "./rules-preview";
+
+// madar-shared's ladder_vectors.json (pinned by rev): the server's late ladder and absence docking.
+describe("ladder vectors", () => {
+  const rungs = vectors.ladder.map((t) => ({ ...t, value: Number(t.value) })) as Tier[];
+  it.each(vectors.select)("select: $late_minutes min → rung $tier", ({ late_minutes, tier }) => {
+    expect(selectTier(rungs, late_minutes)).toBe(tier === null ? null : rungs[tier]);
+  });
+  it.each(vectors.deductions)("deduction: $kind $value on $salary over $working_days days of $day_minutes min", (c) => {
+    const tier = { from_minutes: 0, to_minutes: null, kind: c.kind, value: Number(c.value) } as Tier;
+    expect(tierPiastres(tier, { salary: c.salary, workingDays: Number(c.working_days), shiftMinutes: c.day_minutes })).toBe(c.piastres);
+  });
+  // dayPiastres prices one absent day at `deduction_days`, so it runs the cases with one day absent.
+  const oneDay = vectors.absences.filter((c) => c.days_absent === "1");
+  it.each(oneDay)("absence: $deduction_days days docked on $salary over $working_days days", (c) => {
+    expect(dayPiastres({ salary: c.salary, workingDays: Number(c.working_days), shiftMinutes: 480 }, Number(c.deduction_days))).toBe(c.piastres);
+  });
+  it("skips only the absence case with half a day absent (the page always asks about one day)", () => {
+    expect(vectors.absences.filter((c) => !oneDay.includes(c)).map((c) => c.days_absent)).toEqual(["0.5"]);
+  });
+});
 
 // The server's suggested ladder (attendance.rs `suggested_tiers`).
 const ladder: Tier[] = [
