@@ -24,7 +24,7 @@ import { useAuthzAt } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { fmtNumber, fmtUnit } from "@/lib/format";
-import { invalidateInventory, milli } from "./lib";
+import { checkReceiveLine, invalidateInventory } from "./lib";
 
 /** `new`: a draft or a request. `edit`: change a draft/request's lines. `accept`: answer a request. */
 export type TransferDialogMode = "new" | "edit" | "accept";
@@ -131,7 +131,8 @@ export function TransferDialog({
     && (mode !== "new" || (asRequest ? canAsk : canSend));
   const overOnHand = (l: LineState) => {
     const s = !asRequest && l.ingredientId ? stockById.get(l.ingredientId) : undefined;
-    return !!s && isNum(l.qty) && milli(parseFloat(l.qty)) > milli(s.on_hand);
+    // More than on hand, in whole thousandths: the server's dispatch check, the receive rule's "more than sent".
+    return !!s && isNum(l.qty) && "refused" in checkReceiveLine(s.on_hand, parseFloat(l.qty), null);
   };
   // The server refuses to send more than is on hand; don't offer it.
   const short = lines.some(overOnHand);
