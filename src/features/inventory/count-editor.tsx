@@ -147,7 +147,7 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
   const visible = useMemo(() => {
     let list = rows;
     if (search.trim()) {
-      const q = search.toLowerCase();
+      const q = search.trim().toLowerCase();
       list = list.filter((it) => it.ingredient_name.toLowerCase().includes(q));
     }
     if (category !== "all") list = list.filter((it) => it.category_id === category);

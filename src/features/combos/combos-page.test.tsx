@@ -5,7 +5,7 @@
  * says it is not this account's to see and asks the server for nothing.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -107,6 +107,19 @@ describe("the combos list", () => {
     mount();
     expect(screen.getByRole("button", { name: /New combo/ })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Delete" })).toHaveLength(2);
+  });
+
+  it("W1 a search of spaces alone is no filter: nothing sent, the plain empty state", async () => {
+    held = ["menu.items.read"];
+    rows = [];
+    mount();
+    fireEvent.change(screen.getByRole("textbox", { name: "Search combos" }), { target: { value: "   " } });
+    await new Promise((r) => setTimeout(r, 350));
+    expect(useCombos).toHaveBeenLastCalledWith(expect.objectContaining({ q: undefined }), { enabled: true });
+    expect(screen.getByText("No combos yet")).toBeInTheDocument();
+    expect(screen.queryByText("No combo matches these filters")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole("textbox", { name: "Search combos" }), { target: { value: " lunch " } });
+    await waitFor(() => expect(useCombos).toHaveBeenLastCalledWith(expect.objectContaining({ q: "lunch" }), { enabled: true }));
   });
 
   it("without menu.items.read: shows the restricted state and fetches nothing", () => {
