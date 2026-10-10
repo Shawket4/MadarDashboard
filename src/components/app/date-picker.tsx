@@ -8,18 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { APP_TZ } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
-import { fmtDate } from "@/lib/format";
+import { cairoParts, fmtDate } from "@/lib/format";
 import { dayBoundaryISO } from "@/data/scope/presets";
 import { daysIntoWeek, WEEK_ORDER } from "@/lib/week";
 
 type DayParts = { y: number; m: number; d: number };
 const toNum = (p?: DayParts | null) => (p ? p.y * 10000 + p.m * 100 + p.d : null);
 
-/** Today's calendar parts in `tz`. */
-export const todayIn = (tz: string, now: number = Date.now()): DayParts => {
-  const d = new TZDate(now, tz);
-  return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
-};
+/** Today's calendar parts in `tz` (the business date). */
+export const todayIn = (tz: string, now: number = Date.now()): DayParts => cairoParts(now, tz);
 
 interface Props {
   /** Selected day. UTC ISO instant (day-start in the active timezone) by default, or `YYYY-MM-DD` when `dateOnly`. */
@@ -53,11 +50,8 @@ interface Props {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** Calendar parts of an instant, read in `tz`. */
-export const partsIn = (iso: string, tz: string): DayParts => {
-  const d = new TZDate(iso, tz);
-  return { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
-};
+/** Calendar parts of an instant, read in `tz` (its business date). */
+export const partsIn = (iso: string, tz: string): DayParts => cairoParts(iso, tz);
 
 /**
  * Single-date picker — a sibling of {@link DateRangePicker} sharing its

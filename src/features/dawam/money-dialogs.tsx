@@ -35,7 +35,7 @@ import { Cap } from "@/generated/capabilities";
 import { getErrorMessage, type ReasonFor } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthStore } from "@/data/stores/auth.store";
-import { cairoNow, egpToPiastres, fmtMoney } from "@/lib/format";
+import { businessDate, egpToPiastres, fmtMoney } from "@/lib/format";
 import { invalidateStaff } from "@/features/staff/util";
 import { DateField, MoneyField, NumberField, latinDigits } from "@/components/inputs";
 import type { SalaryAdvance } from "@/data/api/generated/models";
@@ -49,7 +49,7 @@ export const readPounds = (s: string): number | null => {
 };
 
 /** Today in the active (branch) zone, as `YYYY-MM-DD` / `YYYY-MM`. */
-const isoToday = () => cairoNow().toISOString().slice(0, 10);
+const isoToday = () => businessDate();
 /** A month picker's `YYYY-MM` → the first day the server files the line under. */
 export const monthToDate = (m: string) => `${m}-01`;
 
