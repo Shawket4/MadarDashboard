@@ -18,14 +18,15 @@
  * `(i + ½)/target` of the row whatever it happens to measure — so the geometry
  * holds at 12 steps on a phone and at 3 on a desktop, with no pixel anywhere.
  *
- * Only for small targets. Past `MAX_STEPS` the steps stop being countable and
- * become texture, so a points programme (100, 250…) gets a bar instead. The cap
+ * Only for small targets. Past twelve (madar-loyalty `MAX_STEPS`) the steps
+ * stop being countable and become texture, so a points programme (100, 250…)
+ * gets a bar instead. The cap
  * matches the Wallet pass's (`wallet::google::MAX_STEPS`), so the card in the
  * phone and the card on the page never disagree.
  */
 import type { CSSProperties } from "react";
 
-const MAX_STEPS = 12;
+import { rules } from "@/lib/rules";
 
 /** Breathing room between steps, and the width the sizing has to account for. */
 const GAP = "0.25rem";
@@ -33,8 +34,8 @@ const GAP = "0.25rem";
 /** Past this many, a step is too small to hold a legible numeral. */
 const NUMERALS_UP_TO = 9;
 
-export const stampable = (target: number): boolean =>
-  target > 0 && target <= MAX_STEPS;
+/** A target small enough to draw as stamps (madar-loyalty `card::stamps`, WebAssembly). */
+export const stampable = (target: number): boolean => rules.loyalty_stamps(0, target) !== null;
 
 export function StampRow({
   earned,
@@ -53,7 +54,7 @@ export function StampRow({
 }) {
   // Clamped, not trusted: redemption leaves a remainder and an adjustment can
   // exceed the target; neither should render a broken row.
-  const filled = Math.max(0, Math.min(earned, target));
+  const filled = rules.loyalty_stamps(earned, target) ?? 0;
 
   // The steps run END TO END: first against the left edge, last against the
   // right. `justify-content: space-between` does that, and it means a step's
