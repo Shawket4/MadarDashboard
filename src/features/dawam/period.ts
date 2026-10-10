@@ -8,6 +8,6 @@ import { useGetAttendanceSettings } from "@/data/api/generated/api";
 export function usePeriodStartDay(enabled = true): number {
   const q = useGetAttendanceSettings({}, { query: { enabled, staleTime: 60_000 } });
   const day = q.data?.period_start_day;
-  // As the server (madar_dawam::pay::period_window): a start day past 28 is the 28th.
-  return typeof day === "number" && day >= 1 ? Math.min(Math.trunc(day), 28) : 1;
+  // madar_dawam::pay::period_window (quickRange's wasm call) clamps it to 1–28; it takes a whole number.
+  return typeof day === "number" ? Math.trunc(day) : 1;
 }
