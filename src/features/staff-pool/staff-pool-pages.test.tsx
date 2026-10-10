@@ -462,11 +462,11 @@ describe("the organisation's settings versus a branch's own", () => {
     held = ["org.settings.edit"];
   });
 
-  it("says a branch is following the organisation when the row is not its own", () => {
-    // The API answers a branch query with the settings IN FORCE, so the
-    // response alone cannot say which. A `branch_id` of null is the tell.
+  it("says a branch is following the organisation when the server says it inherits (W9, B4)", () => {
+    // The API answers a branch query with the settings IN FORCE, labelled with
+    // the branch either way; `inherited` is the tell, not `branch_id`.
     branchId = "b-9";
-    settings = { ...settings!, branch_id: null };
+    settings = { ...settings!, branch_id: "b-9", inherited: true };
     wrap(<StaffPoolSettingsPage />);
     expect(screen.getByText(/follows the organisation's staff drinks settings/)).toBeInTheDocument();
     // Nothing to revert to: it is already following.
@@ -475,7 +475,7 @@ describe("the organisation's settings versus a branch's own", () => {
 
   it("offers the revert once the branch has rules of its own", () => {
     branchId = "b-9";
-    settings = { ...settings!, branch_id: "b-9" };
+    settings = { ...settings!, branch_id: "b-9", inherited: false };
     wrap(<StaffPoolSettingsPage />);
     expect(screen.queryByText(/follows the organisation's staff drinks settings/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Follow the organisation/ })).toBeInTheDocument();
@@ -483,6 +483,7 @@ describe("the organisation's settings versus a branch's own", () => {
 
   it("never offers the revert at the organisation scope", () => {
     branchId = null;
+    settings = { ...settings!, inherited: true };
     wrap(<StaffPoolSettingsPage />);
     expect(screen.queryByText(/follows the organisation's staff drinks settings/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Follow the organisation/ })).not.toBeInTheDocument();

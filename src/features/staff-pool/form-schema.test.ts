@@ -4,7 +4,6 @@ import type { StaffPoolSettings } from "@/data/api/generated/models";
 
 import {
   fromWire,
-  isOwnOverride,
   poolIsOff,
   staffPoolSchema,
   toWire,
@@ -124,21 +123,5 @@ describe("the staff pool form's validation", () => {
     expect(errorsOf({ ...valid(), daily_allowance: "abc" }).daily_allowance).toBe(
       "staffPool.errors.allowance",
     );
-  });
-});
-
-describe("telling an override from an inheritance", () => {
-  it("is an override only when the branch id comes back matching", () => {
-    expect(isOwnOverride({ ...saved, branch_id: "b-9" }, "b-9")).toBe(true);
-    expect(isOwnOverride({ ...saved, branch_id: null }, "b-9")).toBe(false);
-    expect(isOwnOverride({ ...saved, branch_id: "b-1" }, "b-9")).toBe(false);
-  });
-
-  it("is never an override at the organisation scope", () => {
-    expect(isOwnOverride(saved, null)).toBe(false);
-  });
-
-  it("is not an override before anything has loaded", () => {
-    expect(isOwnOverride(undefined, "b-9")).toBe(false);
   });
 });

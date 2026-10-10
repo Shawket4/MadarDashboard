@@ -572,7 +572,11 @@ export const handlers = [
   // ── Staff drinks pool ─────────────────────────────────────────────────────
   // `drinks/summary` before `drinks`: same query, and the strip must describe
   // exactly the rows listed under it.
-  http.get("*/staff-pool/settings", () => HttpResponse.json(MOCK_STAFF_POOL_SETTINGS)),
+  // A branch with no row of its own follows the organisation, as the backend answers it.
+  http.get("*/staff-pool/settings", ({ request }) => {
+    const branchId = new URL(request.url).searchParams.get("branch_id");
+    return HttpResponse.json(branchId ? { ...MOCK_STAFF_POOL_SETTINGS, branch_id: branchId, inherited: true } : MOCK_STAFF_POOL_SETTINGS);
+  }),
   http.put("*/staff-pool/settings", echoCreated),
   http.get("*/staff-pool/today", ({ request }) => {
     const q = new URL(request.url).searchParams;

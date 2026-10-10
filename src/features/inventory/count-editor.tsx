@@ -77,13 +77,18 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
   const inFlight = useRef<Promise<boolean> | null>(null);
   const dirty = useRef(false);
   const latest = useRef({ counts, reasons, rowIds: [] as string[] });
+  /** Rows the server holds a figure for, as far as this screen has seen or sent: clearing one un-counts it. */
+  const held = useRef(new Set<string>());
 
   useEffect(() => {
     if (data && !hydrated.current) {
       const c: Record<string, string> = {};
       const r: Record<string, string> = {};
       for (const it of data.items) {
-        if (it.counted_qty != null) c[it.org_ingredient_id] = String(it.counted_qty);
+        if (it.counted_qty != null) {
+          c[it.org_ingredient_id] = String(it.counted_qty);
+          held.current.add(it.org_ingredient_id);
+        }
         if (it.variance_reason) r[it.org_ingredient_id] = it.variance_reason;
       }
       setCounts(c);
@@ -111,11 +116,17 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
     if (!dirty.current) return true;
     dirty.current = false;
     const { counts: c, reasons: r, rowIds } = latest.current;
-    const items = buildCountPayload(rowIds, c, r);
+    const items = buildCountPayload(rowIds, c, r, held.current);
     if (items.length === 0) return true;
     setSaving(true);
     const p = upsertItems(stocktakeId, { items })
-      .then(() => true)
+      .then(() => {
+        for (const it of items) {
+          if (it.counted_qty == null) held.current.delete(it.org_ingredient_id);
+          else held.current.add(it.org_ingredient_id);
+        }
+        return true;
+      })
       .catch((e: unknown) => {
         dirty.current = true;
         toast.error(getErrorMessage(e));
