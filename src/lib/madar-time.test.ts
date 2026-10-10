@@ -1,6 +1,9 @@
 // madar-shared's madar-time rules as the dashboard calls them (WebAssembly,
 // src/lib/rules), run against the crate's vectors (day bounds, week start,
 // business date).
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useAppStore } from "@/data/stores/app.store";
@@ -9,7 +12,7 @@ import { isoDaysFromToday } from "@/features/staff/util";
 import businessDates from "./business_date_vectors.json";
 import dayBounds from "./day_bounds_vectors.json";
 import { cairoDateISO, cairoParts, dayBoundaryISO } from "./format";
-import { rules } from "./rules";
+import * as pub from "./rules/wasm/public/madar_web.js";
 import weeks from "./week_vectors.json";
 import { WEEK_START, weekStartOf } from "./week";
 
@@ -19,21 +22,21 @@ const parts = (iso: string) => {
   return { y, m: m - 1, d };
 };
 
-// The wasm bundles the zones a branch is in (madar-shared scripts/tz-filter.txt);
-// a vector in a zone it leaves out cannot run here, and must say so.
-const bundled = (tz: string) => {
-  try {
-    rules.business_date(tz, 0);
-    return true;
-  } catch {
-    return false;
-  }
-};
-it("runs every vector but the zones the wasm leaves out", () => {
-  const left = [...new Set([...dayBounds, ...businessDates].map((v) => v.tz))].filter((tz) => !bundled(tz));
-  expect(left).toEqual(["Europe/London"]);
+// The full package bundles every zone (Europe/London included), so every
+// vector runs here. The customer bundles' public package keeps only the zones a
+// branch is in (madar-shared scripts/tz-filter.txt): a zone outside it throws.
+describe("the public package's business_date", () => {
+  pub.initSync({ module: readFileSync(resolve(__dirname, "rules/wasm/public/madar_web_bg.wasm")) });
+  const inZone = (tz: string) => tz !== "Europe/London";
+  it.each(businessDates.filter((v) => inZone(v.tz)))("$tz $at → $business_date", ({ tz, at, business_date }) => {
+    expect(pub.business_date(tz, Date.parse(at))).toBe(business_date);
+  });
+  it("throws for a zone it leaves out (Europe/London)", () => {
+    const left = businessDates.filter((v) => !inZone(v.tz));
+    expect(left.length).toBeGreaterThan(0);
+    for (const { tz, at } of left) expect(() => pub.business_date(tz, Date.parse(at))).toThrow(/time zone/);
+  });
 });
-const runnable = <T extends { tz: string }>(vs: T[]) => vs.filter((v) => bundled(v.tz));
 
 const initialTz = useAppStore.getState().activeTimezone;
 afterEach(() => {
@@ -42,7 +45,7 @@ afterEach(() => {
 });
 
 describe("dayBoundaryISO — day_bounds vectors", () => {
-  it.each(runnable(dayBounds))("$tz $date ($hours h)", ({ tz, date, start, end }) => {
+  it.each(dayBounds)("$tz $date ($hours h)", ({ tz, date, start, end }) => {
     const { y, m, d } = parts(date);
     expect(dayBoundaryISO(tz, y, m, d)).toBe(new Date(start).toISOString());
     // Reports filter `at <= to` (MadarRust reports/handlers.rs), so the day's
@@ -51,7 +54,7 @@ describe("dayBoundaryISO — day_bounds vectors", () => {
   });
 
   it("cairoDateISO is the same rule in the active timezone", () => {
-    for (const { tz, date } of runnable(dayBounds)) {
+    for (const { tz, date } of dayBounds) {
       const { y, m, d } = parts(date);
       useAppStore.setState({ activeTimezone: tz });
       expect(cairoDateISO(y, m, d)).toBe(dayBoundaryISO(tz, y, m, d));
@@ -79,7 +82,7 @@ describe("week start — week vectors", () => {
 });
 
 describe("business date — business_date vectors", () => {
-  it.each(runnable(businessDates))("$tz $at → $business_date", ({ tz, at, business_date }) => {
+  it.each(businessDates)("$tz $at → $business_date", ({ tz, at, business_date }) => {
     useAppStore.setState({ activeTimezone: tz });
     expect(cairoParts(at)).toEqual(parts(business_date));
     vi.useFakeTimers();

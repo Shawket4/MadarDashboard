@@ -184,6 +184,15 @@ export interface TillLine {
 }
 
 /**
+ * A salary as a month, a day and an hour, in piastres.
+ */
+export interface SalaryRates {
+    monthly: number;
+    daily: number;
+    hourly: number;
+}
+
+/**
  * A size and what it costs at the branch.
  */
 export interface SizeView {
@@ -217,6 +226,15 @@ export interface IngredientRef {
     id: string;
     name: string;
     unit: string;
+}
+
+/**
+ * An instant (epoch ms) on a zone's wall clock.
+ */
+export interface LocalParts {
+    date: string;
+    hour: number;
+    minute: number;
 }
 
 /**
@@ -583,6 +601,17 @@ export interface RecipeLine {
 }
 
 /**
+ * One rung of the late ladder as the Rules page holds it: inclusive at
+ * both ends, `to_minutes` `null` for the open top rung.
+ */
+export interface LateTier {
+    from_minutes: number;
+    to_minutes: number | null;
+    kind: "minutes" | "piastres" | "day_fraction";
+    value: number;
+}
+
+/**
  * One slot: what a customer picks `min..=max` of.
  */
 export interface SlotView {
@@ -635,6 +664,11 @@ export interface Replacement {
 }
 
 /**
+ * The one rate the salary calculator was typed with, in piastres.
+ */
+export type TypedRate = { monthly: number } | { daily: number } | { hourly: number };
+
+/**
  * The option a swap is charged over.
  */
 export interface Over {
@@ -649,6 +683,13 @@ export interface Over {
 export interface BaseCandidates {
     ingredient_id: string;
     candidates?: BaseCandidate[];
+}
+
+/**
+ * The server's 400 message for a purchase cost it refuses.
+ */
+export interface PurchaseRefusal {
+    error: string;
 }
 
 /**
@@ -679,6 +720,23 @@ export interface ChoiceView {
      */
     size_surcharges?: SizeSurcharge[];
     sort?: number;
+}
+
+/**
+ * What someone hired on a day earns in their first pay period.
+ */
+export interface FirstPay {
+    /**
+     * The hire date.
+     */
+    from: string;
+    /**
+     * The period's last day.
+     */
+    to: string;
+    days: number;
+    period_days: number;
+    piastres: number;
 }
 
 /**
@@ -762,6 +820,13 @@ export type TransferStatus = "requested" | "draft" | "dispatched" | "received" |
 
 
 /**
+ * What `days_absent` absent days cost at `deduction_days` docked each,
+ * for a monthly `salary` over `working_days` (madar-dawam
+ * `ladder::absence_deduction_piastres`; the day's minutes do not enter).
+ */
+export function absence_deduction_piastres(salary: number, working_days: number, days_absent: number, deduction_days: number): number;
+
+/**
  * Net sales over orders, rounded half up; 0 with no orders.
  */
 export function average_ticket(net_sales: number, order_count: number): number;
@@ -811,10 +876,24 @@ export function convert_with_density(qty: number, from_unit: string, to_unit: st
 export function day_bounds(tz: string, date: string): [number, number];
 
 /**
+ * Piastres one delivery cost, not rounded: the invoice total if given,
+ * else the per-unit price × the quantity, else the ordered line total
+ * pro rata to the quantity received (the receive dialog's hint).
+ * `quantity_ordered` is the stored column.
+ */
+export function delivery_cost(quantity_received: number, line_cost: number | null | undefined, unit_cost: number | null | undefined, ordered_line_cost: number, quantity_ordered: number): number | PurchaseRefusal;
+
+/**
  * The order dialog's line estimate in piastres; `null` without a cost,
  * a quantity above 0, or units of one family.
  */
 export function estimate_line_total(cost_per_stock_unit: number | null | undefined, qty: number, purchase_unit: string, stock_unit: string): number | null;
+
+/**
+ * The first pay of someone hired on `hire_date` at `monthly`, periods
+ * opening on `start_day` (madar-dawam `salary::first_pay`).
+ */
+export function first_pay(monthly: number, hire_date: string, start_day: number): FirstPay;
 
 /**
  * The food-cost band of `cost` against `price`; `null` unless `price > 0`.
@@ -828,9 +907,28 @@ export function food_cost_band(cost: number, price: number): Band | null;
 export function is_variance_flagged(book: number, counted: number, pct: number): boolean;
 
 /**
+ * What a rung costs in piastres for a monthly `salary`, `working_days` a
+ * month and the day's `day_minutes` (madar-dawam
+ * `ladder::late_deduction_piastres`).
+ */
+export function late_deduction_piastres(tier: LateTier, salary: number, working_days: number, day_minutes: number): number;
+
+/**
  * One recipe line's cost in whole piastres.
  */
 export function line_cost(qty: number, cost_per_unit: number): number;
+
+/**
+ * `date` at `hour`:`minute` on `tz`'s wall clock, in epoch ms: a time
+ * that happens twice is the earliest, one in a DST gap moves forward by
+ * the gap, an hour or minute past its range rolls over.
+ */
+export function local_instant(tz: string, date: string, hour: number, minute: number): number;
+
+/**
+ * An instant (epoch ms) read on `tz`'s wall clock.
+ */
+export function local_parts(tz: string, at_ms: number): LocalParts;
 
 /**
  * `(price − cost) / price`; `null` unless `price > 0`.
@@ -871,6 +969,18 @@ export function price_options(view: CatalogView, selection: Selection): PricedOp
 export function quantity_dec(q: number): number;
 
 /**
+ * A quantity in whole thousandths, as `numeric(12,3)` stores it (half
+ * away from zero; non-finite is 0).
+ */
+export function quantity_milli(q: number): number;
+
+/**
+ * The three rates from whichever one was typed (madar-dawam
+ * `salary::rates`); `working_days` may be a fraction.
+ */
+export function rates(typed: TypedRate, working_days: number, day_minutes: number): SalaryRates;
+
+/**
  * What a recipe line stores: converted to the base unit, grossed up by
  * the yield loss, 3 dp.
  */
@@ -885,6 +995,18 @@ export function recipe_cost(lines: CostLine[]): RecipeCost;
  * How much a warehouse should send a branch.
  */
 export function replenish_suggest(input: ReplenishInput): ReplenishSuggestion;
+
+/**
+ * A recipe quantity copied to another size × `factor`, 3 dp, half away
+ * from zero.
+ */
+export function scale_qty(qty: number, factor: number): number;
+
+/**
+ * The index of the FIRST rung `late_minutes` falls on, or `null` (on
+ * time, or past a ladder that stops).
+ */
+export function select_late_tier(tiers: LateTier[], late_minutes: number): number | null;
 
 /**
  * The close's reconciliation lines (madar-till `reconcile::plan_lines`):
@@ -935,6 +1057,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly absence_deduction_piastres: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly average_ticket: (a: number, b: number) => [number, number, number];
     readonly bill_discount: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly business_date: (a: number, b: number, c: number) => [number, number, number, number];
@@ -944,10 +1067,15 @@ export interface InitOutput {
     readonly convert: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly convert_with_density: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly day_bounds: (a: number, b: number, c: number, d: number) => [number, number, number];
+    readonly delivery_cost: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly estimate_line_total: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+    readonly first_pay: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly food_cost_band: (a: number, b: number) => [number, number, number];
     readonly is_variance_flagged: (a: number, b: number, c: number) => number;
+    readonly late_deduction_piastres: (a: any, b: number, c: number, d: number) => [number, number, number];
     readonly line_cost: (a: number, b: number) => number;
+    readonly local_instant: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly local_parts: (a: number, b: number, c: number) => [number, number, number];
     readonly margin: (a: number, b: number) => [number, number, number];
     readonly option_charge: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly pay_period: (a: number, b: number, c: number) => [number, number, number];
@@ -955,9 +1083,13 @@ export interface InitOutput {
     readonly price_line: (a: any, b: any) => [number, number, number];
     readonly price_options: (a: any, b: any) => [number, number, number];
     readonly quantity_dec: (a: number) => number;
+    readonly quantity_milli: (a: number) => number;
+    readonly rates: (a: any, b: number, c: number) => [number, number, number];
     readonly recipe_base_qty: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number];
     readonly recipe_cost: (a: number, b: number) => [number, number, number];
     readonly replenish_suggest: (a: any) => [number, number, number];
+    readonly scale_qty: (a: number, b: number) => number;
+    readonly select_late_tier: (a: number, b: number, c: number) => [number, number, number];
     readonly till_plan_lines: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number];
     readonly transfer_step: (a: any, b: any) => [number, number, number];
     readonly unit_cost_from_total: (a: number, b: number) => [number, number, number];

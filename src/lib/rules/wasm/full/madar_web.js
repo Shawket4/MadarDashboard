@@ -1,6 +1,24 @@
 /* @ts-self-types="./madar_web.d.ts" */
 
 /**
+ * What `days_absent` absent days cost at `deduction_days` docked each,
+ * for a monthly `salary` over `working_days` (madar-dawam
+ * `ladder::absence_deduction_piastres`; the day's minutes do not enter).
+ * @param {number} salary
+ * @param {number} working_days
+ * @param {number} days_absent
+ * @param {number} deduction_days
+ * @returns {number}
+ */
+export function absence_deduction_piastres(salary, working_days, days_absent, deduction_days) {
+    const ret = wasm.absence_deduction_piastres(salary, working_days, days_absent, deduction_days);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0];
+}
+
+/**
  * Net sales over orders, rounded half up; 0 with no orders.
  * @param {number} net_sales
  * @param {number} order_count
@@ -175,6 +193,26 @@ export function day_bounds(tz, date) {
 }
 
 /**
+ * Piastres one delivery cost, not rounded: the invoice total if given,
+ * else the per-unit price × the quantity, else the ordered line total
+ * pro rata to the quantity received (the receive dialog's hint).
+ * `quantity_ordered` is the stored column.
+ * @param {number} quantity_received
+ * @param {number | null | undefined} line_cost
+ * @param {number | null | undefined} unit_cost
+ * @param {number} ordered_line_cost
+ * @param {number} quantity_ordered
+ * @returns {number | PurchaseRefusal}
+ */
+export function delivery_cost(quantity_received, line_cost, unit_cost, ordered_line_cost, quantity_ordered) {
+    const ret = wasm.delivery_cost(quantity_received, !isLikeNone(line_cost), isLikeNone(line_cost) ? 0 : line_cost, !isLikeNone(unit_cost), isLikeNone(unit_cost) ? 0 : unit_cost, ordered_line_cost, quantity_ordered);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
  * The order dialog's line estimate in piastres; `null` without a cost,
  * a quantity above 0, or units of one family.
  * @param {number | null | undefined} cost_per_stock_unit
@@ -189,6 +227,24 @@ export function estimate_line_total(cost_per_stock_unit, qty, purchase_unit, sto
     const ptr1 = passStringToWasm0(stock_unit, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
     const ret = wasm.estimate_line_total(!isLikeNone(cost_per_stock_unit), isLikeNone(cost_per_stock_unit) ? 0 : cost_per_stock_unit, qty, ptr0, len0, ptr1, len1);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * The first pay of someone hired on `hire_date` at `monthly`, periods
+ * opening on `start_day` (madar-dawam `salary::first_pay`).
+ * @param {number} monthly
+ * @param {string} hire_date
+ * @param {number} start_day
+ * @returns {FirstPay}
+ */
+export function first_pay(monthly, hire_date, start_day) {
+    const ptr0 = passStringToWasm0(hire_date, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.first_pay(monthly, ptr0, len0, start_day);
     if (ret[2]) {
         throw takeFromExternrefTable0(ret[1]);
     }
@@ -223,6 +279,24 @@ export function is_variance_flagged(book, counted, pct) {
 }
 
 /**
+ * What a rung costs in piastres for a monthly `salary`, `working_days` a
+ * month and the day's `day_minutes` (madar-dawam
+ * `ladder::late_deduction_piastres`).
+ * @param {LateTier} tier
+ * @param {number} salary
+ * @param {number} working_days
+ * @param {number} day_minutes
+ * @returns {number}
+ */
+export function late_deduction_piastres(tier, salary, working_days, day_minutes) {
+    const ret = wasm.late_deduction_piastres(tier, salary, working_days, day_minutes);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0];
+}
+
+/**
  * One recipe line's cost in whole piastres.
  * @param {number} qty
  * @param {number} cost_per_unit
@@ -231,6 +305,44 @@ export function is_variance_flagged(book, counted, pct) {
 export function line_cost(qty, cost_per_unit) {
     const ret = wasm.line_cost(qty, cost_per_unit);
     return ret;
+}
+
+/**
+ * `date` at `hour`:`minute` on `tz`'s wall clock, in epoch ms: a time
+ * that happens twice is the earliest, one in a DST gap moves forward by
+ * the gap, an hour or minute past its range rolls over.
+ * @param {string} tz
+ * @param {string} date
+ * @param {number} hour
+ * @param {number} minute
+ * @returns {number}
+ */
+export function local_instant(tz, date, hour, minute) {
+    const ptr0 = passStringToWasm0(tz, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(date, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.local_instant(ptr0, len0, ptr1, len1, hour, minute);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0];
+}
+
+/**
+ * An instant (epoch ms) read on `tz`'s wall clock.
+ * @param {string} tz
+ * @param {number} at_ms
+ * @returns {LocalParts}
+ */
+export function local_parts(tz, at_ms) {
+    const ptr0 = passStringToWasm0(tz, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.local_parts(ptr0, len0, at_ms);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
 }
 
 /**
@@ -339,6 +451,33 @@ export function quantity_dec(q) {
 }
 
 /**
+ * A quantity in whole thousandths, as `numeric(12,3)` stores it (half
+ * away from zero; non-finite is 0).
+ * @param {number} q
+ * @returns {number}
+ */
+export function quantity_milli(q) {
+    const ret = wasm.quantity_milli(q);
+    return ret;
+}
+
+/**
+ * The three rates from whichever one was typed (madar-dawam
+ * `salary::rates`); `working_days` may be a fraction.
+ * @param {TypedRate} typed
+ * @param {number} working_days
+ * @param {number} day_minutes
+ * @returns {SalaryRates}
+ */
+export function rates(typed, working_days, day_minutes) {
+    const ret = wasm.rates(typed, working_days, day_minutes);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
  * What a recipe line stores: converted to the base unit, grossed up by
  * the yield loss, 3 dp.
  * @param {number} qty
@@ -382,6 +521,35 @@ export function recipe_cost(lines) {
  */
 export function replenish_suggest(input) {
     const ret = wasm.replenish_suggest(input);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * A recipe quantity copied to another size × `factor`, 3 dp, half away
+ * from zero.
+ * @param {number} qty
+ * @param {number} factor
+ * @returns {number}
+ */
+export function scale_qty(qty, factor) {
+    const ret = wasm.scale_qty(qty, factor);
+    return ret;
+}
+
+/**
+ * The index of the FIRST rung `late_minutes` falls on, or `null` (on
+ * time, or past a ladder that stops).
+ * @param {LateTier[]} tiers
+ * @param {number} late_minutes
+ * @returns {number | null}
+ */
+export function select_late_tier(tiers, late_minutes) {
+    const ptr0 = passArrayJsValueToWasm0(tiers, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.select_late_tier(ptr0, len0, late_minutes);
     if (ret[2]) {
         throw takeFromExternrefTable0(ret[1]);
     }

@@ -22,6 +22,33 @@ export function bill_discount(subtotal, discount_type, value) {
 }
 
 /**
+ * The branch-local business date of an instant (epoch ms).
+ * @param {string} tz
+ * @param {number} at_ms
+ * @returns {string}
+ */
+export function business_date(tz, at_ms) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passStringToWasm0(tz, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.business_date(ptr0, len0, at_ms);
+        var ptr2 = ret[0];
+        var len2 = ret[1];
+        if (ret[3]) {
+            ptr2 = 0; len2 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
  * A combo line of `n` units (madar-catalog `combo::quote`).
  * @param {ComboView} combo
  * @param {PickIn[]} picks

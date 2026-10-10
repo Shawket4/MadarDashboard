@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const absence_deduction_piastres: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const average_ticket: (a: number, b: number) => [number, number, number];
 export const bill_discount: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
 export const business_date: (a: number, b: number, c: number) => [number, number, number, number];
@@ -10,10 +11,15 @@ export const combo_quote: (a: any, b: number, c: number, d: number) => [number, 
 export const convert: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
 export const convert_with_density: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
 export const day_bounds: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const delivery_cost: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
 export const estimate_line_total: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+export const first_pay: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const food_cost_band: (a: number, b: number) => [number, number, number];
 export const is_variance_flagged: (a: number, b: number, c: number) => number;
+export const late_deduction_piastres: (a: any, b: number, c: number, d: number) => [number, number, number];
 export const line_cost: (a: number, b: number) => number;
+export const local_instant: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+export const local_parts: (a: number, b: number, c: number) => [number, number, number];
 export const margin: (a: number, b: number) => [number, number, number];
 export const option_charge: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];
 export const pay_period: (a: number, b: number, c: number) => [number, number, number];
@@ -21,9 +27,13 @@ export const phone_canonical: (a: number, b: number) => [number, number, number]
 export const price_line: (a: any, b: any) => [number, number, number];
 export const price_options: (a: any, b: any) => [number, number, number];
 export const quantity_dec: (a: number) => number;
+export const quantity_milli: (a: number) => number;
+export const rates: (a: any, b: number, c: number) => [number, number, number];
 export const recipe_base_qty: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number];
 export const recipe_cost: (a: number, b: number) => [number, number, number];
 export const replenish_suggest: (a: any) => [number, number, number];
+export const scale_qty: (a: number, b: number) => number;
+export const select_late_tier: (a: number, b: number, c: number) => [number, number, number];
 export const till_plan_lines: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number];
 export const transfer_step: (a: any, b: any) => [number, number, number];
 export const unit_cost_from_total: (a: number, b: number) => [number, number, number];

@@ -614,6 +614,11 @@ export interface SizeSurcharge {
 export function bill_discount(subtotal: number, discount_type: string | null | undefined, value: string): number;
 
 /**
+ * The branch-local business date of an instant (epoch ms).
+ */
+export function business_date(tz: string, at_ms: number): string;
+
+/**
  * A combo line of `n` units (madar-catalog `combo::quote`).
  */
 export function combo_quote(combo: ComboView, picks: PickIn[], n: number): ComboQuote | ComboRefusal;
@@ -651,6 +656,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly bill_discount: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
+    readonly business_date: (a: number, b: number, c: number) => [number, number, number, number];
     readonly combo_quote: (a: any, b: number, c: number, d: number) => [number, number, number];
     readonly option_charge: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly phone_canonical: (a: number, b: number) => [number, number, number];
@@ -663,6 +669,7 @@ export interface InitOutput {
     readonly __externref_table_alloc: () => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __externref_table_dealloc: (a: number) => void;
+    readonly __wbindgen_free: (a: number, b: number, c: number) => void;
     readonly __wbindgen_start: () => void;
 }
 
