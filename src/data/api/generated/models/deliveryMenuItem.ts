@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { DeliveryMenuItemNameTranslations } from './deliveryMenuItemNameTranslations';
+import type { DeliveryMenuItemPricing } from './deliveryMenuItemPricing';
 import type { DeliveryMenuSize } from './deliveryMenuSize';
 import type { DeliveryModifierGroup } from './deliveryModifierGroup';
 import type { DeliveryOptionalField } from './deliveryOptionalField';
@@ -46,5 +47,13 @@ export interface DeliveryMenuItem {
   name_translations: DeliveryMenuItemNameTranslations;
   optionals: DeliveryOptionalField[];
   price: number;
+  /**
+     * A kind=item row: madar-catalog's view of it at this branch (sizes, the
+     * recipe's swap categories and bases, groups), so the storefront prices a
+     * swap over the recipe's own choice exactly as the order is charged.
+     * No quantities or costs. Additive.
+     * @nullable
+     */
+  pricing?: DeliveryMenuItemPricing;
   sizes: DeliveryMenuSize[];
 }

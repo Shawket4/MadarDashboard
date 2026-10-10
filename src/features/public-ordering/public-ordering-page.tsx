@@ -1165,6 +1165,7 @@ export function PublicOrderingPage({
       <ItemCustomizer
         item={editing && !isCombo(editing.item) ? editing.item : null}
         addons={addons}
+        optionPricing={menu?.option_pricing}
         editing={editing}
         open={!!editing && !isCombo(editing.item)}
         onOpenChange={(o) => !o && setEditing(null)}

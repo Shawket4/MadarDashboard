@@ -235,6 +235,7 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
       <ItemCustomizer
         item={editing && !isCombo(editing.item) ? editing.item : null}
         addons={addons}
+        optionPricing={menu.data?.option_pricing}
         editing={editing}
         open={!!editing && !isCombo(editing.item)}
         onOpenChange={(o) => !o && setEditing(null)}

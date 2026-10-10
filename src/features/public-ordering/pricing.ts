@@ -11,6 +11,7 @@
  */
 import type { DeliveryAddonOption } from "@/data/api/generated/models/deliveryAddonOption";
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
+import type { DeliveryOptionPricing } from "@/data/api/generated/models/deliveryOptionPricing";
 
 /** An item and the options a line may pick (madar-catalog `view.rs`). */
 export interface CatalogView {
@@ -212,18 +213,22 @@ export const storefrontItem = (item: DeliveryMenuItem): ItemView => ({
 });
 
 /**
- * The line's view from the public menu. Of the recipe the menu tells one
- * thing: its milk is `default_milk_addon_id`'s, so a milk swap is charged over
- * that option. Each option otherwise stands for an ingredient of its own.
- * ponytail: the menu sends no recipe, swap groups (`effect = 'swaps'`) or
- * coffee base, so a coffee is charged in full and a swap group's option as an
- * add-on until it sends the till feed's `pricing` views; then use those here.
+ * The line's view. The menu sends the server's own views (`item.pricing`,
+ * `option_pricing`: the recipe's swap lines and their bases, the options),
+ * so a swap is charged over the drink's own beans or milk exactly as the order
+ * is. A menu from an older server sends neither: then the view is rebuilt from
+ * what the menu shows — its milk is `default_milk_addon_id`'s, and each other
+ * option stands for an ingredient of its own (a coffee charged in full).
  */
 export function storefrontView(
   item: DeliveryMenuItem,
   addons: DeliveryAddonOption[],
   size: string | null,
+  optionPricing?: DeliveryOptionPricing[] | null,
 ): CatalogView {
+  if (item.pricing && optionPricing?.length) {
+    return { item: item.pricing as unknown as ItemView, options: optionPricing.map((p) => p.view as unknown as OptionView) };
+  }
   const milk = addons.find((a) => a.addon_item_id === item.default_milk_addon_id);
   return {
     item: {
@@ -242,3 +247,11 @@ export function storefrontView(
     })),
   };
 }
+
+/** A channel's own price for an option: online intake charges it instead of the rule's charge. */
+export const channelPrices = (optionPricing?: DeliveryOptionPricing[] | null): Map<string, number> =>
+  new Map(
+    (optionPricing ?? []).flatMap((p) =>
+      p.channel_price == null ? [] : [[(p.view as unknown as OptionView).id, p.channel_price] as const],
+    ),
+  );

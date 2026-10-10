@@ -428,6 +428,7 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
       <ItemCustomizer
         item={isCombo(active) ? null : active}
         addons={data.addons}
+        optionPricing={data.option_pricing}
         open={customizerOpen && !isCombo(active)}
         onOpenChange={setCustomizerOpen}
         onConfirm={onAdd}

@@ -12,13 +12,14 @@ import { describe, expect, it } from "vitest";
 import type { DeliveryAddonOption } from "@/data/api/generated/models/deliveryAddonOption";
 import type { DeliveryMenuDiscount } from "@/data/api/generated/models/deliveryMenuDiscount";
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
+import type { DeliveryOptionPricing } from "@/data/api/generated/models/deliveryOptionPricing";
 import type { PublicCombo } from "@/data/api/generated/models/publicCombo";
 import type { PublicComboChoice } from "@/data/api/generated/models/publicComboChoice";
 import catalog from "@/lib/catalog_vectors.json";
 import combos from "@/lib/combo_vectors.json";
 
 import { buildPicks, firstUnmetSlot, type ComboSelection } from "./combo";
-import { priceOptions, storefrontView, unitPrice, type CatalogView, type ItemView } from "./pricing";
+import { type CatalogView, channelPrices, type ItemView, optionCharge, priceOptions, storefrontView, unitPrice } from "./pricing";
 import { calcDiscount, itemBasePrice, lineTotal, lineUnitPrice } from "./utils";
 
 /* ── madar-catalog price_line: catalog_vectors.json ── */
@@ -252,3 +253,45 @@ describe("the discount preview takes off what madar-money does", () => {
     expect(calcDiscount(b.subtotal, discount)).toBe(b.discount_amount);
   });
 });
+
+// The menu's own pricing views (MadarRust: items[].pricing, option_pricing):
+// a swap over the drink's own beans, as the order is charged.
+describe("the menu's pricing views", () => {
+  const v60 = {
+    id: "v60", price: 6000, sizes: [], optionals: [], default_milk_addon_id: null,
+    pricing: {
+      id: "v60", branch_price: 6000, sizes: [{ label: "one_size", price: 6000, is_active: true }],
+      recipe: [{ size_label: "one_size", category: "coffee_bean", ingredient_id: "eth-beans" }],
+      bases: [{ ingredient_id: "eth-beans", candidates: [{ option_id: "eth", name: "Ethiopian", kind: "coffee_type", price: 2500 }] }],
+      optionals: [],
+    },
+  } as unknown as DeliveryMenuItem;
+  const addons = [
+    { addon_item_id: "eth", name: "Ethiopian", type: "coffee_type", price: 2500, is_available: true },
+    { addon_item_id: "decaf", name: "Decaf", type: "coffee_type", price: 3500, is_available: true },
+  ] as unknown as DeliveryAddonOption[];
+  const coffee = (id: string, ing: string, price: number) => ({
+    id, name: id, kind: "coffee_type", price, ingredients: [{ id: ing, name: ing, unit: "g" }], sized: [],
+  });
+  const optionPricing = (decafChannel: number | null) => [
+    { view: coffee("eth", "eth-beans", 2500), channel_price: null },
+    { view: coffee("decaf", "decaf-beans", 3500), channel_price: decafChannel },
+  ] as unknown as DeliveryOptionPricing[];
+
+  it("charges a swap over the drink's own beans", () => {
+    const view = storefrontView(v60, addons, null, optionPricing(null));
+    expect(optionCharge(view, null, "eth")).toBe(0);
+    expect(optionCharge(view, null, "decaf")).toBe(1000);
+  });
+
+  it("takes a channel's own price over the rule's", () => {
+    expect(channelPrices(optionPricing(4000)).get("decaf")).toBe(4000);
+    expect(channelPrices(optionPricing(null)).size).toBe(0);
+  });
+
+  it("without the views (an older server), charges a coffee in full as before", () => {
+    const view = storefrontView(v60, addons, null, null);
+    expect(optionCharge(view, null, "eth")).toBe(2500);
+  });
+});
+
