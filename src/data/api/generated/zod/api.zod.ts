@@ -12990,11 +12990,20 @@ export const PublicMenuResponse = zod.object({
   "size_label": zod.string().nullish()
 }).describe('A per-item optional toggle (e.g. \"Extra hot\", \"No sugar\"). `price` is the\npiastres surcharge; `size_label` is set when the optional only applies to a\nspecific size.')),
   "price": zod.number(),
+  "pricing": zod.looseObject({
+
+}).nullish().describe('A kind=item row: madar-catalog\'s view of it at this branch (sizes, the\nrecipe\'s swap categories and bases, groups), so the storefront prices a\nswap over the recipe\'s own choice exactly as the order is charged.\nNo quantities or costs. Additive.'),
   "sizes": zod.array(zod.object({
   "label": zod.string(),
   "price": zod.number()
 }))
-}))
+})),
+  "option_pricing": zod.array(zod.object({
+  "channel_price": zod.number().nullish(),
+  "view": zod.looseObject({
+
+})
+}).describe('One option as madar-catalog prices it at this branch, plus this channel\'s\nown price for it: online intake charges a channel price instead of the\nrule\'s (see `delivery::snapshot`).')).describe('Every option the menu offers (the add-on catalog and each item\'s\ngroups), as the pricing rule reads it; see `DeliveryMenuItem.pricing`.\nAdditive.')
 })
 
 
@@ -14054,11 +14063,20 @@ export const PublicTableMenuResponse = zod.object({
   "size_label": zod.string().nullish()
 }).describe('A per-item optional toggle (e.g. \"Extra hot\", \"No sugar\"). `price` is the\npiastres surcharge; `size_label` is set when the optional only applies to a\nspecific size.')),
   "price": zod.number(),
+  "pricing": zod.looseObject({
+
+}).nullish().describe('A kind=item row: madar-catalog\'s view of it at this branch (sizes, the\nrecipe\'s swap categories and bases, groups), so the storefront prices a\nswap over the recipe\'s own choice exactly as the order is charged.\nNo quantities or costs. Additive.'),
   "sizes": zod.array(zod.object({
   "label": zod.string(),
   "price": zod.number()
 }))
-}))
+})),
+  "option_pricing": zod.array(zod.object({
+  "channel_price": zod.number().nullish(),
+  "view": zod.looseObject({
+
+})
+}).describe('One option as madar-catalog prices it at this branch, plus this channel\'s\nown price for it: online intake charges a channel price instead of the\nrule\'s (see `delivery::snapshot`).')).describe('Every option the menu offers (the add-on catalog and each item\'s\ngroups), as the pricing rule reads it; see `DeliveryMenuItem.pricing`.\nAdditive.')
 })
 
 

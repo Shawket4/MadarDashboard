@@ -5,6 +5,7 @@ import { Check, Minus, Plus, Search, UtensilsCrossed, X } from "lucide-react";
 
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
 import type { DeliveryAddonOption } from "@/data/api/generated/models/deliveryAddonOption";
+import type { DeliveryOptionPricing } from "@/data/api/generated/models/deliveryOptionPricing";
 import type { DeliveryOptionalField } from "@/data/api/generated/models/deliveryOptionalField";
 import type { DeliveryModifierGroup } from "@/data/api/generated/models/deliveryModifierGroup";
 import {
@@ -24,13 +25,15 @@ import i18n from "@/i18n";
 
 import type { CartLine, SelectedAddon, SelectedOptional } from "../types";
 import { itemBasePrice, lineUnitPrice, newUid } from "../utils";
-import { optionCharge, priceOptions, storefrontView } from "../pricing";
+import { channelPrices, optionCharge, priceOptions, storefrontView } from "../pricing";
 import { FIELD_LIMITS } from "../limits";
 
 interface ItemCustomizerProps {
   item: DeliveryMenuItem | null;
   /** Org-wide global addon catalog (same options on EVERY item, POS model). */
   addons: DeliveryAddonOption[];
+  /** The menu's pricing views for its options (`option_pricing`), when sent. */
+  optionPricing?: DeliveryOptionPricing[] | null;
   /** When editing an existing line, its current configuration. */
   editing?: CartLine | null;
   open: boolean;
@@ -58,6 +61,7 @@ type AddonSelections = Record<string, number>;
 export function ItemCustomizer({
   item,
   addons,
+  optionPricing,
   editing,
   open,
   onOpenChange,
@@ -180,10 +184,16 @@ export function ItemCustomizer({
   // What each option costs on this line, as the server will charge it
   // (madar-catalog's rule, ../pricing.ts): a milk swap over the recipe's milk,
   // floored at 0. ESTIMATE ONLY — the backend prices the line at intake.
-  const view = useMemo(() => (item ? storefrontView(item, addons, size) : null), [item, addons, size]);
+  // A channel's own price for an option replaces the rule's charge, as at intake.
+  const view = useMemo(
+    () => (item ? storefrontView(item, addons, size, optionPricing) : null),
+    [item, addons, size, optionPricing],
+  );
+  const channelPrice = useMemo(() => channelPrices(optionPricing), [optionPricing]);
   const swapAdjustedPrice = useCallback(
-    (a: DeliveryAddonOption): number => (view && optionCharge(view, size, a.addon_item_id)) ?? a.price,
-    [view, size],
+    (a: DeliveryAddonOption): number =>
+      channelPrice.get(a.addon_item_id) ?? (view && optionCharge(view, size, a.addon_item_id)) ?? a.price,
+    [view, size, channelPrice],
   );
 
   // (Re)initialize whenever a fresh item/edit is opened.
@@ -286,7 +296,7 @@ export function ItemCustomizer({
         quantity: o.quantity,
         name: opt.name,
         name_translations: opt.name_translations,
-        price: o.unit_price,
+        price: channelPrice.get(o.id) ?? o.unit_price,
         type: opt.type,
       };
     });
@@ -304,7 +314,7 @@ export function ItemCustomizer({
       optionals: opts,
       notes: notes.trim() || null,
     };
-  }, [item, view, addons, selections, visibleOptionals, optionals, size, qty, notes, editing]);
+  }, [item, view, channelPrice, addons, selections, visibleOptionals, optionals, size, qty, notes, editing]);
 
   if (!item) return null;
 

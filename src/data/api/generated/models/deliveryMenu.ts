@@ -5,6 +5,7 @@ import type { DeliveryAddonOption } from './deliveryAddonOption';
 import type { DeliveryMenuCategory } from './deliveryMenuCategory';
 import type { DeliveryMenuDiscount } from './deliveryMenuDiscount';
 import type { DeliveryMenuItem } from './deliveryMenuItem';
+import type { DeliveryOptionPricing } from './deliveryOptionPricing';
 
 export interface DeliveryMenu {
   /**
@@ -20,4 +21,10 @@ export interface DeliveryMenu {
   deals: DealRule[];
   discount?: null | DeliveryMenuDiscount;
   items: DeliveryMenuItem[];
+  /**
+     * Every option the menu offers (the add-on catalog and each item's
+     * groups), as the pricing rule reads it; see `DeliveryMenuItem.pricing`.
+     * Additive.
+     */
+  option_pricing: DeliveryOptionPricing[];
 }
