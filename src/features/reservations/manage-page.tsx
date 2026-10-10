@@ -19,6 +19,7 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { useErrorToast } from "@/features/public-shell/public-toaster";
+import { rules } from "@/lib/rules";
 import { cn } from "@/lib/utils";
 
 import { fmtDay, fmtSlot, fmtWhen, pickableDates } from "./util";
@@ -55,10 +56,8 @@ export function ManagePage({ token }: { token: string }) {
   const update = useUpdatePublicBooking();
   const cancel = useCancelPublicBooking();
 
-  const today = useMemo(() => {
-    const d = new Date();
-    return new Intl.DateTimeFormat("en-CA", { timeZone: b?.timezone ?? "Africa/Cairo" }).format(d);
-  }, [b?.timezone]);
+  // The public package's madar-time `business_date`, the day the branch's own clock reads.
+  const today = useMemo(() => rules.business_date(b?.timezone ?? "Africa/Cairo", Date.now()), [b?.timezone]);
   const dates = useMemo(() => pickableDates(today, 30), [today]);
   const slotsQ = useBookingSlots(b?.branch_id ?? "", { date: date ?? "", party_size: b?.party_size ?? 1 }, { query: { enabled: moving && !!b && !!date, retry: false } });
 

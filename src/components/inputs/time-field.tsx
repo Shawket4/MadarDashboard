@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { TZDate } from "@date-fns/tz";
 import { Clock, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { getActiveTz } from "@/lib/format";
+import { rules } from "@/lib/rules";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import {
   APP_HOUR_CYCLE, formatTime, minutesOf, nearestSlot, parseTime, slots, toHHMM, type HourCycle,
@@ -45,8 +45,8 @@ export interface TimeFieldProps {
 }
 
 const nowMinutes = () => {
-  const d = new TZDate(Date.now(), getActiveTz());
-  return d.getHours() * 60 + d.getMinutes();
+  const { hour, minute } = rules.local_parts(getActiveTz(), Date.now());
+  return hour * 60 + minute;
 };
 
 /**

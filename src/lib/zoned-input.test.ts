@@ -1,6 +1,20 @@
 import { describe, expect, it } from "vitest";
 
+import wall from "./wallclock_vectors.json";
 import { fromZonedInput, toZonedInput } from "./zoned-input";
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+// madar-shared's wallclock_vectors.json (pinned by rev): madar-time's wall clock, both ways.
+describe("wallclock vectors", () => {
+  it.each(wall.parts)("parts: $tz $at → $date $hour:$minute ($note)", ({ tz, at, date, hour, minute }) => {
+    expect(toZonedInput(at, tz)).toBe(`${date}T${pad(hour)}:${pad(minute)}`);
+  });
+
+  it.each(wall.instants)("instants: $tz $date $hour:$minute → $at ($note)", ({ tz, date, hour, minute, at }) => {
+    expect(fromZonedInput(`${date}T${pad(hour)}:${pad(minute)}`, tz)).toBe(new Date(at).toISOString());
+  });
+});
 
 describe("zoned datetime inputs (AT-1)", () => {
   it("reads and writes the branch's wall clock, never the device's", () => {
@@ -22,5 +36,6 @@ describe("zoned datetime inputs (AT-1)", () => {
     expect(toZonedInput("garbage", "Africa/Cairo")).toBe("");
     expect(fromZonedInput("", "Africa/Cairo")).toBeNull();
     expect(fromZonedInput("09:00", "Africa/Cairo")).toBeNull();
+    expect(fromZonedInput("2026-02-30T09:00", "Africa/Cairo")).toBeNull();
   });
 });

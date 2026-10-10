@@ -3,7 +3,6 @@
  * (plain calendar date in the branch zone, matching the backend), timeline geometry,
  * and local-time helpers. Pure — everything here is unit-tested.
  */
-import { TZDate } from "@date-fns/tz";
 import { z } from "zod";
 
 import { queryClient } from "@/data/api/query";
@@ -84,18 +83,16 @@ export function weekdayOf(date: string): number {
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
 }
 
-/** An instant for `date` + `HH:MM` wall-clock in `tz`. */
+/** An instant for `date` + `HH:MM` wall-clock in `tz` (madar-time `local_instant`: a repeated time is the earliest, a DST-gap time moves forward by the gap). */
 export function localInstant(date: string, hhmm: string, tz: string = getActiveTz()): string {
-  const [y, m, d] = date.split("-").map(Number);
   const [hh, mm] = hhmm.split(":").map(Number);
-  // `TZDate.toISOString` keeps the zone offset; the API wants the plain instant.
-  return new Date(new TZDate(y, m - 1, d, hh, mm, 0, 0, tz).getTime()).toISOString();
+  return new Date(rules.local_instant(tz, date, hh, mm)).toISOString();
 }
 
-/** `HH:MM` wall-clock of an instant in `tz`. */
+/** `HH:MM` wall-clock of an instant in `tz` (madar-time `local_parts`). */
 export function localHHMM(iso: string, tz: string = getActiveTz()): string {
-  const z = new TZDate(iso, tz);
-  return `${pad(z.getHours())}:${pad(z.getMinutes())}`;
+  const { hour, minute } = rules.local_parts(tz, new Date(iso).getTime());
+  return `${pad(hour)}:${pad(minute)}`;
 }
 
 /** Minutes since midnight for `HH:MM`. */
