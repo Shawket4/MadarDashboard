@@ -8073,7 +8073,8 @@ export const CreateMenuItemResponse = zod.object({
   "ingredient_unit": zod.string(),
   "org_ingredient_id": zod.uuid().nullish(),
   "quantity_used": zod.number(),
-  "size_label": zod.string()
+  "size_label": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity_used` × the linked\ningredient\'s yield, 3 dp (madar-units `usable_qty`). What the catalog\nitem dialog shows.')
 })),
   "sizes": zod.array(zod.object({
   "id": zod.uuid(),
@@ -8268,7 +8269,8 @@ export const GetMenuItemResponse = zod.object({
   "ingredient_unit": zod.string(),
   "org_ingredient_id": zod.uuid().nullish(),
   "quantity_used": zod.number(),
-  "size_label": zod.string()
+  "size_label": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity_used` × the linked\ningredient\'s yield, 3 dp (madar-units `usable_qty`). What the catalog\nitem dialog shows.')
 })),
   "sizes": zod.array(zod.object({
   "id": zod.uuid(),
