@@ -1968,6 +1968,85 @@ export function useAuthzKeys<TData = Awaited<ReturnType<typeof authzKeys>>, TErr
 
 
 
+/**
+ * The gate is the device credential (`X-Madar-Device` + `X-Madar-Device-Token`,
+ * as for activation), on a live `kds` device bound to a branch. The session's
+ * subject is the screen's own principal (migration
+ * `20261011100000_kitchen_screen_principal.sql`), made here the first time:
+ * role `kitchen`, assigned to the screen's branch, so it holds exactly the
+ * kitchen role's capabilities there (`kitchen.display.read`, `kitchen.bump`)
+ * and nothing else. Same response as `/auth/login`, so a client reuses its
+ * whole sign-in path.
+ * @summary A kitchen screen's sign-in: no person, no account (owner, 2026-10-11). The
+screen was activated once with a code from the dashboard's branch plan and
+keeps the credential activation handed it; with it, this mints the
+screen's session whenever the last one runs out, so the kitchen never signs
+in again.
+ */
+export const deviceSession = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<LoginResponse>(
+      {url: `/auth/device-session`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getDeviceSessionMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deviceSession>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof deviceSession>>, TError,void, TContext> => {
+
+const mutationKey = ['deviceSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deviceSession>>, void> = () => {
+
+
+          return  deviceSession(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeviceSessionMutationResult = NonNullable<Awaited<ReturnType<typeof deviceSession>>>
+
+    export type DeviceSessionMutationError = ErrorBody
+
+    /**
+ * @summary A kitchen screen's sign-in: no person, no account (owner, 2026-10-11). The
+screen was activated once with a code from the dashboard's branch plan and
+keeps the credential activation handed it; with it, this mints the
+screen's session whenever the last one runs out, so the kitchen never signs
+in again.
+ */
+export const useDeviceSession = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deviceSession>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deviceSession>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getDeviceSessionMutationOptions(options), queryClient);
+    }
+
 export const login = (
     loginRequest: LoginRequest,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal

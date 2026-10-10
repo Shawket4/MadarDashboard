@@ -29,6 +29,17 @@ const ALL_ROLES: UserRole[] = ["super_admin", "org_admin", "branch_manager", "te
  *  cannot sign in on a tablet at all. Both are always offered now; the role only
  *  decides which one is REQUIRED. */
 const POS_ROLES: UserRole[] = ["teller", "waiter", "kitchen"];
+
+/** The roles the dialog offers. A kitchen has no accounts: a kitchen screen is
+ *  set up once with a code from the branch plan and stays signed in. Someone
+ *  who already has the role keeps it; nobody new is given it. */
+export function rolesOffered(currentRole: UserRole | undefined, editingRole: UserRole | undefined): UserRole[] {
+  const roles: UserRole[] =
+    currentRole === "super_admin" ? ALL_ROLES
+      : currentRole === "branch_manager" ? ["teller", "waiter", "kitchen"]
+        : ALL_ROLES.filter((r) => r !== "super_admin");
+  return editingRole === "kitchen" ? roles : roles.filter((r) => r !== "kitchen");
+}
 const isPosRole = (r: UserRole) => POS_ROLES.includes(r);
 
 interface Props {
@@ -47,10 +58,7 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
 
   const { data: orgs = [] } = useListOrgs({ query: { enabled: isSuperAdmin && !editing } });
 
-  const availableRoles = useMemo<UserRole[]>(
-    () => isSuperAdmin ? ALL_ROLES : currentRole === "branch_manager" ? ["teller", "waiter", "kitchen"] : ALL_ROLES.filter((r) => r !== "super_admin"),
-    [isSuperAdmin, currentRole],
-  );
+  const availableRoles = useMemo(() => rolesOffered(currentRole, user?.role), [currentRole, user?.role]);
 
   const schema = useMemo(
     () =>

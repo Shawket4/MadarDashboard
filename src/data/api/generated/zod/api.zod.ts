@@ -568,6 +568,63 @@ export const AuthzKeysResponseItem = zod.object({
 export const AuthzKeysResponse = zod.array(AuthzKeysResponseItem)
 
 
+/**
+ * The gate is the device credential (`X-Madar-Device` + `X-Madar-Device-Token`,
+ * as for activation), on a live `kds` device bound to a branch. The session's
+ * subject is the screen's own principal (migration
+ * `20261011100000_kitchen_screen_principal.sql`), made here the first time:
+ * role `kitchen`, assigned to the screen's branch, so it holds exactly the
+ * kitchen role's capabilities there (`kitchen.display.read`, `kitchen.bump`)
+ * and nothing else. Same response as `/auth/login`, so a client reuses its
+ * whole sign-in path.
+ * @summary A kitchen screen's sign-in: no person, no account (owner, 2026-10-11). The
+screen was activated once with a code from the dashboard's branch plan and
+keeps the credential activation handed it; with it, this mints the
+screen's session whenever the last one runs out, so the kitchen never signs
+in again.
+ */
+export const DeviceSessionHeader = zod.object({
+  "X-Madar-Device": zod.string().describe('The install id the device was activated as'),
+  "X-Madar-Device-Token": zod.string().describe('The credential issued at activation')
+})
+
+export const DeviceSessionResponse = zod.object({
+  "currency_code": zod.string(),
+  "open_till": zod.union([zod.null(),zod.object({
+  "branch_id": zod.uuid(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('OpenAPI-only vocabulary for `Till.status` (the `till_status` DB enum). The\nstruct fields stay `String`, so the wire strings are exactly the DB values.'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('OpenAPI-only vocabulary for `Till.verification` (`tills_verification` CHECK):\nhow the one-open-till-per-person rule was checked when the till opened.\n`legacy` marks tills opened by pre-rework clients \/ before the rework.')
+}).describe('The person\'s open till at the branch they signed into (any device), so\nthe device can resume it or show where it is open.')]).optional(),
+  "require_table_for_orders": zod.boolean().optional().describe('Every dine-in sale belongs to a table.\n\nThe till needs this, not just the server: the rule changes what the POS\nputs in front of a teller — the floor becomes the home screen and a sale\nstarts by picking a table — and a refusal AFTER the items are rung up is\nfar too late to be useful.'),
+  "tax_policy": zod.object({
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax.'),
+  "tax_rate": zod.number().describe('Fraction, NOT a percentage: `0.14` is 14%.')
+}).describe('The full policy, including tax-inclusive pricing and service charge.\nPrefer this over the flat `tax_rate` above.'),
+  "tax_rate": zod.number().describe('Org tax rate as a decimal (e.g. 0.14 = 14% VAT); 0.0 when no org. Mirrors\n\/auth\/me so the POS has it immediately after login.'),
+  "token": zod.string().describe('JWT to send as `Authorization: Bearer <token>` on subsequent requests.'),
+  "user": zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "org_id": zod.uuid().nullish(),
+  "phone": zod.string().nullish(),
+  "role": zod.enum(['super_admin', 'org_admin', 'branch_manager', 'teller', 'waiter', 'kitchen'])
+})
+})
+
+
 export const loginBodyPinMin = 4;
 export const loginBodyPinMax = 6;
 

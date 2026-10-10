@@ -26,7 +26,7 @@ vi.mock("@/data/stores/auth.store", () => ({
 }));
 
 await import("@/i18n");
-const { UserDialog } = await import("./user-dialog");
+const { UserDialog, rolesOffered } = await import("./user-dialog");
 
 const open = () =>
   render(<UserDialog orgId="org-1" user={null} open onOpenChange={() => {}} />);
@@ -85,5 +85,18 @@ describe("user dialog credentials", () => {
     await waitFor(() =>
       expect(screen.getByLabelText(/PIN/i)).toHaveValue("402913"),
     );
+  });
+});
+
+describe("roles offered", () => {
+  it("never gives a new person the kitchen role: a kitchen screen has no account", () => {
+    expect(rolesOffered("org_admin", undefined)).not.toContain("kitchen");
+    expect(rolesOffered("branch_manager", undefined)).toEqual(["teller", "waiter"]);
+    expect(rolesOffered("super_admin", undefined)).not.toContain("kitchen");
+  });
+
+  it("keeps the kitchen role for someone who already has it", () => {
+    expect(rolesOffered("org_admin", "kitchen")).toContain("kitchen");
+    expect(rolesOffered("branch_manager", "kitchen")).toEqual(["teller", "waiter", "kitchen"]);
   });
 });
