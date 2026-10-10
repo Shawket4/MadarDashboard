@@ -4,7 +4,7 @@ import {
   getGetItemCostQueryKey,
   getListCatalogQueryKey,
 } from "@/data/api/generated/api";
-import type { ModifierGroupOut, StudioAggregate } from "@/data/api/generated/models";
+import type { ModifierGroupOut, RecipeStepPreset, StudioAggregate } from "@/data/api/generated/models";
 import { piastresToEgp } from "@/lib/format";
 import { normalizeSource, ownRecipeSig, type LineSource } from "../recipe/grid-model";
 
@@ -218,17 +218,25 @@ export const toOptionRows = (s: StudioAggregate): OptionRowDraft[] =>
  * a newer backend than the one this page may be talking to — during a rollout,
  * or from a response cached before it — and mapping it blind took the whole
  * Menu Studio down with "Cannot read properties of undefined". A missing list
- * is simply an item with no steps yet. */
-export const toStepDrafts = (s: StudioAggregate): StepDraft[] =>
-  (s.recipe_steps ?? []).map((st) =>
+ * is simply an item with no steps yet.
+ *
+ * A preset step's note box holds only this drink's own note. The server answers
+ * the step's note, else the library's, per language; a note equal to the
+ * library's is the library's, so the box stays empty (the library note is its
+ * placeholder) and Save never copies it onto the drink. */
+export const toStepDrafts = (s: StudioAggregate, presets: RecipeStepPreset[] = []): StepDraft[] => {
+  const library = new Map(presets.map((p) => [p.slug, p]));
+  const own = (note: string | null | undefined, libraryNote: string | null | undefined) =>
+    note && note !== libraryNote ? note : "";
+  return (s.recipe_steps ?? []).map((st) =>
     st.kind === "preset"
       ? {
           kind: "preset" as const,
           preset_slug: st.preset_slug ?? null,
           title: "",
           title_ar: "",
-          note: st.note ?? "",
-          note_ar: st.note_ar ?? "",
+          note: own(st.note, library.get(st.preset_slug ?? "")?.note),
+          note_ar: own(st.note_ar, library.get(st.preset_slug ?? "")?.note_ar),
         }
       : // A step typed in one language shows that name in both; keep only what
         // was actually typed so saving does not invent an Arabic name.
@@ -241,6 +249,7 @@ export const toStepDrafts = (s: StudioAggregate): StepDraft[] =>
           note_ar: st.note_ar ?? "",
         },
   );
+};
 
 // ── Dirty signatures ─────────────────────────────────────────────────────────
 

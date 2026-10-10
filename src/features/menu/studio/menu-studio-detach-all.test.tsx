@@ -62,6 +62,7 @@ vi.mock("@/data/api/generated/api", () => ({
   useGetRecipeLink: () => ({ data: undefined }),
   useGetStudio: () => useGetStudio(),
   useListCatalog: () => ({ data: [] }),
+  useListStepPresets: () => ({ data: undefined }),
   useListCategories: () => ({ data: [] }),
   useListGroups: () => ({ data: [] }),
   duplicateItem: vi.fn(),

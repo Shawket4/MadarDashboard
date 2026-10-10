@@ -12,6 +12,7 @@ import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { previewMenuItem } from "@/data/api/generated/api";
+import { ONE_SIZE } from "@/features/menu/util";
 import type { PreviewRequest, PreviewResponse } from "@/data/api/generated/models";
 import {
   EMPTY_SELECTION,
@@ -85,8 +86,10 @@ export function PreviewPanel({ studio }: { studio: StudioAggregate }) {
   const [defaults, setDefaults] = useState<Record<string, string>>({});
 
   const groups = useMemo(() => toPreviewGroups(studio), [studio]);
+  // A single-price item's `one_size` is where its price lives, not a size anyone
+  // picks: it gets no chip, so such an item shows no Size row.
   const sizes = useMemo(
-    () => [...studio.sizes].filter((s) => s.is_active).sort((a, b) => a.sort - b.sort),
+    () => [...studio.sizes].filter((s) => s.is_active && s.label !== ONE_SIZE).sort((a, b) => a.sort - b.sort),
     [studio.sizes],
   );
   const optionals = useMemo(() => studio.options.filter((o) => o.is_active), [studio.options]);
