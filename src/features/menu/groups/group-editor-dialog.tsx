@@ -154,7 +154,8 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
           swap_ingredient_id: o.replaces_ingredient_id ?? o.recipe?.[0]?.ingredient_id ?? "",
           lines: (o.recipe ?? []).map((l) => ({
             ingredient_id: l.ingredient_id,
-            quantity: String(l.quantity),
+            // As typed (before yield loss), so a line saved back unchanged is kept.
+            quantity: String(l.usable_quantity ?? l.quantity),
             unit: l.unit,
             size_label: l.size_label ?? null,
           })),

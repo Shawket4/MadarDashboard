@@ -270,6 +270,90 @@ const echoCreated = async ({ request }: { request: Request }) => {
 };
 
 /** All MSW request handlers. Order matters: more specific first. */
+const mockItem = (id: string, name: string, ar: string, prices: [string, number][], recipes: [string, string, string, string, number][]) => ({
+  id,
+  org_id: "org_madar_demo",
+  name,
+  name_translations: ar ? { ar } : {},
+  description: null,
+  description_translations: {},
+  base_price: prices[0][1],
+  category_id: "cat_hot",
+  image_url: null,
+  is_active: true,
+  sizes: prices.map(([label, price_override]) => ({ label, price_override })),
+  recipes: recipes.map(([size_label, org_ingredient_id, ingredient_name, ingredient_unit, quantity_used]) => ({
+    size_label, org_ingredient_id, ingredient_name, ingredient_unit, quantity_used,
+  })),
+  sku_costs: [],
+});
+
+/** The full items the editors load (`/menu-items/:id`); any other id gets the generic one. */
+const MOCK_ITEM_DETAILS: Record<string, ReturnType<typeof mockItem>> = {
+  mi_espresso: mockItem("mi_espresso", "Espresso", "إسبريسو", [["Single", 3500], ["Double", 5000]], [
+    ["Single", "ing_coffee", "Espresso Beans", "kg", 0.018],
+    ["Double", "ing_coffee", "Espresso Beans", "kg", 0.036],
+  ]),
+  mi_latte: mockItem("mi_latte", "Latte", "لاتيه", [["Regular", 6000], ["Large", 7500]], [
+    ["Regular", "ing_coffee", "Espresso Beans", "kg", 0.018],
+    ["Regular", "ing_milk", "Whole Milk", "liter", 0.24],
+    ["Regular", "ing_vanilla", "Vanilla Syrup", "liter", 0.015],
+    ["Large", "ing_coffee", "Espresso Beans", "kg", 0.024],
+    ["Large", "ing_milk", "Whole Milk", "liter", 0.32],
+    ["Large", "ing_vanilla", "Vanilla Syrup", "liter", 0.02],
+  ]),
+  mi_generic: mockItem("mi_generic", "Menu Item", "", [["Regular", 5000]], [
+    ["Regular", "ing_coffee", "Espresso Beans", "kg", 0.016],
+    ["Regular", "ing_milk", "Whole Milk", "liter", 0.2],
+  ]),
+};
+const itemDetail = (id: string) => MOCK_ITEM_DETAILS[id] ?? MOCK_ITEM_DETAILS.mi_generic;
+
+/** The server's `usable_qty`: a stored quantity × its ingredient's yield, 3 dp (no yield = 100 %). */
+const usableQty = (stored: number, ingredientId: string): number => {
+  const y = MOCK_INGREDIENT_CATALOG.find((i) => i.id === ingredientId)?.yield_pct as number | null | undefined;
+  return Math.round(stored * (y != null && y > 0 ? y / 100 : 1) * 1000) / 1000;
+};
+
+/** The Studio aggregate of a mock item: its sizes, each with its own (uncosted) recipe lines. */
+const mockStudio = (m: ReturnType<typeof mockItem>) => ({
+  id: m.id,
+  org_id: m.org_id,
+  name: m.name,
+  name_translations: m.name_translations,
+  description: m.description,
+  category_id: m.category_id,
+  image_url: m.image_url,
+  is_active: m.is_active,
+  availability: { org_active: true, branches: [] },
+  catalog_revision: 1,
+  linked_copy_ids: [],
+  modifier_groups: [],
+  options: [],
+  recipe_steps: [],
+  sizes: m.sizes.map((z, i) => ({
+    id: `${m.id}_size_${i}`,
+    label: z.label,
+    price: z.price_override,
+    is_active: true,
+    sort: i,
+    cost_piastres: null,
+    cost_incomplete: true,
+    recipe: m.recipes
+      .filter((r) => r.size_label === z.label)
+      .map((r, j) => ({
+        id: `${m.id}_line_${i}_${j}`,
+        ingredient_id: r.org_ingredient_id,
+        ingredient_name: r.ingredient_name,
+        quantity: String(r.quantity_used),
+        usable_quantity: String(usableQty(r.quantity_used, r.org_ingredient_id)),
+        unit: r.ingredient_unit,
+        source: "own",
+        line_cost_piastres: null,
+      })),
+  })),
+});
+
 export const handlers = [
   // Vite serves source modules from the same origin; a wildcard API handler
   // (`*/orgs/*`) would otherwise answer `/src/features/orgs/tax-rate.ts` with
@@ -430,72 +514,10 @@ export const handlers = [
   http.get("*/branch-menu-overrides", () => HttpResponse.json(MOCK_BRANCH_MENU_OVERRIDES)),
   http.get("*/branch-addon-overrides", () => HttpResponse.json(MOCK_BRANCH_ADDON_OVERRIDES)),
 
-  http.get("*/menu-items/mi_espresso", () =>
-    HttpResponse.json({
-      id: "mi_espresso",
-      org_id: "org_madar_demo",
-      name: "Espresso",
-      name_translations: { ar: "إسبريسو" },
-      description: null,
-      description_translations: {},
-      base_price: 3500,
-      category_id: "cat_hot",
-      image_url: null,
-      is_active: true,
-      sizes: [{ label: "Single", price_override: 3500 }, { label: "Double", price_override: 5000 }],
-      recipes: [
-        { size_label: "Single", org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", ingredient_unit: "kg", quantity_used: 0.018 },
-        { size_label: "Double", org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", ingredient_unit: "kg", quantity_used: 0.036 },
-      ],
-      sku_costs: [],
-    }),
-  ),
-  http.get("*/menu-items/mi_latte", () =>
-    HttpResponse.json({
-      id: "mi_latte",
-      org_id: "org_madar_demo",
-      name: "Latte",
-      name_translations: { ar: "لاتيه" },
-      description: null,
-      description_translations: {},
-      base_price: 6000,
-      category_id: "cat_hot",
-      image_url: null,
-      is_active: true,
-      sizes: [{ label: "Regular", price_override: 6000 }, { label: "Large", price_override: 7500 }],
-      recipes: [
-        { size_label: "Regular", org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", ingredient_unit: "kg", quantity_used: 0.018 },
-        { size_label: "Regular", org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", ingredient_unit: "liter", quantity_used: 0.24 },
-        { size_label: "Regular", org_ingredient_id: "ing_vanilla", ingredient_name: "Vanilla Syrup", ingredient_unit: "liter", quantity_used: 0.015 },
-        { size_label: "Large", org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", ingredient_unit: "kg", quantity_used: 0.024 },
-        { size_label: "Large", org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", ingredient_unit: "liter", quantity_used: 0.32 },
-        { size_label: "Large", org_ingredient_id: "ing_vanilla", ingredient_name: "Vanilla Syrup", ingredient_unit: "liter", quantity_used: 0.02 },
-      ],
-      sku_costs: [],
-    }),
-  ),
+  http.get("*/menu-items/:id/studio", ({ params }) => HttpResponse.json(mockStudio(itemDetail(String(params.id))))),
   http.get("*/menu-items/:id/addon-slots", () => HttpResponse.json([])),
   http.get("*/menu-items/:id/optional-fields", () => HttpResponse.json([])),
-  http.get("*/menu-items/:id", () =>
-    HttpResponse.json({
-      id: "mi_generic",
-      org_id: "org_madar_demo",
-      name: "Menu Item",
-      name_translations: {},
-      description: null,
-      description_translations: {},
-      base_price: 5000,
-      category_id: "cat_hot",
-      image_url: null,
-      is_active: true,
-      sizes: [{ label: "Regular", price_override: 5000 }],
-      recipes: [
-        { size_label: "Regular", org_ingredient_id: "ing_coffee", ingredient_name: "Espresso Beans", ingredient_unit: "kg", quantity_used: 0.016 },
-        { size_label: "Regular", org_ingredient_id: "ing_milk", ingredient_name: "Whole Milk", ingredient_unit: "liter", quantity_used: 0.2 },
-      ],
-      sku_costs: [],
-    }),
-  ),
+  http.get("*/menu-items/:id", ({ params }) => HttpResponse.json(itemDetail(String(params.id)))),
   http.get("*/menu-items", () => HttpResponse.json(MOCK_MENU_ITEMS)),
 
   // ── Inventory ─────────────────────────────────────────────────────────────

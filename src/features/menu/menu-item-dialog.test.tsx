@@ -32,6 +32,7 @@ vi.mock("@/data/api/generated/api", () => ({
   updateMenuItem: (...args: unknown[]) => updateMenuItem(...args),
   uploadMenuItemImage: (...args: unknown[]) => uploadMenuItemImage(...args),
   useGetMenuItem: () => ({ data: undefined }),
+  useGetStudio: () => ({ data: undefined }),
   useListAddonItems: () => ({ data: [] }),
   useListCatalog: () => ({ data: [] }),
   useListGroups: () => ({ data: [] }),
