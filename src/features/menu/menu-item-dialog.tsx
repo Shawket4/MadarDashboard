@@ -44,6 +44,7 @@ import { egpToPiastres, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { RecipeBuilder, type CleanRow, type RecipeRowInit } from "@/features/recipes/recipe-builder";
 import { invalidateRecipes } from "@/features/recipes/util";
+import { normalizeSource } from "./recipe/grid-model";
 import { unitPrice } from "./pricing/unit-price";
 import { ONE_SIZE, arOf, invalidateCatalog } from "./util";
 
@@ -121,8 +122,11 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
   const { fields: sizes, append, remove, replace } = useFieldArray({ control: form.control, name: "sizes" });
 
   // ── Recipe wiring (embedded builder, committed with the form) ──────────────
+  // Only the size's own lines (legacy NULL source counts as own): base, rule and
+  // linked lines belong to their base/rule, and the size-recipe PUT replaces only
+  // own lines, so sending one back as own would detach it.
   const initialRecipeRows = useMemo<RecipeRowInit[]>(
-    () => (aggregate?.sizes ?? []).flatMap((z) => z.recipe.map((r) => ({
+    () => (aggregate?.sizes ?? []).flatMap((z) => z.recipe.filter((r) => normalizeSource(r.source) === "own").map((r) => ({
       size_label: z.label, org_ingredient_id: r.ingredient_id, ingredient_name: r.ingredient_name, ingredient_unit: r.unit, quantity_used: Number(r.usable_quantity ?? r.quantity),
     }))),
     [aggregate?.sizes],

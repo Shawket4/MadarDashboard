@@ -15,12 +15,15 @@ import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuI
 import type { DeliveryOptionPricing } from "@/data/api/generated/models/deliveryOptionPricing";
 import type { PublicCombo } from "@/data/api/generated/models/publicCombo";
 import type { PublicComboChoice } from "@/data/api/generated/models/publicComboChoice";
+import cart from "@/lib/cart_vectors.json";
 import catalog from "@/lib/catalog_vectors.json";
+import comboMenu from "@/lib/combo_menu_vectors.json";
 import combos from "@/lib/combo_vectors.json";
 
-import { buildPicks, firstUnmetSlot, type ComboSelection } from "./combo";
+import { buildPicks, choiceExtra, firstUnmetSlot, type ComboSelection } from "./combo";
 import { type CatalogView, channelPrices, type ItemView, optionCharge, priceOptions, storefrontView, unitPrice } from "./pricing";
-import { calcDiscount, itemBasePrice, lineTotal, lineUnitPrice } from "./utils";
+import type { CartLine } from "./types";
+import { calcDiscount, cartSubtotal, itemBasePrice, lineTotal, lineUnitPrice } from "./utils";
 
 /* ── madar-catalog price_line: catalog_vectors.json ── */
 
@@ -222,6 +225,65 @@ describe("a combo's estimate is madar-catalog's quote (unit total, and the slot 
     });
   }
   // availability / sell / is_fixed: which combos the menu lists, and how, is the server's to decide.
+});
+
+/* ── madar-money line::cart_line_unit / cart_line_total / cart_subtotal / combo_extras: cart_vectors.json ── */
+
+type ShapeLine = (typeof cart.lines)[number]["line"];
+type ShapePick = { quantity: number; surcharge_unit: number; extras_unit?: number };
+
+// The vector's line as the storefront holds it; the display snapshots are not priced.
+const cartLine = (l: ShapeLine): CartLine => {
+  const base = { uid: "", item: {} as DeliveryMenuItem, size_label: null, notes: null, addons: [], optionals: [] };
+  if ("combo" in l && l.combo) {
+    const picks = (l.combo.picks as ShapePick[]).map((p) => ({ quantity: p.quantity, extra: p.surcharge_unit }));
+    return { ...base, base_price: l.combo.price, quantity: l.combo.quantity, combo: { picks } } as unknown as CartLine;
+  }
+  const item = (l as { item: { quantity: number; unit_price: number; addons: { price_modifier: number; quantity: number }[]; optionals: number[] } }).item;
+  return {
+    ...base,
+    base_price: item.unit_price,
+    quantity: item.quantity,
+    addons: item.addons.map((a) => ({ price: a.price_modifier, quantity: a.quantity })),
+    optionals: item.optionals.map((price) => ({ price })),
+  } as unknown as CartLine;
+};
+
+const cartSkip = (lines: ShapeLine[]): string | null =>
+  lines.some((l) => "combo" in l && l.combo && (l.combo.picks as ShapePick[]).some((p) => p.extras_unit))
+    ? "add-ons inside a slot: the storefront sends none (v1)"
+    : null;
+
+describe("the cart estimate is madar-money's (a line's unit and total, the subtotal)", () => {
+  for (const c of cart.lines) {
+    const why = cartSkip([c.line]);
+    (why ? it.skip : it)(why ? `${c.name} — ${why}` : c.name, () => {
+      expect(lineUnitPrice(cartLine(c.line))).toBe(c.unit);
+      expect(lineTotal(cartLine(c.line))).toBe(c.total);
+    });
+  }
+  for (const c of cart.carts) {
+    const why = cartSkip(c.lines as ShapeLine[]);
+    (why ? it.skip : it)(why ? `cart ${c.name} — ${why}` : `cart ${c.name}`, () => {
+      expect(cartSubtotal((c.lines as ShapeLine[]).map(cartLine))).toBe(c.subtotal);
+    });
+  }
+  // combo_extras: a combo at price 0, one unit, costs exactly what its picks add.
+  for (const c of cart.combo_extras) {
+    const picks = c.picks as ShapePick[];
+    const why = cartSkip([{ combo: { quantity: 1, price: 0, picks } } as ShapeLine]);
+    (why ? it.skip : it)(why ? `extras ${c.name} — ${why}` : `extras ${c.name}`, () => {
+      expect(lineUnitPrice(cartLine({ combo: { quantity: 1, price: 0, picks } } as ShapeLine))).toBe(c.expected);
+    });
+  }
+});
+
+/* ── madar-catalog combo::choice_extra: combo_menu_vectors.json ── */
+
+describe("a pick adds what madar-catalog's choice_extra says", () => {
+  it.each(comboMenu)("$name", (c) => {
+    expect(choiceExtra(c.choice as PublicComboChoice, c.size_label)).toBe(c.expected);
+  });
 });
 
 /* ── madar-money bill::rule_of + discount_on: bill_vectors.json ── */

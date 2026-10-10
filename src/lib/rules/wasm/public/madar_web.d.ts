@@ -47,6 +47,30 @@ export interface ComboView {
 }
 
 /**
+ * A combo choice as the public menu offers it (the server's
+ * `PublicComboChoice`): its surcharge and what each of its sizes adds over
+ * the included one, which the server works out as [`quote`] does (0 at the
+ * included size, the owner's price for a bigger one, else the difference,
+ * floored at 0).
+ */
+export interface MenuChoice {
+    surcharge: number;
+    sizes: MenuSize[];
+}
+
+/**
+ * A combo line: its price P per combo unit and its picks.
+ */
+export interface ComboShape {
+    quantity: Minor;
+    /**
+     * P: the combo's own price.
+     */
+    price: Minor;
+    picks: PickShape[];
+}
+
+/**
  * A line as the till or the order payload states it.
  */
 export interface Selection {
@@ -84,6 +108,28 @@ export interface PricedOptions {
      * What the rule set aside or dropped, for a log or a preview.
      */
     notes?: Note[];
+}
+
+/**
+ * A member's card for a balance against the next reward's cost.
+ */
+export interface LoyaltyCard {
+    /**
+     * Rewards the balance has already earned.
+     */
+    rewards_ready: number;
+    /**
+     * Progress towards the next reward, the earned ones set aside.
+     */
+    progress_to_next: number;
+    /**
+     * What the next reward still needs: the full cost on an exact multiple.
+     */
+    points_to_next_reward: number;
+    /**
+     * At least one reward is earned.
+     */
+    can_redeem: boolean;
 }
 
 /**
@@ -136,6 +182,53 @@ export interface PricedLine extends PricedOptions {
      * One unit of the item at its size, before any option.
      */
     unit_price: number;
+}
+
+/**
+ * A recipe line: its quantity in the ingredient's base unit and its cost per
+ * base unit in piastres, `None` when the ingredient has no cost (or the line
+ * links no ingredient).
+ */
+export interface CostLine {
+    qty: number;
+    cost_per_unit: number | null;
+}
+
+/**
+ * A recipe's cost: the known lines' exact sum, rounded once.
+ */
+export interface RecipeCost {
+    piastres: number;
+    /**
+     * `false` when any line has no cost: `piastres` is then a partial sum,
+     * and the server shows no margin for it.
+     */
+    complete: boolean;
+}
+
+/**
+ * A sale line as both sides state it.
+ */
+export interface LineShape {
+    quantity: Minor;
+    /**
+     * The size-resolved unit price.
+     */
+    unit_price: Minor;
+    addons: Addon[];
+    /**
+     * Optional-field prices.
+     */
+    optionals: Minor[];
+}
+
+/**
+ * A selected add-on: its CHARGED delta per unit (already resolved at
+ * selection time — swap families clamp upstream) and how many.
+ */
+export interface Addon {
+    price_modifier: Minor;
+    quantity: Minor;
 }
 
 /**
@@ -259,6 +352,12 @@ export interface IngredientLine {
     name: string;
     unit: string;
 }
+
+/**
+ * One line of a cart: a menu item (`{ "item": … }`) or a combo
+ * (`{ "combo": … }`).
+ */
+export type CartLineShape = { item: LineShape } | { combo: ComboShape };
 
 /**
  * One menu item, priced for one branch.
@@ -457,6 +556,27 @@ export interface SizedLine {
 }
 
 /**
+ * One pick of a combo line, per ONE combo unit: madar-catalog's
+ * `combo::PartQuote` figures the line is charged by.
+ */
+export interface PickShape {
+    /**
+     * Units of the pick per combo unit.
+     */
+    quantity: Minor;
+    /**
+     * What one unit of it adds to the combo's price: its choice's surcharge
+     * plus a bigger size's extra (`PartQuote::surcharge_unit`).
+     */
+    surcharge_unit: Minor;
+    /**
+     * Its add-ons and optional fields, per unit (`PartQuote::extras_unit`);
+     * 0 for a pick without any.
+     */
+    extras_unit?: Minor;
+}
+
+/**
  * One pick, with its item's view (branch-priced) and its category.
  */
 export interface PickIn {
@@ -495,6 +615,14 @@ export interface RecipeLine {
      */
     category?: string | null;
     ingredient_id?: string | null;
+}
+
+/**
+ * One size of a [`MenuChoice`].
+ */
+export interface MenuSize {
+    label: string;
+    extra: number;
 }
 
 /**
@@ -590,6 +718,12 @@ export interface ChoiceView {
 }
 
 /**
+ * Where a food cost (cost ÷ price) sits; the margin badge uses the same
+ * cut-offs.
+ */
+export type Band = "good" | "fair" | "poor";
+
+/**
  * Why a combo line cannot be priced. [`ComboRefusal::code`] is the API's.
  */
 export type ComboRefusal = { refusal: "unknown_slot"; slot_id: string } | { refusal: "too_few"; slot_id: string; min: number; got: number } | { refusal: "too_many"; slot_id: string; max: number; got: number } | { refusal: "not_allowed"; slot_id: string; menu_item_id: string } | { refusal: "bad_quantity"; slot_id: string } | { refusal: "price"; menu_item_id: string; error: PriceError };
@@ -599,6 +733,9 @@ export type ComboRefusal = { refusal: "unknown_slot"; slot_id: string } | { refu
  * the second with a 404; the till drops an unknown option before it asks.
  */
 export type PriceError = { error: "no_priced_size" } | { error: "unknown_option"; id: string };
+
+/** Whole piastres. */
+export type Minor = number;
 
 export interface SizeSurcharge {
     size_label: string;
@@ -619,9 +756,49 @@ export function bill_discount(subtotal: number, discount_type: string | null | u
 export function business_date(tz: string, at_ms: number): string;
 
 /**
+ * What a cart line is charged: one unit × its quantity.
+ */
+export function cart_line_total(line: CartLineShape): number;
+
+/**
+ * One unit of a cart line: an item's unit price and its extras, or a
+ * combo's price and what its picks add.
+ */
+export function cart_line_unit(line: CartLineShape): number;
+
+/**
+ * A cart's items total, before any deal, discount, tax or fee (the
+ * cart quote's `items_total`).
+ */
+export function cart_subtotal(lines: CartLineShape[]): number;
+
+/**
+ * What one unit of a pick adds to the combo's price, from the public
+ * menu's choice (its surcharge plus its size's extra); `null` is the
+ * included size.
+ */
+export function combo_choice_extra(choice: MenuChoice, size_label?: string | null): number;
+
+/**
+ * What a combo's picks add to ONE combo unit.
+ */
+export function combo_extras(picks: PickShape[]): number;
+
+/**
  * A combo line of `n` units (madar-catalog `combo::quote`).
  */
 export function combo_quote(combo: ComboView, picks: PickIn[], n: number): ComboQuote | ComboRefusal;
+
+/**
+ * The card for `balance` against `next_reward_cost`.
+ */
+export function loyalty_card(balance: number, next_reward_cost: number): LoyaltyCard;
+
+/**
+ * How many steps of a `cost`-step stamp row `earned` fills; `null` when
+ * the card has no row (a cost of 0 or less, or above 12).
+ */
+export function loyalty_stamps(earned: number, cost: number): number | null;
 
 /**
  * What `option_id` alone is charged on a line of `size_label`; `null`
@@ -657,7 +834,14 @@ export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly bill_discount: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly business_date: (a: number, b: number, c: number) => [number, number, number, number];
+    readonly cart_line_total: (a: any) => [number, number, number];
+    readonly cart_line_unit: (a: any) => [number, number, number];
+    readonly cart_subtotal: (a: number, b: number) => [number, number, number];
+    readonly combo_choice_extra: (a: any, b: number, c: number) => [number, number, number];
+    readonly combo_extras: (a: number, b: number) => [number, number, number];
     readonly combo_quote: (a: any, b: number, c: number, d: number) => [number, number, number];
+    readonly loyalty_card: (a: number, b: number) => [number, number, number];
+    readonly loyalty_stamps: (a: number, b: number) => [number, number, number];
     readonly option_charge: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly phone_canonical: (a: number, b: number) => [number, number, number];
     readonly price_line: (a: any, b: any) => [number, number, number];

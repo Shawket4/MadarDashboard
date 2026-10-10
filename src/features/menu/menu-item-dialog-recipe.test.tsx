@@ -47,6 +47,7 @@ const liveItem = {
   optional_fields: [],
   recipe_steps: [],
 };
+const milkOwn = { id: "l-1", ingredient_id: "ing-milk", ingredient_name: "Milk", quantity: "125", usable_quantity: "100", unit: "g", source: "own" };
 const studio = {
   sizes: [
     {
@@ -56,9 +57,7 @@ const studio = {
       is_active: true,
       sort: 0,
       cost_incomplete: false,
-      recipe: [
-        { id: "l-1", ingredient_id: "ing-milk", ingredient_name: "Milk", quantity: "125", usable_quantity: "100", unit: "g", source: "own" },
-      ],
+      recipe: [] as Record<string, unknown>[],
     },
   ],
 };
@@ -97,6 +96,7 @@ describe("the item dialog's recipe quantities", () => {
     api.updateMenuItem.mockResolvedValue({ id: "m-1" });
     api.putSizes.mockResolvedValue({ sizes: [{ id: "s-1", label: "one_size" }] });
     api.putSizeRecipe.mockResolvedValue({});
+    studio.sizes[0].recipe = [milkOwn];
   });
 
   it("shows the typed amount and sends an untouched line back unchanged", async () => {
@@ -118,5 +118,30 @@ describe("the item dialog's recipe quantities", () => {
 
     await waitFor(() => expect(api.putSizeRecipe).toHaveBeenCalled());
     expect(api.putSizeRecipe).toHaveBeenCalledWith("s-1", { lines: [{ ingredient_id: "ing-milk", quantity: 90, unit: "g" }] });
+  });
+
+  it("sends only the size's own lines, leaving a base line attached", async () => {
+    // The size-recipe PUT replaces own lines; a base line sent back as own would detach.
+    studio.sizes[0].recipe = [
+      { id: "l-2", ingredient_id: "ing-espresso", ingredient_name: "Espresso", quantity: "18", usable_quantity: "18", unit: "g", source: "base" },
+      milkOwn,
+    ];
+    wrap();
+    expect(await screen.findByDisplayValue("100")).toBeInTheDocument();
+    expect(screen.queryByDisplayValue("18")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /save/i }));
+
+    await waitFor(() => expect(api.putSizeRecipe).toHaveBeenCalled());
+    expect(api.putSizeRecipe).toHaveBeenCalledTimes(1);
+    expect(api.putSizeRecipe).toHaveBeenCalledWith("s-1", { lines: [{ ingredient_id: "ing-milk", quantity: 100, unit: "g" }] });
+  });
+
+  it("treats a legacy line with no source as own", async () => {
+    studio.sizes[0].recipe = [{ ...milkOwn, source: null }];
+    wrap();
+    await userEvent.click(await screen.findByRole("button", { name: /save/i }));
+
+    await waitFor(() => expect(api.putSizeRecipe).toHaveBeenCalled());
+    expect(api.putSizeRecipe).toHaveBeenCalledWith("s-1", { lines: [{ ingredient_id: "ing-milk", quantity: 100, unit: "g" }] });
   });
 });

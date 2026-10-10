@@ -37,6 +37,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { PhoneVerify } from "@/features/public-shell/phone-verify";
 import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { DURATION, easeOutExpo } from "@/lib/motion";
+import { rules } from "@/lib/rules";
 
 import { resolveBrand, type ResolvedBrand } from "../shared/brand";
 import { BirthdayPicker, isComplete, type Birthday } from "./birthday-picker";
@@ -315,6 +316,8 @@ function Joined({
   const accent = usePageAccent(brand);
   const reduced = useReducedMotion();
   const target = joined.next_reward_cost;
+  // The server's card rule (madar-loyalty `card::card`), as the card page and the passes show it.
+  const card = rules.loyalty_card(joined.balance, target);
   // `Form` only hands over a result that is not `verify_required`, and that is
   // the one case the token and the passes are absent; the fallbacks are for
   // the type, not for a path the page takes.
@@ -355,10 +358,10 @@ function Joined({
               mode={joined.mode}
               balance={joined.balance}
               target={target}
-              toGo={Math.max(target - joined.balance, 0)}
-              canRedeem={target > 0 && joined.balance >= target}
-              rewardsReady={target > 0 ? Math.floor(joined.balance / target) : 0}
-              progress={target > 0 ? joined.balance % target : joined.balance}
+              toGo={card.points_to_next_reward}
+              canRedeem={card.can_redeem}
+              rewardsReady={card.rewards_ready}
+              progress={card.progress_to_next}
               memberName={joined.name}
               qrUrl={`/api/public/loyalty/card/${encodeURIComponent(memberToken)}/qr.png`}
             />

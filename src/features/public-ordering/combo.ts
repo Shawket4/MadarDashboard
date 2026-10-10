@@ -13,6 +13,7 @@ import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuI
 import type { PublicCombo } from "@/data/api/generated/models/publicCombo";
 import type { PublicComboChoice } from "@/data/api/generated/models/publicComboChoice";
 import type { PublicComboSlot } from "@/data/api/generated/models/publicComboSlot";
+import { rules } from "@/lib/rules";
 
 import type { ComboPick } from "./types";
 import { displaySize } from "./utils";
@@ -57,11 +58,12 @@ const includedSize = (choice: PublicComboChoice): string =>
 const validSize = (choice: PublicComboChoice, label: string | null | undefined): string =>
   label && choice.sizes.some((s) => s.label === label) ? label : includedSize(choice);
 
-/** What one unit of this choice at this size adds to the combo's price. */
-export const choiceExtra = (choice: PublicComboChoice, size: string | null): number => {
-  const s = choice.sizes.find((x) => x.label === size);
-  return choice.surcharge + (s?.extra ?? 0);
-};
+/**
+ * What one unit of this choice at this size adds to the combo's price: its
+ * surcharge plus the size's extra (madar-catalog `combo::choice_extra`, WebAssembly).
+ */
+export const choiceExtra = (choice: PublicComboChoice, size: string | null): number =>
+  rules.combo_choice_extra(choice, size);
 
 /**
  * Where the picker opens: the line's own picks when editing; otherwise each

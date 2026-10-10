@@ -5,7 +5,7 @@ import type { DeliveryMenuDiscount } from "@/data/api/generated/models/deliveryM
 import { storefrontItem, unitPrice } from "./pricing";
 import type { CartLine, Channel } from "./types";
 import { rateOf } from "@/lib/format";
-import { rules } from "@/lib/rules";
+import { type CartLineShape, rules } from "@/lib/rules";
 
 /** Narrow an arbitrary string to a supported channel (defaults to in_mall). */
 export const asChannel = (v: string | null | undefined): Channel =>
@@ -21,26 +21,40 @@ export const SYNTHETIC_SIZE = "one_size";
 export const displaySize = (label: string | null | undefined): string | null =>
   label && label !== SYNTHETIC_SIZE ? label : null;
 
-/** What a combo's picks add to its price, per combo unit (surcharges × pick quantity). */
-export const comboExtras = (line: Pick<CartLine, "combo">): number =>
-  (line.combo?.picks ?? []).reduce((s, p) => s + p.extra * p.quantity, 0);
+/**
+ * A cart line as madar-money's `CartLineShape`: an item's size price, add-ons
+ * and optionals, or a combo's own price and what each pick adds per unit (the
+ * storefront's picks carry no add-ons yet, v1).
+ */
+const lineShape = (line: CartLine): CartLineShape =>
+  line.combo
+    ? {
+        combo: {
+          quantity: line.quantity,
+          price: line.base_price,
+          picks: line.combo.picks.map((p) => ({ quantity: p.quantity, surcharge_unit: p.extra })),
+        },
+      }
+    : {
+        item: {
+          quantity: line.quantity,
+          unit_price: line.base_price,
+          addons: line.addons.map((a) => ({ price_modifier: a.price, quantity: a.quantity })),
+          optionals: line.optionals.map((o) => o.price),
+        },
+      };
 
-/** The unit (per-quantity) price of a configured line, in piastres — an estimate. */
-export const lineUnitPrice = (line: CartLine): number => {
-  // A combo: its own price plus whatever the picks add (a bigger size, a
-  // premium choice). The server prices it authoritatively.
-  if (line.combo) return line.base_price + comboExtras(line);
-  const addons = line.addons.reduce((s, a) => s + a.price * a.quantity, 0);
-  const optionals = line.optionals.reduce((s, o) => s + o.price, 0);
-  return line.base_price + addons + optionals;
-};
+/**
+ * The unit (per-quantity) price of a configured line, in piastres (madar-money
+ * `cart_line_unit`, WebAssembly): an estimate; the server prices it at intake.
+ */
+export const lineUnitPrice = (line: CartLine): number => rules.cart_line_unit(lineShape(line));
 
-/** The total estimated price of a configured line (× quantity), in piastres. */
-export const lineTotal = (line: CartLine): number => lineUnitPrice(line) * line.quantity;
+/** The total estimated price of a configured line (× quantity), in piastres (`cart_line_total`). */
+export const lineTotal = (line: CartLine): number => rules.cart_line_total(lineShape(line));
 
-/** The estimated subtotal of the whole cart, in piastres. */
-export const cartSubtotal = (lines: CartLine[]): number =>
-  lines.reduce((s, l) => s + lineTotal(l), 0);
+/** The estimated subtotal of the whole cart, in piastres (`cart_subtotal`, the quote's `items_total`). */
+export const cartSubtotal = (lines: CartLine[]): number => rules.cart_subtotal(lines.map(lineShape));
 
 /**
  * Estimated discount (piastres) the channel discount knocks off the subtotal:
