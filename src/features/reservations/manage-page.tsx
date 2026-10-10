@@ -57,7 +57,16 @@ export function ManagePage({ token }: { token: string }) {
   const cancel = useCancelPublicBooking();
 
   // The public package's madar-time `business_date`, the day the branch's own clock reads.
-  const today = useMemo(() => rules.business_date(b?.timezone ?? "Africa/Cairo", Date.now()), [b?.timezone]);
+  // ponytail: the public package carries only the Cairo + MENA + US zones; a branch
+  // elsewhere falls back to the UTC date (off by a few hours near midnight) rather
+  // than failing the page. Add its zone to scripts/tz-filter.txt if one ever appears.
+  const today = useMemo(() => {
+    try {
+      return rules.business_date(b?.timezone ?? "Africa/Cairo", Date.now());
+    } catch {
+      return new Date().toISOString().slice(0, 10);
+    }
+  }, [b?.timezone]);
   const dates = useMemo(() => pickableDates(today, 30), [today]);
   const slotsQ = useBookingSlots(b?.branch_id ?? "", { date: date ?? "", party_size: b?.party_size ?? 1 }, { query: { enabled: moving && !!b && !!date, retry: false } });
 
