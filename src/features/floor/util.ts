@@ -1,5 +1,11 @@
 import { queryClient } from "@/data/api/query";
 
+/** A typed seat count: a whole number from 0 to 99, else null. Blank is not 0. */
+export const parseSeats = (v: string): number | null => {
+  const n = Number(v);
+  return v.trim() !== "" && Number.isInteger(n) && n >= 0 && n <= 99 ? n : null;
+};
+
 /** Floor geometry (sections + tables) lives under `/floor/*` query keys. */
 export const invalidateFloor = () =>
   queryClient.invalidateQueries({

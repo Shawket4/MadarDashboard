@@ -29,6 +29,7 @@ import {
   getGetRecipeLinkQueryKey,
   useGetRecipeLink,
   useListBases,
+  useListStepPresets,
 } from "@/data/api/generated/api";
 import type { ItemOptionInput, StudioAggregate } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -114,6 +115,8 @@ export function MenuStudioPage() {
   const { t, i18n } = useTranslation();
   // Steps (and their per-drink notes) are part of the recipe: recipes.edit.
   const canEditSteps = useAuthz().can(Cap.recipesEdit);
+  // Item-only options save through PUT /menu-items/{id}/options: menu.items.edit.
+  const canEditOptions = useAuthz().can(Cap.menuItemsEdit);
   const { itemId } = routeApi.useParams();
   const { tab } = routeApi.useSearch();
   const navigate = useNavigate();
@@ -122,6 +125,9 @@ export function MenuStudioPage() {
 
   const studioQ = useGetStudio(itemId, { query: { enabled: !!itemId } });
   const studio = studioQ.data;
+  // The step library, to tell a preset step's own note from the library's (toStepDrafts).
+  const presetsQ = useListStepPresets();
+  const presets = useMemo(() => presetsQ.data ?? [], [presetsQ.data]);
 
   // Org ingredient catalog — shared by the sizes (recipe) and options sections.
   const catalogQ = useListCatalog(orgId ?? "", { query: { enabled: !!orgId } });
@@ -236,7 +242,7 @@ export function MenuStudioPage() {
 
       const itemV = toItemValues(s);
       const sizeBlocks = toSizeBlocks(s);
-      const stepDrafts = toStepDrafts(s);
+      const stepDrafts = toStepDrafts(s, presets);
       const attachDrafts = toAttachDrafts(s);
       const optionRows = toOptionRows(s);
 
@@ -263,7 +269,8 @@ export function MenuStudioPage() {
         return next;
       });
     },
-    [form],
+    // A library that answers after the item re-seeds the untouched steps.
+    [form, presets],
   );
 
   const seededForRef = useRef<string | null>(null);
@@ -499,7 +506,7 @@ export function MenuStudioPage() {
       }
 
       // 7 · Item-only options — replace-set.
-      if (optionsDirty) {
+      if (optionsDirty && canEditOptions) {
         const options: ItemOptionInput[] = rows.map((r) => {
           const qty = parseFloat(r.quantity);
           const hasRecipe = !!r.ingredient_id && Number.isFinite(qty);
@@ -708,6 +715,7 @@ export function MenuStudioPage() {
             setRows={setRows}
             catalogById={catalogById}
             ingredientOptions={ingredientOptions}
+            readOnly={!canEditOptions}
           />
         </SectionShell>
 

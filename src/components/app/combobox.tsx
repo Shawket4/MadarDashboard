@@ -67,7 +67,7 @@ export function Combobox({
           filter={(val, search) => {
             const opt = options.find((o) => o.value === val);
             const hay = `${opt?.label ?? ""} ${opt?.keywords ?? ""}`.toLowerCase();
-            return hay.includes(search.toLowerCase()) ? 1 : 0;
+            return hay.includes(search.trim().toLowerCase()) ? 1 : 0;
           }}
         >
           <CommandInput placeholder={searchPlaceholder ?? t("common.search", "Search…")} />

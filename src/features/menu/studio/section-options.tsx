@@ -16,6 +16,8 @@ interface Props {
   setRows: Dispatch<SetStateAction<OptionRowDraft[]>>;
   catalogById: Map<string, OrgIngredient>;
   ingredientOptions: ComboboxOption[];
+  /** Without menu.items.edit (what the save needs) the options are shown, not edited. */
+  readOnly?: boolean;
 }
 
 /**
@@ -23,7 +25,7 @@ interface Props {
  * an optional single-ingredient deduction. Rows live in the page's dirty store;
  * the batched save replace-sets them via putItemOptions.
  */
-export function SectionOptions({ rows, setRows, catalogById, ingredientOptions }: Props) {
+export function SectionOptions({ rows, setRows, catalogById, ingredientOptions, readOnly = false }: Props) {
   const { t } = useTranslation();
 
   const setRow = (idx: number, patch: Partial<OptionRowDraft>) =>
@@ -34,6 +36,9 @@ export function SectionOptions({ rows, setRows, catalogById, ingredientOptions }
 
   return (
     <div className="space-y-3">
+      {readOnly && rows.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("menu.studio.options.empty", "No options yet")}</p>
+      ) : null}
       {rows.map((row, idx) => {
         const ing = row.ingredient_id ? catalogById.get(row.ingredient_id) : undefined;
         const cost = draftLineCost({ ingredient: ing, quantity: row.quantity, unit: row.unit });
@@ -45,6 +50,7 @@ export function SectionOptions({ rows, setRows, catalogById, ingredientOptions }
                 <span className="block text-xs font-medium text-muted-foreground">{t("common.name", "Name")}</span>
                 <Input
                   value={row.name}
+                  disabled={readOnly}
                   placeholder={t("menu.studio.options.namePh", "e.g. Extra shot")}
                   onChange={(e) => setRow(idx, { name: e.target.value })}
                 />
@@ -59,24 +65,27 @@ export function SectionOptions({ rows, setRows, catalogById, ingredientOptions }
                   step="0.01"
                   min="0"
                   value={row.price}
+                  disabled={readOnly}
                   onChange={(e) => setRow(idx, { price: e.target.value })}
                   className="text-end tabular"
                 />
               </label>
               <label className="flex items-center gap-2 pb-2">
-                <Switch checked={row.is_active} onCheckedChange={(v) => setRow(idx, { is_active: v })} />
+                <Switch checked={row.is_active} disabled={readOnly} onCheckedChange={(v) => setRow(idx, { is_active: v })} />
                 <span className="text-sm">{t("common.active", "Active")}</span>
               </label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="mb-1 ms-auto text-destructive"
-                aria-label={t("common.remove", "Remove")}
-                onClick={() => removeRow(idx)}
-              >
-                <Trash2 className="size-4" />
-              </Button>
+              {readOnly ? null : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="mb-1 ms-auto text-destructive"
+                  aria-label={t("common.remove", "Remove")}
+                  onClick={() => removeRow(idx)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              )}
             </div>
 
             {/* Optional ingredient deduction */}
@@ -88,6 +97,7 @@ export function SectionOptions({ rows, setRows, catalogById, ingredientOptions }
                 <Combobox
                   options={ingredientOptions}
                   value={row.ingredient_id || null}
+                  disabled={readOnly}
                   onChange={(v) => {
                     const picked = catalogById.get(v);
                     setRow(idx, { ingredient_id: v, unit: picked?.unit ?? row.unit });
@@ -104,6 +114,7 @@ export function SectionOptions({ rows, setRows, catalogById, ingredientOptions }
                       step="0.001"
                       min="0"
                       value={row.quantity}
+                      disabled={readOnly}
                       placeholder="0.000"
                       aria-label={t("common.quantity", "Quantity")}
                       onChange={(e) => setRow(idx, { quantity: e.target.value })}
@@ -116,13 +127,15 @@ export function SectionOptions({ rows, setRows, catalogById, ingredientOptions }
                   <span className="text-xs text-muted-foreground tabular">
                     {lineCost ? t("menu.studio.options.cost", { cost: lineCost, defaultValue: "Cost {{cost}}" }) : null}
                   </span>
-                  <button
-                    type="button"
-                    className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                    onClick={() => setRow(idx, { ingredient_id: "", quantity: "" })}
-                  >
-                    {t("common.clear", "Clear")}
-                  </button>
+                  {readOnly ? null : (
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                      onClick={() => setRow(idx, { ingredient_id: "", quantity: "" })}
+                    >
+                      {t("common.clear", "Clear")}
+                    </button>
+                  )}
                 </>
               ) : null}
             </div>
@@ -130,14 +143,16 @@ export function SectionOptions({ rows, setRows, catalogById, ingredientOptions }
         );
       })}
 
-      <button
-        type="button"
-        onClick={addRow}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-      >
-        <Plus className="size-4" />
-        {t("menu.studio.options.add", "Add option")}
-      </button>
+      {readOnly ? null : (
+        <button
+          type="button"
+          onClick={addRow}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        >
+          <Plus className="size-4" />
+          {t("menu.studio.options.add", "Add option")}
+        </button>
+      )}
     </div>
   );
 }

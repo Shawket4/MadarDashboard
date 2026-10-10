@@ -128,18 +128,21 @@ export function parseCount(raw: string | undefined): number | null {
 /**
  * The `PUT /stocktakes/{id}/items` payload from the editor's local state: one
  * entry per row that has a count, carrying its reason when one was picked.
- * Rows outside the snapshot (found items) are included the same way.
+ * Rows outside the snapshot (found items) are included the same way. A row
+ * cleared on screen that the server still holds a figure for (`held`) is sent
+ * as `counted_qty: null`, which un-counts it, so finalize agrees with the screen.
  */
 export function buildCountPayload(
   rowIds: string[],
   counts: Record<string, string>,
   reasons: Record<string, string>,
+  held: ReadonlySet<string> = new Set(),
 ): ItemCountInput[] {
   const out: ItemCountInput[] = [];
   for (const id of rowIds) {
     const qty = parseCount(counts[id]);
-    if (qty == null) continue;
-    out.push({ org_ingredient_id: id, counted_qty: qty, variance_reason: reasons[id] || null });
+    if (qty != null) out.push({ org_ingredient_id: id, counted_qty: qty, variance_reason: reasons[id] || null });
+    else if (held.has(id)) out.push({ org_ingredient_id: id, counted_qty: null });
   }
   return out;
 }

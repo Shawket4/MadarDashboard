@@ -121,6 +121,20 @@ describe("DataTable states", () => {
     vi.mocked(useIsMobile).mockReturnValue(false);
   });
 
+  it("W1 trims the search: outer spaces never hide a match", () => {
+    render(<DataTable columns={columns} data={rows} searchPlaceholder="Search" />);
+    const box = screen.getByRole("searchbox", { name: "Search" });
+    fireEvent.change(box, { target: { value: "  mocha " } });
+    expect(screen.getByText("Mocha")).toBeInTheDocument();
+    expect(screen.queryByText("Latte")).not.toBeInTheDocument();
+    // The box keeps what was typed.
+    expect(box).toHaveValue("  mocha ");
+    // Spaces alone are no filter.
+    fireEvent.change(box, { target: { value: "   " } });
+    expect(screen.getByText("Latte")).toBeInTheDocument();
+    expect(screen.getByText("Mocha")).toBeInTheDocument();
+  });
+
   it("offers Load more only while there is more", () => {
     const onLoadMore = vi.fn();
     const { rerender } = render(

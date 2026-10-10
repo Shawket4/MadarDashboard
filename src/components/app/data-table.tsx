@@ -158,7 +158,8 @@ export function DataTable<TData, TValue>({
       sorting,
       columnFilters,
       columnVisibility,
-      globalFilter,
+      // The box keeps what was typed; the filter ignores outer spaces ("meal " finds Staff Meal).
+      globalFilter: globalFilter.trim(),
       ...(usePages ? { pagination: manualPagination ? pagination : internalPagination } : {}),
     },
     onSortingChange: setSorting,

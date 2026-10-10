@@ -23,7 +23,7 @@ import { useProgram, type ProgramScope } from "../use-program";
 import { CollectingCard } from "./collecting-card";
 import { PassesCard } from "./passes-card";
 import { SignupCard } from "./signup-card";
-import { fromWire, programSchema, toWire, type ProgramValues } from "./form-schema";
+import { fromWire, hiddenFields, programSchema, toWire, visibleValues, type ProgramValues } from "./form-schema";
 import { TextRow, ToggleRow } from "./fields";
 import { Card, CardContent } from "@/components/ui/card";
 import { ErrorState } from "@/components/app/empty-state";
@@ -40,7 +40,8 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
   const { canEditProgram } = loyaltyAccess(authz);
 
   const form = useForm<ProgramValues>({
-    resolver: zodResolver(programSchema),
+    // Only what the form shows is checked: a value left in a hidden field never blocks Save.
+    resolver: (values, context, options) => zodResolver(programSchema)(visibleValues(values, settings), context, options),
     values: settings ? fromWire(settings) : undefined,
   });
 
@@ -167,7 +168,8 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
             {t("loyalty.revert", "Follow the organisation")}
           </Button>
         ) : null}
-        {Object.keys(form.formState.errors).length > 0 ? (
+        {/* A field hidden after a failed Save no longer counts. */}
+        {Object.keys(form.formState.errors).some((k) => !(hiddenFields(form.getValues()) as string[]).includes(k)) ? (
           <p role="alert" className="text-xs text-destructive">
             {t("loyalty.fixErrors", "Fix the highlighted fields before saving.")}
           </p>

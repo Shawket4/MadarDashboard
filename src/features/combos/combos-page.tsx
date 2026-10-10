@@ -54,7 +54,7 @@ export function CombosPage() {
   const canSettings = authz.canAny(Cap.orgSettingsRead, Cap.menuCombosEdit);
 
   const [search, setSearch] = useState("");
-  const q = useDebounced(search, 300);
+  const q = useDebounced(search.trim(), 300);
   const [category, setCategory] = useState(ALL);
   const [active, setActive] = useState(ALL);
   const [pageIndex, setPageIndex] = useState(0);

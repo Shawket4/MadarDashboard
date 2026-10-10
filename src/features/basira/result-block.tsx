@@ -324,8 +324,9 @@ function HeatmapView({ block }: { block: ResultBlock }) {
   );
   const max = Math.max(...[...lookup.values()], 1);
 
+  // Left to right in Arabic too, like the charts (REP-ALL-020): hours run 0 → 23.
   return (
-    <div className="overflow-x-auto">
+    <div dir="ltr" className="overflow-x-auto">
       <table className="w-full border-separate border-spacing-0.5 text-[10px]">
         <thead>
           <tr>

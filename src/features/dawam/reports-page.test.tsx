@@ -26,9 +26,11 @@ globalThis.ResizeObserver ??= class {
 let held: string[] = [];
 let modules = ["pos", "dawam"];
 const seen: Record<string, unknown[]> = {};
+let failing: string[] = [];
 const hook = (name: string, data: unknown) => (params: unknown) => {
   (seen[name] ??= []).push(params);
-  return { data, isLoading: false, isFetching: false, error: null, refetch: vi.fn() };
+  const failed = failing.includes(name);
+  return { data: failed ? undefined : data, isLoading: false, isFetching: false, error: failed ? new Error("Server down") : null, refetch: vi.fn() };
 };
 
 vi.mock("@/data/authz/use-authz", async () => {
@@ -75,6 +77,7 @@ const wrap = () => render(<QueryClientProvider client={new QueryClient()}><Staff
 beforeEach(() => {
   held = ["hr.attendance.read", "hr.payroll.read"];
   modules = ["pos", "dawam"];
+  failing = [];
   for (const k of Object.keys(seen)) delete seen[k];
 });
 
@@ -136,5 +139,22 @@ describe("StaffReportsPage", () => {
     wrap();
     expect(screen.getAllByRole("tab")).toHaveLength(1);
     expect(seen.payroll).toBeUndefined();
+  });
+
+  it("a failed report's cards read — beside the error, never 0 (W6, TEAM-RPT-051)", async () => {
+    const user = userEvent.setup();
+    failing = ["attendance", "labour", "payroll", "advances"];
+    wrap();
+    expect(screen.getByText("Couldn't load this report")).toBeInTheDocument();
+    expect(screen.getAllByText("—")).toHaveLength(4);
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
+    expect(screen.queryByText("0m")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: /Labour vs sales/ }));
+    expect(screen.getAllByText("—")).toHaveLength(3);
+    await user.click(screen.getByRole("tab", { name: /Overtime & payroll/ }));
+    expect(screen.getAllByText("—")).toHaveLength(3);
+    await user.click(screen.getByRole("tab", { name: /Salary advances/ }));
+    expect(screen.getAllByText("—")).toHaveLength(3);
+    expect(screen.getAllByText("Couldn't load this report")).toHaveLength(2);
   });
 });

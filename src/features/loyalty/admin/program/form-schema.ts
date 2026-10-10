@@ -84,6 +84,31 @@ export const programSchema = z.object({
 
 export type ProgramValues = z.infer<typeof programSchema>;
 
+type Hideable = "earn_egp_per_point" | "balance_cap" | "birthday_reward_amount" | "winback_reward_amount";
+
+/** The checked fields the form hides for these values (SET-LOY-083). */
+export const hiddenFields = (v: ProgramValues): Hideable[] => [
+  ...(v.mode === "points" ? [] : (["earn_egp_per_point"] as const)),
+  ...(v.balance_cap_enabled ? [] : (["balance_cap"] as const)),
+  ...(v.birthday_enabled ? [] : (["birthday_reward_amount"] as const)),
+  ...(v.winback_enabled ? [] : (["winback_reward_amount"] as const)),
+];
+
+/**
+ * What Save validates: the form as shown. A hidden field never blocks Save.
+ * The cap and the two gifts are blanked, which `toWire` sends as null anyway;
+ * a hidden earn rate that would not pass keeps the saved one.
+ */
+export function visibleValues(v: ProgramValues, saved: LoyaltySettings | undefined): ProgramValues {
+  const out = { ...v };
+  for (const k of hiddenFields(v)) {
+    if (k !== "earn_egp_per_point") out[k] = "";
+    else if (saved && !programSchema.shape.earn_egp_per_point.safeParse(v[k]).success)
+      out[k] = piastresToEgp(saved.earn_piastres_per_point);
+  }
+  return out;
+}
+
 /** The saved settings, as the form holds them. */
 export function fromWire(s: LoyaltySettings): ProgramValues {
   return {

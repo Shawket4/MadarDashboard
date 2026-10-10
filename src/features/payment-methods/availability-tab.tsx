@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Store, Tablet, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -14,6 +15,22 @@ import { allowListFor, useAvailability, useDevices, usePutAvailability, type All
 
 import { AllowListEditor, type MethodOption } from "./allow-list-editor";
 import { labelOf } from "./util";
+
+/**
+ * A secondary read's own states: a skeleton while it loads and the failure
+ * with Retry, so a slow or failed read never says "nobody here" (SET-PAY-039).
+ * A failed refetch keeps what is on screen.
+ */
+function PeopleRead({ q, children }: {
+  q: { isLoading: boolean; error: unknown; data?: unknown; isFetching: boolean; refetch: () => unknown };
+  children: ReactNode;
+}) {
+  if (q.isLoading) return <Skeleton className="h-28 w-full rounded-2xl" />;
+  if (q.error && q.data === undefined) {
+    return <ErrorState className="py-8" message={getErrorMessage(q.error)} onRetry={() => void q.refetch()} retrying={q.isFetching} />;
+  }
+  return children;
+}
 
 /** Org methods → branch subset → per teller → per device. Charge shows the intersection. */
 export function AvailabilityTab() {
@@ -90,35 +107,39 @@ export function AvailabilityTab() {
         <SectionHeader
           icon={Users}
           title={t("paymentMethods.availability.tellers", "Tellers")}
-          count={tellers.length}
+          count={usersQ.data ? tellers.length : undefined}
           description={t("paymentMethods.availability.tellersHint", "Narrow the branch's methods for one teller.")}
         />
-        {tellers.length === 0 ? (
-          <EmptyState className="py-8" icon={Users} title={t("paymentMethods.availability.noTellers", "No tellers at this branch")} />
-        ) : (
-          <div className="grid gap-3 lg:grid-cols-2">
-            {tellers.map((u) => (
-              <AllowListEditor key={u.id} idPrefix={`user-${u.id}`} title={u.name} value={allowListFor(availability.data, "users", u.id)} methods={branchMethods} pending={put.isPending} onSave={save("users", u.id)} />
-            ))}
-          </div>
-        )}
+        <PeopleRead q={usersQ}>
+          {tellers.length === 0 ? (
+            <EmptyState className="py-8" icon={Users} title={t("paymentMethods.availability.noTellers", "No tellers at this branch")} />
+          ) : (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {tellers.map((u) => (
+                <AllowListEditor key={u.id} idPrefix={`user-${u.id}`} title={u.name} value={allowListFor(availability.data, "users", u.id)} methods={branchMethods} pending={put.isPending} onSave={save("users", u.id)} />
+              ))}
+            </div>
+          )}
+        </PeopleRead>
       </section>
       <section className="space-y-3">
         <SectionHeader
           icon={Tablet}
           title={t("paymentMethods.availability.devices", "Devices")}
-          count={liveDevices.length}
+          count={devices.data ? liveDevices.length : undefined}
           description={t("paymentMethods.availability.devicesHint", "Narrow the branch's methods for one POS device.")}
         />
-        {liveDevices.length === 0 ? (
-          <EmptyState className="py-8" icon={Tablet} title={t("paymentMethods.availability.noDevices", "No devices at this branch yet")} />
-        ) : (
-          <div className="grid gap-3 lg:grid-cols-2">
-            {liveDevices.map((d) => (
-              <AllowListEditor key={d.id} idPrefix={`device-${d.id}`} title={d.label ? `${d.code} · ${d.label}` : d.code} mono value={allowListFor(availability.data, "devices", d.id)} methods={branchMethods} pending={put.isPending} onSave={save("devices", d.id)} />
-            ))}
-          </div>
-        )}
+        <PeopleRead q={devices}>
+          {liveDevices.length === 0 ? (
+            <EmptyState className="py-8" icon={Tablet} title={t("paymentMethods.availability.noDevices", "No devices at this branch yet")} />
+          ) : (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {liveDevices.map((d) => (
+                <AllowListEditor key={d.id} idPrefix={`device-${d.id}`} title={d.label ? `${d.code} · ${d.label}` : d.code} mono value={allowListFor(availability.data, "devices", d.id)} methods={branchMethods} pending={put.isPending} onSave={save("devices", d.id)} />
+              ))}
+            </div>
+          )}
+        </PeopleRead>
       </section>
     </div>
   );

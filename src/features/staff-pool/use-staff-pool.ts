@@ -6,12 +6,12 @@
  * and this is a counter feature — a teller pressing "staff drink" must be able
  * to be told one allowance, not a merge of two.
  *
- * `inherited` is the one thing that cannot be read off the response: a branch
- * query answers with the settings IN FORCE either way.
+ * A branch query answers with the settings IN FORCE either way, under the
+ * branch's id; the server's `inherited` flag says whether they are the
+ * organisation's. (Comparing `branch_id` with the branch asked about never
+ * worked: an inherited row comes back labelled with the branch.)
  */
 import { useGetStaffPoolSettings } from "@/data/api/generated/api";
-
-import { isOwnOverride } from "./form-schema";
 
 export interface StaffPoolScope {
   orgId: string;
@@ -26,6 +26,6 @@ export function useStaffPoolSettings(scope: StaffPoolScope, enabled = true) {
     query,
     settings: query.data,
     /** This branch has no rules of its own and follows the organisation. */
-    inherited: Boolean(scope.branchId) && !isOwnOverride(query.data, scope.branchId),
+    inherited: Boolean(scope.branchId) && query.data?.inherited === true,
   };
 }

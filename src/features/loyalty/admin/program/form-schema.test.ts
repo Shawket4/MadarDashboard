@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { LoyaltySettings } from "@/data/api/generated/models";
 
-import { fromWire, intOrNull, previewOf, programSchema, toWire } from "./form-schema";
+import { fromWire, hiddenFields, intOrNull, previewOf, programSchema, toWire, visibleValues } from "./form-schema";
 
 const saved: LoyaltySettings = {
   org_id: "org-1",
@@ -177,5 +177,34 @@ describe("the program form's validation mirrors the server", () => {
     expect(intOrNull("abc")).toBeNull();
     expect(intOrNull("0")).toBeNull();
     expect(intOrNull(" 7 ")).toBe(7);
+  });
+});
+
+describe("visibleValues (W4, SET-LOY-083)", () => {
+  const base = () => ({ ...fromWire(saved), balance_cap_enabled: false, birthday_enabled: false, winback_enabled: false });
+
+  it("lists what the form hides", () => {
+    expect(hiddenFields(base())).toEqual(["earn_egp_per_point", "balance_cap", "birthday_reward_amount", "winback_reward_amount"]);
+    expect(hiddenFields({ ...base(), mode: "points", balance_cap_enabled: true, birthday_enabled: true, winback_enabled: true })).toEqual([]);
+  });
+
+  it("lets hidden invalid values through, and blanks the cap and gifts", () => {
+    const v = { ...base(), balance_cap: "abc", birthday_reward_amount: "0", winback_reward_amount: "-3" };
+    expect(programSchema.safeParse(v).success).toBe(false);
+    const out = visibleValues(v, saved);
+    expect(programSchema.safeParse(out).success).toBe(true);
+    expect(out).toMatchObject({ balance_cap: "", birthday_reward_amount: "", winback_reward_amount: "" });
+  });
+
+  it("still checks what is shown", () => {
+    const v = { ...base(), balance_cap_enabled: true, balance_cap: "abc" };
+    expect(programSchema.safeParse(visibleValues(v, saved)).success).toBe(false);
+  });
+
+  it("a hidden earn rate keeps a valid edit, and falls back to the saved rate when invalid", () => {
+    expect(visibleValues({ ...base(), earn_egp_per_point: 3 }, saved).earn_egp_per_point).toBe(3);
+    expect(visibleValues({ ...base(), earn_egp_per_point: "" as never }, saved).earn_egp_per_point).toBe(10);
+    // Shown (points mode), an invalid rate is left for the schema to refuse.
+    expect(visibleValues({ ...base(), mode: "points", earn_egp_per_point: 0 }, saved).earn_egp_per_point).toBe(0);
   });
 });

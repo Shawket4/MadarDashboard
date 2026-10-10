@@ -89,7 +89,7 @@ export function EligibleItemsControl({
           <Command
             filter={(val, search) => {
               const opt = options.find((o) => o.value === val);
-              return (opt?.label ?? "").toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+              return (opt?.label ?? "").toLowerCase().includes(search.trim().toLowerCase()) ? 1 : 0;
             }}
           >
             <CommandInput placeholder={t("common.search", "Search…")} />

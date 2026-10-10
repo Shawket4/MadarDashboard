@@ -728,6 +728,33 @@ import type {
 
 import { customInstance } from '../custom-instance';
 
+// https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
+type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <
+T,
+>() => T extends Y ? 1 : 2
+? A
+: B;
+
+type WritableKeys<T> = {
+[P in keyof T]-?: IfEquals<
+  { [Q in P]: T[P] },
+  { -readonly [Q in P]: T[P] },
+  P
+>;
+}[keyof T];
+
+type UnionToIntersection<U> =
+  (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never;
+type DistributeReadOnlyOverUnions<T> = T extends any ? NonReadonly<T> : never;
+
+type Writable<T> = Pick<T, WritableKeys<T>>;
+type NonReadonly<T> = [T] extends [UnionToIntersection<T>] ? {
+  [P in keyof Writable<T>]: T[P] extends object
+    ? NonReadonly<NonNullable<T[P]>>
+    : T[P];
+} : DistributeReadOnlyOverUnions<T>;
+
+
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -21801,6 +21828,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getDeleteOrgMutationOptions(options), queryClient);
     }
 
+/**
+ * @summary Super admin only, except a body carrying nothing but `social_links` and/or
+`logo_url: null`: the org's own people with `org.settings.edit` may save
+that for their own org.
+ */
 export const updateOrg = (
     id: string,
     updateOrgRequest: UpdateOrgRequest,
@@ -21850,7 +21882,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateOrgMutationBody = UpdateOrgRequest
     export type UpdateOrgMutationError = ErrorBody
 
-    export const useUpdateOrg = <TError = ErrorBody,
+    /**
+ * @summary Super admin only, except a body carrying nothing but `social_links` and/or
+`logo_url: null`: the org's own people with `org.settings.edit` may save
+that for their own org.
+ */
+export const useUpdateOrg = <TError = ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOrg>>, TError,{id: string;data: UpdateOrgRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateOrg>>,
@@ -34423,6 +34460,9 @@ export function useTillSummary<TData = Awaited<ReturnType<typeof tillSummary>>, 
 
 
 
+/**
+ * @summary Needs `org.settings.read` or `menu.combos.edit`.
+ */
 export const getSettings = (
 
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -34491,6 +34531,9 @@ export function useGetSettings<TData = Awaited<ReturnType<typeof getSettings>>, 
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Needs `org.settings.read` or `menu.combos.edit`.
+ */
 
 export function useGetSettings<TData = Awaited<ReturnType<typeof getSettings>>, TError = ErrorBody>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
@@ -35629,7 +35672,7 @@ export function useGetStaffPoolSettings<TData = Awaited<ReturnType<typeof getSta
 
 
 export const putStaffPoolSettings = (
-    staffPoolSettings: StaffPoolSettings,
+    staffPoolSettings: NonReadonly<StaffPoolSettings>,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
@@ -35646,8 +35689,8 @@ export const putStaffPoolSettings = (
 
 
 export const getPutStaffPoolSettingsMutationOptions = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putStaffPoolSettings>>, TError,{data: StaffPoolSettings}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof putStaffPoolSettings>>, TError,{data: StaffPoolSettings}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putStaffPoolSettings>>, TError,{data: NonReadonly<StaffPoolSettings>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putStaffPoolSettings>>, TError,{data: NonReadonly<StaffPoolSettings>}, TContext> => {
 
 const mutationKey = ['putStaffPoolSettings'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -35659,7 +35702,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putStaffPoolSettings>>, {data: StaffPoolSettings}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putStaffPoolSettings>>, {data: NonReadonly<StaffPoolSettings>}> = (props) => {
           const {data} = props ?? {};
 
           return  putStaffPoolSettings(data,requestOptions)
@@ -35673,15 +35716,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PutStaffPoolSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof putStaffPoolSettings>>>
-    export type PutStaffPoolSettingsMutationBody = StaffPoolSettings
+    export type PutStaffPoolSettingsMutationBody = NonReadonly<StaffPoolSettings>
     export type PutStaffPoolSettingsMutationError = ErrorBody
 
     export const usePutStaffPoolSettings = <TError = ErrorBody,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putStaffPoolSettings>>, TError,{data: StaffPoolSettings}, TContext>, request?: SecondParameter<typeof customInstance>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putStaffPoolSettings>>, TError,{data: NonReadonly<StaffPoolSettings>}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof putStaffPoolSettings>>,
         TError,
-        {data: StaffPoolSettings},
+        {data: NonReadonly<StaffPoolSettings>},
         TContext
       > => {
       return useMutation(getPutStaffPoolSettingsMutationOptions(options), queryClient);
