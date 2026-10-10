@@ -34,7 +34,7 @@ import { downloadBlob } from "@/lib/download";
 import { fmtDate, fmtMoney } from "@/lib/format";
 import { DateRangeField, quickRange, type DateRange } from "@/components/inputs";
 import { fmtHours } from "@/features/staff/util";
-import { dawamQuery } from "./live";
+import { dawamQuery, failedEmpty } from "./live";
 import { usePeriodStartDay } from "./period";
 import { DawamRefreshButton } from "./refresh-button";
 
@@ -166,6 +166,8 @@ export function StaffReportsPage() {
 
 type Params = { from: string; to: string; branch_id?: string };
 const sum = <R,>(rows: R[], f: (r: R) => number) => rows.reduce((a, r) => a + f(r), 0);
+/** A card's figure, or "—" when the report failed with nothing to show (never a reassuring 0). */
+const figure = <T,>(q: { error: unknown; data: unknown }, v: T): T | string => (failedEmpty(q) ? "—" : v);
 
 function AttendanceTab({ params }: { params: Params }) {
   const { t } = useTranslation();
@@ -185,10 +187,10 @@ function AttendanceTab({ params }: { params: Params }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t("dawam.people", "People")} value={rows.length} formatType="number" loading={q.isLoading} />
-        <StatCard label={t("dawam.stateLate", "Late")} value={sum(rows, (r) => r.late_days)} formatType="number" loading={q.isLoading} />
-        <StatCard label={t("dawam.stateAbsent", "Absent")} value={sum(rows, (r) => r.absent_days)} formatType="number" loading={q.isLoading} />
-        <StatCard label={t("dawam.overtime", "Overtime")} value={fmtHours(sum(rows, (r) => r.total_overtime_minutes))} loading={q.isLoading} />
+        <StatCard label={t("dawam.people", "People")} value={figure(q, rows.length)} formatType="number" loading={q.isLoading} />
+        <StatCard label={t("dawam.stateLate", "Late")} value={figure(q, sum(rows, (r) => r.late_days))} formatType="number" loading={q.isLoading} />
+        <StatCard label={t("dawam.stateAbsent", "Absent")} value={figure(q, sum(rows, (r) => r.absent_days))} formatType="number" loading={q.isLoading} />
+        <StatCard label={t("dawam.overtime", "Overtime")} value={figure(q, fmtHours(sum(rows, (r) => r.total_overtime_minutes)))} loading={q.isLoading} />
       </div>
       <Table name="attendance" cols={cols} rows={rows} loading={q.isLoading} empty={t("dawam.rEmpty", "Nothing in this period")} error={q.error} onRetry={() => void q.refetch()} />
     </div>
@@ -216,9 +218,9 @@ function LabourTab({ params }: { params: Params }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label={t("dawam.rSales", "Sales")} value={sales} formatType="money" loading={q.isLoading} />
-        <StatCard label={t("dawam.rLabourCost", "Labour cost")} value={labour} formatType="money" loading={q.isLoading} />
-        <StatCard label={t("dawam.rShare", "Labour share")} value={share(labour, sales)} loading={q.isLoading} />
+        <StatCard label={t("dawam.rSales", "Sales")} value={figure(q, sales)} formatType="money" loading={q.isLoading} />
+        <StatCard label={t("dawam.rLabourCost", "Labour cost")} value={figure(q, labour)} formatType="money" loading={q.isLoading} />
+        <StatCard label={t("dawam.rShare", "Labour share")} value={figure(q, share(labour, sales))} loading={q.isLoading} />
       </div>
       <Table name="labour-vs-sales" cols={cols} rows={rows} loading={q.isLoading} empty={t("dawam.rEmpty", "Nothing in this period")} error={q.error} onRetry={() => void q.refetch()} />
     </div>
@@ -246,9 +248,9 @@ function PayrollTab({ params }: { params: Params }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label={t("dawam.totalNet", "Net pay")} value={sum(rows, (r) => r.net_piastres)} formatType="money" loading={q.isLoading} />
-        <StatCard label={t("dawam.overtime", "Overtime")} value={sum(rows, (r) => r.overtime_piastres)} formatType="money" loading={q.isLoading} />
-        <StatCard label={t("dawam.deductions", "Deductions")} value={sum(rows, (r) => r.deductions_piastres)} formatType="money" loading={q.isLoading} />
+        <StatCard label={t("dawam.totalNet", "Net pay")} value={figure(q, sum(rows, (r) => r.net_piastres))} formatType="money" loading={q.isLoading} />
+        <StatCard label={t("dawam.overtime", "Overtime")} value={figure(q, sum(rows, (r) => r.overtime_piastres))} formatType="money" loading={q.isLoading} />
+        <StatCard label={t("dawam.deductions", "Deductions")} value={figure(q, sum(rows, (r) => r.deductions_piastres))} formatType="money" loading={q.isLoading} />
       </div>
       <Table name="payroll-history" cols={cols} rows={rows} loading={q.isLoading} empty={t("dawam.rEmpty", "Nothing in this period")} error={q.error} onRetry={() => void q.refetch()} />
     </div>
@@ -280,9 +282,9 @@ function AdvancesTab({ params }: { params: Params }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label={t("dawam.rSalaryGiven", "Salary advances given")} value={q.data?.salary_given_piastres ?? 0} formatType="money" loading={q.isLoading} />
-        <StatCard label={t("dawam.rOutstanding", "Still owed")} value={q.data?.salary_outstanding_piastres ?? 0} formatType="money" loading={q.isLoading} />
-        <StatCard label={t("dawam.rExpenseGiven", "Expense advances given")} value={q.data?.expense_given_piastres ?? 0} formatType="money" loading={q.isLoading} />
+        <StatCard label={t("dawam.rSalaryGiven", "Salary advances given")} value={figure(q, q.data?.salary_given_piastres ?? 0)} formatType="money" loading={q.isLoading} />
+        <StatCard label={t("dawam.rOutstanding", "Still owed")} value={figure(q, q.data?.salary_outstanding_piastres ?? 0)} formatType="money" loading={q.isLoading} />
+        <StatCard label={t("dawam.rExpenseGiven", "Expense advances given")} value={figure(q, q.data?.expense_given_piastres ?? 0)} formatType="money" loading={q.isLoading} />
       </div>
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-muted-foreground">{t("dawam.salaryAdvances", "Salary advances")}</h2>
