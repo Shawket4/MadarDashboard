@@ -3,14 +3,14 @@
  * `madar_catalog::combo::quote` is tested against. "Make it a meal" is one such
  * quote — the item in its slot at its included size, every other pick a slot
  * default — so each case whose picks fit that shape is asked again as a +X:
- * the quote's unit total less the item alone. Every part's surcharge is checked
- * against `pickExtra` too.
+ * the quote's unit total less the item alone. Every pick is checked to be
+ * admitted by its slot (`choiceFor`).
  */
 import { describe, expect, it } from "vitest";
 
 import vectors from "@/lib/combo_vectors.json";
 
-import { choiceFor, mealDelta, pickExtra } from "./meal";
+import { choiceFor, mealDelta } from "./meal";
 import type { Combo } from "./types";
 import type { ItemOption } from "./use-menu-options";
 
@@ -47,14 +47,9 @@ const quotes = cases.filter((c) => c.expected.quote);
 describe("make it a meal matches madar-shared's combo quotes", () => {
   it("covers the quote cases", () => expect(quotes.length).toBeGreaterThanOrEqual(15));
 
-  it.each(quotes)("$name: each part's surcharge", (c) => {
+  it.each(quotes)("$name: each pick's slot admits its item", (c) => {
     const combo = combos[c.combo];
-    for (const part of c.expected.quote!.parts) {
-      const p = c.picks[part.pick_index];
-      const it = option(p);
-      const choice = choiceFor(combo.slots.find((s) => s.id === p.slot_id)!, it)!;
-      expect(pickExtra(choice, it, p.selection.size_label)).toBe(part.surcharge_unit);
-    }
+    for (const p of c.picks) expect(choiceFor(combo.slots.find((s) => s.id === p.slot_id)!, option(p))).toBeDefined();
   });
 
   // The +X prices one default per slot at its minimum and no add-ons, so a

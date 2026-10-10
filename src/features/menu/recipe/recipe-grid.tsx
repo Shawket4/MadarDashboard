@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Combobox, type ComboboxOption } from "@/components/app/combobox";
 import type { OrgIngredient } from "@/data/api/generated/models";
 import { currencyLabel, egpToPiastres, fmtMoney, fmtPercent } from "@/lib/format";
+import { draftRecipeCost, recipeMargin, type RecipeCost } from "@/lib/recipe-cost";
 import { cn } from "@/lib/utils";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
@@ -62,26 +63,13 @@ interface Props {
   toolbar?: React.ReactNode;
 }
 
-const costOf = (catalogById: Map<string, OrgIngredient>, id: string): number | null => {
-  const c = catalogById.get(id);
-  return c?.cost_per_unit != null && c.cost_per_unit > 0 ? c.cost_per_unit : null;
-};
-
-const estimateFor = (catalogById: Map<string, OrgIngredient>, lines: RecipeLineDraft[]) => {
-  let sum = 0;
-  let incomplete = false;
-  for (const l of lines) {
-    if (l.quantity.trim() === "") continue;
-    const qty = Number(l.quantity);
-    const unitCost = costOf(catalogById, l.ingredient_id);
-    if (!l.ingredient_id || unitCost == null || !Number.isFinite(qty)) {
-      incomplete = true;
-      continue;
-    }
-    sum += unitCost * qty;
-  }
-  return { piastres: sum, incomplete };
-};
+/** A size's draft cost: its lines with a quantity (a blank cell is not in this size). */
+const estimateFor = (catalogById: Map<string, OrgIngredient>, lines: RecipeLineDraft[]) =>
+  draftRecipeCost(
+    lines
+      .filter((l) => l.quantity.trim() !== "")
+      .map((l) => ({ ingredient: catalogById.get(l.ingredient_id), quantity: l.quantity, unit: l.unit })),
+  );
 
 /** Move focus to the cell `dr` rows away in the same column. */
 const moveFocus = (e: KeyboardEvent<HTMLInputElement>, dr: number) => {
@@ -190,7 +178,7 @@ export function RecipeGrid({
         const ing = catalogById.get(r.ingredient_id);
         const tag = sourceTag(r);
         const swapGroup = r.source !== "rule" ? swapGroupFor(ing?.category_slug, swapGroups, slugOf) : null;
-        const uncosted = !!ing && costOf(catalogById, r.ingredient_id) == null;
+        const uncosted = !!ing && ing.cost_per_unit == null;
         return (
           <div className="flex min-w-40 flex-col gap-1">
             <span className={cn("text-sm font-medium", r.source !== "own" && "text-muted-foreground")}>
@@ -462,24 +450,26 @@ export function RecipeGrid({
               </th>
               {blocks.map((b) => {
                 const estimated = !b.id || recipeDirtyKeys.has(b.key) || b.price !== b.seededPrice;
-                const est = estimated ? estimateFor(catalogById, b.lines) : null;
-                const incomplete = estimated ? est!.incomplete : (b.serverCost?.incomplete ?? false);
-                const cost = estimated ? est!.piastres : (b.serverCost?.piastres ?? null);
+                const cost: RecipeCost | null = estimated
+                  ? estimateFor(catalogById, b.lines)
+                  : b.serverCost?.piastres != null
+                    ? { piastres: b.serverCost.piastres, complete: !b.serverCost.incomplete }
+                    : null;
                 const priceEgp = Number(b.price);
                 const pricePiastres = Number.isFinite(priceEgp) ? egpToPiastres(priceEgp) : 0;
-                const margin =
-                  !incomplete && cost != null && pricePiastres > 0 ? (pricePiastres - cost) / pricePiastres : null;
+                const margin = cost ? recipeMargin(pricePiastres, cost) : null;
                 return (
                   <td key={b.key} className="px-2 py-2 text-end text-xs text-muted-foreground">
                     {b.lines.length === 0 ? (
                       "—"
-                    ) : incomplete || cost == null ? (
+                    ) : cost == null ? (
                       t("menu.studio.recipe.incomplete", "Cost incomplete")
                     ) : (
                       <span className="font-mono tabular-nums">
                         {estimated ? "≈ " : null}
-                        {fmtMoney(cost)}
+                        {fmtMoney(cost.piastres)}
                         {margin != null ? ` · ${fmtPercent(margin)}` : null}
+                        {cost.complete ? null : ` · ${t("menu.studio.recipe.incomplete", "Cost incomplete")}`}
                       </span>
                     )}
                   </td>

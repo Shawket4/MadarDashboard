@@ -64,7 +64,7 @@ describe("a line is priced as madar-catalog's vectors say", () => {
 
 /** An item as the public menu lists it: its active sizes at the branch's price; its price the branch's, else the lowest active size's. */
 const menuItem = (v: ItemView): DeliveryMenuItem => {
-  const active = v.sizes.filter((s) => s.is_active && s.price != null);
+  const active = (v.sizes ?? []).filter((s) => s.is_active && s.price != null);
   return {
     id: v.id,
     price: v.branch_price ?? Math.min(...active.map((s) => s.price!)),
@@ -78,7 +78,7 @@ describe("the menu's prices give the server's unit price (and 'from' price)", ()
     const size = c.selection.size_label;
     const why = !("line" in c.expected)
       ? "a refused line (no active size, or an option off the menu): only the server refuses it"
-      : item.sizes.some((s) => s.label === size && !s.is_active && s.branch_price != null)
+      : item.sizes?.some((s) => s.label === size && !s.is_active && s.branch_price != null)
         ? "a size only the branch prices: the menu never offers it"
         : null;
     (why ? it.skip : it)(why ? `${c.name} — ${why}` : c.name, () => {
@@ -135,7 +135,7 @@ const items = combos.items as Record<string, CatalogView>;
 /** A choice as the public menu lists it: the server's `PublicComboChoice` (sizes at the branch's price, each with its extra). */
 const publicChoice = (choice: Choice, key: string): PublicComboChoice => {
   const v = items[key].item;
-  const own = v.sizes.flatMap((s) => (s.is_active && s.price != null ? [{ label: s.label, price: s.branch_price ?? s.price }] : []));
+  const own = (v.sizes ?? []).flatMap((s) => (s.is_active && s.price != null ? [{ label: s.label, price: s.branch_price ?? s.price }] : []));
   const included = choice.included_size_label ?? own.reduce((a, b) => (b.price < a.price ? b : a)).label;
   const base = own.find((s) => s.label === included)!.price;
   return {

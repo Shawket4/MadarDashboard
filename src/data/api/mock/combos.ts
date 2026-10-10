@@ -20,6 +20,8 @@ import type {
   OrderFull,
 } from "@/data/api/generated/models";
 
+import { rules } from "@/lib/rules";
+
 import { MOCK_MENU_ITEMS, MOCK_ORDERS_PAGE } from "./data";
 import { MOCK_STAFF_ORDER } from "./staff-pool";
 
@@ -38,7 +40,7 @@ function economics(w: ComboWrite, branchId: string | null = null): ComboEconomic
     list += priceOf(id) * Math.max(1, s.min);
   }
   const cost = Math.round(list * 0.35);
-  const margin = w.price > 0 ? ((w.price - cost) / w.price).toFixed(4) : null;
+  const margin = rules.margin(w.price, cost)?.toFixed(4) ?? null;
   const warnings: ComboEconomics["warnings"] = [];
   if (margin !== null && minMargin !== null && Number(margin) < Number(minMargin)) {
     warnings.push({ code: "MARGIN_BELOW_MIN", vars: { margin, min: minMargin } });
