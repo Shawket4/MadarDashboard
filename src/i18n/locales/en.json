@@ -1857,7 +1857,8 @@
       "covers_other": "{{count}} covers",
       "emptyPeriod": "Nothing sat here in this period."
     },
-    "sittingNow": "Sitting now"
+    "sittingNow": "Sitting now",
+    "errSeats": "Seats must be a whole number from 0 to 99"
   },
   "orders": {
     "branch": "Branch",

@@ -23,11 +23,11 @@ import { Label } from "@/components/ui/label";
 import { updateFloorTable } from "@/data/api/generated/api";
 import type { FloorSection, FloorTable } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { ROTATION_STEP, invalidateFloor, normalizeAngle, type GeoItem } from "./util";
+import { ROTATION_STEP, invalidateFloor, normalizeAngle, parseSeats, type GeoItem } from "./util";
 
 /** Input that keeps local state and commits on blur / Enter. */
 function CommitInput({
-  id, value, type = "text", min, max, onCommit,
+  id, value, type = "text", min, max, onCommit, invalid, onDraft,
 }: {
   id: string;
   value: string;
@@ -35,6 +35,10 @@ function CommitInput({
   min?: number;
   max?: number;
   onCommit: (v: string) => void;
+  /** Marks the box invalid and points it at `${id}-error`, which the caller renders. */
+  invalid?: boolean;
+  /** Every keystroke, e.g. to clear an error. */
+  onDraft?: () => void;
 }) {
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value]);
@@ -49,7 +53,12 @@ function CommitInput({
       max={max}
       value={draft}
       className="h-8"
-      onChange={(e) => setDraft(e.target.value)}
+      aria-invalid={invalid || undefined}
+      aria-describedby={invalid ? `${id}-error` : undefined}
+      onChange={(e) => {
+        setDraft(e.target.value);
+        onDraft?.();
+      }}
       onBlur={commit}
       onKeyDown={(e) => {
         if (e.key === "Enter") { e.preventDefault(); commit(); }
@@ -57,6 +66,44 @@ function CommitInput({
         e.stopPropagation();
       }}
     />
+  );
+}
+
+/**
+ * Seats: a whole number from 0 to 99. Anything else (blank included) stays in
+ * the box with a message under the row, and nothing is sent. Typing clears it.
+ */
+function SeatsField({ seats, onSave }: { seats: number; onSave: (n: number) => void }) {
+  const { t } = useTranslation();
+  const [invalid, setInvalid] = useState(false);
+  return (
+    <>
+      <div className="space-y-1">
+        <Label htmlFor="floor-seats" className="text-xs text-muted-foreground">
+          {t("floor.seats", "Seats")}
+        </Label>
+        <CommitInput
+          id="floor-seats"
+          type="number"
+          min={0}
+          max={99}
+          value={String(seats)}
+          invalid={invalid}
+          onDraft={() => setInvalid(false)}
+          onCommit={(v) => {
+            const n = parseSeats(v);
+            setInvalid(n == null);
+            if (n != null) onSave(n);
+          }}
+        />
+      </div>
+      {/* Under the whole row: the seats column is too narrow for a sentence. */}
+      {invalid ? (
+        <p id="floor-seats-error" role="alert" className="col-span-2 text-xs text-destructive">
+          {t("floor.errSeats", "Seats must be a whole number from 0 to 99")}
+        </p>
+      ) : null}
+    </>
   );
 }
 
@@ -143,22 +190,7 @@ export function InspectorPanel({
                 }}
               />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="floor-seats" className="text-xs text-muted-foreground">
-                {t("floor.seats", "Seats")}
-              </Label>
-              <CommitInput
-                id="floor-seats"
-                type="number"
-                min={0}
-                max={99}
-                value={String(single.seats)}
-                onCommit={(v) => {
-                  const n = Number(v);
-                  if (Number.isInteger(n) && n >= 0 && n <= 99) void patch(single, { seats: n });
-                }}
-              />
-            </div>
+            <SeatsField key={single.id} seats={single.seats} onSave={(n) => void patch(single, { seats: n })} />
           </div>
 
           <div className="space-y-1">
