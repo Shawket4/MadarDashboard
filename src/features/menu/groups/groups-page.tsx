@@ -293,7 +293,9 @@ function GroupRow({
         <Badge variant="outline" className="font-normal">
           {pickLabel}
         </Badge>
-        <Badge variant={swaps ? "default" : "secondary"} className="font-normal">
+        {/* A swap is filled in the primary ink so it stands out from the plain chips
+            (the `default` badge went neutral with the design system). */}
+        <Badge variant="secondary" className={cn("font-normal", swaps && "bg-primary text-primary-foreground")}>
           {effectLabel}
         </Badge>
         <Badge variant="secondary" className="font-normal tabular">

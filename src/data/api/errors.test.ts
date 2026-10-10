@@ -35,6 +35,19 @@ describe("getErrorMessage", () => {
     expect(getErrorMessage(cap)).toMatch(/3250 EGP/);
   });
 
+  it("words an over-receive by its code, whether the server answers 400 or 409 (W9, B6)", async () => {
+    const body = { code: "OVER_RECEIVE_NEEDS_NOTE", error: "Conflict: More arrived than was sent; add a note" };
+    const conflict = apiError(body);
+    conflict.response!.status = 409;
+    for (const err of [apiError(body), conflict]) {
+      await i18n.changeLanguage("en");
+      expect(getErrorMessage(err)).toBe("More arrived than was sent. Add a note saying why.");
+      await i18n.changeLanguage("ar");
+      expect(getErrorMessage(err)).toBe("وصلت كمية أكبر مما أُرسل. أضف ملاحظة توضح السبب.");
+    }
+    await i18n.changeLanguage("en");
+  });
+
   it("falls back to the server message for unknown codes", () => {
     expect(getErrorMessage(apiError({ code: "SOMETHING_NEW", error: "Server says no" }))).toBe("Server says no");
   });

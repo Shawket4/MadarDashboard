@@ -2,7 +2,13 @@
 // @ts-nocheck
 
 export interface ItemCountInput {
-  counted_qty: number;
+  /**
+     * The figure counted. `null` un-counts the line: its figure, reason and
+     * counter are cleared and finalize treats it as not counted. Required
+     * (omitting it is refused), so no client un-counts by accident.
+     * @nullable
+     */
+  counted_qty: number | null;
   /** @nullable */
   note?: string | null;
   org_ingredient_id: string;

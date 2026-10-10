@@ -49,6 +49,14 @@ describe("buildCountPayload", () => {
     expect(payload).toEqual([{ org_ingredient_id: "a", counted_qty: 12, variance_reason: "miscount" }]);
   });
 
+  it("un-counts a cleared row the server holds a figure for, and only that row (W9, B2)", () => {
+    const payload = buildCountPayload(["a", "b", "c"], { a: "", b: "", c: "4" }, { a: "theft" }, new Set(["a", "c"]));
+    expect(payload).toEqual([
+      { org_ingredient_id: "a", counted_qty: null },
+      { org_ingredient_id: "c", counted_qty: 4, variance_reason: null },
+    ]);
+  });
+
   it("treats a blank reason as none", () => {
     expect(buildCountPayload(["a"], { a: "0" }, { a: "" })[0].variance_reason).toBeNull();
     expect(parseCount(" ")).toBeNull();

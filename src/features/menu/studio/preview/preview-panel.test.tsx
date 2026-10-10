@@ -62,4 +62,15 @@ describe("PreviewPanel", () => {
       undefined, // the generated client's per-request options
     );
   });
+
+  it("W8 (MENU-STUDIO-113) a single-price item shows no Size row, never the raw one_size", () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const simple = {
+      ...(studio as object),
+      sizes: [{ id: "s1", label: "one_size", price: 15000, is_active: true, sort: 0, recipe: [], cost_incomplete: false }],
+    } as never;
+    render(<QueryClientProvider client={qc}><PreviewPanel studio={simple} /></QueryClientProvider>);
+    expect(screen.queryByText("one_size")).not.toBeInTheDocument();
+    expect(screen.queryByText("Size")).not.toBeInTheDocument();
+  });
 });

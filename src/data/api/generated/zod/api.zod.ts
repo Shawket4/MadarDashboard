@@ -11654,6 +11654,11 @@ export const DeleteOrgParams = zod.object({
 export const DeleteOrgResponse = zod.void()
 
 
+/**
+ * @summary Super admin only, except a body carrying nothing but `social_links` and/or
+`logo_url: null`: the org's own people with `org.settings.edit` may save
+that for their own org.
+ */
 export const UpdateOrgParams = zod.object({
   "id": zod.uuid().describe('Organization ID')
 })
@@ -14504,7 +14509,7 @@ export const UpdateSupplierBody = zod.object({
   "is_active": zod.boolean().nullish(),
   "name": zod.string().nullish(),
   "phone": zod.string().nullish()
-})
+}).describe('A PATCH: an absent field is left as it is. For the contact fields, `null`\nor a blank value clears them.')
 
 export const UpdateSupplierResponse = zod.object({
   "contact_name": zod.string().nullish(),
@@ -16629,6 +16634,9 @@ export const TillSummaryResponse = zod.object({
 })
 
 
+/**
+ * @summary Needs `org.settings.read` or `menu.combos.edit`.
+ */
 export const GetSettingsResponse = zod.object({
   "branch_overrides": zod.array(zod.object({
   "branch_id": zod.uuid(),
@@ -17279,6 +17287,7 @@ export const GetStaffPoolSettingsResponse = zod.object({
   "daily_allowance": zod.number().optional().describe('Staff drinks this branch may give in one business day.'),
   "eligible_item_ids": zod.array(zod.uuid()).optional().describe('The menu items that count. EMPTY = the pool is off.'),
   "enabled": zod.boolean().optional().describe('The owner\'s master switch for this scope.'),
+  "inherited": zod.boolean().optional().describe('Read only. `true` when a branch has no override of its own and these\nare the organisation\'s settings (or the off default) it follows;\n`branch_id` still names the branch asked about. Ignored on PUT.'),
   "org_id": zod.uuid()
 }).describe('The settings as the API states them, and as the PUT body accepts them.')
 
@@ -17296,6 +17305,7 @@ export const PutStaffPoolSettingsResponse = zod.object({
   "daily_allowance": zod.number().optional().describe('Staff drinks this branch may give in one business day.'),
   "eligible_item_ids": zod.array(zod.uuid()).optional().describe('The menu items that count. EMPTY = the pool is off.'),
   "enabled": zod.boolean().optional().describe('The owner\'s master switch for this scope.'),
+  "inherited": zod.boolean().optional().describe('Read only. `true` when a branch has no override of its own and these\nare the organisation\'s settings (or the off default) it follows;\n`branch_id` still names the branch asked about. Ignored on PUT.'),
   "org_id": zod.uuid()
 }).describe('The settings as the API states them, and as the PUT body accepts them.')
 
@@ -21802,7 +21812,7 @@ export const UpsertItemsParams = zod.object({
 
 export const UpsertItemsBody = zod.object({
   "items": zod.array(zod.object({
-  "counted_qty": zod.number(),
+  "counted_qty": zod.number().nullable().describe('The figure counted. `null` un-counts the line: its figure, reason and\ncounter are cleared and finalize treats it as not counted. Required\n(omitting it is refused), so no client un-counts by accident.'),
   "note": zod.string().nullish(),
   "org_ingredient_id": zod.uuid(),
   "variance_reason": zod.string().nullish().describe('Why the count differs from book stock. One of: theft | spoilage |\nbreakage | miscount | supplier_short | transfer_error | other. Required\nat finalize for rows whose difference exceeds the org\'s threshold.')

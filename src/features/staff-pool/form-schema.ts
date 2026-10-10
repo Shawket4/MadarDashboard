@@ -87,15 +87,3 @@ export function toWire(
     eligible_item_ids: [...new Set(v.eligible_item_ids)],
   };
 }
-
-/**
- * Does a settings response belong to the branch that was asked for?
- *
- * The API answers a branch query with the settings IN FORCE — its override if
- * it has one, otherwise the organisation's. The only way to tell the two apart
- * is whether `branch_id` came back matching what was asked for.
- */
-export const isOwnOverride = (
-  settings: StaffPoolSettings | undefined,
-  branchId: string | null,
-): boolean => Boolean(branchId) && settings?.branch_id === branchId;

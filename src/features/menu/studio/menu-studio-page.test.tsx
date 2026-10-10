@@ -8,9 +8,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+let caps = ["recipes.read", "recipes.edit", "menu.items.read", "menu.items.edit"];
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
-  return { ...real, useAuthz: () => real.authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: true, platform: false, role_kinds: ["org_admin"], capabilities: ["recipes.read", "recipes.edit", "menu.items.read", "menu.items.edit"], ask_manager: [], limits: {} }) };
+  return { ...real, useAuthz: () => real.authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: true, platform: false, role_kinds: ["org_admin"], capabilities: caps as never, ask_manager: [], limits: {} }) };
 });
 vi.mock("@tanstack/react-router", () => ({
   Link: (p: { children: React.ReactNode }) => <a>{p.children}</a>,
@@ -29,7 +30,8 @@ vi.mock("../util", () => ({ invalidateCatalog: vi.fn() }));
 vi.mock("../recipe/recipe-grid", () => ({ RecipeGrid: () => null }));
 vi.mock("./section-steps", () => ({ SectionSteps: () => null }));
 vi.mock("./section-modifiers", () => ({ SectionModifiers: () => null }));
-vi.mock("./section-options", () => ({ SectionOptions: () => null }));
+const optionsProps = vi.fn();
+vi.mock("./section-options", () => ({ SectionOptions: (p: unknown) => (optionsProps(p), null) }));
 vi.mock("./preview/preview-panel", () => ({ PreviewPanel: () => null }));
 vi.mock("./section-meal", () => ({ SectionMeal: () => null }));
 
@@ -39,6 +41,7 @@ vi.mock("@/data/api/generated/api", () => ({
   useGetRecipeLink: () => ({ data: undefined }),
   useGetStudio: () => useGetStudio(),
   useListCatalog: () => ({ data: [] }),
+  useListStepPresets: () => ({ data: undefined }),
   useListCategories: () => ({ data: [] }),
   duplicateItem: vi.fn(),
   getGetMenuItemQueryOptions: (id: string) => ({ queryKey: ["item", id], queryFn: vi.fn() }),
@@ -96,5 +99,16 @@ describe("MenuStudioPage item image", () => {
   it("offers no removal when there is neither an asset nor a legacy url", () => {
     wrap({ ...baseStudio, image_url: null, image: null });
     expect(screen.queryByRole("button", { name: "Remove" })).toBeNull();
+  });
+});
+
+describe("MenuStudioPage options gate (W8, MENU-STUDIO-112)", () => {
+  it("the Options section is read-only without menu.items.edit", () => {
+    caps = ["recipes.read", "menu.items.read"];
+    wrap(baseStudio);
+    expect(optionsProps).toHaveBeenLastCalledWith(expect.objectContaining({ readOnly: true }));
+    caps = ["recipes.read", "menu.items.read", "menu.items.edit"];
+    wrap(baseStudio);
+    expect(optionsProps).toHaveBeenLastCalledWith(expect.objectContaining({ readOnly: false }));
   });
 });

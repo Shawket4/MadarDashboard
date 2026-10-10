@@ -114,13 +114,13 @@ export function SectionSteps({ steps, setSteps, readOnly = false }: Props) {
 
                 {/* What this drink does at this step. On a preset it replaces
                     the library's generic note and keeps the animation; leave it
-                    empty and the preset's own wording shows. */}
+                    empty and the preset's own wording shows, as the placeholder. */}
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Input
                     value={step.note}
                     onChange={(e) => setTitle(idx, { note: e.target.value })}
                     disabled={readOnly}
-                    placeholder={t("menu.studio.steps.notePlaceholder", "For this drink — e.g. 40ml condensed milk")}
+                    placeholder={preset?.note || t("menu.studio.steps.notePlaceholder", "For this drink — e.g. 40ml condensed milk")}
                     aria-label={t("menu.studio.steps.noteEn", "Note (English)")}
                     className="h-8 text-xs"
                     maxLength={280}
@@ -129,7 +129,7 @@ export function SectionSteps({ steps, setSteps, readOnly = false }: Props) {
                     value={step.note_ar}
                     onChange={(e) => setTitle(idx, { note_ar: e.target.value })}
                     disabled={readOnly}
-                    placeholder={t("menu.studio.steps.notePlaceholderAr", "ملاحظة لهذا المشروب")}
+                    placeholder={preset?.note_ar || t("menu.studio.steps.notePlaceholderAr", "ملاحظة لهذا المشروب")}
                     dir="rtl"
                     aria-label={t("menu.studio.steps.noteAr", "Note (Arabic)")}
                     className="h-8 text-xs"
