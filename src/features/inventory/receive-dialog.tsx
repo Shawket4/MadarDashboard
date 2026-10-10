@@ -122,6 +122,8 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                     const remaining = l.quantity_ordered - l.quantity_received;
                     const arriving = parseFloat(receiving[l.id] ?? "");
                     // What the order says this much costs: the line total, pro rata.
+                    // ponytail: a display-only copy of madar-inventory `delivery_cost`'s pro-rata branch;
+                    // call it through `rules` once madar-web exports it.
                     const expected =
                       Number.isFinite(arriving) && arriving > 0 && l.quantity_ordered > 0
                         ? Math.round((l.line_cost * arriving) / l.quantity_ordered)

@@ -1,8 +1,9 @@
 import type { StatusTone } from "@/components/app/status-pill";
-import { Cap, type Capability } from "@/generated/capabilities";
+import type { Capability } from "@/generated/capabilities";
 import { queryClient } from "@/data/api/query";
 import type { BranchStockRow, ItemCountInput, StockTransfer, Stocktake, StocktakeItem } from "@/data/api/generated/models";
 import { fmtNumber } from "@/lib/format";
+import { rules, type Action, type LineCheck, type ReceiveRefusal, type Side, type TransferStatus } from "@/lib/rules";
 
 /**
  * Shared vocabulary + helpers for the inventory screens.
@@ -50,73 +51,31 @@ export type POStatus = (typeof PO_STATUSES)[number];
 /** Stock units the catalog supports. */
 export const UNITS = ["g", "kg", "ml", "l", "pcs"] as const;
 
-// ── Measure families (the backend converts only within a family) ─────────────
-// madar-units (`unit_spec`, `units_of`, `convert`), pinned by
-// src/lib/unit_vectors.json; no density bridge here.
-
-export type MeasureFamily = "weight" | "volume" | "count";
-
-/** A unit's family and its factor to the family's smallest unit; case and
- *  surrounding spaces ignored, anything else unknown. */
-const UNIT_SPECS = new Map<string, [MeasureFamily, number]>([
-  ["g", ["weight", 1]],
-  ["kg", ["weight", 1000]],
-  ["ml", ["volume", 1]],
-  ["l", ["volume", 1000]],
-  ["pcs", ["count", 1]],
-]);
-const unitSpec = (unit: string) => UNIT_SPECS.get(unit.trim().toLowerCase());
-
-/** `null` for a unit the backend doesn't know. */
-export const unitFamily = (unit: string): MeasureFamily | null => unitSpec(unit)?.[0] ?? null;
+// ── Units, purchase costs, counts, transfers: madar-shared's Rust ────────────
+// The rules below are madar-units and madar-inventory through WebAssembly
+// (`@/lib/rules`), the code the backend runs; lib.test.ts runs them against
+// the pinned unit_vectors.json and inventory_vectors.json.
 
 /** The units something stocked in `unit` may be typed in (an unknown unit only in itself). */
-export const unitsForFamily = (unit: string): string[] => {
-  switch (unitFamily(unit)) {
-    case "weight":
-      return ["g", "kg"];
-    case "volume":
-      return ["ml", "l"];
-    case "count":
-      return ["pcs"];
-    default:
-      return [unit];
-  }
-};
+export const unitsForFamily = (unit: string): string[] => rules.units_of(unit);
 
-// ── Purchase costs: the invoice total is the truth ───────────────────────────
-
-/** Base stock units in one purchase unit (a kg of a gram item → 1000), the
- *  same conversion the backend derives the pack factor with. `null` where the
- *  backend refuses to convert: an unknown unit, or across families. */
-export const stockUnitsPer = (purchaseUnit: string, stockUnit: string): number | null => {
-  const from = unitSpec(purchaseUnit);
-  const to = unitSpec(stockUnit);
-  return from && to && from[0] === to[0] ? from[1] / to[1] : null;
-};
-
-/** A line's unit cost DERIVED from its total, in piastres per purchase unit,
- *  unrounded. `null` until both are known. Never the other way round: a unit
+/** A line's unit cost DERIVED from its total, in piastres per purchase unit
+ *  (8 dp, on the quantity rounded to 3 dp half away from zero, as the server
+ *  stores it). `null` until both are known. Never the other way round: a unit
  *  cost rounded to whole piastres turned 12 000 g at 548.16 EGP into 600.00. */
 export const unitCostFromTotal = (linePiastres: number, qty: number): number | null =>
-  Number.isFinite(linePiastres) && linePiastres >= 0 && Number.isFinite(qty) && qty > 0
-    ? linePiastres / qty
-    : null;
+  Number.isInteger(linePiastres) ? rules.unit_cost_from_total(linePiastres, qty) : null;
 
 /** The catalog's estimate of a line's total, in whole piastres: its cost per
- *  stock unit × the stock units ordered. `null` when the catalog has no cost
- *  or the units don't convert (no figure rather than a wrong one). */
+ *  stock unit × the stock units ordered, exact and rounded once. `null` when
+ *  the catalog has no cost or the units don't convert (no figure rather than a
+ *  wrong one). */
 export const estimateLineTotal = (
   catalogCostPerStockUnit: number | null | undefined,
   qty: number,
   purchaseUnit: string,
   stockUnit: string,
-): number | null => {
-  const per = stockUnitsPer(purchaseUnit, stockUnit);
-  return catalogCostPerStockUnit != null && per != null && Number.isFinite(qty) && qty > 0
-    ? Math.round(catalogCostPerStockUnit * qty * per)
-    : null;
-};
+): number | null => rules.estimate_line_total(catalogCostPerStockUnit, qty, purchaseUnit, stockUnit);
 
 /** Fraction digits a unit cost is shown with (EGP), always all of them:
  *  enough for 0.04568 per gram, and a whole-looking figure still reads as
@@ -134,15 +93,12 @@ export const formatUnitCost = (piastresPerUnit: number): string =>
 
 /**
  * A counted row is flagged when |counted − book| is at least the org tolerance
- * percent of book stock, or when stock appears-from / vanishes-to zero.
- * Flagged rows need a `variance_reason` before finalize (the backend enforces
+ * percent of book stock (exact, in thousandths), or when stock appears from
+ * zero. Flagged rows need a `variance_reason` before finalize (the backend runs
  * the same rule against the same live book figure and answers 409 otherwise).
  */
-export function isVarianceFlagged(book: number, counted: number | null | undefined, thresholdPct: number): boolean {
-  if (counted == null) return false;
-  if (Math.abs(book) < 1e-9) return Math.abs(counted) > 1e-9;
-  return (Math.abs(counted - book) / Math.abs(book)) * 100 >= thresholdPct;
-}
+export const isVarianceFlagged = (book: number, counted: number | null | undefined, thresholdPct: number): boolean =>
+  counted != null && rules.is_variance_flagged(book, counted, thresholdPct);
 
 /** Parse a count input; empty or non-numeric means "not counted". */
 export function parseCount(raw: string | undefined): number | null {
@@ -273,31 +229,20 @@ export function isBelowZero(onHand: number | null | undefined): boolean {
 
 // ── Transfers (WAREHOUSE_DESIGN.md) ──────────────────────────────────────────
 
-export type TransferAction = "edit" | "accept" | "decline" | "dispatch" | "receive" | "cancel";
-type Side = "source" | "destination";
+export type TransferAction = Action;
+const TRANSFER_ACTIONS: TransferAction[] = ["edit", "accept", "decline", "dispatch", "receive", "cancel"];
+const TRANSFER_STATUSES: string[] = ["requested", "draft", "dispatched", "received", "cancelled"] satisfies TransferStatus[];
 
 /**
- * Which side may take which action in which status — the backend's table
- * (madar_inventory::transfer::step), mirrored so the drawer offers only what
- * the server would allow. The server still decides.
+ * Which side may take an action in a status, and the capability it needs
+ * (madar_inventory::transfer::step), so the drawer offers only what the server
+ * would allow; null when the action is closed. The server still decides.
  */
-const TRANSFER_STEPS: Record<string, Partial<Record<TransferAction, Side>>> = {
-  requested: { edit: "destination", cancel: "destination", accept: "source", decline: "source" },
-  draft: { edit: "source", dispatch: "source", cancel: "source" },
-  dispatched: { receive: "destination", cancel: "source" },
-};
-
-/** The capability each action needs (the same table's third column). */
-const TRANSFER_CAPS = (status: string, a: TransferAction): Capability =>
-  a === "receive" ? Cap.inventoryTransfersEdit
-    : a === "cancel" && status === "dispatched" ? Cap.inventoryTransfersDelete
-    : Cap.inventoryTransfersCreate;
-
-/** One cell of the table: who acts and what they need, or null when the action is closed. */
-export function transferStep(status: string, a: TransferAction): { side: Side; cap: Capability } | null {
-  const side = TRANSFER_STEPS[status]?.[a];
-  return side ? { side, cap: TRANSFER_CAPS(status, a) } : null;
-}
+export const transferStep = (status: string, a: TransferAction): { side: Side; cap: Capability } | null =>
+  // A status this build does not know opens nothing (the wasm throws on it).
+  TRANSFER_STATUSES.includes(status)
+    ? (rules.transfer_step(status as TransferStatus, a) as { side: Side; cap: Capability } | null)
+    : null;
 
 /**
  * Actions open to someone who works at `myBranches` (owners: every location)
@@ -309,18 +254,13 @@ export function transferActions(
   myBranches: Set<string>,
   can: (cap: Capability, at: string) => boolean = () => true,
 ): TransferAction[] {
-  return (Object.keys(TRANSFER_STEPS[t.status] ?? {}) as TransferAction[]).filter((a) => {
+  return TRANSFER_ACTIONS.filter((a) => {
     const step = transferStep(t.status, a);
     if (!step) return false;
     const at = step.side === "source" ? t.source_branch_id : t.destination_branch_id;
     return myBranches.has(at) && can(step.cap, at);
   });
 }
-
-/** A quantity in whole thousandths, as the server compares them (madar_inventory::milli). */
-export const milli = (q: number): number => Math.sign(q) * Math.round(Math.abs(q) * 1000);
-
-export type Arrival = "exact" | "short" | "over";
 
 /**
  * One received line, judged as the server judges it
@@ -331,11 +271,9 @@ export function checkReceiveLine(
   sent: number,
   got: number,
   note: string | null | undefined,
-): { arrival: Arrival; difference: number } | { refused: "negative" | "over_needs_note" } {
-  const [s, g] = [milli(sent), milli(got)];
-  if (g < 0) return { refused: "negative" };
-  if (g > s && !(note ?? "").trim()) return { refused: "over_needs_note" };
-  return { arrival: g === s ? "exact" : g < s ? "short" : "over", difference: (g - s) / 1000 };
+): LineCheck | { refused: ReceiveRefusal } {
+  const r = rules.check_receive_line(sent, got, note);
+  return typeof r === "string" ? { refused: r } : r;
 }
 
 export const TRANSFER_TONES: Record<string, StatusTone> = {
