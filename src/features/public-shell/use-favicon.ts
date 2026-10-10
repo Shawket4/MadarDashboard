@@ -21,6 +21,12 @@ import { useEffect } from "react";
 
 import { env } from "@/data/config/env";
 
+/**
+ * Off by the owner's call (2026-10-10): the tab always shows Madar's icon, on
+ * every page. Flip to bring back the shop's logo on its own subdomain.
+ */
+export const SHOP_FAVICON = false;
+
 /** The tags a browser actually reads, and the size each wants. */
 const ICONS: { rel: string; size: number }[] = [
   { rel: "icon", size: 180 },
@@ -44,7 +50,7 @@ export function useShopFavicon(params: { orgId?: string | null; slug?: string | 
   const slug = orgId ? null : (params.slug ?? null);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    if (!SHOP_FAVICON || typeof document === "undefined") return;
     if (!orgId && !slug) return;
 
     let base: URL;

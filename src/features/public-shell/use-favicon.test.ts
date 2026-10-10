@@ -4,13 +4,22 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { useShopFavicon } from "./use-favicon";
+import { SHOP_FAVICON, useShopFavicon } from "./use-favicon";
 
 function icons() {
   return [...document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]')].map((l) => l.href);
 }
 
-describe("useShopFavicon", () => {
+describe("the favicon while the shop swap is off", () => {
+  it.skipIf(SHOP_FAVICON)("keeps Madar's icon on a shop's own page", () => {
+    document.head.innerHTML = '<link rel="icon" href="/Icon.svg">';
+    renderHook(() => useShopFavicon({ orgId: "org-7", slug: "rue" }));
+    expect(icons()).toEqual([expect.stringContaining("/Icon.svg")]);
+    expect(document.querySelector('link[rel="apple-touch-icon"]')).toBeNull();
+  });
+});
+
+describe.skipIf(!SHOP_FAVICON)("useShopFavicon", () => {
   beforeEach(() => {
     document.head.innerHTML = "";
   });

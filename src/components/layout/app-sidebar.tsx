@@ -58,6 +58,9 @@ const useIsActive = () => {
  * first group to hit it, but the threshold isn't Reports-specific. */
 const GROUP_COLLAPSE_THRESHOLD = 4;
 
+/** Off by the owner's call (2026-10-10): the sidebar always shows Madar's wordmark. Flip to bring back a shop's own logo. */
+const SHOP_LOGO_IN_SIDEBAR = false;
+
 interface NavRowProps {
   entry: NavEntry;
   isActive: (to: string) => boolean;
@@ -243,7 +246,7 @@ export function AppSidebar() {
                     Not inverted in dark mode the way the wordmark is: that
                     trick works on a two-colour wordmark and would flatten a
                     shop's logo to a silhouette. */}
-                {brand?.ownBranding && brand.logoUrl ? (
+                {SHOP_LOGO_IN_SIDEBAR && brand?.ownBranding && brand.logoUrl ? (
                   <img
                     src={brand.logoUrl}
                     alt={brand.orgName}
