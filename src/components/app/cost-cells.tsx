@@ -3,20 +3,22 @@ import { useTranslation } from "react-i18next";
 import { AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmtMoney, fmtPercent } from "@/lib/format";
+import { BAND_STYLE, foodCostBand } from "@/lib/recipe-cost";
+import { rules } from "@/lib/rules";
 import type { AddonCost, SkuCost } from "@/data/api/generated/models";
 
-/** food_cost_pct traffic light: green <30%, amber 30–40%, red >40%. */
-export function FoodCostChip({ pct }: { pct: number }) {
-  const Icon = pct < 0.3 ? CheckCircle2 : pct <= 0.4 ? AlertTriangle : AlertCircle;
+const BAND_ICON = { good: CheckCircle2, fair: AlertTriangle, poor: AlertCircle };
+
+/** A complete cost's food-cost share of its price, coloured by its band (green < 30 %, amber ≤ 40 %, red above). */
+export function FoodCostChip({ cost, price }: { cost: number; price: number }) {
+  const band = foodCostBand(cost, price);
+  const margin = rules.margin(price, cost);
+  if (!band || margin == null) return null;
+  const Icon = BAND_ICON[band];
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold tabular",
-        pct < 0.3 ? "bg-success/10 text-success" : pct <= 0.4 ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive",
-      )}
-    >
+    <span className={cn("inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-semibold tabular", BAND_STYLE[band].chip)}>
       <Icon className="size-3 shrink-0" />
-      {fmtPercent(pct)}
+      {fmtPercent(1 - margin)}
     </span>
   );
 }
@@ -47,7 +49,7 @@ export function ItemCostCell({ skus }: { skus: SkuCost[] }) {
         <div key={sku.size_label} className="flex items-center gap-1.5 text-xs">
           {skus.length > 1 ? <span className="text-muted-foreground">{sku.size_label}</span> : null}
           <span className="tabular">{fmtMoney(sku.cost)}</span>
-          {sku.food_cost_pct != null ? <FoodCostChip pct={sku.food_cost_pct} /> : null}
+          {sku.cost != null && !sku.cost_missing ? <FoodCostChip cost={sku.cost} price={sku.price} /> : null}
           {sku.cost_missing ? <CostMissingLink itemId={sku.menu_item_id} /> : null}
         </div>
       ))}
@@ -58,11 +60,10 @@ export function ItemCostCell({ skus }: { skus: SkuCost[] }) {
 /** Cost / margin cell for an addon item. */
 export function AddonCostCell({ cost }: { cost: AddonCost | undefined }) {
   if (!cost) return <span className="text-xs text-muted-foreground">—</span>;
-  const foodCostPct = cost.cost != null && cost.price > 0 ? cost.cost / cost.price : null;
   return (
     <div className="flex items-center gap-1.5 text-xs">
       <span className="tabular">{fmtMoney(cost.cost)}</span>
-      {foodCostPct != null ? <FoodCostChip pct={foodCostPct} /> : null}
+      {cost.cost != null && !cost.cost_missing ? <FoodCostChip cost={cost.cost} price={cost.price} /> : null}
       {cost.cost_missing ? <CostMissingLink addonId={cost.addon_item_id} /> : null}
     </div>
   );

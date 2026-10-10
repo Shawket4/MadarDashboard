@@ -7,6 +7,7 @@ import {
   mockStaffPoolToday,
 } from "./staff-pool";
 import { defaultsFor } from "@/data/authz/use-authz";
+import { rules } from "@/lib/rules";
 import { comboHandlers } from "./combos";
 
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
@@ -309,11 +310,9 @@ const MOCK_ITEM_DETAILS: Record<string, ReturnType<typeof mockItem>> = {
 };
 const itemDetail = (id: string) => MOCK_ITEM_DETAILS[id] ?? MOCK_ITEM_DETAILS.mi_generic;
 
-/** The server's `usable_qty`: a stored quantity × its ingredient's yield, 3 dp (no yield = 100 %). */
-const usableQty = (stored: number, ingredientId: string): number => {
-  const y = MOCK_INGREDIENT_CATALOG.find((i) => i.id === ingredientId)?.yield_pct as number | null | undefined;
-  return Math.round(stored * (y != null && y > 0 ? y / 100 : 1) * 1000) / 1000;
-};
+/** The server's `usable_qty` (madar-units, through the wasm): a stored quantity at its ingredient's yield. */
+const usableQty = (stored: number, ingredientId: string): number =>
+  rules.usable_qty(stored, MOCK_INGREDIENT_CATALOG.find((i) => i.id === ingredientId)?.yield_pct as number | null | undefined);
 
 /** The Studio aggregate of a mock item: its sizes, each with its own (uncosted) recipe lines. */
 const mockStudio = (m: ReturnType<typeof mockItem>) => ({
