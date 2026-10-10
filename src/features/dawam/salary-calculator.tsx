@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useGetAttendanceSettings } from "@/data/api/generated/api";
-import { fmtDate, fmtMoney } from "@/lib/format";
+import { businessDate, fmtDate, fmtMoney } from "@/lib/format";
 import { readPounds } from "./money-dialogs";
 import { DEFAULT_BASIS, firstPay, rates, type PayBasis } from "./salary-calc";
 
@@ -59,7 +59,7 @@ export function SalaryCalculator({
   };
 
   const first = m !== null && hireDate && /^\d{4}-\d{2}-\d{2}$/.test(hireDate) ? firstPay(m, hireDate, startDay) : null;
-  const showFirst = first && (!onlyOpenPeriod || first.to >= new Date().toISOString().slice(0, 10));
+  const showFirst = first && (!onlyOpenPeriod || first.to >= businessDate());
   const hours = basis.dayMinutes / 60;
 
   return (

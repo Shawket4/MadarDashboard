@@ -20,11 +20,11 @@ describe("booking day", () => {
     expect(serviceToday(new Date("2026-09-10T20:59:00Z"), TZ)).toBe("2026-09-10");
   });
   it("follows DST in the branch zone", () => {
-    // London springs forward 2026-03-29: 23:30Z on the 28th is 23:30 GMT; 00:30Z on the 29th is 00:30 GMT.
-    expect(serviceToday(new Date("2026-03-28T23:30:00Z"), "Europe/London")).toBe("2026-03-28");
-    expect(serviceToday(new Date("2026-03-29T00:30:00Z"), "Europe/London")).toBe("2026-03-29");
-    // Summer: 23:30Z is already 00:30 BST the next day.
-    expect(serviceToday(new Date("2026-07-01T23:30:00Z"), "Europe/London")).toBe("2026-07-02");
+    // New York springs forward 2026-03-08 (the wasm bundles no European zone): 04:30Z on the 9th is
+    // 00:30 EDT; 04:30Z on 2 Jan is still 23:30 EST on the 1st.
+    expect(serviceToday(new Date("2026-03-09T03:30:00Z"), "America/New_York")).toBe("2026-03-08");
+    expect(serviceToday(new Date("2026-03-09T04:30:00Z"), "America/New_York")).toBe("2026-03-09");
+    expect(serviceToday(new Date("2026-01-02T04:30:00Z"), "America/New_York")).toBe("2026-01-01");
   });
   it("adds days and knows weekdays", () => {
     expect(addDays("2026-09-30", 1)).toBe("2026-10-01");

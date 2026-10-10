@@ -7,15 +7,22 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_BASIS, firstPay, periodOf, rates, roundDiv } from "./salary-calc";
+import vectors from "@/lib/salary_vectors.json";
 
-describe("roundDiv", () => {
-  it("rounds half away from zero", () => {
-    expect(roundDiv(5, 2)).toBe(3);
-    expect(roundDiv(-5, 2)).toBe(-3);
-    expect(roundDiv(4, 3)).toBe(1);
-    expect(roundDiv(5, 3)).toBe(2);
-    expect(roundDiv(0, 7)).toBe(0);
+import { DEFAULT_BASIS, firstPay, periodOf, rates } from "./salary-calc";
+
+// madar-shared's salary_vectors.json (pinned by rev): the server's rates and
+// first pay. Its `prorated` cases (a period priced across raises, joiners and
+// leavers) are madar-dawam's `prorated_base`, which the web does not compute.
+describe("salary vectors", () => {
+  it.each(vectors.rates)("rates: $typed $value over $working_days days of $day_minutes min", (c) => {
+    const typed = { [c.typed]: c.value } as { monthly: number } | { daily: number } | { hourly: number };
+    expect(rates(typed, { workingDays: Number(c.working_days), dayMinutes: c.day_minutes })).toEqual({ monthly: c.monthly, daily: c.daily, hourly: c.hourly });
+  });
+
+  it.each(vectors.first_pay)("first_pay: $monthly hired $hire_date, start day $start_day", (c) => {
+    expect(firstPay(c.monthly, c.hire_date, c.start_day)).toEqual({ from: c.from, to: c.to, days: c.days, periodDays: c.period_days, piastres: c.piastres });
+    expect(periodOf(c.hire_date, c.start_day).days).toBe(c.period_days);
   });
 });
 

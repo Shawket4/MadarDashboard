@@ -179,7 +179,7 @@ export function PackagingRulesPage() {
                   <p className="truncate text-xs text-muted-foreground">
                     {match.length ? match.join(" · ") : t("modeling.packaging.matchAll", "Every size")}
                     {" → "}
-                    {r.lines.map((l) => `${l.ingredient_name} ${Number(l.quantity)}`).join(", ") || "—"}
+                    {r.lines.map((l) => `${l.ingredient_name} ${Number(l.usable_quantity ?? l.quantity)}`).join(", ") || "—"}
                   </p>
                 </div>
                 {canEdit ? (
@@ -270,7 +270,8 @@ function RuleDialog({
         label: qtyLabel,
         lines: (rule?.lines ?? []).map((l) => ({
           ingredient_id: l.ingredient_id,
-          quantity: String(Number(l.quantity)),
+          // As typed (before yield loss), so a line saved back unchanged is kept.
+          quantity: String(Number(l.usable_quantity ?? l.quantity)),
           unit: l.unit,
         })),
       },

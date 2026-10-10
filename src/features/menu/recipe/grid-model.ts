@@ -6,6 +6,8 @@
  * `PUT /menu-item-sizes/{sid}/recipe`. Lines expanded server-side from a recipe base,
  * a packaging rule or a linked source are shown read-only and never saved.
  */
+import { rules } from "@/lib/rules";
+
 /** Where a stored size recipe line came from. Legacy rows (`null`) are `own`. */
 export type LineSource = "own" | "base" | "rule" | "linked";
 
@@ -120,13 +122,14 @@ export const addRow = <B extends GridBlock>(blocks: B[], ingredientId: string, u
 export const removeRow = <B extends GridBlock>(blocks: B[], ingredientId: string): B[] =>
   blocks.map((b) => ({ ...b, lines: b.lines.filter((l) => !(isOwn(l) && l.ingredient_id === ingredientId)) }));
 
-/** Round to the 3 decimals the quantity inputs accept; blanks stay blank. */
-export const fmtQty = (q: number): string => String(Math.round(q * 1000) / 1000);
+/** Round to the 3 decimals the quantity inputs accept (madar-units `scale_qty` × 1: half away from zero). */
+export const fmtQty = (q: number): string => String(rules.scale_qty(q, 1));
 
+/** A typed quantity × `factor`, 3 dp (madar-units `scale_qty`); a blank or non-numeric cell stays as typed. */
 export const scaleQty = (quantity: string, factor: number): string => {
   if (quantity.trim() === "") return quantity;
   const n = Number(quantity);
-  return Number.isFinite(n) ? fmtQty(n * factor) : quantity;
+  return Number.isFinite(n) ? String(rules.scale_qty(n, factor)) : quantity;
 };
 
 /**

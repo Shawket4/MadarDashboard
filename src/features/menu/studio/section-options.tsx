@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Combobox, type ComboboxOption } from "@/components/app/combobox";
 import type { OrgIngredient } from "@/data/api/generated/models";
 import { fmtMoney } from "@/lib/format";
+import { draftLineCost } from "@/lib/recipe-cost";
 import type { OptionRowDraft } from "./util";
 
 interface Props {
@@ -40,9 +41,8 @@ export function SectionOptions({ rows, setRows, catalogById, ingredientOptions, 
       ) : null}
       {rows.map((row, idx) => {
         const ing = row.ingredient_id ? catalogById.get(row.ingredient_id) : undefined;
-        const unitCost = ing?.cost_per_unit != null && ing.cost_per_unit > 0 ? ing.cost_per_unit : null;
-        const qty = parseFloat(row.quantity);
-        const lineCost = ing && unitCost != null && Number.isFinite(qty) ? fmtMoney(unitCost * qty) : null;
+        const cost = draftLineCost({ ingredient: ing, quantity: row.quantity, unit: row.unit });
+        const lineCost = cost != null ? fmtMoney(cost) : null;
         return (
           <div key={idx} className="rounded-lg border p-3 sm:p-4">
             <div className="flex flex-wrap items-end gap-3">

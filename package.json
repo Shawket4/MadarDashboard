@@ -27,7 +27,8 @@
     "test:watch": "vitest",
     "generate:api": "orval",
     "build:order:shop": "MADAR_MOUNT=/order/ vite build --config vite.order.config.ts",
-    "build:reservations:shop": "MADAR_MOUNT=/book/ vite build --config vite.reservations.config.ts"
+    "build:reservations:shop": "MADAR_MOUNT=/book/ vite build --config vite.reservations.config.ts",
+    "sync:rules": "node scripts/sync-rules.mjs"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",

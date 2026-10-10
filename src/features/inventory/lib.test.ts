@@ -1,23 +1,26 @@
+import countVectors from "@/lib/count_vectors.json";
 import vectors from "@/lib/inventory_vectors.json";
+import purchase from "@/lib/purchase_vectors.json";
 import unitVectors from "@/lib/unit_vectors.json";
 import { describe, expect, it } from "vitest";
 
+import { rules } from "@/lib/rules";
 import {
   formatUnitCost,
   estimateLineTotal,
-  stockUnitsPer,
   unitsForFamily,
   unitCostFromTotal,
   buildCountPayload,
   checkReceiveLine,
   transferActions,
   transferStep,
-  milli,
   countsDue,
+  deliveryCost,
   isVarianceFlagged,
   missingReasons,
   needsFirstCount,
   parseCount,
+  roundQty,
   isBelowZero,
   wasteReceivedLate,
   wasteSource,
@@ -40,6 +43,12 @@ describe("isVarianceFlagged", () => {
     expect(isVarianceFlagged(0, 3, 10)).toBe(true);
     expect(isVarianceFlagged(0, 0, 10)).toBe(false);
     expect(isVarianceFlagged(100, null, 10)).toBe(false);
+  });
+
+  it("compares exactly, in thousandths (D1: 1 counted as 0.9 at 10 % is flagged)", () => {
+    expect(isVarianceFlagged(1, 0.9, 10)).toBe(true);
+    expect(isVarianceFlagged(1, 0.9001, 10)).toBe(true); // 0.900 at the 3 dp grain
+    expect(isVarianceFlagged(1, 0.901, 10)).toBe(false);
   });
 });
 
@@ -162,16 +171,6 @@ describe("transferActions", () => {
   });
 });
 
-describe("milli (the server's thousandths)", () => {
-  it("compares received against sent in whole thousandths", () => {
-    expect(milli(0.1 + 0.2)).toBe(milli(0.3));
-    expect(milli(1.0004) > milli(1)).toBe(false);
-    expect(milli(1.0006) > milli(1)).toBe(true);
-    expect(milli(2.9996) < milli(3)).toBe(false);
-    expect(milli(-0.0005)).toBe(-1);
-  });
-});
-
 describe("purchase line costs", () => {
   it("derives the unit cost from the invoice total, unrounded", () => {
     // The field report: 12 000 g of milk for 548.16 EGP is 4.568 piastres/g,
@@ -180,6 +179,9 @@ describe("purchase line costs", () => {
     expect(unitCostFromTotal(54816, 0)).toBeNull();
     expect(unitCostFromTotal(-1, 10)).toBeNull();
     expect(unitCostFromTotal(Number.NaN, 10)).toBeNull();
+    // D7: the quantity is the server's 3 dp, half away from zero (0.0625 → 0.063).
+    expect(unitCostFromTotal(1000, 0.0625)).toBe(15873.01587302);
+    expect(unitCostFromTotal(1000, 0.0004)).toBeNull();
   });
 
   it("shows a unit cost with all six decimals, never a rounded-looking figure", () => {
@@ -188,39 +190,34 @@ describe("purchase line costs", () => {
     expect(formatUnitCost(10000 / 3)).toBe("33.333333");
   });
 
-  it("converts a purchase unit to stock units within a measure", () => {
-    expect(stockUnitsPer("kg", "g")).toBe(1000);
-    expect(stockUnitsPer("g", "g")).toBe(1);
-    expect(stockUnitsPer("l", "ml")).toBe(1000);
-    expect(stockUnitsPer("case", "pcs")).toBeNull();
-    expect(stockUnitsPer("kg", "ml")).toBeNull();
-  });
-
   it("estimates a line total from the catalog cost per stock unit", () => {
     expect(estimateLineTotal(4.568, 12000, "g", "g")).toBe(54816);
     expect(estimateLineTotal(4.568, 12, "kg", "g")).toBe(54816);
     expect(estimateLineTotal(null, 12, "kg", "g")).toBeNull();
     expect(estimateLineTotal(4.568, 0, "g", "g")).toBeNull();
     expect(estimateLineTotal(4.568, 12, "kg", "ml")).toBeNull();
+    expect(estimateLineTotal(4.568, 12, "case", "pcs")).toBeNull();
+    // D6: a kg ingredient at 50 000/kg, 1.5 g ordered, rounded once at the end.
+    expect(estimateLineTotal(50_000, 1.5, "g", "kg")).toBe(75);
   });
 });
 
 // madar-shared's unit_vectors.json (src/lib, pinned to its tag): madar-units'
-// conversions. Where plain `convert` (no density) answers like the case does,
-// the dashboard's factor must give that answer, rounded to 3 dp like the
-// server's (half away from zero), or `null` where the server refuses.
+// conversions, through the wasm. Where plain `convert` (no density) answers
+// like the case does, the units the dashboard offers for `from` include `to`.
 describe("the unit rules match madar-shared's vectors", () => {
-  const round3 = (v: number) => (Math.sign(v) * Math.round(Math.abs(v) * 1000)) / 1000;
-  it.each(unitVectors.filter((v) => v.same_without_density))("$qty $from → $to", (v) => {
-    const per = stockUnitsPer(v.from, v.to);
-    expect(per == null ? null : round3(v.qty * per)).toBe(v.result);
+  it.each(unitVectors)("$qty $from → $to at $density", (v) => {
+    expect(rules.convert_with_density(v.qty, v.from, v.to, v.density)).toEqual(v.result ?? { error: v.error });
+    if (!v.same_without_density) return;
+    const plain = rules.convert(v.qty, v.from, v.to);
+    expect(typeof plain === "number" ? plain : null).toBe(v.result);
     if (v.result != null) expect(unitsForFamily(v.from)).toContain(v.to.trim().toLowerCase());
   });
 });
 
 // madar-shared's inventory_vectors.json (src/lib, pinned to its tag): the cases
-// the backend's madar-inventory is tested against. The dashboard's copies of
-// the step table and the receive check must give the same answer on each.
+// the backend's madar-inventory is tested against. The dashboard's wrappers of
+// the step table and the receive check (the wasm) give the same answer on each.
 describe("the transfer rules match madar-shared's vectors", () => {
   it.each(vectors.steps)("$status / $action", (v) => {
     const step = transferStep(v.status, v.action as Parameters<typeof transferStep>[1]);
@@ -231,5 +228,37 @@ describe("the transfer rules match madar-shared's vectors", () => {
     const out = checkReceiveLine(v.qty_sent, v.qty_received, v.note);
     expect(out).toEqual(v.ok ?? { refused: v.refused });
   });
+
+  // The dashboard shows the server's suggestion; this pins the wasm's copy.
+  it.each(vectors.replenish)("replenish $input.on_hand of $input.par_min–$input.par_max", (v) => {
+    expect(rules.replenish_suggest(v.input)).toEqual(v.out);
+  });
 });
 
+
+// madar-shared's purchase_vectors.json (pinned by rev): madar-inventory's purchase
+// rules through the dashboard's wrappers. Not run: `quantity[].milli` (the
+// thousandths form; the web shows quantity_dec and never stores milli) and
+// `line_costs` (the server's own order-line costing, which the web never does).
+describe("the purchase rules match madar-shared's vectors", () => {
+  it.each(purchase.quantity)("quantity $name", (c) => {
+    expect(roundQty(c.q)).toBe(Number(c.quantity_dec));
+  });
+  it.each(purchase.delivery_cost)("delivery_cost $name", (c) => {
+    const got = deliveryCost(c.quantity_received, c.line_cost, c.unit_cost, c.ordered_line_cost, Number(c.quantity_ordered));
+    expect(got).toBe(c.error == null ? Number(c.expected) : null);
+  });
+  it.each(purchase.estimate_line_total)("estimate_line_total $name", (c) => {
+    expect(estimateLineTotal(c.cost_per_stock_unit, c.qty, c.purchase_unit, c.stock_unit)).toBe(c.expected);
+  });
+  it.each(purchase.unit_cost_from_total)("unit_cost_from_total $name", (c) => {
+    expect(unitCostFromTotal(c.line, c.qty)).toBe(c.expected);
+  });
+});
+
+// madar-shared's count_vectors.json (pinned by rev): the variance flag the server refuses a finalize with.
+describe("the count rule matches madar-shared's vectors", () => {
+  it.each(countVectors.cases)("$name", (c) => {
+    expect(isVarianceFlagged(c.book, c.counted, c.pct)).toBe(c.expected);
+  });
+});

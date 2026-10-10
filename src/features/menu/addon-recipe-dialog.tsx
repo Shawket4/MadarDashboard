@@ -48,7 +48,8 @@ export function AddonRecipeDialog({ orgId, addon, open, onOpenChange }: Props) {
         org_ingredient_id: r.org_ingredient_id ?? null,
         ingredient_name: r.ingredient_name,
         ingredient_unit: r.unit,
-        quantity_used: r.quantity_used,
+        // As typed (before yield loss), so a line saved back unchanged is kept.
+        quantity_used: r.usable_quantity ?? r.quantity_used,
       })),
     [ingredients.data],
   );
@@ -97,7 +98,7 @@ export function AddonRecipeDialog({ orgId, addon, open, onOpenChange }: Props) {
                   org_ingredient_id: r.org_ingredient_id ?? null,
                   ingredient_name: r.ingredient_name,
                   ingredient_unit: r.unit,
-                  quantity_used: r.quantity_used,
+                  quantity_used: r.usable_quantity ?? r.quantity_used,
                 }))
               }
               onSave={saveAll}

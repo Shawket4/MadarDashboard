@@ -183,7 +183,9 @@ function BaseEditorDialog({
   useEffect(() => {
     if (!open) return;
     form.reset({ name: base?.name ?? "", name_ar: base?.name_ar ?? "", is_active: base?.is_active ?? true });
-    const seeded = toLabelBlocks(base?.lines ?? [], [], allLabel);
+    // Each line as typed (before yield loss), so one saved back unchanged is kept.
+    const lines = (base?.lines ?? []).map((l) => ({ ...l, quantity: l.usable_quantity ?? l.quantity }));
+    const seeded = toLabelBlocks(lines, [], allLabel);
     setBlocks(seeded);
     setPristineLines(JSON.stringify(fromLabelBlocks(seeded)));
   }, [open, base, form, allLabel]);

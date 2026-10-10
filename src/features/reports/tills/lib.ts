@@ -3,16 +3,17 @@ import { AxiosError } from "axios";
 
 import { averageTicket } from "@/lib/average-ticket";
 import { fmtDate, fmtWireTime, getActiveTz } from "@/lib/format";
+import { rules } from "@/lib/rules";
 import type { TillSessionRow } from "@/data/api/generated/models";
 
-/** Minutes past local midnight, in the active timezone. */
+/** Minutes past local midnight, in the active timezone (madar-time `local_parts`). */
 export const minutesOfDay = (iso: string): number => {
-  const d = new TZDate(iso, getActiveTz());
-  return d.getHours() * 60 + d.getMinutes();
+  const { hour, minute } = rules.local_parts(getActiveTz(), new Date(iso).getTime());
+  return hour * 60 + minute;
 };
 
-/** Local hour (0–23) in the active timezone. */
-export const hourOf = (iso: string): number => new TZDate(iso, getActiveTz()).getHours();
+/** Local hour (0–23) in the active timezone (madar-time `local_parts`). */
+export const hourOf = (iso: string): number => rules.local_parts(getActiveTz(), new Date(iso).getTime()).hour;
 
 /**
  * The average time of day of a set of clock times.

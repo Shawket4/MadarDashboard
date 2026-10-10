@@ -11,6 +11,8 @@ import { Combobox } from "@/components/app/combobox";
 import { CreateIngredientDialog } from "./create-ingredient-dialog";
 import type { OrgIngredient } from "@/data/api/generated/models";
 import { fmtMoney, fmtPercent } from "@/lib/format";
+import { BAND_STYLE, draftLineCost, draftRecipeCost, foodCostBand, recipeMargin } from "@/lib/recipe-cost";
+import { rules } from "@/lib/rules";
 import { cn } from "@/lib/utils";
 
 export interface RecipeRowInit {
@@ -92,10 +94,11 @@ export function RecipeBuilder({
     () => activeCatalog.map((c) => ({ value: c.id, label: c.name, hint: t(`units.${c.unit}`, c.unit), keywords: c.category_name })),
     [activeCatalog, t],
   );
-  const costOf = (id: string | null): number | null => {
-    const c = id ? byId.get(id) : undefined;
-    return c?.cost_per_unit != null && c.cost_per_unit > 0 ? c.cost_per_unit : null;
-  };
+  const draftLine = (r: BuilderRow) => ({
+    ingredient: r.org_ingredient_id ? byId.get(r.org_ingredient_id) : undefined,
+    quantity: r.quantity_used,
+    unit: r.ingredient_unit,
+  });
 
   const cleanRows = (raw: BuilderRow[]): CleanRow[] =>
     raw
@@ -125,7 +128,7 @@ export function RecipeBuilder({
       if (!Number.isFinite(factor) || factor <= 0) continue;
       for (const r of baseRows) {
         const qty = parseFloat(r.quantity_used);
-        next.push({ ...r, size_label: size, quantity_used: Number.isFinite(qty) ? String(Math.round(qty * factor * 1000) / 1000) : "" });
+        next.push({ ...r, size_label: size, quantity_used: Number.isFinite(qty) ? String(rules.scale_qty(qty, factor)) : "" });
       }
     }
     replace(next);
@@ -239,15 +242,10 @@ export function RecipeBuilder({
       {/* size sections */}
       {sizes.map((size) => {
         const rows = rowsForSize(size);
-        let estimate: number | null = rows.length > 0 ? 0 : null;
-        for (const r of rows) {
-          const c = costOf(r.org_ingredient_id);
-          const qty = parseFloat(r.quantity_used);
-          if (c == null || !Number.isFinite(qty)) { estimate = null; break; }
-          estimate = (estimate ?? 0) + c * qty;
-        }
+        const estimate = rows.length > 0 ? draftRecipeCost(rows.map(draftLine)) : null;
         const price = priceForSize?.(size) ?? null;
-        const marginPct = estimate !== null && price && price > 0 ? (price - estimate) / price : null;
+        const marginPct = estimate && price != null ? recipeMargin(price, estimate) : null;
+        const band = estimate && price != null ? foodCostBand(estimate.piastres, price) : null;
         const sizeDisplayLabel = size === "one_size" ? t("recipes.oneSize", "One size") : size;
 
         return (
@@ -265,18 +263,18 @@ export function RecipeBuilder({
                     {t("recipes.builder.estimate", "Cost")}
                   </p>
                   <p className="text-sm font-semibold tabular text-foreground">
-                    {estimate != null ? fmtMoney(estimate) : "—"}
+                    {estimate != null ? fmtMoney(estimate.piastres) : "—"}
                   </p>
+                  {estimate && !estimate.complete ? (
+                    <p className="text-xs text-muted-foreground">{t("menu.studio.recipe.incomplete", "Cost incomplete")}</p>
+                  ) : null}
                 </div>
                 {marginPct !== null ? (
                   <div className="leading-tight">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       {t("recipes.builder.margin", "Margin")}
                     </p>
-                    <p className={cn(
-                      "text-sm font-semibold tabular",
-                      marginPct >= 0.6 ? "text-success" : marginPct >= 0.3 ? "text-foreground" : "text-warning",
-                    )}>
+                    <p className={cn("text-sm font-semibold tabular", band && BAND_STYLE[band].text)}>
                       {fmtPercent(marginPct)}
                     </p>
                   </div>
@@ -287,9 +285,8 @@ export function RecipeBuilder({
             {/* ingredient rows */}
             <div className="space-y-1 p-2">
               {rows.map((row) => {
-                const c = costOf(row.org_ingredient_id);
-                const qty = parseFloat(row.quantity_used);
-                const lineCost = c != null && Number.isFinite(qty) ? fmtMoney(c * qty) : "—";
+                const cost = draftLineCost(draftLine(row));
+                const lineCost = cost != null ? fmtMoney(cost) : "—";
                 return (
                   <div
                     key={fields[row._index]?.id ?? row._index}

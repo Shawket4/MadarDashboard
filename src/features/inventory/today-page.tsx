@@ -31,7 +31,7 @@ import {
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { useAppStore } from "@/data/stores/app.store";
-import { cairoDateISO, cairoNow, fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
+import { cairoDateISO, cairoParts, fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PurchaseOrderDialog } from "./purchase-order-dialog";
 import { ReceiveDialog } from "./receive-dialog";
@@ -50,8 +50,7 @@ export function TodayPage() {
 
   const tz = useAppStore((st) => st.activeTimezone);
   const { todayStartISO, todayEndISO } = useMemo(() => {
-    const now = cairoNow();
-    const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+    const { y, m, d } = cairoParts(Date.now());
     return { todayStartISO: cairoDateISO(y, m, d, false), todayEndISO: cairoDateISO(y, m, d, true) };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- cairo* helpers read the active tz
   }, [tz]);

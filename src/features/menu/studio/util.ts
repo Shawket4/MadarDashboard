@@ -164,7 +164,9 @@ export const toSizeBlocks = (s: StudioAggregate): SizeBlockDraft[] =>
         baseId: z.base_id ?? null,
         lines: z.recipe.map((r) => ({
           ingredient_id: r.ingredient_id,
-          quantity: String(parseFloat(r.quantity)),
+          // The amount as typed (before yield loss): the server keeps a line sent
+          // back unchanged. `quantity` only for a backend that predates the field.
+          quantity: String(parseFloat(r.usable_quantity ?? r.quantity)),
           unit: r.unit,
           source: normalizeSource(r.source),
         })),
@@ -176,7 +178,7 @@ export const toAttachDraft = (g: ModifierGroupOut): AttachDraft => {
     id: o.id,
     name: o.name,
     price: o.price,
-    recipe: o.recipe.map((r) => ({ ingredient_name: r.ingredient_name, quantity: r.quantity, unit: r.unit })),
+    recipe: o.recipe.map((r) => ({ ingredient_name: r.ingredient_name, quantity: r.usable_quantity ?? r.quantity, unit: r.unit })),
     cost: o.cost_piastres ?? null,
     costIncomplete: o.cost_incomplete,
   }));
@@ -207,7 +209,7 @@ export const toOptionRows = (s: StudioAggregate): OptionRowDraft[] =>
       price: String(piastresToEgp(o.price)),
       is_active: o.is_active,
       ingredient_id: line?.ingredient_id ?? "",
-      quantity: line ? String(parseFloat(line.quantity)) : "",
+      quantity: line ? String(parseFloat(line.usable_quantity ?? line.quantity)) : "",
       unit: line?.unit ?? "g",
     };
   });

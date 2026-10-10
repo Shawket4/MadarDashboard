@@ -1,0 +1,7 @@
+{
+  "about": "src/lib/cost_vectors.json is a byte-for-byte copy of madar-shared's file at this commit (madar-money cost: line cost, recipe cost, margin, food-cost band; the backend costs recipes with it; not in a tag yet, so pinned by rev). src/lib/recipe-cost.test.ts runs the dashboard's wrappers (the wasm) against it. A change is made there and copied here with the rev and hash below updated; scripts/check-shared-vectors.sh (CI) and shared_vectors.test.ts check it.",
+  "repo": "Shawket4/madar-shared",
+  "tag": "c1cb69e0d31bd6113d7462299853fb5c6a53b793",
+  "path": "crates/madar-money/vectors/cost_vectors.json",
+  "sha256": "20b9999598a79116c8ce51c7f42deeaf87f847ce244e43c7fe22a9983a348d5f"
+}

@@ -7,7 +7,7 @@
  * ExcelJS is imported lazily so it never lands in the initial bundle.
  */
 import type * as ExcelJSNS from "exceljs";
-import { TZDate } from "@date-fns/tz";
+import { rules } from "@/lib/rules";
 import { toast } from "sonner";
 import i18n from "@/i18n";
 import { downloadBlob } from "@/lib/download";
@@ -92,11 +92,10 @@ const numFmt = (type: ColumnType | undefined): string | undefined => {
  * of the host device timezone.
  */
 export const toExcelDateSerial = (d: Date, tz: string): number => {
-  const z = new TZDate(d.getTime(), tz);
-  const wallUtcMs = Date.UTC(
-    z.getFullYear(), z.getMonth(), z.getDate(),
-    z.getHours(), z.getMinutes(), z.getSeconds(), z.getMilliseconds(),
-  );
+  const ms = d.getTime();
+  // The wall clock is madar-time's `local_parts`; seconds carry over as they are (zones move by whole minutes).
+  const { date, hour, minute } = rules.local_parts(tz, ms);
+  const wallUtcMs = Date.parse(`${date}T00:00:00Z`) + (hour * 60 + minute) * 60_000 + (((ms % 60_000) + 60_000) % 60_000);
   return 25569 + wallUtcMs / 86_400_000;
 };
 

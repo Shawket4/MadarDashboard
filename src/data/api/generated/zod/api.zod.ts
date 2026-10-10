@@ -7793,7 +7793,8 @@ export const PutSizeRecipeResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "size_id": zod.uuid()
 }).describe('Result of a recipe replace: the recomputed size cost.')
@@ -8072,7 +8073,8 @@ export const CreateMenuItemResponse = zod.object({
   "ingredient_unit": zod.string(),
   "org_ingredient_id": zod.uuid().nullish(),
   "quantity_used": zod.number(),
-  "size_label": zod.string()
+  "size_label": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity_used` × the linked\ningredient\'s yield, 3 dp (madar-units `usable_qty`). What the catalog\nitem dialog shows.')
 })),
   "sizes": zod.array(zod.object({
   "id": zod.uuid(),
@@ -8267,7 +8269,8 @@ export const GetMenuItemResponse = zod.object({
   "ingredient_unit": zod.string(),
   "org_ingredient_id": zod.uuid().nullish(),
   "quantity_used": zod.number(),
-  "size_label": zod.string()
+  "size_label": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity_used` × the linked\ningredient\'s yield, 3 dp (madar-units `usable_qty`). What the catalog\nitem dialog shows.')
 })),
   "sizes": zod.array(zod.object({
   "id": zod.uuid(),
@@ -8594,7 +8597,8 @@ export const DuplicateItemResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "replaces_ingredient_id": zod.uuid().nullish()
 }).describe('A modifier option inside an attached group.')),
@@ -8618,7 +8622,8 @@ export const DuplicateItemResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
@@ -8652,7 +8657,8 @@ export const DuplicateItemResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
 }).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
@@ -8787,7 +8793,8 @@ export const PutModifierGroupsResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "replaces_ingredient_id": zod.uuid().nullish()
 }).describe('A modifier option inside an attached group.')),
@@ -8811,7 +8818,8 @@ export const PutModifierGroupsResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
@@ -8845,7 +8853,8 @@ export const PutModifierGroupsResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
 }).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
@@ -8992,7 +9001,8 @@ export const PutItemOptionsResponseItem = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')
 export const PutItemOptionsResponse = zod.array(PutItemOptionsResponseItem)
@@ -9252,7 +9262,8 @@ export const PutSizesResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "replaces_ingredient_id": zod.uuid().nullish()
 }).describe('A modifier option inside an attached group.')),
@@ -9276,7 +9287,8 @@ export const PutSizesResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
@@ -9310,7 +9322,8 @@ export const PutSizesResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
 }).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
@@ -9448,7 +9461,8 @@ export const GetStudioResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "replaces_ingredient_id": zod.uuid().nullish()
 }).describe('A modifier option inside an attached group.')),
@@ -9472,7 +9486,8 @@ export const GetStudioResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.'))
 }).describe('A priced optional — a member of the item\'s own `Options` group\n(what `PUT \/menu-items\/{id}\/options` edits).')),
   "org_id": zod.uuid(),
@@ -9506,7 +9521,8 @@ export const GetStudioResponse = zod.object({
   "quantity": zod.string().describe('Base-unit, yield-normalized quantity, serialized as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('Option lines only: the size this amount is for (`null` = every size).'),
   "source": zod.string().nullish().describe('Where the line came from: `own` (typed on this size; also legacy NULL rows),\n`base` (recipe base), `rule` (packaging rule) or `linked` (copied from the\nitem this one follows). Only `own` lines are edited by\n`PUT \/menu-item-sizes\/{id}\/recipe`.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount in the base unit, before yield loss: `quantity` × the\ningredient\'s yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield\nstores 125, shows 100). What an editor shows and sends back; a line sent\nback unchanged keeps its stored `quantity`.')
 }).describe('One recipe line, hydrated with the ingredient name and a per-line cost.')),
   "sort": zod.number()
 }).describe('A size (menu_item_sizes row) with its recipe and live cost.'))
@@ -9734,7 +9750,8 @@ export const ListGroupsResponseItem = zod.object({
   "ingredient_name": zod.string(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish().describe('`null` = the generic line (every size); else the per-size amount for that\nsize label (menu modeling B9). The editor must round-trip it on save.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity` × the ingredient\'s yield,\n3 dp (madar-units `usable_qty`). What the editor shows and sends back; a\nline sent back unchanged keeps its stored `quantity`.')
 }).describe('One recipe line of a modifier option, as the group editor shows it.')).optional().describe('The option\'s recipe lines (base unit), ordered by ingredient name.'),
   "replaces_ingredient_id": zod.uuid().nullish(),
   "sort": zod.number()
@@ -9784,7 +9801,8 @@ export const CreateGroupResponse = zod.object({
   "ingredient_name": zod.string(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish().describe('`null` = the generic line (every size); else the per-size amount for that\nsize label (menu modeling B9). The editor must round-trip it on save.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity` × the ingredient\'s yield,\n3 dp (madar-units `usable_qty`). What the editor shows and sends back; a\nline sent back unchanged keeps its stored `quantity`.')
 }).describe('One recipe line of a modifier option, as the group editor shows it.')).optional().describe('The option\'s recipe lines (base unit), ordered by ingredient name.'),
   "replaces_ingredient_id": zod.uuid().nullish(),
   "sort": zod.number()
@@ -9845,7 +9863,8 @@ export const PatchGroupResponse = zod.object({
   "ingredient_name": zod.string(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish().describe('`null` = the generic line (every size); else the per-size amount for that\nsize label (menu modeling B9). The editor must round-trip it on save.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity` × the ingredient\'s yield,\n3 dp (madar-units `usable_qty`). What the editor shows and sends back; a\nline sent back unchanged keeps its stored `quantity`.')
 }).describe('One recipe line of a modifier option, as the group editor shows it.')).optional().describe('The option\'s recipe lines (base unit), ordered by ingredient name.'),
   "replaces_ingredient_id": zod.uuid().nullish(),
   "sort": zod.number()
@@ -9883,7 +9902,8 @@ export const CreateOptionResponse = zod.object({
   "ingredient_name": zod.string(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish().describe('`null` = the generic line (every size); else the per-size amount for that\nsize label (menu modeling B9). The editor must round-trip it on save.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity` × the ingredient\'s yield,\n3 dp (madar-units `usable_qty`). What the editor shows and sends back; a\nline sent back unchanged keeps its stored `quantity`.')
 }).describe('One recipe line of a modifier option, as the group editor shows it.')).optional().describe('The option\'s recipe lines (base unit), ordered by ingredient name.'),
   "replaces_ingredient_id": zod.uuid().nullish(),
   "sort": zod.number()
@@ -9957,7 +9977,8 @@ export const PatchOptionResponse = zod.object({
   "ingredient_name": zod.string(),
   "quantity": zod.number(),
   "size_label": zod.string().nullish().describe('`null` = the generic line (every size); else the per-size amount for that\nsize label (menu modeling B9). The editor must round-trip it on save.'),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity` × the ingredient\'s yield,\n3 dp (madar-units `usable_qty`). What the editor shows and sends back; a\nline sent back unchanged keeps its stored `quantity`.')
 }).describe('One recipe line of a modifier option, as the group editor shows it.')).optional().describe('The option\'s recipe lines (base unit), ordered by ingredient name.'),
   "replaces_ingredient_id": zod.uuid().nullish(),
   "sort": zod.number()
@@ -12120,7 +12141,8 @@ export const ListRulesResponseItem = zod.object({
   "ingredient_name": zod.string(),
   "quantity": zod.string().describe('Base-unit quantity as a string.'),
   "sort": zod.number(),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount before yield loss, like `RecipeLineOut::usable_quantity`:\nwhat an editor shows and sends back (a line sent back unchanged keeps\nits stored `quantity`).')
 })),
   "match_category_id": zod.uuid().nullish().describe('Menu category (`categories.id`) the rule matches, or `null` = any.'),
   "match_item_id": zod.uuid().nullish().describe('One menu item the rule matches, or `null` = any.'),
@@ -12156,7 +12178,8 @@ export const CreateRuleResponse = zod.object({
   "ingredient_name": zod.string(),
   "quantity": zod.string().describe('Base-unit quantity as a string.'),
   "sort": zod.number(),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount before yield loss, like `RecipeLineOut::usable_quantity`:\nwhat an editor shows and sends back (a line sent back unchanged keeps\nits stored `quantity`).')
 })),
   "match_category_id": zod.uuid().nullish().describe('Menu category (`categories.id`) the rule matches, or `null` = any.'),
   "match_item_id": zod.uuid().nullish().describe('One menu item the rule matches, or `null` = any.'),
@@ -12211,7 +12234,8 @@ export const PatchRuleResponse = zod.object({
   "ingredient_name": zod.string(),
   "quantity": zod.string().describe('Base-unit quantity as a string.'),
   "sort": zod.number(),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount before yield loss, like `RecipeLineOut::usable_quantity`:\nwhat an editor shows and sends back (a line sent back unchanged keeps\nits stored `quantity`).')
 })),
   "match_category_id": zod.uuid().nullish().describe('Menu category (`categories.id`) the rule matches, or `null` = any.'),
   "match_item_id": zod.uuid().nullish().describe('One menu item the rule matches, or `null` = any.'),
@@ -14596,7 +14620,8 @@ export const ListBasesResponseItem = zod.object({
   "quantity": zod.string().describe('Base-unit quantity as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('`null` = applies to every size; else only to sizes with this exact label (and\nwins over a `null` line for the same ingredient).'),
   "sort": zod.number(),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount before yield loss, like `RecipeLineOut::usable_quantity`:\nwhat an editor shows and sends back (a line sent back unchanged keeps\nits stored `quantity`).')
 }).describe('One line of a base, stored in the ingredient\'s base unit.')),
   "name": zod.string(),
   "name_ar": zod.string().nullish(),
@@ -14632,7 +14657,8 @@ export const CreateBaseResponse = zod.object({
   "quantity": zod.string().describe('Base-unit quantity as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('`null` = applies to every size; else only to sizes with this exact label (and\nwins over a `null` line for the same ingredient).'),
   "sort": zod.number(),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount before yield loss, like `RecipeLineOut::usable_quantity`:\nwhat an editor shows and sends back (a line sent back unchanged keeps\nits stored `quantity`).')
 }).describe('One line of a base, stored in the ingredient\'s base unit.')),
   "name": zod.string(),
   "name_ar": zod.string().nullish(),
@@ -14658,7 +14684,8 @@ export const GetBaseResponse = zod.object({
   "quantity": zod.string().describe('Base-unit quantity as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('`null` = applies to every size; else only to sizes with this exact label (and\nwins over a `null` line for the same ingredient).'),
   "sort": zod.number(),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount before yield loss, like `RecipeLineOut::usable_quantity`:\nwhat an editor shows and sends back (a line sent back unchanged keeps\nits stored `quantity`).')
 }).describe('One line of a base, stored in the ingredient\'s base unit.')),
   "name": zod.string(),
   "name_ar": zod.string().nullish(),
@@ -14698,7 +14725,8 @@ export const PatchBaseResponse = zod.object({
   "quantity": zod.string().describe('Base-unit quantity as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('`null` = applies to every size; else only to sizes with this exact label (and\nwins over a `null` line for the same ingredient).'),
   "sort": zod.number(),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount before yield loss, like `RecipeLineOut::usable_quantity`:\nwhat an editor shows and sends back (a line sent back unchanged keeps\nits stored `quantity`).')
 }).describe('One line of a base, stored in the ingredient\'s base unit.')),
   "name": zod.string(),
   "name_ar": zod.string().nullish(),
@@ -14738,7 +14766,8 @@ export const PutBaseLinesResponse = zod.object({
   "quantity": zod.string().describe('Base-unit quantity as a string (numeric fidelity).'),
   "size_label": zod.string().nullish().describe('`null` = applies to every size; else only to sizes with this exact label (and\nwins over a `null` line for the same ingredient).'),
   "sort": zod.number(),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.string().describe('The usable amount before yield loss, like `RecipeLineOut::usable_quantity`:\nwhat an editor shows and sends back (a line sent back unchanged keeps\nits stored `quantity`).')
 }).describe('One line of a base, stored in the ingredient\'s base unit.')),
   "name": zod.string(),
   "name_ar": zod.string().nullish(),
@@ -14778,7 +14807,8 @@ export const ListAddonIngredientsResponseItem = zod.object({
   "ingredient_name": zod.string(),
   "org_ingredient_id": zod.uuid().nullish(),
   "quantity_used": zod.number(),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity_used` × the linked\ningredient\'s yield, 3 dp (madar-units `usable_qty`). What an editor shows\nand sends back; a line sent back unchanged keeps its stored quantity.')
 })
 export const ListAddonIngredientsResponse = zod.array(ListAddonIngredientsResponseItem)
 
@@ -14800,7 +14830,8 @@ export const UpsertAddonIngredientResponse = zod.object({
   "ingredient_name": zod.string(),
   "org_ingredient_id": zod.uuid().nullish(),
   "quantity_used": zod.number(),
-  "unit": zod.string()
+  "unit": zod.string(),
+  "usable_quantity": zod.number().describe('The usable amount before yield loss: `quantity_used` × the linked\ningredient\'s yield, 3 dp (madar-units `usable_qty`). What an editor shows\nand sends back; a line sent back unchanged keeps its stored quantity.')
 })
 
 

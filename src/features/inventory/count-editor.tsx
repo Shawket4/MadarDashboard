@@ -22,6 +22,7 @@ import { cancelStocktake, finalizeStocktake, upsertItems, useGetStocktake, useLi
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
 import { fmtMoney, fmtNumber, fmtTime, fmtUnit } from "@/lib/format";
+import { rules } from "@/lib/rules";
 import { cn } from "@/lib/utils";
 import {
   VARIANCE_REASONS, buildCountPayload, invalidateInventory, isVarianceFlagged, missingReasons, parseCount,
@@ -180,7 +181,8 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
       const counted = parseCount(counts[it.org_ingredient_id]);
       if (counted == null) continue;
       countedCount++;
-      if (it.unit_cost != null) net += (counted - it.book_qty) * it.unit_cost;
+      // The server values each row as round((counted − book) × unit cost) and sums those (madar-money `line_cost`).
+      if (it.unit_cost != null) net += rules.line_cost(counted - it.book_qty, it.unit_cost);
     }
     return { net, countedCount, total: rows.length };
   }, [rows, counts]);
@@ -352,7 +354,7 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
                   const raw = counts[id] ?? "";
                   const counted = parseCount(raw);
                   const diff = counted != null ? counted - it.book_qty : null;
-                  const value = diff != null && it.unit_cost != null ? diff * it.unit_cost : null;
+                  const value = diff != null && it.unit_cost != null ? rules.line_cost(diff, it.unit_cost) : null;
                   const flagged = counted != null && isVarianceFlagged(it.book_qty, counted, threshold);
                   const needsReason = flagged && !reasons[id];
                   const moved = Math.abs(it.book_qty - it.opening_qty) > 1e-9;

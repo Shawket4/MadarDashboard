@@ -18,4 +18,10 @@ export interface RecipeBaseLineOut {
   size_label?: string | null;
   sort: number;
   unit: string;
+  /**
+     * The usable amount before yield loss, like `RecipeLineOut::usable_quantity`:
+     * what an editor shows and sends back (a line sent back unchanged keeps
+     * its stored `quantity`).
+     */
+  usable_quantity: string;
 }

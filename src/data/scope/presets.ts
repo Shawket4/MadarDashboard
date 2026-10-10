@@ -1,5 +1,4 @@
-import { TZDate } from "@date-fns/tz";
-import { dayBoundaryISO, getActiveTz } from "@/lib/format";
+import { cairoParts, dayBoundaryISO, getActiveTz } from "@/lib/format";
 
 export { dayBoundaryISO };
 
@@ -13,31 +12,27 @@ export const DEFAULT_PRESET: Exclude<ScopePreset, "custom"> = "30d";
 /**
  * [from, to] UTC instants for a named preset, day-bounded in the calendar of
  * `tz` (the active branch tz, or org tz for the all-branches roll-up).
- * Day offsets use calendar arithmetic in `tz`, so DST days stay 23/25h long.
+ * Today is madar-time's business date; the day offsets are calendar days, so
+ * DST days stay 23/25h long (dayBoundaryISO rolls an offset over the month).
  */
 export const rangeForPreset = (
   preset: Exclude<ScopePreset, "custom">,
   tz: string = getActiveTz(),
   now: Date | number = Date.now(),
 ): { from: string; to: string } => {
-  const n = new TZDate(typeof now === "number" ? now : now.getTime(), tz);
-  const y = n.getFullYear();
-  const m = n.getMonth();
-  const d = n.getDate();
-  // new TZDate normalises day overflow/underflow (e.g. d - 29) in `tz`.
-  const day = (offset: number) => new TZDate(y, m, d + offset, tz);
-  const start = (p: TZDate) => dayBoundaryISO(tz, p.getFullYear(), p.getMonth(), p.getDate());
-  const end = (p: TZDate) => dayBoundaryISO(tz, p.getFullYear(), p.getMonth(), p.getDate(), true);
+  const { y, m, d } = cairoParts(now, tz);
+  const start = (offset: number) => dayBoundaryISO(tz, y, m, d + offset);
+  const end = (offset: number) => dayBoundaryISO(tz, y, m, d + offset, true);
   switch (preset) {
     case "today":
-      return { from: start(day(0)), to: end(day(0)) };
+      return { from: start(0), to: end(0) };
     case "yesterday":
-      return { from: start(day(-1)), to: end(day(-1)) };
+      return { from: start(-1), to: end(-1) };
     case "7d":
-      return { from: start(day(-6)), to: end(day(0)) };
+      return { from: start(-6), to: end(0) };
     case "30d":
-      return { from: start(day(-29)), to: end(day(0)) };
+      return { from: start(-29), to: end(0) };
     case "mtd":
-      return { from: dayBoundaryISO(tz, y, m, 1), to: end(day(0)) };
+      return { from: dayBoundaryISO(tz, y, m, 1), to: end(0) };
   }
 };

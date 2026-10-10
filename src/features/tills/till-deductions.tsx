@@ -4,6 +4,7 @@ import { PackageMinus } from "lucide-react";
 import { ListCard, ListRow } from "@/components/app/list-row";
 import { SectionHeader } from "@/components/app/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
+import { roundQty } from "@/features/inventory/lib";
 import { fmtNumber, fmtUnit } from "@/lib/format";
 
 import { useTillDeductions, type DeductionLogRow } from "./api";
@@ -34,7 +35,7 @@ export function summarizeDeductions(rows: DeductionLogRow[]): DeductionTotal[] {
   return [...byItem.values()].sort((a, b) => b.used - a.used || a.name.localeCompare(b.name));
 }
 
-const qty = (n: number, unit: string) => `${fmtNumber(Math.round(n * 1000) / 1000)} ${fmtUnit(unit)}`.trim();
+const qty = (n: number, unit: string) => `${fmtNumber(roundQty(n))} ${fmtUnit(unit)}`.trim();
 
 /** Stock the till's orders consumed (T16). Hidden when the till used none. */
 export function TillDeductions({ tillId, enabled }: { tillId: string | null; enabled: boolean }) {

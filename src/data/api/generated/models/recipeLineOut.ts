@@ -30,4 +30,11 @@ export interface RecipeLineOut {
      */
   source?: string | null;
   unit: string;
+  /**
+     * The usable amount in the base unit, before yield loss: `quantity` × the
+     * ingredient's yield, 3 dp (madar-units `usable_qty`; 100 g at 80 % yield
+     * stores 125, shows 100). What an editor shows and sends back; a line sent
+     * back unchanged keeps its stored `quantity`.
+     */
+  usable_quantity: string;
 }

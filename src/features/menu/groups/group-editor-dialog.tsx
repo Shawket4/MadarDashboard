@@ -36,6 +36,7 @@ import {
 import type { GroupOut, OrgIngredient } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtMoney, fmtUnit, piastresToEgp } from "@/lib/format";
+import { draftRecipeCost } from "@/lib/recipe-cost";
 import { cn } from "@/lib/utils";
 import { arOf, invalidateCatalog } from "../util";
 import { OptionSizeGrid } from "./option-size-grid";
@@ -154,7 +155,8 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
           swap_ingredient_id: o.replaces_ingredient_id ?? o.recipe?.[0]?.ingredient_id ?? "",
           lines: (o.recipe ?? []).map((l) => ({
             ingredient_id: l.ingredient_id,
-            quantity: String(l.quantity),
+            // As typed (before yield loss), so a line saved back unchanged is kept.
+            quantity: String(l.usable_quantity ?? l.quantity),
             unit: l.unit,
             size_label: l.size_label ?? null,
           })),
@@ -546,17 +548,15 @@ function OptionRow({ index, control, effect, swapOptions, ingredientOptions, cat
     return [...set];
   }, [itemSizeLabels, watchedLines]);
 
-  const cost = useMemo(() => {
-    if (effect !== "adds" || !watchedLines?.length) return null;
-    let sum = 0;
-    for (const l of watchedLines) {
-      const ing = catalogById.get(l.ingredient_id);
-      const qty = Number(l.quantity);
-      if (!ing || ing.cost_per_unit == null || !Number.isFinite(qty) || l.unit !== ing.unit) return null;
-      sum += ing.cost_per_unit * qty;
-    }
-    return sum;
-  }, [effect, watchedLines, catalogById]);
+  const cost = useMemo(
+    () =>
+      effect !== "adds" || !watchedLines?.length
+        ? null
+        : draftRecipeCost(
+            watchedLines.map((l) => ({ ingredient: catalogById.get(l.ingredient_id), quantity: String(l.quantity), unit: l.unit })),
+          ),
+    [effect, watchedLines, catalogById],
+  );
 
   return (
     <div className="rounded-lg border p-3">
@@ -722,7 +722,8 @@ function OptionRow({ index, control, effect, swapOptions, ingredientOptions, cat
                 </Button>
                 {cost != null ? (
                   <span className="text-xs text-muted-foreground tabular">
-                    {t("menu.groups.editor.cost", "Cost")} {fmtMoney(cost)}
+                    {t("menu.groups.editor.cost", "Cost")} {fmtMoney(cost.piastres)}
+                    {cost.complete ? null : ` · ${t("menu.studio.recipe.incomplete", "Cost incomplete")}`}
                   </span>
                 ) : null}
               </div>

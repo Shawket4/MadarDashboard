@@ -1,40 +1,20 @@
 /**
  * The one phone rule. Canonical = E.164 digits without the `+`
- * (`201001234567`) — the form the backend (`phone_canonical`), the POS core and
- * this app all agree on. The rule and its vectors live in `phone_vectors.json`,
- * shared verbatim with the other two repos; never change one copy alone.
+ * (`201001234567`) — the form the backend, the POS core and this app all agree
+ * on. The rule is madar-shared's `madar_ids::phone::canonical`, called through
+ * WebAssembly (`@/lib/rules`); phone.test.ts runs it against the shared
+ * `phone_vectors.json`.
  */
 import { z } from "zod";
 
-/** Longer than this is refused outright, before any digit is read. */
-export const PHONE_RAW_MAX = 32;
-const CANONICAL_MIN = 10;
-const CANONICAL_MAX = 15;
-const EG_MOBILE_PREFIX = /^201[0125]/;
-const EG_MOBILE_LENGTH = 12;
+import { rules } from "@/lib/rules";
 
-/** Arabic-Indic (U+0660–0669) and Extended Arabic-Indic (U+06F0–06F9) → ASCII. */
-const asciiDigits = (s: string): string =>
-  s.replace(/[٠-٩۰-۹]/g, (ch) => {
-    const code = ch.charCodeAt(0);
-    return String(code >= 0x06f0 ? code - 0x06f0 : code - 0x0660);
-  });
+/** Longer than this is refused outright (madar-ids `MAX_PHONE_RAW_LEN`); a form field's max length. */
+export const PHONE_RAW_MAX = 32;
 
 /** The canonical form of whatever was typed, or `null` when it is not a phone. */
-export const canonicalPhone = (raw: string | null | undefined): string | null => {
-  if (raw == null || [...raw].length > PHONE_RAW_MAX) return null;
-  let digits = asciiDigits(raw).replace(/[^0-9]/g, "");
-  if (digits.startsWith("00")) digits = digits.slice(2);
-  else if (digits.startsWith("20")) {
-    /* already country-coded */
-  } else if (digits.startsWith("0")) digits = `20${digits.slice(1)}`;
-  else if (digits.length === 10 && digits.startsWith("1")) digits = `20${digits}`;
-  if (digits.length < CANONICAL_MIN || digits.length > CANONICAL_MAX) return null;
-  // An Egyptian mobile is exactly 12 digits; a truncated or over-long one is the
-  // commonest typo. Landlines (2013…, 202…) are untouched.
-  if (EG_MOBILE_PREFIX.test(digits) && digits.length !== EG_MOBILE_LENGTH) return null;
-  return digits;
-};
+export const canonicalPhone = (raw: string | null | undefined): string | null =>
+  raw == null ? null : rules.phone_canonical(raw);
 
 export const isValidPhone = (raw: string | null | undefined): boolean => canonicalPhone(raw) !== null;
 

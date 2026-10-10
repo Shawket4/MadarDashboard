@@ -27,7 +27,7 @@ import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
-import { fmtDateTime, fmtDuration, fmtMoney, fmtMoneySigned } from "@/lib/format";
+import { businessDate, cairoDateISO, dateParts, fmtDateTime, fmtDuration, fmtMoney, fmtMoneySigned } from "@/lib/format";
 
 import {
   tillReportQueryOptions,
@@ -72,10 +72,10 @@ export function validateTillsSearch(s: Record<string, unknown>): TillsSearch {
   };
 }
 
+/** The start of the branch's business day (madar-time `day_bounds`), not the device's midnight. */
 function startOfToday(): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
+  const { y, m, d } = dateParts(businessDate());
+  return cairoDateISO(y, m, d);
 }
 
 export function TillsPage() {

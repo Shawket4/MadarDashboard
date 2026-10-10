@@ -22,7 +22,8 @@ import type { Branch, StockTransfer, TransferStamp } from "@/data/api/generated/
 import { cancelStockTransfer, declineTransfer, dispatchTransfer, receiveTransfer } from "@/data/api/generated/api";
 import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
-import { TRANSFER_TONES, checkReceiveLine, invalidateInventory, milli, transferActions } from "./lib";
+import { rules } from "@/lib/rules";
+import { TRANSFER_TONES, checkReceiveLine, invalidateInventory, transferActions } from "./lib";
 import { TransferDialog, type TransferDialogMode } from "./transfer-dialog";
 
 interface Props {
@@ -60,7 +61,7 @@ export function TransferDrawer({ transfer: tr, onOpenChange, onChanged, branches
   const actions = transferActions(tr, myBranchIds, (cap, at) => (at === tr.source_branch_id ? atSource : atDest).can(cap));
   const received = tr.status === "received";
   const loss = received
-    ? tr.lines.reduce((s, l) => (l.unit_cost != null && l.qty_received != null ? s + (l.qty_received - l.qty_sent) * l.unit_cost : s), 0)
+    ? tr.lines.reduce((s, l) => (l.unit_cost != null && l.qty_received != null ? s + rules.line_cost(l.qty_received - l.qty_sent, l.unit_cost) : s), 0)
     : 0;
 
   const act = async (fn: () => Promise<StockTransfer>, done: string) => {
@@ -232,10 +233,13 @@ function ReceiveDialog({ transfer: tr, onClose, onDone }: { transfer: StockTrans
   const rows = tr.lines.map((l) => {
     const got = parseFloat(qty[l.id] ?? "");
     const ok = Number.isFinite(got) && got >= 0;
-    const over = ok && milli(got) > milli(l.qty_sent);
-    // The server's own rule decides whether the line can go (an over-receive needs a note).
-    const needsNote = ok && "refused" in checkReceiveLine(l.qty_sent, got, notes[l.id]);
-    return { l, got, ok, over, needsNote };
+    // The server's own rule judges the line (an over-receive needs a note).
+    const check = ok ? checkReceiveLine(l.qty_sent, got, notes[l.id]) : null;
+    const arrival = check && "arrival" in check ? check.arrival : null;
+    const needsNote = !!check && "refused" in check;
+    const over = arrival === "over" || (needsNote && check.refused === "over_needs_note");
+    const short = arrival === "short";
+    return { l, got, ok, over, short, needsNote };
   });
   const valid = rows.every((r) => r.ok && !r.needsNote);
 
@@ -265,7 +269,7 @@ function ReceiveDialog({ transfer: tr, onClose, onDone }: { transfer: StockTrans
           <DialogDescription>{t("inventory.transfers.receiveHint", "Count what arrived. Anything short is recorded as lost in transit.")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          {rows.map(({ l, ok, over, got, needsNote }) => (
+          {rows.map(({ l, ok, over, short, got, needsNote }) => (
             <div key={l.id} className="space-y-1.5 rounded-lg border p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -278,10 +282,10 @@ function ReceiveDialog({ transfer: tr, onClose, onDone }: { transfer: StockTrans
                   aria-label={t("inventory.transfers.received", "Received")} aria-invalid={!ok}
                 />
               </div>
-              {ok && milli(got) < milli(l.qty_sent) ? (
+              {short ? (
                 <p className="text-xs text-[color-mix(in_oklab,var(--color-destructive)_50%,var(--color-foreground))]">{t("inventory.transfers.shortBy", { qty: fmtNumber(l.qty_sent - got), defaultValue: `Short by ${fmtNumber(l.qty_sent - got)}` })}</p>
               ) : null}
-              {over || (ok && milli(got) < milli(l.qty_sent)) ? (
+              {over || short ? (
                 <Input
                   value={notes[l.id] ?? ""} onChange={(e) => setNotes((p) => ({ ...p, [l.id]: e.target.value }))}
                   placeholder={over ? t("inventory.transfers.overNote", "Why did more arrive? (required)") : t("inventory.transfers.shortNote", "What happened? (optional)")}

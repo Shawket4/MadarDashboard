@@ -2,8 +2,9 @@
 //
 // Every `<name>.json` here with a `<name>.source.json` beside it is a copy of a
 // madar-shared vectors file: the cases the backend's Rust (and the POS core)
-// are tested against, kept so this app's TypeScript copy of the rule is tested
-// against the same ones. These checks keep each copy the SAME bytes: against
+// are tested against, kept so this app's call of the rule (madar-shared's wasm,
+// src/lib/rules; or a TypeScript copy not yet converted) is tested against the
+// same ones. These checks keep each copy the SAME bytes: against
 // the hash recorded beside it, and — when a madar-shared checkout sits beside
 // this one (or MADAR_SHARED_DIR names one) — against the file itself. CI also
 // fetches each at its recorded tag (scripts/check-shared-vectors.sh).
