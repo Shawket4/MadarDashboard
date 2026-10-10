@@ -1,0 +1,7 @@
+{
+  "about": "src/lib/loyalty_card_vectors.json is a byte-for-byte copy of madar-shared's file at this tag (madar-loyalty card::card and card::stamps, the server card and the wallet pass stamp row). features/loyalty/public/card-vectors.test.tsx runs the join page card (loyalty_card) and the stamp row (stampable and its clamp, loyalty_stamps) against it. A change is made there, released with a tag, and copied here with the tag and hash below updated; scripts/check-shared-vectors.sh (CI) and shared_vectors.test.ts check it.",
+  "repo": "Shawket4/madar-shared",
+  "tag": "v0.7.1",
+  "path": "crates/madar-loyalty/vectors/loyalty_card_vectors.json",
+  "sha256": "42ec63764c277f11ce3b8fc4ae8b38130f964778a19e6875c83253a8e909f950"
+}

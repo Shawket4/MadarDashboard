@@ -1,0 +1,7 @@
+{
+  "about": "src/lib/cart_vectors.json is a byte-for-byte copy of madar-shared's file at this tag (madar-money line: cart_line_unit, cart_line_total, cart_subtotal, combo_extras; the server charges a cart line with it at intake). features/public-ordering/pricing.test.ts runs the storefront cart (lineUnitPrice, lineTotal, cartSubtotal; the wasm) against it. A change is made there, released with a tag, and copied here with the tag and hash below updated; scripts/check-shared-vectors.sh (CI) and shared_vectors.test.ts check it.",
+  "repo": "Shawket4/madar-shared",
+  "tag": "v0.7.1",
+  "path": "crates/madar-money/vectors/cart_vectors.json",
+  "sha256": "34a3e1d4b73a35d140485a255094b66fe69e2e86a168d1c2163eb3339fec0b29"
+}
