@@ -69,3 +69,37 @@ describe("GroupsPage permissions", () => {
     expect(screen.getByLabelText("Drag Milk to reorder")).toBeInTheDocument();
   });
 });
+
+const EXTRAS = {
+  id: "g-2",
+  org_id: "org-1",
+  name: "Extras",
+  name_translations: null,
+  selection_type: "multiple",
+  min_selections: 0,
+  max_selections: null,
+  is_required: false,
+  sort: 1,
+  is_active: true,
+  legacy_addon_type: "extra",
+  effect: "adds",
+  options: [],
+};
+
+describe("GroupsPage effect badge (W2, MENU-GRP-008)", () => {
+  it("fills a swap group's effect badge in the primary ink; other effects stay plain", () => {
+    held = [Cap.menuItemsRead];
+    GROUPS.push(EXTRAS as never);
+    try {
+      render(<GroupsPage />);
+    } finally {
+      GROUPS.pop();
+    }
+    const swap = screen.getByText("Swaps the drink's milk");
+    expect(swap).toHaveClass("bg-primary", "text-primary-foreground");
+    expect(swap).not.toHaveClass("bg-secondary");
+    const adds = screen.getByText("Adds ingredients");
+    expect(adds).toHaveClass("bg-secondary");
+    expect(adds).not.toHaveClass("bg-primary");
+  });
+});
