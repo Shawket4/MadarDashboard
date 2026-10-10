@@ -12,6 +12,7 @@ import { CreateIngredientDialog } from "./create-ingredient-dialog";
 import type { OrgIngredient } from "@/data/api/generated/models";
 import { fmtMoney, fmtPercent } from "@/lib/format";
 import { BAND_STYLE, draftLineCost, draftRecipeCost, foodCostBand, recipeMargin } from "@/lib/recipe-cost";
+import { rules } from "@/lib/rules";
 import { cn } from "@/lib/utils";
 
 export interface RecipeRowInit {
@@ -127,7 +128,7 @@ export function RecipeBuilder({
       if (!Number.isFinite(factor) || factor <= 0) continue;
       for (const r of baseRows) {
         const qty = parseFloat(r.quantity_used);
-        next.push({ ...r, size_label: size, quantity_used: Number.isFinite(qty) ? String(Math.round(qty * factor * 1000) / 1000) : "" });
+        next.push({ ...r, size_label: size, quantity_used: Number.isFinite(qty) ? String(rules.scale_qty(qty, factor)) : "" });
       }
     }
     replace(next);

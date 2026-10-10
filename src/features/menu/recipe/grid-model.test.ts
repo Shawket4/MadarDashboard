@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import vectors from "@/lib/scale_vectors.json";
+
 import {
   addRow,
   buildGridRows,
@@ -9,6 +11,7 @@ import {
   ownRecipeSig,
   removeRow,
   scaleColumn,
+  scaleQty,
   setCell,
   swapGroupFor,
   type GridBlock,
@@ -143,5 +146,16 @@ describe("swappable badge", () => {
     expect(swapGroupFor("milk", groups, slugOf)).toBe("Milk");
     expect(swapGroupFor("coffee_bean", groups, slugOf)).toBeNull();
     expect(swapGroupFor("syrup", groups, slugOf)).toBeNull();
+  });
+});
+
+// madar-shared's scale_vectors.json (pinned by rev): madar-units `scale_qty`, the editors' copy × factor.
+describe("scale vectors", () => {
+  it.each(vectors.cases)("$name: $qty × $factor = $expected", ({ qty, factor, expected }) => {
+    expect(scaleQty(String(qty), factor)).toBe(String(expected));
+  });
+  it("keeps a blank or non-numeric cell as typed", () => {
+    expect(scaleQty("", 2)).toBe("");
+    expect(scaleQty("abc", 2)).toBe("abc");
   });
 });

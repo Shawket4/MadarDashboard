@@ -18,7 +18,7 @@ import { listPoReceipts, receivePurchaseOrder, useGetPurchaseOrder } from "@/dat
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtDateTime, fmtMoney, fmtNumber, piastresToEgp } from "@/lib/format";
 import type { GoodsReceipt } from "@/data/api/generated/models";
-import { formatUnitCost, invalidateInventory } from "./lib";
+import { deliveryCost, formatUnitCost, invalidateInventory } from "./lib";
 
 interface Props {
   poId: string | null;
@@ -121,13 +121,9 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                   {(po.data?.lines ?? []).map((l) => {
                     const remaining = l.quantity_ordered - l.quantity_received;
                     const arriving = parseFloat(receiving[l.id] ?? "");
-                    // What the order says this much costs: the line total, pro rata.
-                    // ponytail: a display-only copy of madar-inventory `delivery_cost`'s pro-rata branch;
-                    // call it through `rules` once madar-web exports it.
+                    // What the order says this much costs: the line total, pro rata (the server's sum for a blank total).
                     const expected =
-                      Number.isFinite(arriving) && arriving > 0 && l.quantity_ordered > 0
-                        ? Math.round((l.line_cost * arriving) / l.quantity_ordered)
-                        : null;
+                      Number.isFinite(arriving) && arriving > 0 ? deliveryCost(arriving, null, null, l.line_cost, l.quantity_ordered) : null;
                     return (
                       <TableRow key={l.id}>
                         <TableCell className="font-medium">{l.ingredient_name}</TableCell>

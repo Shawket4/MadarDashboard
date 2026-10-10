@@ -1,4 +1,6 @@
+import countVectors from "@/lib/count_vectors.json";
 import vectors from "@/lib/inventory_vectors.json";
+import purchase from "@/lib/purchase_vectors.json";
 import unitVectors from "@/lib/unit_vectors.json";
 import { describe, expect, it } from "vitest";
 
@@ -13,10 +15,12 @@ import {
   transferActions,
   transferStep,
   countsDue,
+  deliveryCost,
   isVarianceFlagged,
   missingReasons,
   needsFirstCount,
   parseCount,
+  roundQty,
   isBelowZero,
   wasteReceivedLate,
   wasteSource,
@@ -223,3 +227,30 @@ describe("the transfer rules match madar-shared's vectors", () => {
   });
 });
 
+
+// madar-shared's purchase_vectors.json (pinned by rev): madar-inventory's purchase
+// rules through the dashboard's wrappers. Not run: `quantity[].milli` (the
+// thousandths form; the web shows quantity_dec and never stores milli) and
+// `line_costs` (the server's own order-line costing, which the web never does).
+describe("the purchase rules match madar-shared's vectors", () => {
+  it.each(purchase.quantity)("quantity $name", (c) => {
+    expect(roundQty(c.q)).toBe(Number(c.quantity_dec));
+  });
+  it.each(purchase.delivery_cost)("delivery_cost $name", (c) => {
+    const got = deliveryCost(c.quantity_received, c.line_cost, c.unit_cost, c.ordered_line_cost, Number(c.quantity_ordered));
+    expect(got).toBe(c.error == null ? Number(c.expected) : null);
+  });
+  it.each(purchase.estimate_line_total)("estimate_line_total $name", (c) => {
+    expect(estimateLineTotal(c.cost_per_stock_unit, c.qty, c.purchase_unit, c.stock_unit)).toBe(c.expected);
+  });
+  it.each(purchase.unit_cost_from_total)("unit_cost_from_total $name", (c) => {
+    expect(unitCostFromTotal(c.line, c.qty)).toBe(c.expected);
+  });
+});
+
+// madar-shared's count_vectors.json (pinned by rev): the variance flag the server refuses a finalize with.
+describe("the count rule matches madar-shared's vectors", () => {
+  it.each(countVectors.cases)("$name", (c) => {
+    expect(isVarianceFlagged(c.book, c.counted, c.pct)).toBe(c.expected);
+  });
+});

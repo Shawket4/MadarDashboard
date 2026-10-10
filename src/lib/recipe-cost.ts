@@ -24,7 +24,7 @@ export interface DraftLine {
 }
 
 /** What the line will store, in its ingredient's base unit; `null` when it has no ingredient or quantity, or its unit does not convert. */
-const storedQty = ({ ingredient: ing, quantity, unit }: DraftLine): number | null => {
+export const storedQty = ({ ingredient: ing, quantity, unit }: DraftLine): number | null => {
   const typed = parseFloat(quantity);
   if (!ing || !Number.isFinite(typed)) return null;
   const q = rules.recipe_base_qty(typed, unit, ing.unit, ing.density_g_per_ml, ing.yield_pct);

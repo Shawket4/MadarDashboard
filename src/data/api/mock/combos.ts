@@ -40,9 +40,10 @@ function economics(w: ComboWrite, branchId: string | null = null): ComboEconomic
     list += priceOf(id) * Math.max(1, s.min);
   }
   const cost = Math.round(list * 0.35);
-  const margin = rules.margin(w.price, cost)?.toFixed(4) ?? null;
+  const m = rules.margin(w.price, cost);
+  const margin = m?.toFixed(4) ?? null;
   const warnings: ComboEconomics["warnings"] = [];
-  if (margin !== null && minMargin !== null && Number(margin) < Number(minMargin)) {
+  if (m != null && minMargin !== null && m < Number(minMargin)) {
     warnings.push({ code: "MARGIN_BELOW_MIN", vars: { margin, min: minMargin } });
   }
   if (w.price >= list) warnings.push({ code: "NO_SAVING", vars: {} });

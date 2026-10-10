@@ -8,8 +8,10 @@ import { describe, expect, it } from "vitest";
 
 import type { OrgIngredient } from "@/data/api/generated/models";
 import vectors from "@/lib/cost_vectors.json";
+import recipeQty from "@/lib/recipe_qty_vectors.json";
+import { rules } from "@/lib/rules";
 
-import { draftLineCost, draftRecipeCost, foodCostBand, recipeMargin } from "./recipe-cost";
+import { draftLineCost, draftRecipeCost, foodCostBand, recipeMargin, storedQty } from "./recipe-cost";
 
 const ing = (cost_per_unit: number | null, extra: Partial<OrgIngredient> = {}) =>
   ({ unit: "g", cost_per_unit, yield_pct: null, density_g_per_ml: null, ...extra }) as OrgIngredient;
@@ -55,5 +57,25 @@ describe("a draft estimate costs what the server will store", () => {
 
   it("D4: no margin for a partial cost", () => {
     expect(recipeMargin(1000, { piastres: 400, complete: false })).toBeNull();
+  });
+});
+
+// madar-shared's recipe_qty_vectors.json (pinned by rev): madar-units' typed amount
+// → stored quantity (the editors' estimate, storedQty) and back (usable_qty: the
+// server's `usable_quantity`, which the web reads; only the mock server computes it).
+describe("recipe quantities match madar-shared's recipe_qty vectors", () => {
+  const draft = (c: { qty: number; unit: string; base_unit: string; density: number | null; yield_pct: number | null }) =>
+    storedQty({ ingredient: ing(null, { unit: c.base_unit, density_g_per_ml: c.density, yield_pct: c.yield_pct }), quantity: String(c.qty), unit: c.unit });
+
+  it.each(recipeQty.recipe_base_qty)("recipe_base_qty $name", (c) => {
+    expect(draft(c)).toBe(c.error == null ? c.expected : null);
+  });
+  it.each(recipeQty.usable_qty)("usable_qty $name", (c) => {
+    expect(rules.usable_qty(c.stored, c.yield_pct)).toBe(c.expected);
+  });
+  it.each(recipeQty.round_trips)("round trip $name", (c) => {
+    const stored = draft(c);
+    expect(stored).toBe(c.stored);
+    expect(rules.usable_qty(stored as number, c.yield_pct)).toBe(c.usable);
   });
 });

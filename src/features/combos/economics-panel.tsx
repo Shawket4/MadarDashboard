@@ -12,6 +12,7 @@ import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtMoney } from "@/lib/format";
+import { rules } from "@/lib/rules";
 import { cn } from "@/lib/utils";
 
 import { useComboEconomics } from "./api";
@@ -41,7 +42,11 @@ function Figure({ label, value, hint, tone }: { label: string; value: string; hi
 export function EconomicsView({ econ, names }: { econ: ComboEconomics; names: WarningNames }) {
   const { t } = useTranslation();
   const min = rateOf(econ.min_margin);
-  const below = (r: string | null | undefined) => min !== null && rateOf(r) !== null && (rateOf(r) as number) < min;
+  // The margin a cost leaves at this price (madar-money `margin`), under the owner's minimum.
+  const below = (cost: number | null | undefined) => {
+    const m = cost == null ? null : rules.margin(econ.price, cost);
+    return min !== null && m !== null && m < min;
+  };
   const range = econ.list_min !== econ.list_max ? t("combos.econ.range", { defaultValue: "{{min}} to {{max}}", min: fmtMoney(econ.list_min), max: fmtMoney(econ.list_max) }) : undefined;
 
   return (
@@ -62,12 +67,12 @@ export function EconomicsView({ econ, names }: { econ: ComboEconomics; names: Wa
         <Figure
           label={t("combos.econ.margin", "Margin (default picks)")}
           value={fmtRate(econ.margin_default)}
-          tone={below(econ.margin_default) ? "warning" : undefined}
+          tone={below(econ.cost_default) ? "warning" : undefined}
         />
         <Figure
           label={t("combos.econ.marginWorst", "Margin (costliest picks)")}
           value={fmtRate(econ.margin_worst)}
-          tone={below(econ.margin_worst) ? "warning" : undefined}
+          tone={below(econ.cost_max) ? "warning" : undefined}
         />
         <Figure
           label={t("combos.econ.minMargin", "Your minimum")}

@@ -77,6 +77,24 @@ export const estimateLineTotal = (
   stockUnit: string,
 ): number | null => rules.estimate_line_total(catalogCostPerStockUnit, qty, purchaseUnit, stockUnit);
 
+/** What a delivery of `received` costs, in piastres, not rounded (madar-inventory
+ *  `delivery_cost`, the server's sum): the invoice total if given, else the unit
+ *  price × the quantity, else the ordered line total pro rata. `null` when the
+ *  server would refuse it (a negative cost). */
+export const deliveryCost = (
+  received: number,
+  lineCost: number | null,
+  unitCost: number | null,
+  orderedLineCost: number,
+  quantityOrdered: number,
+): number | null => {
+  const c = rules.delivery_cost(received, lineCost, unitCost, orderedLineCost, quantityOrdered);
+  return typeof c === "number" ? c : null;
+};
+
+/** A quantity at the 3 dp grain the ledger stores (madar-inventory `quantity_dec`: read as printed, half away from zero). */
+export const roundQty = (q: number): number => rules.quantity_dec(q);
+
 /** Fraction digits a unit cost is shown with (EGP), always all of them:
  *  enough for 0.04568 per gram, and a whole-looking figure still reads as
  *  the exact quotient it is (0.050000, not a rounded-looking 0.05). */
