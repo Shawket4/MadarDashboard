@@ -33,7 +33,41 @@ for (const d of [contact, menu]) {
   });
 }
 menu?.addEventListener("click", (e) => {
-  if ((e.target as Element).closest("a")) menu.close();
+  const target = e.target as Element;
+  if (target.closest("a")) menu.close();
+  else if (target.closest("[data-close-menu]")) closeMenu();
+});
+
+/** The menu's way out: its short fade (global.css), then shut. Instant when there is none. */
+function closeMenu() {
+  if (!menu?.open || menu.hasAttribute("data-closing")) return;
+  menu.setAttribute("data-closing", "");
+  const done = () => {
+    menu.removeAttribute("data-closing");
+    menu.close();
+  };
+  const fade = menu.getAnimations()[0];
+  if (fade) fade.finished.then(done, done);
+  else done();
+}
+// Escape (and Android's back) fades it out too; the native dialog keeps focus inside while
+// open and hands it back to the menu button after.
+menu?.addEventListener("cancel", (e) => {
+  e.preventDefault();
+  closeMenu();
+});
+// Never back with the menu open: a page restored from the back/forward cache, a # change.
+for (const type of ["pageshow", "hashchange"]) {
+  window.addEventListener(type, () => void (menu?.open && menu.close()));
+}
+
+// Features opens onto its areas; shut, they are inert (out of the tab order and unheard).
+const more = menu?.querySelector<HTMLButtonElement>(".menu-more");
+const areas = document.getElementById("menu-areas");
+more?.addEventListener("click", () => {
+  const open = more.getAttribute("aria-expanded") !== "true";
+  more.setAttribute("aria-expanded", String(open));
+  if (areas) areas.inert = !open;
 });
 
 // Header: transparent over the hero, solid once the page moves.

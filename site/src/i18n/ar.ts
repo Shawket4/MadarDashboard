@@ -54,6 +54,7 @@ export const ar: Copy = {
 
   nav: {
     features: "المميزات",
+    featureAreas: "أقسام المميزات",
     pricing: "الأسعار",
     faq: "أسئلة",
     about: "عن مدار",

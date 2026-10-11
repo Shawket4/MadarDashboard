@@ -6,7 +6,7 @@ import Roadmap from "@/components/features/Roadmap.astro";
 import BasiraDemo from "@/components/home/BasiraDemo.astro";
 import Orbit from "@/components/ui/Orbit.astro";
 import LedgerBeams from "@/components/kit/LedgerBeams.astro";
-import { t } from "@/i18n";
+import { t, featureGroups } from "@/i18n";
 import { type Lang, LANGS } from "@/lib/site";
 import { breadcrumbs } from "@/lib/schema";
 
@@ -18,12 +18,7 @@ const c = t(lang);
 const a = c.areas;
 const f = c.features;
 
-const groups = [
-  { label: f.groups.opening, items: [["till", a.till.kicker], ["inventory", a.inventory.kicker]] },
-  { label: f.groups.rush, items: [["counter", a.counter.kicker], ["floor", a.floor.kicker], ["ordering", a.ordering.kicker], ["loyalty", a.loyalty.kicker]] },
-  { label: f.groups.close, items: [["menu", a.menu.kicker], ["basira", a.basira.kicker], ["hq", a.hq.kicker]] },
-  { label: f.groups.also, items: [["dawam", a.dawam.kicker], ["setup", a.setup.kicker]] },
-];
+const groups = featureGroups(lang);
 ---
 <BaseLayout lang={lang} page="features" headerTone="paper" jsonLd={[breadcrumbs(lang, "features")]}>
   <!-- Intro -->
