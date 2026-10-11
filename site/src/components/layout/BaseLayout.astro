@@ -2,6 +2,7 @@
 import "@/styles/global.css";
 import plexLatin600 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-600-normal.woff2?url";
 import plexLatin400 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-400-normal.woff2?url";
+import plexLatin500 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-500-normal.woff2?url";
 import plexArabic600 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-600-normal.woff2?url";
 import plexArabic400 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-400-normal.woff2?url";
 import Header from "./Header.astro";
@@ -76,14 +77,19 @@ const ld = [organization(), ...jsonLd];
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
+    <!-- The faces the hero sets, so none swaps in (and re-flows it) after the first paint:
+         on English pages its three weights, on Arabic pages its two Arabic weights and the
+         Latin medium its figures are set in (3,000 جنيه). -->
     {lang === "ar" ? (
       <>
         <link rel="preload" as="font" type="font/woff2" href={plexArabic600} crossorigin />
         <link rel="preload" as="font" type="font/woff2" href={plexArabic400} crossorigin />
+        <link rel="preload" as="font" type="font/woff2" href={plexLatin500} crossorigin />
       </>
     ) : (
       <>
         <link rel="preload" as="font" type="font/woff2" href={plexLatin600} crossorigin />
+        <link rel="preload" as="font" type="font/woff2" href={plexLatin500} crossorigin />
         <link rel="preload" as="font" type="font/woff2" href={plexLatin400} crossorigin />
       </>
     )}

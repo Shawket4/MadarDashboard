@@ -35,7 +35,7 @@ const links: { key: PageKey; label: string }[] = [
 
     <div class="flex items-center gap-1.5 sm:gap-2">
       <a
-        class="nav-link hidden sm:inline-flex"
+        class="nav-link lang-switch hidden sm:inline-flex"
         href={switchHref}
         hreflang={other}
         lang={other}
@@ -100,7 +100,7 @@ const links: { key: PageKey; label: string }[] = [
       </a>
       <div class="mt-2 flex items-center justify-between gap-4">
         <a class="menu-quiet" href={DASHBOARD_URL} rel="noopener">{c.nav.login}</a>
-        <a class="menu-quiet" href={switchHref} hreflang={other} lang={other} data-umami-event="lang-switch"><Icon name="globe" size={18} /> {c.nav.langSwitch}</a>
+        <a class="menu-quiet lang-switch" href={switchHref} hreflang={other} lang={other} data-umami-event="lang-switch"><Icon name="globe" size={18} /> {c.nav.langSwitch}</a>
       </div>
     </div>
   </div>

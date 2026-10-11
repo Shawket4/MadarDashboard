@@ -34,6 +34,54 @@ function rootAlias() {
 }
 
 /**
+ * A <link rel="modulepreload"> in each page's <head> for every chunk its module scripts
+ * import (Astro adds none), so the browser fetches them beside the script instead of a
+ * round trip after it: the header's menu and the hero's figures wait on that graph
+ * (about 400 ms later on a mid phone without it). Runs before the root alias and the
+ * archive, so get.html and the archive's pages have them too.
+ */
+function modulePreload() {
+  return {
+    name: "madar-modulepreload",
+    hooks: {
+      "astro:build:done": async ({ dir }) => {
+        const out = fileURLToPath(dir);
+        const graph = new Map();
+        // A chunk's static imports, all the way down (dynamic import() is left to load late).
+        const deps = async (file) => {
+          if (graph.has(file)) return graph.get(file);
+          graph.set(file, new Set());
+          const code = await readFile(path.join(out, file), "utf8");
+          const found = new Set();
+          for (const [, rel] of code.matchAll(/\bimport\s*(?:[\w$*{},\s]+?\s*from\s*)?["'](\.\/[^"']+?\.js)["']/g)) {
+            const dep = path.posix.join(path.posix.dirname(file), rel);
+            found.add(dep);
+            for (const d of await deps(dep)) found.add(d);
+          }
+          graph.set(file, found);
+          return found;
+        };
+        async function* pages(d) {
+          for (const entry of await readdir(d, { withFileTypes: true })) {
+            const p = path.join(d, entry.name);
+            if (entry.isDirectory()) yield* pages(p);
+            else if (entry.name.endsWith(".html")) yield p;
+          }
+        }
+        for await (const page of pages(out)) {
+          const html = await readFile(page, "utf8");
+          const want = new Set();
+          for (const [, src] of html.matchAll(/<script type="module" src="\/([^"]+\.js)"/g)) for (const d of await deps(src)) want.add(d);
+          if (!want.size) continue;
+          const links = [...want].map((d) => `<link rel="modulepreload" href="/${d}">`).join("");
+          await writeFile(page, html.replace("</head>", `${links}</head>`));
+        }
+      },
+    },
+  };
+}
+
+/**
  * The sitemap's <lastmod>: the date of the last commit that touched the site's source,
  * so it moves when the pages do and not on every rebuild. Falls back to the build date
  * where git history isn't there (a shallow CI clone whose head didn't touch site/).
@@ -108,6 +156,7 @@ export default defineConfig({
       // x-default: the English page, as each page's own hreflang says.
       serialize: (item) => ({ ...item, links: [...(item.links ?? []), { url: item.url.replace(/\/ar\//, "/en/"), lang: "x-default" }] }),
     }),
+    modulePreload(),
     rootAlias(),
     // Markdown versions, /index.md and llms.txt, read back from the built pages.
     agentFiles(SITE),

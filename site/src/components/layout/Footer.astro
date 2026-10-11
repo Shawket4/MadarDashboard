@@ -21,7 +21,7 @@ const year = currentYear(lang);
     <div class="md:col-span-4">
       <a href={pageHref(lang, "home")} aria-label={c.nav.home} class="inline-flex text-[1.9rem]"><Logo lang={lang} tone="ink" display /></a>
       <p class="kicker mt-5 max-w-xs text-muted-ink">{c.footer.tagline}</p>
-      <a class="nav-link mt-6 inline-flex items-center gap-2 !px-0" href={switchHref(lang, page)} hreflang={other} lang={other} data-umami-event="lang-switch">
+      <a class="nav-link lang-switch mt-6 inline-flex items-center gap-2 !px-0" href={switchHref(lang, page)} hreflang={other} lang={other} data-umami-event="lang-switch">
         <Icon name="globe" size={18} /> {c.nav.langSwitch}
       </a>
       <AppStoreBadge lang={lang} where="footer" class="mt-6" />
