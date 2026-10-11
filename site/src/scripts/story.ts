@@ -71,9 +71,39 @@ const hashTarget = (hash = location.hash) =>
 let lenis: Lenis | null = null;
 
 if (reduce) initBarista({ mode: "still" });
-else run();
+else {
+  if (!soft) hero();
+  afterEntrance(() => void run());
+}
 
-function run() {
+/**
+ * Sets the story up once the first screen's entrance (CSS) has played and the page is
+ * idle, or as soon as the visitor scrolls or touches it, whichever comes first. The setup
+ * is the page's one long piece of work (about 220 ms on a mid phone) and it also starts
+ * the 3D's download (family.ts), so it never lands mid-entrance. Nothing below the first
+ * screen needs it before the page moves: until then that content is simply there.
+ */
+function afterEntrance(start: () => void) {
+  let started = false;
+  const events = ["scroll", "touchstart", "wheel", "keydown"] as const;
+  const go = () => {
+    if (started) return;
+    started = true;
+    for (const type of events) window.removeEventListener(type, go);
+    start();
+  };
+  for (const type of events) window.addEventListener(type, go, { passive: true });
+  // The entrance: every finite animation running now (the CSS ones, a page transition).
+  const entrance = document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity);
+  const idle = () => ("requestIdleCallback" in window ? requestIdleCallback(go, { timeout: 300 }) : setTimeout(go, 50));
+  Promise.all(entrance.map((a) => a.finished.catch(() => {}))).then(idle);
+  setTimeout(go, 4000); // whatever an animation does, the story is set up by then
+}
+
+/** Hands the main thread back between parts of the setup, so no part is one long task. */
+const breathe = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+async function run() {
   // Smooth scroll on mouse and trackpad only; touch keeps its native momentum.
   if (window.matchMedia("(pointer: fine)").matches) {
     const smooth = new Lenis({ lerp: 0.11, autoRaf: false });
@@ -83,8 +113,6 @@ function run() {
     lenis = smooth;
   }
   anchorLinks();
-
-  if (!soft) hero();
 
   // Pins next, in page order: every trigger created after them measures the page with
   // the pins' extra scroll length already in place. (The cappuccino pins on desktop
@@ -103,14 +131,16 @@ function run() {
   // what is on screen and what was passed.
   if (scenes.length || sets) ScrollTrigger.refresh();
   landOnHash();
+  await breathe();
 
   if (desktop.matches) {
     root.classList.add("story-on");
     parallax();
     rail();
   }
-
   splits();
+  await breathe();
+
   reveals();
   counts();
   orbits();
@@ -118,6 +148,7 @@ function run() {
   stageClocks();
   basira();
   roadmap();
+  await breathe();
 
   ScrollTrigger.sort();
   ScrollTrigger.refresh();

@@ -3,13 +3,13 @@
 /* Fonts: the design system's one superfamily (MadarDashboard DESIGN.md, Typography):
    IBM Plex Sans Arabic leads in BOTH directions, its Arabic cut carrying Latin too, so
    nothing changes when the direction does; IBM Plex Sans backs it up; IBM Plex Mono
-   carries figures. Self-hosted subset woff2 via Fontsource. */
-@import "@fontsource/ibm-plex-sans-arabic/latin-400.css";
-@import "@fontsource/ibm-plex-sans-arabic/latin-500.css";
-@import "@fontsource/ibm-plex-sans-arabic/latin-600.css";
-@import "@fontsource/ibm-plex-sans-arabic/arabic-400.css";
-@import "@fontsource/ibm-plex-sans-arabic/arabic-500.css";
-@import "@fontsource/ibm-plex-sans-arabic/arabic-600.css";
+   carries figures. Self-hosted subset woff2 via Fontsource. The leading family comes
+   in by weight, every subset with its unicode-range: the single-subset files carry no
+   range, so each page fetched both the Latin and the Arabic file of every weight it set
+   (English pages ~135 KB of Arabic they never drew). */
+@import "@fontsource/ibm-plex-sans-arabic/400.css";
+@import "@fontsource/ibm-plex-sans-arabic/500.css";
+@import "@fontsource/ibm-plex-sans-arabic/600.css";
 @import "@fontsource/ibm-plex-sans/latin-400.css";
 @import "@fontsource/ibm-plex-sans/latin-500.css";
 @import "@fontsource/ibm-plex-sans/latin-600.css";
@@ -342,6 +342,10 @@ html[lang="ar"] .chip-label { font-size: 0.78rem; text-transform: none; letter-s
 /* The App Store badge (AppStoreBadge.astro) at Apple's sizes, never stretched. */
 .store-badge { display: flex; width: fit-content; flex: none; border-radius: .5rem; }
 .store-badge img { display: block; height: 2.75rem; width: auto; }
+
+/* "العربية" is the only Arabic on English pages: set in the phone's own Arabic face, so
+   they fetch no Arabic font file (45 KB) for one link. */
+html:not([lang="ar"]) .lang-switch { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans Arabic", sans-serif; }
 
 /* Header logo swap. Unlayered on purpose: it must beat the inline-flex utility. */
 .site-header .logo-on-ink { display: none; }

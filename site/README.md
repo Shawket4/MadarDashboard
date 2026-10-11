@@ -184,6 +184,16 @@ Motion rules:
   thread, so the gsap bundle loading, or `story.ts` setting up the pins, can't delay
   or stall it. Whatever else is on screen when `story.ts` starts stays as it is
   (`settled`); only what scrolls in later reveals.
+- **The story sets itself up after the entrance** (`afterEntrance` in `story.ts`): once
+  the first screen's CSS animations have finished and the page is idle, or at the first
+  scroll, touch, wheel or key, whichever comes first, in parts with the main thread
+  handed back between them. The 3D's download starts from there too. The build adds a
+  `modulepreload` for every chunk a page's script imports (`modulePreload` in
+  `astro.config.mjs`).
+- **Fonts:** the leading family comes in by weight (`400.css`…), each subset with its
+  `unicode-range`, so a page fetches only the scripts it sets; the first screen's weights
+  are preloaded (and on Arabic pages the Latin medium of its figures). "العربية" on
+  English pages is set in the phone's own Arabic face (`.lang-switch`).
 - Split text by **words only** (letters would break how Arabic joins). Each word rises
   inside a mask that is padded past descenders and Arabic tails and marks
   (`.split-word-mask`); the split stays after the words land, since undoing it can
