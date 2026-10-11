@@ -182,8 +182,8 @@ html.lenis, html.lenis body { height: auto; }
    (g, y, p), Arabic tails and marks reach outside it and would be cut off: pad the mask
    past them, and pull its margins back so nothing moves. Measured: no glyph of either
    language's headings reaches past these. */
-.split-word-mask { padding: 0.18em 0.1em; margin: -0.18em -0.1em; }
-html[lang="ar"] .split-word-mask { padding: 0.42em 0.32em; margin: -0.42em -0.32em; }
+.split-word-mask { --mask-pad: 0.18em; position: relative; display: inline-block; overflow: clip; padding: var(--mask-pad) 0.1em; margin: calc(-1 * var(--mask-pad)) -0.1em; }
+html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; margin-inline: -0.32em; }
 
 [dir="rtl"] .marquee-track { animation-name: marquee-rtl; }
 @keyframes marquee-rtl { from { transform: translateX(0); } to { transform: translateX(calc(100% + var(--gap))); } }
@@ -307,9 +307,25 @@ html[lang="ar"] .chip-label { font-size: 0.78rem; text-transform: none; letter-s
 .barista-step[data-active] .text-paper,
 .barista-step[data-active] .text-teal-light { color: var(--color-teal-light-raised); }
 
-/* Until the story script is ready, keep animated pieces out of sight (never without JS:
-   the "m" class is only set by the inline head script, with a 3 s fallback). */
-.m:not(.m-ready):not(.m-fail) :is([data-reveal], [data-split], [data-hero-title], [data-hero-item], [data-hero-browser], [data-hero-ipad], [data-hero-chip]) { opacity: 0; }
+/* First screen, arriving fresh (.m: no page transition and motion allowed, set by the
+   head script). The hero's or a page intro's entrance is CSS: it starts with the first
+   paint and runs off the main thread, so it never waits for story.ts (gsap) to load and
+   never stalls while that sets the page up. The heading's words are split at build time
+   (Words.astro) and rise from below their masks. Fill "backwards" only: once played,
+   each piece is back on its own styles. Anything else on the first screen is simply
+   there; story.ts reveals only what scrolls in later. */
+/* Lines fade from 1%, not 0: Chrome counts a paint at opacity 0 as no paint, and with the
+   fade on the compositor it would date the page's largest paint (LCP) to the fade's end. */
+@keyframes rise-in { from { opacity: .01; transform: translateY(var(--rise, 22px)); } }
+@keyframes rise-word { from { transform: translateY(calc(100% + 2 * var(--mask-pad))); } }
+/* The browser card doesn't fade at all: on wide screens it is the largest paint. */
+@keyframes hero-browser { from { transform: perspective(1400px) translateY(70px) rotateX(7deg); } to { transform: perspective(1400px); } }
+@keyframes hero-chip { from { opacity: 0; transform: translateY(24px) scale(.92); } }
+.m [data-intro] { animation: rise-in 1.15s var(--ease-out-expo) calc(300ms + var(--i, 0) * 70ms) backwards; }
+.m .intro-word { animation: rise-word 1.15s var(--ease-out-expo) calc(50ms + var(--w, 0) * 55ms) backwards; }
+.m [data-hero-browser] { animation: hero-browser 1.5s var(--ease-out-expo) .15s backwards; }
+.m [data-hero-ipad] { --rise: 110px; animation: rise-in 1.5s var(--ease-out-expo) .4s backwards; }
+.m [data-hero-chip] { animation: hero-chip 1s var(--ease-out-expo) .9s backwards; }
 
 /* Header logo swap. Unlayered on purpose: it must beat the inline-flex utility. */
 .site-header .logo-on-ink { display: none; }

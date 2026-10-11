@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/components/layout/BaseLayout.astro";
+import Words from "@/components/kit/Words.astro";
 import FeatureArea from "@/components/features/FeatureArea.astro";
 import Roadmap from "@/components/features/Roadmap.astro";
 import BasiraDemo from "@/components/home/BasiraDemo.astro";
@@ -29,9 +30,9 @@ const groups = [
   <section class="relative isolate overflow-hidden bg-paper">
     <Orbit tone="paper" class="absolute -end-[34rem] -top-[34rem] -z-10 h-[76rem] w-[76rem] opacity-70" />
     <div class="container-site pb-14 pt-36 md:pb-20 md:pt-44">
-      <p class="kicker text-teal" data-reveal>{f.kicker}</p>
-      <h1 class="text-display mt-5 max-w-5xl" data-split>{f.title}</h1>
-      <p class="text-lead mt-6 max-w-2xl text-muted" data-reveal>{f.intro}</p>
+      <p class="kicker text-teal" data-intro style="--i:0">{f.kicker}</p>
+      <h1 class="text-display mt-5 max-w-5xl"><Words text={f.title} /></h1>
+      <p class="text-lead mt-6 max-w-2xl text-muted" data-intro style="--i:1">{f.intro}</p>
     </div>
   </section>
 

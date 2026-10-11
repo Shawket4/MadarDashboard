@@ -4,6 +4,7 @@
  * crawlers and agents. The contact sheet (the header's "Talk to us") stays as it is.
  */
 import BaseLayout from "@/components/layout/BaseLayout.astro";
+import Words from "@/components/kit/Words.astro";
 import Icon from "@/components/ui/Icon.astro";
 import { t } from "@/i18n";
 import {
@@ -30,9 +31,9 @@ const rows = [
   <section class="bg-paper">
     <div class="container-site grid gap-12 pb-20 pt-36 md:pt-44 lg:grid-cols-12 lg:gap-16 lg:pb-28">
       <div class="lg:col-span-5">
-        <p class="kicker text-teal" data-reveal>{cp.kicker}</p>
-        <h1 class="text-display mt-5" data-split>{c.contact.title}</h1>
-        <p class="text-lead mt-6 text-muted" data-reveal>{c.contact.subtitle}</p>
+        <p class="kicker text-teal" data-intro style="--i:0">{cp.kicker}</p>
+        <h1 class="text-display mt-5"><Words text={c.contact.title} /></h1>
+        <p class="text-lead mt-6 text-muted" data-intro style="--i:1">{c.contact.subtitle}</p>
         <h2 class="mt-12 text-lg font-semibold" data-reveal>{cp.nextTitle}</h2>
         <ol class="mt-4 grid list-decimal gap-3 ps-5 text-muted marker:font-mono marker:text-teal" data-reveal-group>
           {cp.next.map((line) => <li data-reveal>{line}</li>)}

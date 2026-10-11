@@ -1,0 +1,12 @@
+---
+/**
+ * A first-screen heading's words, each in its mask, split here at build time so the
+ * entrance can be CSS (global.css, "First screen"): the words rise with the first
+ * paint, without waiting for story.ts. Words only: letters would break how Arabic joins.
+ */
+interface Props { text: string }
+const words = Astro.props.text.split(" ");
+---
+{words.map((w, i) => (
+  <Fragment><span class="split-word-mask"><span class="split-word intro-word" style={`--w:${i}`}>{w}</span></span>{i < words.length - 1 ? " " : ""}</Fragment>
+))}
