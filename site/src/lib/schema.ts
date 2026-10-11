@@ -6,7 +6,7 @@
 import { t } from "@/i18n";
 import {
   type Lang, type PageKey, SITE_URL, absoluteUrl, pageHref,
-  EMAIL, PHONE_E164, INSTAGRAM, FACEBOOK, APP_STORE_URL,
+  EMAIL, PHONE_E164, INSTAGRAM, FACEBOOK, STORE_URLS,
 } from "@/lib/site";
 
 const ROOT = `${SITE_URL}/`;
@@ -32,7 +32,7 @@ export function organization() {
       areaServed: "EG",
       availableLanguage: ["en", "ar"],
     }],
-    sameAs: [INSTAGRAM, FACEBOOK, APP_STORE_URL],
+    sameAs: [INSTAGRAM, FACEBOOK, ...STORE_URLS],
     founder: { "@type": "Person", name: "Shawket Ibrahim", alternateName: "شوكت إبراهيم" },
   };
 }
