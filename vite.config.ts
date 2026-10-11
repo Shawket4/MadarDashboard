@@ -8,6 +8,7 @@ import { constants as zlibConstants } from "node:zlib";
 import { readFileSync, readdirSync } from "node:fs";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
+import { zodJitless } from "./vite/zod-jitless";
 import { isDemo, pageHead } from "./vite/page-head";
 
 const pkgVersion = (
@@ -51,6 +52,7 @@ export default defineConfig({
   plugins: [
     // `public/` is copied verbatim, so a README beside an asset ships with it.
     noDocsInTheBundle(),
+    zodJitless(),
     // index.html's title, description and canonical: the dashboard's, or the
     // demo's when VITE_DEMO=1 builds the same file for demo.madar-pos.cloud.
     pageHead(),

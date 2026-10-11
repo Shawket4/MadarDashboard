@@ -213,8 +213,9 @@ these rules:
 - **What new code must not do.**
   - **Scripts:** no inline `<script>` and no `on*=` attributes (JSON-LD is fine). No
     `eval` or `new Function`.
-  - **zod:** it runs jitless for that reason. A new entry imports
-    `@/lib/zod-jitless` first, as `src/main.tsx` does.
+  - **zod:** it runs jitless for that reason. `vite/zod-jitless.ts` sets it in
+    zod's own core module; a new Vite config adds `zodJitless()` beside
+    `noDocsInTheBundle()`.
   - **Public bundles talk to their own origin only** (`connect-src 'self'`): they call the
     API through the host's `/api/`, never a cross-origin URL. No Sentry and no
     third-party script, font or frame. Fonts are self-hosted (`@fontsource`), images
