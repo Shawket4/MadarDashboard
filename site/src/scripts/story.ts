@@ -37,7 +37,7 @@ const desktop = window.matchMedia("(min-width: 1024px)");
 const passed = (el: Element) => el.getBoundingClientRect().bottom <= 0;
 
 /**
- * A flick: the page is moving fast (a thumb's fling, a trackpad throw, a long glide).
+ * A flick: the page is moving fast (a thumb's fling, a trackpad throw).
  * Entrances that come up mid-flick just finish: nobody can watch them, and things
  * fading in behind a fast scroll is what reads as jank.
  */
@@ -127,10 +127,10 @@ function run() {
 
 /**
  * Same-page # links (the hero's "See a café's day", the rail, the day's cards, the
- * features chips) glide there: Lenis on mouse and trackpad, the browser's own smooth
- * scroll on touch. Whatever the glide passes skips its entrance (whenSeen), so the place
- * you land is ready when you get there. Keyboard activation keeps the browser's jump,
- * which also moves focus along.
+ * features chips, the phone menu's areas) jump there (owner: no long scroll down the
+ * page), then what lands on screen plays its entrance. Whatever the jump passes skips
+ * its entrance (whenSeen), so nothing above is left half-shown. Keyboard activation
+ * keeps the browser's jump, which also moves focus along.
  */
 function anchorLinks() {
   document.addEventListener("click", (e) => {
@@ -143,23 +143,27 @@ function anchorLinks() {
     if (!to) return;
     e.preventDefault();
     if (url.hash !== location.hash) history.pushState(null, "", url.hash);
-    glide(to, false);
+    jump(to);
   });
 }
 
 /**
- * Scrolls to `to` (the page's scroll-padding keeps it clear of the header). Lenis
- * measures again first: the page's length (it learns of the pins' extra length only
- * after a debounce) and where the page really is (a scroll it didn't see, the
- * browser's own or a script's, would otherwise offset where it lands).
+ * Puts `to` at the top at once (the page's scroll-padding keeps it clear of the header).
+ * Lenis measures again first: the page's length (it learns of the pins' extra length
+ * only after a debounce) and where the page really is (a scroll it didn't see, the
+ * browser's own or a script's, would otherwise offset where it lands). A jump is not a
+ * flick: the speed reading starts again from here, so what it lands on plays.
  */
-function glide(to: HTMLElement, immediate: boolean) {
+function jump(to: HTMLElement) {
   if (lenis) {
     lenis.resize();
-    lenis.scrollTo(to, { immediate, force: true });
+    lenis.scrollTo(to, { immediate: true, force: true });
   } else {
-    to.scrollIntoView({ behavior: immediate ? "instant" : "smooth", block: "start" });
+    to.scrollIntoView({ behavior: "instant", block: "start" });
   }
+  speed = 0;
+  lastY = window.scrollY;
+  lastT = performance.now();
 }
 
 /**
@@ -175,7 +179,7 @@ function landOnHash() {
   if (!to || (nav && nav.type !== "navigate")) return;
   let holding = true;
   const land = () => {
-    if (holding) glide(to, true);
+    if (holding) jump(to);
   };
   const release = () => {
     holding = false;
@@ -187,6 +191,9 @@ function landOnHash() {
   window.setTimeout(release, 5000);
   ScrollTrigger.addEventListener("refresh", land);
   land();
+  // The section it opened on entered in CSS (":target" in global.css); a later # change
+  // is this file's to play, not that rule's.
+  window.addEventListener("hashchange", () => root.removeAttribute("data-arrive"), { once: true });
 }
 
 /**

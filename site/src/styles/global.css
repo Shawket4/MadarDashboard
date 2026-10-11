@@ -327,6 +327,15 @@ html[lang="ar"] .chip-label { font-size: 0.78rem; text-transform: none; letter-s
 .m [data-hero-ipad] { --rise: 110px; animation: rise-in 1.5s var(--ease-out-expo) .4s backwards; }
 .m [data-hero-chip] { animation: hero-chip 1s var(--ease-out-expo) .9s backwards; }
 
+/* A # address from another page (the phone menu's areas, a shared link): the browser
+   opens on that section before story.ts is here, and story.ts leaves what is on screen
+   at its start alone, so the section's entrance is CSS as well: its lines rise in
+   order, kicker, heading, the rest. Lines below the screen play out of sight and wait
+   for story.ts, as everywhere. */
+[data-arrive] :target :is([data-reveal], [data-split]) { animation: rise-in .95s var(--ease-out-expo) .3s backwards; }
+[data-arrive] :target :is(.kicker[data-reveal]) { animation-delay: .1s; }
+[data-arrive] :target [data-split] { animation-delay: .18s; }
+
 /* Header logo swap. Unlayered on purpose: it must beat the inline-flex utility. */
 .site-header .logo-on-ink { display: none; }
 .site-header[data-tone="ink"]:not([data-solid="true"]) .logo-on-ink { display: inline-flex; }

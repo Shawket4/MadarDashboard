@@ -188,11 +188,13 @@ Motion rules:
   (`.split-word-mask`); the split stays after the words land, since undoing it can
   re-wrap a heading that fits its line to the pixel. `npm run verify` fails if any
   word's ink would reach outside its mask.
-- **Jumps** (a `#` link on the page, a `#` address from elsewhere) never wait on what
-  they pass: anything a jump carries the page past finishes at once (`whenSeen`), only
-  what is on screen plays (a `#` address from elsewhere opens with its screen in place).
-  Same-page `#` links glide (Lenis, or the browser's smooth scroll on touch); a `#`
-  address lands again once the pins have added their length (`landOnHash`).
+- **Jumps** (a `#` link on the page, a `#` address from elsewhere) go straight there,
+  never a long scroll down the page (owner), and the section they land on plays its
+  entrance: a same-page link through `story.ts` (`jump`, which doesn't count as a
+  flick), a `#` address from another page in CSS (`data-arrive` from the head script and
+  `:target` in `global.css`). Anything a jump carries the page past finishes at once
+  (`whenSeen`). A `#` address lands again once the pins have added their length
+  (`landOnHash`).
 - Pins are created in page order. ScrollTriggers whose range contains a pin use
   `refreshPriority: -1`, or they end a pin-length too early.
 
