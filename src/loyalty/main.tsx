@@ -16,6 +16,8 @@
 //
 // Membership belongs to the SHOP either way; a branch code only records where
 // someone joined.
+// First: before anything parses (see the module).
+import "@/lib/zod-jitless";
 import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";

@@ -21,6 +21,8 @@
 //
 // The org-in-path forms are not legacy and are not going away: the shared host
 // still needs them, and every code already printed uses them.
+// First: before anything parses (see the module).
+import "@/lib/zod-jitless";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
