@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/components/layout/BaseLayout.astro";
+import Words from "@/components/kit/Words.astro";
 import Icon from "@/components/ui/Icon.astro";
 import Orbit from "@/components/ui/Orbit.astro";
 import Logo from "@/components/ui/Logo.astro";
@@ -20,9 +21,9 @@ const jsonLd = [breadcrumbs(lang, "about")];
   <section class="on-ink relative isolate overflow-hidden bg-ink text-paper">
     <Orbit tone="ink" class="absolute -end-[30rem] -top-[26rem] -z-10 h-[76rem] w-[76rem]" />
     <div class="container-site pb-20 pt-36 md:pb-28 md:pt-44">
-      <p class="kicker text-teal-light" data-reveal>{ab.kicker}</p>
-      <h1 class="text-display mt-5 max-w-5xl" data-split>{ab.title}</h1>
-      <p class="text-lead mt-7 max-w-2xl text-muted-ink" data-reveal>{ab.lead}</p>
+      <p class="kicker text-teal-light" data-intro style="--i:0">{ab.kicker}</p>
+      <h1 class="text-display mt-5 max-w-5xl"><Words text={ab.title} /></h1>
+      <p class="text-lead mt-7 max-w-2xl text-muted-ink" data-intro style="--i:1">{ab.lead}</p>
     </div>
   </section>
 

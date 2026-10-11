@@ -51,6 +51,7 @@ export const en = {
 
   nav: {
     features: "Features",
+    featureAreas: "Feature areas",
     pricing: "Pricing",
     faq: "Questions",
     about: "About",

@@ -6,11 +6,13 @@
 // Reduced motion gets none of it (the content is fully visible without this file).
 //
 // Two ways in:
-//  - fresh (from outside, or a reload): the hero and the first headings play their
-//    entrance; the head script hid them until now ("m").
+//  - fresh (from outside, or a reload): the hero or the page's intro plays its entrance,
+//    in CSS (global.css, "First screen"), so it starts with the first paint, not when
+//    this file arrives.
 //  - soft (a click from another page of the site): the page transition brings the new
-//    page in, so whatever is already on screen stays as it is; only what is further
-//    down reveals as it scrolls in.
+//    page in.
+// Either way, whatever is on screen when this file starts stays as it is; only what is
+// further down reveals as it scrolls in.
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -56,10 +58,11 @@ window.addEventListener(
 const flicking = () => performance.now() - lastT < 150 && speed > 2400;
 
 /**
- * Left exactly as it is, never animated: whatever the page opened past (a # address, a
- * reload half-way down) and, on a soft entry, whatever is already on screen.
+ * Left exactly as it is, never animated: whatever is on screen when this file starts, or
+ * above it (a # address, a reload half-way down). It has been on show since the first
+ * paint; hiding it now to play an entrance would make it blink.
  */
-const settled = (el: Element) => passed(el) || (soft && el.getBoundingClientRect().top < window.innerHeight);
+const settled = (el: Element) => el.getBoundingClientRect().top < window.innerHeight;
 
 /** The # target in the address, if it names an element on this page. */
 const hashTarget = (hash = location.hash) =>
@@ -67,13 +70,8 @@ const hashTarget = (hash = location.hash) =>
 
 let lenis: Lenis | null = null;
 
-if (reduce) {
-  root.classList.add("m-ready");
-  initBarista({ mode: "still" });
-} else {
-  run();
-  root.classList.add("m-ready");
-}
+if (reduce) initBarista({ mode: "still" });
+else run();
 
 function run() {
   // Smooth scroll on mouse and trackpad only; touch keeps its native momentum.
@@ -86,7 +84,6 @@ function run() {
   }
   anchorLinks();
 
-  // Entrances first, so nothing waits on the scenes below.
   if (!soft) hero();
 
   // Pins next, in page order: every trigger created after them measures the page with
@@ -192,24 +189,18 @@ function landOnHash() {
   land();
 }
 
+/**
+ * The hero's entrance is CSS (global.css, "First screen"). Its chip's figures count up
+ * as the chip settles, when this file is in time for that; otherwise they stay at the
+ * values the page rendered (never a count that restarts from zero in plain sight).
+ */
 function hero() {
-  const el = document.querySelector<HTMLElement>("[data-hero]");
-  if (!el) return;
-  const title = el.querySelector<HTMLElement>("[data-hero-title]");
-  const tl = gsap.timeline({ defaults: { ease: "expo.out", duration: 1.15 } });
-  if (title) {
-    // Words only: splitting letters would break how Arabic letters join.
-    const split = SplitText.create(title, { type: "words", mask: "words", wordsClass: "split-word" });
-    gsap.set(title, { autoAlpha: 1 });
-    tl.add(rise(split, { duration: 1.15, stagger: 0.055 }), 0.05);
-  }
-  tl.fromTo("[data-hero-item]", { y: 22, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.07 }, 0.3)
-    .fromTo("[data-hero-browser]", { y: 70, autoAlpha: 0, rotateX: 7, transformPerspective: 1400 }, { y: 0, autoAlpha: 1, rotateX: 0, duration: 1.5 }, 0.15)
-    .fromTo("[data-hero-ipad]", { y: 110, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.5 }, 0.4)
-    .fromTo("[data-hero-chip]", { y: 24, scale: 0.92, autoAlpha: 0 }, { y: 0, scale: 1, autoAlpha: 1, duration: 1 }, 0.9);
-  // The chip's figures count up as it settles.
-  for (const figure of el.querySelectorAll<HTMLElement>("[data-count]")) {
-    tl.add(countUp(figure), 1 + Number(figure.dataset.delay ?? 0));
+  const chip = document.querySelector<HTMLElement>("[data-hero-chip]");
+  // How far into the entrance we are (ms); the chip shows from 900 ms (its CSS delay).
+  const at = Number(chip?.getAnimations()[0]?.currentTime ?? Infinity);
+  if (!chip || at >= 900) return;
+  for (const figure of chip.querySelectorAll<HTMLElement>("[data-count]")) {
+    countUp(figure).delay((1000 - at) / 1000 + Number(figure.dataset.delay ?? 0));
   }
 }
 
@@ -273,7 +264,7 @@ function rise(split: SplitText, vars: gsap.TweenVars) {
 
 function splits() {
   for (const el of gsap.utils.toArray<HTMLElement>("[data-split]")) {
-    if (el.closest("[data-hero]") || settled(el)) continue;
+    if (settled(el)) continue;
     const split = SplitText.create(el, { type: "words", mask: "words", wordsClass: "split-word" });
     gsap.set(el, { autoAlpha: 1 });
     whenSeen(el, "top 88%", rise(split, { duration: 1, stagger: 0.045, paused: true }));

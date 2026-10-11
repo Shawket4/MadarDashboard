@@ -176,7 +176,13 @@ Motion rules:
   (`flicking` in `story.ts`), so nothing fades in behind a fling.
 - A click from another page of the site is a **soft** entry: the page transition
   brings the page in and nothing on screen replays its entrance. Arriving from
-  outside (or a reload) plays the hero's entrance.
+  outside (or a reload) plays the hero's entrance, or the page intro's (`data-intro`,
+  and the heading's words split at build time by `Words.astro`).
+- **The first screen never waits for JavaScript.** That entrance is CSS ("First
+  screen" in `global.css`): it starts with the first paint and runs off the main
+  thread, so the gsap bundle loading, or `story.ts` setting up the pins, can't delay
+  or stall it. Whatever else is on screen when `story.ts` starts stays as it is
+  (`settled`); only what scrolls in later reveals.
 - Split text by **words only** (letters would break how Arabic joins). Each word rises
   inside a mask that is padded past descenders and Arabic tails and marks
   (`.split-word-mask`); the split stays after the words land, since undoing it can
@@ -184,7 +190,7 @@ Motion rules:
   word's ink would reach outside its mask.
 - **Jumps** (a `#` link on the page, a `#` address from elsewhere) never wait on what
   they pass: anything a jump carries the page past finishes at once (`whenSeen`), only
-  what is on screen plays.
+  what is on screen plays (a `#` address from elsewhere opens with its screen in place).
   Same-page `#` links glide (Lenis, or the browser's smooth scroll on touch); a `#`
   address lands again once the pins have added their length (`landOnHash`).
 - Pins are created in page order. ScrollTriggers whose range contains a pin use

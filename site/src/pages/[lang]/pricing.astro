@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/components/layout/BaseLayout.astro";
+import Words from "@/components/kit/Words.astro";
 import Icon from "@/components/ui/Icon.astro";
 import Orbit from "@/components/ui/Orbit.astro";
 import BorderBeam from "@/components/kit/BorderBeam.astro";
@@ -23,9 +24,9 @@ const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing
   <section class="relative isolate overflow-hidden bg-paper">
     <Orbit tone="paper" class="absolute -start-[36rem] -top-[30rem] -z-10 h-[76rem] w-[76rem] opacity-60" />
     <div class="container-site pb-10 pt-36 text-center md:pt-44">
-      <p class="kicker text-teal" data-reveal>{p.kicker}</p>
-      <h1 class="text-display mx-auto mt-5 max-w-4xl" data-split>{p.title}</h1>
-      <p class="text-lead mx-auto mt-6 max-w-2xl text-muted" data-reveal>{p.sub}</p>
+      <p class="kicker text-teal" data-intro style="--i:0">{p.kicker}</p>
+      <h1 class="text-display mx-auto mt-5 max-w-4xl"><Words text={p.title} /></h1>
+      <p class="text-lead mx-auto mt-6 max-w-2xl text-muted" data-intro style="--i:1">{p.sub}</p>
 
       <fieldset class="mx-auto mt-10 inline-flex rounded-full border border-rule bg-white p-1" data-terms>
         <legend class="sr-only">{p.termLabel}</legend>
