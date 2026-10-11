@@ -14,8 +14,6 @@
 //   /order/<orgId>         — back-compat alias (tracking page links here)
 //   /menu                  — the shop's read-only menu (its own hostname): the
 //                            same page in browse mode, +search: branch
-// First: before anything parses (see the module).
-import "@/lib/zod-jitless";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import {
