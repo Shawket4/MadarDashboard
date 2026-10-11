@@ -1,8 +1,10 @@
 ---
 import BaseLayout from "@/components/layout/BaseLayout.astro";
+import Words from "@/components/kit/Words.astro";
 import Icon from "@/components/ui/Icon.astro";
 import Orbit from "@/components/ui/Orbit.astro";
-import BorderBeam from "@/components/kit/BorderBeam.astro";
+import StoreBadges from "@/components/ui/StoreBadges.astro";
+import cashier from "@/assets/apps/cashier.svg?url";
 import { t } from "@/i18n";
 import { type Lang, LANGS, whatsappHref } from "@/lib/site";
 import { softwareApplication, breadcrumbs } from "@/lib/schema";
@@ -13,153 +15,145 @@ export function getStaticPaths() {
 const { lang } = Astro.params as { lang: Lang };
 const c = t(lang);
 const p = c.pricing;
+const [essential, advanced] = p.plans;
 const terms = ["monthly", "three", "six", "year"] as const;
+type Term = (typeof terms)[number];
 const months = { monthly: 1, three: 3, six: 6, year: 12 } as const;
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
+/** One package: a plan for a term, with everything the page says about it. */
+const pkg = (plan: (typeof p.plans)[number], term: Term) => {
+  const total = plan.prices[term];
+  const save = plan.prices.monthly * months[term] - total;
+  return {
+    value: `${plan.key}-${term}`,
+    total,
+    // A figure per month for the longer terms, rounded, so marked as about (≈).
+    perMonth: term === "monthly" ? null : Math.round(total / months[term]),
+    save,
+    name: `${plan.name} · ${p.terms[term]}`,
+    price: `${fmt(total)} ${p.currency} ${p.termTotal[term]} · ${p.perBranch}`,
+    href: whatsappHref(lang, p.wa.replace("{plan}", plan.name).replace("{term}", p.termTotal[term])),
+  };
+};
+// The package the page opens on (owner): Advanced Operation for 6 months.
+const chosen = pkg(advanced, "six");
+
 const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing")];
 ---
-<BaseLayout lang={lang} page="pricing" headerTone="paper" jsonLd={jsonLd}>
+<BaseLayout lang={lang} page="pricing" headerTone="paper" closing={false} jsonLd={jsonLd}>
   <section class="relative isolate overflow-hidden bg-paper">
-    <Orbit tone="paper" class="absolute -start-[36rem] -top-[30rem] -z-10 h-[76rem] w-[76rem] opacity-60" />
-    <div class="container-site pb-10 pt-36 text-center md:pt-44">
-      <p class="kicker text-teal" data-reveal>{p.kicker}</p>
-      <h1 class="text-display mx-auto mt-5 max-w-4xl" data-split>{p.title}</h1>
-      <p class="text-lead mx-auto mt-6 max-w-2xl text-muted" data-reveal>{p.sub}</p>
-
-      <fieldset class="mx-auto mt-10 inline-flex rounded-full border border-rule bg-white p-1" data-terms>
-        <legend class="sr-only">{p.termLabel}</legend>
-        {terms.map((term, i) => (
-          <label class="term-option relative cursor-pointer">
-            <input type="radio" name="term" value={term} class="peer sr-only" checked={i === 0} />
-            <span class="block rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors peer-checked:bg-ink peer-checked:text-paper peer-focus-visible:outline-2 peer-focus-visible:outline-teal-light sm:px-5">{p.terms[term]}</span>
-          </label>
-        ))}
-      </fieldset>
+    <Orbit tone="paper" class="absolute -end-[36rem] -top-[30rem] -z-10 h-[76rem] w-[76rem] opacity-60" />
+    <div class="container-site pb-8 pt-28 md:pb-12 md:pt-40">
+      <p class="kicker text-teal" data-intro style="--i:0">{p.kicker}</p>
+      <h1 class="text-display mt-5 max-w-3xl"><Words text={p.title} /></h1>
+      <p class="text-lead mt-5 max-w-2xl text-muted" data-intro style="--i:1">{p.sub}</p>
     </div>
   </section>
 
-  <section class="bg-paper" aria-label={p.title}>
-    <div class="container-site grid gap-6 pb-16 md:grid-cols-2 md:pb-24" data-plans>
-      {p.plans.map((plan) => (
-        <article class:list={["relative flex flex-col overflow-hidden rounded-[1.6rem] p-7 md:p-9", plan.featured ? "on-ink bg-ink text-paper" : "card"]} data-reveal>
-          {plan.featured && <BorderBeam radius={25.6} duration={9} />}
-          <div class="flex items-start justify-between gap-3">
-            <h2 class="text-2xl font-semibold">{plan.name}</h2>
-            <span class:list={["chip mt-0.5 shrink-0 whitespace-nowrap", plan.featured ? "bg-teal-light text-ink" : "border border-rule text-muted"]}>{plan.tag}</span>
-          </div>
-          <p class:list={["mt-2", plan.featured ? "text-muted-ink" : "text-muted"]}>{plan.blurb}</p>
+  <!-- The price list: both plans side by side on every screen, every term in sight.
+       Each price is an option (one radio group); the page opens on Advanced for 6 months,
+       and the package below (with its WhatsApp message) follows the pick. -->
+  <section class="bg-paper" aria-label={p.pick}>
+    <div class="container-site pb-16 md:pb-24">
+      <div class="price-sheet card" data-intro style="--i:2">
+        <fieldset class="price-grid" data-price-list>
+          <legend class="sr-only">{p.pick}</legend>
+          <p class="price-corner">{p.termLabel}<span class="block">{p.currency} · {p.perBranch}</span></p>
+          {p.plans.map((plan) => (
+            <div class="price-plan" data-plan={plan.key}>
+              <p class="price-plan-name">{plan.name}</p>
+              <p class="price-plan-blurb">{plan.blurb}</p>
+              {plan.tag && <p class="price-plan-tag">{plan.tag}</p>}
+            </div>
+          ))}
+          {terms.map((term) => (
+            <Fragment>
+              <p class="price-term" aria-hidden="true">{p.terms[term]}</p>
+              {p.plans.map((plan) => {
+                const k = pkg(plan, term);
+                return (
+                  <label class="price-cell">
+                    <input type="radio" name="package" value={k.value} checked={k.value === chosen.value} data-name={k.name} data-price={k.price} data-href={k.href} />
+                    <span class="sr-only">{k.name}: </span>
+                    <span class="price-amount"><span class="ltr">{fmt(k.total)}</span> <span class="price-cur">{p.currency}</span></span>
+                    <span class="price-meta">
+                      {k.perMonth === null ? p.termTotal.monthly : <Fragment>≈ <span class="ltr">{fmt(k.perMonth)}</span> {p.perMonthEquiv}</Fragment>}
+                    </span>
+                    {k.save > 0 && <span class="price-save">{p.save} <span class="ltr">{fmt(k.save)}</span></span>}
+                  </label>
+                );
+              })}
+            </Fragment>
+          ))}
+        </fieldset>
 
-          <div class="mt-8" data-price-block>
-            {terms.map((term, i) => {
-              const total = plan.prices[term];
-              const save = plan.prices.monthly * months[term] - total;
-              return (
-                <div class="price-term" data-term={term} hidden={i !== 0}>
-                  <p class="flex items-baseline gap-2">
-                    <span class="ltr tabular font-mono text-5xl font-medium tracking-tight md:text-6xl" data-amount={total}>{fmt(total)}</span>
-                    <span class:list={["text-sm", plan.featured ? "text-muted-ink" : "text-muted"]}>{p.currency} · {p.termTotal[term]}</span>
-                  </p>
-                  <p class:list={["mt-2 h-5 text-sm", plan.featured ? "text-teal-light" : "text-teal"]}>
-                    {save > 0 && <span>{p.save} <span class="ltr">{fmt(save)}</span> {p.currency} · <span class="ltr">{fmt(Math.round(total / months[term]))}</span> {p.currency} {p.perMonthEquiv}</span>}
-                  </p>
-                </div>
-              );
-            })}
+        <div class="price-pick" aria-live="polite" data-hides-sticky>
+          <div class="min-w-0">
+            <p class="text-sm text-muted">{p.yours}</p>
+            <p class="mt-1 text-xl font-semibold" data-pick-name>{chosen.name}</p>
+            <p class="mt-1 text-muted" data-pick-price>{chosen.price}</p>
           </div>
-
-          <ul class="mt-8 space-y-3">
-            {plan.features.map((feat) => (
-              <li class="flex gap-3">
-                <span class:list={["mt-1", plan.featured ? "text-teal-light" : "text-teal"]}><Icon name="check" size={18} /></span>
-                <span>{feat}</span>
-              </li>
-            ))}
-          </ul>
-          <div class="mt-auto pt-10">
-            <a class:list={["btn btn-lg w-full", plan.featured ? "btn-paper" : "btn-ink"]} href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where={`pricing-${plan.key}`}>
-              {c.contact.whatsapp} <Icon name="arrow" size={18} />
-            </a>
-          </div>
-        </article>
-      ))}
-    </div>
-  </section>
-
-  <section class="bg-paper">
-    <div class="container-site grid gap-8 border-t border-ink/10 py-14 md:grid-cols-3" data-reveal-group>
-      {p.notes.map((n) => (
-        <div data-reveal>
-          <h3 class="text-lg font-semibold">{n.title}</h3>
-          <p class="mt-2 text-muted">{n.body}</p>
+          <a class="btn btn-ink btn-lg" href={chosen.href} target="_blank" rel="noopener" data-pick-cta data-umami-event="whatsapp" data-umami-event-where="pricing">
+            <Icon name="whatsapp" size={18} /> {p.ask}
+          </a>
         </div>
-      ))}
+
+        <table class="price-table">
+          <caption class="price-table-title">{p.included}</caption>
+          <thead>
+            <tr><td></td>{p.plans.map((plan) => <th scope="col">{plan.name}</th>)}</tr>
+          </thead>
+          <tbody>
+            {[...essential.features.map((f) => [f, true]), ...advanced.features.map((f) => [f, false])].map(([feat, both]) => (
+              <tr>
+                <th scope="row">{feat}</th>
+                <td>{both ? <Fragment><span class="text-teal"><Icon name="check" size={18} /></span><span class="sr-only">{p.yes}</span></Fragment> : <Fragment><span class="text-slate" aria-hidden="true">–</span><span class="sr-only">{p.no}</span></Fragment>}</td>
+                <td><span class="text-teal"><Icon name="check" size={18} /></span><span class="sr-only">{p.yes}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-12 grid gap-8 md:grid-cols-3" data-reveal-group>
+        {p.notes.map((n) => (
+          <div data-reveal>
+            <h2 class="text-lg font-semibold">{n.title}</h2>
+            <p class="mt-2 text-muted">{n.body}</p>
+          </div>
+        ))}
+      </div>
     </div>
   </section>
 
-  <section class="bg-surface" aria-labelledby="free-title">
-    <div class="container-site py-16 md:py-24">
-      <div class="relative grid grid-cols-1 gap-10 overflow-hidden rounded-[2rem] border border-teal/20 bg-white p-6 sm:p-8 md:grid-cols-2 md:p-12" data-reveal>
-        <BorderBeam radius={32} border={1} duration={12} />
-        <div class="min-w-0">
-          <p class="kicker text-teal">{p.free.kicker}</p>
-          <h2 id="free-title" class="text-h3 mt-4">{p.free.title}</h2>
-          <p class="mt-4 text-muted">{p.free.body}</p>
-          <a class="btn btn-ink btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="free-month" data-umami-event-where="pricing">
+  <!-- The free month closes the page (the site-wide closing band would say it twice). -->
+  <section id="closing" class="on-ink bg-ink text-paper" aria-labelledby="free-title">
+    <div class="container-site grid gap-12 py-20 md:py-28 lg:grid-cols-12 lg:gap-10">
+      <div class="lg:col-span-6">
+        <p class="kicker text-teal-light" data-reveal>{p.free.kicker}</p>
+        <h2 id="free-title" class="text-h2 mt-4" data-split>{p.free.title}</h2>
+        <p class="text-lead mt-5 max-w-xl text-muted-ink" data-reveal>{p.free.body}</p>
+        <div class="mt-9" data-reveal>
+          <a class="btn btn-paper btn-lg" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="free-month" data-umami-event-where="pricing">
             {p.free.cta} <Icon name="arrow" size={18} />
           </a>
-          <p class="mt-4 font-mono text-sm text-muted">{p.free.note}</p>
+          <p class="mt-4 text-sm text-muted-ink">{p.free.note}</p>
         </div>
-        <div class="min-w-0">
-          <h3 class="text-lg font-semibold">{p.free.needTitle}</h3>
-          <ul class="mt-5 space-y-3">
-            {p.free.need.map((n) => (
-              <li class="flex gap-3 rounded-2xl border border-rule bg-surface px-4 py-3">
-                <span class="mt-0.5 text-teal"><Icon name="check" size={18} /></span><span>{n}</span>
-              </li>
-            ))}
-          </ul>
+      </div>
+      <div class="lg:col-span-5 lg:col-start-8" data-reveal>
+        <h3 class="text-lg font-semibold">{p.free.needTitle}</h3>
+        <ul class="mt-5 divide-y divide-line-ink border-y border-line-ink">
+          {p.free.need.map((n) => (
+            <li class="flex gap-3 py-3.5"><span class="mt-0.5 text-teal-light"><Icon name="check" size={18} /></span><span>{n}</span></li>
+          ))}
+        </ul>
+        <div class="mt-7 flex flex-wrap items-center gap-x-5 gap-y-4">
+          <img class="app-icon size-12" src={cashier} width="48" height="48" alt="" />
+          <p class="min-w-0 flex-1 basis-48 text-sm text-muted-ink">{p.free.tillApp}</p>
+          <StoreBadges lang={lang} app="cashier" where="pricing" />
         </div>
       </div>
     </div>
   </section>
 </BaseLayout>
-
-<script>
-  // Switching the term: each plan's price counts from the old figure to the new one in
-  // place, and the saving line under it fades over. Fast clicks retarget the running
-  // count instead of cutting it. Reduced motion just swaps.
-  import gsap from "gsap";
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const fmt = new Intl.NumberFormat("en-US");
-  const set = document.querySelector<HTMLFieldSetElement>("[data-terms]");
-  const blocks = Array.from(document.querySelectorAll<HTMLElement>("[data-price-block]"));
-  // One running figure per plan, so a new click continues from wherever it is.
-  const shown = blocks.map((b) => Number(b.querySelector<HTMLElement>(".price-term:not([hidden]) [data-amount]")?.dataset.amount ?? 0));
-  const counts: (gsap.core.Tween | undefined)[] = [];
-  set?.addEventListener("change", (e) => {
-    const term = (e.target as HTMLInputElement).value;
-    blocks.forEach((block, i) => {
-      const terms = Array.from(block.querySelectorAll<HTMLElement>(".price-term"));
-      const next = terms.find((el) => el.dataset.term === term);
-      if (!next) return;
-      const amount = next.querySelector<HTMLElement>("[data-amount]");
-      const target = Number(amount?.dataset.amount ?? 0);
-      terms.forEach((el) => (el.hidden = el !== next));
-      if (reduce || !amount) { shown[i] = target; return; }
-      const from = shown[i] ?? target;
-      const state = { v: from };
-      amount.textContent = fmt.format(Math.round(from));
-      counts[i]?.kill();
-      counts[i] = gsap.to(state, {
-        v: target,
-        duration: 0.7,
-        ease: "expo.out",
-        onUpdate: () => { shown[i] = state.v; amount.textContent = fmt.format(Math.round(state.v)); },
-        onComplete: () => { shown[i] = target; amount.textContent = fmt.format(target); },
-      });
-      const save = next.querySelector<HTMLElement>("p:nth-of-type(2)");
-      if (save) gsap.fromTo(save, { autoAlpha: 0, y: 6 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: "expo.out", overwrite: true });
-    });
-  });
-</script>

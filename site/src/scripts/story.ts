@@ -6,11 +6,13 @@
 // Reduced motion gets none of it (the content is fully visible without this file).
 //
 // Two ways in:
-//  - fresh (from outside, or a reload): the hero and the first headings play their
-//    entrance; the head script hid them until now ("m").
+//  - fresh (from outside, or a reload): the hero or the page's intro plays its entrance,
+//    in CSS (global.css, "First screen"), so it starts with the first paint, not when
+//    this file arrives.
 //  - soft (a click from another page of the site): the page transition brings the new
-//    page in, so whatever is already on screen stays as it is; only what is further
-//    down reveals as it scrolls in.
+//    page in.
+// Either way, whatever is on screen when this file starts stays as it is; only what is
+// further down reveals as it scrolls in.
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -35,7 +37,7 @@ const desktop = window.matchMedia("(min-width: 1024px)");
 const passed = (el: Element) => el.getBoundingClientRect().bottom <= 0;
 
 /**
- * A flick: the page is moving fast (a thumb's fling, a trackpad throw, a long glide).
+ * A flick: the page is moving fast (a thumb's fling, a trackpad throw).
  * Entrances that come up mid-flick just finish: nobody can watch them, and things
  * fading in behind a fast scroll is what reads as jank.
  */
@@ -56,10 +58,11 @@ window.addEventListener(
 const flicking = () => performance.now() - lastT < 150 && speed > 2400;
 
 /**
- * Left exactly as it is, never animated: whatever the page opened past (a # address, a
- * reload half-way down) and, on a soft entry, whatever is already on screen.
+ * Left exactly as it is, never animated: whatever is on screen when this file starts, or
+ * above it (a # address, a reload half-way down). It has been on show since the first
+ * paint; hiding it now to play an entrance would make it blink.
  */
-const settled = (el: Element) => passed(el) || (soft && el.getBoundingClientRect().top < window.innerHeight);
+const settled = (el: Element) => el.getBoundingClientRect().top < window.innerHeight;
 
 /** The # target in the address, if it names an element on this page. */
 const hashTarget = (hash = location.hash) =>
@@ -67,15 +70,40 @@ const hashTarget = (hash = location.hash) =>
 
 let lenis: Lenis | null = null;
 
-if (reduce) {
-  root.classList.add("m-ready");
-  initBarista({ mode: "still" });
-} else {
-  run();
-  root.classList.add("m-ready");
+if (reduce) initBarista({ mode: "still" });
+else {
+  if (!soft) hero();
+  afterEntrance(() => void run());
 }
 
-function run() {
+/**
+ * Sets the story up once the first screen's entrance (CSS) has played and the page is
+ * idle, or as soon as the visitor scrolls or touches it, whichever comes first. The setup
+ * is the page's one long piece of work (about 220 ms on a mid phone) and it also starts
+ * the 3D's download (family.ts), so it never lands mid-entrance. Nothing below the first
+ * screen needs it before the page moves: until then that content is simply there.
+ */
+function afterEntrance(start: () => void) {
+  let started = false;
+  const events = ["scroll", "touchstart", "wheel", "keydown"] as const;
+  const go = () => {
+    if (started) return;
+    started = true;
+    for (const type of events) window.removeEventListener(type, go);
+    start();
+  };
+  for (const type of events) window.addEventListener(type, go, { passive: true });
+  // The entrance: every finite animation running now (the CSS ones, a page transition).
+  const entrance = document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity);
+  const idle = () => ("requestIdleCallback" in window ? requestIdleCallback(go, { timeout: 300 }) : setTimeout(go, 50));
+  Promise.all(entrance.map((a) => a.finished.catch(() => {}))).then(idle);
+  setTimeout(go, 4000); // whatever an animation does, the story is set up by then
+}
+
+/** Hands the main thread back between parts of the setup, so no part is one long task. */
+const breathe = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+async function run() {
   // Smooth scroll on mouse and trackpad only; touch keeps its native momentum.
   if (window.matchMedia("(pointer: fine)").matches) {
     const smooth = new Lenis({ lerp: 0.11, autoRaf: false });
@@ -85,9 +113,6 @@ function run() {
     lenis = smooth;
   }
   anchorLinks();
-
-  // Entrances first, so nothing waits on the scenes below.
-  if (!soft) hero();
 
   // Pins next, in page order: every trigger created after them measures the page with
   // the pins' extra scroll length already in place. (The cappuccino pins on desktop
@@ -106,14 +131,16 @@ function run() {
   // what is on screen and what was passed.
   if (scenes.length || sets) ScrollTrigger.refresh();
   landOnHash();
+  await breathe();
 
   if (desktop.matches) {
     root.classList.add("story-on");
     parallax();
     rail();
   }
-
   splits();
+  await breathe();
+
   reveals();
   counts();
   orbits();
@@ -121,6 +148,7 @@ function run() {
   stageClocks();
   basira();
   roadmap();
+  await breathe();
 
   ScrollTrigger.sort();
   ScrollTrigger.refresh();
@@ -130,10 +158,10 @@ function run() {
 
 /**
  * Same-page # links (the hero's "See a café's day", the rail, the day's cards, the
- * features chips) glide there: Lenis on mouse and trackpad, the browser's own smooth
- * scroll on touch. Whatever the glide passes skips its entrance (whenSeen), so the place
- * you land is ready when you get there. Keyboard activation keeps the browser's jump,
- * which also moves focus along.
+ * features chips, the phone menu's areas) jump there (owner: no long scroll down the
+ * page), then what lands on screen plays its entrance. Whatever the jump passes skips
+ * its entrance (whenSeen), so nothing above is left half-shown. Keyboard activation
+ * keeps the browser's jump, which also moves focus along.
  */
 function anchorLinks() {
   document.addEventListener("click", (e) => {
@@ -146,23 +174,27 @@ function anchorLinks() {
     if (!to) return;
     e.preventDefault();
     if (url.hash !== location.hash) history.pushState(null, "", url.hash);
-    glide(to, false);
+    jump(to);
   });
 }
 
 /**
- * Scrolls to `to` (the page's scroll-padding keeps it clear of the header). Lenis
- * measures again first: the page's length (it learns of the pins' extra length only
- * after a debounce) and where the page really is (a scroll it didn't see, the
- * browser's own or a script's, would otherwise offset where it lands).
+ * Puts `to` at the top at once (the page's scroll-padding keeps it clear of the header).
+ * Lenis measures again first: the page's length (it learns of the pins' extra length
+ * only after a debounce) and where the page really is (a scroll it didn't see, the
+ * browser's own or a script's, would otherwise offset where it lands). A jump is not a
+ * flick: the speed reading starts again from here, so what it lands on plays.
  */
-function glide(to: HTMLElement, immediate: boolean) {
+function jump(to: HTMLElement) {
   if (lenis) {
     lenis.resize();
-    lenis.scrollTo(to, { immediate, force: true });
+    lenis.scrollTo(to, { immediate: true, force: true });
   } else {
-    to.scrollIntoView({ behavior: immediate ? "instant" : "smooth", block: "start" });
+    to.scrollIntoView({ behavior: "instant", block: "start" });
   }
+  speed = 0;
+  lastY = window.scrollY;
+  lastT = performance.now();
 }
 
 /**
@@ -178,7 +210,7 @@ function landOnHash() {
   if (!to || (nav && nav.type !== "navigate")) return;
   let holding = true;
   const land = () => {
-    if (holding) glide(to, true);
+    if (holding) jump(to);
   };
   const release = () => {
     holding = false;
@@ -190,26 +222,23 @@ function landOnHash() {
   window.setTimeout(release, 5000);
   ScrollTrigger.addEventListener("refresh", land);
   land();
+  // The section it opened on entered in CSS (":target" in global.css); a later # change
+  // is this file's to play, not that rule's.
+  window.addEventListener("hashchange", () => root.removeAttribute("data-arrive"), { once: true });
 }
 
+/**
+ * The hero's entrance is CSS (global.css, "First screen"). Its chip's figures count up
+ * as the chip settles, when this file is in time for that; otherwise they stay at the
+ * values the page rendered (never a count that restarts from zero in plain sight).
+ */
 function hero() {
-  const el = document.querySelector<HTMLElement>("[data-hero]");
-  if (!el) return;
-  const title = el.querySelector<HTMLElement>("[data-hero-title]");
-  const tl = gsap.timeline({ defaults: { ease: "expo.out", duration: 1.15 } });
-  if (title) {
-    // Words only: splitting letters would break how Arabic letters join.
-    const split = SplitText.create(title, { type: "words", mask: "words", wordsClass: "split-word" });
-    gsap.set(title, { autoAlpha: 1 });
-    tl.add(rise(split, { duration: 1.15, stagger: 0.055 }), 0.05);
-  }
-  tl.fromTo("[data-hero-item]", { y: 22, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.07 }, 0.3)
-    .fromTo("[data-hero-browser]", { y: 70, autoAlpha: 0, rotateX: 7, transformPerspective: 1400 }, { y: 0, autoAlpha: 1, rotateX: 0, duration: 1.5 }, 0.15)
-    .fromTo("[data-hero-ipad]", { y: 110, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.5 }, 0.4)
-    .fromTo("[data-hero-chip]", { y: 24, scale: 0.92, autoAlpha: 0 }, { y: 0, scale: 1, autoAlpha: 1, duration: 1 }, 0.9);
-  // The chip's figures count up as it settles.
-  for (const figure of el.querySelectorAll<HTMLElement>("[data-count]")) {
-    tl.add(countUp(figure), 1 + Number(figure.dataset.delay ?? 0));
+  const chip = document.querySelector<HTMLElement>("[data-hero-chip]");
+  // How far into the entrance we are (ms); the chip shows from 900 ms (its CSS delay).
+  const at = Number(chip?.getAnimations()[0]?.currentTime ?? Infinity);
+  if (!chip || at >= 900) return;
+  for (const figure of chip.querySelectorAll<HTMLElement>("[data-count]")) {
+    countUp(figure).delay((1000 - at) / 1000 + Number(figure.dataset.delay ?? 0));
   }
 }
 
@@ -273,7 +302,7 @@ function rise(split: SplitText, vars: gsap.TweenVars) {
 
 function splits() {
   for (const el of gsap.utils.toArray<HTMLElement>("[data-split]")) {
-    if (el.closest("[data-hero]") || settled(el)) continue;
+    if (settled(el)) continue;
     const split = SplitText.create(el, { type: "words", mask: "words", wordsClass: "split-word" });
     gsap.set(el, { autoAlpha: 1 });
     whenSeen(el, "top 88%", rise(split, { duration: 1, stagger: 0.045, paused: true }));

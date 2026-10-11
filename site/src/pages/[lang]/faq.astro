@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/components/layout/BaseLayout.astro";
+import Words from "@/components/kit/Words.astro";
 import Icon from "@/components/ui/Icon.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS, whatsappHref } from "@/lib/site";
@@ -23,10 +24,10 @@ const jsonLd = [{
     <div class="container-site grid gap-12 pb-20 pt-36 md:pt-44 lg:grid-cols-12 lg:gap-16 lg:pb-28">
       <div class="lg:col-span-4">
         <div class="lg:sticky lg:top-32">
-          <p class="kicker text-teal" data-reveal>{f.kicker}</p>
-          <h1 class="text-display mt-5" data-split>{f.title}</h1>
-          <p class="text-lead mt-6 text-muted" data-reveal>{f.sub}</p>
-          <a class="btn btn-ink btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="faq" data-reveal>
+          <p class="kicker text-teal" data-intro style="--i:0">{f.kicker}</p>
+          <h1 class="text-display mt-5"><Words text={f.title} /></h1>
+          <p class="text-lead mt-6 text-muted" data-intro style="--i:1">{f.sub}</p>
+          <a class="btn btn-ink btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="faq" data-intro style="--i:2">
             {c.contact.whatsapp} <Icon name="arrow" size={18} />
           </a>
         </div>

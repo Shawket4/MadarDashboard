@@ -3,13 +3,13 @@
 /* Fonts: the design system's one superfamily (MadarDashboard DESIGN.md, Typography):
    IBM Plex Sans Arabic leads in BOTH directions, its Arabic cut carrying Latin too, so
    nothing changes when the direction does; IBM Plex Sans backs it up; IBM Plex Mono
-   carries figures. Self-hosted subset woff2 via Fontsource. */
-@import "@fontsource/ibm-plex-sans-arabic/latin-400.css";
-@import "@fontsource/ibm-plex-sans-arabic/latin-500.css";
-@import "@fontsource/ibm-plex-sans-arabic/latin-600.css";
-@import "@fontsource/ibm-plex-sans-arabic/arabic-400.css";
-@import "@fontsource/ibm-plex-sans-arabic/arabic-500.css";
-@import "@fontsource/ibm-plex-sans-arabic/arabic-600.css";
+   carries figures. Self-hosted subset woff2 via Fontsource. The leading family comes
+   in by weight, every subset with its unicode-range: the single-subset files carry no
+   range, so each page fetched both the Latin and the Arabic file of every weight it set
+   (English pages ~135 KB of Arabic they never drew). */
+@import "@fontsource/ibm-plex-sans-arabic/400.css";
+@import "@fontsource/ibm-plex-sans-arabic/500.css";
+@import "@fontsource/ibm-plex-sans-arabic/600.css";
 @import "@fontsource/ibm-plex-sans/latin-400.css";
 @import "@fontsource/ibm-plex-sans/latin-500.css";
 @import "@fontsource/ibm-plex-sans/latin-600.css";
@@ -182,8 +182,8 @@ html.lenis, html.lenis body { height: auto; }
    (g, y, p), Arabic tails and marks reach outside it and would be cut off: pad the mask
    past them, and pull its margins back so nothing moves. Measured: no glyph of either
    language's headings reaches past these. */
-.split-word-mask { padding: 0.18em 0.1em; margin: -0.18em -0.1em; }
-html[lang="ar"] .split-word-mask { padding: 0.42em 0.32em; margin: -0.42em -0.32em; }
+.split-word-mask { --mask-pad: 0.18em; position: relative; display: inline-block; overflow: clip; padding: var(--mask-pad) 0.1em; margin: calc(-1 * var(--mask-pad)) -0.1em; }
+html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; margin-inline: -0.32em; }
 
 [dir="rtl"] .marquee-track { animation-name: marquee-rtl; }
 @keyframes marquee-rtl { from { transform: translateX(0); } to { transform: translateX(calc(100% + var(--gap))); } }
@@ -307,31 +307,92 @@ html[lang="ar"] .chip-label { font-size: 0.78rem; text-transform: none; letter-s
 .barista-step[data-active] .text-paper,
 .barista-step[data-active] .text-teal-light { color: var(--color-teal-light-raised); }
 
-/* Until the story script is ready, keep animated pieces out of sight (never without JS:
-   the "m" class is only set by the inline head script, with a 3 s fallback). */
-.m:not(.m-ready):not(.m-fail) :is([data-reveal], [data-split], [data-hero-title], [data-hero-item], [data-hero-browser], [data-hero-ipad], [data-hero-chip]) { opacity: 0; }
+/* First screen, arriving fresh (.m: no page transition and motion allowed, set by the
+   head script). The hero's or a page intro's entrance is CSS: it starts with the first
+   paint and runs off the main thread, so it never waits for story.ts (gsap) to load and
+   never stalls while that sets the page up. The heading's words are split at build time
+   (Words.astro) and rise from below their masks. Fill "backwards" only: once played,
+   each piece is back on its own styles. Anything else on the first screen is simply
+   there; story.ts reveals only what scrolls in later. */
+/* Lines fade from 1%, not 0: Chrome counts a paint at opacity 0 as no paint, and with the
+   fade on the compositor it would date the page's largest paint (LCP) to the fade's end. */
+@keyframes rise-in { from { opacity: .01; transform: translateY(var(--rise, 22px)); } }
+@keyframes rise-word { from { transform: translateY(calc(100% + 2 * var(--mask-pad))); } }
+/* The browser card doesn't fade at all: on wide screens it is the largest paint. */
+@keyframes hero-browser { from { transform: perspective(1400px) translateY(70px) rotateX(7deg); } to { transform: perspective(1400px); } }
+@keyframes hero-chip { from { opacity: 0; transform: translateY(24px) scale(.92); } }
+.m [data-intro] { animation: rise-in 1.15s var(--ease-out-expo) calc(300ms + var(--i, 0) * 70ms) backwards; }
+.m .intro-word { animation: rise-word 1.15s var(--ease-out-expo) calc(50ms + var(--w, 0) * 55ms) backwards; }
+.m [data-hero-browser] { animation: hero-browser 1.5s var(--ease-out-expo) .15s backwards; }
+.m [data-hero-ipad] { --rise: 110px; animation: rise-in 1.5s var(--ease-out-expo) .4s backwards; }
+.m [data-hero-chip] { animation: hero-chip 1s var(--ease-out-expo) .9s backwards; }
+
+/* A # address from another page (the phone menu's areas, a shared link): the browser
+   opens on that section before story.ts is here, and story.ts leaves what is on screen
+   at its start alone, so the section's entrance is CSS as well: its lines rise in
+   order, kicker, heading, the rest. Lines below the screen play out of sight and wait
+   for story.ts, as everywhere. */
+[data-arrive] :target :is([data-reveal], [data-split]) { animation: rise-in .95s var(--ease-out-expo) .3s backwards; }
+[data-arrive] :target :is(.kicker[data-reveal]) { animation-delay: .1s; }
+[data-arrive] :target [data-split] { animation-delay: .18s; }
+
+/* App tiles (Apps.astro): the kits' rounded tiles, ringed by a hairline so an Ink tile
+   holds its edge on an Ink ground. */
+.app-icon { flex: none; border-radius: 22.5%; box-shadow: 0 0 0 1px var(--color-line-ink); }
+/* The store badges (StoreBadges.astro) at the stores' sizes, never stretched. Google's
+   PNG carries its own clear space, so it is drawn taller to stand level with Apple's. */
+.store-badges { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.store-badge { display: flex; width: fit-content; flex: none; border-radius: .5rem; }
+.store-badge img { display: block; height: 2.75rem; width: auto; }
+.store-badge-play img { height: 4rem; margin-block: -.625rem; }
+
+/* "العربية" is the only Arabic on English pages: set in the phone's own Arabic face, so
+   they fetch no Arabic font file (45 KB) for one link. */
+html:not([lang="ar"]) .lang-switch { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans Arabic", sans-serif; }
 
 /* Header logo swap. Unlayered on purpose: it must beat the inline-flex utility. */
 .site-header .logo-on-ink { display: none; }
 .site-header[data-tone="ink"]:not([data-solid="true"]) .logo-on-ink { display: inline-flex; }
 .site-header[data-tone="ink"]:not([data-solid="true"]) .logo-on-paper { display: none; }
 
-/* ---------- Phone menu: a full-screen Ink panel ---------- */
+/* ---------- Phone menu: a full-screen Ink panel (Header.astro, ui.ts) ----------
+   One list in one size, hairlines between rows, every target at least 44 px. The current
+   page wears the logo's teal satellite in a gutter the labels share; Features opens onto
+   its areas, set out like the café's day. Quick in, quicker out. */
 dialog.menu-sheet { position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; overflow-y: auto; overscroll-behavior: contain; background: var(--color-ink); color: var(--color-paper); }
 dialog.menu-sheet::backdrop { background: transparent; }
-dialog.menu-sheet[open] { animation: menu-in .32s var(--ease-out-expo) both; }
-@keyframes menu-in { from { opacity: 0; } }
+dialog.menu-sheet[open] { animation: menu-in .24s var(--ease-out-expo) both; }
+dialog.menu-sheet[data-closing] { animation: menu-out .16s var(--ease-in-out-quart) both; }
+@keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes menu-out { to { opacity: 0; transform: translateY(-6px); } }
 html:has(dialog[open]) { overflow: hidden; }
-.menu-panel { position: relative; isolation: isolate; display: flex; flex-direction: column; min-height: 100dvh; padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); overflow: hidden; }
-.menu-rings { position: absolute; z-index: -1; inset-inline-end: -11rem; bottom: -9rem; width: 30rem; height: 30rem; color: var(--color-paper); opacity: .08; pointer-events: none; }
-.menu-link { display: flex; align-items: baseline; gap: .9rem; padding-block: 1.05rem; border-bottom: 1px solid var(--color-line-ink); font-size: clamp(1.7rem, 7.4vw, 2.2rem); font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; }
-html[lang="ar"] .menu-link { letter-spacing: 0; line-height: 1.4; }
-.menu-link .menu-index { font-family: var(--font-mono); font-size: .75rem; font-weight: 500; letter-spacing: .08em; color: var(--color-teal-light); }
-.menu-link .icon-arrow { margin-inline-start: auto; align-self: center; opacity: .35; transition: opacity .2s, transform .3s var(--ease-out-expo); }
-.menu-link[aria-current] { color: var(--color-teal-light); }
-.menu-link[aria-current] .icon-arrow { opacity: 1; }
-dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7s var(--ease-out-expo) both; animation-delay: calc(70ms + var(--i, 0) * 45ms); }
-@keyframes menu-item-in { from { opacity: 0; transform: translateY(18px); } }
+.menu-panel { display: flex; flex-direction: column; min-height: 100dvh; padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+.menu-close, .menu-more { display: inline-grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; border-radius: 999px; -webkit-tap-highlight-color: transparent; transition: background-color .2s, color .2s; }
+.menu-close { border: 1px solid var(--color-line-ink); }
+.menu-more { color: var(--color-muted-ink); }
+@media (hover: hover) { :is(.menu-close, .menu-more):hover { background: color-mix(in oklab, var(--color-paper) 7%, transparent); color: var(--color-paper); } }
+.menu-more svg { transition: rotate .32s var(--ease-out-expo); }
+.menu-more[aria-expanded="true"] { color: var(--color-paper); }
+.menu-more[aria-expanded="true"] svg { rotate: 180deg; }
+.menu-item { border-bottom: 1px solid var(--color-line-ink); }
+.menu-row { display: flex; align-items: center; gap: .5rem; }
+.menu-link { flex: 1; display: flex; align-items: center; gap: .75rem; min-height: 3.5rem; font-size: 1.375rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.012em; -webkit-tap-highlight-color: transparent; transition: opacity .15s; }
+html[lang="ar"] .menu-link { font-size: 1.3rem; line-height: 1.5; letter-spacing: 0; }
+.menu-link::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 999px; }
+.menu-link[aria-current]::before { background: var(--color-teal-light); }
+:is(.menu-link, .menu-area, .menu-quiet):active { opacity: .6; }
+/* The areas: the row's height eases open (0fr to 1fr); shut, they are inert (no focus, no
+   screen reader). */
+.menu-areas { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .32s var(--ease-out-expo); }
+.menu-areas:not([inert]) { grid-template-rows: 1fr; }
+.menu-areas-inner { min-height: 0; overflow: hidden; }
+.menu-group { display: grid; grid-template-columns: 6.25rem 1fr; column-gap: 1rem; padding-inline-start: 1.25rem; }
+.menu-group:last-child { padding-bottom: 1rem; }
+.menu-group-label { padding-top: .8rem; font-size: .8125rem; line-height: 1.35; color: var(--color-muted-ink); }
+html[lang="ar"] .menu-group-label { font-size: .875rem; padding-top: .7rem; }
+.menu-area { display: flex; align-items: center; min-height: 2.75rem; font-weight: 500; line-height: 1.3; color: color-mix(in oklab, var(--color-paper) 88%, var(--color-ink)); transition: color .15s; }
+@media (hover: hover) { :is(.menu-area, .menu-quiet):hover { color: var(--color-paper); } }
+.menu-quiet { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding-inline: .25rem; font-weight: 500; color: var(--color-muted-ink); transition: color .15s; }
 
 /* ---------- Screens: all on show, the current one in the middle (carousel.ts) ----------
    Wide screens make a strip (the current one full size, its neighbours peeking in from
@@ -571,9 +632,57 @@ dialog.menu-sheet[open] :is(.menu-link, .menu-foot) { animation: menu-item-in .7
   [dir="rtl"] .rm-seg[data-kind="end"] { mask-image: linear-gradient(270deg, #000 25%, transparent); background-position: 100% 50%; }
 }
 
-/* ---------- Border beam (kit/BorderBeam.astro): a light running round a box's border ---------- */
-.border-beam { position: absolute; display: none; overflow: visible; pointer-events: none; }
-.motion .border-beam { display: block; }
-.border-beam rect { fill: none; stroke: var(--color-teal-light); stroke-linecap: round; animation: border-beam var(--beam-duration) linear infinite; }
-@keyframes border-beam { from { stroke-dashoffset: calc(-1px * var(--lead)); } to { stroke-dashoffset: calc(-100px - 1px * var(--lead)); } }
-@media (prefers-reduced-motion: reduce) { .motion .border-beam { display: none; } }
+/* ---------- Pricing: one price list (pages/[lang]/pricing.astro) ----------
+   Both plans side by side on every screen and every term in sight: each price is an
+   option of one radio group, the pick in Ink with the logo's teal satellite. Figures in
+   Plex Mono, as everywhere on the site. */
+.price-sheet { overflow: hidden; }
+.price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .375rem; min-width: 0; margin: 0; padding: .5rem; border: 0; }
+/* Phones: the plans take the whole width and each term is a line above its two prices. */
+.price-corner { display: none; align-self: end; padding: .75rem .75rem 1rem; font-size: .8125rem; font-weight: 500; line-height: 1.35; }
+.price-corner span { font-weight: 400; color: var(--color-muted); }
+.price-plan { padding: 1rem .5rem .5rem; }
+.price-plan-name { font-size: 1.0625rem; font-weight: 600; line-height: 1.25; }
+.price-plan-blurb { display: none; margin-top: .35rem; font-size: .9rem; line-height: 1.45; color: var(--color-muted); }
+.price-plan-tag { display: flex; align-items: center; gap: .45rem; margin-top: .5rem; font-size: .8125rem; font-weight: 500; color: var(--color-teal); }
+.price-plan-tag::before { content: ""; flex: none; width: .45rem; height: .45rem; border-radius: 999px; background: currentColor; }
+.price-term { grid-column: 1 / -1; padding: .6rem .5rem 0; font-size: .875rem; font-weight: 500; color: var(--color-muted); }
+.price-cell { position: relative; display: flex; flex-direction: column; justify-content: center; min-height: 4.5rem; padding: .7rem .8rem; border: 1px solid var(--color-rule); border-radius: .875rem; background: var(--color-surface); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color .2s var(--ease-out-expo), border-color .2s, color .2s; }
+.price-cell input { position: absolute; inset: 0; opacity: 0; margin: 0; pointer-events: none; }
+@media (hover: hover) { .price-cell:hover { border-color: color-mix(in oklab, var(--color-teal) 45%, var(--color-rule)); } }
+.price-cell:has(:focus-visible) { outline: 2px solid var(--color-teal-light); outline-offset: 2px; }
+.price-cell:has(:checked) { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-paper); }
+.price-cell:has(:checked)::after { content: ""; position: absolute; top: .7rem; inset-inline-end: .7rem; width: .5rem; height: .5rem; border-radius: 999px; background: var(--color-teal-light); }
+.price-amount { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; }
+.price-cur { font-family: var(--font-sans); font-size: .75rem; letter-spacing: 0; color: var(--color-muted); }
+.price-meta { margin-top: .3rem; font-size: .8125rem; line-height: 1.35; color: var(--color-muted); }
+.price-save { font-size: .8125rem; font-weight: 500; line-height: 1.35; color: var(--color-teal); }
+.price-cell:has(:checked) :is(.price-cur, .price-meta) { color: var(--color-muted-ink); }
+.price-cell:has(:checked) .price-save { color: var(--color-teal-light); }
+.price-pick { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; margin-inline: .5rem; padding: 1.25rem .5rem 1.5rem; border-top: 1px solid var(--color-rule); }
+.price-pick .btn { width: 100%; }
+.price-table { width: 100%; border-collapse: collapse; }
+.price-table-title { caption-side: top; padding: 1.75rem 1rem .5rem; text-align: start; font-size: 1.125rem; font-weight: 600; }
+.price-table :is(th, td) { padding: .8rem 1rem; border-top: 1px solid var(--color-rule); text-align: start; vertical-align: top; }
+.price-table thead :is(th, td) { border-top: 0; padding-block: .25rem .6rem; font-size: .8125rem; font-weight: 500; color: var(--color-muted); }
+.price-table tbody th { font-weight: 400; }
+.price-table :is(thead th, tbody td) { width: 4.5rem; padding-inline: .5rem; text-align: center; }
+.price-table td > span { display: inline-flex; justify-content: center; }
+@media (min-width: 640px) {
+  .price-plan-blurb { display: block; }
+  .price-pick .btn { width: auto; }
+}
+@media (min-width: 768px) {
+  .price-grid { grid-template-columns: 11rem 1fr 1fr; gap: .5rem; padding: .75rem; }
+  .price-corner { display: block; }
+  .price-plan { padding: 1.5rem 1rem 1rem; }
+  .price-plan-name { font-size: 1.375rem; }
+  .price-term { grid-column: auto; align-self: center; padding: 0 .75rem; font-size: 1rem; color: var(--color-ink); }
+  .price-cell { min-height: 6rem; padding: 1rem 1.25rem; }
+  .price-cell:has(:checked)::after { top: 1rem; inset-inline-end: 1rem; }
+  .price-amount { font-size: 2rem; }
+  .price-pick { margin-inline: .75rem; padding: 1.5rem .75rem; }
+  .price-table-title { padding-inline: 1.5rem; }
+  .price-table :is(th, td) { padding-inline: 1.5rem; }
+  .price-table :is(thead th, tbody td) { width: 12rem; }
+}

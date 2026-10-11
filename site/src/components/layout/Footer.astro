@@ -1,6 +1,7 @@
 ---
 import Logo from "@/components/ui/Logo.astro";
 import Icon from "@/components/ui/Icon.astro";
+import StoreBadges from "@/components/ui/StoreBadges.astro";
 import { t } from "@/i18n";
 import { currentYear } from "@shared/dates";
 import {
@@ -14,15 +15,18 @@ const c = t(lang);
 const other = otherLang(lang);
 // Cairo's year, in the page's numerals (shared/dates.ts), at build time.
 const year = currentYear(lang);
+// The home page (its apps section) and pricing show the till's badges in the page itself.
+const badgesInPage = page === "home" || page === "pricing";
 ---
 <footer class="on-ink border-t border-line-ink bg-ink text-paper">
   <div class="container-site grid gap-12 py-16 md:grid-cols-12 md:py-20">
     <div class="md:col-span-4">
       <a href={pageHref(lang, "home")} aria-label={c.nav.home} class="inline-flex text-[1.9rem]"><Logo lang={lang} tone="ink" display /></a>
       <p class="kicker mt-5 max-w-xs text-muted-ink">{c.footer.tagline}</p>
-      <a class="nav-link mt-6 inline-flex items-center gap-2 !px-0" href={switchHref(lang, page)} hreflang={other} lang={other} data-umami-event="lang-switch">
+      <a class="nav-link lang-switch mt-6 inline-flex items-center gap-2 !px-0" href={switchHref(lang, page)} hreflang={other} lang={other} data-umami-event="lang-switch">
         <Icon name="globe" size={18} /> {c.nav.langSwitch}
       </a>
+      {!badgesInPage && <StoreBadges lang={lang} app="cashier" where="footer" class="mt-6" />}
     </div>
 
     <nav class="grid gap-10 sm:grid-cols-3 md:col-span-8" aria-label={c.footer.product}>

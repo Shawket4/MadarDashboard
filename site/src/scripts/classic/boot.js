@@ -13,9 +13,9 @@
     soft = !!ref && ref.indexOf(location.origin + "/") === 0 && !(nav && nav.type === "reload");
   } catch (e) {}
   if (soft) d.setAttribute("data-soft", "");
-  // Arriving fresh: hide what the entrance animates until it's ready (3 s safety net).
-  if (motion && !soft) {
-    d.classList.add("m");
-    setTimeout(function () { if (!d.classList.contains("m-ready")) d.classList.add("m-fail"); }, 3000);
-  }
+  // Arriving fresh: the first screen plays its entrance (CSS, global.css "First screen").
+  if (motion && !soft) d.classList.add("m");
+  // Arriving on a # address: the browser opens on that section, which plays its entrance
+  // in CSS too (global.css, ":target"), however the page was reached.
+  if (motion && location.hash.length > 1) d.setAttribute("data-arrive", "");
 })(document.documentElement);

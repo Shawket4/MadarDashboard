@@ -1,0 +1,36 @@
+---
+/**
+ * The official store badges of one app: Apple's "Download on the App Store" and Google's
+ * "Get it on Google Play", each only where the app has a listing (APPS in lib/site.ts),
+ * so an app still to come gets words, never a badge or an empty link. The stores' own
+ * artwork, unaltered, in the page's language, self-hosted. Apple's rules: at least 40 px
+ * tall on screen (44 here, a full tap target) with a quarter of its height clear all
+ * round; Google's PNG carries its own clear space, so it is drawn taller to match.
+ */
+import appStoreEn from "@/assets/stores/app-store-en.svg?url";
+import appStoreAr from "@/assets/stores/app-store-ar.svg?url";
+import playEn from "@/assets/stores/google-play-en.png?url";
+import playAr from "@/assets/stores/google-play-ar.png?url";
+import { t } from "@/i18n";
+import { type Lang, type AppKey, APPS } from "@/lib/site";
+
+interface Props { lang: Lang; app: AppKey; where: string; class?: string }
+const { lang, app, where, class: cls = "" } = Astro.props;
+const a = t(lang).apps;
+const name = a.items[app].name;
+const { appStore, googlePlay } = APPS[app];
+---
+{(appStore || googlePlay) && (
+  <div class:list={["store-badges", cls]}>
+    {appStore && (
+      <a class="store-badge" href={appStore} target="_blank" rel="noopener" data-umami-event="app-store" data-umami-event-where={where} data-umami-event-app={app}>
+        <img src={lang === "ar" ? appStoreAr : appStoreEn} alt={a.appStoreAlt.replace("{app}", name)} width="132" height="44" loading="lazy" decoding="async" />
+      </a>
+    )}
+    {googlePlay && (
+      <a class="store-badge store-badge-play" href={googlePlay} target="_blank" rel="noopener" data-umami-event="google-play" data-umami-event-where={where} data-umami-event-app={app}>
+        <img src={lang === "ar" ? playAr : playEn} alt={a.googlePlayAlt.replace("{app}", name)} width="166" height="64" loading="lazy" decoding="async" />
+      </a>
+    )}
+  </div>
+)}

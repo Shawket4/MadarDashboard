@@ -122,7 +122,8 @@ screenshots, the 3D and the cappuccino's animations, online or offline (owner).
 | What | Where |
 |---|---|
 | Words (EN and AR) | `src/i18n/en.ts`, `src/i18n/ar.ts` (Arabic is typed against English, so a missing key fails the build) |
-| Prices | `pricing.plans` in both copy files |
+| Prices | `pricing.plans` in both copy files (the page opens on Advanced Operation for 6 months: `chosen` in `src/pages/[lang]/pricing.astro`) |
+| Store badges, app icons | `src/components/ui/AppStoreBadge.astro` (Apple's own badge, EN and AR, unaltered, in `src/assets/stores/`), app tiles in `src/assets/apps/` (from the Madar and Dawam design systems). Only Madar Cashier is on a store; the others say "coming soon" until they have a listing |
 | Phone, email, socials, dashboard link, App Store link | `src/lib/site.ts` |
 | Structured data (JSON-LD) | `src/lib/schema.ts` |
 | Home page order | `src/pages/[lang]/index.astro` |
@@ -176,17 +177,35 @@ Motion rules:
   (`flicking` in `story.ts`), so nothing fades in behind a fling.
 - A click from another page of the site is a **soft** entry: the page transition
   brings the page in and nothing on screen replays its entrance. Arriving from
-  outside (or a reload) plays the hero's entrance.
+  outside (or a reload) plays the hero's entrance, or the page intro's (`data-intro`,
+  and the heading's words split at build time by `Words.astro`).
+- **The first screen never waits for JavaScript.** That entrance is CSS ("First
+  screen" in `global.css`): it starts with the first paint and runs off the main
+  thread, so the gsap bundle loading, or `story.ts` setting up the pins, can't delay
+  or stall it. Whatever else is on screen when `story.ts` starts stays as it is
+  (`settled`); only what scrolls in later reveals.
+- **The story sets itself up after the entrance** (`afterEntrance` in `story.ts`): once
+  the first screen's CSS animations have finished and the page is idle, or at the first
+  scroll, touch, wheel or key, whichever comes first, in parts with the main thread
+  handed back between them. The 3D's download starts from there too. The build adds a
+  `modulepreload` for every chunk a page's script imports (`modulePreload` in
+  `astro.config.mjs`).
+- **Fonts:** the leading family comes in by weight (`400.css`…), each subset with its
+  `unicode-range`, so a page fetches only the scripts it sets; the first screen's weights
+  are preloaded (and on Arabic pages the Latin medium of its figures). "العربية" on
+  English pages is set in the phone's own Arabic face (`.lang-switch`).
 - Split text by **words only** (letters would break how Arabic joins). Each word rises
   inside a mask that is padded past descenders and Arabic tails and marks
   (`.split-word-mask`); the split stays after the words land, since undoing it can
   re-wrap a heading that fits its line to the pixel. `npm run verify` fails if any
   word's ink would reach outside its mask.
-- **Jumps** (a `#` link on the page, a `#` address from elsewhere) never wait on what
-  they pass: anything a jump carries the page past finishes at once (`whenSeen`), only
-  what is on screen plays.
-  Same-page `#` links glide (Lenis, or the browser's smooth scroll on touch); a `#`
-  address lands again once the pins have added their length (`landOnHash`).
+- **Jumps** (a `#` link on the page, a `#` address from elsewhere) go straight there,
+  never a long scroll down the page (owner), and the section they land on plays its
+  entrance: a same-page link through `story.ts` (`jump`, which doesn't count as a
+  flick), a `#` address from another page in CSS (`data-arrive` from the head script and
+  `:target` in `global.css`). Anything a jump carries the page past finishes at once
+  (`whenSeen`). A `#` address lands again once the pins have added their length
+  (`landOnHash`).
 - Pins are created in page order. ScrollTriggers whose range contains a pin use
   `refreshPriority: -1`, or they end a pin-length too early.
 

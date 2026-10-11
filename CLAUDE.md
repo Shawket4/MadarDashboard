@@ -194,6 +194,46 @@ arrives through the app shell's single branch stream
 (`src/data/realtime/use-branch-realtime.ts`), which invalidates queries by event
 prefix; pages never read event payloads.
 
+## Content-Security-Policy: every page has one
+Every page this repo serves goes out with a CSP, set in nginx (`deploy/nginx/`), never
+in code. A new page, bundle, vhost or nginx location inherits it only by following
+these rules:
+- **Where it lives.** `deploy/nginx/madar-csp-public.conf` holds the policy of every
+  public page (get, order, reservations, loyalty, and every shop's own host through
+  MadarRust's `deploy/shop/nginx-wildcard.conf`). `madar-csp-dashboard.conf` holds the
+  dashboard's. That one is **report-only** (violations go to Sentry's security endpoint)
+  until Sentry shows nothing unexpected; then rename the header to enforce it. Change a
+  policy in its snippet only, never inline in a vhost. get's service worker
+  (`site/sw/sw.ts`) carries a copy of the public policy; change both together.
+- **The nginx rule.** In nginx, a location with any `add_header` of its own inherits
+  none of the server's. So wherever a vhost includes
+  `snippets/madar-security-headers.conf`, the next line includes the CSP snippet, in
+  every new vhost and every new location. Order, reservations and loyalty went out with
+  no CSP at all until 2026-10-11 because of this. `src/lib/csp.test.ts` enforces it.
+- **What new code must not do.**
+  - **Scripts:** no inline `<script>` and no `on*=` attributes (JSON-LD is fine). No
+    `eval` or `new Function`.
+  - **zod:** it runs jitless for that reason. `vite/zod-jitless.ts` sets it in
+    zod's own core module; a new Vite config adds `zodJitless()` beside
+    `noDocsInTheBundle()`.
+  - **Public bundles talk to their own origin only** (`connect-src 'self'`): they call the
+    API through the host's `/api/`, never a cross-origin URL. No Sentry and no
+    third-party script, font or frame. Fonts are self-hosted (`@fontsource`), images
+    may come from any `https:`, and WebAssembly is allowed (`'wasm-unsafe-eval'`).
+  - **Workers:** `blob:` workers only on the dashboard.
+  - **A new outside origin** (an API, a CDN, map tiles fetched by script, an embed)
+    is added to the snippet in the same change, with the reason in its comment.
+- **Check it.**
+  - Before shipping: `node scripts/csp-check.mjs --inject public <url>` (or
+    `dashboard`) loads a page with the snippet's policy enforced and exits 1 on any
+    violation. Point it at `npm run dev:*`, a preview build or the live page.
+  - After the deploy: `node scripts/csp-check.mjs <live url>` checks the real headers.
+- **Installing on the box.**
+  - Copy the snippets to `/etc/nginx/snippets/` and the vhosts per
+    `deploy/nginx/README.md`.
+  - Back up first, run `nginx -t`, then reload.
+  - Only with the owner's go-ahead.
+
 ## Gotchas
 - **Mock mode + service worker.** `dev:mock` needs MSW's worker
   (`public/mockServiceWorker.js`). After switching dev servers on the same port, a
