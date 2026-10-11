@@ -13,7 +13,7 @@
 //    301 to their pages, unknown paths are a real 404 with 404.html (404.md for
 //    Accept: text/markdown), and Accept: text/markdown gets a folder's index.md. The
 //    root page (a page, never a redirect), folder addresses, links, # addresses and #
-//    links, 404, pricing terms, sheet, and (nginx) the redirects, the Markdown
+//    links, 404, the pricing pick, sheet, and (nginx) the redirects, the Markdown
 //    versions and llms.txt.
 //    (1 and 2 run without the service worker: they check the pages and the servers.)
 //    SERVE=1 npm run verify starts only the nginx mimic, for curl and Lighthouse.
@@ -307,12 +307,15 @@ for (const folders of ["open", "nginx"]) {
     check(r.status === 200, `a real .html file (/get.html) → ${r.status}`);
   }
 
-  // The pricing terms switch both plans.
+  // The price list opens on Advanced Operation for 6 months (owner); a pick moves the
+  // package and its WhatsApp message with it.
   v = await visit("/en/pricing/");
-  await v.page.click("[data-terms] label:last-child");
-  await v.page.waitForTimeout(1400);
-  const prices = await v.page.$$eval("[data-price-block] .price-term:not([hidden]) .font-mono", (els) => els.map((e) => e.textContent?.trim()));
-  check(prices.join(",") === "30,000,35,000", `yearly prices → ${prices.join(",")}`);
+  const pick = () => v.page.evaluate(() => ({ name: document.querySelector("[data-pick-name]")?.textContent, wa: decodeURIComponent(document.querySelector("[data-pick-cta]")?.getAttribute("href") ?? "") }));
+  let k = await pick();
+  check(k.name === "Advanced Operation · 6 months" && k.wa.includes("Advanced Operation, for 6 months"), `pricing opens on ${k.name}`);
+  await v.page.click("label:has(input[value='essential-year'])");
+  k = await pick();
+  check(k.name === "Essential Café · 1 year" && k.wa.includes("Essential Café, for 1 year"), `pricing pick → ${k.name} (${k.wa})`);
   // "Talk to us" opens the contact sheet.
   await v.page.locator("header [data-open-contact]").filter({ visible: true }).first().click();
   check(await v.page.evaluate(() => document.getElementById("contact-dialog")?.open === true), "contact sheet opens");
