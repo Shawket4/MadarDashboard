@@ -1,5 +1,5 @@
 // Small UI behaviour shared by every page: the contact sheet, the phone menu, the
-// header turning solid on scroll, and the sticky WhatsApp bar on phones.
+// header turning solid on scroll, the sticky WhatsApp bar on phones, and the pricing pick.
 // Everything here degrades to plain links without JavaScript.
 
 const contact = document.getElementById("contact-dialog") as HTMLDialogElement | null;
@@ -79,16 +79,40 @@ onScroll();
 window.addEventListener("scroll", onScroll, { passive: true });
 
 // Phones: WhatsApp bar once the first section is gone, hidden again from the closing band
-// down (the band and the footer carry their own contact links).
+// down (the band and the footer carry their own contact links), and while a page's own
+// WhatsApp button is on screen (data-hides-sticky: the pricing pick), never two at once.
 const sticky = document.getElementById("sticky-wa");
 const first = document.querySelector("main > section, main > div > section");
 const closing = document.getElementById("closing");
+const own = document.querySelector("[data-hides-sticky]");
 if (sticky && "IntersectionObserver" in window) {
   let firstVisible = true;
   let closingVisible = false;
+  let ownVisible = false;
   const update = () => {
-    sticky.dataset.visible = String(!firstVisible && !closingVisible);
+    sticky.dataset.visible = String(!firstVisible && !closingVisible && !ownVisible);
   };
   if (first) new IntersectionObserver(([en]) => { firstVisible = !!en?.isIntersecting; update(); }).observe(first);
   if (closing) new IntersectionObserver(([en]) => { closingVisible = !!en && (en.isIntersecting || en.boundingClientRect.top < 0); update(); }).observe(closing);
+  if (own) new IntersectionObserver(([en]) => { ownVisible = !!en?.isIntersecting; update(); }).observe(own);
 }
+
+// Pricing: the package follows the pick (its name, its price and the WhatsApp message,
+// there and on the phones' sticky bar). Without this the page still opens on its package.
+const priceList = document.querySelector<HTMLFieldSetElement>("[data-price-list]");
+const pickName = document.querySelector<HTMLElement>("[data-pick-name]");
+const pickPrice = document.querySelector<HTMLElement>("[data-pick-price]");
+const pickCta = document.querySelector<HTMLAnchorElement>("[data-pick-cta]");
+const stickyLink = document.querySelector<HTMLAnchorElement>("#sticky-wa a");
+const stickyLabel = stickyLink?.querySelector<HTMLElement>("[data-sticky-label]");
+const showPick = (input: HTMLInputElement | null) => {
+  const d = input?.dataset;
+  if (!d?.href) return;
+  if (pickName) pickName.textContent = d.name ?? "";
+  if (pickPrice) pickPrice.textContent = d.price ?? "";
+  if (pickCta) pickCta.href = d.href;
+  if (stickyLink) stickyLink.href = d.href;
+  if (stickyLabel) stickyLabel.textContent = d.name ?? "";
+};
+showPick(priceList?.querySelector<HTMLInputElement>("input:checked") ?? null);
+priceList?.addEventListener("change", (e) => showPick(e.target as HTMLInputElement));

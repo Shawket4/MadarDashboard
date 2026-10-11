@@ -122,7 +122,8 @@ screenshots, the 3D and the cappuccino's animations, online or offline (owner).
 | What | Where |
 |---|---|
 | Words (EN and AR) | `src/i18n/en.ts`, `src/i18n/ar.ts` (Arabic is typed against English, so a missing key fails the build) |
-| Prices | `pricing.plans` in both copy files |
+| Prices | `pricing.plans` in both copy files (the page opens on Advanced Operation for 6 months: `chosen` in `src/pages/[lang]/pricing.astro`) |
+| Store badges, app icons | `src/components/ui/AppStoreBadge.astro` (Apple's own badge, EN and AR, unaltered, in `src/assets/stores/`), app tiles in `src/assets/apps/` (from the Madar and Dawam design systems). Only Madar Cashier is on a store; the others say "coming soon" until they have a listing |
 | Phone, email, socials, dashboard link, App Store link | `src/lib/site.ts` |
 | Structured data (JSON-LD) | `src/lib/schema.ts` |
 | Home page order | `src/pages/[lang]/index.astro` |

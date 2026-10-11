@@ -3,6 +3,7 @@ import BaseLayout from "@/components/layout/BaseLayout.astro";
 import Hero from "@/components/home/Hero.astro";
 import Pillars from "@/components/home/Pillars.astro";
 import FamilyShowcase from "@/components/home/FamilyShowcase.astro";
+import Apps from "@/components/home/Apps.astro";
 import DayIntro from "@/components/home/DayIntro.astro";
 import StoryRail from "@/components/home/StoryRail.astro";
 import StageHeader from "@/components/home/StageHeader.astro";
@@ -29,6 +30,7 @@ const sec = (x: { kicker: string; title: string; body: string; points: string[] 
   <Hero lang={lang} />
   <Pillars lang={lang} />
   <FamilyShowcase lang={lang} />
+  <Apps lang={lang} />
   <DayIntro lang={lang} />
 
   <div id="story" data-story>

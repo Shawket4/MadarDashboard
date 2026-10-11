@@ -177,6 +177,21 @@ export const ar: Copy = {
     },
   },
 
+  apps: {
+    kicker: "التطبيقات",
+    title: "الكاشير موجود على App Store.",
+    body: "نزّل Madar Cashier على الآيباد اللي على الكاونتر. شاشة المطبخ والداشبورد ودوام جايين قريب على App Store وGoogle Play.",
+    badgeAlt: "نزّل Madar Cashier من App Store",
+    soon: "قريبًا على App Store وGoogle Play",
+    browser: "افتحه في المتصفح",
+    items: {
+      cashier: { name: "Madar Cashier", line: "الكاشير، على الآيباد والآيفون." },
+      kitchen: { name: "Madar Kitchen", line: "شاشة لايف لكل محطة." },
+      dashboard: { name: "Madar Dashboard", line: "أرقامك ومنيوك وإعداداتك." },
+      dawam: { name: "دوام", line: "الموظفين بيسجّلوا حضورهم، والساعات بتبقى مرتبات." },
+    },
+  },
+
   day: {
     kicker: "يوم في كافيه",
     title: "من أول شوت لحد عدّ الخزنة.",
@@ -545,10 +560,18 @@ export const ar: Copy = {
     perMonthEquiv: "في الشهر",
     save: "وفّر",
     currency: "جنيه",
+    pick: "اختار الباقة ومدة الاشتراك",
+    yours: "باقتك",
+    perBranch: "لكل فرع",
+    ask: "اطلبها على واتساب",
+    included: "كل باقة فيها إيه",
+    yes: "موجودة",
+    no: "مش موجودة",
+    wa: "أهلًا مدار، عندي كافيه وحابب أشترك في {plan}، {term}.",
     plans: [
       {
         key: "essential",
-        tag: "الباقة 01",
+        tag: "",
         name: "الكافيه الأساسي",
         blurb: "الكاشير كامل والدفتر اللي وراه.",
         features: [
@@ -567,7 +590,6 @@ export const ar: Copy = {
         name: "التشغيل المتقدّم",
         blurb: "لتشغيل أعمق.",
         features: [
-          "كل اللي في الكافيه الأساسي",
           "هندسة المنيو والمستشار والتكلفة بالمتوسط المرجّح",
           "الطلب أونلاين ومناطق الدليفري",
           "هويتك على كل صفحة العميل بيشوفها",
@@ -592,6 +614,7 @@ export const ar: Copy = {
         "طابعة حرارية (Star أو Epson) لكل محطة",
         "بعد ضهر واحد مع مشرفي الورديات",
       ],
+      tillApp: "الكاشير شغّال على تطبيق Madar Cashier، موجود على App Store.",
       cta: "احجز الشهر المجاني على واتساب",
       note: "من غير كارت · من غير ارتباط",
     },

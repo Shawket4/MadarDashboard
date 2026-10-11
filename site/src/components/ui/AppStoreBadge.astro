@@ -1,0 +1,20 @@
+---
+/**
+ * Apple's "Download on the App Store" badge for Madar Cashier, the one app on a store
+ * today. Apple's own artwork (marketing toolbox), unaltered, in the page's language,
+ * self-hosted. Apple's rules: at least 40 px tall on screen (44 here, a full tap
+ * target), clear space of a quarter of its height all round, and only for an app that
+ * is on the store, so the apps still to come get words, never a badge or an empty link.
+ * Google Play's badge joins it when a listing goes live (Google's rules want a link).
+ */
+import en from "@/assets/stores/app-store-en.svg?url";
+import ar from "@/assets/stores/app-store-ar.svg?url";
+import { t } from "@/i18n";
+import { type Lang, APP_STORE_URL } from "@/lib/site";
+
+interface Props { lang: Lang; where: string; class?: string }
+const { lang, where, class: cls = "" } = Astro.props;
+---
+<a class:list={["store-badge", cls]} href={APP_STORE_URL} target="_blank" rel="noopener" data-umami-event="app-store" data-umami-event-where={where}>
+  <img src={lang === "ar" ? ar : en} alt={t(lang).apps.badgeAlt} width="132" height="44" loading="lazy" decoding="async" />
+</a>

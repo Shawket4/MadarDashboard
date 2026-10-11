@@ -14,7 +14,7 @@ export const EMAIL_HREF = `mailto:${EMAIL}`;
 export const INSTAGRAM = "https://www.instagram.com/madar.cloud/";
 export const FACEBOOK = "https://www.facebook.com/profile.php?id=61591636403380";
 
-export const APP_STORE_URL = "https://apps.apple.com/app/id6815221877";
+export const APP_STORE_URL = "https://apps.apple.com/us/app/madar-cashier/id6815221877";
 
 export const LEGAL_URL = "https://legal.madar-pos.cloud";
 
@@ -26,9 +26,9 @@ const WA_TEXT: Record<Lang, string> = {
   ar: "أهلًا مدار، عندي كافيه وحابب أعرف أكتر عن أول شهر المجاني.",
 };
 
-/** WhatsApp click-to-chat, prefilled in the page's language. */
-export function whatsappHref(lang: Lang): string {
-  return `https://wa.me/${PHONE_E164.replace("+", "")}?text=${encodeURIComponent(WA_TEXT[lang])}`;
+/** WhatsApp click-to-chat, prefilled in the page's language (or with `text`). */
+export function whatsappHref(lang: Lang, text = WA_TEXT[lang]): string {
+  return `https://wa.me/${PHONE_E164.replace("+", "")}?text=${encodeURIComponent(text)}`;
 }
 
 export type PageKey = "home" | "features" | "pricing" | "faq" | "about" | "contact" | "developers";

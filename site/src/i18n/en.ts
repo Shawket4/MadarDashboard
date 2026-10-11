@@ -177,6 +177,21 @@ export const en = {
     },
   },
 
+  apps: {
+    kicker: "The apps",
+    title: "The till is on the App Store.",
+    body: "Install Madar Cashier on the iPad at your counter. The kitchen screen, the dashboard and Dawam are coming to the App Store and Google Play.",
+    badgeAlt: "Download Madar Cashier on the App Store",
+    soon: "Coming soon to the App Store and Google Play",
+    browser: "Open it in a browser",
+    items: {
+      cashier: { name: "Madar Cashier", line: "The till, on iPad and iPhone." },
+      kitchen: { name: "Madar Kitchen", line: "A live screen for each station." },
+      dashboard: { name: "Madar Dashboard", line: "Your numbers, menu and settings." },
+      dawam: { name: "Dawam", line: "Staff clock in; the hours become payslips." },
+    },
+  },
+
   day: {
     kicker: "A café's day",
     title: "From the first shot to the closing count.",
@@ -545,10 +560,19 @@ export const en = {
     perMonthEquiv: "a month",
     save: "Save",
     currency: "EGP",
+    pick: "Pick a plan and a billing term",
+    yours: "Your package",
+    perBranch: "per branch",
+    ask: "Ask for it on WhatsApp",
+    included: "What each plan includes",
+    yes: "Included",
+    no: "Not included",
+    /** The WhatsApp message a package opens with ({plan}, and its term from termTotal). */
+    wa: "Hi Madar, I run a café and I'd like {plan}, {term}.",
     plans: [
       {
         key: "essential",
-        tag: "Plan 01",
+        tag: "",
         name: "Essential Café",
         blurb: "The full till and the ledger behind it.",
         features: [
@@ -566,8 +590,8 @@ export const en = {
         tag: "Most operators",
         name: "Advanced Operation",
         blurb: "For operations that run deeper.",
+        /** What it adds to Essential Café's list (the page draws both as one table). */
         features: [
-          "Everything in Essential Café",
           "Menu engineering, advisor and weighted-average costing",
           "Online ordering and delivery zones",
           "Your own branding on every customer-facing page",
@@ -592,6 +616,7 @@ export const en = {
         "A thermal printer (Star or Epson) per station",
         "One afternoon with your shift leads",
       ],
+      tillApp: "The till runs on Madar Cashier, on the App Store.",
       cta: "Book the free month on WhatsApp",
       note: "No card · no lock-in",
     },
