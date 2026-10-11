@@ -181,7 +181,8 @@ export const ar: Copy = {
     kicker: "التطبيقات",
     title: "الكاشير موجود على App Store.",
     body: "نزّل Madar Cashier على الآيباد اللي على الكاونتر. شاشة المطبخ والداشبورد ودوام جايين قريب على App Store وGoogle Play.",
-    badgeAlt: "نزّل Madar Cashier من App Store",
+    appStoreAlt: "نزّل {app} من App Store",
+    googlePlayAlt: "احصل على {app} من Google Play",
     soon: "قريبًا على App Store وGoogle Play",
     browser: "افتحه في المتصفح",
     items: {

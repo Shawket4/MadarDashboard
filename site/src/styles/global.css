@@ -339,9 +339,12 @@ html[lang="ar"] .chip-label { font-size: 0.78rem; text-transform: none; letter-s
 /* App tiles (Apps.astro): the kits' rounded tiles, ringed by a hairline so an Ink tile
    holds its edge on an Ink ground. */
 .app-icon { flex: none; border-radius: 22.5%; box-shadow: 0 0 0 1px var(--color-line-ink); }
-/* The App Store badge (AppStoreBadge.astro) at Apple's sizes, never stretched. */
+/* The store badges (StoreBadges.astro) at the stores' sizes, never stretched. Google's
+   PNG carries its own clear space, so it is drawn taller to stand level with Apple's. */
+.store-badges { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .store-badge { display: flex; width: fit-content; flex: none; border-radius: .5rem; }
 .store-badge img { display: block; height: 2.75rem; width: auto; }
+.store-badge-play img { height: 4rem; margin-block: -.625rem; }
 
 /* "العربية" is the only Arabic on English pages: set in the phone's own Arabic face, so
    they fetch no Arabic font file (45 KB) for one link. */

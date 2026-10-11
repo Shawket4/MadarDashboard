@@ -14,7 +14,25 @@ export const EMAIL_HREF = `mailto:${EMAIL}`;
 export const INSTAGRAM = "https://www.instagram.com/madar.cloud/";
 export const FACEBOOK = "https://www.facebook.com/profile.php?id=61591636403380";
 
-export const APP_STORE_URL = "https://apps.apple.com/us/app/madar-cashier/id6815221877";
+/**
+ * Every Madar app and where it is listed. A URL shows that store's official badge wherever
+ * the app appears (the home page's apps, pricing, the footer); an app with no URL reads
+ * "coming soon". When an app goes live on a store, its URL here is the whole change.
+ */
+export const APPS = {
+  cashier: { appStore: "https://apps.apple.com/us/app/madar-cashier/id6815221877", googlePlay: null },
+  kitchen: { appStore: null, googlePlay: null },
+  dashboard: { appStore: null, googlePlay: null },
+  dawam: { appStore: null, googlePlay: null },
+} as const satisfies Record<string, { appStore: string | null; googlePlay: string | null }>;
+export type AppKey = keyof typeof APPS;
+export const APP_KEYS = Object.keys(APPS) as AppKey[];
+/** An app is live once it is on at least one store. */
+export const isLive = (app: AppKey): boolean => Boolean(APPS[app].appStore || APPS[app].googlePlay);
+/** Every store listing, for the organisation's `sameAs`. */
+export const STORE_URLS: string[] = APP_KEYS.flatMap((k) => [APPS[k].appStore, APPS[k].googlePlay]).filter(
+  (u): u is string => typeof u === "string",
+);
 
 export const LEGAL_URL = "https://legal.madar-pos.cloud";
 

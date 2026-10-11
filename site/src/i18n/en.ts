@@ -181,7 +181,8 @@ export const en = {
     kicker: "The apps",
     title: "The till is on the App Store.",
     body: "Install Madar Cashier on the iPad at your counter. The kitchen screen, the dashboard and Dawam are coming to the App Store and Google Play.",
-    badgeAlt: "Download Madar Cashier on the App Store",
+    appStoreAlt: "Download {app} on the App Store",
+    googlePlayAlt: "Get {app} on Google Play",
     soon: "Coming soon to the App Store and Google Play",
     browser: "Open it in a browser",
     items: {
