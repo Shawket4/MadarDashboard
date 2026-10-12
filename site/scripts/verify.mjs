@@ -241,6 +241,13 @@ for (const folders of ["open", "nginx"]) {
 
   v = await visit("/en/");
   const card = v.page.locator('a.card[href="#stage-rush"]').first();
+  // The story (pins, reveals) sets itself up after the entrance, on an idle moment or the visitor's
+  // first scroll, wheel, touch or key (story.ts). A script that jumps straight to the card scrolls
+  // before that has run, so the pins land above the card afterwards and push it out of view. A
+  // visitor always gives the first scroll; do the same, and let the set-up finish.
+  await v.page.mouse.move(640, 450);
+  await v.page.mouse.wheel(0, 120);
+  await v.page.waitForTimeout(1500);
   await card.scrollIntoViewIfNeeded();
   await v.page.waitForTimeout(500);
   await card.click();
