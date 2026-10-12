@@ -18,6 +18,8 @@ import { listWaste, useBranchWasteReport, useListWaste } from "@/data/api/genera
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
+import { wasteSearch } from "./search";
 import { useCan } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
@@ -31,6 +33,8 @@ export function WastePage() {
   const { branchId, scopeBranchId, isAllBranches, from, to } = useScope();
   const [logOpen, setLogOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  // Search, sort and page live in the URL (./search.ts).
+  const filters = useListFilters(wasteSearch);
   const logoUrl = useExportLogo();
   const canRecord = useCan(Cap.inventoryWasteRecord);
 
@@ -239,6 +243,7 @@ export function WastePage() {
             onRetry={() => void waste.refetch()}
             getRowId={(m) => m.id}
             searchPlaceholder={t("common.search", "Search")}
+            urlState={tableStateFrom(filters)}
             emptyState={<EmptyState icon={Trash2} title={t("inventory.waste.noWaste", "No waste recorded")} />}
           />
         </div>

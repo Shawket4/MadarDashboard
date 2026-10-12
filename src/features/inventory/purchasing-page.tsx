@@ -28,6 +28,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
+import { purchasingSearch } from "./search";
 import { fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { PO_STATUS_TONES, PO_STATUSES, invalidateInventory } from "./lib";
@@ -42,10 +44,15 @@ export function PurchasingPage() {
   const confirm = useConfirm();
   const orgId = useOrgId();
   const { branchId, scopeBranchId, isAllBranches } = useScope();
-  const [tab, setTab] = useState("orders");
+  // Tab, status filter, sort/page and supplier search live in the URL (./search.ts).
+  const filters = useListFilters(purchasingSearch);
+  // Reorder needs one branch; a remembered Reorder tab under "All branches" shows orders.
+  const tab = filters.values.tab === "reorder" && !branchId ? "orders" : filters.values.tab;
+  const setTab = (v: string) => filters.set({ tab: v as typeof filters.values.tab });
 
   // Orders state
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const statusFilter: string = filters.values.status;
+  const setStatusFilter = (v: string) => filters.set({ status: v as typeof filters.values.status });
   const [poDialogOpen, setPoDialogOpen] = useState(false);
   const [receivePoId, setReceivePoId] = useState<string | null>(null);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
@@ -368,6 +375,7 @@ export function PurchasingPage() {
             onRetry={() => void orders.refetch()}
             getRowId={(po) => po.id}
             onRowClick={(po) => setReceivePoId(po.id)}
+            urlState={tableStateFrom(filters)}
             toolbar={
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-9 w-44"><SelectValue /></SelectTrigger>
@@ -390,6 +398,7 @@ export function PurchasingPage() {
             onRetry={() => void suppliers.refetch()}
             getRowId={(s) => s.id}
             searchPlaceholder={t("common.search", "Search")}
+            urlState={tableStateFrom(filters, { q: "sq", sort: "ssort", page: "spage" })}
             emptyState={<EmptyState icon={Users} title={t("inventory.purchasing.noSuppliers", "No suppliers yet")} />}
           />
         </TabsContent>

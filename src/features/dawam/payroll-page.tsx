@@ -54,6 +54,8 @@ import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { printPayslip } from "./payslip-print";
 import { PayrollSteps } from "./payroll-steps";
+import { payrollSearch } from "./search";
+import { useDropUnknown, useListFilters } from "@/data/scope/use-list-filters";
 import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
   ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote, RejectDialog, CorrectExpenseTagDialog,
@@ -130,7 +132,10 @@ export function PayrollPage() {
   const canDeduct = authz.can(Cap.hrDeductionsCreate);
   const canAdvance = authz.can(Cap.hrAdvancesDecide);
   const canExpense = authz.can(Cap.hrExpenseAdvancesLog);
-  const [tab, setTab] = useState("payslips");
+  // Tab and the opened month live in the URL (./search.ts).
+  const { values: f, set } = useListFilters(payrollSearch);
+  const tab = f.tab;
+  const setTab = (v: string) => set({ tab: v as typeof f.tab });
   // An id, not the row: the sheet must show the payslip as it is after a
   // waiver or a new line, not as it was when it was opened.
   const [personId, setPersonId] = useState<string | null>(null);
@@ -142,7 +147,7 @@ export function PayrollPage() {
   const [exporting, setExporting] = useState(false);
 
   // An older month opened from its banner or from History (H2-P1); null = the month covering today.
-  const [viewId, setViewId] = useState<string | null>(null);
+  const viewId = f.month || null;
   const confirm = useConfirm();
   const logoUrl = useExportLogo();
 
@@ -152,6 +157,8 @@ export function PayrollPage() {
   const unsettled = unsettledOf(cur);
   // Every action below goes by `period.id`, so an older month settles like this one.
   const older = olderPeriod(cur, viewId);
+  // A remembered month that is no longer offered (settled out of reach): the current one.
+  useDropUnknown(f.month, cur ? (older ? [f.month] : []) : undefined, () => set({ month: "" }));
   const olderDraft = older?.status === "draft";
   const olderPreviewQ = usePreviewPeriod(older?.id ?? "", { query: dawamQuery({ enabled: canRead && !!older && olderDraft }) });
   const olderSlipsQ = useListPayslips(older?.id ?? "", { query: dawamQuery({ enabled: canRead && !!older && !olderDraft }) });
@@ -201,8 +208,7 @@ export function PayrollPage() {
   const missing = rows.filter((r) => (r as ComputedPayslip).salary_missing);
   const missingCount = older ? missing.length : (cur?.missing_salary_count ?? cur?.totals?.missing_salary_count ?? missing.length);
   const openMonth = (id: string | null) => {
-    setViewId(id);
-    setTab("payslips");
+    set({ month: id ?? "", tab: "payslips" });
   };
 
   // Reopen closes once a PERSON is paid (PAY-6). A zero-net payslip settled at

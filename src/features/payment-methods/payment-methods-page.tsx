@@ -25,6 +25,8 @@ import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
+import { tableStateFrom, useListFilters } from "@/data/scope/use-list-filters";
+import { paymentMethodsSearch } from "./search";
 
 export function PaymentMethodsPage() {
   const { t, i18n } = useTranslation();
@@ -40,6 +42,8 @@ export function PaymentMethodsPage() {
   const label = (m: OrgPaymentMethod) => labelOf(m, i18n.language);
 
   const [s, update] = usePageSearch<{ edit: string }>();
+  // The table's search and page live in the URL (./search.ts), restored on return.
+  const filters = useListFilters(paymentMethodsSearch);
   const editId = s.edit ?? null;
   const editing = editId && editId !== "new" ? (methods.find((m) => m.id === editId) ?? null) : null;
   const dlgOpen = editId === "new" || !!editing;
@@ -140,7 +144,7 @@ export function PaymentMethodsPage() {
         description={t("settings.paymentMethodsHint", "Manage payment methods available for checkout.")}
         actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={!methods.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.add", "Add")}</Button></>}
       />
-      <Tabs defaultValue="methods" className="gap-6">
+      <Tabs value={filters.values.tab} onValueChange={(v) => filters.set({ tab: v as typeof filters.values.tab })} className="gap-6">
         <PageTabsList>
           <PageTabsTrigger value="methods">{t("settings.paymentMethods", "Payment Methods")}</PageTabsTrigger>
           <PageTabsTrigger value="availability">{t("paymentMethods.availability.title", "Availability")}</PageTabsTrigger>
@@ -160,6 +164,7 @@ export function PaymentMethodsPage() {
         getRowId={(m) => m.id}
         onRowClick={(m) => update({ edit: m.id })}
         searchPlaceholder={t("common.search", "Search…")}
+        urlState={tableStateFrom(filters)}
         emptyState={<EmptyState icon={CreditCard} title={t("common.noResults", "No results")} />}
       />
         </TabsContent>

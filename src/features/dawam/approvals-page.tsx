@@ -17,6 +17,8 @@ import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ListCard, ListRow } from "@/components/app/list-row";
 import { SegmentedControl } from "@/components/app/segmented-control";
+import { useListFilters } from "@/data/scope/use-list-filters";
+import { approvalsSearch } from "./search";
 import { Restricted } from "@/components/app/restricted";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -77,7 +79,10 @@ export function ApprovalsPage() {
   const { t } = useTranslation();
   const authz = useAuthz();
   const confirm = useConfirm();
-  const [section, setSection] = useState<Section>("all");
+  // The section lives in the URL (./search.ts) and survives leaving the page.
+  const { values: f, set } = useListFilters(approvalsSearch);
+  const section = f.section as Section;
+  const setSection = (v: Section) => set({ section: v });
   const [paying, setPaying] = useState<StaffRequest | null>(null);
   const [reviewing, setReviewing] = useState<Parameters<typeof ReviewAdvanceDialog>[0]["advance"]>(null);
   const [rejecting, setRejecting] = useState<Pending | null>(null);

@@ -33,6 +33,8 @@ import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { DawamRulesCard, type CoverChoice } from "@/features/dawam/rules-card";
 import { MoneyField, NumberField } from "@/components/inputs";
 import { RulesPreview } from "./rules-preview-card";
+import { rulesSearch } from "./search";
+import { useDropUnknown, useListFilters } from "@/data/scope/use-list-filters";
 import { changedRules, dayPiastres, tierPiastres, type PayExample, type RuleChange } from "./rules-preview";
 import {
   BUSINESS_ONLY, branchBody, EMPTY_VALUES, fullBody, ruleLabel, rulesSchema, valuesFrom,
@@ -64,9 +66,14 @@ export function AttendanceRulesPage() {
   const readOnly = !canEdit;
   const canGender = canEdit && authz.can(Cap.hrRosterSettings);
 
-  const [scope, setScope] = useState(BUSINESS);
+  // Whose rules are open lives in the URL (./search.ts): "" = the business.
+  const { values: f, set } = useListFilters(rulesSearch);
+  const scope = f.for || BUSINESS;
+  const setScope = (v: string) => set({ for: v === BUSINESS ? "" : v });
   const branchId = scope === BUSINESS ? null : scope;
   const branchesQ = useListBranchRules({ query: dawamQuery({ enabled: canView }) });
+  // A branch that is gone: back to the business's rules.
+  useDropUnknown(f.for, branchesQ.data?.map((b) => b.branch_id), () => set({ for: "" }));
   // The form below is reset from this answer (the effect on `query.data`), so it
   // refetches on focus only for someone who can't edit: a background refetch
   // must never throw away rules half typed (live.ts).

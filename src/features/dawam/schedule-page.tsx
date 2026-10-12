@@ -48,6 +48,8 @@ import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { PreferencesDialog } from "./preferences-dialog";
 import { weekDays, weekdayOf, weekStartOf, addDays } from "./week";
+import { scheduleSearch } from "./search";
+import { useDropUnknown, useListFilters } from "@/data/scope/use-list-filters";
 import { WeekBar } from "./schedule-week-bar";
 
 export function SchedulePage() {
@@ -65,13 +67,22 @@ export function SchedulePage() {
   const canDecideHoliday = authz.canEverywhere(Cap.hrRulesEdit);
   const [dayOpen, setDayOpen] = useState<{ person: RosterPerson; date: string } | null>(null);
   const [prefsOf, setPrefsOf] = useState<RosterPerson | null>(null);
-  const [showCoverage, setShowCoverage] = useState(false);
-  const [week, setWeek] = useState(() => weekStartOf(todayIso()));
-  const [picked, setPicked] = useState<string | null>(null);
+  // Week, coverage panel and hand-picked branch live in the URL (./search.ts);
+  // an absent week is this week, so the default never fills the URL.
+  const { values: f, set } = useListFilters(scheduleSearch);
+  const showCoverage = f.coverage;
+  const setShowCoverage = (u: (v: boolean) => boolean) => set({ coverage: u(f.coverage) });
+  const thisWeek = weekStartOf(todayIso());
+  const week = f.week ? weekStartOf(f.week) : thisWeek;
+  const setWeek = (w: string) => set({ week: w === thisWeek ? "" : w });
+  const picked = f.branch || null;
+  const setPicked = (id: string) => set({ branch: id });
   const [busy, setBusy] = useState<string | null>(null);
 
   const orgId = useOrgId();
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: canRead && !!orgId } });
+  // A remembered branch that is gone falls back to the first one.
+  useDropUnknown(f.branch, branchesQ.data?.map((b) => b.id), () => set({ branch: "" }));
   const branchId = scope.branchId ?? picked ?? branchesQ.data?.[0]?.id ?? "";
   const days = weekDays(week);
   const rosterQ = useRoster({ branch_id: branchId, from: week, to: days[6] }, { query: dawamQuery({ enabled: canRead && !!branchId }) });

@@ -24,6 +24,8 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
+import { bundlesReportSearch } from "../search";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { cairoParts, fmtDate, fmtMoney, fmtNumber } from "@/lib/format";
@@ -48,7 +50,10 @@ export function BundlesReportPage() {
   const authz = useAuthz();
   const canSee = authz.can(Cap.reportsBundles);
   const { branchId, from, to } = useScope();
-  const [kind, setKind] = useState<BundleKind>("combo");
+  // Kind, sort and page live in the URL (reports/search.ts).
+  const filters = useListFilters(bundlesReportSearch);
+  const kind: BundleKind = filters.values.kind;
+  const setKind = (v: BundleKind) => filters.set({ kind: v });
   const [mixFor, setMixFor] = useState<BundlesReportRow | null>(null);
   const [exporting, setExporting] = useState(false);
   const logoUrl = useExportLogo();
@@ -209,6 +214,7 @@ export function BundlesReportPage() {
         onRetry={() => void q.refetch()}
         getRowId={(r) => `${r.kind}:${r.id}`}
         onRowClick={kind === "combo" ? (r) => setMixFor(r) : undefined}
+        urlState={tableStateFrom(filters)}
         emptyState={
           <EmptyState
             icon={Layers}

@@ -91,7 +91,8 @@ vi.mock("@/data/authz/use-authz", async () => {
       }),
   };
 });
-vi.mock("@tanstack/react-router", () => ({
+vi.mock("@tanstack/react-router", async () => ({
+  ...(await import("@/test/url-search-mock")).routerMock(),
   Link: ({ to, children, className }: { to: string; children: ReactNode; className?: string }) => <a href={to} className={className}>{children}</a>,
 }));
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));

@@ -21,6 +21,8 @@ import type { OrgIngredient, StocktakeItem } from "@/data/api/generated/models";
 import { cancelStocktake, finalizeStocktake, upsertItems, useGetStocktake, useListCatalog } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
+import { useDropUnknown, useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
+import { countsSearch } from "./search";
 import { fmtMoney, fmtNumber, fmtTime, fmtUnit } from "@/lib/format";
 import { rules } from "@/lib/rules";
 import { cn } from "@/lib/utils";
@@ -68,9 +70,14 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
   const [counts, setCounts] = useState<Record<string, string>>({});
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [extras, setExtras] = useState<Row[]>([]);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>("all");
-  const [filter, setFilter] = useState<Filter>("all");
+  // Search / category / status filter live in the counts page's URL
+  // (./search.ts), so stepping away mid-count comes back to the same view.
+  const { values: f, set } = useListFilters(countsSearch);
+  const [search, setSearch] = useSearchInput(f.cq, (cq) => set({ cq }));
+  const category = f.ccat || "all";
+  const setCategory = (v: string) => set({ ccat: v === "all" ? "" : v });
+  const filter: Filter = f.cfilter;
+  const setFilter = (v: Filter) => set({ cfilter: v });
   const [saving, setSaving] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
 
@@ -155,6 +162,8 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
     for (const r of rows) m.set(r.category_id, r.category_name);
     return Array.from(m.entries());
   }, [rows]);
+  // A remembered category this count no longer lists falls back to "All".
+  useDropUnknown(category, data ? categories.map(([id]) => id) : undefined, () => set({ ccat: "" }));
 
   const visible = useMemo(() => {
     let list = rows;

@@ -10,6 +10,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BundlesReport, ComboMix } from "@/data/api/generated/models";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  ...(await import("@/test/url-search-mock")).routerMock(),
+}));
+
 globalThis.IntersectionObserver ??= class {
   observe() {}
   unobserve() {}

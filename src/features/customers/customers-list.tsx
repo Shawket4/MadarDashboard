@@ -36,7 +36,9 @@ import { GoogleObjectDialog } from "@/features/loyalty/admin/members/google-obje
 import { currencyLabel, modeOf } from "@/features/loyalty/shared/util";
 import { OrderDetailSheet } from "@/features/orders/order-detail-sheet";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { useListSearch } from "@/hooks/use-list-search";
+import { useSearchInput, type ListFilters } from "@/data/scope/use-list-filters";
+import { ClearFiltersButton } from "@/components/app/clear-filters-button";
+import type { customersSearch } from "./search";
 import { useLoadMore } from "@/hooks/use-load-more";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
@@ -54,7 +56,10 @@ export function CustomersList({
   branchId = null,
   openId,
   onOpenIdChange,
+  filters,
 }: {
+  /** URL-bound filters (the Customers page); without them the list keeps its own. */
+  filters?: ListFilters<typeof customersSearch.spec>;
   /** Locked to loyalty members — the Loyalty → Members tab. */
   membersOnly?: boolean;
   /** The branch whose program a member's balance is read under (Members tab). */
@@ -68,9 +73,16 @@ export function CustomersList({
   const source = peopleSource(access, membersOnly);
   const fromCustomers = source === "customers";
 
-  const { search, setSearch, q } = useListSearch();
-  const [onlyMembers, setOnlyMembers] = useState(false);
-  const [from, setFrom] = useState<CustomerSource | null>(null);
+  // Search + filters: in the URL when the page passes `filters`, local otherwise.
+  const [localQ, setLocalQ] = useState("");
+  const [localMembers, setLocalMembers] = useState(false);
+  const [localFrom, setLocalFrom] = useState<CustomerSource | null>(null);
+  const [search, setSearch] = useSearchInput(filters ? filters.values.q : localQ, (v) => (filters ? filters.set({ q: v }) : setLocalQ(v)), 300);
+  const q = (filters ? filters.values.q : localQ).trim();
+  const onlyMembers = filters ? filters.values.members : localMembers;
+  const setOnlyMembers = (v: boolean) => (filters ? filters.set({ members: v }) : setLocalMembers(v));
+  const from: CustomerSource | null = filters ? (isSource(filters.values.from) ? filters.values.from : null) : localFrom;
+  const setFrom = (v: CustomerSource | null) => (filters ? filters.set({ from: v ?? "all" }) : setLocalFrom(v));
   const [openOrder, setOpenOrder] = useState<string | null>(null);
   const [inspecting, setInspecting] = useState<{ id: string; name: string } | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -348,6 +360,7 @@ export function CustomersList({
                   </Label>
                 </div>
               )}
+              {filters ? <ClearFiltersButton filters={filters} /> : null}
             </>
           ) : undefined
         }

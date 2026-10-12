@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fmtMoney } from "@/lib/format";
+import { urlSearch } from "@/test/url-search-mock";
 
 import type { ComboSummary } from "./types";
 
@@ -17,9 +18,9 @@ let held: string[] = [];
 let rows: ComboSummary[] = [];
 const useCombos = vi.fn();
 
-vi.mock("@tanstack/react-router", () => ({
+vi.mock("@tanstack/react-router", async () => ({
+  ...(await import("@/test/url-search-mock")).routerMock(),
   Link: (p: { children: ReactNode }) => <a>{p.children}</a>,
-  useNavigate: () => vi.fn(),
 }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@/data/authz/use-authz", async () => {
@@ -74,6 +75,7 @@ const mount = () =>
   );
 
 beforeEach(() => {
+  urlSearch.reset();
   useCombos.mockReset();
   rows = [
     summary({ id: "c-1", name: "Lunch deal", price: 15000, warning_count: 2 }),

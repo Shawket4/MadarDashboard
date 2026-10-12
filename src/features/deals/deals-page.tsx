@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { usePageSearch } from "@/data/scope/use-page-search";
+import { tableStateFrom, useListFilters } from "@/data/scope/use-list-filters";
+import { dealsSearch } from "./search";
 import { Cap } from "@/generated/capabilities";
 import { getTranslatedName } from "@/lib/translation";
 import { deleteDeal, useDeals } from "@/features/combos/api";
@@ -43,6 +45,8 @@ export function DealsPage() {
   const deals = useMemo(() => [...(q.data ?? [])].sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name)), [q.data]);
 
   const [s, update] = usePageSearch<{ edit: string }>();
+  // The table's page lives in the URL (./search.ts), restored on return.
+  const filters = useListFilters(dealsSearch);
   const editing = s.edit && s.edit !== "new" ? (deals.find((d) => d.id === s.edit) ?? null) : null;
   const dialogOpen = s.edit === "new" ? canEdit : !!editing;
 
@@ -166,6 +170,7 @@ export function DealsPage() {
         error={q.error}
         onRetry={() => void q.refetch()}
         getRowId={(d) => d.id}
+        urlState={tableStateFrom(filters)}
         onRowClick={(d) => update({ edit: d.id })}
         rowActions={(d) =>
           canEdit ? (

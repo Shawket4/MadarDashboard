@@ -20,6 +20,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters } from "@/data/scope/use-list-filters";
+import { inventoryReportsSearch } from "./search";
 import { exportToExcel, exportToCsv } from "@/lib/excel";
 import {
   buildInventoryExportSheet, ConsumptionTab, PoLeadTimeTab, ShrinkageTab, WasteTab,
@@ -40,8 +42,12 @@ export function InventoryReportsPage() {
   const orgId = useOrgId();
   const { branchId, from, to, preset } = useScope();
 
-  const [scope, setScope] = useState<ReportScope>(branchId ? "branch" : "org");
-  const [tab, setTab] = useState<TabKey>("consumption");
+  // Tab and scope live in the URL (./search.ts). "This branch" needs a
+  // branch: under "All branches" the report is the whole organization.
+  const filters = useListFilters(inventoryReportsSearch);
+  const scope: ReportScope = branchId ? filters.values.scope : "org";
+  const setScope = (v: ReportScope) => filters.set({ scope: v });
+  const setTab = (v: TabKey) => filters.set({ tab: v });
   const [exporting, setExporting] = useState(false);
   const logoUrl = useExportLogo();
 
@@ -52,6 +58,8 @@ export function InventoryReportsPage() {
   const authz = useAuthz();
   const canLead = authz.can(Cap.purchasingOrdersRead);
   const canSee = authz.can(Cap.inventoryRead);
+  // A shared link to PO lead time, opened without purchasing access: the first tab.
+  const tab: TabKey = filters.values.tab === "poLeadTime" && !canLead ? "consumption" : filters.values.tab;
   const on = (key: TabKey) => canSee && tab === key && !!scopeId && (key !== "poLeadTime" || canLead);
 
   const branchCons = useBranchConsumption(branchId ?? "", range, { query: { enabled: isBranch && on("consumption") && !!branchId } });

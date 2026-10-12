@@ -6,6 +6,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AttendanceSettings } from "@/data/api/generated/models";
 import { DEFAULT_RULES, rulesFrom, rulesRequest } from "./rules-card";
 
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  ...(await import("@/test/url-search-mock")).routerMock(),
+}));
+
 const put = vi.fn(async () => ({}));
 let held: string[] = [];
 const settings = {

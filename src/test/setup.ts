@@ -4,7 +4,10 @@ import "@testing-library/jest-dom/vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { afterEach } from "vitest";
+
 import { initRules } from "@/lib/rules";
+import { urlSearch } from "@/test/url-search-mock";
 import * as fullRules from "@/lib/rules/wasm/full/madar_web.js";
 
 // The madar-shared rules (WebAssembly), as the dashboard's main.tsx loads them
@@ -37,3 +40,7 @@ globalThis.ResizeObserver ??= class {
   unobserve() {}
   disconnect() {}
 } as unknown as typeof ResizeObserver;
+
+// URL-bound list filters (useListFilters) read a module-level search object in
+// tests that mock the router; start every test from an empty URL.
+afterEach(() => urlSearch.reset());

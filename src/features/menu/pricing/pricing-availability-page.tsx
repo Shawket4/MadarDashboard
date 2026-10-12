@@ -49,7 +49,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { currencyLabel as fmtCurrencyLabel, egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
-import { useDebounced } from "@/lib/use-debounced";
+import { useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
+import { pricingSearch } from "./search";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
@@ -1033,13 +1034,18 @@ export function PricingAvailabilityPage() {
   const scope = useScope();
   const branchId = scope.branchId;
 
-  const [tab, setTab] = useState("items");
-  const [itemsPage, setItemsPage] = useState(0);
-  const [itemsSearch, setItemsSearch] = useState("");
-  const itemsSearchQ = useDebounced(itemsSearch, 300);
-  const [addonsPage, setAddonsPage] = useState(0);
-  const [addonsSearch, setAddonsSearch] = useState("");
-  const addonsSearchQ = useDebounced(addonsSearch, 300);
+  // Tab, searches and pages live in the URL (./search.ts), restored on return.
+  const { values: f, set } = useListFilters(pricingSearch);
+  const tab = f.tab;
+  const setTab = (v: string) => set({ tab: v as typeof f.tab });
+  const itemsPage = f.page - 1;
+  const setItemsPage = (p: number) => set({ page: p + 1 });
+  const [itemsSearch, setItemsSearch] = useSearchInput(f.q, (q) => set({ q }), 300);
+  const itemsSearchQ = f.q;
+  const addonsPage = f.apage - 1;
+  const setAddonsPage = (p: number) => set({ apage: p + 1 });
+  const [addonsSearch, setAddonsSearch] = useSearchInput(f.aq, (aq) => set({ aq, apage: undefined }), 300);
+  const addonsSearchQ = f.aq;
 
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const branch = useMemo(

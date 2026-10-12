@@ -12,6 +12,8 @@ import { Restricted } from "@/components/app/restricted";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters } from "@/data/scope/use-list-filters";
+import { financialReportsSearch } from "../search";
 import { useOrgId } from "@/hooks/use-org-id";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
@@ -71,10 +73,16 @@ export function FinancialReportsPage() {
 
   const authz = useAuthz();
   const visible = TABS.filter((k) => authz.can(TAB_CAP[k]));
-  const [picked, setTab] = useState<TabKey>("profitability");
+  // Tab, granularity and inventory scope live in the URL (reports/search.ts).
+  const filters = useListFilters(financialReportsSearch);
+  const picked: TabKey = filters.values.tab;
+  const setTab = (v: TabKey) => filters.set({ tab: v });
   const tab: TabKey = visible.includes(picked) ? picked : (visible[0] ?? "profitability");
-  const [gran, setGran] = useState<Granularity>("daily");
-  const [invScope, setInvScope] = useState<InventoryScope>(branchId ? "branch" : "org");
+  const gran: Granularity = filters.values.gran;
+  const setGran = (v: Granularity) => filters.set({ gran: v });
+  // "This branch" needs a branch: under "All branches" it is the whole organization.
+  const invScope: InventoryScope = branchId ? filters.values.inv : "org";
+  const setInvScope = (v: InventoryScope) => filters.set({ inv: v });
   const isInvBranch = invScope === "branch";
   const logoUrl = useExportLogo();
   const [invExporting, setInvExporting] = useState(false);
