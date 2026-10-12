@@ -51,6 +51,7 @@ import { DevTools } from "@/components/app/dev-tools";
 import { initRules } from "@/lib/rules";
 import * as rulesWasm from "@/lib/rules/wasm/full/madar_web.js";
 import { NotFound } from "@/components/app/not-found";
+import { listScrollKey } from "@/data/scope/list-search";
 import { routeTree } from "./routeTree.gen";
 
 initDeviceTheme();
@@ -59,6 +60,9 @@ const router = createRouter({
   routeTree,
   defaultPreload: "intent",
   scrollRestoration: true,
+  // Filtered lists restore scroll by URL, so "Back" to the same view lands
+  // where the reader left it (data/scope/list-search.ts).
+  getScrollRestorationKey: listScrollKey,
   // Native View Transitions on navigation — a quiet cross-fade between routes.
   // No-ops where unsupported; the reduced-motion guard in globals.css disables
   // the animation (but keeps the snapshot swap) for users who opt out.
