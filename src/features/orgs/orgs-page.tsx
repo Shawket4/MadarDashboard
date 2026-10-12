@@ -14,6 +14,8 @@ import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatusPill } from "@/components/app/status-pill";
+import { Restricted } from "@/components/app/restricted";
+import { useAuthz } from "@/data/authz/use-authz";
 import { RowAction } from "@/features/users/row-action";
 import { OrgDialog } from "./org-dialog";
 import { ProvisionWizard } from "./provision-wizard";
@@ -26,7 +28,15 @@ import { useExportLogo } from "@/hooks/use-export-logo";
 import { usePageSearch } from "@/data/scope/use-page-search";
 
 import { formatRate, fractionToPercent } from "./tax-rate";
+/** Platform admins only: the nav hides this, but a typed URL must not render a page whose every request 403s. */
 export function OrgsPage() {
+  const { t } = useTranslation();
+  const { platform } = useAuthz();
+  if (!platform) return <Restricted title={t("nav.orgs", "Organizations")} />;
+  return <OrgsContent />;
+}
+
+function OrgsContent() {
   const { t } = useTranslation();
   const confirm = useConfirm();
 
