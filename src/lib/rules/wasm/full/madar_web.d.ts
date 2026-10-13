@@ -1,6 +1,24 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+ * A category as the API sends it (`/categories`, the public menu): the
+ * fields the rule reads. Other fields are ignored.
+ * (In TypeScript: `OrderCategory`.)
+ */
+export interface OrderCategory {
+    id: string;
+    name: string;
+    /**
+     * `{ "ar": "…", … }`; missing or `null` is none.
+     */
+    name_translations?: Record<string, unknown> | null;
+    /**
+     * Missing or `null` is 0.
+     */
+    display_order?: number;
+}
+
+/**
  * A choice group attached to an item (`menu_item_modifier_groups` over an
  * active `modifier_groups` row), with the attachment's overrides resolved.
  */
@@ -970,6 +988,15 @@ export function cart_line_unit(line: CartLineShape): number;
 export function cart_subtotal(lines: CartLineShape[]): number;
 
 /**
+ * The positions of `categories` in the order the POS shows them to a
+ * reader in `locale`: `display_order` (missing or `null` is 0), then the
+ * name they read, by code point, then `id`. Pass the API's categories as
+ * they are (other fields are ignored) and read them back with
+ * `order.map((i) => categories[i])`.
+ */
+export function category_order(categories: OrderCategory[], locale: string): number[];
+
+/**
  * One received line, judged (a note of only whitespace is no note).
  */
 export function check_receive_line(qty_sent: number, qty_received: number, note?: string | null): LineCheck | ReceiveRefusal;
@@ -1213,6 +1240,7 @@ export interface InitOutput {
     readonly cart_line_total: (a: any) => [number, number, number];
     readonly cart_line_unit: (a: any) => [number, number, number];
     readonly cart_subtotal: (a: number, b: number) => [number, number, number];
+    readonly category_order: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly check_receive_line: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly combo_choice_extra: (a: any, b: number, c: number) => [number, number, number];
     readonly combo_choice_for: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];
