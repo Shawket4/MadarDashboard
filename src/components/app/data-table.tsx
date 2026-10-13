@@ -1,4 +1,4 @@
-import { Fragment, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
   type Column,
   type ColumnDef,
@@ -40,6 +40,7 @@ import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { getErrorMessage } from "@/data/api/errors";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { useSearchInput, type DataTableUrlState } from "@/data/scope/use-list-filters";
 
 /**
  * The one record table (POS SPEC §8).
@@ -109,7 +110,15 @@ interface DataTableProps<TData, TValue> {
   /** Inside another card: no frame of its own. */
   framed?: boolean;
   className?: string;
+  /**
+   * Put the search box, sort and (client-side) page in the URL, so they
+   * survive navigation: `urlState={tableStateFrom(filters)}` from
+   * `useListFilters`. Without it the table keeps them in local state.
+   */
+  urlState?: DataTableUrlState;
 }
+
+const noop = () => {};
 
 export function DataTable<TData, TValue>({
   columns,
@@ -137,17 +146,35 @@ export function DataTable<TData, TValue>({
   hideViewOptions,
   framed = true,
   className,
+  urlState,
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const uid = useId();
   const titleId = (rowId: string) => `${uid}-title-${rowId}`;
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [localSorting, setLocalSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [globalFilter, setGlobalFilter] = useState("");
+  // The box answers every keystroke; with `urlState` the URL follows, debounced.
+  const [globalFilter, setGlobalFilter] = useSearchInput(urlState?.search ?? "", urlState?.onSearchChange ?? noop);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [internalPagination, setInternalPagination] = useState<PaginationState>({ pageIndex: 0, pageSize });
+  const [localPagination, setLocalPagination] = useState<PaginationState>({ pageIndex: 0, pageSize });
+
+  // URL-bound sort/page when the page passes them, local state otherwise.
+  const sortingInUrl = !!urlState?.sorting && !!urlState.onSortingChange;
+  const sorting = sortingInUrl ? urlState!.sorting! : localSorting;
+  const onSortingChange: OnChangeFn<SortingState> = (u) => {
+    const next = typeof u === "function" ? u(sorting) : u;
+    if (sortingInUrl) urlState!.onSortingChange!(next);
+    else setLocalSorting(next);
+  };
+  const pageInUrl = urlState?.pageIndex !== undefined && !!urlState.onPageIndexChange && !manualPagination;
+  const internalPagination: PaginationState = pageInUrl ? { pageIndex: urlState!.pageIndex!, pageSize } : localPagination;
+  const setInternalPagination: OnChangeFn<PaginationState> = (u) => {
+    const next = typeof u === "function" ? u(internalPagination) : u;
+    if (pageInUrl) urlState!.onPageIndexChange!(next.pageIndex);
+    else setLocalPagination(next);
+  };
 
   const usePages = !loadMore;
   const table = useReactTable({
@@ -162,7 +189,7 @@ export function DataTable<TData, TValue>({
       globalFilter: globalFilter.trim(),
       ...(usePages ? { pagination: manualPagination ? pagination : internalPagination } : {}),
     },
-    onSortingChange: setSorting,
+    onSortingChange,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setGlobalFilter,
@@ -173,6 +200,9 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: manualPagination || !usePages ? undefined : getPaginationRowModel(),
     manualPagination: manualPagination || !usePages,
     pageCount,
+    // A page restored from the URL must survive the data arriving; the
+    // URL-bound filters reset it themselves when they change.
+    ...(pageInUrl ? { autoResetPageIndex: false } : {}),
   });
 
   const rows = table.getRowModel().rows;
@@ -180,6 +210,13 @@ export function DataTable<TData, TValue>({
   const hideableColumns = table.getAllColumns().filter((c) => c.getCanHide() && metaOf(c).label);
   const pageIndex = table.getState().pagination?.pageIndex ?? 0;
   const totalPages = usePages ? table.getPageCount() : 0;
+
+  // A restored page past the end (rows were deleted meanwhile): the last real page.
+  const lastPage = Math.max(totalPages - 1, 0);
+  const onPageIndexChange = urlState?.onPageIndexChange;
+  useEffect(() => {
+    if (pageInUrl && !loading && data.length > 0 && pageIndex > lastPage) onPageIndexChange?.(lastPage);
+  }, [pageInUrl, loading, data.length, pageIndex, lastPage, onPageIndexChange]);
 
   const hasExpand = !!renderExpanded;
   const hasActions = !!rowActions;

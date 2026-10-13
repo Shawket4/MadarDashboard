@@ -11,6 +11,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DealRule } from "@/features/combos/types";
 import type { MenuOptions } from "@/features/combos/use-menu-options";
 
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  ...(await import("@/test/url-search-mock")).routerMock(),
+}));
+
 Element.prototype.scrollIntoView ??= () => {};
 
 let held: string[] = [];

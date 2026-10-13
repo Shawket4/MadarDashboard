@@ -46,11 +46,13 @@ import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { fmtTime } from "@/lib/format";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { cn } from "@/lib/utils";
+import { useListFilters } from "@/data/scope/use-list-filters";
 
 import { CustomerLink } from "@/features/customers/customer-link";
 import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
 
 import { BookingDialog } from "./booking-dialog";
+import { bookingsSearch } from "./search";
 import { BookingStatusBadge } from "./status-badge";
 import { BookingSettingsDialog } from "./settings-dialog";
 import {
@@ -67,12 +69,18 @@ export function BookingsPage() {
   const scope = useScope();
   const branchId = scope.branchId ?? null;
 
-  // ?date=&booking= — a link from a customer's bookings: that day, that booking open.
-  const search = useSearch({ strict: false }) as { date?: string; booking?: string };
+  // Day, view and filter live in the URL (./search.ts) and are restored on
+  // return. ?booking= — a link from a customer's bookings: that booking open.
+  const search = useSearch({ strict: false }) as { booking?: string };
   const navigate = useNavigate();
-  const [date, setDate] = useState(() => search.date ?? serviceToday());
-  const [view, setView] = useState<View>("list");
-  const [filter, setFilter] = useState<Filter>("active");
+  const filters = useListFilters(bookingsSearch);
+  const { values: f, set } = filters;
+  const date = f.date || serviceToday();
+  const setDate = (d: string) => set({ date: d === serviceToday() ? "" : d });
+  const view: View = f.view;
+  const setView = (v: View) => set({ view: v });
+  const filter: Filter = f.filter;
+  const setFilter = (v: Filter) => set({ filter: v });
   const [editing, setEditing] = useState<BookingView | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -110,27 +118,21 @@ export function BookingsPage() {
     [tablesQ.data],
   );
 
-  // Follow the link once: the day first, then the booking when that day's list has it.
-  useEffect(() => {
-    if (search.date && search.date !== date) setDate(search.date);
-    // Only a change of the link moves the day; the day picker is free after that.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search.date]);
+  // Follow the link once: the day comes from `?date=` (list state); the
+  // booking opens when that day's list has it, then `?booking=` is dropped.
   useEffect(() => {
     if (!search.booking || !listQ.isSuccess || listQ.isPlaceholderData) return;
-    if (search.date && search.date !== date) return; // the day has not turned yet
     const linked = all.find((b) => b.id === search.booking);
-    if (linked) {
-      setFilter("all");
-      setEditing(linked);
-      setDialogOpen(true);
-    }
     void navigate({
       to: ".",
       replace: true,
-      search: (prev: Record<string, unknown>) => ({ ...prev, date: undefined, booking: undefined }),
+      search: (prev: Record<string, unknown>) => ({ ...prev, booking: undefined, ...(linked ? { filter: "all" } : {}) }),
     });
-  }, [search.booking, search.date, date, listQ.isSuccess, listQ.isPlaceholderData, all, navigate]);
+    if (linked) {
+      setEditing(linked);
+      setDialogOpen(true);
+    }
+  }, [search.booking, listQ.isSuccess, listQ.isPlaceholderData, all, navigate]);
 
   const openNew = () => { setEditing(null); setDialogOpen(true); };
   const openEdit = (b: BookingView) => { setEditing(b); setDialogOpen(true); };

@@ -1,3 +1,4 @@
+import { keepScope } from "@/data/scope/list-search";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -309,7 +310,9 @@ export function MenuStudioPage() {
   }, [studio, tab]);
 
   // ── Actions ─────────────────────────────────────────────────────────────────
-  const goBack = () => void navigate({ to: "/menu/items", search: (prev: Record<string, unknown>) => ({ ...prev }) });
+  // Back to the list as it was left: the list restores its own filters
+  // (features/menu/search.ts); only the scope rides along, never `?tab=`.
+  const goBack = () => void navigate({ to: "/menu/items", search: keepScope as never });
 
   const onDuplicate = async () => {
     const ok = await confirm({
@@ -325,7 +328,7 @@ export function MenuStudioPage() {
       const created = await duplicateItem(itemId);
       const newId = (created as { id?: string }).id;
       toast.success(t("menu.studio.duplicated", "Item duplicated"));
-      if (newId) void navigate({ to: "/menu/items/$itemId", params: { itemId: newId }, search: {} });
+      if (newId) void navigate({ to: "/menu/items/$itemId", params: { itemId: newId }, search: keepScope as never });
     } catch (e) {
       toast.error(getErrorMessage(e));
     }

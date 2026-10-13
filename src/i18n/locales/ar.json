@@ -84,6 +84,7 @@
     "invalidEmail": "بريد إلكتروني غير صالح",
     "saved": "تم الحفظ",
     "clear": "مسح",
+    "clearFilters": "مسح عوامل التصفية",
     "select": "اختر…",
     "selectAll": "تحديد الكل",
     "deselectAll": "إلغاء تحديد الكل",

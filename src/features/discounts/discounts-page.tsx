@@ -25,6 +25,8 @@ import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
+import { tableStateFrom, useListFilters } from "@/data/scope/use-list-filters";
+import { discountsSearch } from "./search";
 
 export function DiscountsPage() {
   const { t, i18n } = useTranslation();
@@ -41,6 +43,8 @@ export function DiscountsPage() {
   const tname = (d: Discount) => getTranslatedName(d, i18n.language);
 
   const [s, update] = usePageSearch<{ edit: string }>();
+  // The table's search and page live in the URL (./search.ts), restored on return.
+  const filters = useListFilters(discountsSearch);
   const editId = s.edit ?? null;
   const editing = editId && editId !== "new" ? (discounts.find((d) => d.id === editId) ?? null) : null;
   const dlgOpen = editId === "new" || !!editing;
@@ -164,6 +168,7 @@ export function DiscountsPage() {
         getRowId={(d) => d.id}
         onRowClick={(d) => update({ edit: d.id })}
         searchPlaceholder={t("common.search", "Search…")}
+        urlState={tableStateFrom(filters)}
         emptyState={<EmptyState icon={Tag} title={t("discounts.empty", "No discounts yet")} description={t("discounts.emptyHint", "Create your first discount to use at checkout.")} />}
       />
       {dlgOpen ? <DiscountDialog orgId={orgId} discount={editing} open={dlgOpen} onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}

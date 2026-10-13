@@ -9,6 +9,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MOCK_TILL_SESSIONS } from "@/data/api/mock/data";
 import type { TillSessionRow } from "@/data/api/generated/models";
 
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  ...(await import("@/test/url-search-mock")).routerMock(),
+}));
+
 globalThis.IntersectionObserver ??= class {
   observe() {}
   unobserve() {}

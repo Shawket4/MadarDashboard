@@ -7,7 +7,7 @@
  * Channels are not per combo (§11.1): one org-wide switch per channel, with
  * branch overrides, under Settings. The header links there.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -32,7 +32,9 @@ import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { fmtMoney } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
-import { useDebounced } from "@/lib/use-debounced";
+import { keepScope } from "@/data/scope/list-search";
+import { paginationFrom, useDropUnknown, useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
+import { combosSearch } from "./search";
 
 import { deleteCombo, useCombos } from "./api";
 import { arOf } from "./types";
@@ -53,12 +55,17 @@ export function CombosPage() {
   const canEdit = authz.can(Cap.menuCombosEdit);
   const canSettings = authz.canAny(Cap.orgSettingsRead, Cap.menuCombosEdit);
 
-  const [search, setSearch] = useState("");
-  const q = useDebounced(search.trim(), 300);
-  const [category, setCategory] = useState(ALL);
-  const [active, setActive] = useState(ALL);
-  const [pageIndex, setPageIndex] = useState(0);
-  useEffect(() => setPageIndex(0), [q, category, active]);
+  // Search, category, status and page live in the URL (./search.ts), so
+  // opening a combo and coming back lands on the same filtered page.
+  const filters = useListFilters(combosSearch);
+  const { values: f, set } = filters;
+  const [search, setSearch] = useSearchInput(f.q, (v) => set({ q: v }), 300);
+  const q = f.q.trim();
+  const category = f.cat || ALL;
+  const setCategory = (v: string) => set({ cat: v === ALL ? "" : v });
+  const active = f.status === "all" ? ALL : f.status;
+  const setActive = (v: string) => set({ status: v === ALL ? "all" : (v as typeof f.status) });
+  const pageIndex = f.page - 1;
 
   const params = useMemo(
     () => ({
@@ -77,7 +84,10 @@ export function CombosPage() {
     return (id: string | null | undefined) => (id ? (m.get(id) ?? "—") : "—");
   }, [categories.data, lang]);
 
-  const open = (id: string) => void navigate({ to: "/menu/combos/$comboId", params: { comboId: id } });
+  // A remembered category that was deleted meanwhile falls back to "All".
+  useDropUnknown(f.cat, categories.data ? categories.data.map((c) => c.id) : undefined, () => set({ cat: "" }));
+
+  const open = (id: string) => void navigate({ to: "/menu/combos/$comboId", params: { comboId: id }, search: keepScope as never });
 
   const remove = async (c: ComboSummary) => {
     const name = getTranslatedName(c, lang);
@@ -287,8 +297,7 @@ export function CombosPage() {
         }
         manualPagination
         pageCount={pageCount}
-        pagination={{ pageIndex, pageSize: PER_PAGE }}
-        onPaginationChange={(u) => setPageIndex((typeof u === "function" ? u({ pageIndex, pageSize: PER_PAGE }) : u).pageIndex)}
+        {...paginationFrom(filters, PER_PAGE)}
         emptyState={
           <EmptyState
             icon={UtensilsCrossed}

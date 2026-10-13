@@ -20,6 +20,8 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
+import { tillsReportSearch } from "../search";
 import { useBranchTillSessions } from "@/data/api/generated/api";
 import type { TillSessionRow } from "@/data/api/generated/models";
 import { fmtDateTime, fmtMoney, fmtMoneySigned, fmtNumber } from "@/lib/format";
@@ -64,7 +66,10 @@ export function TillSessionsPage() {
     ? t("reports.tills.rangeRefused", "Too many till sessions to list for this period. Choose a shorter date range.")
     : q.error;
   const onRetry = refused ? undefined : () => void q.refetch();
-  const [tab, setTab] = useState<TabKey>("sessions");
+  // Tab, the sessions table's search/sort/page and Sales' "show all" live in the URL (reports/search.ts).
+  const filters = useListFilters(tillsReportSearch);
+  const tab: TabKey = filters.values.tab;
+  const setTab = (v: TabKey) => filters.set({ tab: v });
   const [exporting, setExporting] = useState(false);
   const logoUrl = useExportLogo();
 
@@ -308,6 +313,7 @@ export function TillSessionsPage() {
             getRowId={(r) => r.till_id}
             pageSize={50}
             searchPlaceholder={t("reports.tills.search", "Search branch or user")}
+            urlState={tableStateFrom(filters)}
             emptyState={
               <EmptyState title={t("reports.tills.empty", "No till sessions opened in this period")} />
             }
@@ -315,7 +321,7 @@ export function TillSessionsPage() {
         </TabsContent>
 
         <TabsContent value="sales">
-          <SalesTab rows={rows} loading={q.isLoading} error={loadError} onRetry={onRetry} />
+          <SalesTab rows={rows} loading={q.isLoading} error={loadError} onRetry={onRetry} showAll={filters.values.all} onShowAllChange={(all) => filters.set({ all })} />
         </TabsContent>
 
         <TabsContent value="timing">

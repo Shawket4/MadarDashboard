@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Search, Store } from "lucide-react";
 import { keepPreviousData } from "@tanstack/react-query";
@@ -22,7 +22,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { getTranslatedName } from "@/lib/translation";
-import { useDebounced } from "@/lib/use-debounced";
+import { useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
+import { kitchenRoutingSearch } from "./search";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -38,13 +39,16 @@ export function RoutingPage() {
   const branchId = scope.branchId;
   const orgId = useOrgId();
 
-  const [tab, setTab] = useState<"categories" | "items">("categories");
+  // Tab, item search and page live in the URL (./search.ts), restored on return.
+  const { values: f, set } = useListFilters(kitchenRoutingSearch);
+  const tab = f.tab;
+  const setTab = (v: typeof f.tab) => set({ tab: v });
   const [exporting, setExporting] = useState(false);
   const logoUrl = useExportLogo();
-  const [itemsSearch, setItemsSearch] = useState("");
-  const [itemsPage, setItemsPage] = useState(0);
-  const itemsSearchQ = useDebounced(itemsSearch, 300);
-  useEffect(() => { setItemsPage(0); }, [itemsSearchQ, branchId]);
+  const [itemsSearch, setItemsSearch] = useSearchInput(f.q, (q) => set({ q }), 300);
+  const itemsPage = f.page - 1;
+  const setItemsPage = (p: number) => set({ page: p + 1 });
+  const itemsSearchQ = f.q;
 
   const enabled = !!branchId;
   const stationsQ = useListStations({ branch_id: branchId ?? "" }, { query: { enabled } });

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -18,6 +18,8 @@ import { ProgressBar } from "@/components/app/progress-bar";
 import { CHART_AXIS_TICK, ChartCard, chartColor } from "@/components/app/chart-card";
 import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters } from "@/data/scope/use-list-filters";
+import { loyaltyReportSearch } from "../search";
 import {
   useGetLoyaltyBehavior, useGetLoyaltyCampaignEffectiveness, useGetLoyaltyLiabilityTrend,
 } from "@/data/api/generated/api";
@@ -115,7 +117,10 @@ export function LoyaltyReportPage() {
     },
   ];
 
-  const [tab, setTab] = useState("overview");
+  // The tab lives in the URL (reports/search.ts).
+  const filters = useListFilters(loyaltyReportSearch);
+  const tab = filters.values.tab;
+  const setTab = (v: string) => filters.set({ tab: v as typeof tab });
 
   if (authz.ready && !canSee) {
     return <Restricted title={t("reports.loyalty.title", "Loyalty")} who={t("reports.noAccess", "Your account can't open this report. The owner can give you access.")} />;

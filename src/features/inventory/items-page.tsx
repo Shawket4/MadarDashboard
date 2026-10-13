@@ -19,6 +19,10 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
+import { keepScope } from "@/data/scope/list-search";
+import { ClearFiltersButton } from "@/components/app/clear-filters-button";
+import { ingredientsSearch } from "./search";
 import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { ItemDialog } from "./item-dialog";
@@ -36,7 +40,10 @@ export function ItemsPage() {
   const { branchId } = useScope();
   const navigate = useNavigate();
 
-  const [filter, setFilter] = useState<Filter>("all");
+  // Filter, search, sort and page live in the URL (./search.ts) and are restored on return.
+  const filters = useListFilters(ingredientsSearch);
+  const filter: Filter = filters.values.filter;
+  const setFilter = (v: Filter) => filters.set({ filter: v });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogItem, setDialogItem] = useState<OrgIngredient | null>(null);
   const [drawerItem, setDrawerItem] = useState<OrgIngredient | null>(null);
@@ -80,7 +87,7 @@ export function ItemsPage() {
         await invalidateInventory();
       }
       setDrawerItem(null);
-      void navigate({ to: "/inventory/counts" });
+      void navigate({ to: "/inventory/counts", search: keepScope as never });
     } catch (e) {
       toast.error(getErrorMessage(e));
     }
@@ -228,6 +235,8 @@ export function ItemsPage() {
         getRowId={(it) => it.id}
         onRowClick={(it) => setDrawerItem(it)}
         searchPlaceholder={t("inventory.catalog.search", "Search ingredients")}
+        urlState={tableStateFrom(filters)}
+        toolbar={<ClearFiltersButton filters={filters} />}
         emptyState={<EmptyState icon={Boxes} title={t("inventory.catalog.noItems", "No ingredients yet")} />}
       />
 

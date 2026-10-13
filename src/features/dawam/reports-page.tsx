@@ -8,7 +8,7 @@
  * `till` when handed out of a POS drawer, AV-8). Every figure is the server's;
  * each table exports as CSV.
  */
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Banknote, CalendarClock, HandCoins, Scale } from "lucide-react";
@@ -33,6 +33,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";
 import { fmtDate, fmtMoney } from "@/lib/format";
 import { DateRangeField, quickRange, type DateRange } from "@/components/inputs";
+import { useListFilters } from "@/data/scope/use-list-filters";
+import { staffReportsSearch } from "./search";
 import { fmtHours } from "@/features/staff/util";
 import { dawamQuery, failedEmpty } from "./live";
 import { usePeriodStartDay } from "./period";
@@ -108,7 +110,13 @@ export function StaffReportsPage() {
   const { branchId } = useScope();
   const periodStartDay = usePeriodStartDay();
   /** Picked by hand; until then, this pay period. */
-  const [range, setRange] = useState<DateRange | null>(null);
+  // Range and tab live in the URL (./search.ts); absent = this pay period.
+  const { values: f, set } = useListFilters(staffReportsSearch);
+  const range: DateRange | null = f.from && f.to ? { from: f.from, to: f.to } : null;
+  const setRange = (r: DateRange) => {
+    const def = quickRange("this_period", { periodStartDay });
+    set(r.from === def.from && r.to === def.to ? { from: "", to: "" } : { from: r.from, to: r.to });
+  };
   const shownRange = range ?? quickRange("this_period", { periodStartDay });
   const canAttendance = authz.can(Cap.hrAttendanceRead);
   const canPay = authz.can(Cap.hrPayrollRead);
@@ -119,7 +127,8 @@ export function StaffReportsPage() {
     canPay && "payroll",
     canPay && "advances",
   ].filter(Boolean) as string[];
-  const [picked, setPicked] = useState<string | null>(null);
+  const picked = f.tab || null;
+  const setPicked = (v: string) => set({ tab: (v === tabs[0] ? "" : v) as typeof f.tab });
   const tab = picked && tabs.includes(picked) ? picked : tabs[0];
 
   if (authz.ready && tabs.length === 0) {

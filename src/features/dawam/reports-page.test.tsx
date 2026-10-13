@@ -9,6 +9,11 @@ import userEvent from "@testing-library/user-event";
 import { quickRange } from "@/components/inputs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  ...(await import("@/test/url-search-mock")).routerMock(),
+}));
+
 globalThis.IntersectionObserver ??= class {
   observe() {}
   unobserve() {}

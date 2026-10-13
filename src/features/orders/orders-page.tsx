@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnDef, PaginationState } from "@tanstack/react-table";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import type { ColumnDef } from "@tanstack/react-table";
+import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { Ban, Bike, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, Store, TriangleAlert, Ban as VoidIcon } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -38,7 +38,9 @@ import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDateTime, fmtMoney } from "@/lib/format";
-import { useDebounced } from "@/lib/use-debounced";
+import { paginationFrom, useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
+import { ClearFiltersButton } from "@/components/app/clear-filters-button";
+import { ordersSearch } from "./search";
 
 const ALL = "__all__";
 
@@ -97,33 +99,62 @@ export function OrdersPage() {
 
   const { branchId, scopeBranchId, from, to } = useScope();
 
-  const [status, setStatus] = useState<string>(ALL);
-  const [payment, setPayment] = useState<string>(ALL);
-  const [orderType, setOrderType] = useState<string>(ALL);
-  const [channel, setChannel] = useState<string>(ALL);
-  const [tellerInput, setTellerInput] = useState("");
-  const teller = useDebounced(tellerInput, 350);
-  const [waiterInput, setWaiterInput] = useState("");
-  const waiter = useDebounced(waiterInput, 350);
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
+  // Filters and page live in the URL (features/orders/search.ts), so opening
+  // an order or leaving the page and coming back keeps the same view.
+  const filters = useListFilters(ordersSearch);
+  const { values: f, set } = filters;
+  const status = f.status === "all" ? ALL : f.status;
+  const setStatus = (v: string) => set({ status: (v === ALL ? "all" : v) as typeof f.status });
+  const payment = f.pay === "all" ? ALL : f.pay;
+  const setPayment = (v: string) => set({ pay: (v === ALL ? "all" : v) as typeof f.pay });
+  const orderType = f.type === "all" ? ALL : f.type;
+  const channel = f.channel === "all" ? ALL : f.channel;
+  const [tellerInput, setTellerInput] = useSearchInput(f.teller, (teller) => set({ teller }), 350);
+  const teller = f.teller;
+  const [waiterInput, setWaiterInput] = useSearchInput(f.waiter, (waiter) => set({ waiter }), 350);
+  const waiter = f.waiter;
+  const { pagination, onPaginationChange: setPagination } = paginationFrom(filters, 20);
   // Opened order lives in the URL (?order=<id>) so it's shareable / deep-linkable.
   const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as { order?: string; till?: string };
+  const search = useSearch({ strict: false }) as { order?: string };
   const detailId = search.order ?? null;
-  const tillId = search.till;
+  const tillId = f.till || undefined;
+  // Opening the sheet is a history entry, so browser Back closes it (and keeps
+  // the filters). Switching orders inside the sheet replaces that entry; closing
+  // one we pushed steps back instead of piling up a second list entry.
+  const router = useRouter();
+  const pushedDetail = useRef(false);
   const setDetailId = useCallback(
-    (id: string | null) => void navigate({ to: ".", replace: true, search: (p: Record<string, unknown>) => ({ ...p, order: id ?? undefined }) }),
-    [navigate],
+    (id: string | null) => {
+      if (id === null && pushedDetail.current) {
+        pushedDetail.current = false;
+        router.history.back();
+        return;
+      }
+      const opening = id !== null && !detailId;
+      if (opening) pushedDetail.current = true;
+      if (id === null) pushedDetail.current = false;
+      void navigate({ to: ".", replace: !opening, search: (p: Record<string, unknown>) => ({ ...p, order: id ?? undefined }) });
+    },
+    [navigate, router, detailId],
   );
+  // Back (or Forward) moved off the sheet: nothing of ours left to pop.
+  useEffect(() => {
+    if (!detailId) pushedDetail.current = false;
+  }, [detailId]);
   // A customer's name opens the customer; one of their orders opens here.
   const { canOpen: canOpenCustomer, open: openCustomer, sheet: customerSheet } = useCustomerSheet({ onOpenOrder: setDetailId });
   const [voidOrder, setVoidOrder] = useState<Order | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
 
-  // Reset to first page whenever the scope or filters change.
+  // A new period starts at page 1 (filter changes reset it themselves).
+  const periodSeen = useRef(`${from}|${to}`);
   useEffect(() => {
-    setPagination((p) => ({ ...p, pageIndex: 0 }));
-  }, [branchId, from, to, status, payment, teller, waiter, orderType, channel]);
+    const key = `${from}|${to}`;
+    if (periodSeen.current === key) return;
+    periodSeen.current = key;
+    if (f.page !== 1) set({ page: 1 });
+  }, [from, to, f.page, set]);
 
   // Excluded from the Items Sold KPI only (server ignores it everywhere else).
   const [excludedItems, setExcludedItems] = useExcludedItems();
@@ -335,8 +366,8 @@ export function OrdersPage() {
             <Select
               value={orderType}
               onValueChange={(v) => {
-                setOrderType(v);
-                if (v !== "delivery") setChannel(ALL);
+                const type = (v === ALL ? "all" : v) as typeof f.type;
+                set(type === "delivery" ? { type } : { type, channel: "all" });
               }}
             >
               <SelectTrigger className="h-9 w-auto min-w-28">
@@ -349,7 +380,7 @@ export function OrdersPage() {
               </SelectContent>
             </Select>
             {orderType === "delivery" ? (
-              <Select value={channel} onValueChange={setChannel}>
+              <Select value={channel} onValueChange={(v) => set({ channel: (v === ALL ? "all" : v) as typeof f.channel })}>
                 <SelectTrigger className="h-9 w-auto min-w-28">
                   <SelectValue placeholder={t("orders.channel", "Channel")} />
                 </SelectTrigger>
@@ -360,6 +391,7 @@ export function OrdersPage() {
                 </SelectContent>
               </Select>
             ) : null}
+            <ClearFiltersButton filters={filters} />
 </div>}
       />
 

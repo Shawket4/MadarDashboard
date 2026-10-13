@@ -7,6 +7,8 @@ import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
+import { ClearFiltersButton } from "@/components/app/clear-filters-button";
+import { tableStateFrom, useDropUnknown, useListFilters } from "@/data/scope/use-list-filters";
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { StatCard } from "@/components/app/stat-card";
@@ -35,6 +37,7 @@ import { usePeriodStartDay } from "@/features/dawam/period";
 import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { CorrectRecordDialog, ManualRecordDialog } from "./attendance-dialogs";
+import { attendanceSearch } from "./search";
 import {
   ATTENDANCE_STATUS_TONE, coveredBy, fmtHours, fmtMinutes, isoDaysFromToday, todayIso,
 } from "./util";
@@ -44,13 +47,25 @@ const ALL = "__all__";
 export function AttendancePage() {
   const { t } = useTranslation();
   const { branchId } = useScope();
-  const [from, setFrom] = useState(isoDaysFromToday(-6));
-  const [to, setTo] = useState(todayIso());
-  const [status, setStatus] = useState(ALL);
+  // Range, filters, search, sort and page live in the URL (./search.ts); an
+  // absent range is the last seven days, so the default never fills the URL.
+  const filters = useListFilters(attendanceSearch);
+  const { values: f, set } = filters;
+  const defaultFrom = isoDaysFromToday(-6);
+  const defaultTo = todayIso();
+  const from = f.from || defaultFrom;
+  const to = f.to || defaultTo;
+  const setRange = (r: { from: string; to: string }) =>
+    r.from === defaultFrom && r.to === defaultTo ? set({ from: "", to: "" }) : set({ from: r.from, to: r.to });
+  const status = f.status || ALL;
+  const setStatus = (v: string) => set({ status: (v === ALL ? "" : v) as typeof f.status });
   /** One person's days, or everyone's. */
-  const [person, setPerson] = useState(ALL);
+  const person = f.person || ALL;
+  const setPerson = (v: string) => set({ person: v === ALL ? "" : v });
   const periodStartDay = usePeriodStartDay();
   const employeesQ = useListEmployees({}, { query: dawamQuery() });
+  // Someone no longer on the books: back to everyone.
+  useDropUnknown(f.person, employeesQ.data?.map((e) => e.id), () => set({ person: "" }));
   const [manualOpen, setManualOpen] = useState(false);
   const [correcting, setCorrecting] = useState<AttendanceRecord | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -316,7 +331,7 @@ export function AttendancePage() {
               id="att"
               className="w-full max-w-md"
               value={{ from, to }}
-              onChange={(r) => { setFrom(r.from); setTo(r.to); }}
+              onChange={setRange}
               quick={["this_week", "last_week", "this_period", "last_period"]}
               periodStartDay={periodStartDay}
               fromLabel={t("staff.from", "From")}
@@ -344,6 +359,7 @@ export function AttendancePage() {
                 <SelectItem value="on_leave">{t("staff.att_on_leave", "On leave")}</SelectItem>
               </SelectContent>
             </Select>
+            <ClearFiltersButton filters={filters} />
             </div>
           </div>
         }
@@ -375,6 +391,7 @@ export function AttendancePage() {
             : undefined
         }
         getRowId={(r) => r.id}
+        urlState={tableStateFrom(filters)}
         searchPlaceholder={t("staff.searchEmployees", "Search employees…")}
         emptyState={
           <EmptyState

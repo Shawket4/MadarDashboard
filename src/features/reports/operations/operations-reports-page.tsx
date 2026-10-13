@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CalendarRange } from "lucide-react";
 
@@ -9,6 +8,8 @@ import { Restricted } from "@/components/app/restricted";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters } from "@/data/scope/use-list-filters";
+import { operationsReportsSearch } from "../search";
 import { useOrgId } from "@/hooks/use-org-id";
 import { TablesInsightsPage } from "@/features/insights/tables-page";
 import {
@@ -46,7 +47,10 @@ export function OperationsReportsPage() {
   const range: Range = { from: from ?? undefined, to: to ?? undefined };
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
-  const [tab, setTab] = useState<TabKey>("tables");
+  // The tab lives in the URL (reports/search.ts).
+  const filters = useListFilters(operationsReportsSearch);
+  const tab: TabKey = filters.values.tab;
+  const setTab = (v: TabKey) => filters.set({ tab: v });
   // Every tab reads orders (orders.read); the server narrows to the person's branches.
   const authz = useAuthz();
 

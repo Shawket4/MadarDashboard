@@ -36,6 +36,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Form } from "@/components/ui/form";
+import { keepScope } from "@/data/scope/list-search";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
@@ -131,7 +132,9 @@ export function ComboEditorPage() {
     return () => window.removeEventListener("beforeunload", h);
   }, [dirty, canEdit]);
 
-  const goBack = () => void navigate({ to: "/menu/combos" });
+  // Back to the list as it was left: the list restores its own filters
+  // (features/combos/search.ts); only the scope rides along.
+  const goBack = () => void navigate({ to: "/menu/combos", search: keepScope as never });
 
   const submit = async (v: ComboFormValues) => {
     if (saving) return;
@@ -151,7 +154,7 @@ export function ComboEditorPage() {
       seededFor.current = saved.id;
       toast.success(isNew ? t("combos.created", "Combo created") : t("common.savedChanges", "Changes saved"));
       void invalidateCombos();
-      if (isNew) void navigate({ to: "/menu/combos/$comboId", params: { comboId: saved.id }, replace: true });
+      if (isNew) void navigate({ to: "/menu/combos/$comboId", params: { comboId: saved.id }, replace: true, search: keepScope as never });
     } catch (e) {
       toast.error(saveErrorMessage(e, v, t));
     } finally {

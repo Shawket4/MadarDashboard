@@ -19,6 +19,8 @@ import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
+import { transfersSearch } from "./search";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
@@ -40,8 +42,12 @@ export function TransfersPage() {
   const orgId = useOrgId();
   const { can } = useAuthz();
   const { branchId, scopeBranchId, from, to } = useScope();
-  const [dir, setDir] = useState<Direction>("all");
-  const [tab, setTab] = useState<Tab>("all");
+  // Status tab, direction, sort and page live in the URL (./search.ts).
+  const filters = useListFilters(transfersSearch);
+  const dir: Direction = filters.values.dir;
+  const setDir = (v: Direction) => filters.set({ dir: v });
+  const tab: Tab = filters.values.tab;
+  const setTab = (v: Tab) => filters.set({ tab: v });
   const [newOpen, setNewOpen] = useState(false);
   const [prefill, setPrefill] = useState<{ dest: string; lines: TransferLineInput[] } | null>(null);
   const [replenishOpen, setReplenishOpen] = useState(false);
@@ -245,6 +251,7 @@ export function TransfersPage() {
           onRetry={() => void transfers.refetch()}
           getRowId={(tr) => tr.id}
           onRowClick={(tr) => { setOpenedSnapshot(tr); setOpenId(tr.id); }}
+          urlState={tableStateFrom(filters)}
           emptyState={<EmptyState icon={ArrowLeftRight} title={t("inventory.transfers.noTransfers", "No transfers found")} />}
         />
       )}

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, ClipboardPaste, MoreHorizontal, Plus, Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useSearchInput, type DataTableUrlState } from "@/data/scope/use-list-filters";
 import { egpToPiastres, fmtMoney } from "@/lib/format";
 import { normalize } from "@/lib/normalize";
 import { Button } from "@/components/ui/button";
@@ -291,7 +292,11 @@ export interface EditableCardGridProps<T> {
   onRowPrefetch?: (row: T) => void;
   /** Hover/focus the "next page" control to prefetch the following page. */
   onPrefetchNext?: () => void;
+  /** Client-side search + page in the URL: `tableStateFrom(filters, …)`. */
+  urlState?: DataTableUrlState;
 }
+
+const noop = () => {};
 
 function EditableCardItem<T>({
   row,
@@ -357,14 +362,19 @@ export function EditableCardGrid<T>(props: EditableCardGridProps<T>) {
   const { t } = useTranslation();
   const { rows, getRowId, searchText, searchPlaceholder, toolbar, onAdd, addLabel, onExport, bulkActions, onPasteRows, pasteValidate, pasteColumns, titleField, fields, isLoading, emptyState, pageSize = 24, page: pageProp, pageCount: pageCountProp, onPageChange, searchValue, onSearchChange } = props;
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
-  const [internalSearch, setInternalSearch] = React.useState("");
-  const [internalPage, setInternalPage] = React.useState(0);
+  // With `urlState` the box and the page live in the URL (useListFilters).
+  const urlState = props.urlState;
+  const [internalSearch, setInternalSearch] = useSearchInput(urlState?.search ?? "", urlState?.onSearchChange ?? noop);
+  const [localPage, setLocalPage] = React.useState(0);
   const [pasteOpen, setPasteOpen] = React.useState(false);
 
   const searchControlled = onSearchChange != null;
   const search = searchControlled ? (searchValue ?? "") : internalSearch;
   const setSearch = searchControlled ? onSearchChange : setInternalSearch;
   const serverMode = onPageChange != null;
+  const pageInUrl = !serverMode && urlState?.pageIndex !== undefined && !!urlState.onPageIndexChange;
+  const internalPage = pageInUrl ? urlState!.pageIndex! : localPage;
+  const setInternalPage = (p: number) => (pageInUrl ? urlState!.onPageIndexChange!(p) : setLocalPage(p));
 
   React.useEffect(() => {
     setSelected((prev) => {
@@ -384,9 +394,13 @@ export function EditableCardGrid<T>(props: EditableCardGridProps<T>) {
   const safePage = serverMode ? Math.max(0, pageProp ?? 0) : Math.min(internalPage, pageCount - 1);
   const paged = serverMode ? rows : filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
   const goToPage = (p: number) => (serverMode ? onPageChange(p) : setInternalPage(p));
+  // A new search starts at page 1 (URL-bound pages are reset by the filter hook).
+  const searchSeen = React.useRef(internalSearch);
   React.useEffect(() => {
-    if (!serverMode) setInternalPage(0);
-  }, [internalSearch, serverMode]);
+    if (searchSeen.current === internalSearch) return;
+    searchSeen.current = internalSearch;
+    if (!serverMode && !pageInUrl) setLocalPage(0);
+  }, [internalSearch, serverMode, pageInUrl]);
 
   const clear = () => setSelected(new Set());
   const selectedRows = rows.filter((r) => selected.has(getRowId(r)));

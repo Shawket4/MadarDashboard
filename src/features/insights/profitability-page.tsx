@@ -29,6 +29,9 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
+import { keepScope } from "@/data/scope/list-search";
+import { financialReportsSearch } from "@/features/reports/search";
 import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -96,11 +99,20 @@ export function ProfitabilityPage() {
   const orgId = useOrgId();
   const { branchId, scopeBranchId, from, to } = useScope();
 
-  const [basis, setBasis] = useState<CostBasis>("snapshot");
-  const [tab, setTab] = useState("ledger");
-  const [view, setView] = useState<LedgerView>("table");
-  const [classFilter, setClassFilter] = useState<string>(ALL_CLASSES);
-  const [flaggedOnly, setFlaggedOnly] = useState(false);
+  // Embedded in Reports ▸ Financial: its basis, sub-tab, view, class and
+  // flagged filters, sort and page live in that page's URL (reports/search.ts).
+  const filters = useListFilters(financialReportsSearch);
+  const f = filters.values;
+  const basis: CostBasis = f.basis;
+  const setBasis = (v: CostBasis) => filters.set({ basis: v });
+  const tab: string = f.ptab;
+  const setTab = (v: string) => filters.set({ ptab: v as typeof f.ptab });
+  const view: LedgerView = f.view;
+  const setView = (v: LedgerView) => filters.set({ view: v });
+  const classFilter: string = f.cls || ALL_CLASSES;
+  const setClassFilter = (v: string) => filters.set({ cls: (v === ALL_CLASSES ? "" : v) as typeof f.cls });
+  const flaggedOnly = f.flagged;
+  const setFlaggedOnly = (v: boolean) => filters.set({ flagged: v });
 
   const ledger = useMenuMarginLedger(
     scopeBranchId,
@@ -141,12 +153,12 @@ export function ProfitabilityPage() {
       onSuccess: () => void invalidateInsights(),
     });
     if (signal.link === "pricing") {
-      void navigate({ to: "/menu/pricing" });
+      void navigate({ to: "/menu/pricing", search: keepScope as never });
     } else {
       void navigate({
         to: "/menu/items/$itemId",
         params: { itemId: row.menu_item_id },
-        search: signal.link === "studio_recipe" ? { tab: "recipe" } : {},
+        search: ((prev: Record<string, unknown>) => ({ ...keepScope(prev), ...(signal.link === "studio_recipe" ? { tab: "recipe" } : {}) })) as never,
       });
     }
   };
@@ -458,6 +470,7 @@ export function ProfitabilityPage() {
             getRowId={(r) => `${r.menu_item_id}-${r.size_label}`}
             hideViewOptions
             pageSize={50}
+            urlState={tableStateFrom(filters)}
             toolbar={
               <div className="flex flex-wrap items-center gap-3">
                 <Select value={classFilter} onValueChange={setClassFilter}>
