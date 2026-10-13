@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { EditableCardGrid, type EditableField } from "@/components/app/editable-cards";
 import { ExportButton } from "@/components/app/export-button";
+import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import { AddonCostCell, ItemCostCell } from "@/components/app/cost-cells";
 import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,9 @@ import type {
 import { getErrorMessage } from "@/data/api/errors";
 import { getTranslatedName } from "@/lib/translation";
 import { runBulk } from "@/lib/bulk-runner";
-import { useDebounced } from "@/lib/use-debounced";
+import { useDropUnknown, useListFilters, useSearchInput, tableStateFrom } from "@/data/scope/use-list-filters";
+import { keepScope } from "@/data/scope/list-search";
+import { menuItemsSearch } from "./search";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { useExportLogo } from "@/hooks/use-export-logo";
@@ -85,17 +88,25 @@ export function MenuItemsPage() {
   // "Available at this branch" toggle. No branch selected → org catalog only.
   const { branchId: scopedBranchId } = useScope();
 
-  const [tab, setTab] = useState<"items" | "addons" | "categories">("items");
-  const [categoryFilter, setCategoryFilter] = useState(ALL);
+  // Tab, filters, search and page live in the URL (features/menu/search.ts),
+  // so opening an item and coming back lands on the same filtered page.
+  const filters = useListFilters(menuItemsSearch);
+  const { values: f, set } = filters;
+  const tab = f.tab;
+  const setTab = (v: typeof f.tab) => set({ tab: v });
+  const categoryFilter = f.cat || ALL;
+  const setCategoryFilter = (v: string) => set({ cat: v === ALL ? "" : v });
   // Recipe filter: "missing" is the onboarding worklist — items that still
   // deduct nothing from stock and cost zero.
-  const [recipeFilter, setRecipeFilter] = useState<"all" | "missing" | "has">("all");
+  const recipeFilter = f.recipe;
   // The filter reads recipes, so it is offered (and sent) only with recipes.read.
   const canFilterRecipes = useAuthz().can(Cap.recipesRead);
-  const [addonType, setAddonType] = useState(ALL);
-  const [itemsPage, setItemsPage] = useState(0);
-  const [itemsSearch, setItemsSearch] = useState("");
-  const itemsSearchQ = useDebounced(itemsSearch, 300);
+  const addonType = f.type || ALL;
+  const setAddonType = (v: string) => set({ type: v === ALL ? "" : v, apage: undefined });
+  const itemsPage = f.page - 1;
+  const setItemsPage = (p: number) => set({ page: p + 1 });
+  const [itemsSearch, setItemsSearch] = useSearchInput(f.q, (q) => set({ q }), 300);
+  const itemsSearchQ = f.q;
 
   const [itemOpen, setItemOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -108,11 +119,6 @@ export function MenuItemsPage() {
   const [reordering, setReordering] = useState(false);
   const [exporting, setExporting] = useState(false);
   const logoUrl = useExportLogo();
-
-  // Reset to first page when filters change.
-  useEffect(() => {
-    setItemsPage(0);
-  }, [categoryFilter, recipeFilter, itemsSearchQ]);
 
   const queryClient = useQueryClient();
   const addonsActive = tab === "addons";
@@ -160,8 +166,8 @@ export function MenuItemsPage() {
   // A combo is a menu item of kind "combo": its slots live in the combo editor, not the studio.
   const openStudio = (id: string, kind?: string) =>
     void (kind === "combo"
-      ? navigate({ to: "/menu/combos/$comboId", params: { comboId: id } })
-      : navigate({ to: "/menu/items/$itemId", params: { itemId: id }, search: {} }));
+      ? navigate({ to: "/menu/combos/$comboId", params: { comboId: id }, search: keepScope as never })
+      : navigate({ to: "/menu/items/$itemId", params: { itemId: id }, search: keepScope as never }));
   const prefetchNextItemsPage = () => {
     if (itemsPage + 1 >= itemsPageCount) return;
     void queryClient.prefetchQuery(getListMenuCatalogQueryOptions({ ...itemsParams, page: itemsPage + 2 }));
@@ -288,6 +294,10 @@ export function MenuItemsPage() {
   ];
 
   const addonTypes = useMemo(() => Array.from(new Set(addonList.map((a) => a.addon_type))).sort(), [addonList]);
+  // A remembered filter whose category / add-on group was deleted meanwhile
+  // falls back to "All" instead of showing an empty list with a blank select.
+  useDropUnknown(f.cat, categories.data ? catList.map((c) => c.id) : undefined, () => set({ cat: "" }));
+  useDropUnknown(f.type, addons.data ? addonTypes : undefined, () => set({ type: "" }));
   const addonsByType = useMemo(() => (addonType === ALL ? addonList : addonList.filter((a) => a.addon_type === addonType)), [addonList, addonType]);
 
   const confirmDelete = async (name: string, description: string, run: () => void) => {
@@ -423,15 +433,15 @@ export function MenuItemsPage() {
             emptyState={<EmptyState icon={UtensilsCrossed} title={t("menu.noItems", "No items yet")} />}
             toolbar={
               <>
-                <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setItemsPage(0); }}>
-                  <SelectTrigger className="h-9 w-auto min-w-36"><SelectValue /></SelectTrigger>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="h-9 w-auto min-w-36" aria-label={t("common.category", "Category")}><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value={ALL}>{t("menu.allCategories", "All categories")}</SelectItem>
                     {catList.map((c) => <SelectItem key={c.id} value={c.id}>{tname(c)}</SelectItem>)}
                   </SelectContent>
                 </Select>
 {canFilterRecipes ? (
-                                  <Select value={recipeFilter} onValueChange={(v) => { setRecipeFilter(v as "all" | "missing" | "has"); setItemsPage(0); }}>
+                                  <Select value={recipeFilter} onValueChange={(v) => set({ recipe: v as typeof f.recipe })}>
                     <SelectTrigger className="h-9 w-auto min-w-36" aria-label={t("menu.recipeFilter", "Recipe")}><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("menu.recipeAll", "Any recipe")}</SelectItem>
@@ -444,6 +454,7 @@ export function MenuItemsPage() {
                     slot: that one cannot show a busy state, and walking the
                     whole catalog takes long enough that a button which looks
                     ignored is a real complaint. */}
+                <ClearFiltersButton filters={filters} keep={["tab", "type", "aq", "cq"]} />
                 <ExportButton onExport={handleExport} loading={exporting} />
               </>
             }
@@ -500,6 +511,7 @@ export function MenuItemsPage() {
             )}
             onCommitRow={commitAddon}
             searchText={(a) => `${a.name} ${a.addon_type}`}
+            urlState={tableStateFrom(filters, { q: "aq", page: "apage" })}
             isLoading={addons.isLoading}
             onAdd={() => { setEditingAddon(null); setAddonOpen(true); }}
             addLabel={t("menu.newAddon", "New add-on")}
@@ -547,6 +559,7 @@ export function MenuItemsPage() {
             renderImage={(c) => imgAssetTile(c, c.image_url, Tag)}
             onCommitRow={commitCategory}
             searchText={(c) => `${c.name} ${tname(c)}`}
+            urlState={tableStateFrom(filters, { q: "cq", page: "_none" })}
             isLoading={categories.isLoading}
             onAdd={() => { setEditingCategory(null); setCategoryOpen(true); }}
             addLabel={t("menu.newCategory", "New category")}

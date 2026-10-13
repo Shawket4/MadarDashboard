@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
+import { ClearFiltersButton } from "@/components/app/clear-filters-button";
+import { tableStateFrom, useDropUnknown, useListFilters } from "@/data/scope/use-list-filters";
 import { EmptyState } from "@/components/app/empty-state";
 import { StatusPill } from "@/components/app/status-pill";
 import { RowAction } from "@/features/users/row-action";
@@ -35,6 +37,7 @@ import { fmtDate, fmtMoney } from "@/lib/format";
 import { dawamQuery } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { EmployeeDialog } from "./employee-dialog";
+import { employeesSearch } from "./search";
 import { EMPLOYMENT_STATUS_TONE, invalidateDepartments, invalidateEmployees } from "./util";
 
 const ALL = "__all__";
@@ -47,8 +50,14 @@ const KIND_FALLBACK: Record<string, string> = {
 
 export function EmployeesPage() {
   const { t } = useTranslation();
-  const [status, setStatus] = useState<string>(ALL);
-  const [department, setDepartment] = useState<string>(ALL);
+  // Filters, search, sort and page live in the URL (./search.ts) and come
+  // back when the reader returns to the list.
+  const filters = useListFilters(employeesSearch);
+  const { values: f, set } = filters;
+  const status = f.status || ALL;
+  const setStatus = (v: string) => set({ status: (v === ALL ? "" : v) as typeof f.status });
+  const department = f.dept || ALL;
+  const setDepartment = (v: string) => set({ dept: v === ALL ? "" : v });
   const [editing, setEditing] = useState<Employee | null>(null);
   const [deptOpen, setDeptOpen] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -70,6 +79,8 @@ export function EmployeesPage() {
     { query: dawamQuery() },
   );
   const departmentsQ = useListDepartments({ query: dawamQuery() });
+  // A remembered department that was deleted meanwhile falls back to "All".
+  useDropUnknown(f.dept, departmentsQ.data?.map((d) => d.id), () => set({ dept: "" }));
   const employees = useMemo(() => employeesQ.data ?? [], [employeesQ.data]);
 
   // Redaction is per-caller, not per-row: if the first row hides salary, the
@@ -259,7 +270,7 @@ export function EmployeesPage() {
         below={
           <div className="flex flex-wrap gap-2">
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-40" aria-label={t("staff.employmentStatus", "Status")}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>{t("staff.allStatuses", "All statuses")}</SelectItem>
                 <SelectItem value="active">{t("staff.statusActive", "Active")}</SelectItem>
@@ -268,7 +279,7 @@ export function EmployeesPage() {
               </SelectContent>
             </Select>
             <Select value={department} onValueChange={setDepartment}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-48" aria-label={t("staff.department", "Department")}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>{t("staff.allDepartments", "All departments")}</SelectItem>
                 {(departmentsQ.data ?? []).map((d) => (
@@ -276,11 +287,13 @@ export function EmployeesPage() {
                 ))}
               </SelectContent>
             </Select>
+            <ClearFiltersButton filters={filters} />
           </div>
         }
       />
 
       <DataTable
+        urlState={tableStateFrom(filters)}
         columns={columns}
         data={employees}
         loading={employeesQ.isLoading}

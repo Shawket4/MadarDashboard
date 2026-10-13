@@ -1,0 +1,79 @@
+name: CI
+
+# Every test in this repo, on every pull request and every push to main
+# (owner, 2026-10-11: CI must run EVERY test). Until this workflow the repo's
+# only workflows were deploy.yml and release.yml, which run on a version tag
+# and run no tests at all.
+#
+#   tests  the whole Vitest suite (every *.test.ts(x) under src/, shared/ and
+#          vite/: one config, vitest.config.ts) + the madar-shared vector
+#          copies checked against the tag each one names.
+#   site   the marketing site (site/, its own Astro package): built, then
+#          site/scripts/verify.mjs drives every page in Chrome.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Vitest (every suite) + shared vectors
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # `npm test` is `vitest run`: every test file, no filter. The
+      # "byte-identical to the madar-shared checkout beside it" cases skip here
+      # (there is no sibling checkout); the next step checks the same bytes
+      # against the tag each copy names.
+      - name: Vitest
+        run: npm test
+
+      - name: Shared vectors match madar-shared (at their tags)
+        run: scripts/check-shared-vectors.sh
+
+  site:
+    name: Marketing site (build + verify in Chrome)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Astro 6 needs Node 22 (deploy.yml builds the site with it too).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        run: npm ci --prefix site --no-audit --no-fund
+
+      - name: Build site
+        run: npm run build --prefix site
+        env:
+          ASTRO_TELEMETRY_DISABLED: 1
+
+      # Every page × language × width, then the flows against both servers
+      # (see the header of site/scripts/verify.mjs). It launches the runner's
+      # installed Google Chrome (playwright-core, channel "chrome").
+      - name: Verify the built site in Chrome
+        run: npm run verify --prefix site

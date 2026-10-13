@@ -18,6 +18,8 @@ import type { KitchenStation } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useScope } from "@/data/scope/use-scope";
 import { invalidateRouting, invalidateStations } from "./util";
+import { tableStateFrom, useListFilters } from "@/data/scope/use-list-filters";
+import { kitchenStationsSearch } from "./search";
 
 export function StationsPage() {
   const { t } = useTranslation();
@@ -29,6 +31,8 @@ export function StationsPage() {
   const mode = useGetRoutingMode({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } });
   const stations = useMemo(() => list.data ?? [], [list.data]);
 
+  // The table's search and page live in the URL (./search.ts).
+  const filters = useListFilters(kitchenStationsSearch);
   const [editing, setEditing] = useState<KitchenStation | null>(null);
   const [dlgOpen, setDlgOpen] = useState(false);
   const openNew = () => { setEditing(null); setDlgOpen(true); };
@@ -126,6 +130,7 @@ export function StationsPage() {
             getRowId={(x) => x.id}
             onRowClick={openEdit}
             searchPlaceholder={t("common.search", "Search…")}
+            urlState={tableStateFrom(filters)}
             emptyState={<EmptyState icon={ChefHat} title={t("kitchen.noStations", "No stations yet")} description={t("kitchen.noStationsHint", "Add stations like Grill or Bar, then route items to them.")} action={<Button onClick={openNew}><Plus className="size-4" /> {t("kitchen.newStation", "New station")}</Button>} />}
           />
           <StationDialog branchId={branchId} station={editing} open={dlgOpen} onOpenChange={setDlgOpen} />

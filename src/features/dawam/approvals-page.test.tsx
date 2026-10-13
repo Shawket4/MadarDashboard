@@ -10,6 +10,11 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  ...(await import("@/test/url-search-mock")).routerMock(),
+}));
+
 let held: string[] = [];
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() }));
 vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));

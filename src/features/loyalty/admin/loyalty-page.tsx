@@ -11,7 +11,7 @@
  * this page. Two pickers for one idea is two chances to be looking at a
  * different shop from the one you think you are.
  */
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { SegmentedControl } from "@/components/app/segmented-control";
@@ -29,6 +29,8 @@ import { ProgramPane } from "./program/program-pane";
 import { RewardsPane } from "./rewards/rewards-pane";
 import { SignUpCode } from "./sign-up-code";
 import type { ProgramScope } from "./use-program";
+import { useListFilters } from "@/data/scope/use-list-filters";
+import { loyaltySearch } from "./search";
 
 export function LoyaltyPage() {
   const { t } = useTranslation();
@@ -55,7 +57,11 @@ export function LoyaltyPage() {
   const authz = useAuthz();
   const { canListMembers } = loyaltyAccess(authz);
   const scope: ProgramScope = { orgId, branchId };
-  const [tab, setTab] = useState<"program" | "rewards" | "members" | "overview">("program");
+  // The open tab lives in the URL (./search.ts), restored on return. Overview
+  // needs members access; a link to it without that opens Program.
+  const { values: f, set } = useListFilters(loyaltySearch);
+  const tab = f.tab === "overview" && !canListMembers ? "program" : f.tab;
+  const setTab = (v: typeof f.tab) => set({ tab: v });
 
   return (
     <div className="space-y-4">

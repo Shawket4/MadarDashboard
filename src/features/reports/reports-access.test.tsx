@@ -10,6 +10,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { NavLeaf } from "@/config/nav";
 
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  ...(await import("@/test/url-search-mock")).routerMock(),
+}));
+
 globalThis.IntersectionObserver ??= class {
   observe() {}
   unobserve() {}

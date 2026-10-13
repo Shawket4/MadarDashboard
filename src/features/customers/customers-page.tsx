@@ -18,12 +18,16 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { peopleAccess } from "./access";
 import { CustomerDialog } from "./customer-dialog";
 import { CustomersList } from "./customers-list";
+import { customersSearch } from "./search";
+import { useListFilters } from "@/data/scope/use-list-filters";
 
 export function CustomersPage() {
   const { t } = useTranslation();
   const authz = useAuthz();
   const { canViewCustomers, canCreate } = peopleAccess(authz);
   const [adding, setAdding] = useState(false);
+  // Search and filters live in the URL (./search.ts) and are restored on return.
+  const filters = useListFilters(customersSearch);
   const [openCustomer, setOpenCustomer] = useState<string | null>(null);
 
   if (authz.ready && !canViewCustomers) {
@@ -49,7 +53,7 @@ export function CustomersPage() {
           ) : null
         }
       />
-      <CustomersList openId={openCustomer} onOpenIdChange={setOpenCustomer} />
+      <CustomersList openId={openCustomer} onOpenIdChange={setOpenCustomer} filters={filters} />
       {canCreate ? (
         <CustomerDialog open={adding} onOpenChange={setAdding} onSaved={(d) => setOpenCustomer(d.customer.id)} />
       ) : null}

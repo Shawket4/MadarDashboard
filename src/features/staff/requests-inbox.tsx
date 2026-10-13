@@ -15,6 +15,9 @@ import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { ListCard, ListRow } from "@/components/app/list-row";
 import { SegmentedControl } from "@/components/app/segmented-control";
+import { ClearFiltersButton } from "@/components/app/clear-filters-button";
+import { useListFilters } from "@/data/scope/use-list-filters";
+import { requestsSearch } from "./search";
 import { StatusPill } from "@/components/app/status-pill";
 import { RowAction } from "@/features/users/row-action";
 import { fmtDate, fmtTime, fmtWireTime } from "@/lib/format";
@@ -140,8 +143,13 @@ export const mayDecide = (r: StaffRequest, own: Set<string>) =>
  */
 export function RequestsInboxPage() {
   const { t } = useTranslation();
-  const [status, setStatus] = useState("pending");
-  const [kind, setKind] = useState(ALL);
+  // Status and kind live in the URL (./search.ts) and survive leaving the page.
+  const filters = useListFilters(requestsSearch);
+  const { values: f, set } = filters;
+  const status = f.status === "all" ? ALL : f.status;
+  const setStatus = (v: string) => set({ status: (v === ALL ? "all" : v) as typeof f.status });
+  const kind = f.kind || ALL;
+  const setKind = (v: string) => set({ kind: (v === ALL ? "" : v) as typeof f.kind });
   const [addOpen, setAddOpen] = useState(false);
   const [deciding, setDeciding] = useState<StaffRequest | null>(null);
   const [cancelling, setCancelling] = useState<StaffRequest | null>(null);
@@ -244,6 +252,7 @@ export function RequestsInboxPage() {
                 ))}
               </SelectContent>
             </Select>
+            <ClearFiltersButton filters={filters} />
           </div>
         }
       />

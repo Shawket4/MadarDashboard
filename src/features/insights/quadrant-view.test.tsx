@@ -50,7 +50,9 @@ const ROWS = [
 let ledger: { data?: unknown; isLoading: boolean; error: unknown; refetch: () => void };
 const seen: MarginLedgerRow[][] = [];
 
-vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
+vi.mock("@tanstack/react-router", async () => ({
+  ...(await import("@/test/url-search-mock")).routerMock(),
+}));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
 vi.mock("@/data/scope/use-scope", () => ({

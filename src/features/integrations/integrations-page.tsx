@@ -26,6 +26,8 @@ import { getErrorMessage } from "@/data/api/errors";
 import { fmtDateTime } from "@/lib/format";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
+import { tableStateFrom, useListFilters } from "@/data/scope/use-list-filters";
+import { integrationsSearch } from "./search";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { Restricted } from "@/components/app/restricted";
@@ -50,6 +52,8 @@ export function IntegrationsPage() {
   const credentials = useMemo(() => list.data ?? [], [list.data]);
 
   const [s, update] = usePageSearch<{ edit: string }>();
+  // The table's search and page live in the URL (./search.ts), restored on return.
+  const filters = useListFilters(integrationsSearch);
   // `?edit=new` is a URL anyone can type. The dialog opens only for the role
   // whose requests the backend will actually accept.
   const creating = s.edit === "new";
@@ -269,6 +273,7 @@ export function IntegrationsPage() {
           isSuperAdmin ? (c) => rowActions({ original: c }) : undefined
         }
         searchPlaceholder={t("common.search", "Search…")}
+        urlState={tableStateFrom(filters)}
         emptyState={
           <EmptyState
             icon={KeyRound}

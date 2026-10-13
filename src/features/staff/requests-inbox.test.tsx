@@ -9,6 +9,11 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  ...(await import("@/test/url-search-mock")).routerMock(),
+}));
+
 // Radix Select needs these in jsdom.
 Element.prototype.hasPointerCapture ??= () => false;
 Element.prototype.releasePointerCapture ??= () => {};

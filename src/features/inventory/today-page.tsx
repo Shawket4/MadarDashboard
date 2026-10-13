@@ -30,6 +30,8 @@ import {
 } from "@/data/api/generated/api";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
+import { todaySearch } from "./search";
 import { useAppStore } from "@/data/stores/app.store";
 import { cairoDateISO, cairoParts, fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -47,6 +49,8 @@ export function TodayPage() {
   const [poPrefill, setPoPrefill] = useState<{ supplierId: string | null; lines: { org_ingredient_id: string; quantity_ordered: number }[] } | null>(null);
   const [receivePoId, setReceivePoId] = useState<string | null>(null);
   const [wasteOpen, setWasteOpen] = useState(false);
+  // The low-stock table's page lives in the URL (./search.ts).
+  const filters = useListFilters(todaySearch);
 
   const tz = useAppStore((st) => st.activeTimezone);
   const { todayStartISO, todayEndISO } = useMemo(() => {
@@ -205,6 +209,7 @@ export function TodayPage() {
           getRowId={(r) => `${r.branch_id}-${r.org_ingredient_id}`}
           pageSize={12}
           hideViewOptions
+          urlState={tableStateFrom(filters)}
           rowActions={(r) => (
             <Button variant="outline" size="sm" onClick={() => openReorderPo(r)}>
               <ShoppingCart className="size-4" /> {t("inventory.today.createPo", "Create PO")}

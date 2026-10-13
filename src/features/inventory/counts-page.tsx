@@ -25,6 +25,8 @@ import { fmtDateTime } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { Combobox } from "@/components/app/combobox";
 import { CountEditor } from "./count-editor";
+import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
+import { countsSearch } from "./search";
 import { VarianceReportDialog } from "./variance-report-dialog";
 import { STOCKTAKE_STATUS_TONES, invalidateInventory, isOpenStocktake, needsFirstCount } from "./lib";
 
@@ -46,6 +48,9 @@ export function CountsPage() {
   const [starting, setStarting] = useState(false);
   const [reportId, setReportId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  // The history table's sort/page live in the URL (./search.ts); the open
+  // count's own filters do too (CountEditor).
+  const filters = useListFilters(countsSearch);
   const logoUrl = useExportLogo();
 
   const stocktakes = useListStocktakes(scopeBranchId, { query: { enabled: !!scopeBranchId } });
@@ -230,6 +235,7 @@ export function CountsPage() {
           ) : null
         }
         onRowClick={(s) => s.status === "finalized" && setReportId(s.id)}
+        urlState={tableStateFrom(filters)}
         emptyState={<EmptyState icon={ClipboardList} title={t("inventory.stocktakes.noStocktakes", "No counts yet")} description={t("inventory.stocktakes.startHint", "Start a count to bring this branch's stock to life.")} />}
       />
 

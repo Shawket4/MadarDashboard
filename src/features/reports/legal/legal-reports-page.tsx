@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CalendarRange } from "lucide-react";
 
@@ -9,6 +8,8 @@ import { Restricted } from "@/components/app/restricted";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
+import { useListFilters } from "@/data/scope/use-list-filters";
+import { legalReportsSearch } from "../search";
 import {
   useAttendanceCorrectionsAudit, useDeductionOverridesAudit, useDiscountsAudit,
   useLoyaltyAdjustmentsAudit, useManualDeductionsAudit, usePriceOverrides,
@@ -79,7 +80,10 @@ export function LegalReportsPage() {
   const range = { from: from ?? undefined, to: to ?? undefined };
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
-  const [picked, setTab] = useState<TabKey>("tax");
+  // The tab lives in the URL (reports/search.ts).
+  const filters = useListFilters(legalReportsSearch);
+  const picked: TabKey = filters.values.tab;
+  const setTab = (v: TabKey) => filters.set({ tab: v });
   // reports.legal (tax and every audit); a manager sees only their branches.
   const authz = useAuthz();
   const modules = useOrgModules();

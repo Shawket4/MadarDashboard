@@ -29,9 +29,22 @@ export interface TillTabProps {
  * wants to see which sessions carried the period, and a bar per row makes
  * "twice as much" legible without reading two figures and dividing.
  */
-export function SalesTab({ rows, loading, error, onRetry }: TillTabProps) {
+export function SalesTab({
+  rows,
+  loading,
+  error,
+  onRetry,
+  showAll: showAllProp,
+  onShowAllChange,
+}: TillTabProps & {
+  /** Controlled "show all sessions" (the page keeps it in the URL). */
+  showAll?: boolean;
+  onShowAllChange?: (all: boolean) => void;
+}) {
   const { t } = useTranslation();
-  const [showAll, setShowAll] = useState(false);
+  const [localShowAll, setLocalShowAll] = useState(false);
+  const showAll = showAllProp ?? localShowAll;
+  const setShowAll = (next: boolean) => (onShowAllChange ? onShowAllChange(next) : setLocalShowAll(next));
   const s = useMemo(() => salesStats(rows), [rows]);
   const ranked = useMemo(
     () => [...rows].sort((a, b) => b.net_sales - a.net_sales),
@@ -130,7 +143,7 @@ export function SalesTab({ rows, loading, error, onRetry }: TillTabProps) {
             ))}
           </ul>
           {ranked.length > TOP ? (
-            <Button variant="ghost" size="sm" className="mt-2" onClick={() => setShowAll((v) => !v)}>
+            <Button variant="ghost" size="sm" className="mt-2" onClick={() => setShowAll(!showAll)}>
               {showAll
                 ? t("reports.tills.showTop", { count: TOP, defaultValue: "Show the top {{count}}" })
                 : t("reports.tills.showAll", { count: ranked.length, defaultValue: "Show all {{count}} sessions" })}

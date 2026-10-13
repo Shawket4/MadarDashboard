@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { keepScope } from "@/data/scope/list-search";
 
 const navigate = vi.fn();
 
@@ -17,6 +18,7 @@ vi.mock("@/data/authz/use-authz", async () => {
 });
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => navigate,
+  useSearch: () => ({}),
 }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
 vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: null }) }));
@@ -140,7 +142,7 @@ describe("MenuItemsPage combos", () => {
     await user.click(trigger);
     expect(screen.queryByRole("menuitem", { name: /Duplicate/ })).not.toBeInTheDocument();
     await user.click(screen.getByRole("menuitem", { name: /combo editor/ }));
-    expect(navigate).toHaveBeenCalledWith({ to: "/menu/combos/$comboId", params: { comboId: "combo-1" } });
+    expect(navigate).toHaveBeenCalledWith({ to: "/menu/combos/$comboId", params: { comboId: "combo-1" }, search: keepScope });
   });
 
   it("still opens a plain item in the studio", async () => {
@@ -151,6 +153,6 @@ describe("MenuItemsPage combos", () => {
     const trigger = within(card).getAllByRole("button").find((b) => b.getAttribute("aria-haspopup") === "menu") as HTMLElement;
     await user.click(trigger);
     await user.click(screen.getByRole("menuitem", { name: /full editor/ }));
-    expect(navigate).toHaveBeenCalledWith({ to: "/menu/items/$itemId", params: { itemId: "m-2" }, search: {} });
+    expect(navigate).toHaveBeenCalledWith({ to: "/menu/items/$itemId", params: { itemId: "m-2" }, search: keepScope });
   });
 });
