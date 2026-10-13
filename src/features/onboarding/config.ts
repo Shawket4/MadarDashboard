@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import { hasFeature } from "@/generated/plans";
+
 /* ─────────────────────────────────────────────────────────────────────────────
  * Onboarding step tree — dependency-ordered, derived from the real backend setup
  * graph. The wizard walks these in order; the live dashboard mirror lights up the
@@ -89,3 +91,19 @@ export const MIRROR_TILES = [
 /** localStorage / sessionStorage keys for the gate + nudge. */
 export const ONBOARDING_SKIP_KEY = "madar.onboarding.skip";
 export const NUDGE_DISMISS_KEY = "madar.onboarding.nudge.dismissed";
+
+/**
+ * The steps of the checklist that need a plan feature. Ingredients and
+ * recipes feed stock and cost, which are the paid plan's inventory; a Free
+ * shop sells without them, so its wizard, mirror and nudge leave them out
+ * (the server still lists them; they are never required).
+ */
+const INVENTORY_STEPS: readonly string[] = ["ingredients", "recipes"];
+
+/** Whether a checklist step (by its server key) applies to this plan. Unknown plan = Paid. */
+export const stepApplies = (key: string, plan: string | null | undefined): boolean =>
+  !INVENTORY_STEPS.includes(key) || hasFeature(plan, "inventory");
+
+/** The wizard's steps for a plan, in order. */
+export const stepsForPlan = (plan: string | null | undefined): StepDef[] =>
+  STEPS.filter((s) => stepApplies(s.key, plan));

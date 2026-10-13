@@ -9,7 +9,8 @@ import { useGetOnboarding } from "@/data/api/generated/api";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
-import { NUDGE_DISMISS_KEY } from "./config";
+import { usePlan } from "@/hooks/use-plan";
+import { NUDGE_DISMISS_KEY, stepApplies } from "./config";
 
 /**
  * Calm, dismissible "keep building your café" nudge on the dashboard. Shows the
@@ -36,7 +37,9 @@ export function KeepBuildingCard() {
   // setup wizard for someone else's half-built shop is not help.
   const canSeeSetup = useAuthz().can(Cap.orgSettingsEdit);
   const q = useGetOnboarding(orgId ?? "", { query: { enabled: !!orgId && canSeeSetup && !dismissed } });
-  const steps = q.data?.steps ?? [];
+  const plan = usePlan();
+  // A Free shop has no stock or recipes to set up: they are not counted or asked for.
+  const steps = (q.data?.steps ?? []).filter((s) => stepApplies(s.key, plan));
   const total = steps.length;
   const done = steps.filter((s) => s.done).length;
 
@@ -61,7 +64,9 @@ export function KeepBuildingCard() {
           {t("onboarding.nudge.title", { done, total, defaultValue: `Your café is open · ${done}/${total} set up` })}
         </p>
         <p className="text-xs text-muted-foreground">
-          {t("onboarding.nudge.body", "Keep building — add recipes, your team and more to unlock cost insights.")}
+          {stepApplies("recipes", plan)
+            ? t("onboarding.nudge.body", "Keep building — add recipes, your team and more to unlock cost insights.")
+            : t("onboarding.nudge.bodyFree", "Keep building — add your team and add-ons to get the most out of your till.")}
         </p>
       </div>
       <Button size="sm" onClick={() => navigate({ to: "/onboarding" })}>

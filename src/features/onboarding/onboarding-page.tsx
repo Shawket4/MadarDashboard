@@ -21,12 +21,15 @@ import { Celebration } from "./celebration";
 import { DashboardMirror } from "./dashboard-mirror";
 import { StepNavigator } from "./step-navigator";
 import { StepPanel } from "./step-panel";
-import { ONBOARDING_SKIP_KEY, STEPS, type StepKey } from "./config";
+import { usePlan } from "@/hooks/use-plan";
+import { ONBOARDING_SKIP_KEY, stepsForPlan, type StepKey } from "./config";
 
 export function OnboardingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const orgId = useOrgId();
+  const plan = usePlan();
+  const steps = useMemo(() => stepsForPlan(plan), [plan]);
   const [active, setActive] = useState<StepKey | null>(null);
   const [finishing, setFinishing] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
@@ -42,12 +45,12 @@ export function OnboardingPage() {
   }, [status]);
 
   const firstIncomplete = useMemo<StepKey>(() => {
-    const next = STEPS.find((s) => s.statusKey && !byKey.get(s.statusKey)?.done);
+    const next = steps.find((s) => s.statusKey && !byKey.get(s.statusKey)?.done);
     return next?.key ?? "go_live";
-  }, [byKey]);
+  }, [byKey, steps]);
 
   const activeKey = active ?? firstIncomplete;
-  const activeIndex = STEPS.findIndex((s) => s.key === activeKey);
+  const activeIndex = steps.findIndex((s) => s.key === activeKey);
   const canComplete = !!status?.can_complete;
 
   const requiredDone = (status?.steps ?? []).filter((s) => s.required && s.done).length;
@@ -68,7 +71,7 @@ export function OnboardingPage() {
   const refresh = () =>
     void queryClient.invalidateQueries({ queryKey: getGetOnboardingQueryOptions(orgId ?? "").queryKey });
 
-  const goTo = (i: number) => setActive(STEPS[Math.max(0, Math.min(STEPS.length - 1, i))].key);
+  const goTo = (i: number) => setActive(steps[Math.max(0, Math.min(steps.length - 1, i))].key);
 
   const finish = async () => {
     if (!orgId) return;
@@ -144,7 +147,7 @@ export function OnboardingPage() {
         ) : (
           <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)_minmax(0,1.05fr)]">
             <aside className="hidden lg:block">
-              <StepNavigator byKey={byKey} activeKey={activeKey} onSelect={setActive} canComplete={canComplete} />
+              <StepNavigator steps={steps} byKey={byKey} activeKey={activeKey} onSelect={setActive} canComplete={canComplete} />
             </aside>
 
             <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -165,6 +168,7 @@ export function OnboardingPage() {
             <section>
               <DashboardMirror
                 byKey={byKey}
+                plan={plan}
                 recipeCoverage={status?.recipe_coverage ?? 0}
                 orgName={orgQ.data?.name}
                 orgLogo={orgQ.data?.logo_url}

@@ -3111,7 +3111,8 @@
     "nudge": {
       "title": "Your café is open · {{done}}/{{total}} set up",
       "body": "Keep building — add recipes, your team and more to unlock cost insights.",
-      "cta": "Keep building"
+      "cta": "Keep building",
+      "bodyFree": "Keep building — add your team and add-ons to get the most out of your till."
     }
   },
   "scope": {

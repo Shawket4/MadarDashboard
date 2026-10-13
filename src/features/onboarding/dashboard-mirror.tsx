@@ -18,6 +18,7 @@ import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { COUNT_ANIM_MS } from "@/lib/motion";
+import { stepApplies } from "./config";
 import type { OnboardingStep } from "@/data/api/generated/models";
 import type { StatAccent } from "@/components/app/stat-card";
 
@@ -217,12 +218,14 @@ function SalesTile({ done }: { done: boolean }) {
 
 interface Props {
   byKey: Map<string, OnboardingStep>;
+  /** The org's plan: a Free shop has no ingredients tile and no recipe-cost ring. */
+  plan?: string | null;
   recipeCoverage: number;
   orgName?: string | null;
   orgLogo?: string | null;
 }
 
-export function DashboardMirror({ byKey, recipeCoverage, orgName, orgLogo }: Props) {
+export function DashboardMirror({ byKey, plan, recipeCoverage, orgName, orgLogo }: Props) {
   const { t } = useTranslation();
   const profileDone = byKey.get("org_profile")?.done;
 
@@ -246,11 +249,11 @@ export function DashboardMirror({ byKey, recipeCoverage, orgName, orgLogo }: Pro
 
       <div className="space-y-4 p-5">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {TILES.map((tile) => (
+          {TILES.filter((tile) => stepApplies(tile.statusKey, plan)).map((tile) => (
             <MirrorTile key={tile.statusKey} spec={{ tile, step: byKey.get(tile.statusKey) }} />
           ))}
         </div>
-        <CoverageRing ratio={recipeCoverage} />
+        {stepApplies("recipes", plan) ? <CoverageRing ratio={recipeCoverage} /> : null}
         <SalesTile done={!!byKey.get("first_order")?.done} />
       </div>
     </div>

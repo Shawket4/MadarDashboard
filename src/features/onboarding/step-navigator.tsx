@@ -3,22 +3,24 @@ import { Check, Lock } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { OnboardingStep } from "@/data/api/generated/models";
-import { STAGES, STEPS, type StepKey } from "./config";
+import { STAGES, type StepDef, type StepKey } from "./config";
 
 interface Props {
+  /** The steps that apply to this org's plan. */
+  steps: StepDef[];
   byKey: Map<string, OnboardingStep>;
   activeKey: StepKey;
   onSelect: (key: StepKey) => void;
   canComplete: boolean;
 }
 
-export function StepNavigator({ byKey, activeKey, onSelect, canComplete }: Props) {
+export function StepNavigator({ steps: allSteps, byKey, activeKey, onSelect, canComplete }: Props) {
   const { t } = useTranslation();
 
   return (
     <nav aria-label={t("onboarding.navLabel", "Setup steps")} className="space-y-6">
       {STAGES.map((stage) => {
-        const steps = STEPS.filter((s) => s.stageId === stage.id);
+        const steps = allSteps.filter((s) => s.stageId === stage.id);
         return (
           <div key={stage.id}>
             <p className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
