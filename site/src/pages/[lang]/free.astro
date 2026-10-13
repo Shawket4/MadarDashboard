@@ -1,0 +1,86 @@
+---
+import BaseLayout from "@/components/layout/BaseLayout.astro";
+import Words from "@/components/kit/Words.astro";
+import Icon from "@/components/ui/Icon.astro";
+import Orbit from "@/components/ui/Orbit.astro";
+import { t } from "@/i18n";
+import { type Lang, LANGS, SIGNUP_URL, pageHref, whatsappHref } from "@/lib/site";
+import { breadcrumbs } from "@/lib/schema";
+
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+const { lang } = Astro.params as { lang: Lang };
+const f = t(lang).freePage;
+const jsonLd = [breadcrumbs(lang, "free")];
+---
+<BaseLayout lang={lang} page="free" headerTone="paper" closing={false} jsonLd={jsonLd}>
+  <section class="relative isolate overflow-hidden bg-paper">
+    <Orbit tone="paper" class="absolute -end-[36rem] -top-[30rem] -z-10 h-[76rem] w-[76rem] opacity-60" />
+    <div class="container-site pb-14 pt-28 md:pb-20 md:pt-40">
+      <p class="kicker text-teal" data-intro style="--i:0">{f.kicker}</p>
+      <h1 class="text-display mt-5 max-w-3xl"><Words text={f.title} /></h1>
+      <p class="text-lead mt-5 max-w-2xl text-muted" data-intro style="--i:1">{f.sub}</p>
+      <div class="mt-9" data-intro style="--i:2">
+        <a class="btn btn-ink btn-lg" href={SIGNUP_URL} data-umami-event="free-signup" data-umami-event-where="free-hero">
+          {f.cta} <Icon name="arrow" size={18} />
+        </a>
+        <p class="mt-4 text-sm text-muted">{f.note}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-paper" aria-labelledby="inc-title">
+    <div class="container-site pb-16 md:pb-24">
+      <h2 id="inc-title" class="sr-only">{f.included.title}</h2>
+      <div class="grid gap-8 md:grid-cols-3" data-reveal-group>
+        {f.included.items.map((i) => (
+          <div data-reveal>
+            <span class="text-teal"><Icon name="check" size={20} /></span>
+            <h3 class="mt-3 text-lg font-semibold">{i.t}</h3>
+            <p class="mt-2 text-muted">{i.b}</p>
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-16 grid gap-12 md:grid-cols-2">
+        <div data-reveal>
+          <h2 class="text-lg font-semibold">{f.promise.title}</h2>
+          <ul class="mt-5 divide-y divide-ink/10 border-y border-ink/10">
+            {f.promise.items.map((n) => (
+              <li class="flex gap-3 py-3.5"><span class="mt-0.5 text-teal"><Icon name="check" size={18} /></span><span>{n}</span></li>
+            ))}
+          </ul>
+        </div>
+        <div data-reveal>
+          <h2 class="text-lg font-semibold">{f.steps.title}</h2>
+          <ol class="mt-5 grid list-decimal gap-3 ps-5 marker:font-mono marker:text-teal">
+            {f.steps.items.map((s) => <li>{s}</li>)}
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The upgrade path: visible, but after the offer, and one underlined link, not a rival button. -->
+  <section class="on-ink bg-ink text-paper" aria-labelledby="up-title">
+    <div class="container-site grid gap-10 py-20 md:py-28 lg:grid-cols-12">
+      <div class="lg:col-span-7">
+        <p class="kicker text-teal-light" data-reveal>{f.upgrade.kicker}</p>
+        <h2 id="up-title" class="text-h2 mt-4" data-split>{f.upgrade.title}</h2>
+        <p class="text-lead mt-5 max-w-xl text-muted-ink" data-reveal>{f.upgrade.body}</p>
+        <p class="mt-7 flex flex-wrap gap-x-6 gap-y-3" data-reveal>
+          <a class="link-cta" href={pageHref(lang, "pricing")} data-umami-event="free-upgrade" data-umami-event-where="free-page">{f.upgrade.cta}</a>
+          <a class="link-cta" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="free-page">{f.upgrade.talk}</a>
+        </p>
+      </div>
+      <div class="flex flex-col items-start justify-center gap-5 lg:col-span-4 lg:col-start-9" data-reveal>
+        <h2 class="text-h3">{f.closing.title}</h2>
+        <a class="btn btn-paper btn-lg" href={SIGNUP_URL} data-umami-event="free-signup" data-umami-event-where="free-closing">
+          {f.closing.cta} <Icon name="arrow" size={18} />
+        </a>
+        <p class="text-sm text-muted-ink">{f.note}</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

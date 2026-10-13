@@ -37,6 +37,11 @@ export const en = {
       description:
         "Talk to the Madar POS team in Cairo on WhatsApp or by phone at +20 121 111 6899, or email shawket.4@icloud.com. We reply the same day.",
     },
+    free: {
+      title: "Free POS for cafés in Egypt: free forever, no lock-in | Madar",
+      description:
+        "Madar's free plan gives your café a point of sale and sales reports, free forever. Sign up in minutes, no card, no contract. Upgrade only if you want more.",
+    },
     developers: {
       title: "Madar POS developers: public API, OpenAPI and MCP server",
       description:
@@ -621,6 +626,38 @@ export const en = {
       cta: "Book the free month on WhatsApp",
       note: "No card · no lock-in",
     },
+  },
+
+  freePage: {
+    kicker: "Free forever",
+    title: "A café POS that costs nothing. Ever.",
+    sub: "Sell on a real till, see your sales in clear reports, and pay nothing. No card, no contract, no trial clock running out.",
+    cta: "Create your free account",
+    note: "Takes a few minutes · no card · no contract",
+    included: { title: "What you get, free", items: [
+      { t: "The till", b: "Ring up sales, take cash and card, print receipts. It keeps selling when the internet drops." },
+      { t: "Sales reports", b: "See what sold, when, and how each shift went, from any phone or laptop." },
+      { t: "Unlimited users", b: "Add every teller and manager. There is no per-seat fee." },
+    ] },
+    promise: { title: "No catch, no lock-in", items: [
+      "Free forever, not a trial",
+      "No credit card to sign up",
+      "No contract, leave whenever you like",
+      "Your sales data stays yours",
+    ] },
+    steps: { title: "Live in three steps", items: [
+      "Create your account",
+      "Add your menu and prices",
+      "Open the till and sell",
+    ] },
+    upgrade: {
+      kicker: "When you grow",
+      title: "Need to know what each cup really costs?",
+      body: "The paid plans add the recipe-linked inventory ledger, stocktakes and waste, till reconciliation, and for bigger operations menu engineering and online ordering. Upgrade in place whenever you want. Nothing to rebuild, and staying free is always fine.",
+      cta: "See the paid plans",
+      talk: "Questions? Ask us on WhatsApp",
+    },
+    closing: { title: "Start selling on Madar today.", cta: "Create your free account" },
   },
 
   faq: {

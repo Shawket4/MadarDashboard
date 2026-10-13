@@ -4,6 +4,9 @@ export const SITE_URL = "https://get.madar-pos.cloud";
 /** The dashboard merchants log in to (the old landing build's VITE_DASHBOARD_URL). */
 export const DASHBOARD_URL = "https://madar-pos.cloud";
 
+/** Self-signup for the free plan (POS + reports). ponytail: placeholder path until the dashboard ships the signup route. */
+export const SIGNUP_URL = `${DASHBOARD_URL}/signup`;
+
 export const PHONE_DISPLAY = "+20 121 111 6899";
 export const PHONE_E164 = "+201211116899";
 export const PHONE_HREF = `tel:${PHONE_E164}`;
@@ -49,7 +52,7 @@ export function whatsappHref(lang: Lang, text = WA_TEXT[lang]): string {
   return `https://wa.me/${PHONE_E164.replace("+", "")}?text=${encodeURIComponent(text)}`;
 }
 
-export type PageKey = "home" | "features" | "pricing" | "faq" | "about" | "contact" | "developers";
+export type PageKey = "home" | "features" | "pricing" | "faq" | "about" | "contact" | "developers" | "free";
 
 const PAGE_PATH: Record<PageKey, string> = {
   home: "",
@@ -59,6 +62,7 @@ const PAGE_PATH: Record<PageKey, string> = {
   about: "about/",
   contact: "contact/",
   developers: "developers/",
+  free: "free/",
 };
 
 /** Site-relative URL of a page in a language, e.g. /ar/pricing/ */

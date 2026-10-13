@@ -16,7 +16,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
 
-const ORDER = ["", "features/", "pricing/", "faq/", "about/", "contact/", "developers/"];
+const ORDER = ["", "features/", "pricing/", "faq/", "about/", "contact/", "developers/", "free/"];
 const LEGAL = "https://legal.madar-pos.cloud/";
 const API = "https://api.madar-pos.cloud";
 
