@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
@@ -110,6 +111,11 @@ import { Route as AppReportsOperationsProfitabilityRouteImport } from './routes/
 import { Route as AppMenuItemsItemIdRouteImport } from './routes/_app/menu/items_.$itemId'
 import { Route as AppMenuCombosComboIdRouteImport } from './routes/_app/menu/combos_.$comboId'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -623,6 +629,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/signup': typeof SignupRoute
   '/access': typeof AppAccessRouteRouteWithChildren
   '/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/inventory': typeof AppInventoryRouteRouteWithChildren
@@ -723,6 +730,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/signup': typeof SignupRoute
   '/analytics': typeof AppAnalyticsRoute
   '/basira': typeof AppBasiraRoute
   '/bookings': typeof AppBookingsRoute
@@ -821,6 +829,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/signup': typeof SignupRoute
   '/_app/access': typeof AppAccessRouteRouteWithChildren
   '/_app/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/_app/inventory': typeof AppInventoryRouteRouteWithChildren
@@ -925,6 +934,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/onboarding'
+    | '/signup'
     | '/access'
     | '/delivery'
     | '/inventory'
@@ -1025,6 +1035,7 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/onboarding'
+    | '/signup'
     | '/analytics'
     | '/basira'
     | '/bookings'
@@ -1122,6 +1133,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/onboarding'
+    | '/signup'
     | '/_app/access'
     | '/_app/delivery'
     | '/_app/inventory'
@@ -1225,10 +1237,18 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -2188,6 +2208,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -2461,7 +2461,11 @@
       "OVER_RECEIVE_NEEDS_NOTE": "More arrived than was sent. Add a note saying why.",
       "WAREHOUSE_LIMIT": "This business already has as many warehouses as it can have.",
       "BRANCH_STILL_SELLING": "This branch is still selling. Close its tills, finish its open orders and bills, unpair its devices, and turn off its delivery apps, delivery, pickup and bookings first.",
-      "WAREHOUSE_CANNOT_SELL": "This is a warehouse: it holds stock and doesn't sell."
+      "WAREHOUSE_CANNOT_SELL": "This is a warehouse: it holds stock and doesn't sell.",
+      "SIGNUP_PHONE_TAKEN": "A shop already uses this phone number.",
+      "SIGNUP_EMAIL_TAKEN": "An account with this email already exists.",
+      "SIGNUP_OTP_COOLDOWN": "A code was just sent. Please wait a minute before asking for another.",
+      "SIGNUP_OTP_LIMIT": "Too many codes for this number. Try again in an hour."
     },
     "tooManyRequests": "Too many requests just now. Try again in a moment."
   },
@@ -7489,5 +7493,44 @@
       "switched": "The active till was changed.",
       "ownerOnly": "Only the shop's owner can change the active till."
     }
+  },
+  "signup": {
+    "noAccount": "No account?",
+    "signUpFree": "Sign up free",
+    "haveAccount": "Already have an account?",
+    "signInInstead": "Sign in instead",
+    "title": "Open your shop for free",
+    "subtitle": "Sell with Madar POS on one till, free. No card needed.",
+    "codeTitle": "Enter the code",
+    "codeSubtitle": "We sent a six-digit code to your WhatsApp.",
+    "detailsTitle": "Set up your shop",
+    "detailsSubtitle": "Last step: your shop, your account and how you start.",
+    "steps": "Sign-up steps",
+    "stepOf": "Step {{step}} of {{total}}",
+    "phone": "Your mobile number",
+    "phoneHint": "We send the code to this number on WhatsApp, and it becomes the owner's contact.",
+    "sendCode": "Send the code",
+    "codeSentTo": "Sent to",
+    "code": "Code",
+    "badCode": "That code is wrong or has expired. Check it, or ask for a new one.",
+    "continue": "Continue",
+    "changeNumber": "Change the number",
+    "resend": "Send the code again",
+    "resendIn": "Send again in {{seconds}} s",
+    "shopName": "Shop name",
+    "template": "What kind of place is it?",
+    "templateCafe": "Café",
+    "templateCafeHint": "Counter service, takeaway, drinks and pastries",
+    "templateRestaurant": "Restaurant",
+    "templateRestaurantHint": "Meals, a kitchen and a fuller menu",
+    "ownerName": "Your name",
+    "create": "Create my shop",
+    "errors": {
+      "shopName": "Enter your shop's name (at least 2 letters).",
+      "tooLong": "Keep it under 80 characters.",
+      "password": "Use at least 8 characters.",
+      "terms": "Accept the terms to continue."
+    },
+    "terms": "I accept the <terms>Terms of Service</terms> and the <privacy>Privacy Policy</privacy>"
   }
 }
