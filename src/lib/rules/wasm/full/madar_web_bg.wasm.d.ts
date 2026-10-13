@@ -18,6 +18,7 @@ export const convert: (a: number, b: number, c: number, d: number, e: number) =>
 export const convert_with_density: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
 export const day_bounds: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const delivery_cost: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+export const entitlements: (a: number, b: number) => [number, number, number];
 export const estimate_line_total: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
 export const first_pay: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const food_cost_band: (a: number, b: number) => [number, number, number];

@@ -163,6 +163,37 @@ export interface CatalogView {
 }
 
 /**
+ * A plan's limits. `None` is unlimited. Devices are counted per branch.
+ */
+export interface PlanLimits {
+    /**
+     * Live branches the organisation may have.
+     */
+    branches: number | null;
+    /**
+     * Active POS devices (tills) per branch.
+     */
+    pos_devices_per_branch: number | null;
+    /**
+     * Active kitchen screens per branch.
+     */
+    kds_devices: number | null;
+    /**
+     * Active waiter devices per branch.
+     */
+    waiter_devices: number | null;
+}
+
+/**
+ * A plan's refusal: the code, and the feature it is about (when it is about
+ * one).
+ */
+export interface Refusal {
+    code: Code;
+    feature: Feature | null;
+}
+
+/**
  * A priced combo line.
  */
 export interface ComboQuote {
@@ -265,6 +296,12 @@ export interface SizeView {
      */
     branch_price?: number | null;
 }
+
+/**
+ * A thing a plan switches on: a set of capabilities plus the surfaces that
+ * have no capability of their own.
+ */
+export type Feature = "basira" | "bookings" | "branding" | "dawam" | "floor" | "inventory" | "kitchen" | "loyalty" | "online";
 
 /**
  * An ingredient an option names.
@@ -713,6 +750,18 @@ export interface BaseCandidates {
 }
 
 /**
+ * What a plan switches on.
+ */
+export interface Entitlements {
+    features: Feature[];
+    limits: PlanLimits;
+    /**
+     * May a till hold the realtime stream. Free tills poll instead.
+     */
+    realtime: boolean;
+}
+
+/**
  * What a slot admits: one item, or every `kind = 'item'` item of a category.
  */
 export interface ChoiceView {
@@ -751,6 +800,11 @@ export type ComboRefusal = { refusal: "unknown_slot"; slot_id: string } | { refu
  * the second with a 404; the till drops an unknown option before it asks.
  */
 export type PriceError = { error: "no_priced_size" } | { error: "unknown_option"; id: string };
+
+/**
+ * Why a plan said no. The strings are the API's error codes.
+ */
+export type Code = "plan_feature" | "plan_branch_limit" | "plan_device_limit" | "plan_no_realtime" | "plan_till_inactive";
 
 /** Whole piastres. */
 export type Minor = number;
@@ -817,6 +871,13 @@ export function combo_extras(picks: PickShape[]): number;
 export function combo_quote(combo: ComboView, picks: PickIn[], n: number): ComboQuote | ComboRefusal;
 
 /**
+ * What a plan switches on: its features, limits (`null` is unlimited) and
+ * whether its tills hold a realtime stream. `"free"` is Free; any other
+ * value is Paid, so an old server never locks a paying shop out.
+ */
+export function entitlements(plan: string): Entitlements;
+
+/**
  * The card for `balance` against `next_reward_cost`.
  */
 export function loyalty_card(balance: number, next_reward_cost: number): LoyaltyCard;
@@ -868,6 +929,7 @@ export interface InitOutput {
     readonly combo_choice_extra: (a: any, b: number, c: number) => [number, number, number];
     readonly combo_extras: (a: number, b: number) => [number, number, number];
     readonly combo_quote: (a: any, b: number, c: number, d: number) => [number, number, number];
+    readonly entitlements: (a: number, b: number) => [number, number, number];
     readonly loyalty_card: (a: number, b: number) => [number, number, number];
     readonly loyalty_stamps: (a: number, b: number) => [number, number, number];
     readonly option_charge: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];

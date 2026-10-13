@@ -10,6 +10,7 @@ export const category_order: (a: number, b: number, c: number, d: number) => [nu
 export const combo_choice_extra: (a: any, b: number, c: number) => [number, number, number];
 export const combo_extras: (a: number, b: number) => [number, number, number];
 export const combo_quote: (a: any, b: number, c: number, d: number) => [number, number, number];
+export const entitlements: (a: number, b: number) => [number, number, number];
 export const loyalty_card: (a: number, b: number) => [number, number, number];
 export const loyalty_stamps: (a: number, b: number) => [number, number, number];
 export const option_charge: (a: any, b: number, c: number, d: number, e: number) => [number, number, number];

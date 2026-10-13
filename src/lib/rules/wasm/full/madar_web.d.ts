@@ -163,6 +163,37 @@ export interface CatalogView {
 }
 
 /**
+ * A plan's limits. `None` is unlimited. Devices are counted per branch.
+ */
+export interface PlanLimits {
+    /**
+     * Live branches the organisation may have.
+     */
+    branches: number | null;
+    /**
+     * Active POS devices (tills) per branch.
+     */
+    pos_devices_per_branch: number | null;
+    /**
+     * Active kitchen screens per branch.
+     */
+    kds_devices: number | null;
+    /**
+     * Active waiter devices per branch.
+     */
+    waiter_devices: number | null;
+}
+
+/**
+ * A plan's refusal: the code, and the feature it is about (when it is about
+ * one).
+ */
+export interface Refusal {
+    code: Code;
+    feature: Feature | null;
+}
+
+/**
  * A priced combo line.
  */
 export interface ComboQuote {
@@ -297,6 +328,12 @@ export interface SizeView {
      */
     branch_price?: number | null;
 }
+
+/**
+ * A thing a plan switches on: a set of capabilities plus the surfaces that
+ * have no capability of their own.
+ */
+export type Feature = "basira" | "bookings" | "branding" | "dawam" | "floor" | "inventory" | "kitchen" | "loyalty" | "online";
 
 /**
  * An allowed transfer action: the side that takes it, the capability
@@ -824,6 +861,18 @@ export interface UnitRefusal {
 }
 
 /**
+ * What a plan switches on.
+ */
+export interface Entitlements {
+    features: Feature[];
+    limits: PlanLimits;
+    /**
+     * May a till hold the realtime stream. Free tills poll instead.
+     */
+    realtime: boolean;
+}
+
+/**
  * What a slot admits: one item, or every `kind = 'item'` item of a category.
  */
 export interface ChoiceView {
@@ -915,6 +964,11 @@ export interface TillRefusal {
     code: string | null;
     method: string;
 }
+
+/**
+ * Why a plan said no. The strings are the API's error codes.
+ */
+export type Code = "plan_feature" | "plan_branch_limit" | "plan_device_limit" | "plan_no_realtime" | "plan_till_inactive";
 
 /** Whole piastres. */
 export type Minor = number;
@@ -1047,6 +1101,13 @@ export function day_bounds(tz: string, date: string): [number, number];
  * `quantity_ordered` is the stored column.
  */
 export function delivery_cost(quantity_received: number, line_cost: number | null | undefined, unit_cost: number | null | undefined, ordered_line_cost: number, quantity_ordered: number): number | PurchaseRefusal;
+
+/**
+ * What a plan switches on: its features, limits (`null` is unlimited) and
+ * whether its tills hold a realtime stream. `"free"` is Free; any other
+ * value is Paid, so an old server never locks a paying shop out.
+ */
+export function entitlements(plan: string): Entitlements;
 
 /**
  * The order dialog's line estimate in piastres; `null` without a cost,
@@ -1250,6 +1311,7 @@ export interface InitOutput {
     readonly convert_with_density: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly day_bounds: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly delivery_cost: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+    readonly entitlements: (a: number, b: number) => [number, number, number];
     readonly estimate_line_total: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly first_pay: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly food_cost_band: (a: number, b: number) => [number, number, number];
