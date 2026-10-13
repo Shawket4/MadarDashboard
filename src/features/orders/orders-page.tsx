@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { Ban, Bike, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, Store, TriangleAlert, Ban as VoidIcon } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -119,10 +119,29 @@ export function OrdersPage() {
   const search = useSearch({ strict: false }) as { order?: string };
   const detailId = search.order ?? null;
   const tillId = f.till || undefined;
+  // Opening the sheet is a history entry, so browser Back closes it (and keeps
+  // the filters). Switching orders inside the sheet replaces that entry; closing
+  // one we pushed steps back instead of piling up a second list entry.
+  const router = useRouter();
+  const pushedDetail = useRef(false);
   const setDetailId = useCallback(
-    (id: string | null) => void navigate({ to: ".", replace: true, search: (p: Record<string, unknown>) => ({ ...p, order: id ?? undefined }) }),
-    [navigate],
+    (id: string | null) => {
+      if (id === null && pushedDetail.current) {
+        pushedDetail.current = false;
+        router.history.back();
+        return;
+      }
+      const opening = id !== null && !detailId;
+      if (opening) pushedDetail.current = true;
+      if (id === null) pushedDetail.current = false;
+      void navigate({ to: ".", replace: !opening, search: (p: Record<string, unknown>) => ({ ...p, order: id ?? undefined }) });
+    },
+    [navigate, router, detailId],
   );
+  // Back (or Forward) moved off the sheet: nothing of ours left to pop.
+  useEffect(() => {
+    if (!detailId) pushedDetail.current = false;
+  }, [detailId]);
   // A customer's name opens the customer; one of their orders opens here.
   const { canOpen: canOpenCustomer, open: openCustomer, sheet: customerSheet } = useCustomerSheet({ onOpenOrder: setDetailId });
   const [voidOrder, setVoidOrder] = useState<Order | null>(null);
