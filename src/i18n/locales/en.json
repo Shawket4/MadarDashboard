@@ -2582,7 +2582,9 @@
     "groupMenu": "Menu",
     "combosDesc": "Where combos and deals are sold, per channel and branch, and the margin that warns you.",
     "linksPage": "Links page",
-    "linksPageDesc": "The page your address opens on: order, menu, rewards, your socials."
+    "linksPageDesc": "The page your address opens on: order, menu, rewards, your socials.",
+    "plan": "Plan",
+    "planDesc": "Your Free plan, and which till each branch sells on."
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -7439,5 +7441,53 @@
   },
   "shell": {
     "accessLoadError": "Couldn't load what you're allowed to do here."
+  },
+  "plan": {
+    "free": "Free",
+    "paid": "Paid",
+    "features": {
+      "basira": "Basira (AI assistant)",
+      "bookings": "Bookings",
+      "branding": "Brand, links page and shop address",
+      "dawam": "Dawam (staff scheduling and payroll)",
+      "floor": "Floor plan and open tickets",
+      "inventory": "Inventory, purchasing and recipes",
+      "kitchen": "Kitchen screens and stations",
+      "loyalty": "Loyalty",
+      "online": "Online ordering, delivery and QR menus"
+    },
+    "upgrade": {
+      "title": "{{feature}} is on the paid plan",
+      "body": "Your shop is on the Free plan. Contact Madar to move to the paid plan; your sales and your data stay exactly as they are.",
+      "cta": "Contact Madar on WhatsApp",
+      "message": "Hello Madar, I would like to move my shop to the paid plan ({{feature}}).",
+      "messageGeneric": "Hello Madar, I would like to move my shop to the paid plan.",
+      "hint": "Contact Madar to move to the paid plan."
+    },
+    "refused": "This is not part of the Free plan.",
+    "pane": {
+      "desc": "What the Free plan includes, and which till each branch sells on.",
+      "loadError": "Couldn't load your plan",
+      "paidTitle": "Your shop is on the paid plan",
+      "paidBody": "Every feature is included and every till can sell.",
+      "yourPlan": "Your plan",
+      "limitBranch": "One branch, selling on one till.",
+      "limitStaff": "As many staff accounts as you need.",
+      "limitFeatures": "Selling, menu, payment methods, discounts and basic sales reports.",
+      "overBranches": "Your shop has {{branches}} branches and the Free plan includes {{limit}}. Every branch keeps selling, on one till each, but you can't add a branch until you move to the paid plan.",
+      "noBranches": "No branches yet",
+      "noTills": "No till has signed in to this branch yet.",
+      "lastSale": "Last sale {{when}}",
+      "noSales": "No sales yet",
+      "lastSeen": "Last online {{when}}",
+      "active": "Active",
+      "off": "Switched off",
+      "switch": "Sell on this till",
+      "switchTitle": "Sell on {{till}} at {{branch}}?",
+      "switchBody": "{{others}} will stop selling. Its sales so far are kept.",
+      "switchBodyNone": "This till will start selling again. Its sales so far are kept.",
+      "switched": "The active till was changed.",
+      "ownerOnly": "Only the shop's owner can change the active till."
+    }
   }
 }

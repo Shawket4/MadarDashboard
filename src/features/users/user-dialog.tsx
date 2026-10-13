@@ -56,7 +56,7 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
   const currentRole = useAuthStore((s) => s.user?.role);
   const isSuperAdmin = currentRole === "super_admin";
 
-  const { data: orgs = [] } = useListOrgs({ query: { enabled: isSuperAdmin && !editing } });
+  const { data: orgs = [] } = useListOrgs(undefined, { query: { enabled: isSuperAdmin && !editing } });
 
   const availableRoles = useMemo(() => rolesOffered(currentRole, user?.role), [currentRole, user?.role]);
 

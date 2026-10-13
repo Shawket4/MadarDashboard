@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import type { Authz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
+import { hasFeature, type Feature } from "@/generated/plans";
 
 export interface NavLeaf {
   to: string;
@@ -55,6 +56,13 @@ export interface NavLeaf {
   caps?: Capability[];
   /** The org module this page belongs to (PS-2). Omitted = every org. */
   module?: OrgModule;
+  /**
+   * The plan feature this page belongs to (madar-plan, `generated/plans.ts`).
+   * Omitted = every plan. A Free org does not see the page, and its URL shows
+   * the upgrade page. Independent of `caps`: the server already trims a Free
+   * org's capabilities, but a page gated only on a module needs this.
+   */
+  feature?: Feature;
   /** The set-up checklist (SA-4): shown, to whoever holds `caps`, only while it is incomplete. */
   setup?: boolean;
 }
@@ -92,8 +100,8 @@ export const NAV: NavGroup[] = [
     fallback: "Sell",
     entries: [
       { caps: [Cap.ordersRead], module: "pos", to: "/orders", labelKey: "nav.orders", fallback: "Orders", icon: Receipt },
-      { caps: [Cap.floorLayoutRead], module: "pos", to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
-      { caps: [Cap.bookingsRead], module: "pos", to: "/bookings", labelKey: "nav.bookings", fallback: "Bookings", icon: CalendarClock },
+      { caps: [Cap.floorLayoutRead], module: "pos", feature: "floor", to: "/floor", labelKey: "nav.floor", fallback: "Floor", icon: Armchair },
+      { caps: [Cap.bookingsRead], module: "pos", feature: "bookings", to: "/bookings", labelKey: "nav.bookings", fallback: "Bookings", icon: CalendarClock },
       { caps: [Cap.tillRead], module: "pos", to: "/tills", labelKey: "nav.tills", fallback: "Tills", icon: Wallet },
       { caps: [Cap.customersView], module: "pos", to: "/customers", labelKey: "nav.customers", fallback: "Customers", icon: Contact },
     ],
@@ -115,8 +123,8 @@ export const NAV: NavGroup[] = [
           { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/combos", labelKey: "nav.combos", fallback: "Combos", icon: Sandwich },
           { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/deals", labelKey: "nav.deals", fallback: "Deals", icon: TicketPercent },
           { caps: [Cap.menuItemsEdit], module: "pos", to: "/menu/pricing", labelKey: "nav.pricingAvailability", fallback: "Pricing & Availability", icon: SlidersHorizontal },
-          { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/bases", labelKey: "nav.recipeBases", fallback: "Recipe bases", icon: Layers },
-          { caps: [Cap.menuItemsRead], module: "pos", to: "/menu/packaging", labelKey: "nav.packagingRules", fallback: "Packaging rules", icon: Package },
+          { caps: [Cap.menuItemsRead], module: "pos", feature: "inventory", to: "/menu/bases", labelKey: "nav.recipeBases", fallback: "Recipe bases", icon: Layers },
+          { caps: [Cap.menuItemsRead], module: "pos", feature: "inventory", to: "/menu/packaging", labelKey: "nav.packagingRules", fallback: "Packaging rules", icon: Package },
         ],
       },
       { caps: [Cap.discountsRead], module: "pos", to: "/discounts", labelKey: "nav.discounts", fallback: "Discounts", icon: BadgePercent },
@@ -126,7 +134,7 @@ export const NAV: NavGroup[] = [
     labelKey: "nav.basira",
     fallback: "Basira",
     entries: [
-      { caps: [Cap.reportsRead], module: "pos", to: "/basira", labelKey: "nav.basiraAsk", fallback: "Ask", icon: Telescope },
+      { caps: [Cap.reportsRead], module: "pos", feature: "basira", to: "/basira", labelKey: "nav.basiraAsk", fallback: "Ask", icon: Telescope },
     ],
   },
   {
@@ -136,13 +144,13 @@ export const NAV: NavGroup[] = [
       // Every entry on a capability; a page hides the tabs its person can't read.
       { caps: [Cap.ordersRead], module: "pos", to: "/reports/operations", labelKey: "nav.reportsOperations", fallback: "Operations", icon: TrendingUp },
       { caps: [Cap.ordersRead, Cap.inventoryRead, Cap.purchasingOrdersRead], module: "pos", to: "/reports/financial", labelKey: "nav.reportsFinancial", fallback: "Financial", icon: Coins },
-      { caps: [Cap.inventoryRead], module: "pos", to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
+      { caps: [Cap.inventoryRead], module: "pos", feature: "inventory", to: "/reports/inventory", labelKey: "nav.reportsInventory", fallback: "Inventory", icon: FileBarChart },
       // Tax and the audit trail: reports.legal, owner and manager by default, a manager's own branches.
       { caps: [Cap.reportsLegal], to: "/reports/legal", labelKey: "nav.reportsLegal", fallback: "Legal", icon: Scale },
-      { caps: [Cap.loyaltyMembersList], module: "pos", to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
+      { caps: [Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/reports/loyalty", labelKey: "nav.reportsLoyalty", fallback: "Loyalty", icon: Star },
       // Each combo and deal as its own line (C6): reports.bundles, owner and manager by default.
       { caps: [Cap.reportsBundles], module: "pos", to: "/reports/bundles", labelKey: "nav.reportsBundles", fallback: "Bundles", icon: Shapes },
-      { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
+      { caps: [Cap.hrAttendanceRead], module: "dawam", feature: "dawam", to: "/reports/staff", labelKey: "nav.reportsStaff", fallback: "Staff", icon: UserRound },
       // The day's staff drinks pool, per branch. Gated on the capability that
       // lets a person record one: if you can give a staff drink, you can see
       // what the branch has already given.
@@ -162,13 +170,13 @@ export const NAV: NavGroup[] = [
         icon: Boxes,
         basePath: "/inventory",
         children: [
-          { caps: [Cap.inventoryRead], module: "pos", to: "/inventory/today", labelKey: "nav.invToday", fallback: "Today", icon: Home },
-          { caps: [Cap.inventoryCountsRead], module: "pos", to: "/inventory/counts", labelKey: "nav.invCounts", fallback: "Stock counts", icon: ClipboardList },
-          { caps: [Cap.inventoryRead], module: "pos", to: "/inventory/ingredients", labelKey: "nav.ingredients", fallback: "Ingredients", icon: Package },
-          { caps: [Cap.purchasingOrdersRead, Cap.purchasingSuppliersRead], module: "pos", to: "/inventory/purchasing", labelKey: "nav.invPurchasing", fallback: "Purchasing", icon: ShoppingCart },
-          { caps: [Cap.inventoryWasteRead], module: "pos", to: "/inventory/waste", labelKey: "nav.invWaste", fallback: "Waste", icon: Trash2 },
-          { caps: [Cap.inventoryTransfersRead], module: "pos", to: "/inventory/transfers", labelKey: "nav.invTransfers", fallback: "Transfers", icon: ArrowLeftRight },
-          { caps: [Cap.inventoryAdjust], module: "pos", to: "/inventory/settings", labelKey: "nav.invSettings", fallback: "Settings", icon: Settings2 },
+          { caps: [Cap.inventoryRead], module: "pos", feature: "inventory", to: "/inventory/today", labelKey: "nav.invToday", fallback: "Today", icon: Home },
+          { caps: [Cap.inventoryCountsRead], module: "pos", feature: "inventory", to: "/inventory/counts", labelKey: "nav.invCounts", fallback: "Stock counts", icon: ClipboardList },
+          { caps: [Cap.inventoryRead], module: "pos", feature: "inventory", to: "/inventory/ingredients", labelKey: "nav.ingredients", fallback: "Ingredients", icon: Package },
+          { caps: [Cap.purchasingOrdersRead, Cap.purchasingSuppliersRead], module: "pos", feature: "inventory", to: "/inventory/purchasing", labelKey: "nav.invPurchasing", fallback: "Purchasing", icon: ShoppingCart },
+          { caps: [Cap.inventoryWasteRead], module: "pos", feature: "inventory", to: "/inventory/waste", labelKey: "nav.invWaste", fallback: "Waste", icon: Trash2 },
+          { caps: [Cap.inventoryTransfersRead], module: "pos", feature: "inventory", to: "/inventory/transfers", labelKey: "nav.invTransfers", fallback: "Transfers", icon: ArrowLeftRight },
+          { caps: [Cap.inventoryAdjust], module: "pos", feature: "inventory", to: "/inventory/settings", labelKey: "nav.invSettings", fallback: "Settings", icon: Settings2 },
         ],
       },
     ],
@@ -185,8 +193,8 @@ export const NAV: NavGroup[] = [
       { to: "/settings", labelKey: "nav.settings", fallback: "Settings", icon: Settings },
       // The branch's hardware and how it talks: a canvas, so a page of its own
       // rather than a settings pane.
-      { caps: [Cap.kitchenStationsEdit], module: "pos", to: "/branch-setup", labelKey: "nav.branchSetup", fallback: "Branch setup", icon: Network },
-      { caps: [Cap.loyaltyUse, Cap.loyaltyMembersList], module: "pos", to: "/settings/loyalty", labelKey: "nav.loyalty", fallback: "Loyalty", icon: Star },
+      { caps: [Cap.kitchenStationsEdit], module: "pos", feature: "kitchen", to: "/branch-setup", labelKey: "nav.branchSetup", fallback: "Branch setup", icon: Network },
+      { caps: [Cap.loyaltyUse, Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/settings/loyalty", labelKey: "nav.loyalty", fallback: "Loyalty", icon: Star },
       { caps: [Cap.orgSettingsRead, Cap.orgSettingsEdit], module: "pos", to: "/settings/staff-pool", labelKey: "nav.staffPool", fallback: "Staff drinks", icon: CupSoda },
     ],
   },
@@ -201,27 +209,27 @@ export const NAV: NavGroup[] = [
         basePath: "/staff",
         children: [
           // Set-up is for whoever sets the rules (hr.rules.edit, the owner by default).
-          { setup: true, caps: [Cap.hrRulesEdit], module: "dawam", to: "/staff/setup", labelKey: "nav.staffSetup", fallback: "Set-up", icon: ListChecks },
-          { caps: [Cap.hrStaffRead], module: "dawam", to: "/staff/employees", labelKey: "nav.employees", fallback: "Employees", icon: UserRound },
-          { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/staff/attendance", labelKey: "nav.attendance", fallback: "Attendance", icon: CalendarClock },
+          { setup: true, caps: [Cap.hrRulesEdit], module: "dawam", feature: "dawam", to: "/staff/setup", labelKey: "nav.staffSetup", fallback: "Set-up", icon: ListChecks },
+          { caps: [Cap.hrStaffRead], module: "dawam", feature: "dawam", to: "/staff/employees", labelKey: "nav.employees", fallback: "Employees", icon: UserRound },
+          { caps: [Cap.hrAttendanceRead], module: "dawam", feature: "dawam", to: "/staff/attendance", labelKey: "nav.attendance", fallback: "Attendance", icon: CalendarClock },
           // "Work shifts" (staff scheduling) — distinct from /tills, the sales sessions.
-          { caps: [Cap.hrScheduleRead], module: "dawam", to: "/staff/shifts", labelKey: "nav.workShifts", fallback: "Work shifts", icon: CalendarRange },
-          { caps: [Cap.hrAttendanceRead], module: "dawam", to: "/staff/team", labelKey: "nav.team", fallback: "Team", icon: Users },
+          { caps: [Cap.hrScheduleRead], module: "dawam", feature: "dawam", to: "/staff/shifts", labelKey: "nav.workShifts", fallback: "Work shifts", icon: CalendarRange },
+          { caps: [Cap.hrAttendanceRead], module: "dawam", feature: "dawam", to: "/staff/team", labelKey: "nav.team", fallback: "Team", icon: Users },
           {
             // The same rights the page decides with (approvals-page `can`), attendance edits included.
             caps: [Cap.hrLeaveEdit, Cap.hrAttendanceEdit, Cap.hrAdvancesDecide, Cap.hrScheduleEdit, Cap.hrShiftCoverConfirm, Cap.hrOvertimeApprove, Cap.hrPayrollRun],
-            module: "dawam", to: "/staff/approvals", labelKey: "nav.approvals", fallback: "Approvals", icon: ListChecks,
+            module: "dawam", feature: "dawam", to: "/staff/approvals", labelKey: "nav.approvals", fallback: "Approvals", icon: ListChecks,
           },
-          { caps: [Cap.hrScheduleRead], module: "dawam", to: "/staff/schedule", labelKey: "nav.schedule", fallback: "Schedule", icon: CalendarClock },
-          { caps: [Cap.hrLeaveRead], module: "dawam", to: "/staff/requests", labelKey: "nav.requests", fallback: "Requests", icon: Inbox },
+          { caps: [Cap.hrScheduleRead], module: "dawam", feature: "dawam", to: "/staff/schedule", labelKey: "nav.schedule", fallback: "Schedule", icon: CalendarClock },
+          { caps: [Cap.hrLeaveRead], module: "dawam", feature: "dawam", to: "/staff/requests", labelKey: "nav.requests", fallback: "Requests", icon: Inbox },
           // The same run as the staff app's Payroll tab (Dawam PAY-4): one
           // server-side state, so approving in either place is the same act.
-          { caps: [Cap.hrPayrollRead, Cap.hrPayrollRun], module: "dawam", to: "/staff/payroll", labelKey: "nav.payroll", fallback: "Payroll", icon: Coins },
+          { caps: [Cap.hrPayrollRead, Cap.hrPayrollRun], module: "dawam", feature: "dawam", to: "/staff/payroll", labelKey: "nav.payroll", fallback: "Payroll", icon: Coins },
           // Attendance, labour against sales, payroll history and advances (DSH-3).
-          { caps: [Cap.hrAttendanceRead, Cap.hrPayrollRead], module: "dawam", to: "/staff/reports", labelKey: "nav.staffReports", fallback: "Reports", icon: FileBarChart },
+          { caps: [Cap.hrAttendanceRead, Cap.hrPayrollRead], module: "dawam", feature: "dawam", to: "/staff/reports", labelKey: "nav.staffReports", fallback: "Reports", icon: FileBarChart },
           // Setting the rules is the owner's (hr.rules.edit, every branch); a
           // branch manager sees them read-only (hr.rules.view).
-          { caps: [Cap.hrRulesEdit, Cap.hrRulesView], module: "dawam", to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
+          { caps: [Cap.hrRulesEdit, Cap.hrRulesView], module: "dawam", feature: "dawam", to: "/staff/rules", labelKey: "nav.attendanceRules", fallback: "Rules", icon: Scale },
         ],
       },
     ],
@@ -241,9 +249,17 @@ export const NAV: NavGroup[] = [
 /**
  * Whether a nav leaf shows for this person, in an org with these modules on.
  * `setupIncomplete` is true only once the set-up checklist is known unfinished.
+ * `plan` is the org's plan; unknown reads as Paid.
  */
-export const leafVisible = (leaf: NavLeaf, authz: Authz, modules?: readonly string[], setupIncomplete = false): boolean => {
+export const leafVisible = (
+  leaf: NavLeaf,
+  authz: Authz,
+  modules?: readonly string[],
+  setupIncomplete = false,
+  plan?: string | null,
+): boolean => {
   if (leaf.module && modules && !modules.includes(leaf.module)) return false;
+  if (leaf.feature && !hasFeature(plan, leaf.feature)) return false;
   if (leaf.setup) return setupIncomplete && authz.canAny(...(leaf.caps ?? []));
   if (leaf.superAdminOnly) return authz.platform;
   if (leaf.caps) return authz.canAny(...leaf.caps);
@@ -275,6 +291,7 @@ const EXTRA_MODULE_ROUTES: Array<[string, OrgModule]> = [
   ["/settings/kitchen-routing", "pos"],
   ["/settings/kitchen-stations", "pos"],
   ["/settings/payment-methods", "pos"],
+  ["/settings/plan", "pos"],
   ["/settings/qr", "pos"],
 ];
 
@@ -295,6 +312,52 @@ export function moduleOfPath(pathname: string): OrgModule | undefined {
   const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   let best: [string, OrgModule] | undefined;
   for (const r of MODULE_ROUTES) {
+    if (path === r[0] || path.startsWith(`${r[0]}/`)) {
+      if (!best || r[0].length > best[0].length) best = r;
+    }
+  }
+  return best?.[1];
+}
+
+/**
+ * Pages of a plan feature that have no nav leaf of their own (settings panes,
+ * old aliases, detail routes), matched like the leaves. A settings pane is
+ * tagged here AND in `SETTINGS_NAV`; settings-nav.test.ts keeps the two equal.
+ */
+const EXTRA_FEATURE_ROUTES: Array<[string, Feature]> = [
+  ["/staff", "dawam"],
+  ["/inventory", "inventory"],
+  ["/insights/inventory-reports", "inventory"],
+  ["/menu/recipes", "inventory"],
+  ["/delivery", "online"],
+  ["/qr", "online"],
+  ["/kitchen", "kitchen"],
+  ["/settings/bookings", "bookings"],
+  ["/settings/brand", "branding"],
+  ["/settings/links", "branding"],
+  ["/settings/delivery", "online"],
+  ["/settings/delivery-zones", "online"],
+  ["/settings/integrations", "online"],
+  ["/settings/qr", "online"],
+  ["/settings/kitchen-routing", "kitchen"],
+  ["/settings/kitchen-stations", "kitchen"],
+];
+
+const FEATURE_ROUTES: Array<[string, Feature]> = [
+  ...NAV.flatMap((g) => g.entries.flatMap((e) => (isParent(e) ? e.children : [e])))
+    .filter((l): l is NavLeaf & { feature: Feature } => !!l.feature && l.to !== "/")
+    .map((l): [string, Feature] => [l.to, l.feature]),
+  ...EXTRA_FEATURE_ROUTES,
+];
+
+/**
+ * The plan feature a URL path needs, or undefined when every plan has it: the
+ * longest tagged prefix on a segment boundary, like {@link moduleOfPath}.
+ */
+export function featureOfPath(pathname: string): Feature | undefined {
+  const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  let best: [string, Feature] | undefined;
+  for (const r of FEATURE_ROUTES) {
     if (path === r[0] || path.startsWith(`${r[0]}/`)) {
       if (!best || r[0].length > best[0].length) best = r;
     }

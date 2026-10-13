@@ -10,8 +10,17 @@ import type { UserPublic } from "@/data/types";
 interface AuthState {
   user: UserPublic | null;
   token: string | null;
+  /**
+   * The plan of the org in scope (`free` | `paid`), as login and `/auth/me`
+   * say it; for a super admin, the selected org's. Null = not known yet, which
+   * every plan check reads as Paid (madar-plan: an unknown plan never locks a
+   * paying shop out). Kept in storage so a reload does not flash paid-only
+   * pages at a Free shop.
+   */
+  plan: string | null;
   hasHydrated: boolean;
-  signIn: (token: string, user: UserPublic) => void;
+  signIn: (token: string, user: UserPublic, plan?: string | null) => void;
+  setPlan: (plan: string | null) => void;
   signOut: () => void;
   setUser: (user: UserPublic) => void;
 }
@@ -21,11 +30,13 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
+      plan: null,
       hasHydrated: false,
-      signIn: (token, user) => {
+      signIn: (token, user, plan) => {
         apiContext.setToken(token);
-        set({ token, user });
+        set({ token, user, plan: plan ?? null });
       },
+      setPlan: (plan) => set({ plan }),
       signOut: () => {
         // Purge api contexts
         apiContext.setToken(null);
@@ -42,14 +53,14 @@ export const useAuthStore = create<AuthState>()(
         // Flush React Query cached requests
         queryClient.clear();
 
-        set({ token: null, user: null });
+        set({ token: null, user: null, plan: null });
       },
       setUser: (user) => set({ user }),
     }),
     {
       name: LS_KEYS.auth,
       storage: createJSONStorage(() => safeStorage),
-      partialize: (s) => ({ user: s.user, token: s.token }),
+      partialize: (s) => ({ user: s.user, token: s.token, plan: s.plan }),
       onRehydrateStorage: () => (state) => {
         if (state?.token) apiContext.setToken(state.token);
         state?.hasHydrated !== undefined &&

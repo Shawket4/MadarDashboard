@@ -53,6 +53,7 @@ import { Route as AppStaffApprovalsRouteImport } from './routes/_app/staff/appro
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
 import { Route as AppSettingsStaffPoolRouteImport } from './routes/_app/settings/staff-pool'
 import { Route as AppSettingsQrRouteImport } from './routes/_app/settings/qr'
+import { Route as AppSettingsPlanRouteImport } from './routes/_app/settings/plan'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppSettingsLoyaltyRouteImport } from './routes/_app/settings/loyalty'
 import { Route as AppSettingsLinksRouteImport } from './routes/_app/settings/links'
@@ -326,6 +327,11 @@ const AppSettingsStaffPoolRoute = AppSettingsStaffPoolRouteImport.update({
 const AppSettingsQrRoute = AppSettingsQrRouteImport.update({
   id: '/qr',
   path: '/qr',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsPlanRoute = AppSettingsPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
 const AppSettingsPaymentMethodsRoute =
@@ -688,6 +694,7 @@ export interface FileRoutesByFullPath {
   '/settings/links': typeof AppSettingsLinksRoute
   '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/settings/plan': typeof AppSettingsPlanRoute
   '/settings/qr': typeof AppSettingsQrRoute
   '/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
@@ -783,6 +790,7 @@ export interface FileRoutesByTo {
   '/settings/links': typeof AppSettingsLinksRoute
   '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/settings/plan': typeof AppSettingsPlanRoute
   '/settings/qr': typeof AppSettingsQrRoute
   '/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
@@ -885,6 +893,7 @@ export interface FileRoutesById {
   '/_app/settings/links': typeof AppSettingsLinksRoute
   '/_app/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/_app/settings/plan': typeof AppSettingsPlanRoute
   '/_app/settings/qr': typeof AppSettingsQrRoute
   '/_app/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
@@ -987,6 +996,7 @@ export interface FileRouteTypes {
     | '/settings/links'
     | '/settings/loyalty'
     | '/settings/payment-methods'
+    | '/settings/plan'
     | '/settings/qr'
     | '/settings/staff-pool'
     | '/settings/whatsapp'
@@ -1082,6 +1092,7 @@ export interface FileRouteTypes {
     | '/settings/links'
     | '/settings/loyalty'
     | '/settings/payment-methods'
+    | '/settings/plan'
     | '/settings/qr'
     | '/settings/staff-pool'
     | '/settings/whatsapp'
@@ -1183,6 +1194,7 @@ export interface FileRouteTypes {
     | '/_app/settings/links'
     | '/_app/settings/loyalty'
     | '/_app/settings/payment-methods'
+    | '/_app/settings/plan'
     | '/_app/settings/qr'
     | '/_app/settings/staff-pool'
     | '/_app/settings/whatsapp'
@@ -1523,6 +1535,13 @@ declare module '@tanstack/react-router' {
       path: '/qr'
       fullPath: '/settings/qr'
       preLoaderRoute: typeof AppSettingsQrRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/plan': {
+      id: '/_app/settings/plan'
+      path: '/plan'
+      fullPath: '/settings/plan'
+      preLoaderRoute: typeof AppSettingsPlanRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
     '/_app/settings/payment-methods': {
@@ -2023,6 +2042,7 @@ interface AppSettingsRouteRouteChildren {
   AppSettingsLinksRoute: typeof AppSettingsLinksRoute
   AppSettingsLoyaltyRoute: typeof AppSettingsLoyaltyRoute
   AppSettingsPaymentMethodsRoute: typeof AppSettingsPaymentMethodsRoute
+  AppSettingsPlanRoute: typeof AppSettingsPlanRoute
   AppSettingsQrRoute: typeof AppSettingsQrRoute
   AppSettingsStaffPoolRoute: typeof AppSettingsStaffPoolRoute
   AppSettingsWhatsappRoute: typeof AppSettingsWhatsappRoute
@@ -2041,6 +2061,7 @@ const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
   AppSettingsLinksRoute: AppSettingsLinksRoute,
   AppSettingsLoyaltyRoute: AppSettingsLoyaltyRoute,
   AppSettingsPaymentMethodsRoute: AppSettingsPaymentMethodsRoute,
+  AppSettingsPlanRoute: AppSettingsPlanRoute,
   AppSettingsQrRoute: AppSettingsQrRoute,
   AppSettingsStaffPoolRoute: AppSettingsStaffPoolRoute,
   AppSettingsWhatsappRoute: AppSettingsWhatsappRoute,

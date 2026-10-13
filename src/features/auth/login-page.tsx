@@ -59,7 +59,7 @@ export function LoginPage() {
   const { mutate, isPending } = useLogin({
     mutation: {
       onSuccess: (data) => {
-        signIn(data.token, data.user);
+        signIn(data.token, data.user, data.plan);
         navigate({ to: search.redirect ?? "/" });
       },
       // A refused sign-in is wrong credentials (not an expired session), in

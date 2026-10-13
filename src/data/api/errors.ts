@@ -82,6 +82,10 @@ const STALE_CODES = new Set([
   // A stock transfer moved on under this person (another side acted first).
   "TRANSFER_CHANGED", "TRANSFER_STEP_NOT_OPEN",
 ]);
+/** The codes of a plan refusal: a 403 `{code, feature, error, error_ar}` (madar-plan). */
+const PLAN_REFUSALS = new Set(["plan_feature", "plan_branch_limit", "plan_device_limit", "plan_no_realtime", "plan_till_inactive"]);
+export const isPlanRefusal = (code: unknown): boolean => typeof code === "string" && PLAN_REFUSALS.has(code);
+
 /** The server's limiter said "not now" (429): ask again later, keep what is shown. */
 export const isRateLimited = (err: unknown): boolean => err instanceof AxiosError && err.response?.status === 429;
 
@@ -155,6 +159,15 @@ export const getErrorMessage = (
                 code === "ADVANCE_OVER_CAP" && vars.more_egp === undefined && vars.over_cap === true
                 ? "ADVANCE_OVER_CAP_owner"
                 : code);
+    // A plan refusal (403 `plan_*`, madar-plan) carries its own sentence in both
+    // languages: the Arabic UI reads `error_ar`, the English one `error`. The
+    // upgrade hint closes it, so a toast always says how to go on.
+    if (status === 403 && isPlanRefusal(code)) {
+      const ar = typeof data?.error_ar === "string" ? data.error_ar : undefined;
+      const en = typeof data?.error === "string" ? data.error.replace(SERVER_KIND_PREFIX, "") : undefined;
+      const sentence = (isArabicUi() ? (ar ?? en) : en) ?? t("plan.refused");
+      return `${sentence} ${t("plan.upgrade.hint")}`;
+    }
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
     // The limiter's 429 carries no code and English prose: word it, never as the network.
     if (status === 429 && !code) return t("errors.tooManyRequests");

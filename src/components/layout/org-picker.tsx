@@ -34,7 +34,7 @@ export function OrgPicker({ className }: { className?: string }) {
   const setSelectedOrg = useAppStore((s) => s.setSelectedOrg);
   const { setBranch } = useScope();
 
-  const list = useListOrgs({ query: { enabled: isSuperAdmin } });
+  const list = useListOrgs(undefined, { query: { enabled: isSuperAdmin } });
   const orgs = useMemo(
     () => [...(list.data ?? [])].sort((a, b) => a.name.localeCompare(b.name)),
     [list.data],

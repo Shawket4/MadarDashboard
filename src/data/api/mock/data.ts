@@ -75,6 +75,8 @@ export const MOCK_ORG: Org = {
   logo_url: null,
   receipt_footer: "Thank you — see you again soon.",
   is_active: true,
+  plan: "paid",
+  signup_source: "admin",
   custom_branding: true,
   modules: ["pos", "dawam"],
   social_links: {
