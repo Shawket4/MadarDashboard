@@ -12935,6 +12935,7 @@ export const PublicMenuResponse = zod.object({
   "type": zod.string().describe('`milk_type` | `coffee_type` | `extra` — the option\'s category.')
 }).describe('One option in the org-wide addon catalog. The catalog is global (the POS\nmodel): every item can use any addon; swap-vs-additive is decided server-side\nfrom the addon `type` + the item recipe at order time. `price` is the\nchannel-effective surcharge in piastres (branch_channel → branch → catalog\ndefault). Channel-unavailable options are excluded from the catalog entirely.')).describe('Org-wide addon catalog (global, POS model): channel-effective, grouped by\n`type`, applicable to every item. Channel-unavailable options are excluded.'),
   "categories": zod.array(zod.object({
+  "display_order": zod.number().describe('The dashboard\'s drag-and-drop position (lower first). `categories`\nalready comes in the POS\'s order (madar-catalog `order`: this, then\nthe English name, then `id`); a page shown in another language\nre-orders by the name it shows (madar-web `category_order`).'),
   "id": zod.uuid(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
@@ -14008,6 +14009,7 @@ export const PublicTableMenuResponse = zod.object({
   "type": zod.string().describe('`milk_type` | `coffee_type` | `extra` — the option\'s category.')
 }).describe('One option in the org-wide addon catalog. The catalog is global (the POS\nmodel): every item can use any addon; swap-vs-additive is decided server-side\nfrom the addon `type` + the item recipe at order time. `price` is the\nchannel-effective surcharge in piastres (branch_channel → branch → catalog\ndefault). Channel-unavailable options are excluded from the catalog entirely.')).describe('Org-wide addon catalog (global, POS model): channel-effective, grouped by\n`type`, applicable to every item. Channel-unavailable options are excluded.'),
   "categories": zod.array(zod.object({
+  "display_order": zod.number().describe('The dashboard\'s drag-and-drop position (lower first). `categories`\nalready comes in the POS\'s order (madar-catalog `order`: this, then\nthe English name, then `id`); a page shown in another language\nre-orders by the name it shows (madar-web `category_order`).'),
   "id": zod.uuid(),
   "image_url": zod.string().nullish(),
   "name": zod.string(),
