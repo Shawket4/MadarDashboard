@@ -6,6 +6,7 @@ export const business_date: (a: number, b: number, c: number) => [number, number
 export const cart_line_total: (a: any) => [number, number, number];
 export const cart_line_unit: (a: any) => [number, number, number];
 export const cart_subtotal: (a: number, b: number) => [number, number, number];
+export const category_order: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const combo_choice_extra: (a: any, b: number, c: number) => [number, number, number];
 export const combo_extras: (a: number, b: number) => [number, number, number];
 export const combo_quote: (a: any, b: number, c: number, d: number) => [number, number, number];

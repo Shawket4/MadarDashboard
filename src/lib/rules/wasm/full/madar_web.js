@@ -124,6 +124,28 @@ export function cart_subtotal(lines) {
 }
 
 /**
+ * The positions of `categories` in the order the POS shows them to a
+ * reader in `locale`: `display_order` (missing or `null` is 0), then the
+ * name they read, by code point, then `id`. Pass the API's categories as
+ * they are (other fields are ignored) and read them back with
+ * `order.map((i) => categories[i])`.
+ * @param {OrderCategory[]} categories
+ * @param {string} locale
+ * @returns {number[]}
+ */
+export function category_order(categories, locale) {
+    const ptr0 = passArrayJsValueToWasm0(categories, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(locale, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.category_order(ptr0, len0, ptr1, len1);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
  * One received line, judged (a note of only whitespace is no note).
  * @param {number} qty_sent
  * @param {number} qty_received
@@ -917,6 +939,16 @@ function __wbg_get_imports() {
             let result;
             try {
                 result = arg0 instanceof ArrayBuffer;
+            } catch (_) {
+                result = false;
+            }
+            const ret = result;
+            return ret;
+        },
+        __wbg_instanceof_Map_b2611749102d7ba3: function(arg0) {
+            let result;
+            try {
+                result = arg0 instanceof Map;
             } catch (_) {
                 result = false;
             }

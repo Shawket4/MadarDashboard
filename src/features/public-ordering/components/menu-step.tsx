@@ -23,6 +23,7 @@ import { ItemCustomizer } from "./item-customizer";
 import { ComboCustomizer } from "./combo-customizer";
 import { isCombo } from "../combo";
 import { itemBasePrice } from "../utils";
+import { inMenuOrder } from "../menu-order";
 import { useHeaderHeight } from "@/features/public-shell/use-header-height";
 
 interface MenuStepProps {
@@ -561,8 +562,10 @@ function buildGroups(menu: DeliveryMenu | undefined, lang: string, query: string
     }
   }
 
+  // The POS's order, in the reader's language (the server sends the English
+  // reader's; an Arabic name can break a tie the other way).
   const groups: Group[] = [];
-  for (const cat of menu.categories) {
+  for (const cat of inMenuOrder(menu.categories, lang)) {
     const items = byCat.get(cat.id) ?? [];
     if (items.length > 0) {
       groups.push({ id: cat.id, name: getTranslatedName(cat, lang), items });
