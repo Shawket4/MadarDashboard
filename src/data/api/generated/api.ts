@@ -25,6 +25,7 @@ import type {
   ActivateDeviceRequest,
   ActivateDeviceResponse,
   ActivationCode,
+  ActiveTillRequest,
   AddRoundRequest,
   AddonCost,
   AddonIngredient,
@@ -362,6 +363,7 @@ import type {
   ListOpenTicketsParams,
   ListOrdersParams,
   ListOrgPurchaseOrdersParams,
+  ListOrgsParams,
   ListPurchaseOrdersParams,
   ListRequestsParams,
   ListRoutesParams,
@@ -487,6 +489,7 @@ import type {
   PinSuggestion,
   PingRequest,
   PingResult,
+  PlanState,
   PlanVersionView,
   PoLeadTimeReport,
   PolicyEntry,
@@ -616,6 +619,10 @@ import type {
   ShiftReportResponse,
   ShiftSummary,
   ShrinkageRow,
+  SignupOtpRequest,
+  SignupOtpResponse,
+  SignupRequest,
+  SignupResponse,
   SizeBaseResult,
   SizeCostOut,
   SkuCost,
@@ -21439,13 +21446,14 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
 
 export const listOrgs = (
-
+    params?: ListOrgsParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<Org[]>(
-      {url: `/orgs`, method: 'GET', signal
+      {url: `/orgs`, method: 'GET',
+        params, signal
     },
       options);
     }
@@ -21453,23 +21461,23 @@ export const listOrgs = (
 
 
 
-export const getListOrgsQueryKey = () => {
+export const getListOrgsQueryKey = (params?: ListOrgsParams,) => {
     return [
-    `/orgs`
+    `/orgs`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListOrgsQueryOptions = <TData = Awaited<ReturnType<typeof listOrgs>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrgs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getListOrgsQueryOptions = <TData = Awaited<ReturnType<typeof listOrgs>>, TError = ErrorBody>(params?: ListOrgsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrgs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListOrgsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListOrgsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOrgs>>> = ({ signal }) => listOrgs(requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOrgs>>> = ({ signal }) => listOrgs(params, requestOptions, signal);
 
 
 
@@ -21483,7 +21491,7 @@ export type ListOrgsQueryError = ErrorBody
 
 
 export function useListOrgs<TData = Awaited<ReturnType<typeof listOrgs>>, TError = ErrorBody>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrgs>>, TError, TData>> & Pick<
+ params: undefined |  ListOrgsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrgs>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listOrgs>>,
           TError,
@@ -21493,7 +21501,7 @@ export function useListOrgs<TData = Awaited<ReturnType<typeof listOrgs>>, TError
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListOrgs<TData = Awaited<ReturnType<typeof listOrgs>>, TError = ErrorBody>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrgs>>, TError, TData>> & Pick<
+ params?: ListOrgsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrgs>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listOrgs>>,
           TError,
@@ -21503,16 +21511,16 @@ export function useListOrgs<TData = Awaited<ReturnType<typeof listOrgs>>, TError
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListOrgs<TData = Awaited<ReturnType<typeof listOrgs>>, TError = ErrorBody>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrgs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ params?: ListOrgsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrgs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListOrgs<TData = Awaited<ReturnType<typeof listOrgs>>, TError = ErrorBody>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrgs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ params?: ListOrgsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOrgs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListOrgsQueryOptions(options)
+  const queryOptions = getListOrgsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -22910,6 +22918,169 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getCompleteOnboardingMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary The org's plan, what it allows, and each branch's tills.
+ */
+export const getOrgPlan = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PlanState>(
+      {url: `/orgs/${id}/plan`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetOrgPlanQueryKey = (id: string,) => {
+    return [
+    `/orgs/${id}/plan`
+    ] as const;
+    }
+
+
+export const getGetOrgPlanQueryOptions = <TData = Awaited<ReturnType<typeof getOrgPlan>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrgPlan>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrgPlanQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrgPlan>>> = ({ signal }) => getOrgPlan(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrgPlan>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetOrgPlanQueryResult = NonNullable<Awaited<ReturnType<typeof getOrgPlan>>>
+export type GetOrgPlanQueryError = ErrorBody
+
+
+export function useGetOrgPlan<TData = Awaited<ReturnType<typeof getOrgPlan>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrgPlan>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrgPlan>>,
+          TError,
+          Awaited<ReturnType<typeof getOrgPlan>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrgPlan<TData = Awaited<ReturnType<typeof getOrgPlan>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrgPlan>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrgPlan>>,
+          TError,
+          Awaited<ReturnType<typeof getOrgPlan>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetOrgPlan<TData = Awaited<ReturnType<typeof getOrgPlan>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrgPlan>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The org's plan, what it allows, and each branch's tills.
+ */
+
+export function useGetOrgPlan<TData = Awaited<ReturnType<typeof getOrgPlan>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOrgPlan>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetOrgPlanQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary Choose which till a branch sells on (Free plan). The chosen till is active,
+every other POS till of the branch is switched off. The org's owner, or a
+super admin; a paid org has no inactive tills (409 `PLAN_NOT_FREE`).
+ */
+export const putActiveTill = (
+    id: string,
+    activeTillRequest: ActiveTillRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PlanState>(
+      {url: `/orgs/${id}/plan/active-till`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: activeTillRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutActiveTillMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putActiveTill>>, TError,{id: string;data: ActiveTillRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putActiveTill>>, TError,{id: string;data: ActiveTillRequest}, TContext> => {
+
+const mutationKey = ['putActiveTill'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putActiveTill>>, {id: string;data: ActiveTillRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  putActiveTill(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutActiveTillMutationResult = NonNullable<Awaited<ReturnType<typeof putActiveTill>>>
+    export type PutActiveTillMutationBody = ActiveTillRequest
+    export type PutActiveTillMutationError = ErrorBody
+
+    /**
+ * @summary Choose which till a branch sells on (Free plan). The chosen till is active,
+every other POS till of the branch is switched off. The org's owner, or a
+super admin; a paid org has no inactive tills (409 `PLAN_NOT_FREE`).
+ */
+export const usePutActiveTill = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putActiveTill>>, TError,{id: string;data: ActiveTillRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putActiveTill>>,
+        TError,
+        {id: string;data: ActiveTillRequest},
+        TContext
+      > => {
+      return useMutation(getPutActiveTillMutationOptions(options), queryClient);
     }
 
 export const orgQr = (
@@ -27028,6 +27199,144 @@ export const useOtpVerify = <TError = ErrorBody,
         TContext
       > => {
       return useMutation(getOtpVerifyMutationOptions(options), queryClient);
+    }
+
+/**
+ * 400 for a wrong or expired code (or a bad field), 409 `SIGNUP_PHONE_TAKEN` /
+ * `SIGNUP_EMAIL_TAKEN` when the phone or email already owns an account (sign in
+ * instead), 429 from the per-IP governor. A code is spent only by a signup that
+ * succeeds: a duplicate email leaves it good for another try (within its five
+ * attempts).
+ * @summary Make a shop on the Free plan.
+ */
+export const signup = (
+    signupRequest: SignupRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SignupResponse>(
+      {url: `/public/signup`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: signupRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getSignupMutationOptions = <TError = ErrorBody | void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signup>>, TError,{data: SignupRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof signup>>, TError,{data: SignupRequest}, TContext> => {
+
+const mutationKey = ['signup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof signup>>, {data: SignupRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  signup(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SignupMutationResult = NonNullable<Awaited<ReturnType<typeof signup>>>
+    export type SignupMutationBody = SignupRequest
+    export type SignupMutationError = ErrorBody | void
+
+    /**
+ * @summary Make a shop on the Free plan.
+ */
+export const useSignup = <TError = ErrorBody | void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signup>>, TError,{data: SignupRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof signup>>,
+        TError,
+        {data: SignupRequest},
+        TContext
+      > => {
+      return useMutation(getSignupMutationOptions(options), queryClient);
+    }
+
+/**
+ * 409 `SIGNUP_PHONE_TAKEN` when a shop already owns the phone; 429 when a code
+ * went out in the last minute (`SIGNUP_OTP_COOLDOWN`) or five did in the last
+ * hour (`SIGNUP_OTP_LIMIT`); the per-IP governor answers 429 `RATE_LIMITED`.
+ * @summary Send a code by WhatsApp to prove the owner's phone.
+ */
+export const signupOtp = (
+    signupOtpRequest: SignupOtpRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SignupOtpResponse>(
+      {url: `/public/signup/otp`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: signupOtpRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getSignupOtpMutationOptions = <TError = ErrorBody | void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signupOtp>>, TError,{data: SignupOtpRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof signupOtp>>, TError,{data: SignupOtpRequest}, TContext> => {
+
+const mutationKey = ['signupOtp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof signupOtp>>, {data: SignupOtpRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  signupOtp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SignupOtpMutationResult = NonNullable<Awaited<ReturnType<typeof signupOtp>>>
+    export type SignupOtpMutationBody = SignupOtpRequest
+    export type SignupOtpMutationError = ErrorBody | void
+
+    /**
+ * @summary Send a code by WhatsApp to prove the owner's phone.
+ */
+export const useSignupOtp = <TError = ErrorBody | void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signupOtp>>, TError,{data: SignupOtpRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof signupOtp>>,
+        TError,
+        {data: SignupOtpRequest},
+        TContext
+      > => {
+      return useMutation(getSignupOtpMutationOptions(options), queryClient);
     }
 
 /**

@@ -8,6 +8,12 @@ export interface LoginResponse {
   currency_code: string;
   open_till?: null | TillBrief;
   /**
+     * The organization's plan: `free` | `paid` (`madar-plan`; an old client that
+     * does not read it behaves as before, and a missing value is `paid`).
+     * A till also learns it from the sync feed's branch settings.
+     */
+  plan?: string;
+  /**
      * Every dine-in sale belongs to a table.
      *
      * The till needs this, not just the server: the rule changes what the POS

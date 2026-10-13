@@ -2,11 +2,20 @@
 // @ts-nocheck
 import type { CategorySales } from './categorySales';
 import type { ItemSales } from './itemSales';
+import type { ServiceModeSales } from './serviceModeSales';
 
 export interface BranchSalesReport {
   branch_id: string;
   branch_name: string;
   by_category: CategorySales[];
+  /**
+     * The sales split by how the customer takes the order: always both rows,
+     * `takeaway` (Pickup) then `dine_in`, zero when there were none. Same sold
+     * set and the same net-of-refunds revenue as `total_revenue`, so the two
+     * rows add up to it (less delivery orders, which are `takeaway` here as
+     * they are on the order). On every plan.
+     */
+  by_service_mode?: ServiceModeSales[];
   /** The cash slice of `total_tips` (snapshotted `tip_is_cash`). */
   cash_tips?: number;
   /** @nullable */

@@ -217,6 +217,13 @@ export interface Order {
   service_charge_waived_by?: string | null;
   /** @nullable */
   service_charge_waived_by_name?: string | null;
+  /**
+     * How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The
+     * cart's Pickup / Dine in toggle, stored on every order of every plan; a
+     * sale made on a till that never sent it is `takeaway`. Sales reports split
+     * by it (`GET /reports/sales` → `by_service_mode`).
+     */
+  service_mode?: string;
   /** DEPRECATED: same value as `till_id` (required by POS v0.5.1/v0.6.0). */
   shift_id: string;
   /**

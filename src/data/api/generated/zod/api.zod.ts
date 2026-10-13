@@ -551,6 +551,7 @@ export const ActivateResponse = zod.object({
   "label": zod.string().nullish(),
   "last_seen_at": zod.iso.datetime({"offset":true}),
   "org_id": zod.uuid(),
+  "plan_inactive": zod.boolean().optional().describe('The Free plan switched this till off (it is not its branch\'s active\none): it shows \"This till isn\'t active\" instead of the sell screen.\nAlways `false` on Paid.'),
   "platform": zod.string().nullish(),
   "retired_at": zod.iso.datetime({"offset":true}).nullish()
 }),
@@ -603,6 +604,7 @@ export const DeviceSessionResponse = zod.object({
   "teller_name": zod.string(),
   "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('OpenAPI-only vocabulary for `Till.verification` (`tills_verification` CHECK):\nhow the one-open-till-per-person rule was checked when the till opened.\n`legacy` marks tills opened by pre-rework clients \/ before the rework.')
 }).describe('The person\'s open till at the branch they signed into (any device), so\nthe device can resume it or show where it is open.')]).optional(),
+  "plan": zod.string().optional().describe('The organization\'s plan: `free` | `paid` (`madar-plan`; an old client that\ndoes not read it behaves as before, and a missing value is `paid`).\nA till also learns it from the sync feed\'s branch settings.'),
   "require_table_for_orders": zod.boolean().optional().describe('Every dine-in sale belongs to a table.\n\nThe till needs this, not just the server: the rule changes what the POS\nputs in front of a teller — the floor becomes the home screen and a sale\nstarts by picking a table — and a refusal AFTER the items are rung up is\nfar too late to be useful.'),
   "tax_policy": zod.object({
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
@@ -656,6 +658,7 @@ export const LoginResponse = zod.object({
   "teller_name": zod.string(),
   "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('OpenAPI-only vocabulary for `Till.verification` (`tills_verification` CHECK):\nhow the one-open-till-per-person rule was checked when the till opened.\n`legacy` marks tills opened by pre-rework clients \/ before the rework.')
 }).describe('The person\'s open till at the branch they signed into (any device), so\nthe device can resume it or show where it is open.')]).optional(),
+  "plan": zod.string().optional().describe('The organization\'s plan: `free` | `paid` (`madar-plan`; an old client that\ndoes not read it behaves as before, and a missing value is `paid`).\nA till also learns it from the sync feed\'s branch settings.'),
   "require_table_for_orders": zod.boolean().optional().describe('Every dine-in sale belongs to a table.\n\nThe till needs this, not just the server: the rule changes what the POS\nputs in front of a teller — the floor becomes the home screen and a sale\nstarts by picking a table — and a refusal AFTER the items are rung up is\nfar too late to be useful.'),
   "tax_policy": zod.object({
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
@@ -680,6 +683,7 @@ export const LoginResponse = zod.object({
 
 export const MeResponse = zod.object({
   "currency_code": zod.string().describe('Org currency code (e.g. \"EGP\").'),
+  "plan": zod.string().optional().describe('The organization\'s plan: `free` | `paid`. Re-read on every `\/auth\/me`.'),
   "require_table_for_orders": zod.boolean().optional().describe('Every dine-in sale belongs to a table. Re-read on every `\/auth\/me`, so\nswitching it on reaches a till that has been running for weeks.'),
   "tax_policy": zod.object({
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
@@ -4722,6 +4726,7 @@ export const ListDevicesResponseItem = zod.object({
   "label": zod.string().nullish(),
   "last_seen_at": zod.iso.datetime({"offset":true}),
   "org_id": zod.uuid(),
+  "plan_inactive": zod.boolean().optional().describe('The Free plan switched this till off (it is not its branch\'s active\none): it shows \"This till isn\'t active\" instead of the sell screen.\nAlways `false` on Paid.'),
   "platform": zod.string().nullish(),
   "retired_at": zod.iso.datetime({"offset":true}).nullish()
 })
@@ -4846,6 +4851,7 @@ export const RegisterDeviceResponse = zod.object({
   "label": zod.string().nullish(),
   "last_seen_at": zod.iso.datetime({"offset":true}),
   "org_id": zod.uuid(),
+  "plan_inactive": zod.boolean().optional().describe('The Free plan switched this till off (it is not its branch\'s active\none): it shows \"This till isn\'t active\" instead of the sell screen.\nAlways `false` on Paid.'),
   "platform": zod.string().nullish(),
   "retired_at": zod.iso.datetime({"offset":true}).nullish()
 })
@@ -4873,6 +4879,7 @@ export const UpdateDeviceResponse = zod.object({
   "label": zod.string().nullish(),
   "last_seen_at": zod.iso.datetime({"offset":true}),
   "org_id": zod.uuid(),
+  "plan_inactive": zod.boolean().optional().describe('The Free plan switched this till off (it is not its branch\'s active\none): it shows \"This till isn\'t active\" instead of the sell screen.\nAlways `false` on Paid.'),
   "platform": zod.string().nullish(),
   "retired_at": zod.iso.datetime({"offset":true}).nullish()
 })
@@ -10541,6 +10548,7 @@ export const SettleOpenTicketResponse = zod.object({
   "service_charge_waived_at": zod.iso.datetime({"offset":true}).nullish().describe('When the service charge was removed. Additive.'),
   "service_charge_waived_by": zod.uuid().nullish().describe('Who removed the service charge from this table\'s bill (a holder of\n`orders:waive_service`), or `null`. Additive.'),
   "service_charge_waived_by_name": zod.string().nullish(),
+  "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
@@ -10762,6 +10770,7 @@ export const ListOrdersResponse = zod.object({
   "service_charge_waived_at": zod.iso.datetime({"offset":true}).nullish().describe('When the service charge was removed. Additive.'),
   "service_charge_waived_by": zod.uuid().nullish().describe('Who removed the service charge from this table\'s bill (a holder of\n`orders:waive_service`), or `null`. Additive.'),
   "service_charge_waived_by_name": zod.string().nullish(),
+  "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
@@ -10960,6 +10969,7 @@ export const CreateOrderResponse = zod.object({
   "service_charge_waived_at": zod.iso.datetime({"offset":true}).nullish().describe('When the service charge was removed. Additive.'),
   "service_charge_waived_by": zod.uuid().nullish().describe('Who removed the service charge from this table\'s bill (a holder of\n`orders:waive_service`), or `null`. Additive.'),
   "service_charge_waived_by_name": zod.string().nullish(),
+  "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
@@ -11144,6 +11154,7 @@ export const ExportOrdersResponse = zod.object({
   "service_charge_waived_at": zod.iso.datetime({"offset":true}).nullish().describe('When the service charge was removed. Additive.'),
   "service_charge_waived_by": zod.uuid().nullish().describe('Who removed the service charge from this table\'s bill (a holder of\n`orders:waive_service`), or `null`. Additive.'),
   "service_charge_waived_by_name": zod.string().nullish(),
+  "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
@@ -11337,6 +11348,7 @@ export const GetOrderResponse = zod.object({
   "service_charge_waived_at": zod.iso.datetime({"offset":true}).nullish().describe('When the service charge was removed. Additive.'),
   "service_charge_waived_by": zod.uuid().nullish().describe('Who removed the service charge from this table\'s bill (a holder of\n`orders:waive_service`), or `null`. Additive.'),
   "service_charge_waived_by_name": zod.string().nullish(),
+  "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
@@ -11528,6 +11540,7 @@ export const VoidOrderResponse = zod.object({
   "service_charge_waived_at": zod.iso.datetime({"offset":true}).nullish().describe('When the service charge was removed. Additive.'),
   "service_charge_waived_by": zod.uuid().nullish().describe('Who removed the service charge from this table\'s bill (a holder of\n`orders:waive_service`), or `null`. Additive.'),
   "service_charge_waived_by_name": zod.string().nullish(),
+  "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
@@ -11553,6 +11566,11 @@ export const VoidOrderResponse = zod.object({
 })
 
 
+export const ListOrgsQueryParams = zod.object({
+  "plan": zod.string().optional().describe('Only organizations on this plan: `free` | `paid`.'),
+  "signup_source": zod.string().optional().describe('Only organizations created this way: `admin` | `self`.')
+})
+
 export const ListOrgsResponseItem = zod.object({
   "brand_accent": zod.string().nullish(),
   "brand_background": zod.string().nullish().describe('The card palette derived from `logo_url` when it was uploaded\n(`orgs::branding`). Read-only over the API: there is nothing to set, and\nnothing a client may set — the point of deriving is that a shop cannot\nchoose two colours nobody can read.'),
@@ -11567,10 +11585,12 @@ export const ListOrgsResponseItem = zod.object({
   "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
+  "plan": zod.string().describe('`free` | `paid`. What the organization may use (madar-plan): Free is\nPOS only, one branch, one till; Paid is the whole product. Super admin\nchanges it (`PATCH \/orgs\/{id}`).'),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "signup_source": zod.string().describe('`admin` (the super admin made the org) | `self` (the shop signed up).'),
   "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
@@ -11611,10 +11631,12 @@ export const CreateOrgResponse = zod.object({
   "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
+  "plan": zod.string().describe('`free` | `paid`. What the organization may use (madar-plan): Free is\nPOS only, one branch, one till; Paid is the whole product. Super admin\nchanges it (`PATCH \/orgs\/{id}`).'),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "signup_source": zod.string().describe('`admin` (the super admin made the org) | `self` (the shop signed up).'),
   "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
@@ -11662,10 +11684,12 @@ export const ProvisionOrgResponse = zod.object({
   "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
+  "plan": zod.string().describe('`free` | `paid`. What the organization may use (madar-plan): Free is\nPOS only, one branch, one till; Paid is the whole product. Super admin\nchanges it (`PATCH \/orgs\/{id}`).'),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "signup_source": zod.string().describe('`admin` (the super admin made the org) | `self` (the shop signed up).'),
   "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
@@ -11711,10 +11735,12 @@ export const GetOrgResponse = zod.object({
   "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
+  "plan": zod.string().describe('`free` | `paid`. What the organization may use (madar-plan): Free is\nPOS only, one branch, one till; Paid is the whole product. Super admin\nchanges it (`PATCH \/orgs\/{id}`).'),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "signup_source": zod.string().describe('`admin` (the super admin made the org) | `self` (the shop signed up).'),
   "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
@@ -11749,6 +11775,7 @@ export const UpdateOrgBody = zod.object({
   "max_warehouses": zod.number().nullish().describe('Warehouses this org may have. `null` = unlimited; absent = unchanged.'),
   "modules": zod.array(zod.string()).nullish().describe('`pos`, `dawam`: at least one (PS-2, SA-5). Super admin only, like the\nrest of this endpoint.'),
   "name": zod.string().nullish(),
+  "plan": zod.string().nullish().describe('`free` | `paid`. Super admin only. Paid -> Free keeps every branch and\nall data, switches the paid features off (the capability ceiling), and\nleaves ONE till per branch active (the most recently used); Free -> Paid\nswitches every till back on. A repeat of the current plan changes nothing.'),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().nullish(),
   "service_charge_rate": zod.number().nullish(),
@@ -11776,10 +11803,12 @@ export const UpdateOrgResponse = zod.object({
   "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
+  "plan": zod.string().describe('`free` | `paid`. What the organization may use (madar-plan): Free is\nPOS only, one branch, one till; Paid is the whole product. Super admin\nchanges it (`PATCH \/orgs\/{id}`).'),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "signup_source": zod.string().describe('`admin` (the super admin made the org) | `self` (the shop signed up).'),
   "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
@@ -11853,10 +11882,12 @@ export const UploadOrgCardImageResponse = zod.object({
   "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
+  "plan": zod.string().describe('`free` | `paid`. What the organization may use (madar-plan): Free is\nPOS only, one branch, one till; Paid is the whole product. Super admin\nchanges it (`PATCH \/orgs\/{id}`).'),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "signup_source": zod.string().describe('`admin` (the super admin made the org) | `self` (the shop signed up).'),
   "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
@@ -12037,10 +12068,12 @@ export const UploadOrgLogoResponse = zod.object({
   "max_warehouses": zod.number().nullish().describe('How many warehouses this org may have; `null` = unlimited. Set by a\nsuper admin (WAREHOUSE_DESIGN.md).'),
   "modules": zod.array(zod.string()).describe('Switched-on modules: `pos`, `dawam` (PS-2). Switching one off hides it\nand keeps every record.'),
   "name": zod.string(),
+  "plan": zod.string().describe('`free` | `paid`. What the organization may use (madar-plan): Free is\nPOS only, one branch, one till; Paid is the whole product. Super admin\nchanges it (`PATCH \/orgs\/{id}`).'),
   "receipt_footer": zod.string().nullish(),
   "require_table_for_orders": zod.boolean().describe('Every dine-in sale must belong to a table. No effect where a branch has\nno floor authored — a shop cannot be made to seat somebody in a room\nwith no seats.'),
   "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
   "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "signup_source": zod.string().describe('`admin` (the super admin made the org) | `self` (the shop signed up).'),
   "slug": zod.string().nullish().describe('`None` when the shop has no address of its own. Never an empty string —\nthe column holds NULL for that and a CHECK keeps it so.'),
   "social_links": zod.looseObject({
 
@@ -12157,6 +12190,87 @@ export const CompleteOnboardingResponse = zod.object({
   "key": zod.string().describe('Stable key the dashboard switches on — never localized.'),
   "required": zod.boolean().describe('Steps that are encouraged but not blocking (`required = false`\nnever gates `can_complete`).')
 }).describe('One derived setup step.'))
+})
+
+
+/**
+ * @summary The org's plan, what it allows, and each branch's tills.
+ */
+export const GetOrgPlanParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const getOrgPlanResponseBranchLimitMin = 0;
+
+
+
+export const GetOrgPlanResponse = zod.object({
+  "branch_limit": zod.number().min(getOrgPlanResponseBranchLimitMin).nullish().describe('The plan\'s branch limit, `null` for unlimited.'),
+  "branches": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "name": zod.string(),
+  "tills": zod.array(zod.object({
+  "active": zod.boolean().describe('`false`: the plan switched this till off (not its branch\'s active one).\nAlways `true` on Paid.'),
+  "code": zod.string().describe('The till\'s short code on receipts (`T1`).'),
+  "device_id": zod.uuid(),
+  "label": zod.string().nullish(),
+  "last_sale_at": zod.iso.datetime({"offset":true}).nullish().describe('When the till last rang a sale, if it ever did.'),
+  "last_seen_at": zod.iso.datetime({"offset":true}).describe('When the till last talked to the server.')
+})).describe('The branch\'s POS tills, the active one first.')
+})),
+  "entitlements": zod.looseObject({
+
+}).describe('What the plan allows: `{features: [..], limits: {branches,\npos_devices_per_branch, kds_devices, waiter_devices}, realtime}`\n(madar-plan\'s `Entitlements`). A limit that is `null` is unlimited.'),
+  "inactive_tills": zod.number().describe('POS tills the plan has switched off.'),
+  "live_branches": zod.number().describe('Live selling branches (not deleted, not warehouses).'),
+  "org_id": zod.uuid(),
+  "over_branch_limit": zod.boolean().describe('Past the plan\'s branch limit (a downgraded org keeps all its branches\nand cannot add one).'),
+  "plan": zod.string().describe('`free` | `paid`.'),
+  "signup_source": zod.string().describe('`admin` | `self`.')
+})
+
+
+/**
+ * @summary Choose which till a branch sells on (Free plan). The chosen till is active,
+every other POS till of the branch is switched off. The org's owner, or a
+super admin; a paid org has no inactive tills (409 `PLAN_NOT_FREE`).
+ */
+export const PutActiveTillParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const PutActiveTillBody = zod.object({
+  "branch_id": zod.uuid(),
+  "device_id": zod.uuid().describe('The POS till (device) that stays active in the branch.')
+})
+
+export const putActiveTillResponseBranchLimitMin = 0;
+
+
+
+export const PutActiveTillResponse = zod.object({
+  "branch_limit": zod.number().min(putActiveTillResponseBranchLimitMin).nullish().describe('The plan\'s branch limit, `null` for unlimited.'),
+  "branches": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "name": zod.string(),
+  "tills": zod.array(zod.object({
+  "active": zod.boolean().describe('`false`: the plan switched this till off (not its branch\'s active one).\nAlways `true` on Paid.'),
+  "code": zod.string().describe('The till\'s short code on receipts (`T1`).'),
+  "device_id": zod.uuid(),
+  "label": zod.string().nullish(),
+  "last_sale_at": zod.iso.datetime({"offset":true}).nullish().describe('When the till last rang a sale, if it ever did.'),
+  "last_seen_at": zod.iso.datetime({"offset":true}).describe('When the till last talked to the server.')
+})).describe('The branch\'s POS tills, the active one first.')
+})),
+  "entitlements": zod.looseObject({
+
+}).describe('What the plan allows: `{features: [..], limits: {branches,\npos_devices_per_branch, kds_devices, waiter_devices}, realtime}`\n(madar-plan\'s `Entitlements`). A limit that is `null` is unlimited.'),
+  "inactive_tills": zod.number().describe('POS tills the plan has switched off.'),
+  "live_branches": zod.number().describe('Live selling branches (not deleted, not warehouses).'),
+  "org_id": zod.uuid(),
+  "over_branch_limit": zod.boolean().describe('Past the plan\'s branch limit (a downgraded org keeps all its branches\nand cannot add one).'),
+  "plan": zod.string().describe('`free` | `paid`.'),
+  "signup_source": zod.string().describe('`admin` | `self`.')
 })
 
 
@@ -13760,6 +13874,83 @@ export const OtpVerifyBody = zod.object({
 
 export const OtpVerifyResponse = zod.object({
   "device_token": zod.string()
+})
+
+
+/**
+ * 400 for a wrong or expired code (or a bad field), 409 `SIGNUP_PHONE_TAKEN` /
+ * `SIGNUP_EMAIL_TAKEN` when the phone or email already owns an account (sign in
+ * instead), 429 from the per-IP governor. A code is spent only by a signup that
+ * succeeds: a duplicate email leaves it good for another try (within its five
+ * attempts).
+ * @summary Make a shop on the Free plan.
+ */
+export const SignupBody = zod.object({
+  "code": zod.string().describe('The six-digit code from WhatsApp.'),
+  "email": zod.string(),
+  "owner_name": zod.string(),
+  "password": zod.string().describe('At least 8 characters.'),
+  "phone": zod.string().describe('The phone the code went to.'),
+  "shop_name": zod.string().describe('The shop\'s name. It names the organization and its first branch.'),
+  "template": zod.string().describe('`cafe` | `restaurant`: the role template the roles start from.'),
+  "terms_version": zod.string().describe('The version of the terms the owner accepted (stored with the org).')
+})
+
+export const SignupResponse = zod.object({
+  "currency_code": zod.string(),
+  "open_till": zod.union([zod.null(),zod.object({
+  "branch_id": zod.uuid(),
+  "device_code": zod.string().nullish(),
+  "device_id": zod.uuid().nullish(),
+  "device_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "opened_at": zod.iso.datetime({"offset":true}),
+  "opened_while_another_open": zod.boolean(),
+  "status": zod.enum(['open', 'closed', 'force_closed']).describe('OpenAPI-only vocabulary for `Till.status` (the `till_status` DB enum). The\nstruct fields stay `String`, so the wire strings are exactly the DB values.'),
+  "teller_id": zod.uuid(),
+  "teller_name": zod.string(),
+  "verification": zod.enum(['server', 'lan', 'unverified', 'legacy']).describe('OpenAPI-only vocabulary for `Till.verification` (`tills_verification` CHECK):\nhow the one-open-till-per-person rule was checked when the till opened.\n`legacy` marks tills opened by pre-rework clients \/ before the rework.')
+}).describe('The person\'s open till at the branch they signed into (any device), so\nthe device can resume it or show where it is open.')]).optional(),
+  "plan": zod.string().optional().describe('The organization\'s plan: `free` | `paid` (`madar-plan`; an old client that\ndoes not read it behaves as before, and a missing value is `paid`).\nA till also learns it from the sync feed\'s branch settings.'),
+  "require_table_for_orders": zod.boolean().optional().describe('Every dine-in sale belongs to a table.\n\nThe till needs this, not just the server: the rule changes what the POS\nputs in front of a teller — the floor becomes the home screen and a sale\nstarts by picking a table — and a refusal AFTER the items are rung up is\nfar too late to be useful.'),
+  "tax_policy": zod.object({
+  "service_charge_rate": zod.number().describe('Fraction of the bill added as a service charge; `0` disables it.'),
+  "service_charge_taxable": zod.boolean().describe('Whether the service charge is itself taxed.'),
+  "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax.'),
+  "tax_rate": zod.number().describe('Fraction, NOT a percentage: `0.14` is 14%.')
+}).describe('The full policy, including tax-inclusive pricing and service charge.\nPrefer this over the flat `tax_rate` above.'),
+  "tax_rate": zod.number().describe('Org tax rate as a decimal (e.g. 0.14 = 14% VAT); 0.0 when no org. Mirrors\n\/auth\/me so the POS has it immediately after login.'),
+  "token": zod.string().describe('JWT to send as `Authorization: Bearer <token>` on subsequent requests.'),
+  "user": zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "email": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "org_id": zod.uuid().nullish(),
+  "phone": zod.string().nullish(),
+  "role": zod.enum(['super_admin', 'org_admin', 'branch_manager', 'teller', 'waiter', 'kitchen'])
+})
+}).and(zod.object({
+  "branch_id": zod.uuid().describe('The first (and, on Free, only) branch.'),
+  "org_id": zod.uuid()
+})).describe('A session like `POST \/auth\/login`\'s, for the owner just made, plus the\nids the dashboard lands on.')
+
+
+/**
+ * 409 `SIGNUP_PHONE_TAKEN` when a shop already owns the phone; 429 when a code
+ * went out in the last minute (`SIGNUP_OTP_COOLDOWN`) or five did in the last
+ * hour (`SIGNUP_OTP_LIMIT`); the per-IP governor answers 429 `RATE_LIMITED`.
+ * @summary Send a code by WhatsApp to prove the owner's phone.
+ */
+export const SignupOtpBody = zod.object({
+  "phone": zod.string().describe('The owner\'s phone (any common Egyptian spelling; stored canonical).')
+})
+
+export const SignupOtpResponse = zod.object({
+  "expires_in_seconds": zod.number().describe('How long the code is good for.'),
+  "resend_after_seconds": zod.number().describe('How long before another code may be asked for.'),
+  "sent": zod.boolean()
 })
 
 
@@ -15445,6 +15636,11 @@ export const BranchSalesResponse = zod.object({
   "quantity_sold": zod.number(),
   "revenue": zod.number()
 })),
+  "by_service_mode": zod.array(zod.object({
+  "orders": zod.number().describe('Sold orders (voided and refunded excluded).'),
+  "revenue": zod.number().describe('Net of refunds against these orders, like `total_revenue`.'),
+  "service_mode": zod.string().describe('`takeaway` (Pickup) | `dine_in`.')
+}).describe('Sales of one service mode (`orders.service_mode`).')).optional().describe('The sales split by how the customer takes the order: always both rows,\n`takeaway` (Pickup) then `dine_in`, zero when there were none. Same sold\nset and the same net-of-refunds revenue as `total_revenue`, so the two\nrows add up to it (less delivery orders, which are `takeaway` here as\nthey are on the order). On every plan.'),
   "cash_tips": zod.number().optional().describe('The cash slice of `total_tips` (snapshotted `tip_is_cash`).'),
   "from": zod.iso.datetime({"offset":true}).nullish(),
   "gross_sales": zod.number().optional().describe('Sales in range as rung up, before any refund. Was what `total_revenue`\nmeant until 2026-09.'),

@@ -6,6 +6,8 @@ import type { UserPublic } from './userPublic';
 export interface MeResponse {
   /** Org currency code (e.g. "EGP"). */
   currency_code: string;
+  /** The organization's plan: `free` | `paid`. Re-read on every `/auth/me`. */
+  plan?: string;
   /**
      * Every dine-in sale belongs to a table. Re-read on every `/auth/me`, so
      * switching it on reaches a till that has been running for weeks.
