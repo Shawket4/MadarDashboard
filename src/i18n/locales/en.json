@@ -432,7 +432,20 @@
       "summaryRefund": "Refunds need a manager's approval.",
       "summaryWaiter": "Waiters can't refund.",
       "summaryTax": "Tax {{rate}}% unless set."
-    }
+    },
+    "plan": "Plan",
+    "anyPlan": "Any plan",
+    "source": "Created",
+    "anySource": "Any source",
+    "sourceSelf": "Signed up",
+    "sourceAdmin": "By Madar",
+    "planHint": "Free is POS only: one branch, one till. Upgrading is done here.",
+    "planSelfHint": "This shop signed up by itself.",
+    "planDowngradeHint": "Moving to Free keeps every record. Inventory, loyalty, online ordering, bookings, kitchen screens, floor, Dawam and branding switch off, and each branch keeps one active till.",
+    "overFreeTitle": "Over the Free plan's limits",
+    "overFreeBranches": "{{branches}} branches; Free includes {{limit}}. It cannot add a branch.",
+    "overFreeTills": "Tills switched off: {{tills}}. The owner chooses each branch's active till under Settings > Plan.",
+    "overFreeAction": "Move it back to the paid plan to switch every till on again."
   },
   "branches": {
     "title": "Branches",

@@ -12,10 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ImageUploader } from "@/components/app/image-uploader";
 import { TimezoneSelect } from "@/components/app/timezone-select";
-import { createOrg, updateOrg, uploadOrgLogo } from "@/data/api/generated/api";
+import { createOrg, updateOrg, uploadOrgLogo, useGetOrgPlan } from "@/data/api/generated/api";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAppStore } from "@/data/stores/app.store";
@@ -72,6 +73,8 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         custom_branding: z.boolean(),
         // PS-2 / SA-5: at least one; switching one off hides it, keeps every record.
         modules: z.array(z.enum(["pos", "dawam"])).min(1, t("dawam.modulesAtLeastOne", "Pick at least one module")),
+        // The org's plan (madar-plan): Madar's call, a super admin's alone.
+        plan: z.enum(["free", "paid"]),
         tax_inclusive: z.boolean(),
         // A percent here too, for the same reason the tax rate is.
         service_charge_rate: z.coerce
@@ -88,7 +91,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, modules: ["pos"], tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, require_table_for_orders: false, social: socialLinksToForm(null) },
+    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, modules: ["pos"], plan: "paid", tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, require_table_for_orders: false, social: socialLinksToForm(null) },
   });
 
   useEffect(() => {
@@ -105,6 +108,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         timezone: org?.timezone ?? "Africa/Cairo",
         is_active: org?.is_active ?? true,
         custom_branding: org?.custom_branding ?? false,
+        plan: org?.plan === "free" ? "free" : "paid",
         modules: (org?.modules ?? ["pos"]).filter((m): m is "pos" | "dawam" => m === "pos" || m === "dawam"),
         tax_inclusive: org?.tax_inclusive ?? false,
         service_charge_rate: fractionToPercent(org?.service_charge_rate),
@@ -129,6 +133,8 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
           tax_rate: percentToFraction(v.tax_rate), receipt_footer: v.receipt_footer || null, timezone: v.timezone, is_active: v.is_active,
           custom_branding: v.custom_branding,
           ...(superAdmin ? { modules: v.modules } : {}),
+          // Only a change is sent: a move to Free is a downgrade (data kept, paid features off).
+          ...(superAdmin && v.plan !== (org.plan === "free" ? "free" : "paid") ? { plan: v.plan } : {}),
           tax_inclusive: v.tax_inclusive,
           service_charge_rate: percentToFraction(v.service_charge_rate),
           service_charge_taxable: v.service_charge_taxable,
@@ -353,6 +359,33 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
               )} />
             ) : null}
 
+            {superAdmin && editing ? (
+              <FormField control={form.control} name="plan" render={({ field }) => (
+                <FormItem className="rounded-lg bg-muted p-3">
+                  <FormLabel>{t("orgs.plan", "Plan")}</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="w-full sm:w-56"><SelectValue /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="paid">{t("plan.paid", "Paid")}</SelectItem>
+                      <SelectItem value="free">{t("plan.free", "Free")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {field.value === "free" && org?.plan !== "free"
+                      ? t("orgs.planDowngradeHint", "Moving to Free keeps every record. Inventory, loyalty, online ordering, bookings, kitchen screens, floor, Dawam and branding switch off, and each branch keeps one active till.")
+                      : org?.signup_source === "self"
+                        ? t("orgs.planSelfHint", "This shop signed up by itself.")
+                        : t("orgs.planHint", "Free is POS only: one branch, one till. Upgrading is done here.")}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            ) : null}
+
+            {org && org.plan === "free" ? <OverFreeLimitsNote orgId={org.id} /> : null}
+
             {/* Editable here as well as in the shop's own brand settings: an
                 org manager owns their links, and support has to be able to fix
                 a bad one without borrowing the manager's login.
@@ -370,5 +403,42 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         </Form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * A downgraded org keeps all of its branches, and sells on one till in each
+ * (`GET /orgs/{id}/plan`). Say so when the dialog is open on one that is past
+ * Free's limits, so support knows why a till shows "not active" and what to do.
+ */
+export function OverFreeLimitsNote({ orgId }: { orgId: string }) {
+  const { t } = useTranslation();
+  const q = useGetOrgPlan(orgId);
+  const plan = q.data;
+  if (!plan || plan.plan !== "free" || (!plan.over_branch_limit && plan.inactive_tills === 0)) return null;
+  return (
+    <div role="status" className="space-y-1 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">
+      <p className="font-medium">{t("orgs.overFreeTitle", "Over the Free plan's limits")}</p>
+      <ul className="list-disc space-y-0.5 ps-5 text-muted-foreground">
+        {plan.over_branch_limit ? (
+          <li>
+            {t("orgs.overFreeBranches", {
+              branches: plan.live_branches,
+              limit: plan.branch_limit ?? 1,
+              defaultValue: "{{branches}} branches; Free includes {{limit}}. It cannot add a branch.",
+            })}
+          </li>
+        ) : null}
+        {plan.inactive_tills > 0 ? (
+          <li>
+            {t("orgs.overFreeTills", {
+              tills: plan.inactive_tills,
+              defaultValue: "Tills switched off: {{tills}}. The owner chooses each branch's active till under Settings > Plan.",
+            })}
+          </li>
+        ) : null}
+      </ul>
+      <p className="text-muted-foreground">{t("orgs.overFreeAction", "Move it back to the paid plan to switch every till on again.")}</p>
+    </div>
   );
 }
