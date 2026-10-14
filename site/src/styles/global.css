@@ -691,7 +691,7 @@ html[lang="ar"] .menu-group-label { font-size: .875rem; padding-top: .7rem; }
   .price-table :is(thead th, tbody td) { width: 12rem; }
 }
 
-/* ---------- Madar Free (pages/[lang]/free.astro) ----------
+/* ---------- Madar Free (pages/free/[lang].astro) ----------
    The hero's price chip, the included list, the limits callout, the Free-and-paid table,
    the four steps and the two doors. The Free column wears the tint all the way down, so
    the eye reads it as one column. */
@@ -771,8 +771,23 @@ html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; le
 /* The hero's badge hangs over the till's corner; its strap fades out above it, before it
    reaches the words or the header. */
 .free-hero-badge { --w: 8.25rem; --lanyard: 5rem; position: absolute; z-index: 10; top: -1.25rem; inset-inline-end: .35rem; }
-.free-hero-media { padding-top: 4.5rem; }
-@media (min-width: 640px) { .free-hero-media { padding-top: 0; } }
+.free-hero-badge-m { display: none; }
+@media (max-width: 639px) {
+  .free-hero-badge-m { display: block; --w: 6.6rem; --lanyard: 7rem; position: absolute; z-index: 10; top: -.25rem; inset-inline-end: 0; }
+  .free-hero-badge-m .crew-lanyard { -webkit-mask-image: linear-gradient(to top, #000 45%, transparent); mask-image: linear-gradient(to top, #000 45%, transparent); }
+  .free-hero-badge-m :is(.crew-name) { font-size: 1rem; }
+  .free-hero-badge-m .crew-role { font-size: .7rem; }
+  .free-hero-badge-m .crew-salary { margin-top: .5rem; padding: .15rem .45rem; font-size: .62rem; }
+  .free-hero-badge-m .crew-card-head { font-size: .5rem; letter-spacing: .03em; white-space: nowrap; padding: .55rem .6rem .35rem; }
+  .free-hero-badge-m .crew-card { box-shadow: 4px 4px 0 var(--color-ink); }
+  [dir="rtl"] .free-hero-badge-m .crew-card { box-shadow: -4px 4px 0 var(--color-ink); }
+  .free-hero-badge .crew-badge, .free-hero-badge { display: none; }
+  #free-title { padding-inline-end: 6.2rem; }
+  .free-hero-sub::before { content: ""; float: inline-end; width: 6.4rem; height: 2.4rem; }
+  .free-hero-badge-m .crew-avatar { width: 52%; margin-top: .6rem; }
+  .free-hero-badge-m .crew-salary { margin-top: .45rem; }
+  .free-hero-badge-m .crew-card { padding-bottom: .7rem; }
+}
 .free-hero-badge .crew-lanyard { -webkit-mask-image: linear-gradient(to top, #000 55%, transparent); mask-image: linear-gradient(to top, #000 55%, transparent); }
 .free-hero-badge .crew-name { font-size: 1.2rem; }
 .free-hero-badge .crew-role { font-size: .8rem; }
@@ -847,15 +862,10 @@ html[lang="ar"] .zr-meta dd:not(.ltr) { font-family: var(--font-arabic); }
 html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; font-weight: 600; letter-spacing: 0; }
 
 /* Motion (crew.ts sets .crew-armed). Badges wait above the section, then drop in on
-   their lanyards and settle into a slow sway; a pointer nudges them. */
+   their lanyards (crew.ts: a spring fall, then a pendulum swing). */
 .crew-armed [data-swing]:not([data-in]) .crew-badge { transform: translateY(-130vh); }
-.crew-armed [data-swing][data-in] .crew-badge { animation: crew-drop 1.1s both; }
-.crew-armed [data-swing][data-settled] .crew-badge { animation: none; touch-action: pan-y; cursor: grab; }
+.crew-armed [data-swing][data-settled] .crew-badge { touch-action: pan-y; cursor: grab; }
 .crew-armed [data-swing][data-held] .crew-badge { cursor: grabbing; }
-@keyframes crew-drop {
-  0% { transform: translateY(-130vh); animation-timing-function: cubic-bezier(.5, 0, .9, .5); }
-  100% { transform: translateY(0); }
-}
 
 /* The characters: breathing, blinking, glancing, waving, and a hop when greeted. */
 .crew-armed .crew-body { animation: crew-breathe 3.6s ease-in-out infinite; }

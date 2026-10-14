@@ -45,10 +45,13 @@ const jsonLd = [{
   <section class="on-ink relative isolate overflow-hidden bg-ink text-paper" aria-labelledby="free-title">
     <Orbit tone="ink" class="absolute -end-[34rem] -top-[30rem] -z-10 h-[78rem] w-[78rem] md:-end-[22rem]" />
     <div class="container-site grid items-center gap-16 pb-24 pt-32 md:pt-36 lg:grid-cols-12 lg:gap-10 lg:pb-32 lg:pt-40">
-      <div class="lg:col-span-6">
+      <div class="relative lg:col-span-6">
+        <!-- On a phone the badge hangs beside the headline, in the first screen (the one
+             over the till, below, is for wider screens). -->
+        <CrewBadge lang={lang} who="nuqta" strap="teal" class="free-hero-badge-m" />
         <p class="kicker text-teal-light" data-intro style="--i:0">{f.kicker}</p>
         <h1 id="free-title" class="text-display mt-6"><Words text={f.title} /></h1>
-        <p class="text-lead mt-6 max-w-xl text-muted-ink" data-intro style="--i:1">{f.sub}</p>
+        <p class="free-hero-sub text-lead mt-6 max-w-xl text-muted-ink" data-intro style="--i:1">{f.sub}</p>
         <div class="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3" data-intro style="--i:2">
           <a class="btn btn-paper btn-lg" href={signup} data-umami-event="free-signup" data-umami-event-where="free-hero">
             {f.cta} <Icon name="arrow" size={18} />

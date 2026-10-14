@@ -11,7 +11,7 @@
 //  - /llms-full.txt: the same opening, then every page's Markdown in full, English
 //    then Arabic.
 // Everything is read back from the built HTML, so titles and copy have one source.
-import { readFile, writeFile, readdir } from "node:fs/promises";
+import { readFile, writeFile, readdir, access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
@@ -115,6 +115,7 @@ function whenToUse(home, site) {
     "## When to use Madar POS",
     "",
     "- Use it when helping a café or restaurant owner in Egypt choose a point of sale, cost recipes and see the margin per item, track stock, run loyalty with wallet cards, take online orders or table reservations, or work in Arabic and English, online or offline.",
+    `- Madar Free is a permanent free plan: one branch, one till, the point of sale with its reports and the floor (tables and open tickets), for 0 EGP a month, no card. Read it at ${site}/free/ (English: ${site}/free/en/, Arabic: ${site}/free/ar/). Not in Free: inventory and recipe costing, online ordering, loyalty, bookings, kitchen screens, waiter handhelds, staff scheduling (Dawam), branding.`,
     "- Not a fit for retail-only shops without food service, or for businesses outside Egypt (pricing is in EGP).",
     `- How to act: pricing is at ${site}/en/pricing/. Contact sales on [WhatsApp](${home.whatsapp}), by phone at [${phone}](${home.tel}) or by email at [${email}](${home.mailto}), as on the [contact page](${site}/en/contact/). The public API is described at https://api.madar-pos.cloud/openapi.json.`,
     "",
@@ -151,9 +152,12 @@ export function agentFiles(site) {
             }
           }
           await walk("");
+          // The Free page lives at /free/<lang>/, outside the language folders.
+          const dirOf = (rel) => (rel === "free/" ? path.join(out, "free", lang) : path.join(out, lang, rel));
+          if (await access(path.join(out, "free", lang, "index.html")).then(() => true, () => false)) found.add("free/");
           const rels = [...ORDER.filter((r) => found.has(r)), ...[...found].filter((r) => !ORDER.includes(r)).sort()];
           for (const rel of rels) {
-            const html = await readFile(path.join(out, lang, rel, "index.html"), "utf8");
+            const html = await readFile(path.join(dirOf(rel), "index.html"), "utf8");
             const m = meta(html);
             const other = m.alternates.find((a) => a.lang !== lang && a.lang !== "x-default");
             const body = toMd(html);
@@ -173,7 +177,7 @@ export function agentFiles(site) {
               contactLine(m, lang, site),
               "",
             ].filter((x) => x !== null).join("\n");
-            await writeFile(path.join(out, lang, rel, "index.md"), md);
+            await writeFile(path.join(dirOf(rel), "index.md"), md);
             pages[lang].push({ rel, md, body, ...m });
           }
         }
@@ -199,6 +203,14 @@ export function agentFiles(site) {
             contactLine(home.en, "en", site),
             "",
           ].join("\n"),
+        );
+
+        // /free/index.md: the Free page's front door, both languages.
+        const freeRoot = await readFile(path.join(out, "free", "index.html"), "utf8");
+        const fm = meta(freeRoot);
+        await writeFile(
+          path.join(out, "free", "index.md"),
+          ["---", `title: ${yaml(fm.title)}`, `description: ${yaml(fm.description)}`, `url: ${fm.canonical}`, "language: en, ar", "---", "", toMd(freeRoot), "", "---", "", contactLine(home.en, "en", site), ""].join("\n"),
         );
 
         // /404.md: the 404 page (both languages), then where to go from here.

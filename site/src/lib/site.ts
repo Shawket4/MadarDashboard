@@ -73,7 +73,9 @@ const PAGE_PATH: Record<PageKey, string> = {
 
 /** Site-relative URL of a page in a language, e.g. /ar/pricing/ */
 export function pageHref(lang: Lang, page: PageKey, hash = ""): string {
-  return `/${lang}/${PAGE_PATH[page]}${hash ? `#${hash}` : ""}`;
+  // The Free page is the campaign landing page: /free/en/, /free/ar/ (language last).
+  const base = page === "free" ? `/free/${lang}/` : `/${lang}/${PAGE_PATH[page]}`;
+  return `${base}${hash ? `#${hash}` : ""}`;
 }
 
 export function absoluteUrl(path: string): string {
