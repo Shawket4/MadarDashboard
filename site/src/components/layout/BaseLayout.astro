@@ -5,6 +5,7 @@ import plexLatin400 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-a
 import plexLatin500 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-500-normal.woff2?url";
 import plexArabic600 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-600-normal.woff2?url";
 import plexArabic400 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-400-normal.woff2?url";
+import plexArabic500 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-500-normal.woff2?url";
 import Header from "./Header.astro";
 import Footer from "./Footer.astro";
 import ContactSheet from "./ContactSheet.astro";
@@ -82,13 +83,17 @@ const ld = [organization(), ...jsonLd];
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- The faces the hero sets, so none swaps in (and re-flows it) after the first paint:
-         on English pages its three weights, on Arabic pages its two Arabic weights and the
-         Latin medium its figures are set in (3,000 جنيه). -->
+         on English pages its three weights, on Arabic pages its three Arabic weights (the
+         buttons are the medium: without it they re-wrapped, a layout shift on every Arabic
+         page), the Latin medium its figures are set in (3,000 جنيه) and the Latin semibold
+         of the heading's full stop (it swapped in after the first paint and moved the words). -->
     {lang === "ar" ? (
       <>
         <link rel="preload" as="font" type="font/woff2" href={plexArabic600} crossorigin />
         <link rel="preload" as="font" type="font/woff2" href={plexArabic400} crossorigin />
+        <link rel="preload" as="font" type="font/woff2" href={plexArabic500} crossorigin />
         <link rel="preload" as="font" type="font/woff2" href={plexLatin500} crossorigin />
+        <link rel="preload" as="font" type="font/woff2" href={plexLatin600} crossorigin />
       </>
     ) : (
       <>

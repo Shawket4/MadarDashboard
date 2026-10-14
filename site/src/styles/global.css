@@ -783,10 +783,23 @@ html[lang="ar"] .fc-num { font-family: var(--font-mono); }
   .fc-row { padding-inline-start: 2rem; }
 }
 
-.free-steps { display: grid; gap: 2.5rem; counter-reset: none; }
-.free-step { position: relative; min-width: 0; }
-.free-step-n { display: block; padding-bottom: 1rem; border-bottom: 1px solid var(--color-rule); font-family: var(--font-mono); font-size: 2rem; font-weight: 500; line-height: 1; letter-spacing: -0.02em; color: var(--color-teal); }
-@media (min-width: 640px) { .free-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 2.5rem; } }
+/* The steps. Phones: a timeline, each number at the start with a line down to the next
+   (shorter than a number over a rule, and it reads as one path). From sm: columns, each
+   number over its rule. The number sits in a clip box it rises into (crew.ts, below). */
+.free-steps { display: grid; gap: 2rem; }
+.free-step { position: relative; min-width: 0; display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: .75rem; }
+.free-step-n { grid-area: 1 / 1; display: block; overflow: clip; font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; color: var(--color-teal); }
+.free-step-n > span { display: block; }
+.free-step-rule { grid-area: 2 / 1; justify-self: center; width: 1px; margin-block: .5rem -1.5rem; background: var(--color-rule); transform-origin: 50% 0; }
+.free-step:last-child .free-step-rule { display: none; }
+.free-step-body { grid-area: 1 / 2 / 3 / 3; min-width: 0; }
+@media (min-width: 640px) {
+  .free-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 2.5rem; }
+  .free-step { display: block; }
+  .free-step-n { margin-bottom: 1rem; font-size: 2rem; line-height: 1; }
+  .free-step-rule, .free-step:last-child .free-step-rule { display: block; justify-self: auto; width: auto; height: 1px; margin: 0 0 1.25rem; transform-origin: 0 50%; }
+  [dir="rtl"] .free-step-rule { transform-origin: 100% 50%; }
+}
 @media (min-width: 1024px) { .free-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; } }
 
 /* A quiet second button on Paper: hairline, Ink text. */
@@ -799,7 +812,7 @@ html[lang="ar"] .fc-num { font-family: var(--font-mono); }
 .free-door-tag::before { content: ""; flex: none; width: .45rem; height: .45rem; border-radius: 999px; background: currentColor; }
 @media (min-width: 768px) { .free-door { padding: 2.25rem 2.25rem 2rem; } }
 /* The pricing page's Free band: words, the price, the actions; one row on wide screens. */
-.free-band { display: grid; gap: 1.5rem; padding: 1.75rem; border-inline-start: 3px solid var(--color-teal); }
+.free-band { position: relative; display: grid; gap: 1.5rem; padding: 1.75rem; border-inline-start: 3px solid var(--color-teal); }
 .free-band-price { font-family: var(--font-mono); font-size: 2.25rem; font-weight: 500; line-height: 1; letter-spacing: -0.02em; color: var(--color-teal); }
 .free-band-per { font-family: var(--font-sans); font-size: .9rem; letter-spacing: 0; color: var(--color-muted); }
 @media (min-width: 1024px) {
@@ -865,16 +878,20 @@ html[lang="ar"] .fc-num { font-family: var(--font-mono); }
 .crew-col-items li { position: relative; padding-inline-start: 2.75rem; }
 .crew-col-items .free-tick { top: .05rem; }
 
-/* Entrances (crew.ts sets data-in as they scroll into view): the character pops up onto its
-   line, then each duty's tick pops in turn. */
-.crew-armed svg[data-crew]:not([data-in]) .crew-hop { opacity: 0; transform: translateY(18%) scale(.9); transform-origin: 50% 100%; }
-.crew-armed svg[data-crew][data-in] .crew-hop { animation: crew-enter .7s cubic-bezier(.3, 1.4, .5, 1) both; transform-origin: 50% 100%; }
-@keyframes crew-enter { 0% { opacity: 0; transform: translateY(18%) scale(.9); } 100% { opacity: 1; transform: none; } }
+@media (max-width: 767px) { .crew-col-items { gap: 1.25rem; margin-top: 1.5rem; } }
+
+/* Entrances (crew.ts sets data-in as they scroll into view), once each. A character pops up
+   onto its line: the whole drawing, shadow and all (the <svg> itself, so the hop inside stays
+   free for a greeting). Then each duty's tick pops and its check draws, in turn. */
+.crew-armed svg[data-crew] { transform-origin: 50% 100%; }
+.crew-armed svg[data-crew]:not([data-in]) { opacity: 0; transform: translateY(14%) scale(.9); }
+.crew-armed svg[data-crew][data-in] { animation: crew-enter .7s cubic-bezier(.3, 1.4, .5, 1) both; }
+@keyframes crew-enter { 0% { opacity: 0; transform: translateY(14%) scale(.9); } 100% { opacity: 1; transform: none; } }
+.crew-col-items li:nth-child(1) { --d: .5s; }
+.crew-col-items li:nth-child(2) { --d: .75s; }
+.crew-col-items li:nth-child(3) { --d: 1s; }
 .crew-armed .crew-col:not([data-in]) .free-tick { scale: 0; }
-.crew-armed .crew-col[data-in] .free-tick { animation: tick-pop .5s cubic-bezier(.3, 1.6, .5, 1) both; }
-.crew-armed .crew-col[data-in] li:nth-child(1) .free-tick { animation-delay: .5s; }
-.crew-armed .crew-col[data-in] li:nth-child(2) .free-tick { animation-delay: .75s; }
-.crew-armed .crew-col[data-in] li:nth-child(3) .free-tick { animation-delay: 1s; }
+.crew-armed .crew-col[data-in] .free-tick { animation: tick-pop .5s cubic-bezier(.3, 1.6, .5, 1) var(--d) both; }
 @keyframes tick-pop { 0% { scale: 0; } 100% { scale: 1; } }
 /* Free and paid: each group's ticks pop in turn as its lines rise in (data-reveal). */
 .crew-armed [data-ticks]:not([data-in]) .fc-yes { scale: 0; }
@@ -882,24 +899,72 @@ html[lang="ar"] .fc-num { font-family: var(--font-mono); }
 
 /* نقطة with the count, beside the receipt it prints: stacked on a phone, side by side from md. */
 .zr-scene { display: grid; justify-items: center; gap: 1.5rem; }
-.zr-nuqta { width: 7.5rem; overflow: visible; cursor: pointer; }
+.zr-nuqta { width: 6.25rem; overflow: visible; cursor: pointer; }
 @media (min-width: 640px) { .zr-scene { grid-template-columns: auto 1fr; align-items: end; justify-items: stretch; } .zr-scene .zr { margin-inline: 0 auto; } .zr-nuqta { width: 8.5rem; } }
 [data-wave] .crew-paper { animation: crew-paper 1.7s ease-in-out; }
 @keyframes crew-paper { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-1.6deg) translateY(1px); } 65% { transform: rotate(1.3deg); } }
 
-/* A direct call to action between the crew and the limits, for ad traffic. */
-.free-cta-band { display: flex; flex-direction: column; gap: 1.5rem; padding: 1.75rem; border-radius: 1.25rem; background: var(--color-ink); color: var(--color-paper); }
+/* Each duty's check draws itself once its tick has popped. */
+.crew-armed .crew-col .free-tick path { stroke-dasharray: 20; }
+.crew-armed .crew-col:not([data-in]) .free-tick path { stroke-dashoffset: 20; }
+.crew-armed .crew-col[data-in] .free-tick path { animation: tick-draw .4s cubic-bezier(.4, 0, .2, 1) calc(var(--d) + .18s) both; }
+@keyframes tick-draw { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
+
+/* شريحة comes in the way a pie chart draws its slice: the mask in Shariha.astro sweeps her
+   wedge open from its corner, a quarter turn, as she pops up. */
+.crew-armed svg[data-crew] .crew-sweep { stroke-dasharray: 32 100; }
+.crew-armed svg[data-crew]:not([data-in]) .crew-sweep { stroke-dashoffset: 32; }
+.crew-armed svg[data-crew][data-in] .crew-sweep { animation: crew-sweep .85s cubic-bezier(.5, 0, .2, 1) .05s both; }
+@keyframes crew-sweep { from { stroke-dashoffset: 32; } to { stroke-dashoffset: 0; } }
+/* Her arms and legs come once the wedge is mostly drawn, not floating before it. */
+.crew-armed svg[data-crew]:not([data-in]) .crew-limb { opacity: 0; }
+.crew-armed svg[data-crew][data-in] .crew-limb { animation: crew-limb .4s ease-out .55s both; }
+@keyframes crew-limb { from { opacity: 0; } }
+
+/* The steps: each number rises into its place and its rule draws on (down the timeline on a
+   phone, across from the start on wider screens), the steps of a row one after another. */
+.free-step:nth-child(2) { --d: .12s; }
+.free-step:nth-child(3) { --d: .24s; }
+.free-step:nth-child(4) { --d: .36s; }
+.crew-armed .free-step:not([data-in]) .free-step-n > span { transform: translateY(110%); }
+.crew-armed .free-step[data-in] .free-step-n > span { animation: step-n .9s var(--ease-out-expo) calc(var(--d, 0s) + .1s) both; }
+@keyframes step-n { from { transform: translateY(110%); } }
+.crew-armed .free-step:not([data-in]) .free-step-rule { transform: scaleY(0); }
+.crew-armed .free-step[data-in] .free-step-rule { animation: step-rule-y 1.2s var(--ease-out-expo) calc(var(--d, 0s) + .3s) both; }
+@keyframes step-rule-y { from { transform: scaleY(0); } }
+@keyframes step-rule-x { from { transform: scaleX(0); } }
+@media (min-width: 640px) {
+  .crew-armed .free-step:not([data-in]) .free-step-rule { transform: scaleX(0); }
+  .crew-armed .free-step[data-in] .free-step-rule { animation-name: step-rule-x; }
+}
+
+/* A direct call to action between the crew and the limits, for ad traffic. The joyful pair
+   stands on its top edge over the button (their feet on the edge: each drawing has a little
+   room under the feet, taken back with translate; no shadow on the Ink "floor"). */
+.free-cta-band { position: relative; display: flex; flex-direction: column; gap: 1.5rem; padding: 1.75rem; border-radius: 1.25rem; background: var(--color-ink); color: var(--color-paper); }
 .free-cta-band .text-muted-ink { color: var(--color-muted-ink); }
 @media (min-width: 768px) { .free-cta-band { flex-direction: row; align-items: center; justify-content: space-between; gap: 2rem; padding: 2rem 2.25rem; } }
+.free-band-crew { position: absolute; bottom: 100%; inset-inline-end: 1.5rem; display: flex; align-items: flex-end; gap: .4rem; }
+.free-band-crew .crew-shadow { display: none; }
+.free-band-shariha { width: 4.5rem; translate: 0 3.9%; overflow: visible; cursor: pointer; }
+.free-band-nuqta { width: 3.5rem; translate: 0 1.9%; overflow: visible; cursor: pointer; }
+@media (min-width: 768px) { .free-band-crew { inset-inline-end: 2.75rem; } .free-band-shariha { width: 5.75rem; } .free-band-nuqta { width: 4.5rem; } }
 
 /* The self-service door: نقطة with his coffee in a Paper roundel, top corner. */
 .free-door-main { position: relative; }
 .free-door-roundel { position: relative; align-self: flex-start; margin-bottom: 1.25rem; width: 6rem; aspect-ratio: 1; overflow: hidden; border-radius: 999px; background: var(--color-paper); }
 .free-door-cup { position: absolute; inset-inline: 0; bottom: 9%; width: 66%; margin-inline: auto; overflow: visible; cursor: pointer; }
-.crew-armed .crew-sip { animation: crew-sip 5s ease-in-out infinite; }
+/* The paid door: the Kanaka (Paper, drawn for Ink) in an Ink roundel, the pot centred, its
+   handle reaching out to the side. */
+.free-door-roundel-ink { background: var(--color-ink-3); }
+.free-door-kanaka { position: absolute; inset-inline: 0; bottom: 10%; width: 62%; margin-inline: auto; translate: 18% 0; overflow: visible; cursor: pointer; }
+/* The 404: the Kanaka, looking about for the page. */
+.nf-kanaka { display: block; width: 6.5rem; margin-bottom: -2rem; overflow: visible; cursor: pointer; }
+/* The endless bits run only while their character is on screen (crew.ts sets data-live). */
+.crew-armed svg[data-live] .crew-sip { animation: crew-sip 5s ease-in-out infinite; }
 @keyframes crew-sip { 0%, 55%, 100% { transform: rotate(0deg); } 70% { transform: rotate(-9deg); } 85% { transform: rotate(-9deg); } }
-.crew-armed .crew-steam path { animation: crew-steam 2.6s ease-in-out infinite; }
-.crew-armed .crew-steam path:nth-child(2) { animation-delay: -1.3s; }
+.crew-armed svg[data-live] .crew-steam path { animation: crew-steam 2.6s ease-in-out infinite; }
+.crew-armed svg[data-live] .crew-steam path:nth-child(2) { animation-delay: -1.3s; }
 @keyframes crew-steam { 0% { opacity: 0; transform: translateY(5px); } 35% { opacity: 1; } 100% { opacity: 0; transform: translateY(-5px); } }
 
 /* The Z-report: a printer's mouth, and the receipt feeding out of it. */
@@ -931,14 +996,13 @@ html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; 
 /* Motion (crew.ts sets .crew-armed). Badges wait above the section, then drop in on
    their lanyards (crew.ts: a spring fall, then a pendulum swing). */
 .crew-armed [data-swing]:not([data-in]) .crew-badge { transform: translateY(-130vh); }
+/* Its own layer: the card turns as a picture, so its text never re-rasterises (shimmers). */
+.crew-armed [data-swing] .crew-badge { will-change: transform; }
 .crew-armed [data-swing][data-settled] .crew-badge { touch-action: pan-y; cursor: grab; }
 .crew-armed [data-swing][data-held] .crew-badge { cursor: grabbing; }
 
-/* The characters: breathing, blinking, glancing, waving, and a hop when greeted. */
-/* A breath now and then, not a constant wobble (scaling strokes forever shimmers on phones). */
-.crew-armed svg[data-crew][data-in] .crew-body { animation: crew-breathe 7s ease-in-out infinite; }
-.crew-armed .crew-col:nth-child(2) .crew-body { animation-delay: -3.4s; }
-@keyframes crew-breathe { 0%, 55%, 100% { transform: scale(1, 1); } 78% { transform: scale(1.012, 1.028); } }
+/* The characters: blinking, glancing, waving, and a hop when greeted. No endless breathing:
+   a loop that scales strokes shimmers on phones and repaints for ever. */
 .crew-blink { transition: transform .07s ease-in; }
 [data-blink] .crew-blink { transform: scaleY(.08); }
 .crew-pupil { transition: transform .28s cubic-bezier(.2, .8, .2, 1); }
@@ -960,6 +1024,11 @@ html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; 
   86% { transform: scale(.98, 1.03); }
 }
 @keyframes crew-shadow { 0%, 100% { transform: none; opacity: 1; } 44% { transform: scale(.6); opacity: .5; } }
+/* The joyful ones' arms fling out as they jump. */
+[data-cheer] .crew-flap { animation: crew-flap .76s cubic-bezier(.3, .7, .4, 1); }
+[data-cheer] .crew-flap-end { animation-name: crew-flap-end; }
+@keyframes crew-flap { 0%, 100% { transform: none; } 40% { transform: rotate(28deg); } 72% { transform: rotate(-8deg); } }
+@keyframes crew-flap-end { 0%, 100% { transform: none; } 40% { transform: rotate(-28deg); } 72% { transform: rotate(8deg); } }
 
 /* The receipt feeds out in bursts, as a thermal printer does, and the stamp lands last. */
 .crew-armed .zr:not([data-in]) .zr-paper { transform: translateY(-104%); }

@@ -342,7 +342,13 @@ function orbits() {
       whenSeen(svg.parentElement ?? svg, "top 90%", draw);
     }
     const sat = svg.querySelector(".orbit-satellite");
-    if (sat) gsap.to(sat, { rotation: 360 * dir, svgOrigin: "800 800", duration: 90, ease: "none", repeat: -1 });
+    // It turns only while its orbit is on screen: out of sight it would cost a frame for ever.
+    if (sat) {
+      gsap.to(sat, {
+        rotation: 360 * dir, svgOrigin: "800 800", duration: 90, ease: "none", repeat: -1,
+        scrollTrigger: { trigger: svg, start: "top bottom", end: "bottom top", toggleActions: "play pause resume pause" },
+      });
+    }
   }
 }
 

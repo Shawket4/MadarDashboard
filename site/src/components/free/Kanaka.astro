@@ -1,0 +1,28 @@
+---
+/**
+ * كنكة (Kanaka), the coffee pot, steam rising: the owner's "Bill on us" poster (paths
+ * copied from the Illustrator export, not redrawn). Drawn for an Ink ground (a Paper body,
+ * no outline), so it stands on Ink only. Same rig as Nuqta.astro: blinks, looks around,
+ * hops when greeted; the steam rises while it is on screen (global.css "The crew").
+ */
+interface Props { class?: string }
+const { class: cls = "" } = Astro.props;
+---
+<svg class:list={["crew-figure", cls]} viewBox="0 0 236.7 263.57" aria-hidden="true" data-crew>
+  <g class="crew-shadow" style="transform-origin: 75.39px 258.02px"><ellipse cx="75.39" cy="258.02" rx="75.3" ry="5.55" fill="#0a0d11" /></g>
+  <g class="crew-hop" style="transform-origin: 75px 256px">
+    <g class="crew-steam">
+      <path d="M58.75,47.16c-11.89-15.06,11.89-26.16,0-43.6" fill="none" stroke="#2e94a6" stroke-linecap="round" stroke-linejoin="round" stroke-width="7.13" />
+      <path d="M94.42,48.75c-11.89-15.06,11.89-26.16,0-43.6" fill="none" stroke="#2e94a6" stroke-linecap="round" stroke-linejoin="round" stroke-width="7.13" />
+    </g>
+    <g class="crew-body" style="transform-origin: 75px 255px">
+      <line x1="115.03" y1="106.62" x2="155.45" y2="85.21" fill="none" stroke="#eff3f4" stroke-linecap="round" stroke-linejoin="round" stroke-width="10.3" />
+      <line x1="155.45" y1="85.21" x2="226.8" y2="47.16" fill="none" stroke="#eff3f4" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.82" />
+      <path d="M8.02,58.66c27.74,3.57,83.23,5.15,126.83,6.74-3.96,11.89-15.06,23.78-19.82,35.67,33.29,30.91,41.22,94.33,27.74,126.83-5.55,19.02-19.82,24.97-43.6,24.97h-47.56c-23.78,0-38.05-5.95-43.6-24.97-13.48-32.5-5.55-95.91,35.67-126.83-7.93-12.68-19.02-27.74-35.67-42.41Z" fill="#eff3f4" stroke="#eff3f4" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.96" />
+      <path d="M47.65,101.86c21.67,3.7,43.33,3.7,65,0" fill="none" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.76" />
+      <g class="crew-blink" style="transform-origin: 59.18px 173.6px"><ellipse cx="59.18" cy="173.6" rx="10.46" ry="13.08" fill="#fff" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.62" /><g class="crew-pupil"><circle cx="59.69" cy="175.51" r="6.54" fill="#14181e" /><circle cx="62.04" cy="172.63" r="1.96" fill="#fff" /></g></g>
+      <g class="crew-blink" style="transform-origin: 91.61px 173.6px"><ellipse cx="91.61" cy="173.6" rx="10.46" ry="13.08" fill="#fff" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.62" /><g class="crew-pupil"><circle cx="92.12" cy="175.51" r="6.54" fill="#14181e" /><circle cx="94.48" cy="172.63" r="1.96" fill="#fff" /></g></g>
+      <g class="crew-mouth" style="transform-origin: 75.4px 199px"><path d="M65.98,197.66c6.28,6.98,12.56,6.98,18.83,0" fill="none" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.45" /></g>
+    </g>
+  </g>
+</svg>

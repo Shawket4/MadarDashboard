@@ -1,8 +1,10 @@
 // The crew on the Free page (components/free): the badges drop in and swing, the Z-report
-// prints, and the characters live a little: they breathe (CSS), blink and wave at their
-// own uneven pace, follow the pointer with their eyes (or glance around on a phone), and
-// hop when tapped or pointed at. All of it only with motion allowed, and only while on
-// screen. Without this file everything is simply there, still (global.css "The crew").
+// prints, the steps' numbers rise, and the characters live a little: they pop in once,
+// blink and wave at their own uneven pace, follow the pointer with their eyes (or glance
+// around on a phone), and hop when tapped or pointed at; the joyful ones jump as they
+// arrive. All of it only with motion allowed, and only while on screen: nothing loops or
+// spends a frame out of sight. Without this file everything is simply there, still
+// (global.css "The crew").
 
 const root = document.documentElement;
 const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -14,15 +16,26 @@ if (!reduce) {
   const swings = Array.from(document.querySelectorAll<HTMLElement>("[data-swing]"));
   const figures = Array.from(document.querySelectorAll<SVGSVGElement>("svg[data-crew]"));
   const onScreen = new Set<Element>();
+  /** What carries on when it comes back on screen (a swing paused mid-swing). */
+  const resume = new Map<Element, () => void>();
+  /** What a joyful character does the first time it comes in: a jump. */
+  const joys = new Map<Element, () => void>();
 
   const io = new IntersectionObserver(
     (entries) => {
       for (const e of entries) {
+        const el = e.target;
         if (e.isIntersecting) {
-          onScreen.add(e.target);
+          onScreen.add(el);
           // Into view once: the badge drops, a character pops up, the duties tick.
-          e.target.setAttribute("data-in", "");
-        } else onScreen.delete(e.target);
+          if (!el.hasAttribute("data-in")) {
+            el.setAttribute("data-in", "");
+            joys.get(el)?.();
+          }
+          resume.get(el)?.();
+        } else onScreen.delete(el);
+        // The endless bits (a sip, the steam) run only while on screen.
+        if (el instanceof SVGSVGElement) el.toggleAttribute("data-live", e.isIntersecting);
       }
     },
     { rootMargin: "0px 0px -4% 0px" },
@@ -33,6 +46,12 @@ if (!reduce) {
 
   const rand = (a: number, b: number) => a + Math.random() * (b - a);
   const live = (f: Element) => onScreen.has(f) && !document.hidden;
+
+  // The steps: each number rises and its rule draws on once seen.
+  for (const el of document.querySelectorAll(".free-step")) io.observe(el);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) for (const go of resume.values()) go();
+  });
 
   /** Set a flag for a while (a blink, a wave, a hop), then clear it. */
   const flash = (el: Element, attr: string, ms: number) => {
@@ -69,6 +88,11 @@ if (!reduce) {
       if ((e as PointerEvent).pointerType === "mouse") cheer();
     });
     target.addEventListener("click", cheer);
+    // A joyful one jumps once it has popped in; a pair jumps one after the other.
+    if (f.hasAttribute("data-joy")) {
+      const delay = 650 + 170 * joys.size;
+      joys.set(f, () => window.setTimeout(cheer, delay));
+    }
   }
 
   // Eyes: they follow a mouse; on touch screens they glance around now and then.
@@ -147,6 +171,8 @@ if (!reduce) {
     const settled = () => s.hasAttribute("data-settled");
     const tick = (now: number) => {
       raf = 0;
+      // Off screen the swing waits where it is, spending no frames; it carries on when back.
+      if (!falling && !held && !live(s)) return;
       const dt = Math.min(0.033, (now - last) / 1000 || 0.016);
       last = now;
       if (falling) {
@@ -178,6 +204,9 @@ if (!reduce) {
       v += dv;
       run();
     };
+    resume.set(s, () => {
+      if (Math.abs(a) > 0.02 || Math.abs(v) > 0.05) run();
+    });
     // Start: from just above the top of the screen, as soon as it is in view.
     new MutationObserver((_, mo) => {
       if (!s.hasAttribute("data-in")) return;
