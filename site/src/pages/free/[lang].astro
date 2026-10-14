@@ -40,6 +40,7 @@ const jsonLd = [{
   closing={false}
   jsonLd={jsonLd}
   sticky={{ href: signup, label: f.stickyCta, event: "free-signup" }}
+  headerCta={{ href: signup, label: f.stickyCta, event: "free-signup" }}
 >
   <!-- The offer, and the till it buys: Madar Cashier, with what Free costs pinned to it. -->
   <section class="on-ink relative isolate overflow-hidden bg-ink text-paper" aria-labelledby="free-title">
@@ -127,6 +128,16 @@ const jsonLd = [{
             <ZReport lang={lang} />
           </div>
         </div>
+      </div>
+
+      <div class="free-cta-band mt-20 md:mt-28" data-reveal>
+        <div>
+          <p class="text-h3">{f.band}</p>
+          <p class="mt-2 text-muted-ink">{f.note}</p>
+        </div>
+        <a class="btn btn-paper btn-lg shrink-0" href={signup} data-umami-event="free-signup" data-umami-event-where="free-mid">
+          {f.cta} <Icon name="arrow" size={18} />
+        </a>
       </div>
 
       <div class="free-limits mt-24" data-reveal>

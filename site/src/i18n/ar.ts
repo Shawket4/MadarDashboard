@@ -795,6 +795,7 @@ export const ar: Copy = {
       },
     },
     stickyCta: "اعمل حسابك المجاني",
+    band: "ابدأ بيع النهارده.",
   },
 
   faq: {

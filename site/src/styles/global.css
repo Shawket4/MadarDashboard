@@ -825,6 +825,11 @@ html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; le
 [data-wave] .crew-paper { animation: crew-paper 1.7s ease-in-out; }
 @keyframes crew-paper { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-1.6deg) translateY(1px); } 65% { transform: rotate(1.3deg); } }
 
+/* A direct call to action between the crew and the limits, for ad traffic. */
+.free-cta-band { display: flex; flex-direction: column; gap: 1.5rem; padding: 1.75rem; border-radius: 1.25rem; background: var(--color-ink); color: var(--color-paper); }
+.free-cta-band .text-muted-ink { color: var(--color-muted-ink); }
+@media (min-width: 768px) { .free-cta-band { flex-direction: row; align-items: center; justify-content: space-between; gap: 2rem; padding: 2rem 2.25rem; } }
+
 /* The self-service door: نقطة with his coffee in a Paper roundel, top corner. */
 .free-door-main { position: relative; }
 .free-door-roundel { position: relative; align-self: flex-start; margin-bottom: 1.25rem; width: 6rem; aspect-ratio: 1; overflow: hidden; border-radius: 999px; background: var(--color-paper); }

@@ -26,9 +26,11 @@ interface Props {
   jsonLd?: Record<string, unknown>[];
   /** The phones' sticky bar's action, when it isn't WhatsApp. */
   sticky?: StickyAction;
+  /** The header button, when it should be a direct action rather than "Talk to us". */
+  headerCta?: { href: string; label: string; event: string };
 }
 
-const { lang, page, headerTone = "paper", closing = true, noindex = false, jsonLd = [], sticky } = Astro.props;
+const { lang, page, headerTone = "paper", closing = true, noindex = false, jsonLd = [], sticky, headerCta } = Astro.props;
 const c = t(lang);
 const meta = c.meta[page];
 const routable = page !== "notFound";
@@ -103,7 +105,7 @@ const ld = [organization(), ...jsonLd];
   </head>
   <body class="bg-paper text-ink">
     <a class="skip-link" href="#main">{c.nav.skip}</a>
-    <Header lang={lang} page={page} tone={headerTone} />
+    <Header lang={lang} page={page} tone={headerTone} cta={headerCta} />
     <main id="main">
       <slot />
     </main>

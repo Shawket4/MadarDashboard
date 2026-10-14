@@ -8,8 +8,10 @@ interface Props {
   lang: Lang;
   page: PageKey | "notFound";
   tone: "ink" | "paper";
+  /** Replaces "Talk to us" with a direct action (the Free page: create the account). */
+  cta?: { href: string; label: string; event: string };
 }
-const { lang, page, tone } = Astro.props;
+const { lang, page, tone, cta } = Astro.props;
 const c = t(lang);
 const other = otherLang(lang);
 const switchHref = switchTo(lang, page);
@@ -44,12 +46,16 @@ const links: { key: PageKey; label: string }[] = [
         data-umami-event="lang-switch"
       >{c.nav.langSwitch}</a>
       <a class="nav-link hidden md:inline-flex" href={DASHBOARD_URL} rel="noopener">{c.nav.login}</a>
-      <a
-        class="btn btn-ink btn-sm hidden sm:inline-flex"
-        href={whatsappHref(lang)}
-        data-open-contact
-        data-umami-event="talk-to-us"
-      >{c.nav.talk}</a>
+      {cta ? (
+        <a class="btn btn-ink btn-sm hidden sm:inline-flex" href={cta.href} data-umami-event={cta.event} data-umami-event-where="header">{cta.label}</a>
+      ) : (
+        <a
+          class="btn btn-ink btn-sm hidden sm:inline-flex"
+          href={whatsappHref(lang)}
+          data-open-contact
+          data-umami-event="talk-to-us"
+        >{c.nav.talk}</a>
+      )}
       <button type="button" class="nav-link inline-flex h-11 w-11 items-center justify-center !p-0 lg:hidden" data-open-menu aria-haspopup="dialog" aria-controls="mobile-menu" aria-label={c.nav.menu}>
         <Icon name="menu" size={22} />
       </button>

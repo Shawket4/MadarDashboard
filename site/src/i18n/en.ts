@@ -797,6 +797,7 @@ export const en = {
       },
     },
     stickyCta: "Create your free account",
+    band: "Start selling today.",
   },
 
   faq: {
