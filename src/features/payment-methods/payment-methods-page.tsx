@@ -1,3 +1,4 @@
+import { useIsFree } from "@/hooks/use-plan";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -52,8 +53,10 @@ export function PaymentMethodsPage() {
     try { await (m.is_active ? deactivatePaymentMethod(m.id) : activatePaymentMethod(m.id)); void invalidatePaymentMethods(); } catch (e) { toast.error(getErrorMessage(e)); }
   };
 
+  // Partner sharing is a paid-plan setting: Free has no such column.
+  const free = useIsFree();
   const columns = useMemo<ColumnDef<OrgPaymentMethod>[]>(
-    () => [
+    () => ([
       {
         accessorKey: "name", header: t("common.name", "Name"),
         cell: ({ row }) => {
@@ -111,9 +114,9 @@ export function PaymentMethodsPage() {
           </div>
         ),
       },
-    ],
+    ] as ColumnDef<OrgPaymentMethod>[]).filter((c) => !(free && c.id === "visible_in_integrations")),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, i18n.language, update],
+    [t, i18n.language, update, free],
   );
 
   const handleExport = async () => {

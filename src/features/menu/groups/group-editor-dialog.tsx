@@ -36,6 +36,7 @@ import {
 import type { GroupOut, OrgIngredient } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtMoney, fmtUnit, piastresToEgp } from "@/lib/format";
+import { PaidFeatureLock } from "@/components/app/paid-feature-lock";
 import { useHasFeature } from "@/hooks/use-plan";
 import { draftRecipeCost } from "@/lib/recipe-cost";
 import { cn } from "@/lib/utils";
@@ -405,7 +406,17 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                   </p>
                 ) : null}
               </fieldset>
-              ) : null}
+              ) : (
+                <PaidFeatureLock
+                  feature="inventory"
+                  title={t("menu.groups.editor.effectLabel", "What does choosing do?")}
+                  preview={
+                    <p className="rounded-md border px-3 py-2 text-sm text-muted-foreground">
+                      {t("menu.groups.effect.adds", "Adds ingredients")} · {t("menu.groups.effect.swapsPrefix", "Swaps the drink's")} …
+                    </p>
+                  }
+                />
+              )}
 
               {/* Customer must pick */}
               <fieldset className="space-y-2">

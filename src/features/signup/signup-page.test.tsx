@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const otpCall = vi.fn();
 const signupCall = vi.fn();
+const verifyCall = vi.fn();
 const navigate = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
@@ -20,8 +21,10 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@/data/api/generated/api", () => ({
   useSignupOtp: (o: { mutation: object }) =>
     useMutation({ mutationFn: (v: { data: unknown }) => otpCall(v.data), ...(o.mutation as object) }),
-  useSignup: (o: { mutation: object }) =>
-    useMutation({ mutationFn: (v: { data: unknown }) => signupCall(v.data), ...(o.mutation as object) }),
+}));
+vi.mock("./signup-api", () => ({
+  useSignupVerify: (o: object) => useMutation({ mutationFn: (v: { data: unknown }) => verifyCall(v.data), ...o }),
+  useSignupCreate: (o: object) => useMutation({ mutationFn: (v: { data: unknown }) => signupCall(v.data), ...o }),
 }));
 vi.mock("./signup-shell", () => ({
   SignupShell: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
@@ -75,6 +78,7 @@ async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
 beforeEach(() => {
   otpCall.mockReset().mockResolvedValue({ sent: true, expires_in_seconds: 300, resend_after_seconds: 60 });
   signupCall.mockReset().mockResolvedValue(SESSION);
+  verifyCall.mockReset().mockResolvedValue({ signup_token: "TOKEN-1", expires_in_seconds: 1800 });
   navigate.mockReset();
   useAuthStore.setState({ user: null, token: null, plan: null });
 });
@@ -225,26 +229,103 @@ describe("SignupPage", () => {
     await user.click(screen.getByRole("button", { name: "Create my shop" }));
     await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/onboarding" }));
     expect(signupCall).toHaveBeenCalledWith({
-      phone: "201001234567", code: "483920", shop_name: "The Rue", owner_name: "Mona",
+      signup_token: "TOKEN-1", shop_name: "The Rue", owner_name: "Mona",
       email: "mona@therue.com", password: "correct horse", template: "restaurant", terms_version: TERMS_VERSION,
     });
     expect(useAuthStore.getState()).toMatchObject({ token: "tok", plan: "free" });
   });
 
-  it("a wrong code sends the person back to the code step, inline, and the right one finishes the job", async () => {
-    signupCall.mockRejectedValueOnce(refusal(400, { error: "Bad request: Incorrect code." }));
+  it("the server checks the code at the code step: verify gets phone and code, only a 200 moves on", async () => {
+    const user = userEvent.setup();
+    page();
+    await toCodeStep(user);
+    await typeCode(user, "483920");
+    await screen.findByLabelText("Shop name");
+    expect(verifyCall).toHaveBeenCalledOnce();
+    expect(verifyCall).toHaveBeenCalledWith({ phone: "201001234567", code: "483920" });
+    // The token is state only: nothing about the sign-up is written to storage.
+    expect(JSON.stringify({ ...localStorage })).not.toContain("TOKEN-1");
+    expect(JSON.stringify({ ...sessionStorage })).not.toContain("TOKEN-1");
+  });
+
+  it("shows a spinner in the boxes while the server checks, and stays on the code step", async () => {
+    let release: (v: unknown) => void = () => {};
+    verifyCall.mockImplementation(() => new Promise((res) => { release = res; }));
+    const user = userEvent.setup();
+    page();
+    await toCodeStep(user);
+    await typeCode(user, "483920");
+    expect(await screen.findByText("Checking the code…", { selector: ".sr-only" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Verification code" })).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByLabelText("Digit 1 of 6")).toBeDisabled();
+    expect(screen.queryByLabelText("Shop name")).toBeNull();
+    release({ signup_token: "T", expires_in_seconds: 1800 });
+    expect(await screen.findByLabelText("Shop name")).toBeInTheDocument();
+  });
+
+  it.each([
+    ["SIGNUP_CODE_WRONG", /That code is not right/],
+    ["SIGNUP_CODE_EXPIRED", /expired or was already used/],
+    ["SIGNUP_CODE_LOCKED", /Too many wrong tries/],
+  ])("%s: says so inline, clears the boxes, focuses them and stays on the code step", async (code, message) => {
+    verifyCall.mockRejectedValueOnce(refusal(400, { code, error: "x" }));
+    const user = userEvent.setup();
+    page();
+    await toCodeStep(user);
+    await typeCode(user, "111111");
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Shop name")).toBeNull();
+    await waitFor(() => expect(screen.getByLabelText("Digit 1 of 6")).toHaveFocus());
+    expect(screen.getByLabelText("Digit 1 of 6")).toHaveValue("");
+    if (code === "SIGNUP_CODE_WRONG") expect(screen.getByLabelText("Digit 1 of 6")).toBeInvalid();
+    else expect(screen.getByRole("button", { name: "Send the code again" })).toBeEnabled();
+    // A right code afterwards goes on.
+    await typeCode(user, "483920");
+    expect(await screen.findByLabelText("Shop name")).toBeInTheDocument();
+  });
+
+  it("too many requests at verify says so in place", async () => {
+    verifyCall.mockRejectedValueOnce(refusal(429, { error: "slow down" }));
+    const user = userEvent.setup();
+    page();
+    await toCodeStep(user);
+    await typeCode(user, "111111");
+    expect(await screen.findByText("Too many attempts just now. Wait a moment and try again.")).toBeInTheDocument();
+  });
+
+  it("a phone that turns out to be taken at verify offers sign in", async () => {
+    verifyCall.mockRejectedValueOnce(refusal(409, { code: "SIGNUP_PHONE_TAKEN", error: "x" }));
+    const user = userEvent.setup();
+    page();
+    await toCodeStep(user);
+    await typeCode(user, "111111");
+    expect(await screen.findByRole("link", { name: "Sign in instead" })).toHaveAttribute("href", "/login");
+  });
+
+  it("an expired signup token sends the person back to the phone step, with the shop's details kept", async () => {
+    signupCall.mockRejectedValueOnce(refusal(400, { code: "SIGNUP_TOKEN_EXPIRED", error: "x" }));
     const user = userEvent.setup();
     page();
     await toDetailsStep(user);
     await fillAndSubmit(user);
-    expect(await screen.findByText(/That code is wrong or has expired/)).toBeInTheDocument();
-    expect(screen.getByLabelText("Digit 1 of 6")).toHaveValue("");
-    expect(screen.getByLabelText("Digit 1 of 6")).toBeInvalid();
+    expect(await screen.findByText(/Your phone check timed out/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Mobile number")).toHaveValue("100 123 4567");
     expect(navigate).not.toHaveBeenCalled();
-    // The details were kept: the corrected code creates the shop with no second form.
-    await typeCode(user, "111222");
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/onboarding" }));
-    expect(signupCall).toHaveBeenLastCalledWith(expect.objectContaining({ code: "111222", shop_name: "The Rue", email: "mona@therue.com" }));
+    // Verify again: the details are still in the form.
+    await user.click(screen.getByRole("button", { name: "Send the code" }));
+    await screen.findByRole("group", { name: "Verification code" });
+    await typeCode(user, "999888");
+    expect(await screen.findByLabelText("Shop name")).toHaveValue("The Rue");
+  });
+
+  it("Back from the shop step and the same code goes on without asking the server again", async () => {
+    const user = userEvent.setup();
+    page();
+    await toDetailsStep(user);
+    await user.click(screen.getByRole("button", { name: "Back" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect(await screen.findByLabelText("Shop name")).toBeInTheDocument();
+    expect(verifyCall).toHaveBeenCalledOnce();
   });
 
   it("an email that already has an account offers to sign in, and keeps the form", async () => {

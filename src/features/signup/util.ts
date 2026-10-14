@@ -18,14 +18,20 @@ export type SignupProblem =
   | "limit"
   /** The per-IP limiter (429 RATE_LIMITED, or a bare 429). */
   | "rate"
-  /** The code is wrong, spent or expired (400 whose sentence is about the code). */
+  /** 400 SIGNUP_CODE_WRONG: that code is not the one sent. */
   | "bad_code"
+  /** 400 SIGNUP_CODE_EXPIRED: no active code (it ran out, or was spent): ask for a new one. */
+  | "code_expired"
+  /** 400 SIGNUP_CODE_LOCKED: five wrong tries; ask for a new code. */
+  | "code_locked"
+  /** 400 SIGNUP_TOKEN_EXPIRED: the verified phone timed out before the shop was made; start again. */
+  | "token_expired"
   | "other";
 
 /**
- * The sign-up form validates every field itself, so a 400 from the final
- * request that talks about the code IS the code; any other 400 is a field the
- * server judged differently, and is shown as the server's refusal.
+ * The server checks the code at the code step (`/public/signup/verify`) and
+ * answers with a stable code for each way it can fail; any other 400 is a field
+ * the server judged differently, and is shown as the server's refusal.
  */
 export function signupProblem(err: unknown): SignupProblem {
   if (!(err instanceof AxiosError)) return "other";
@@ -36,8 +42,11 @@ export function signupProblem(err: unknown): SignupProblem {
   if (code === "SIGNUP_EMAIL_TAKEN") return "email_taken";
   if (code === "SIGNUP_OTP_COOLDOWN") return "cooldown";
   if (code === "SIGNUP_OTP_LIMIT") return "limit";
+  if (code === "SIGNUP_CODE_WRONG") return "bad_code";
+  if (code === "SIGNUP_CODE_EXPIRED") return "code_expired";
+  if (code === "SIGNUP_CODE_LOCKED") return "code_locked";
+  if (code === "SIGNUP_TOKEN_EXPIRED") return "token_expired";
   if (status === 429) return "rate";
-  if (status === 400 && typeof data?.error === "string" && /\bcode\b/i.test(data.error)) return "bad_code";
   return "other";
 }
 

@@ -1,3 +1,4 @@
+import { PaidFeatureLock } from "@/components/app/paid-feature-lock";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Minus, Plus } from "lucide-react";
@@ -203,6 +204,20 @@ export function PreviewPanel({ studio }: { studio: StudioAggregate }) {
               </span>
               {q.isFetching ? <Spinner className="size-3.5" /> : null}
             </div>
+            <PaidFeatureLock
+              feature="inventory"
+              layout="inline"
+              preview={<div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-28 shrink-0 text-xs font-medium text-muted-foreground">{t("modeling.preview.deducts", "Deducts")}</span>
+                  <span className="text-muted-foreground">—</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-28 shrink-0 text-xs font-medium text-muted-foreground">{t("modeling.preview.cost", "Cost")}</span>
+                  <span className="text-muted-foreground">—</span>
+                </div>
+              </div>}
+            >
             <div className="flex flex-col gap-1.5 sm:flex-row">
               <span className="w-28 shrink-0 text-xs font-medium text-muted-foreground">{t("modeling.preview.deducts", "Deducts")}</span>
               {data.deductions.length === 0 ? (
@@ -237,6 +252,7 @@ export function PreviewPanel({ studio }: { studio: StudioAggregate }) {
                   : ""}
               </span>
             </div>
+            </PaidFeatureLock>
             {data.warnings.length > 0 ? (
               <ul className="space-y-1.5">
                 {data.warnings.map((w, i) => (

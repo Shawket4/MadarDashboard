@@ -22,9 +22,11 @@ describe("signupProblem", () => {
     expect(signupProblem(refusal(429, { error: "slow down" }))).toBe("rate");
   });
 
-  it("a 400 about the code is the code; any other 400 is not", () => {
-    expect(signupProblem(refusal(400, { error: "Bad request: Incorrect code." }))).toBe("bad_code");
-    expect(signupProblem(refusal(400, { error: "No active code — request a new one." }))).toBe("bad_code");
+  it("tells the code refusals and the expired token apart by their codes", () => {
+    expect(signupProblem(refusal(400, { code: "SIGNUP_CODE_WRONG", error: "x" }))).toBe("bad_code");
+    expect(signupProblem(refusal(400, { code: "SIGNUP_CODE_EXPIRED", error: "x" }))).toBe("code_expired");
+    expect(signupProblem(refusal(400, { code: "SIGNUP_CODE_LOCKED", error: "x" }))).toBe("code_locked");
+    expect(signupProblem(refusal(400, { code: "SIGNUP_TOKEN_EXPIRED", error: "x" }))).toBe("token_expired");
     expect(signupProblem(refusal(400, { error: "password must be at least 8 characters" }))).toBe("other");
   });
 

@@ -9,6 +9,7 @@
  * Arabic too.
  */
 import { useEffect, useRef } from "react";
+import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { latinDigits } from "@/components/inputs/time";
@@ -22,6 +23,10 @@ export interface OtpInputProps {
   length?: number;
   invalid?: boolean;
   disabled?: boolean;
+  /** The server is checking the code: boxes locked, a spinner over them. */
+  busy?: boolean;
+  /** Changes when the boxes should take focus again (a refused code cleared them). */
+  refocus?: number;
   autoFocus?: boolean;
   /** Names the group for assistive technology; the visible label points here too. */
   id?: string;
@@ -31,7 +36,7 @@ export interface OtpInputProps {
 const onlyDigits = (raw: string) => latinDigits(raw).replace(/\D/g, "");
 
 export function OtpInput({
-  value, onChange, onComplete, length = 6, invalid, disabled, autoFocus, id, "aria-describedby": describedBy,
+  value, onChange, onComplete, length = 6, invalid, disabled, busy, refocus, autoFocus, id, "aria-describedby": describedBy,
 }: OtpInputProps) {
   const { t } = useTranslation();
   const refs = useRef<(HTMLInputElement | null)[]>([]);
@@ -52,6 +57,10 @@ export function OtpInput({
     // On mount only: a later change of `value` must not steal focus.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (refocus && !busy) refs.current[0]?.focus();
+  }, [refocus, busy]);
 
   const focusBox = (i: number) => {
     const el = refs.current[Math.max(0, Math.min(length - 1, i))];
@@ -82,8 +91,9 @@ export function OtpInput({
       role="group"
       aria-label={t("signup.codeLabel", "Verification code")}
       aria-describedby={describedBy}
+      aria-busy={busy || undefined}
       dir="ltr"
-      className={cn("flex w-full justify-center gap-1.5 sm:gap-2", invalid && "motion-safe:animate-[otp-shake_0.32s_ease-in-out]")}
+      className={cn("relative flex w-full justify-center gap-1.5 sm:gap-2", busy && "[&>input]:opacity-50", invalid && "motion-safe:animate-[otp-shake_0.32s_ease-in-out]")}
     >
       {digits.map((d, i) => (
         <input
@@ -97,7 +107,7 @@ export function OtpInput({
           enterKeyHint="done"
           aria-label={t("signup.digit", { n: i + 1, total: length, defaultValue: "Digit {{n}} of {{total}}" })}
           aria-invalid={invalid || undefined}
-          disabled={disabled}
+          disabled={disabled || busy}
           value={d}
           onFocus={(e) => {
             // The code has no gaps: a box past the next empty one hands focus to it.
@@ -151,6 +161,12 @@ export function OtpInput({
           )}
         />
       ))}
+      {busy ? (
+        <span role="status" className="absolute inset-0 grid place-items-center">
+          <Loader2 aria-hidden className="size-6 animate-spin text-foreground" />
+          <span className="sr-only">{t("signup.verifying", "Checking the code…")}</span>
+        </span>
+      ) : null}
     </div>
   );
 }

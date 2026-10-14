@@ -9,7 +9,7 @@
  * On success the session is stored exactly as sign-in stores it, and the owner
  * lands in onboarding.
  */
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { LEGAL_URLS, TERMS_VERSION } from "@/config/legal";
-import { useSignup, useSignupOtp } from "@/data/api/generated/api";
+import { useSignupOtp } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 
 import { OtpInput } from "./otp-input";
 import { PhoneInput } from "./phone-input";
+import { useSignupCreate, useSignupVerify } from "./signup-api";
 import { SignupShell } from "./signup-shell";
 import { SIGNUP_STEPS, StepIndicator, type SignupStep } from "./step-indicator";
 import {
@@ -108,8 +109,13 @@ export function SignupPage() {
   const [problem, setProblem] = useState<SignupProblem | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
-  /** The details a refused code interrupted, to send again with the right one. */
-  const pending = useRef<ShopValues | null>(null);
+  /**
+   * What the server gave for a code it checked: held here and nowhere else (never
+   * in storage), spent by the shop's creation, good for ~30 minutes.
+   */
+  const [verified, setVerified] = useState<{ token: string; code: string } | null>(null);
+  /** Bumped to put focus back on the code boxes after a refusal. */
+  const [refocus, setRefocus] = useState(0);
   const resendIn = useCountdown(resendAt);
 
   const canonical = signupPhone(national);
@@ -143,6 +149,7 @@ export function SignupPage() {
     mutation: {
       onSuccess: (r) => {
         setCode("");
+        setVerified(null);
         setResendAt(Date.now() + Math.max(1, r.resend_after_seconds) * 1000);
         go("code");
       },
@@ -163,30 +170,47 @@ export function SignupPage() {
     },
   });
 
-  const signup = useSignup({
-    mutation: {
-      onSuccess: (r) => {
-        signIn(r.token, r.user, r.plan);
-        useAppStore.getState().setSelectedBranch(r.branch_id);
-        void navigate({ to: "/onboarding" });
-      },
-      onError: (e) => {
-        const p = signupProblem(e);
-        if (p === "bad_code") {
-          setCode("");
-          setStep("code");
-          setMoved(true);
-          setProblem(p);
-          setMessage(null);
-          return;
-        }
+  const verify = useSignupVerify({
+    onSuccess: (r, v) => {
+      setVerified({ token: r.signup_token, code: v.data.code });
+      go("details");
+    },
+    onError: (e) => {
+      const p = signupProblem(e);
+      // A wrong, spent or locked code: clear the boxes and put the cursor back in them.
+      setCode("");
+      setRefocus((n) => n + 1);
+      setProblem(p);
+      setMessage(p === "rate" ? t("signup.rateLimited", "Too many attempts just now. Wait a moment and try again.") : p === "other" ? getErrorMessage(e) : null);
+      // A spent or locked code is replaced, not retried: let a new one be asked for at once.
+      if (p === "code_expired" || p === "code_locked") setResendAt(null);
+    },
+  });
+
+  const signup = useSignupCreate({
+    onSuccess: (r) => {
+      signIn(r.token, r.user, r.plan);
+      useAppStore.getState().setSelectedBranch(r.branch_id);
+      void navigate({ to: "/onboarding" });
+    },
+    onError: (e) => {
+      const p = signupProblem(e);
+      if (p === "token_expired") {
+        // The verified phone timed out: back to the phone step, the shop's details kept in the form.
+        setVerified(null);
+        setCode("");
+        setStep("phone");
+        setMoved(true);
         setProblem(p);
-        setMessage(
-          p === "phone_taken" || p === "email_taken" ? null
-            : p === "rate" ? t("signup.rateLimited", "Too many attempts just now. Wait a moment and try again.")
-            : getErrorMessage(e),
-        );
-      },
+        setMessage(null);
+        return;
+      }
+      setProblem(p);
+      setMessage(
+        p === "phone_taken" || p === "email_taken" ? null
+          : p === "rate" ? t("signup.rateLimited", "Too many attempts just now. Wait a moment and try again.")
+          : getErrorMessage(e),
+      );
     },
   });
 
@@ -197,19 +221,21 @@ export function SignupPage() {
     otp.mutate({ data: { phone: canonical } });
   };
 
-  const createShop = (values: ShopValues, withCode: string) => {
-    if (!canonical) return;
-    pending.current = values;
+  const createShop = (values: ShopValues) => {
+    if (!verified) return;
     setProblem(null);
     setMessage(null);
-    signup.mutate({ data: { ...values, phone: canonical, code: withCode, terms_version: TERMS_VERSION } });
+    signup.mutate({ data: { ...values, signup_token: verified.token, terms_version: TERMS_VERSION } });
   };
 
-  /** The sixth digit: on to the details, or, if they were already given, create the shop. */
+  /** The sixth digit: the server checks it, and only its yes moves on. */
   const onCodeComplete = (full: string) => {
-    if (full.length !== SIGNUP_CODE_LENGTH) return;
-    if (pending.current) createShop(pending.current, full);
-    else go("details");
+    if (full.length !== SIGNUP_CODE_LENGTH || verify.isPending || !canonical) return;
+    // Back from the shop step with the same, already-checked code: nothing to ask again.
+    if (verified && verified.code === full) return go("details");
+    setProblem(null);
+    setMessage(null);
+    verify.mutate({ data: { phone: canonical, code: full } });
   };
 
   const heading: Record<SignupStep, { title: string; subtitle: string }> = {
@@ -270,6 +296,7 @@ export function SignupPage() {
               <SignInInstead>{t("errors.codes.SIGNUP_PHONE_TAKEN", "A shop already uses this phone number.")}</SignInInstead>
             ) : null}
             {problem === "limit" ? <Notice>{t("errors.codes.SIGNUP_OTP_LIMIT", "Too many codes for this number. Try again in an hour.")}</Notice> : null}
+            {problem === "token_expired" ? <Notice tone="info">{t("signup.tokenExpired", "Your phone check timed out. Verify your number again to finish.")}</Notice> : null}
             {(problem === "rate" || problem === "other") && message ? <Notice>{message}</Notice> : null}
             <Button type="submit" loading={otp.isPending} disabled={!canonical} className="h-12 w-full rounded-xl text-base">
               {otp.isPending ? null : <MessageCircle className="size-4" aria-hidden />}
@@ -292,14 +319,15 @@ export function SignupPage() {
               setCode={(v) => { setCode(v); if (problem === "bad_code") setProblem(null); }}
               onComplete={onCodeComplete}
               invalid={problem === "bad_code"}
-              disabled={signup.isPending}
+              busy={verify.isPending}
+              refocus={refocus}
               autoFocus={moved}
               shown={shown}
               onChange={() => go("phone")}
             />
-            {problem === "bad_code" ? (
-              <Notice>{t("signup.badCode", "That code is wrong or has expired. Check it, or ask for a new one.")}</Notice>
-            ) : null}
+            {problem === "bad_code" ? <Notice>{t("signup.badCode", "That code is not right. Check the digits and try again.")}</Notice> : null}
+            {problem === "code_expired" ? <Notice>{t("signup.codeExpired", "That code has expired or was already used. Send a new one.")}</Notice> : null}
+            {problem === "code_locked" ? <Notice>{t("signup.codeLocked", "Too many wrong tries. Send a new code to try again.")}</Notice> : null}
             {problem === "cooldown" && message ? <Notice tone="info">{message}</Notice> : null}
             {problem === "limit" ? <Notice>{t("errors.codes.SIGNUP_OTP_LIMIT", "Too many codes for this number. Try again in an hour.")}</Notice> : null}
             {(problem === "rate" || problem === "other") && message ? <Notice>{message}</Notice> : null}
@@ -308,11 +336,11 @@ export function SignupPage() {
 
             <Button
               type="submit"
-              loading={signup.isPending}
+              loading={verify.isPending}
               disabled={code.length !== SIGNUP_CODE_LENGTH}
               className="h-12 w-full rounded-xl text-base"
             >
-              {signup.isPending ? t("signup.codeChecking", "Creating your shop…") : t("signup.continue", "Continue")}
+              {verify.isPending ? t("signup.verifying", "Checking the code…") : t("signup.continue", "Continue")}
             </Button>
 
             <div className="flex min-h-11 items-center justify-center text-sm">
@@ -329,7 +357,7 @@ export function SignupPage() {
               </button>
             </div>
             <p className="text-center text-xs text-muted-foreground text-pretty">
-              {t("signup.codeNote", "We check the code when you create your shop, so keep this WhatsApp chat handy.")}
+              {t("signup.codeNote", "Only the code we sent to this number will do. It stays valid for a few minutes.")}
             </p>
           </form>
         ) : null}
@@ -345,7 +373,7 @@ export function SignupPage() {
             focus={moved}
             onBack={() => go("code")}
             onEditPhone={() => go("phone")}
-            onSubmit={(v) => createShop(v, code)}
+            onSubmit={(v) => createShop(v)}
           />
         ) : null}
       </div>
@@ -355,13 +383,14 @@ export function SignupPage() {
 
 /** The code boxes with their sentence: where it went, and the way to change it. */
 function OtpField({
-  code, setCode, onComplete, invalid, disabled, autoFocus, shown, onChange,
+  code, setCode, onComplete, invalid, busy, refocus, autoFocus, shown, onChange,
 }: {
   code: string;
   setCode: (v: string) => void;
   onComplete: (v: string) => void;
   invalid: boolean;
-  disabled: boolean;
+  busy: boolean;
+  refocus: number;
   autoFocus: boolean;
   shown: string;
   onChange: () => void;
@@ -393,7 +422,8 @@ function OtpField({
         onChange={setCode}
         onComplete={onComplete}
         invalid={invalid}
-        disabled={disabled}
+        busy={busy}
+        refocus={refocus}
         autoFocus={autoFocus}
         aria-describedby="signup-code-sent"
       />

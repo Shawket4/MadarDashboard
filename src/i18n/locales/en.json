@@ -992,7 +992,12 @@
       },
       "sectionSteps": "the steps",
       "unsaved": "Unsaved",
-      "itemTitle": "Menu item"
+      "itemTitle": "Menu item",
+      "stepsPreview": {
+        "1": "Grind and dose",
+        "2": "Brew",
+        "3": "Steam the milk and pour"
+      }
     },
     "addonTypeLocked": "The type (group) can't change — recreate the add-on to move it.",
     "addonRecipe": {
@@ -2488,7 +2493,11 @@
       "SIGNUP_OTP_COOLDOWN": "A code was just sent. Please wait a minute before asking for another.",
       "SIGNUP_OTP_LIMIT": "Too many codes for this number. Try again in an hour.",
       "ORG_FIELD_MADAR_ONLY": "Only Madar can change this setting on your shop. Contact Madar and we will do it for you.",
-      "ORG_CURRENCY_LOCKED": "Your shop's currency can't be changed once it has taken its first order. Contact Madar if it must change."
+      "ORG_CURRENCY_LOCKED": "Your shop's currency can't be changed once it has taken its first order. Contact Madar if it must change.",
+      "SIGNUP_CODE_WRONG": "That code is not right. Check the digits and try again.",
+      "SIGNUP_CODE_EXPIRED": "That code has expired or was already used. Send a new one.",
+      "SIGNUP_CODE_LOCKED": "Too many wrong tries. Send a new code to try again.",
+      "SIGNUP_TOKEN_EXPIRED": "Your phone check timed out. Verify your number again to finish."
     },
     "tooManyRequests": "Too many requests just now. Try again in a moment.",
     "contact": "Contact Madar",
@@ -7528,6 +7537,11 @@
       "switchBodyNone": "This till will start selling again. Its sales so far are kept.",
       "switched": "The active till was changed.",
       "ownerOnly": "Only the shop's owner can change the active till."
+    },
+    "lock": {
+      "badge": "Paid plan",
+      "note": "On the paid plan — contact Madar",
+      "cta": "Contact Madar"
     }
   },
   "signup": {
@@ -7569,9 +7583,9 @@
     "changeAria": "Change the phone number",
     "resendIn": "Resend the code in {{time}}",
     "resend": "Send the code again",
-    "codeNote": "We check the code when you create your shop, so keep this WhatsApp chat handy.",
+    "codeNote": "Only the code we sent to this number will do. It stays valid for a few minutes.",
     "codeChecking": "Creating your shop…",
-    "badCode": "That code is wrong or has expired. Check it, or ask for a new one.",
+    "badCode": "That code is not right. Check the digits and try again.",
     "rateLimited": "Too many attempts just now. Wait a moment and try again.",
     "otpFailed": "We could not send the code. Check your connection and try again.",
     "cooldownSent": "A code was sent a moment ago. It should arrive on WhatsApp shortly.",
@@ -7637,6 +7651,10 @@
     "compactTitle": "What the free plan includes",
     "compactUpgrade": "Upgrade anytime for more",
     "stepDone": "(done)",
-    "stepCurrent": "(current step)"
+    "stepCurrent": "(current step)",
+    "codeExpired": "That code has expired or was already used. Send a new one.",
+    "codeLocked": "Too many wrong tries. Send a new code to try again.",
+    "tokenExpired": "Your phone check timed out. Verify your number again to finish.",
+    "verifying": "Checking the code…"
   }
 }

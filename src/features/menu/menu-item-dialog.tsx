@@ -42,6 +42,7 @@ import type { AddonItem, Category, MenuItem } from "@/data/api/generated/models"
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
+import { PaidFeatureLock } from "@/components/app/paid-feature-lock";
 import { useHasFeature } from "@/hooks/use-plan";
 import { RecipeBuilder, type CleanRow, type RecipeRowInit } from "@/features/recipes/recipe-builder";
 import { invalidateRecipes } from "@/features/recipes/util";
@@ -512,14 +513,22 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                 </div>
               )}
 
-              {/* Recipe (per-size ingredients): paid plan's inventory */}
-              {hasRecipes ? (
+              {/* Recipe (per-size ingredients): the paid plan's inventory, locked (not hidden) on Free */}
               <div className="border-t pt-4">
                 <div className="mb-3 flex items-center gap-2">
                   <BookOpen className="size-4 text-primary" />
                   <p className="text-sm font-semibold">{t("menu.recipe", "Recipe")}</p>
                   <span className="text-xs text-muted-foreground">{t("menu.recipeHint", "What this item consumes, per size")}</span>
                 </div>
+                <PaidFeatureLock
+                  feature="inventory"
+                  layout="inline"
+                  preview={
+                    <div className="h-9 w-full rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
+                      {t("modeling.grid.addIngredient", "+ ingredient")}
+                    </div>
+                  }
+                >
                 <RecipeBuilder
                   orgId={orgId}
                   sizes={recipeSizes}
@@ -530,8 +539,8 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
                   onRowsChange={setRecipeRows}
                   allowCreateIngredient={false}
                 />
+                </PaidFeatureLock>
               </div>
-              ) : null}
 
               {/* Allowed addons */}
               <div className="border-t pt-4">

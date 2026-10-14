@@ -25,17 +25,19 @@ export function useUpgradeHref(feature?: Feature): string {
 export function UpgradeButton({
   feature,
   variant = "default",
+  size,
   label,
 }: {
   feature?: Feature;
   variant?: "default" | "outline" | "ghost";
+  size?: "default" | "sm" | "lg";
   /** Replaces "Contact Madar on WhatsApp" where the button answers a specific limit. */
   label?: string;
 }) {
   const { t } = useTranslation();
   const href = useUpgradeHref(feature);
   return (
-    <Button asChild variant={variant}>
+    <Button asChild variant={variant} size={size}>
       <a href={href} target="_blank" rel="noopener noreferrer">
         <MessageCircle className="size-4" aria-hidden />
         {label ?? t("plan.upgrade.cta", "Contact Madar on WhatsApp")}

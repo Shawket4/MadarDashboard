@@ -89,6 +89,14 @@ describe("user dialog credentials", () => {
 });
 
 describe("roles offered", () => {
+  it("never offers the waiter role on the Free plan (no waiter devices), except to someone who has it", () => {
+    expect(rolesOffered("org_admin", undefined, "free")).toEqual(["org_admin", "branch_manager", "teller"]);
+    expect(rolesOffered("branch_manager", undefined, "free")).toEqual(["teller"]);
+    expect(rolesOffered("org_admin", "waiter", "free")).toContain("waiter");
+    expect(rolesOffered("org_admin", undefined, "paid")).toContain("waiter");
+    expect(rolesOffered("org_admin", undefined, null)).toContain("waiter");
+  });
+
   it("never gives a new person the kitchen role: a kitchen screen has no account", () => {
     expect(rolesOffered("org_admin", undefined)).not.toContain("kitchen");
     expect(rolesOffered("branch_manager", undefined)).toEqual(["teller", "waiter"]);
