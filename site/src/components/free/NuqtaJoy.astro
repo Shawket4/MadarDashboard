@@ -1,0 +1,25 @@
+---
+/**
+ * نقطة jumping for joy: the owner's "Not a penny" poster ("Nuqta joy"; paths copied from
+ * the Illustrator export, not redrawn). Same rig as Nuqta.astro; the arms flap when he
+ * jumps (global.css "The crew", crew.ts: a jump when he first comes in, and when tapped).
+ */
+interface Props { class?: string }
+const { class: cls = "" } = Astro.props;
+---
+<svg class:list={["crew-figure", cls]} viewBox="0 0 167.58 200" aria-hidden="true" data-crew data-joy>
+  <g class="crew-shadow" style="transform-origin: 83.79px 195.14px"><ellipse cx="83.79" cy="195.14" rx="46.73" ry="4.86" fill="#e1e7e9" /></g>
+  <g class="crew-hop" style="transform-origin: 84px 192px">
+    <path d="M65.85,130.84c-1.99,22.43-3.49,42.37-4.49,59.81l-14.21.75" fill="none" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.72" />
+    <path d="M101.74,130.84c1.99,22.43,3.49,42.37,4.49,59.81l14.21.75" fill="none" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.72" />
+    <g class="crew-body" style="transform-origin: 84px 150px">
+      <g class="crew-flap" style="transform-origin: 20.24px 82.24px"><path d="M20.24,82.24c-11.96,13.71-16.95,28.66-14.95,44.86" fill="none" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.72" /></g>
+      <g class="crew-flap crew-flap-end" style="transform-origin: 147.34px 82.24px"><path d="M147.34,82.24c11.96,13.71,16.95,28.66,14.95,44.86" fill="none" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.72" /></g>
+      <circle cx="83.79" cy="74.77" r="74.77" fill="#0d6273" />
+      <path d="M28.73,51.4c6.06-14.27,17.42-25.63,31.69-31.69" fill="none" stroke="#2e94a6" stroke-linecap="round" stroke-linejoin="round" stroke-width="7.48" />
+      <path d="M56.97,71.54c5.83-10.5,11.66-10.5,17.5,0" fill="none" stroke="#eff3f4" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.96" />
+      <path d="M93.12,71.54c5.83-10.5,11.66-10.5,17.5,0" fill="none" stroke="#eff3f4" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.96" />
+      <g class="crew-mouth" style="transform-origin: 83.79px 98px"><path d="M72.13,93.7c0,16.33,23.33,16.33,23.33,0h-23.33Z" fill="#eff3f4" /></g>
+    </g>
+  </g>
+</svg>
