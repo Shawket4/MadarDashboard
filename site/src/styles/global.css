@@ -813,7 +813,7 @@ html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; le
 /* The self-service door: نقطة with his coffee in a Paper roundel, top corner. */
 .free-door-main { position: relative; }
 .free-door-roundel { position: relative; align-self: flex-start; margin-bottom: 1.25rem; width: 6rem; aspect-ratio: 1; overflow: hidden; border-radius: 999px; background: var(--color-paper); }
-.free-door-cup { position: absolute; inset-inline: 0; bottom: 6%; width: 86%; margin-inline: auto; overflow: visible; cursor: pointer; }
+.free-door-cup { position: absolute; inset-inline: 0; bottom: 9%; width: 66%; margin-inline: auto; overflow: visible; cursor: pointer; }
 .crew-armed .crew-sip { animation: crew-sip 5s ease-in-out infinite; }
 @keyframes crew-sip { 0%, 55%, 100% { transform: rotate(0deg); } 70% { transform: rotate(-9deg); } 85% { transform: rotate(-9deg); } }
 .crew-armed .crew-steam path { animation: crew-steam 2.6s ease-in-out infinite; }
