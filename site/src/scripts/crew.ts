@@ -27,7 +27,8 @@ if (!reduce) {
     },
     { rootMargin: "0px 0px -4% 0px" },
   );
-  const cols = Array.from(document.querySelectorAll<HTMLElement>(".crew-col"));
+  // The crew's duty lists, and Free and paid's lists ([data-ticks]): their ticks pop in once seen.
+  const cols = Array.from(document.querySelectorAll<HTMLElement>(".crew-col, [data-ticks]"));
   for (const el of [...swings, ...figures, ...cols]) io.observe(el);
 
   const rand = (a: number, b: number) => a + Math.random() * (b - a);

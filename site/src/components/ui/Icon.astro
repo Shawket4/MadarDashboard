@@ -3,7 +3,8 @@
 interface Props {
   name:
     | "whatsapp" | "phone" | "mail" | "arrow" | "arrow-down" | "check" | "menu" | "close"
-    | "instagram" | "facebook" | "external" | "globe" | "spark" | "clock" | "chevron-down";
+    | "instagram" | "facebook" | "external" | "globe" | "spark" | "clock" | "chevron-down"
+    | "lock" | "receipt" | "chart" | "table" | "team";
   class?: string;
   size?: number;
 }
@@ -36,5 +37,10 @@ const common = {
     {name === "globe" && (<><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></>)}
     {name === "spark" && <path d="M12 3v4m0 10v4M3 12h4m10 0h4M6.3 6.3l2.8 2.8m5.8 5.8 2.8 2.8m0-11.4-2.8 2.8m-5.8 5.8-2.8 2.8" />}
     {name === "clock" && (<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>)}
+    {name === "lock" && (<><rect x="5" y="11" width="14" height="10" rx="2.5" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>)}
+    {name === "receipt" && <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Zm3 5h6m-6 4h6m-6 4h3" />}
+    {name === "chart" && <path d="M4 20h16M7 16v-4m5 4V7m5 9v-6" />}
+    {name === "table" && (<><rect x="7" y="7" width="10" height="10" rx="2" /><path d="M12 2.5v2m0 15v2M2.5 12h2m15 0h2" /></>)}
+    {name === "team" && (<><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0M15.5 4.7a3.5 3.5 0 0 1 0 6.6m2 2.9a6.5 6.5 0 0 1 4 5.8" /></>)}
   </svg>
 )}

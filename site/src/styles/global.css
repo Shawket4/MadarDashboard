@@ -692,9 +692,8 @@ html[lang="ar"] .menu-group-label { font-size: .875rem; padding-top: .7rem; }
 }
 
 /* ---------- Madar Free (pages/free/[lang].astro) ----------
-   The hero's price chip, the included list, the limits callout, the Free-and-paid table,
-   the four steps and the two doors. The Free column wears the tint all the way down, so
-   the eye reads it as one column. */
+   The hero's price chip, the included list, the limits callout, Free and paid, the four
+   steps and the two doors. */
 html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; letter-spacing: 0; }
 .free-tick { position: absolute; top: 0; inset-inline-start: 0; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 999px; background: var(--color-tint); color: var(--color-teal); }
 .free-limits { display: flex; flex-direction: column; gap: .5rem; padding: 1.4rem 1.5rem; border-radius: 1.25rem; border: 1px solid var(--color-rule); border-inline-start: 3px solid var(--color-teal); background: var(--color-surface); }
@@ -704,24 +703,84 @@ html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; le
   .free-limits .link-cta { margin-top: 0; }
 }
 
-.free-table { width: 100%; border-collapse: collapse; }
-.free-table :is(th, td) { padding: .85rem .75rem; border-top: 1px solid var(--color-rule); text-align: start; vertical-align: middle; }
-.free-table tbody th { font-weight: 400; line-height: 1.45; }
-.free-table thead :is(th, td) { border-top: 0; padding-block: 1.25rem 1rem; vertical-align: bottom; font-weight: 600; line-height: 1.25; }
-.free-table :is(thead th, tbody td) { width: 5.75rem; text-align: center; }
-.free-table td > span { display: inline-flex; justify-content: center; vertical-align: middle; }
-.free-table .free-col { background: color-mix(in oklab, var(--color-tint) 45%, transparent); }
-.free-table-price { display: block; margin-top: .3rem; font-family: var(--font-mono); font-size: 1.2rem; font-weight: 500; color: var(--color-teal); }
-.free-table-note { display: block; margin-top: .3rem; font-size: .75rem; font-weight: 400; line-height: 1.35; color: var(--color-muted); }
-.free-table-value { font-size: .875rem; font-weight: 500; line-height: 1.3; }
-.free-table-value.ltr { font-family: var(--font-mono); font-size: 1.05rem; }
-.free-table-group :is(th, td) { padding-block: 1.4rem .5rem; font-size: .8125rem; font-weight: 600; color: var(--color-muted); }
-.free-table-group + tr :is(th, td) { border-top: 0; }
-.free-table tbody:first-of-type .free-table-group :is(th, td) { border-top: 0; }
+/* Free and paid (#compare). Free is a subset of paid, so a line is in Free or added by paid.
+   Phones: the plans' sizes as two tiles, then "In Free" (a filled tick per line, the label
+   never squeezed, شريحة on the corner) and "What paid adds" (a lock and a Paid pill).
+   From md the same markup is one matrix: the plans side by side, then a column per plan
+   under a sticky head, the Free column's tint running to the rounded edge. */
+.fc { --fc-col: 10rem; }
+.fc-plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.fc-plan { display: flex; flex-direction: column; padding: 1rem 1rem 1.1rem; border-radius: 1rem; }
+.fc-plan-free { background: var(--color-ink); color: var(--color-paper); }
+.fc-plan-paid { border: 1px solid var(--color-rule); background: var(--color-paper); }
+.fc-plan-name { font-size: .8125rem; font-weight: 600; line-height: 1.3; color: var(--color-muted); }
+.fc-plan-free .fc-plan-name { color: var(--color-teal-light); }
+.fc-plan-size { margin-top: .35rem; font-size: 1.05rem; font-weight: 600; line-height: 1.3; }
+.fc-plan-price { margin-top: auto; padding-top: .8rem; font-size: .75rem; line-height: 1.4; color: var(--color-muted); }
+.fc-plan-free .fc-plan-price { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 500; line-height: 1; color: var(--color-teal-light); }
+html[lang="ar"] .fc-num { font-family: var(--font-mono); }
+.fc-head { display: none; }
+
+.fc-card { position: relative; margin-top: .75rem; padding: 0 1.1rem 1rem; border: 1px solid rgb(20 24 30 / .07); border-radius: 1.25rem; background: var(--color-white); }
+.fc-in { margin-top: 2.5rem; }
+.fc-card-head { position: relative; display: flex; align-items: center; gap: .5rem; padding-block: 1.1rem .9rem; border-bottom: 1px solid var(--color-rule); }
+.fc-card-title { font-size: 1.2rem; font-weight: 600; line-height: 1.3; }
+.fc-card-head svg { color: var(--color-teal); }
+.fc-peek { position: absolute; bottom: -1px; inset-inline-end: .25rem; width: 5.25rem; overflow: visible; cursor: pointer; }
+.fc-group { display: flex; align-items: center; gap: .5rem; margin-top: 1.25rem; font-size: .8125rem; font-weight: 600; line-height: 1.3; color: var(--color-muted); }
+.fc-group svg { color: var(--color-teal); }
+.fc-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; column-gap: .75rem; padding-block: .5rem; line-height: 1.45; }
+.fc-yes, .fc-lock { display: grid; place-items: center; width: 1.375rem; height: 1.375rem; margin-top: .05rem; border-radius: 999px; }
+.fc-yes { background: var(--color-teal); color: var(--color-white); }
+.fc-yes svg { stroke-width: 2.6; }
+.fc-lock { background: var(--color-paper); color: var(--color-slate); }
+.fc-adds .fc-rows { margin-top: .6rem; }
+.fc-pill { margin-top: .1rem; padding-inline: .5rem; border: 1px solid var(--color-rule); border-radius: 999px; font-size: .6875rem; font-weight: 600; line-height: 1.5rem; color: var(--color-muted); }
+.fc-also { display: none; }
+.fc-more { margin-top: .4rem; }
+
 @media (min-width: 768px) {
-  .free-table :is(th, td) { padding-inline: 1.5rem; }
-  .free-table :is(thead th, tbody td) { width: 13rem; }
-  .free-table-value { font-size: .95rem; }
+  .fc-plans { gap: 1.25rem; }
+  .fc-plan { padding: 1.75rem 2rem 1.9rem; border-radius: 1.25rem; }
+  .fc-plan-name { font-size: .9375rem; }
+  .fc-plan-size { margin-top: .5rem; font-size: 1.6rem; line-height: 1.2; letter-spacing: -0.01em; }
+  .fc-plan-price { padding-top: 1.5rem; font-size: .9375rem; }
+  .fc-plan-free .fc-plan-price { font-size: 2rem; }
+
+  .fc-matrix { position: relative; isolation: isolate; margin-top: 1.25rem; overflow: clip; border: 1px solid rgb(20 24 30 / .07); border-radius: 1.25rem; background: var(--color-white); }
+  .fc-matrix::before { content: ""; position: absolute; z-index: -1; inset-block: 0; inset-inline-end: var(--fc-col); width: var(--fc-col); background: color-mix(in oklab, var(--color-tint) 45%, transparent); }
+  /* clip, not hidden, above: a scroll box would stop the head sticking under the site header. */
+  .fc-head { position: sticky; top: 4rem; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) var(--fc-col) var(--fc-col); border-bottom: 1px solid var(--color-rule); background: var(--color-white); font-size: .9375rem; font-weight: 600; line-height: 1.3; text-align: center; }
+  .fc-head span { padding: 1rem .75rem; }
+  .fc-head span:nth-child(2) { background: color-mix(in oklab, var(--color-tint) 45%, var(--color-white)); color: var(--color-teal); }
+  .fc-card { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; }
+  /* The column heads say it: "In Free" stays for screen readers, شريحة sits this one out. */
+  .fc-in .fc-card-head { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .fc-group, .fc-adds .fc-card-head { margin: 0; padding: 1.5rem 1.5rem .6rem; border: 0; font-size: .8125rem; font-weight: 600; line-height: 1.3; color: var(--color-muted); }
+  .fc-adds .fc-card-head { color: var(--color-ink); }
+  .fc-adds .fc-rows { margin-top: 0; }
+  .fc-row { grid-template-columns: minmax(0, 1fr) var(--fc-col) var(--fc-col); align-items: center; column-gap: 0; padding-block: .8rem; padding-inline-start: 1.5rem; border-top: 1px solid var(--color-rule); }
+  .fc-row > * { grid-row: 1; }
+  .fc-label { grid-column: 1; }
+  .fc-yes, .fc-lock { grid-column: 2; justify-self: center; margin: 0; }
+  .fc-lock { background: none; }
+  .fc-also { display: grid; grid-column: 3; justify-self: center; color: var(--color-teal); }
+  .fc-pill { display: none; }
+  .fc-row-paid .fc-label { color: var(--color-muted); }
+  .fc-more { margin: 0; padding: 1rem 1.5rem 1.25rem; border-top: 1px solid var(--color-rule); }
+}
+@media (min-width: 768px) and (hover: hover) {
+  .fc-row { transition: background-color .15s; }
+  .fc-row:hover { background: color-mix(in oklab, var(--color-ink) 4%, transparent); }
+}
+@media (min-width: 1024px) {
+  .fc { --fc-col: 13rem; }
+  /* Wide plans: the size on the start, the price on the end. */
+  .fc-plan { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: 1.5rem; }
+  .fc-plan-price { grid-row: 1 / 3; grid-column: 2; padding: 0; text-align: end; }
+  .fc-plan-paid .fc-plan-price { max-width: 15rem; }
+  .fc-group, .fc-adds .fc-card-head, .fc-more { padding-inline: 2rem; }
+  .fc-row { padding-inline-start: 2rem; }
 }
 
 .free-steps { display: grid; gap: 2.5rem; counter-reset: none; }
@@ -817,6 +876,9 @@ html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; le
 .crew-armed .crew-col[data-in] li:nth-child(2) .free-tick { animation-delay: .75s; }
 .crew-armed .crew-col[data-in] li:nth-child(3) .free-tick { animation-delay: 1s; }
 @keyframes tick-pop { 0% { scale: 0; } 100% { scale: 1; } }
+/* Free and paid: each group's ticks pop in turn as its lines rise in (data-reveal). */
+.crew-armed [data-ticks]:not([data-in]) .fc-yes { scale: 0; }
+.crew-armed [data-ticks][data-in] .fc-yes { animation: tick-pop .5s cubic-bezier(.3, 1.6, .5, 1) calc(.3s + var(--i, 0) * .09s) both; }
 
 /* نقطة with the count, beside the receipt it prints: stacked on a phone, side by side from md. */
 .zr-scene { display: grid; justify-items: center; gap: 1.5rem; }
