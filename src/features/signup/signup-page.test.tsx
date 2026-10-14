@@ -2,6 +2,7 @@
  * The sign-up flow: phone -> code -> shop details, with the server's refusals
  * (phone/email taken, a wrong code, cooldown) handled in place.
  */
+import { TERMS_VERSION } from "@/config/legal";
 import { QueryClient, QueryClientProvider, useMutation } from "@tanstack/react-query";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -140,7 +141,7 @@ describe("SignupPage", () => {
     await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/onboarding" }));
     expect(signupCall).toHaveBeenCalledWith({
       phone: "201001234567", code: "483920", shop_name: "The Rue", owner_name: "Mona",
-      email: "mona@therue.com", password: "correct horse", template: "restaurant", terms_version: "2026-10",
+      email: "mona@therue.com", password: "correct horse", template: "restaurant", terms_version: TERMS_VERSION,
     });
     expect(useAuthStore.getState()).toMatchObject({ token: "tok", plan: "free" });
   });
