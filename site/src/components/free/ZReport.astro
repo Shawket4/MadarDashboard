@@ -1,0 +1,46 @@
+---
+/**
+ * The till's Z-report, printing: the receipt from the owner's "Till close" poster, as
+ * live text in the page's language. crew.ts feeds it out of the printer when it scrolls
+ * in; the figures count up (story.ts, CountUp) and the stamp lands last. Without motion
+ * it is simply the printed receipt.
+ */
+import CountUp from "@/components/kit/CountUp.astro";
+import symbol from "@/assets/brand/symbol-primary.svg?url";
+import { t } from "@/i18n";
+import type { Lang } from "@/lib/site";
+
+interface Props { lang: Lang; class?: string }
+const { lang, class: cls = "" } = Astro.props;
+const z = t(lang).freePage.zr;
+const rows = [
+  [z.payments, 190],
+  [z.expected, 190],
+  [z.counted, 190],
+] as const;
+---
+<div class:list={["zr", cls]} data-swing>
+  <span class="zr-slot" aria-hidden="true"></span>
+  <div class="zr-feed">
+    <div class="zr-paper">
+      <div class="zr-top">
+        <img src={symbol} alt="" width="36" height="36" class="zr-logo" />
+        <p class="zr-title">{z.title2}</p>
+      </div>
+      <dl class="zr-meta">
+        <div><dt>{z.shift}</dt><dd class="ltr">#12</dd></div>
+        <div><dt>{z.cashier}</dt><dd>{z.cashierName}</dd></div>
+      </dl>
+      <dl class="zr-rows">
+        {rows.map(([label, value], i) => (
+          <div><dt>{label}</dt><dd class="ltr"><CountUp value={value} decimals={2} delay={0.5 + i * 0.25} /></dd></div>
+        ))}
+      </dl>
+      <div class="zr-total">
+        <span>{z.difference}</span>
+        <span class="zr-total-value ltr">0.00</span>
+      </div>
+      <p class="zr-stamp" aria-hidden="true">{z.stamp}</p>
+    </div>
+  </div>
+</div>

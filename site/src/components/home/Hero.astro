@@ -5,7 +5,7 @@ import Orbit from "@/components/ui/Orbit.astro";
 import CountUp from "@/components/kit/CountUp.astro";
 import Words from "@/components/kit/Words.astro";
 import { t } from "@/i18n";
-import { type Lang, whatsappHref } from "@/lib/site";
+import { type Lang, whatsappHref, pageHref } from "@/lib/site";
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -32,6 +32,9 @@ const c = t(lang);
       <p class="mt-7 flex max-w-md items-start gap-2.5 text-sm text-muted-ink" data-intro style="--i:4">
         <span class="mt-0.5 text-teal-light"><Icon name="spark" size={18} /></span>
         <span>{c.freeMonth.line}</span>
+      </p>
+      <p class="mt-3 ps-[1.75rem]" data-intro style="--i:5">
+        <a class="link-cta !min-h-11 text-sm text-paper" href={pageHref(lang, "free")} data-umami-event="free-page" data-umami-event-where="hero">{c.hero.freeLink} <Icon name="arrow" size={16} /></a>
       </p>
     </div>
 

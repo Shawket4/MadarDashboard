@@ -33,6 +33,8 @@ const pages = {
   faq: { copy: (c) => [c.faq.title, firstSentence(c.faq.sub)], shot: "order-track", frame: "iphone" },
   about: { copy: (c) => [c.about.title, c.about.partnerTitle], shot: "wallet-pass", frame: "iphone" },
   contact: { copy: (c) => [c.contact.title, c.contact.subtitle], shot: "pos-charge", frame: "ipad" },
+  // No bare "0" on the card: in the Arabic face's sans it reads as ٥ (five).
+  free: { copy: (c) => [c.freePage.title, c.freePage.doors.self.body], shot: "pos-cart", frame: "ipad" },
 };
 const only = process.argv.slice(2);
 

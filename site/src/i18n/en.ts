@@ -38,9 +38,9 @@ export const en = {
         "Talk to the Madar POS team in Cairo on WhatsApp or by phone at +20 121 111 6899, or email shawket.4@icloud.com. We reply the same day.",
     },
     free: {
-      title: "Free POS for cafés in Egypt: free forever, no lock-in | Madar",
+      title: "Madar Free: a free café POS for Egypt, one till, for good",
       description:
-        "Madar's free plan gives your café a point of sale and sales reports, free forever. Sign up in minutes, no card, no contract. Upgrade only if you want more.",
+        "Madar Free gives your café a point of sale and sales reports on one till, for 0 EGP a month, for good. Sign up in two minutes: no card, no contract.",
     },
     developers: {
       title: "Madar POS developers: public API, OpenAPI and MCP server",
@@ -58,6 +58,7 @@ export const en = {
     features: "Features",
     featureAreas: "Feature areas",
     pricing: "Pricing",
+    free: "Free plan",
     faq: "Questions",
     about: "About",
     contact: "Contact",
@@ -137,6 +138,7 @@ export const en = {
     body: "The café POS for owners who care about their numbers.",
     ctaPrimary: "Talk to us on WhatsApp",
     ctaSecondary: "See a café's day",
+    freeLink: "Just need a till? Start on Madar Free",
     chipItem: "Cappuccino · regular",
     chipCost: "Cost",
     chipMargin: "Margin",
@@ -472,6 +474,7 @@ export const en = {
     owner: "Madar",
     rights: "Built in Cairo.",
     dashboard: "Merchant login",
+    signup: "Sign up free",
     developers: "Developers · API",
   },
 
@@ -611,8 +614,17 @@ export const en = {
       { title: "No per-seat fee", body: "Tellers, managers and accountants are unlimited. Hire without checking the price list first." },
       { title: "Settled in person", body: "No card online. We agree the plan with you and settle it in person." },
     ],
+    freePlan: {
+      kicker: "Madar Free",
+      title: "Just need a till?",
+      body: "One branch, one till, the full counter and its sales reports, for 0 EGP a month, for good. Sign up yourself in about two minutes.",
+      price: "0 EGP",
+      per: "a month",
+      cta: "Create your free account",
+      more: "What's in Free",
+    },
     free: {
-      kicker: "Start free",
+      kicker: "First month on us",
       title: "Run your first month on us.",
       body: "We install Madar in your branch, move your menu and recipes, and train the team on the till. Real sales, real stock, real till closes. If the numbers don't hold up, you owe us nothing.",
       needTitle: "What we need from you",
@@ -629,35 +641,161 @@ export const en = {
   },
 
   freePage: {
-    kicker: "Free forever",
-    title: "A café POS that costs nothing. Ever.",
-    sub: "Sell on a real till, see your sales in clear reports, and pay nothing. No card, no contract, no trial clock running out.",
+    kicker: "Madar Free",
+    title: "Your café's till. Free, for good.",
+    sub: "A real point of sale and the reports behind it, on one till in one branch, for 0 EGP a month. Not a trial: no card, no contract, no clock running out.",
     cta: "Create your free account",
-    note: "Takes a few minutes · no card · no contract",
-    included: { title: "What you get, free", items: [
-      { t: "The till", b: "Ring up sales, take cash and card, print receipts. It keeps selling when the internet drops." },
-      { t: "Sales reports", b: "See what sold, when, and how each shift went, from any phone or laptop." },
-      { t: "Unlimited users", b: "Add every teller and manager. There is no per-seat fee." },
-    ] },
-    promise: { title: "No catch, no lock-in", items: [
-      "Free forever, not a trial",
-      "No credit card to sign up",
-      "No contract, leave whenever you like",
-      "Your sales data stays yours",
-    ] },
-    steps: { title: "Live in three steps", items: [
-      "Create your account",
-      "Add your menu and prices",
-      "Open the till and sell",
-    ] },
-    upgrade: {
-      kicker: "When you grow",
-      title: "Need to know what each cup really costs?",
-      body: "The paid plans add the recipe-linked inventory ledger, stocktakes and waste, till reconciliation, and for bigger operations menu engineering and online ordering. Upgrade in place whenever you want. Nothing to rebuild, and staying free is always fine.",
-      cta: "See the paid plans",
-      talk: "Questions? Ask us on WhatsApp",
+    secondary: "What's in Free",
+    note: "About two minutes · an Egyptian mobile number for the WhatsApp code",
+    altPos: "Madar Cashier on an iPad: an order of four items, with Pickup and Dine in, ready to charge.",
+    crew: {
+      label: "MADAR CREW",
+      salary: "Salary: 0 EGP",
+      nuqta: { name: "Nuqta", role: "The cashier" },
+      shariha: { name: "Shariha", role: "The reports" },
     },
-    closing: { title: "Start selling on Madar today.", cta: "Create your free account" },
+    zr: {
+      kicker: "Till close",
+      title: "Close the till in a minute.",
+      body: "Count the drawer blind and the till does the sums. The shift report and the Z-report are ready to print the moment you close.",
+      title2: "Z-REPORT",
+      shift: "Shift",
+      cashier: "Cashier",
+      cashierName: "Mariam",
+      payments: "Payments",
+      expected: "Expected cash",
+      counted: "Counted cash",
+      difference: "Difference",
+      stamp: "Balanced",
+    },
+
+    included: {
+      kicker: "What's in Free",
+      title: "Two new hires. Salary: 0 EGP.",
+      lead: "Nuqta runs the till and Shariha keeps the numbers. They work every shift, never call in sick, and come with everything below.",
+      items: [
+        { t: "A till that never stops", b: "Ring up orders on an iPad or Android tablet. It keeps selling when the internet drops and syncs when it's back." },
+        { t: "Cash, card, split and tips", b: "Take any mix of payments on one order, add discounts and service charge, and tag each order Pickup or Dine in." },
+        { t: "Receipts and kitchen tickets", b: "Print to Star and Epson thermal printers, in Arabic or English." },
+        { t: "Till close and cash count", b: "Open and close the drawer, count the cash blind, and print the till report." },
+        { t: "Sales reports and Excel", b: "See what sold, when, and by whom, in the dashboard from any browser, and export it to Excel." },
+        { t: "Your whole team", b: "Unlimited staff accounts, each with their own PIN and permissions, so every sale carries a name." },
+      ],
+      limitsTitle: "The limits, plainly",
+      limits: "One branch with one till. Stock and recipe costing, tables, online ordering and loyalty are on the paid plans.",
+    },
+
+    compare: {
+      kicker: "Free and paid",
+      title: "See exactly where Free ends.",
+      sub: "No feature on Free is cut down or watermarked. When you need more than one till can do, a paid plan adds it to the same account.",
+      free: "Free",
+      freePrice: "0 EGP",
+      paid: "Paid plans",
+      paidPrice: "from 3,000 EGP per branch a month",
+      yes: "Included",
+      no: "Paid plans only",
+      groups: [
+        {
+          title: "Selling",
+          rows: [
+            { t: "Offline-first till, receipts and kitchen printing", free: true },
+            { t: "Cash, card, split payments, tips and discounts", free: true },
+            { t: "Pickup and Dine in on every order", free: true },
+            { t: "Till close, blind cash count and till report", free: true },
+            { t: "Sales reports and Excel exports", free: true },
+            { t: "Unlimited staff, roles and PINs", free: true },
+          ],
+        },
+        {
+          title: "Size",
+          rows: [
+            { t: "Branches", free: "1", paid: "As many as you run" },
+            { t: "Tills per branch", free: "1", paid: "As many as you need" },
+          ],
+        },
+        {
+          title: "Running deeper",
+          rows: [
+            { t: "Recipe costing and the inventory ledger", free: false },
+            { t: "Stocktakes, waste, purchasing and transfers", free: false },
+            { t: "Tables, open tickets and kitchen screens", free: false },
+            { t: "Online ordering and delivery", free: false },
+            { t: "Wallet loyalty and table bookings", free: false },
+            { t: "Your brand and your own web address", free: false },
+            { t: "Staff schedules and payroll (Dawam)", free: false },
+          ],
+        },
+      ],
+      more: "See the paid plans",
+    },
+
+    steps: {
+      kicker: "Getting started",
+      title: "Selling in four steps.",
+      items: [
+        { t: "Create your account", b: "Your mobile number, the code we send to your WhatsApp, your shop's name. About two minutes." },
+        { t: "Get Madar Cashier", b: "Install the till on an iPad from the App Store, or on an Android tablet." },
+        { t: "Add your menu", b: "Categories, items, sizes and add-ons, from the dashboard in any browser." },
+        { t: "Sign in and sell", b: "Sign in on the till, connect your printer if you have one, and take the first order." },
+      ],
+      android: "Android tablet",
+      apk: "Download for Android",
+      apkNote: "Signed APK · Google Play listing coming soon",
+      askAndroid: "Ask us for the Android app on WhatsApp",
+      waAndroid: "Hi Madar, I signed up for the free plan and I'd like the Android app.",
+      need: "You need: an iPad or Android tablet, and a Star or Epson thermal printer if you print receipts.",
+    },
+
+    faq: {
+      kicker: "Questions about Free",
+      items: [
+        {
+          q: "Is it really free, for good?",
+          a: "Yes. Free isn't a trial and it doesn't expire. You don't enter a card to sign up, and there's nothing to cancel.",
+        },
+        {
+          q: "What's the catch?",
+          a: "Free runs one branch with one till, and leaves out the features bigger operations pay for: stock and recipe costing, more tills, tables, online ordering and loyalty. If one till is all you need, you can stay on Free as long as you like.",
+        },
+        {
+          q: "Can I add a second till or a second branch?",
+          a: "Not on Free. A second till or branch needs a paid plan, and so does keeping several tills in sync live.",
+        },
+        {
+          q: "How do I upgrade?",
+          a: "Message us on WhatsApp and we move your account to the plan you choose. It's the same account: your menu, staff, sales and reports stay as they are.",
+        },
+        {
+          q: "Who owns my data?",
+          a: "You do. Your sales reports export to Excel, and they stay yours whether you stay on Free, upgrade or leave.",
+        },
+        {
+          q: "Does it work for a restaurant?",
+          a: "Yes. When you sign up you choose café or restaurant, and the till sells for either. Tables, open tickets and kitchen screens are on the paid plans.",
+        },
+      ],
+    },
+
+    doors: {
+      kicker: "Two ways in",
+      title: "Do it yourself, or have us do it with you.",
+      self: {
+        tag: "Madar Free",
+        title: "Set it up yourself",
+        body: "Sign up, add your menu and sell today, on one till, for free.",
+        cta: "Create your free account",
+        note: "No card · no contract",
+      },
+      assisted: {
+        tag: "Paid plans · first month on us",
+        title: "We set it up with you",
+        body: "We install Madar in your branch, move your menu and recipes, and train your team. Your first month is on us.",
+        cta: "Book the first month on WhatsApp",
+        note: "No card · no lock-in",
+      },
+    },
+    stickyCta: "Create your free account",
   },
 
   faq: {
@@ -674,8 +812,12 @@ export const en = {
         a: "The till keeps selling. Every order, void, cash movement and till event is saved on the device first and syncs exactly once when the connection returns: no double charges, no lost sales. On the shop's Wi-Fi, tills, handhelds and kitchen screens keep talking to each other.",
       },
       {
-        q: "How does the free month work?",
-        a: "We install Madar in your branch, move your menu and recipes, and train the team on the till. You run a full month on real sales, real stock and real till closes. If the numbers don't hold up, you owe us nothing.",
+        q: "How does the first month on us work?",
+        a: "We install Madar in your branch, move your menu and recipes, and train the team on the till. You run a full month on a paid plan, on real sales, real stock and real till closes. If the numbers don't hold up, you owe us nothing.",
+      },
+      {
+        q: "Is there a free plan?",
+        a: "Yes. Madar Free runs one till in one branch, with sales reports, for 0 EGP a month, for good. You sign up yourself, with no card. The paid plans add stock and recipe costing, more tills and branches, online ordering and loyalty.",
       },
       {
         q: "How is Madar billed?",

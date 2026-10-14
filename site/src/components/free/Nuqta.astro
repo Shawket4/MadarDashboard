@@ -1,0 +1,28 @@
+---
+/**
+ * نقطة (Nuqta), the cashier: the logo's dot with arms and legs. The owner's artwork
+ * (Illustrator, "New crew"; elements copied from the export, not redrawn), grouped so
+ * the crew can breathe, blink, look around and wave (global.css "The crew", crew.ts).
+ */
+interface Props { class?: string }
+const { class: cls = "" } = Astro.props;
+---
+<svg class:list={["crew-figure", cls]} viewBox="0 0 174.45 198.53" aria-hidden="true" data-crew>
+  <g class="crew-shadow" style="transform-origin: 73.77px 193.68px"><ellipse cx="73.77" cy="193.68" rx="38.75" ry="4.03" transform="translate(-13.33 5.62) rotate(-4)" fill="#e1e7e9" /></g>
+  <g class="crew-hop" style="transform-origin: 74px 192px">
+  <path d="M55.2,141.53c-.35,18.67-.44,35.25-.25,49.74l-11.71,1.44" fill="none" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="8.06" />
+  <path d="M84.89,139.45c2.95,18.44,5.34,34.85,7.17,49.22l11.8-.2" fill="none" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="8.06" />
+  <g class="crew-body" style="transform-origin: 70px 150px">
+    <g class="crew-arm-rest" style="transform-origin: 14.66px 103.96px"><path d="M14.66,103.96c-9.1,12.03-12.36,24.69-9.78,37.98" fill="none" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="8.06" /></g>
+    <g class="crew-wave" style="transform-origin: 116.26px 81.32px">
+      <path d="M116.26,81.32c15.63-13.52,24.8-30.53,27.51-51.03" fill="none" stroke="#14181e" stroke-linecap="round" stroke-linejoin="round" stroke-width="8.06" />
+      <g class="crew-motion"><path d="M149.4,10.63c7.03,2.01,12.44,7.63,14.21,14.72" fill="none" stroke="#76828b" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.1" /><path d="M155.38,1.55c8.15,3.29,14.51,9.88,17.52,18.14" fill="none" stroke="#76828b" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.1" /></g>
+    </g>
+    <circle cx="66.8" cy="94.1" r="62" fill="#0d6273" />
+    <path d="M19.91,77.95c4.19-12.16,12.93-22.21,24.38-28.05" fill="none" stroke="#2e94a6" stroke-linecap="round" stroke-linejoin="round" stroke-width="6.2" />
+    <g class="crew-blink" style="transform-origin: 51.46px 89.58px"><ellipse cx="51.46" cy="89.58" rx="9.67" ry="12.09" transform="translate(-6.12 3.81) rotate(-4)" fill="#eff3f4" /><g class="crew-pupil"><circle cx="52.05" cy="91.31" r="6.05" fill="#14181e" /><circle cx="54.04" cy="88.5" r="1.81" fill="#fff" /></g></g>
+    <g class="crew-blink" style="transform-origin: 81.37px 87.49px"><ellipse cx="81.37" cy="87.49" rx="9.67" ry="12.09" transform="translate(-5.9 5.89) rotate(-4)" fill="#eff3f4" /><g class="crew-pupil"><circle cx="81.96" cy="89.22" r="6.05" fill="#14181e" /><circle cx="83.95" cy="86.41" r="1.81" fill="#fff" /></g></g>
+    <g class="crew-mouth" style="transform-origin: 68px 112px"><path d="M59.28,111.33c6.24,6.03,12.03,5.62,17.37-1.21" fill="none" stroke="#eff3f4" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.11" /></g>
+  </g>
+  </g>
+</svg>

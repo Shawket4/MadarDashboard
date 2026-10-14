@@ -8,7 +8,7 @@ import plexArabic400 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-
 import Header from "./Header.astro";
 import Footer from "./Footer.astro";
 import ContactSheet from "./ContactSheet.astro";
-import StickyWhatsApp from "./StickyWhatsApp.astro";
+import StickyWhatsApp, { type StickyAction } from "./StickyWhatsApp.astro";
 import ClosingBand from "./ClosingBand.astro";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -24,9 +24,11 @@ interface Props {
   closing?: boolean;
   noindex?: boolean;
   jsonLd?: Record<string, unknown>[];
+  /** The phones' sticky bar's action, when it isn't WhatsApp. */
+  sticky?: StickyAction;
 }
 
-const { lang, page, headerTone = "paper", closing = true, noindex = false, jsonLd = [] } = Astro.props;
+const { lang, page, headerTone = "paper", closing = true, noindex = false, jsonLd = [], sticky } = Astro.props;
 const c = t(lang);
 const meta = c.meta[page];
 const routable = page !== "notFound";
@@ -108,7 +110,7 @@ const ld = [organization(), ...jsonLd];
     {closing && <ClosingBand lang={lang} />}
     <Footer lang={lang} page={page} />
     <ContactSheet lang={lang} />
-    <StickyWhatsApp lang={lang} />
+    <StickyWhatsApp lang={lang} action={sticky} />
     <script>
       import "@/scripts/ui";
       import "@/scripts/story";
