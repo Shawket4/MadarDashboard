@@ -1,0 +1,24 @@
+---
+import Base from "@/layouts/Base.astro";
+import Header from "./Header.astro";
+import manifest from "@/data/manifest.json";
+import { renderProducts, day, type Manifest } from "@/lib/render";
+import { t, type Lang } from "@/lib/i18n";
+const { lang } = Astro.props as { lang: Lang };
+const c = t(lang);
+const m = manifest as unknown as Manifest;
+---
+<Base lang={lang}>
+  <Header lang={lang} />
+  <main class="wrap" id="main">
+    <div id="products" data-lang={lang} data-generated={m.generated ?? ""}>
+      <Fragment set:html={renderProducts(m, lang)} />
+    </div>
+    <p class="how">{c.verifyHint} <code class="ltr">shasum -a 256 &lt;file&gt;</code> · <code class="ltr">certutil -hashfile &lt;file&gt; SHA256</code></p>
+  </main>
+  <footer class="foot wrap">
+    <span>{c.footer}</span>
+    {m.generated && <span>{c.updated} <span class="ltr num">{day(m.generated, lang)}</span></span>}
+  </footer>
+  <script src="../scripts/live.ts"></script>
+</Base>

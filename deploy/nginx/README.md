@@ -16,6 +16,8 @@ These are copies of the live files on the production VPS (187.124.33.153), taken
 | `order.madar-pos.cloud` | `/etc/nginx/sites-available/order.madar-pos.cloud` (enabled by a symlink; the box's layout, not yet confirmed for this file) |
 | `reservations.madar-pos.cloud` | `/etc/nginx/sites-available/reservations.madar-pos.cloud` (enabled by a symlink; the box's layout, not yet confirmed for this file) |
 | `loyalty.madar-pos.cloud` | `/etc/nginx/sites-available/loyalty.madar-pos.cloud` (enabled by a symlink) |
+| `downloads.madar-pos.cloud` | `/etc/nginx/sites-available/downloads.madar-pos.cloud` (enabled by a symlink; added 2026-10-14, serves `downloads/`) |
+| `madar-download-types.conf` | `/etc/nginx/snippets/` (MIME types of the downloads artifacts) |
 | `madar-security-headers.conf` | `/etc/nginx/snippets/` |
 | `madar-csp-public.conf` | `/etc/nginx/snippets/` (the public pages' CSP; follows every security-headers include) |
 | `madar-csp-dashboard.conf` | `/etc/nginx/snippets/` (the dashboard's CSP, report-only to Sentry) |
