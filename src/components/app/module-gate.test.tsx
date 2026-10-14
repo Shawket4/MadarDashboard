@@ -3,6 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 let pathname = "/";
+/** Where the router is heading, when it differs from the page still on screen (a redirect loading). */
+let heading: string | null = null;
 let orgId: string | null = "org1";
 let answer: { modules: string[] } | undefined;
 let failure: Error | null = null;
@@ -10,7 +12,10 @@ const refetch = vi.fn();
 let authzFailure: Error | null = null;
 const authzRefetch = vi.fn();
 
-vi.mock("@tanstack/react-router", () => ({ useLocation: () => ({ pathname }) }));
+vi.mock("@tanstack/react-router", () => ({
+  useRouterState: ({ select }: { select: (s: unknown) => unknown }) =>
+    select({ location: { pathname: heading ?? pathname }, resolvedLocation: { pathname } }),
+}));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => orgId }));
 vi.mock("@/data/api/generated/api", () => ({
   useGetOrg: () => ({ data: undefined }),
@@ -29,6 +34,7 @@ const page = () => render(<ModuleGate><p>the page</p></ModuleGate>);
 
 beforeEach(() => {
   pathname = "/";
+  heading = null;
   orgId = "org1";
   answer = undefined;
   failure = null;
@@ -129,5 +135,14 @@ describe("ModuleGate", () => {
       expect(screen.getByText("the page")).toBeInTheDocument();
       unmount();
     }
+  });
+
+  it("judges the page on screen, not the one being navigated to (a redirect must not let a paid page mount)", () => {
+    answer = { modules: ["pos"] };
+    useAuthStore.setState({ plan: "free" });
+    pathname = "/bookings";
+    heading = "/onboarding";
+    page();
+    expect(screen.queryByText("the page")).toBeNull();
   });
 });

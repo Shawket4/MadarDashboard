@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, Plus, Rocket } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Pencil, Plus, Rocket } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -15,12 +15,16 @@ import {
   updateOrg,
   uploadOrgLogo,
   useGetOrg,
+  useListBranches,
   useListCategories,
   useListMenuItems,
 } from "@/data/api/generated/api";
 import type { MenuItem, OnboardingStep } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAppStore } from "@/data/stores/app.store";
+import { UpgradeButton } from "@/components/app/upgrade-page";
+import { entitlements } from "@/generated/plans";
+import { usePlan } from "@/hooks/use-plan";
 
 import { BranchDialog } from "@/features/branches/branch-dialog";
 import { PaymentMethodDialog } from "@/features/payment-methods/payment-method-dialog";
@@ -31,6 +35,7 @@ import { CreateIngredientDialog } from "@/features/recipes/create-ingredient-dia
 import { UserDialog } from "@/features/users/user-dialog";
 
 import type { StepKey } from "./config";
+import { useStepCopy } from "./step-copy";
 
 const CURRENCIES = ["EGP", "USD", "SAR", "AED", "GBP", "EUR"];
 
@@ -49,14 +54,15 @@ interface Props {
 
 export function StepPanel(props: Props) {
   const { t } = useTranslation();
+  const copy = useStepCopy();
   const { activeKey, isFirst, onPrev, onNext } = props;
   const isFinale = activeKey === "go_live";
 
   return (
     <div className="flex min-h-[28rem] flex-col">
       <header className="mb-6">
-        <h2 className="text-xl font-semibold tracking-tight">{t(`onboarding.steps.${activeKey}.title`, activeKey)}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t(`onboarding.steps.${activeKey}.desc`, "")}</p>
+        <h2 className="text-xl font-semibold tracking-tight">{copy(activeKey, "title", activeKey)}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{copy(activeKey, "desc")}</p>
       </header>
 
       <div className="flex-1">
@@ -85,11 +91,7 @@ function StepBody(props: Props) {
     case "org_profile":
       return <OrgIdentityBody orgId={orgId} refresh={refresh} onNext={props.onNext} />;
     case "branch":
-      return (
-        <AddViaDialog count={count("branch")} stepKey="branch" refresh={refresh}>
-          {(open, set) => <BranchDialog orgId={orgId} branch={null} open={open} onOpenChange={set} />}
-        </AddViaDialog>
-      );
+      return <BranchBody orgId={orgId} count={count("branch")} refresh={refresh} />;
     case "payment_methods":
       return (
         <AddViaDialog count={count("payment_methods")} stepKey="payment_methods" refresh={refresh}>
@@ -176,6 +178,65 @@ function AddViaDialog({
   );
 }
 
+/* ── Branch: add one, or (Free: one branch only) look after the one signing up made ── */
+
+function BranchBody({ orgId, count, refresh }: { orgId: string; count: number; refresh: () => void }) {
+  const { t } = useTranslation();
+  const plan = usePlan();
+  const limit = entitlements(plan).limits.branches;
+  const full = limit !== null && count >= limit;
+  const branchesQ = useListBranches({ org_id: orgId }, { query: { enabled: !!orgId && full } });
+  const [open, setOpen] = useState(false);
+  const branch = branchesQ.data?.find((b) => b.kind !== "warehouse") ?? null;
+
+  // Paid, or a Free shop with room (a downgraded or hand-made org may have none): add as ever.
+  if (!full) {
+    return (
+      <AddViaDialog count={count} stepKey="branch" refresh={refresh}>
+        {(o, set) => <BranchDialog orgId={orgId} branch={null} open={o} onOpenChange={set} />}
+      </AddViaDialog>
+    );
+  }
+
+  // The Free plan has one branch and sign-up already made it: say so, and let the
+  // owner set it up (address, phone, printer) instead of offering a second one the
+  // server would refuse.
+  return (
+    <div className="space-y-5">
+      <div className="flex items-start gap-3 rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
+        <Check className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <div className="min-w-0">
+          <p className="font-medium">
+            {branch
+              ? t("onboarding.steps.branch.ready", { name: branch.name, defaultValue: "{{name}} is ready." })
+              : t("onboarding.steps.branch.readyNoName", "Your branch is ready.")}
+          </p>
+          <p className="text-success/80">{t("onboarding.steps.branch.freeNote", "The Free plan includes one branch, and signing up already created it.")}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Button size="lg" variant="outline" disabled={!branch} onClick={() => setOpen(true)}>
+          <Pencil className="size-4" /> {t("onboarding.steps.branch.edit", "Edit branch details")}
+        </Button>
+        <UpgradeButton variant="ghost" label={t("onboarding.steps.branch.moreBranches", "Need more branches? Contact Madar")} />
+      </div>
+
+      {branch ? (
+        <BranchDialog
+          orgId={orgId}
+          branch={branch}
+          open={open}
+          onOpenChange={(o) => {
+            setOpen(o);
+            if (!o) refresh();
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 /* ── Café identity (no existing dialog — small inline form) ──────────────────── */
 
 function OrgIdentityBody({ orgId, refresh, onNext }: { orgId: string; refresh: () => void; onNext: () => void }) {
@@ -193,7 +254,12 @@ function OrgIdentityBody({ orgId, refresh, onNext }: { orgId: string; refresh: (
   const save = async () => {
     setBusy(true);
     try {
-      await updateOrg(orgId, { name: nameValue.trim() || undefined, currency_code: currencyValue });
+      // Only what changed: the server fixes the currency once the first order is
+      // in (409 ORG_CURRENCY_LOCKED), and sending it unchanged would trip that.
+      const body: { name?: string; currency_code?: string } = {};
+      if (nameValue.trim() && nameValue.trim() !== org?.name) body.name = nameValue.trim();
+      if (currencyValue !== (org?.currency_code ?? "EGP")) body.currency_code = currencyValue;
+      if (Object.keys(body).length) await updateOrg(orgId, body);
       await orgQ.refetch();
       refresh();
       toast.success(t("onboarding.steps.org_profile.saved", "Café details saved."));
@@ -255,6 +321,7 @@ function OrgIdentityBody({ orgId, refresh, onNext }: { orgId: string; refresh: (
 
 function MenuItemsBody({ orgId, count, refresh }: { orgId: string; count: number; refresh: () => void }) {
   const { t } = useTranslation();
+  const copy = useStepCopy();
   const [open, setOpen] = useState(false);
   const categoriesQ = useListCategories({ org_id: orgId }, { query: { enabled: !!orgId } });
   const categories = categoriesQ.data ?? [];
@@ -277,7 +344,7 @@ function MenuItemsBody({ orgId, count, refresh }: { orgId: string; count: number
         </div>
       ) : (
         <p className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
-          {t("onboarding.steps.menu_items.empty", "Build your first item — set its price, sizes, recipe and add-ons in one go.")}
+          {copy("menu_items", "empty", "Build your first item — set its price, sizes, recipe and add-ons in one go.")}
         </p>
       )}
 

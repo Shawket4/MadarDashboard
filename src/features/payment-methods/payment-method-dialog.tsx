@@ -1,3 +1,4 @@
+import { useIsFree } from "@/hooks/use-plan";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +29,7 @@ interface Props {
 
 export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
   const { t } = useTranslation();
+  const free = useIsFree();
   const editing = !!method;
   const locked = editing; // IDs cannot change once created
   const [busy, setBusy] = useState(false);
@@ -74,8 +76,8 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
     const label_translations = { en: v.labelEn, ar: v.labelAr || "" };
     setBusy(true);
     try {
-      if (method) await updatePaymentMethod(method.id, { name: v.name, label_translations, color: v.color, icon: v.icon, is_cash: v.is_cash, is_active: v.is_active, visible_in_integrations: v.visible_in_integrations });
-      else await createPaymentMethod({ name: v.name, label_translations, color: v.color, icon: v.icon, is_cash: v.is_cash, is_active: v.is_active, visible_in_integrations: v.visible_in_integrations });
+      if (method) await updatePaymentMethod(method.id, { name: v.name, label_translations, color: v.color, icon: v.icon, is_cash: v.is_cash, is_active: v.is_active, ...(free ? {} : { visible_in_integrations: v.visible_in_integrations }) });
+      else await createPaymentMethod({ name: v.name, label_translations, color: v.color, icon: v.icon, is_cash: v.is_cash, is_active: v.is_active, ...(free ? {} : { visible_in_integrations: v.visible_in_integrations }) });
       void invalidatePaymentMethods();
       toast.success(t("common.saved", "Saved"));
       onOpenChange(false);
@@ -158,7 +160,8 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
                 </FormItem>
               )} />
             </div>
-            <FormField control={form.control} name="visible_in_integrations" render={({ field }) => (
+            {/* Partner sharing is a paid-plan setting: on Free the switch is not offered and the field is never sent. */}
+            {free ? null : <FormField control={form.control} name="visible_in_integrations" render={({ field }) => (
               <FormItem className="flex items-center justify-between rounded-lg border bg-card p-3">
                 <div className="space-y-0.5">
                   <FormLabel className="text-sm">{t("settings.pm.visibleInIntegrations", "Share with partners")}</FormLabel>
@@ -166,7 +169,7 @@ export function PaymentMethodDialog({ method, open, onOpenChange }: Props) {
                 </div>
                 <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
               </FormItem>
-            )} />
+            )} />}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel", "Cancel")}</Button>
               <Button type="submit" loading={busy}>{t("common.save", "Save")}</Button>

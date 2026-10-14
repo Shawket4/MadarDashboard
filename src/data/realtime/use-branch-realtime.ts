@@ -16,6 +16,8 @@
  */
 import { useEffect } from "react";
 
+import { entitlements } from "@/generated/plans";
+import { useAuthStore } from "@/data/stores/auth.store";
 import { env } from "@/data/config/env";
 import { queryClient } from "@/data/api/query";
 import { authHeaders } from "@/data/api/stream-auth";
@@ -64,7 +66,45 @@ export function invalidationsFor(event: string): string[] {
   return [];
 }
 
+/**
+ * Free has no live stream (the server refuses it, 403 `plan_no_realtime`), so
+ * the shell asks again on a timer instead. Everything an event can make stale
+ * is listed here, so a poll refreshes what the stream would have.
+ */
+export const POLL_INTERVAL_MS = 60_000;
+export const POLL_PREFIXES = [
+  "/floor", "/bookings", "/open-tickets", "/delivery-orders", "/kitchen",
+  "/tills", "/reports", "/payment-methods", "/branches", "/branch-plan",
+] as const;
+
+/** Whether the plan in scope opens the stream. An unknown plan reads as Paid. */
+export const plansStream = (plan: string | null | undefined): boolean => entitlements(plan).realtime;
+
+/** Refresh, once per interval while the tab is visible, what the stream would nudge. */
+export function usePollInvalidation(enabled: boolean, intervalMs: number = POLL_INTERVAL_MS) {
+  useEffect(() => {
+    if (!enabled) return;
+    const tick = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      void invalidatePrefix(...POLL_PREFIXES);
+    };
+    const id = setInterval(tick, intervalMs);
+    return () => clearInterval(id);
+  }, [enabled, intervalMs]);
+}
+
+/**
+ * Live for a plan that has it; polled for one that has not. Mount once.
+ * The plan is read here so no page decides for itself.
+ */
 export function useBranchRealtime(branchId: string | null | undefined) {
+  const plan = useAuthStore((s) => s.plan);
+  const live = plansStream(plan);
+  useStream(live ? branchId : null);
+  usePollInvalidation(!live);
+}
+
+function useStream(branchId: string | null | undefined) {
   useEffect(() => {
     if (!branchId) return;
 
@@ -86,9 +126,10 @@ export function useBranchRealtime(branchId: string | null | undefined) {
         const headers = authHeaders({ Accept: "text/event-stream" });
         if (lastId) headers["Last-Event-ID"] = lastId;
         const res = await fetch(url, { headers, signal: controller.signal });
+        // A refusal (plan_no_realtime, no right) is terminal until the session
+        // or plan changes; hammering the server every second would not fix it.
+        if (res.status === 403) return;
         if (!res.ok || !res.body) throw new Error(`stream ${res.status}`);
-        // A permission or auth failure is terminal until the session changes;
-        // hammering the server every second would not fix it.
         attempt = 0;
 
         const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();

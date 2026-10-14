@@ -1,3 +1,4 @@
+import { useIsFree } from "@/hooks/use-plan";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -43,6 +44,9 @@ export function RoleDialog({
 }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  // No waiter app on the Free plan: the role is not offered (a role already of that kind keeps it).
+  const free = useIsFree();
+  const kinds = KINDS.filter((k) => !(free && k === "waiter" && role?.kind !== "waiter"));
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -111,7 +115,7 @@ export function RoleDialog({
                       <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
-                          {KINDS.map((k) => (
+                          {kinds.map((k) => (
                             <SelectItem key={k} value={k}>{bilingual(ROLE_KIND_LABELS[k].en, ROLE_KIND_LABELS[k].ar, lang)}</SelectItem>
                           ))}
                         </SelectContent>

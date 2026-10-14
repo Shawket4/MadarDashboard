@@ -1,5 +1,6 @@
 import { AxiosError } from "axios";
 import type { TFunction } from "i18next";
+import { madarWhatsAppHref } from "@/config/contact";
 import i18n from "@/i18n";
 import { fmtDate, fmtDateTimeFull, fmtTime } from "@/lib/format";
 
@@ -82,9 +83,48 @@ const STALE_CODES = new Set([
   // A stock transfer moved on under this person (another side acted first).
   "TRANSFER_CHANGED", "TRANSFER_STEP_NOT_OPEN",
 ]);
-/** The codes of a plan refusal: a 403 `{code, feature, error, error_ar}` (madar-plan). */
-const PLAN_REFUSALS = new Set(["plan_feature", "plan_branch_limit", "plan_device_limit", "plan_no_realtime", "plan_till_inactive"]);
-export const isPlanRefusal = (code: unknown): boolean => typeof code === "string" && PLAN_REFUSALS.has(code);
+/** A plan refusal is a 403 `{code: "plan_*", feature, error, error_ar}` (madar-plan); every `plan_` code reads the same way. */
+export const isPlanRefusal = (code: unknown): boolean => typeof code === "string" && code.startsWith("plan_");
+
+/**
+ * Changes only Madar makes for an owner (`PATCH /orgs/{id}`): a field the owner
+ * may not set, and a currency that is fixed once the shop has taken an order.
+ * The owner cannot fix either in the dashboard, so the message points at Madar.
+ */
+const MADAR_ONLY_CODES = new Set(["ORG_FIELD_MADAR_ONLY", "ORG_CURRENCY_LOCKED"]);
+
+const errorCode = (err: unknown): string | undefined => {
+  const c = err instanceof AxiosError ? (err.response?.data as { code?: unknown } | undefined)?.code : undefined;
+  return typeof c === "string" ? c : undefined;
+};
+
+/** Whether the way on from this refusal is a message to Madar (a plan limit, a Madar-only change). */
+export const needsMadar = (err: unknown): boolean => {
+  const code = errorCode(err);
+  return code !== undefined && (isPlanRefusal(code) || MADAR_ONLY_CODES.has(code));
+};
+
+/** WhatsApp to Madar, prefilled with what the owner was trying to do, in the UI language. */
+export function madarContactHref(err?: unknown): string {
+  const t = i18n.getFixedT(null, "translation");
+  const code = err === undefined ? undefined : errorCode(err);
+  const feature = err instanceof AxiosError ? (err.response?.data as { feature?: unknown } | undefined)?.feature : undefined;
+  if (code && MADAR_ONLY_CODES.has(code))
+    return madarWhatsAppHref(
+      t(code === "ORG_CURRENCY_LOCKED" ? "errors.contactMessage.currency" : "errors.contactMessage.field"),
+    );
+  if (typeof feature === "string" && i18n.exists(`plan.features.${feature}`))
+    return madarWhatsAppHref(t("plan.upgrade.message", { feature: t(`plan.features.${feature}`) }));
+  return madarWhatsAppHref(t("plan.upgrade.messageGeneric"));
+}
+
+/** Messages that point at Madar, so a toast showing one can offer the "Contact Madar" action (see lib/contact-toast). */
+const madarMessages = new Map<string, string>();
+export const madarActionFor = (message: string): string | undefined => madarMessages.get(message);
+const forMadar = (err: unknown, message: string): string => {
+  madarMessages.set(message, madarContactHref(err));
+  return message;
+};
 
 /** The server's limiter said "not now" (429): ask again later, keep what is shown. */
 export const isRateLimited = (err: unknown): boolean => err instanceof AxiosError && err.response?.status === 429;
@@ -162,12 +202,14 @@ export const getErrorMessage = (
     // A plan refusal (403 `plan_*`, madar-plan) carries its own sentence in both
     // languages: the Arabic UI reads `error_ar`, the English one `error`. The
     // upgrade hint closes it, so a toast always says how to go on.
-    if (status === 403 && isPlanRefusal(code)) {
+    if (isPlanRefusal(code)) {
       const ar = typeof data?.error_ar === "string" ? data.error_ar : undefined;
       const en = typeof data?.error === "string" ? data.error.replace(SERVER_KIND_PREFIX, "") : undefined;
       const sentence = (isArabicUi() ? (ar ?? en) : en) ?? t("plan.refused");
-      return `${sentence} ${t("plan.upgrade.hint")}`;
+      return forMadar(err, `${sentence} ${t("plan.upgrade.hint")}`);
     }
+    // Only Madar changes these for an owner; say so, and say who to ask.
+    if (code && MADAR_ONLY_CODES.has(code)) return forMadar(err, t(`errors.codes.${code}`));
     if (key && i18n.exists(`errors.codes.${key}`)) return t(`errors.codes.${key}`, vars);
     // The limiter's 429 carries no code and English prose: word it, never as the network.
     if (status === 429 && !code) return t("errors.tooManyRequests");

@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { PaidFeatureLock } from "@/components/app/paid-feature-lock";
 import { Combobox, type ComboboxOption } from "@/components/app/combobox";
 import type { OrgIngredient } from "@/data/api/generated/models";
 import { fmtMoney } from "@/lib/format";
@@ -89,6 +90,19 @@ export function SectionOptions({ rows, setRows, catalogById, ingredientOptions, 
             </div>
 
             {/* Optional ingredient deduction */}
+            <PaidFeatureLock
+              feature="inventory"
+              layout="inline"
+              className="mt-3 border-t pt-3"
+              preview={
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-medium text-muted-foreground">{t("menu.studio.options.deducts", "Deducts")}</span>
+                  <div className="h-9 min-w-40 flex-1 rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
+                    {t("menu.studio.options.noDeduction", "No deduction")}
+                  </div>
+                </div>
+              }
+            >
             <div className="mt-3 flex flex-wrap items-center gap-3 border-t pt-3">
               <span className="text-xs font-medium text-muted-foreground">
                 {t("menu.studio.options.deducts", "Deducts")}
@@ -139,6 +153,7 @@ export function SectionOptions({ rows, setRows, catalogById, ingredientOptions, 
                 </>
               ) : null}
             </div>
+            </PaidFeatureLock>
           </div>
         );
       })}

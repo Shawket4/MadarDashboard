@@ -3,6 +3,7 @@
  * a branch; a tablet enters it and binds itself — no manager email login on the
  * tablet. Codes are 8 digits, single-use, and expire after 24 hours.
  */
+import { useIsFree } from "@/hooks/use-plan";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
@@ -158,6 +159,8 @@ function IssueCodeDialog({ branchId, open, onClose }: { branchId: string; open: 
   const [issued, setIssued] = useState<ActivationCode | null>(null);
   const form = useForm<IssueForm>({ resolver: zodResolver(issueSchema), defaultValues: { label: "", kind: "pos" } });
 
+  // A Free branch has one till: the kitchen and waiter screens are the paid plan's.
+  const free = useIsFree();
   const close = () => {
     setIssued(null);
     form.reset({ label: "", kind: "pos" });
@@ -199,7 +202,7 @@ function IssueCodeDialog({ branchId, open, onClose }: { branchId: string; open: 
               <Select value={form.watch("kind")} onValueChange={(v) => form.setValue("kind", v as IssueForm["kind"])}>
                 <SelectTrigger id="code-kind"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {(["pos", "kds", "waiter"] as const).map((k) => (
+                  {(free ? (["pos"] as const) : (["pos", "kds", "waiter"] as const)).map((k) => (
                     <SelectItem key={k} value={k}>{t(`devices.kinds.${k}`, k)}</SelectItem>
                   ))}
                 </SelectContent>

@@ -1,3 +1,4 @@
+import { useIsFree } from "@/hooks/use-plan";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -35,7 +36,9 @@ export function PaymentMethodsPage() {
   // A short configuration list on an unpaginated endpoint: what the table shows
   // IS the whole set, so the export reads it straight from memory.
   const list = useListPaymentMethods({ query: { enabled: !!orgId } });
-  const methods = useMemo(() => list.data ?? [], [list.data]);
+  // Talabat's tenders are a delivery channel, a paid-plan feature: Free does not see them (the server refuses turning them on).
+  const free = useIsFree();
+  const methods = useMemo(() => (list.data ?? []).filter((m) => !(free && m.name.startsWith("talabat_"))), [list.data, free]);
 
   const logoUrl = useExportLogo();
   const [exporting, setExporting] = useState(false);
@@ -52,8 +55,9 @@ export function PaymentMethodsPage() {
     try { await (m.is_active ? deactivatePaymentMethod(m.id) : activatePaymentMethod(m.id)); void invalidatePaymentMethods(); } catch (e) { toast.error(getErrorMessage(e)); }
   };
 
+  // Partner sharing is a paid-plan setting: Free has no such column.
   const columns = useMemo<ColumnDef<OrgPaymentMethod>[]>(
-    () => [
+    () => ([
       {
         accessorKey: "name", header: t("common.name", "Name"),
         cell: ({ row }) => {
@@ -111,9 +115,9 @@ export function PaymentMethodsPage() {
           </div>
         ),
       },
-    ],
+    ] as ColumnDef<OrgPaymentMethod>[]).filter((c) => !(free && c.id === "visible_in_integrations")),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, i18n.language, update],
+    [t, i18n.language, update, free],
   );
 
   const handleExport = async () => {

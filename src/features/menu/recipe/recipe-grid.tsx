@@ -1,3 +1,5 @@
+import { PaidFeatureLock } from "@/components/app/paid-feature-lock";
+import { useHasFeature } from "@/hooks/use-plan";
 import { useMemo, useState, type Dispatch, type KeyboardEvent, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
@@ -113,6 +115,8 @@ export function RecipeGrid({
 }: Props) {
   const { t } = useTranslation();
   const locked = !useAuthz().can(Cap.menuItemsEdit);
+  // Ingredients, amounts and costs are the paid plan's inventory; sizes and prices are not.
+  const hasRecipes = useHasFeature("inventory");
   const readOnly = followsName != null || locked;
   const [scaleFor, setScaleFor] = useState<string | null>(null);
 
@@ -420,7 +424,21 @@ export function RecipeGrid({
                 ))}
               </tr>
             ))}
-            {!readOnly ? (
+            {!hasRecipes ? (
+              <tr className="border-t">
+                <td className="px-3 py-2" colSpan={blocks.length + 2}>
+                  <PaidFeatureLock
+                    feature="inventory"
+                    layout="inline"
+                    preview={
+                      <div className="h-9 w-56 rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
+                        {t("modeling.grid.addIngredient", "+ ingredient")}
+                      </div>
+                    }
+                  />
+                </td>
+              </tr>
+            ) : !readOnly ? (
               <tr className="border-t">
                 <td className="px-3 py-2" colSpan={blocks.length + 2}>
                   <Combobox
@@ -443,6 +461,7 @@ export function RecipeGrid({
               </tr>
             ) : null}
           </tbody>
+          {hasRecipes ? (
           <tfoot>
             <tr className="border-t bg-muted/20">
               <th scope="row" className="px-3 py-2 text-start text-xs font-medium text-muted-foreground">
@@ -478,6 +497,7 @@ export function RecipeGrid({
               <td />
             </tr>
           </tfoot>
+          ) : null}
         </table>
       </div>
 

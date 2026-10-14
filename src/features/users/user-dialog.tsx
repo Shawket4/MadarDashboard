@@ -33,12 +33,14 @@ const POS_ROLES: UserRole[] = ["teller", "waiter", "kitchen"];
 /** The roles the dialog offers. A kitchen has no accounts: a kitchen screen is
  *  set up once with a code from the branch plan and stays signed in. Someone
  *  who already has the role keeps it; nobody new is given it. */
-export function rolesOffered(currentRole: UserRole | undefined, editingRole: UserRole | undefined): UserRole[] {
+export function rolesOffered(currentRole: UserRole | undefined, editingRole: UserRole | undefined, plan?: string | null): UserRole[] {
   const roles: UserRole[] =
     currentRole === "super_admin" ? ALL_ROLES
       : currentRole === "branch_manager" ? ["teller", "waiter", "kitchen"]
         : ALL_ROLES.filter((r) => r !== "super_admin");
-  return editingRole === "kitchen" ? roles : roles.filter((r) => r !== "kitchen");
+  const offered = editingRole === "kitchen" ? roles : roles.filter((r) => r !== "kitchen");
+  // The waiter app is not on the Free plan (no waiter devices): nobody new is given the role.
+  return plan === "free" && editingRole !== "waiter" ? offered.filter((r) => r !== "waiter") : offered;
 }
 const isPosRole = (r: UserRole) => POS_ROLES.includes(r);
 
@@ -58,7 +60,8 @@ export function UserDialog({ orgId, user, open, onOpenChange }: Props) {
 
   const { data: orgs = [] } = useListOrgs(undefined, { query: { enabled: isSuperAdmin && !editing } });
 
-  const availableRoles = useMemo(() => rolesOffered(currentRole, user?.role), [currentRole, user?.role]);
+  const plan = useAuthStore((s) => s.plan);
+  const availableRoles = useMemo(() => rolesOffered(currentRole, user?.role, plan), [currentRole, user?.role, plan]);
 
   const schema = useMemo(
     () =>

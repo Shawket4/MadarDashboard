@@ -7,7 +7,10 @@ import {
 } from "lucide-react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
+import { installContactToast } from "@/lib/contact-toast";
 import { useTheme } from "@/lib/theme";
+
+installContactToast();
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const resolvedTheme = useTheme((s) => s.resolvedTheme);

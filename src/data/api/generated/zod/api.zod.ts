@@ -13886,12 +13886,13 @@ export const OtpVerifyResponse = zod.object({
  * @summary Make a shop on the Free plan.
  */
 export const SignupBody = zod.object({
-  "code": zod.string().describe('The six-digit code from WhatsApp.'),
+  "code": zod.string().nullish(),
   "email": zod.string(),
   "owner_name": zod.string(),
   "password": zod.string().describe('At least 8 characters.'),
-  "phone": zod.string().describe('The phone the code went to.'),
+  "phone": zod.string().nullish().describe('Deprecated, for the dashboard build before the verify step: the phone\nand code checked here instead of by `\/public\/signup\/verify`.'),
   "shop_name": zod.string().describe('The shop\'s name. It names the organization and its first branch.'),
+  "signup_token": zod.string().nullish().describe('The token `POST \/public\/signup\/verify` answered with: the proof that the\nowner holds the phone. The phone is the one it was issued for.'),
   "template": zod.string().describe('`cafe` | `restaurant`: the role template the roles start from.'),
   "terms_version": zod.string().describe('The version of the terms the owner accepted (stored with the org).')
 })
@@ -13951,6 +13952,25 @@ export const SignupOtpResponse = zod.object({
   "expires_in_seconds": zod.number().describe('How long the code is good for.'),
   "resend_after_seconds": zod.number().describe('How long before another code may be asked for.'),
   "sent": zod.boolean()
+})
+
+
+/**
+ * The server compares it (constant time, five attempts per code across every
+ * caller) and, when it is right, answers with a signup token for
+ * `POST /public/signup`. 400 `SIGNUP_CODE_WRONG` / `SIGNUP_CODE_EXPIRED` /
+ * `SIGNUP_CODE_LOCKED`; 409 `SIGNUP_PHONE_TAKEN` when the phone already owns
+ * a shop (said only to someone who proved it).
+ * @summary Check the code at the code step.
+ */
+export const SignupVerifyBody = zod.object({
+  "code": zod.string().describe('The six-digit code from WhatsApp.'),
+  "phone": zod.string()
+})
+
+export const SignupVerifyResponse = zod.object({
+  "expires_in_seconds": zod.number().describe('How long it is good for.'),
+  "signup_token": zod.string().describe('Send it with `POST \/public\/signup`. Single use.')
 })
 
 

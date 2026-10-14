@@ -64,6 +64,8 @@ import {
   type SizeBlockDraft,
   type StepDraft,
 } from "./util";
+import { PaidFeatureLock } from "@/components/app/paid-feature-lock";
+import { useHasFeature } from "@/hooks/use-plan";
 import { SectionItem } from "./section-item";
 import { RecipeGrid } from "../recipe/recipe-grid";
 import { BasePicker } from "../recipe/base-picker";
@@ -112,7 +114,18 @@ const EMPTY_ITEM: ItemDraftValues = {
  * a failing step toasts which section failed and stops — earlier writes stand
  * (idempotent replace-sets) and retrying Save re-runs only what's still dirty.
  */
+/**
+ * The whole Studio is shown on every plan. Its recipe parts (ingredients, costs,
+ * bases, preparation steps, stock deductions) are the paid plan's inventory: on
+ * Free they are visible but locked (`PaidFeatureLock`), and their endpoints are
+ * never called. Sizes, prices, modifiers, translations and combos work as ever.
+ */
 export function MenuStudioPage() {
+  return <MenuStudio />;
+}
+
+function MenuStudio() {
+  const hasRecipes = useHasFeature("inventory");
   const { t, i18n } = useTranslation();
   // Steps (and their per-drink notes) are part of the recipe: recipes.edit.
   const canEditSteps = useAuthz().can(Cap.recipesEdit);
@@ -127,11 +140,11 @@ export function MenuStudioPage() {
   const studioQ = useGetStudio(itemId, { query: { enabled: !!itemId } });
   const studio = studioQ.data;
   // The step library, to tell a preset step's own note from the library's (toStepDrafts).
-  const presetsQ = useListStepPresets();
+  const presetsQ = useListStepPresets({ query: { enabled: hasRecipes } });
   const presets = useMemo(() => presetsQ.data ?? [], [presetsQ.data]);
 
   // Org ingredient catalog — shared by the sizes (recipe) and options sections.
-  const catalogQ = useListCatalog(orgId ?? "", { query: { enabled: !!orgId } });
+  const catalogQ = useListCatalog(orgId ?? "", { query: { enabled: !!orgId && hasRecipes } });
   // Stable identity: `data ?? []` mints a fresh [] every render,
   // invalidating every useMemo keyed on it (react-hooks v7 catch).
   const catalog = useMemo(() => catalogQ.data ?? [], [catalogQ.data]);
@@ -160,7 +173,7 @@ export function MenuStudioPage() {
   // ── Modeling (bases · linked copies · swappable families) ───────────────────
     const sourceItemId = studio?.recipe_source_item_id ?? null;
   const linkedCopyIds = useMemo(() => studio?.linked_copy_ids ?? [], [studio]);
-  const basesQ = useListBases({ query: { enabled: !!studio } });
+  const basesQ = useListBases({ query: { enabled: !!studio && hasRecipes } });
   const bases = useMemo(() => basesQ.data ?? [], [basesQ.data]);
   const baseNames = useMemo(() => new Map(bases.map((b) => [b.id, b.name])), [bases]);
   const linkQ = useGetRecipeLink(itemId, { query: { enabled: !!itemId && (!!sourceItemId || linkedCopyIds.length > 0) } });
@@ -441,7 +454,7 @@ export function MenuStudioPage() {
         setBlocks((prev) => prev.map((b) => (b.id ? b : { ...b, id: idByLabel.get(b.label.trim()) })));
 
         // 4 · Recipes — one replace-set per dirty or new size, keyed via label→id.
-        for (const b of blocks) {
+        for (const b of hasRecipes ? blocks : []) {
           if (b.id && !recipeDirtyKeys.has(b.key)) continue;
           const sizeId = idByLabel.get(b.label.trim());
           if (!sizeId) continue;
@@ -461,7 +474,7 @@ export function MenuStudioPage() {
 
       // 5 · Steps — replace-set in current order. A preset step sends only its
       // slug; the library owns its name, so nothing here can drift from it.
-      if (stepsDirty && canEditSteps) {
+      if (stepsDirty && canEditSteps && hasRecipes) {
         try {
           await putRecipeSteps(itemId, {
             steps: steps.map((s) =>
@@ -653,6 +666,7 @@ export function MenuStudioPage() {
             baseNames={baseNames}
             followsName={followsName}
             toolbar={
+              hasRecipes ? (
               <div className="flex flex-wrap items-center justify-between gap-3">
                 {!sourceItemId ? (
                   <BasePicker
@@ -676,6 +690,7 @@ export function MenuStudioPage() {
                   }}
                 />
               </div>
+              ) : null
             }
           />
         </SectionShell>
@@ -689,7 +704,13 @@ export function MenuStudioPage() {
           )}
           dirty={stepsDirty}
         >
-          <SectionSteps steps={steps} setSteps={setSteps} readOnly={!canEditSteps} />
+          <PaidFeatureLock
+            feature="inventory"
+            title={t("menu.studio.sections.stepsTitle", "How it's made")}
+            preview={<StepsPreview />}
+          >
+            <SectionSteps steps={steps} setSteps={setSteps} readOnly={!canEditSteps} />
+          </PaidFeatureLock>
         </SectionShell>
 
         <SectionShell
@@ -798,5 +819,25 @@ function SectionShell({
       </header>
       {children}
     </section>
+  );
+}
+
+/** What a Free shop sees of the preparation steps: the shape of the thing, nothing to act on. */
+function StepsPreview() {
+  const { t } = useTranslation();
+  const demo = [
+    t("menu.studio.stepsPreview.1", "Grind and dose"),
+    t("menu.studio.stepsPreview.2", "Brew"),
+    t("menu.studio.stepsPreview.3", "Steam the milk and pour"),
+  ];
+  return (
+    <ol className="space-y-2">
+      {demo.map((label, i) => (
+        <li key={label} className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2 text-sm">
+          <span className="grid size-6 place-items-center rounded-full bg-muted text-xs tabular-nums">{i + 1}</span>
+          {label}
+        </li>
+      ))}
+    </ol>
   );
 }
