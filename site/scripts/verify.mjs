@@ -125,11 +125,14 @@ const benign = (e) => /AbortError: Transition was skipped/.test(String(e));
 // 1. Pages ─────────────────────────────────────────────────────────────────────────
 const open = await serve("open");
 const pages = ["", "features/", "pricing/", "free/", "faq/", "about/", "contact/"];
+// The Free page is /free/<lang>/, the others /<lang>/<page>.
+const pageUrl = (lang, p) => (p === "free/" ? `/free/${lang}/` : `/${lang}/${p}`);
 const widths = (process.env.WIDTHS ?? "390,768,1280,1440").split(",").map(Number);
 // The root page (both languages, <html lang="en">), then every language page.
 const targets = [
   { lang: "en", url: "/", name: "root", shot: "root" },
-  ...["en", "ar"].flatMap((lang) => pages.map((p) => ({ lang, url: `/${lang}/${p}`, name: `${lang}/${p || "home/"}`, shot: `${lang}-${(p || "home/").replace("/", "")}` }))),
+  { lang: "en", url: "/free/", name: "free-root", shot: "free-root" },
+  ...["en", "ar"].flatMap((lang) => pages.map((p) => ({ lang, url: pageUrl(lang, p), name: `${lang}/${p || "home/"}`, shot: `${lang}-${(p || "home/").replace("/", "")}` }))),
   // English only: en and x-default alternates, no Arabic.
   { lang: "en", url: "/en/developers/", name: "en/developers/", shot: "en-developers", alternates: 2 },
 ];

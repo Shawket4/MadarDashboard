@@ -20,14 +20,15 @@ if (!reduce) {
       for (const e of entries) {
         if (e.isIntersecting) {
           onScreen.add(e.target);
-          // Into view once: the badge drops, the receipt prints.
-          if (e.target instanceof HTMLElement && e.target.hasAttribute("data-swing")) e.target.dataset.in = "";
+          // Into view once: the badge drops, a character pops up, the duties tick.
+          e.target.setAttribute("data-in", "");
         } else onScreen.delete(e.target);
       }
     },
-    { rootMargin: "0px 0px -12% 0px" },
+    { rootMargin: "0px 0px -4% 0px" },
   );
-  for (const el of [...swings, ...figures]) io.observe(el);
+  const cols = Array.from(document.querySelectorAll<HTMLElement>(".crew-col"));
+  for (const el of [...swings, ...figures, ...cols]) io.observe(el);
 
   const rand = (a: number, b: number) => a + Math.random() * (b - a);
   const live = (f: Element) => onScreen.has(f) && !document.hidden;
@@ -124,20 +125,109 @@ if (!reduce) {
     window.setTimeout(glance, 2000);
   }
 
-  // A badge nudged with the pointer swings a little, as a hanging card would.
+  // A badge hangs on its lanyard like a pendulum, and everything about it is physics (no
+  // keyframes): it falls in from above the screen on a stiff spring, and the instant it lands
+  // it swings (a damped pendulum, in degrees). A breeze, a passing mouse, or a hand that
+  // holds it and lets go keep it swinging. It starts the moment it is on screen.
+  const SWING_HZ = 0.42;
+  const K = (2 * Math.PI * SWING_HZ) ** 2;
+  const C = 1.1;
   for (const s of swings) {
-    const badge = s.querySelector(".crew-badge");
+    const badge = s.querySelector<HTMLElement>(".crew-badge");
     if (!badge) continue;
+    let a = 0; // angle, degrees
+    let v = 0; // degrees per second
+    let y = 0; // vertical offset, px (negative = above its place)
+    let vy = 0;
+    let falling = false;
+    let held = false;
+    let last = 0;
+    let raf = 0;
+    const settled = () => s.hasAttribute("data-settled");
+    const tick = (now: number) => {
+      raf = 0;
+      const dt = Math.min(0.033, (now - last) / 1000 || 0.016);
+      last = now;
+      if (falling) {
+        // A stiff, slightly underdamped spring to 0: arrives fast, one small bounce.
+        vy += (-170 * y - 13 * vy) * dt;
+        y += vy * dt;
+        if (y >= 0 && vy > 0) {
+          falling = false;
+          y = 0;
+          vy = 0;
+          s.setAttribute("data-settled", "");
+          v += Math.random() < 0.5 ? 62 : -62; // the landing sets it swinging
+        }
+      }
+      if (!held) {
+        v += (-K * a - C * v) * dt;
+        a = Math.max(-40, Math.min(40, a + v * dt));
+      }
+      badge.style.transform = `translateY(${y.toFixed(1)}px) rotate(${a.toFixed(3)}deg)`;
+      if (falling || held || Math.abs(a) > 0.02 || Math.abs(v) > 0.05) raf = requestAnimationFrame(tick);
+      else badge.style.transform = "";
+    };
+    const run = () => {
+      if (raf) return;
+      last = performance.now();
+      raf = requestAnimationFrame(tick);
+    };
+    const kick = (dv: number) => {
+      v += dv;
+      run();
+    };
+    // Start: from just above the top of the screen, as soon as it is in view.
+    new MutationObserver((_, mo) => {
+      if (!s.hasAttribute("data-in")) return;
+      mo.disconnect();
+      y = -(badge.getBoundingClientRect().bottom + 60);
+      falling = true;
+      badge.style.transform = `translateY(${y.toFixed(1)}px)`;
+      run();
+    }).observe(s, { attributes: true, attributeFilter: ["data-in"] });
+    // A breeze, only while it is on screen.
+    const breeze = () => {
+      if (settled() && live(s) && !held && Math.abs(a) < 1) kick(rand(14, 26) * (Math.random() < 0.5 ? -1 : 1));
+      window.setTimeout(breeze, rand(3200, 6000));
+    };
+    window.setTimeout(breeze, 4500);
     s.addEventListener("pointerenter", (e) => {
-      if ((e as PointerEvent).pointerType !== "mouse" || !s.hasAttribute("data-settled")) return;
-      badge.classList.remove("crew-nudge");
-      void (badge as HTMLElement).offsetWidth;
-      badge.classList.add("crew-nudge");
+      if (e.pointerType === "mouse" && settled() && !held) kick(rand(30, 40) * (Math.random() < 0.5 ? -1 : 1));
     });
-    badge.addEventListener("animationend", (e) => {
-      const name = (e as AnimationEvent).animationName;
-      if (name === "crew-drop") s.setAttribute("data-settled", "");
-      if (name === "crew-nudge") badge.classList.remove("crew-nudge");
+    // Hold it: the card follows the pointer around the lanyard's top; let go and it swings.
+    badge.addEventListener("pointerdown", (e) => {
+      if (!settled()) return;
+      held = true;
+      s.setAttribute("data-held", "");
+      badge.setPointerCapture(e.pointerId);
+      const r = badge.getBoundingClientRect();
+      const lanyard = parseFloat(getComputedStyle(s).getPropertyValue("--lanyard")) * parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const px = r.left + r.width / 2;
+      const py = r.top - lanyard;
+      let prev = a;
+      let prevT = performance.now();
+      const move = (m: PointerEvent) => {
+        const ang = (Math.atan2(m.clientX - px, m.clientY - py) * 180) / Math.PI;
+        a = Math.max(-38, Math.min(38, ang));
+        const t = performance.now();
+        v = ((a - prev) / Math.max(1, t - prevT)) * 1000;
+        prev = a;
+        prevT = t;
+      };
+      const up = () => {
+        held = false;
+        s.removeAttribute("data-held");
+        badge.removeEventListener("pointermove", move);
+        badge.removeEventListener("pointerup", up);
+        badge.removeEventListener("pointercancel", up);
+        v = Math.max(-110, Math.min(110, v));
+        kick(0);
+      };
+      badge.addEventListener("pointermove", move);
+      badge.addEventListener("pointerup", up);
+      badge.addEventListener("pointercancel", up);
+      kick(0);
     });
   }
 }

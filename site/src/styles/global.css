@@ -691,7 +691,7 @@ html[lang="ar"] .menu-group-label { font-size: .875rem; padding-top: .7rem; }
   .price-table :is(thead th, tbody td) { width: 12rem; }
 }
 
-/* ---------- Madar Free (pages/[lang]/free.astro) ----------
+/* ---------- Madar Free (pages/free/[lang].astro) ----------
    The hero's price chip, the included list, the limits callout, the Free-and-paid table,
    the four steps and the two doors. The Free column wears the tint all the way down, so
    the eye reads it as one column. */
@@ -770,13 +770,30 @@ html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; le
 
 /* The hero's badge hangs over the till's corner; its strap fades out above it, before it
    reaches the words or the header. */
-.free-hero-badge { --w: 8.25rem; --lanyard: 9rem; position: absolute; z-index: 10; top: -2.25rem; inset-inline-end: -.25rem; }
+.free-hero-badge { --w: 8.25rem; --lanyard: 5rem; position: absolute; z-index: 10; top: -1.25rem; inset-inline-end: .35rem; }
+.free-hero-badge-m { display: none; }
+@media (max-width: 639px) {
+  .free-hero-badge-m { display: block; --w: 6.6rem; --lanyard: 7rem; position: absolute; z-index: 10; top: -.25rem; inset-inline-end: 0; }
+  .free-hero-badge-m .crew-lanyard { -webkit-mask-image: linear-gradient(to top, #000 45%, transparent); mask-image: linear-gradient(to top, #000 45%, transparent); }
+  .free-hero-badge-m :is(.crew-name) { font-size: 1rem; }
+  .free-hero-badge-m .crew-role { font-size: .7rem; }
+  .free-hero-badge-m .crew-salary { margin-top: .5rem; padding: .15rem .45rem; font-size: .62rem; }
+  .free-hero-badge-m .crew-card-head { font-size: .5rem; letter-spacing: .03em; white-space: nowrap; padding: .55rem .6rem .35rem; }
+  .free-hero-badge-m .crew-card { box-shadow: 4px 4px 0 var(--color-ink); }
+  [dir="rtl"] .free-hero-badge-m .crew-card { box-shadow: -4px 4px 0 var(--color-ink); }
+  .free-hero-badge .crew-badge, .free-hero-badge { display: none; }
+  #free-title { padding-inline-end: 6.2rem; }
+  .free-hero-sub::before { content: ""; float: inline-end; width: 6.4rem; height: 2.4rem; }
+  .free-hero-badge-m .crew-avatar { width: 52%; margin-top: .6rem; }
+  .free-hero-badge-m .crew-salary { margin-top: .45rem; }
+  .free-hero-badge-m .crew-card { padding-bottom: .7rem; }
+}
 .free-hero-badge .crew-lanyard { -webkit-mask-image: linear-gradient(to top, #000 55%, transparent); mask-image: linear-gradient(to top, #000 55%, transparent); }
 .free-hero-badge .crew-name { font-size: 1.2rem; }
 .free-hero-badge .crew-role { font-size: .8rem; }
 .free-hero-badge .crew-salary { font-size: .75rem; padding: .2rem .6rem; }
 .free-hero-badge .crew-card-head { font-size: .55rem; padding: .7rem .7rem .45rem; }
-@media (min-width: 640px) { .free-hero-badge { --w: 10.5rem; top: -3rem; inset-inline-end: -1.5rem; } .free-hero-badge .crew-name { font-size: 1.4rem; } .free-hero-badge .crew-salary { font-size: .82rem; } }
+@media (min-width: 640px) { .free-hero-badge { --w: 10.5rem; --lanyard: 9rem; top: -3rem; inset-inline-end: -1.5rem; } .free-hero-badge .crew-name { font-size: 1.4rem; } .free-hero-badge .crew-salary { font-size: .82rem; } }
 @media (min-width: 1024px) { .free-hero-badge { --w: 11.5rem; --lanyard: 6.5rem; top: -1.5rem; inset-inline-end: -2.5rem; } }
 
 /* The crew at work: each character standing on its line, its duties under it. */
@@ -788,6 +805,35 @@ html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; le
 .crew-col-items { display: grid; gap: 1.6rem; margin-top: 1.75rem; }
 .crew-col-items li { position: relative; padding-inline-start: 2.75rem; }
 .crew-col-items .free-tick { top: .05rem; }
+
+/* Entrances (crew.ts sets data-in as they scroll into view): the character pops up onto its
+   line, then each duty's tick pops in turn. */
+.crew-armed svg[data-crew]:not([data-in]) .crew-hop { opacity: 0; transform: translateY(18%) scale(.9); transform-origin: 50% 100%; }
+.crew-armed svg[data-crew][data-in] .crew-hop { animation: crew-enter .7s cubic-bezier(.3, 1.4, .5, 1) both; transform-origin: 50% 100%; }
+@keyframes crew-enter { 0% { opacity: 0; transform: translateY(18%) scale(.9); } 100% { opacity: 1; transform: none; } }
+.crew-armed .crew-col:not([data-in]) .free-tick { scale: 0; }
+.crew-armed .crew-col[data-in] .free-tick { animation: tick-pop .5s cubic-bezier(.3, 1.6, .5, 1) both; }
+.crew-armed .crew-col[data-in] li:nth-child(1) .free-tick { animation-delay: .5s; }
+.crew-armed .crew-col[data-in] li:nth-child(2) .free-tick { animation-delay: .75s; }
+.crew-armed .crew-col[data-in] li:nth-child(3) .free-tick { animation-delay: 1s; }
+@keyframes tick-pop { 0% { scale: 0; } 100% { scale: 1; } }
+
+/* نقطة with the count, beside the receipt it prints: stacked on a phone, side by side from md. */
+.zr-scene { display: grid; justify-items: center; gap: 1.5rem; }
+.zr-nuqta { width: 7.5rem; overflow: visible; cursor: pointer; }
+@media (min-width: 640px) { .zr-scene { grid-template-columns: auto 1fr; align-items: end; justify-items: stretch; } .zr-scene .zr { margin-inline: 0 auto; } .zr-nuqta { width: 8.5rem; } }
+[data-wave] .crew-paper { animation: crew-paper 1.7s ease-in-out; }
+@keyframes crew-paper { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-1.6deg) translateY(1px); } 65% { transform: rotate(1.3deg); } }
+
+/* The self-service door: نقطة with his coffee in a Paper roundel, top corner. */
+.free-door-main { position: relative; }
+.free-door-roundel { position: relative; align-self: flex-start; margin-bottom: 1.25rem; width: 6rem; aspect-ratio: 1; overflow: hidden; border-radius: 999px; background: var(--color-paper); }
+.free-door-cup { position: absolute; inset-inline: 0; bottom: 9%; width: 66%; margin-inline: auto; overflow: visible; cursor: pointer; }
+.crew-armed .crew-sip { animation: crew-sip 5s ease-in-out infinite; }
+@keyframes crew-sip { 0%, 55%, 100% { transform: rotate(0deg); } 70% { transform: rotate(-9deg); } 85% { transform: rotate(-9deg); } }
+.crew-armed .crew-steam path { animation: crew-steam 2.6s ease-in-out infinite; }
+.crew-armed .crew-steam path:nth-child(2) { animation-delay: -1.3s; }
+@keyframes crew-steam { 0% { opacity: 0; transform: translateY(5px); } 35% { opacity: 1; } 100% { opacity: 0; transform: translateY(-5px); } }
 
 /* The Z-report: a printer's mouth, and the receipt feeding out of it. */
 .zr { position: relative; width: min(100%, 19rem); margin-inline: auto; rotate: 2deg; }
@@ -816,27 +862,16 @@ html[lang="ar"] .zr-meta dd:not(.ltr) { font-family: var(--font-arabic); }
 html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; font-weight: 600; letter-spacing: 0; }
 
 /* Motion (crew.ts sets .crew-armed). Badges wait above the section, then drop in on
-   their lanyards and settle into a slow sway; a pointer nudges them. */
+   their lanyards (crew.ts: a spring fall, then a pendulum swing). */
 .crew-armed [data-swing]:not([data-in]) .crew-badge { transform: translateY(-130vh); }
-.crew-armed [data-swing][data-in] .crew-badge { animation: crew-drop 2s both, crew-sway 8s linear 2s infinite; }
-.crew-armed [data-swing][data-settled] .crew-badge { animation: crew-sway 8s linear infinite; }
-.crew-armed [data-swing][data-settled] .crew-badge.crew-nudge { animation: crew-nudge 1.5s ease-out, crew-sway 8s linear 1.5s infinite; }
-@keyframes crew-drop {
-  0% { transform: translateY(-130vh) rotate(0deg); animation-timing-function: cubic-bezier(.5, 0, .9, .5); }
-  38% { transform: translateY(0) rotate(0deg); animation-timing-function: cubic-bezier(.2, .7, .4, 1); }
-  50% { transform: translateY(-2.5%) rotate(2.2deg); animation-timing-function: ease-in-out; }
-  64% { transform: translateY(0) rotate(-1.5deg); animation-timing-function: ease-in-out; }
-  78% { transform: rotate(.8deg); animation-timing-function: ease-in-out; }
-  90% { transform: rotate(-.35deg); animation-timing-function: ease-in-out; }
-  100% { transform: rotate(0deg); }
-}
-@keyframes crew-sway { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(.45deg); } 75% { transform: rotate(-.45deg); } }
-@keyframes crew-nudge { 0% { transform: rotate(0deg); } 18% { transform: rotate(1.6deg); } 42% { transform: rotate(-1.1deg); } 66% { transform: rotate(.55deg); } 84% { transform: rotate(-.2deg); } 100% { transform: rotate(0deg); } }
+.crew-armed [data-swing][data-settled] .crew-badge { touch-action: pan-y; cursor: grab; }
+.crew-armed [data-swing][data-held] .crew-badge { cursor: grabbing; }
 
 /* The characters: breathing, blinking, glancing, waving, and a hop when greeted. */
-.crew-armed .crew-body { animation: crew-breathe 3.6s ease-in-out infinite; }
-.crew-armed .crew-col:nth-child(2) .crew-body { animation-delay: -1.7s; }
-@keyframes crew-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.015, 1.035); } }
+/* A breath now and then, not a constant wobble (scaling strokes forever shimmers on phones). */
+.crew-armed svg[data-crew][data-in] .crew-body { animation: crew-breathe 7s ease-in-out infinite; }
+.crew-armed .crew-col:nth-child(2) .crew-body { animation-delay: -3.4s; }
+@keyframes crew-breathe { 0%, 55%, 100% { transform: scale(1, 1); } 78% { transform: scale(1.012, 1.028); } }
 .crew-blink { transition: transform .07s ease-in; }
 [data-blink] .crew-blink { transform: scaleY(.08); }
 .crew-pupil { transition: transform .28s cubic-bezier(.2, .8, .2, 1); }
@@ -861,7 +896,7 @@ html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; 
 
 /* The receipt feeds out in bursts, as a thermal printer does, and the stamp lands last. */
 .crew-armed .zr:not([data-in]) .zr-paper { transform: translateY(-104%); }
-.crew-armed .zr[data-in] .zr-paper { animation: zr-print 2.6s linear both; }
+.crew-armed .zr[data-in] .zr-paper { animation: zr-print 2.6s linear both; will-change: transform; }
 @keyframes zr-print {
   0% { transform: translateY(-104%); }
   16% { transform: translateY(-80%); }
