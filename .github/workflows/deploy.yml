@@ -34,10 +34,6 @@ jobs:
           # Dashboard talks to the dedicated API origin (cross-origin; CORS allows it).
           # The main madar-pos.cloud vhost no longer proxies /api.
           VITE_API_URL: https://api.madar-pos.cloud
-          # Public sign-up (/signup, the login page's link). Off unless the repo
-          # variable SIGNUP_ENABLED is set to 1: a blank or missing variable is
-          # off, so the page ships hidden (it opens with /signup?preview=1).
-          VITE_SIGNUP_ENABLED: ${{ vars.SIGNUP_ENABLED }}
           # Self-hosted Sentry. The DSN is a public value (safe in the clear);
           # session replay is recorded with all text/inputs masked and media
           # blocked — see src/lib/sentry.ts.

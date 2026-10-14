@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/form";
 import { useLogin } from "@/data/api/generated/api";
 import { useAuthStore } from "@/data/stores/auth.store";
-import { signupEnabled } from "@/features/signup/flag";
 import { AuthShell } from "./auth-shell";
 import { getErrorMessage } from "@/data/api/errors";
 import { isAxiosError } from "axios";
@@ -118,14 +117,12 @@ export function LoginPage() {
         </form>
       </Form>
 
-      {signupEnabled() ? (
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          {t("signup.noAccount", "No account?")}{" "}
-          <Link to="/signup" className="font-medium text-foreground underline underline-offset-4">
-            {t("signup.signUpFree", "Sign up free")}
-          </Link>
-        </p>
-      ) : null}
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        {t("signup.noAccount", "No account?")}{" "}
+        <Link to="/signup" className="font-medium text-foreground underline underline-offset-4">
+          {t("signup.signUpFree", "Sign up free")}
+        </Link>
+      </p>
     </AuthShell>
   );
 }
