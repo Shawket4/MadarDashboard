@@ -7,7 +7,7 @@
  */
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "@tanstack/react-router";
+import { useRouterState } from "@tanstack/react-router";
 import { Blocks } from "lucide-react";
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
@@ -21,7 +21,11 @@ import { useOrgModulesState } from "@/hooks/use-org-modules";
 
 export function ModuleGate({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
-  const { pathname } = useLocation();
+  // The path of the page ON SCREEN, not of the one being navigated to: while a
+  // redirect (the onboarding gate) loads its target, the old page is still
+  // rendered under the new location, and judging it by that location let a
+  // paid page mount, and ask for what Free may not read, on its way out.
+  const pathname = useRouterState({ select: (s) => (s.resolvedLocation ?? s.location).pathname });
   const { modules, known, error, retry } = useOrgModulesState();
   const authzFailed = useAuthzLoadError();
   const needs = moduleOfPath(pathname);

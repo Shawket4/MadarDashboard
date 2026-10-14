@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useHasFeature } from "@/hooks/use-plan";
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "motion/react";
 import { Ban, CalendarRange, Coins, HandCoins, Receipt, Store, TrendingUp } from "lucide-react";
@@ -87,7 +88,11 @@ export function DashboardPage() {
   );
   const comparison = useOrgBranchComparison(orgId ?? "", { ...range }, { query: { enabled: !!orgId } });
   // Delivery + per-channel KPIs for the current scope (nil branch = all branches).
-  const deliverySales = useBranchDeliverySales(scopeBranchId, { ...range }, { query: { enabled: !!orgId } });
+  // Delivery and margins are the paid plan's (online ordering; recipe costs): a Free
+  // shop's dashboard is its till, so neither is asked for nor shown.
+  const hasOnline = useHasFeature("online");
+  const hasCosts = useHasFeature("inventory");
+  const deliverySales = useBranchDeliverySales(scopeBranchId, { ...range }, { query: { enabled: !!orgId && hasOnline } });
 
   const branches = useMemo(() => comparison.data?.branches ?? [], [comparison.data]);
 
@@ -375,9 +380,10 @@ export function DashboardPage() {
       </ChartCard>
 
       {/* Margin watch — menu profitability at a glance for the current scope */}
-      <MarginWatchCard />
+      {hasCosts ? <MarginWatchCard /> : null}
 
       {/* Delivery + per-channel KPIs */}
+      {hasOnline ? (
       <section className="space-y-3">
         <SectionHeader title={t("delivery.kpisTitle", "Delivery")} description={t("delivery.byChannel", "By channel")} />
         {deliverySales.isError ? (
@@ -386,6 +392,7 @@ export function DashboardPage() {
           <DeliveryKpis data={deliverySales.data} loading={deliverySales.isLoading} />
         )}
       </section>
+      ) : null}
     </Page>
   );
 }

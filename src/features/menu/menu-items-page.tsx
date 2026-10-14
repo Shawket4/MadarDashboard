@@ -1,3 +1,4 @@
+import { useHasFeature } from "@/hooks/use-plan";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
@@ -79,6 +80,8 @@ const ITEMS_PER_PAGE = 24;
 
 export function MenuItemsPage() {
   const { t, i18n } = useTranslation();
+  // The full editor (Studio) is recipe-centred: the paid plan's inventory.
+  const hasStudio = useHasFeature("inventory");
   const lang = i18n.language;
   const confirm = useConfirm();
   const navigate = useNavigate();
@@ -480,9 +483,11 @@ export function MenuItemsPage() {
                   </DropdownMenuItem>
                 ) : (
                   <>
-                    <DropdownMenuItem onClick={() => openStudio(m.id)} onMouseEnter={() => prefetchItem(m.id)}>
-                      <Pencil className="size-4" /> {t("menu.grid.fullEditor", "Full editor")}
-                    </DropdownMenuItem>
+                    {hasStudio ? (
+                      <DropdownMenuItem onClick={() => openStudio(m.id)} onMouseEnter={() => prefetchItem(m.id)}>
+                        <Pencil className="size-4" /> {t("menu.grid.fullEditor", "Full editor")}
+                      </DropdownMenuItem>
+                    ) : null}
                     <DropdownMenuItem onClick={() => void duplicate(m)}>
                       <Copy className="size-4" /> {t("menu.grid.duplicate", "Duplicate")}
                     </DropdownMenuItem>

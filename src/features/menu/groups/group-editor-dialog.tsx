@@ -36,6 +36,7 @@ import {
 import type { GroupOut, OrgIngredient } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtMoney, fmtUnit, piastresToEgp } from "@/lib/format";
+import { useHasFeature } from "@/hooks/use-plan";
 import { draftRecipeCost } from "@/lib/recipe-cost";
 import { cn } from "@/lib/utils";
 import { arOf, invalidateCatalog } from "../util";
@@ -99,11 +100,15 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
   const { t } = useTranslation();
   const editing = !!group;
 
-  const catalogQ = useListCatalog(orgId, { query: { enabled: open && !!orgId } });
+  // What choosing does to stock is the paid plan's inventory. A Free shop's
+  // group is a note or a price: no ingredient catalog is read, and the effect
+  // question is not asked (the effect stays "Nothing").
+  const stock = useHasFeature("inventory");
+  const catalogQ = useListCatalog(orgId, { query: { enabled: open && !!orgId && stock } });
   const catalog = useMemo(() => catalogQ.data ?? [], [catalogQ.data]);
   const catalogById = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
   const groupsQ = useListGroups({ org_id: orgId }, { query: { enabled: open && !!orgId } });
-  const categoriesQ = useListIngredientCategories(orgId, { query: { enabled: open && !!orgId } });
+  const categoriesQ = useListIngredientCategories(orgId, { query: { enabled: open && !!orgId && stock } });
   const categories = useMemo(() => categoriesQ.data ?? [], [categoriesQ.data]);
   // Size labels of the items this group is attached to: the per-size columns.
   const itemSizeLabels = useGroupSizeLabels(group?.id ?? null, open && !!group);
@@ -126,7 +131,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
 
   // Seed from the group; each option carries its recipe lines (the form is the dirty store).
   const seeded = useMemo<GroupFormInput | null>(() => {
-    if (!group) return EMPTY;
+    if (!group) return stock ? EMPTY : { ...EMPTY, effect: "none" };
     if ((group.effect === "swaps" || isLegacySwap(group.legacy_addon_type)) && !group.swap_category_id && categoriesQ.isLoading) return null;
     const anyLines = group.options.some((o) => (o.recipe ?? []).length > 0);
     const effect = groupEffect(group, anyLines);
@@ -162,7 +167,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
           })),
         })),
     };
-  }, [group, categories, categoriesQ.isLoading]);
+  }, [group, categories, categoriesQ.isLoading, stock]);
 
   // Seed once per opening: a background refetch must not wipe what's typed.
   const seededOnce = useRef(false);
@@ -333,7 +338,8 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
               <fieldset disabled={readOnly} className="space-y-6">
               <BilingualField control={form.control} enName="name" arName="name_ar" label={t("common.name", "Name")} />
 
-              {/* What does choosing do? */}
+              {/* What does choosing do? Stock: the paid plan (an existing group that already moves stock keeps its say). */}
+              {stock || effect !== "none" ? (
               <fieldset className="space-y-2">
                 <legend className="text-sm font-medium">{t("menu.groups.editor.effectLabel", "What does choosing do?")}</legend>
                 <FormField
@@ -399,6 +405,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
                   </p>
                 ) : null}
               </fieldset>
+              ) : null}
 
               {/* Customer must pick */}
               <fieldset className="space-y-2">

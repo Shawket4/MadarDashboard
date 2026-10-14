@@ -64,6 +64,8 @@ import {
   type SizeBlockDraft,
   type StepDraft,
 } from "./util";
+import { UpgradePage } from "@/components/app/upgrade-page";
+import { useHasFeature } from "@/hooks/use-plan";
 import { SectionItem } from "./section-item";
 import { RecipeGrid } from "../recipe/recipe-grid";
 import { BasePicker } from "../recipe/base-picker";
@@ -112,7 +114,18 @@ const EMPTY_ITEM: ItemDraftValues = {
  * a failing step toasts which section failed and stops — earlier writes stand
  * (idempotent replace-sets) and retrying Save re-runs only what's still dirty.
  */
+/**
+ * The Studio is built around recipes, their costs and preparation steps: the
+ * paid plan's inventory. A Free shop edits an item (name, sizes, price, add-ons)
+ * in the item dialog, and a URL typed or bookmarked here says so, rather than
+ * loading a catalog it may not read.
+ */
 export function MenuStudioPage() {
+  const hasRecipes = useHasFeature("inventory");
+  return hasRecipes ? <MenuStudio /> : <UpgradePage feature="inventory" />;
+}
+
+function MenuStudio() {
   const { t, i18n } = useTranslation();
   // Steps (and their per-drink notes) are part of the recipe: recipes.edit.
   const canEditSteps = useAuthz().can(Cap.recipesEdit);

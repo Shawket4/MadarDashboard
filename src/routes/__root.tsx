@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Outlet, createRootRoute } from "@tanstack/react-router";
+import { Outlet, createRootRoute, useLocation } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Direction } from "radix-ui";
 import { Toaster } from "@/components/ui/sonner";
@@ -21,9 +21,12 @@ function RootLayout() {
   // index.html's title is for the signed-out visitor ("Madar POS — sign in | مدار").
   useSignedInTitle(signedIn);
   // So is its band about Madar POS (#about-madar, outside #root): signed in, it hides.
+  // It also hides on /signup, which has its own account of the plans: the band's
+  // line about paid plans would sit under a page that says "free".
+  const onSignup = useLocation({ select: (l) => l.pathname.replace(/\/+$/, "") === "/signup" });
   useEffect(() => {
-    document.getElementById("about-madar")?.toggleAttribute("hidden", signedIn);
-  }, [signedIn]);
+    document.getElementById("about-madar")?.toggleAttribute("hidden", signedIn || onSignup);
+  }, [signedIn, onSignup]);
   return (
     <Direction.Provider dir={dir}>
       <Outlet />

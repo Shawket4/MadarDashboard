@@ -4,6 +4,7 @@ import { Check, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { OnboardingStep } from "@/data/api/generated/models";
 import { STAGES, type StepDef, type StepKey } from "./config";
+import { useStepCopy } from "./step-copy";
 
 interface Props {
   /** The steps that apply to this org's plan. */
@@ -16,6 +17,7 @@ interface Props {
 
 export function StepNavigator({ steps: allSteps, byKey, activeKey, onSelect, canComplete }: Props) {
   const { t } = useTranslation();
+  const copy = useStepCopy();
 
   return (
     <nav aria-label={t("onboarding.navLabel", "Setup steps")} className="space-y-6">
@@ -65,7 +67,7 @@ export function StepNavigator({ steps: allSteps, byKey, activeKey, onSelect, can
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className={cn("flex items-center gap-2 text-sm", active || done ? "font-medium text-foreground" : "text-muted-foreground")}>
-                          <span className="truncate">{t(`onboarding.steps.${step.key}.title`, step.key)}</span>
+                          <span className="truncate">{copy(step.key, "title", step.key)}</span>
                           {!required && step.key !== "go_live" ? (
                             <span className="rounded bg-secondary px-1 py-0.5 text-[10px] font-medium text-muted-foreground">
                               {t("onboarding.optional", "Optional")}
