@@ -111,7 +111,7 @@ describe("ModuleGate", () => {
   it("a Free org gets the upgrade page, with a WhatsApp link, instead of a paid feature", () => {
     answer = { modules: ["pos", "dawam"] };
     useAuthStore.setState({ plan: "free" });
-    for (const p of ["/floor", "/inventory/today", "/settings/brand", "/bookings"]) {
+    for (const p of ["/inventory/today", "/settings/brand", "/bookings"]) {
       pathname = p;
       const { unmount } = page();
       expect(screen.queryByText("the page")).toBeNull();
@@ -124,10 +124,12 @@ describe("ModuleGate", () => {
   it("a Free org still opens what Free includes, and a paid or unknown plan opens everything", () => {
     answer = { modules: ["pos", "dawam"] };
     useAuthStore.setState({ plan: "free" });
-    pathname = "/orders";
-    const first = page();
-    expect(screen.getByText("the page")).toBeInTheDocument();
-    first.unmount();
+    for (const p of ["/orders", "/floor"]) {
+      pathname = p;
+      const first = page();
+      expect(screen.getByText("the page")).toBeInTheDocument();
+      first.unmount();
+    }
     for (const plan of ["paid", null]) {
       useAuthStore.setState({ plan });
       pathname = "/floor";

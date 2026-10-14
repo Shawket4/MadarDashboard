@@ -4,7 +4,7 @@
 import type { Capability } from './capabilities';
 
 export const PLANS_SPEC_VERSION = 1;
-export const PLANS_SPEC_HASH = "63bb92161548b5b5";
+export const PLANS_SPEC_HASH = "f1e6e47ce5c40542";
 
 export type Plan = 'free' | 'paid';
 export type Feature =
@@ -47,7 +47,7 @@ export interface Entitlements {
 
 export const PLANS: Record<Plan, Entitlements> = {
   free: {
-    features: [],
+    features: ["floor"],
     limits: { branches: 1, pos_devices_per_branch: 1, kds_devices: 0, waiter_devices: 0 },
     realtime: false,
   },

@@ -617,7 +617,7 @@ export const en = {
     freePlan: {
       kicker: "Madar Free",
       title: "Just need a till?",
-      body: "One branch, one till, the full counter and its sales reports, for 0 EGP a month, for good. Sign up yourself in about two minutes.",
+      body: "One branch, one till, the full counter with its floor plan and sales reports, for 0 EGP a month, for good. Sign up yourself in about two minutes.",
       price: "0 EGP",
       per: "a month",
       cta: "Create your free account",
@@ -643,7 +643,7 @@ export const en = {
   freePage: {
     kicker: "Madar Free",
     title: "Your café's till. Free, for good.",
-    sub: "A real point of sale and the reports behind it, on one till in one branch, for 0 EGP a month. Not a trial: no card, no contract, no clock running out.",
+    sub: "A real point of sale and the reports behind it, on one till in one branch, floor plan included, for 0 EGP a month. Not a trial: no card, no contract, no clock running out.",
     cta: "Create your free account",
     secondary: "What's in Free",
     note: "About two minutes · an Egyptian mobile number for the WhatsApp code",
@@ -675,14 +675,14 @@ export const en = {
       lead: "Nuqta runs the till and Shariha keeps the numbers. They work every shift, never call in sick, and come with everything below.",
       items: [
         { t: "A till that never stops", b: "Ring up orders on an iPad or Android tablet. It keeps selling when the internet drops and syncs when it's back." },
-        { t: "Cash, card, split and tips", b: "Take any mix of payments on one order, add discounts and service charge, and tag each order Pickup or Dine in." },
+        { t: "Cash, card, split and tips", b: "Take any mix of payments on one order, add discounts and service charge, and tag each order Pickup or Dine in. Dine in orders sit on your floor plan, with tables and open tickets." },
         { t: "Receipts and kitchen tickets", b: "Print to Star and Epson thermal printers, in Arabic or English." },
         { t: "Till close and cash count", b: "Open and close the drawer, count the cash blind, and print the till report." },
         { t: "Sales reports and Excel", b: "See what sold, when, and by whom, in the dashboard from any browser, and export it to Excel." },
         { t: "Your whole team", b: "Unlimited staff accounts, each with their own PIN and permissions, so every sale carries a name." },
       ],
       limitsTitle: "The limits, plainly",
-      limits: "One branch with one till. Stock and recipe costing, tables, online ordering and loyalty are on the paid plans.",
+      limits: "One branch with one till. Stock and recipe costing, kitchen screens, waiter handhelds, online ordering and loyalty are on the paid plans.",
     },
 
     compare: {
@@ -704,6 +704,7 @@ export const en = {
             { t: "Pickup and Dine in on every order", free: true },
             { t: "Till close, blind cash count and till report", free: true },
             { t: "Sales reports and Excel exports", free: true },
+            { t: "Floor plan, tables and open tickets", free: true },
             { t: "Unlimited staff, roles and PINs", free: true },
           ],
         },
@@ -719,7 +720,7 @@ export const en = {
           rows: [
             { t: "Recipe costing and the inventory ledger", free: false },
             { t: "Stocktakes, waste, purchasing and transfers", free: false },
-            { t: "Tables, open tickets and kitchen screens", free: false },
+            { t: "Kitchen screens and waiter handhelds", free: false },
             { t: "Online ordering and delivery", free: false },
             { t: "Wallet loyalty and table bookings", free: false },
             { t: "Your brand and your own web address", free: false },
@@ -756,7 +757,7 @@ export const en = {
         },
         {
           q: "What's the catch?",
-          a: "Free runs one branch with one till, and leaves out the features bigger operations pay for: stock and recipe costing, more tills, tables, online ordering and loyalty. If one till is all you need, you can stay on Free as long as you like.",
+          a: "Free runs one branch with one till, and leaves out the features bigger operations pay for: stock and recipe costing, more tills, kitchen screens, online ordering and loyalty. If one till is all you need, you can stay on Free as long as you like.",
         },
         {
           q: "Can I add a second till or a second branch?",
@@ -772,7 +773,7 @@ export const en = {
         },
         {
           q: "Does it work for a restaurant?",
-          a: "Yes. When you sign up you choose café or restaurant, and the till sells for either. Tables, open tickets and kitchen screens are on the paid plans.",
+          a: "Yes. When you sign up you choose café or restaurant, and the till sells for either. Tables and open tickets are included on the till. Kitchen screens and waiter handhelds are on the paid plans.",
         },
       ],
     },
@@ -817,7 +818,7 @@ export const en = {
       },
       {
         q: "Is there a free plan?",
-        a: "Yes. Madar Free runs one till in one branch, with sales reports, for 0 EGP a month, for good. You sign up yourself, with no card. The paid plans add stock and recipe costing, more tills and branches, online ordering and loyalty.",
+        a: "Yes. Madar Free runs one till in one branch, with its floor plan, tables, open tickets and sales reports, for 0 EGP a month, for good. You sign up yourself, with no card. The paid plans add stock and recipe costing, kitchen screens, more tills and branches, online ordering and loyalty.",
       },
       {
         q: "How is Madar billed?",
