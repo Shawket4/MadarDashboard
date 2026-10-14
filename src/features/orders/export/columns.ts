@@ -4,6 +4,7 @@ import type { OrderExport, PaymentLeg } from "@/data/api/generated/models";
 import { fmtMoney } from "@/lib/format";
 
 import { orderStaffComp } from "../staff-drink-lines";
+import { serviceModeOf } from "../service-mode";
 
 /** What was paid, as a cell. A split sale's `payment_method` is the nominal
  *  "mixed", which states no amount; its legs are what every money report
@@ -45,7 +46,8 @@ export const orderColumns = (t: TFunction): ExcelColumn<OrderExport>[] => [
   {
     key: "order_type",
     header: t("orders.type", "Type"),
-    accessor: (o) => (o.order_type === "delivery" ? t("orders.delivery", "Delivery") : t("orders.dineIn", "Dine-in")),
+    // Not delivery means Pickup or Dine in (the cart's toggle, on every order), never "dine-in" by default.
+    accessor: (o) => (o.order_type === "delivery" ? t("orders.delivery", "Delivery") : t(`orders.serviceMode.${serviceModeOf(o)}`)),
     type: "text",
     width: 14,
   },

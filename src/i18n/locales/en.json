@@ -1996,7 +1996,12 @@
     "beforeStaffDrinks": "Items at normal price",
     "staffDrinksGiven": "Staff drinks · given free",
     "exportStaffComp": "Staff drinks given free",
-    "exportStaffCharged": "Staff drink charged (with extras)"
+    "exportStaffCharged": "Staff drink charged (with extras)",
+    "service": "Service",
+    "serviceMode": {
+      "takeaway": "Pickup",
+      "dine_in": "Dine in"
+    }
   },
   "ordersExport": {
     "title": "Export Orders",
@@ -2124,7 +2129,10 @@
     "revenueByWeekday": "Revenue by Day of Week",
     "ordersByWeekday": "Orders by Day of Week",
     "discountsByWeekday": "Discounts by Day of Week",
-    "addonsSold": "Add-ons Sold"
+    "addonsSold": "Add-ons Sold",
+    "byServiceMode": "Pickup and Dine in",
+    "serviceModeShare": "{{mode}} share of revenue",
+    "serviceModeOrders": "{{orders}} orders"
   },
   "discounts": {
     "title": "Discounts",

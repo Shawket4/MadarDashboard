@@ -34,6 +34,7 @@ import type { ComboLineFields } from "@/features/combos/types";
 import { dealsOf, orderDealsTotal, orderRows } from "@/features/combos/order-lines";
 import { ComboHeaderRow, ComboPartNote, DealLineNote } from "@/features/combos/combo-order-lines";
 import { orderRewards } from "./reward-lines";
+import { serviceModeOf } from "./service-mode";
 import { addonNormalTotal, orderStaffComp, staffDrinkLine } from "./staff-drink-lines";
 import { ONE_SIZE } from "@/features/menu/util";
 
@@ -240,6 +241,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                     />
                   ) : null}
                   <Row label={t("common.date", "Date")} value={fmtDateTimeFull(order.created_at)} />
+                  <Row label={t("orders.service", "Service")} value={t(`orders.serviceMode.${serviceModeOf(order)}`)} />
                   <Row label={t("tills.teller", "Teller")} value={order.teller_name} />
                   {order.started_by_name && order.started_by !== order.teller_id ? (
                     <Row label={t("orders.startedBy", "Started by")} value={order.started_by_name} />

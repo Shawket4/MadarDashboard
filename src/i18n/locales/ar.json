@@ -2012,7 +2012,12 @@
     "beforeStaffDrinks": "الأصناف بسعرها العادي",
     "staffDrinksGiven": "مشروبات الموظفين · قُدّمت مجانًا",
     "exportStaffComp": "مشروبات موظفين قُدّمت مجانًا",
-    "exportStaffCharged": "المدفوع في مشروب الموظفين (بالإضافات)"
+    "exportStaffCharged": "المدفوع في مشروب الموظفين (بالإضافات)",
+    "service": "الخدمة",
+    "serviceMode": {
+      "takeaway": "استلام",
+      "dine_in": "في المطعم"
+    }
   },
   "ordersExport": {
     "title": "تصدير الطلبات",
@@ -2144,7 +2149,10 @@
     "revenueByWeekday": "الإيرادات حسب يوم الأسبوع",
     "ordersByWeekday": "الطلبات حسب يوم الأسبوع",
     "discountsByWeekday": "الخصومات حسب يوم الأسبوع",
-    "addonsSold": "الإضافات المباعة"
+    "addonsSold": "الإضافات المباعة",
+    "byServiceMode": "الاستلام والتناول في المطعم",
+    "serviceModeShare": "حصة {{mode}} من الإيرادات",
+    "serviceModeOrders": "{{orders}} طلب"
   },
   "discounts": {
     "title": "الخصومات",

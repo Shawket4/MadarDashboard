@@ -30,6 +30,8 @@ import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
 import { OrderDetailSheet } from "./order-detail-sheet";
 import { VoidOrderDialog } from "./void-order-dialog";
 import { OrderExportDialog } from "./order-export-dialog";
+import { ServiceModeBadge } from "./service-mode-badge";
+import { serviceModeOf } from "./service-mode";
 import { getGetOrderQueryOptions, getListOrdersQueryOptions, useBranchDeliverySales, useListOrders } from "@/data/api/generated/api";
 import { queryClient } from "@/data/api/query";
 import type { Order } from "@/data/api/generated/models";
@@ -259,6 +261,13 @@ export function OrdersPage() {
           ) : (
             "—"
           ),
+      },
+      {
+        id: "service_mode",
+        accessorFn: (o) => serviceModeOf(o),
+        header: t("orders.service", "Service"),
+        meta: { label: t("orders.service", "Service") },
+        cell: ({ row }) => <ServiceModeBadge order={row.original} />,
       },
       { accessorKey: "teller_name", header: t("tills.teller", "Teller"), meta: { label: t("tills.teller", "Teller") } },
       {
