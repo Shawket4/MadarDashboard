@@ -154,7 +154,17 @@ export default defineConfig({
       filter: (page) => /\/(en|ar)\//.test(page),
       lastmod: lastModified(),
       // x-default: the English page, as each page's own hreflang says.
-      serialize: (item) => ({ ...item, links: [...(item.links ?? []), { url: item.url.replace(/\/ar\//, "/en/"), lang: "x-default" }] }),
+      serialize: (item) => ({
+        ...item,
+        // The Free page is /free/<lang>/ (the i18n option only knows /<lang>/…), so give it both alternates.
+        links: /\/free\/(en|ar)\/$/.test(item.url)
+          ? [
+              { url: item.url.replace(/\/ar\/$/, "/en/"), lang: "en" },
+              { url: item.url.replace(/\/en\/$/, "/ar/"), lang: "ar" },
+              { url: item.url.replace(/\/ar\/$/, "/en/"), lang: "x-default" },
+            ]
+          : [...(item.links ?? []), { url: item.url.replace(/\/ar\//, "/en/"), lang: "x-default" }],
+      }),
     }),
     modulePreload(),
     rootAlias(),

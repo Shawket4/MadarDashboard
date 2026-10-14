@@ -14,7 +14,7 @@ import Shariha from "@/components/free/Shariha.astro";
 import ZReport from "@/components/free/ZReport.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS, downloadsHref, pageHref, signupHref, whatsappHref } from "@/lib/site";
-import { breadcrumbs } from "@/lib/schema";
+import { breadcrumbs, freeApplication } from "@/lib/schema";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -31,7 +31,7 @@ const jsonLd = [{
   "@type": "FAQPage",
   inLanguage: lang,
   mainEntity: f.faq.items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })),
-}, breadcrumbs(lang, "free")];
+}, freeApplication(lang), breadcrumbs(lang, "free")];
 ---
 <BaseLayout
   lang={lang}

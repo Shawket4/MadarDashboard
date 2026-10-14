@@ -118,6 +118,7 @@ function whenToUse(home, site) {
     `- Madar Free is a permanent free plan: one branch, one till, the point of sale with its reports and the floor (tables and open tickets), for 0 EGP a month, no card. Read it at ${site}/free/ (English: ${site}/free/en/, Arabic: ${site}/free/ar/). Not in Free: inventory and recipe costing, online ordering, loyalty, bookings, kitchen screens, waiter handhelds, staff scheduling (Dawam), branding.`,
     "- Not a fit for retail-only shops without food service, or for businesses outside Egypt (pricing is in EGP).",
     `- How to act: pricing is at ${site}/en/pricing/. Contact sales on [WhatsApp](${home.whatsapp}), by phone at [${phone}](${home.tel}) or by email at [${email}](${home.mailto}), as on the [contact page](${site}/en/contact/). The public API is described at https://api.madar-pos.cloud/openapi.json.`,
+    `- Apps: downloads for the point of sale (Android and more), kitchen screen, Dawam and the dashboard (Mac, Windows, Linux) are at https://downloads.madar-pos.cloud/ (Arabic: https://downloads.madar-pos.cloud/ar/). Add ?app=pos, kitchen, dawam, dashboard or dashboard-desktop to open on one product. Madar Cashier is also on the App Store.`,
     "",
   ];
 }

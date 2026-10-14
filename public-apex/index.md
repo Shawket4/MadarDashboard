@@ -9,7 +9,7 @@ language: en, ar
 
 Madar POS is a point of sale for cafés and restaurants, built in Cairo, Egypt. It runs the till on an iPad or Android tablet, sends each order to the kitchen station that makes it, costs every recipe down to the gram and keeps the stock ledger. It also runs loyalty cards in Apple Wallet and Google Wallet, your own online ordering page and table bookings, in Arabic and English, online or offline.
 
-Plans start at 3,000 EGP per branch per month, with no per-seat fee, and the first month is free. This page is where merchants sign in to their Madar POS dashboard; the product is described in full at https://get.madar-pos.cloud/.
+Madar Free (one till, one branch, with the floor, for 0 EGP a month) is at https://get.madar-pos.cloud/free/. Paid plans start at 3,000 EGP per branch per month, with no per-seat fee, and the first month is free. This page is where merchants sign in to their Madar POS dashboard; the product is described in full at https://get.madar-pos.cloud/.
 
 - [Madar POS website](https://get.madar-pos.cloud/en/)
 - [Pricing](https://get.madar-pos.cloud/en/pricing/)

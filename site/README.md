@@ -42,8 +42,10 @@ still point at the previous build's assets. Prune old assets by age now and then
   in both languages on one page, with buttons to `/en/` and `/ar/`. It never redirects.
 - Short addresses 301: `/pricing`, `/features`, `/faq`, `/about` and `/contact` (with or
   without the slash) to their English page, `/privacy` and `/terms` to the legal site.
+  `/en/free/` and `/ar/free/` 301 to `/free/en/` and `/free/ar/`.
   `/docs`, `/api` and `/developers` 301 to `/en/developers/` (English only, no Arabic page);
   `/openapi.json` and `/.well-known/mcp/server-card.json` 301 to the API's own.
+- The Free page is **`/free/en/` and `/free/ar/`** (language last, outside the language folders); `/free/` is its bilingual front door (both languages on one page, no script, no redirect), and with `Accept: text/markdown` it serves `/free/index.md`, `/free/en/` its own `index.md` (the generic `try_files ${uri}index$md_suffix` rule covers them).
 - Unknown paths get a real 404 with `/404.html`, or `/404.md` for `Accept: text/markdown`.
 - With `Accept: text/markdown`, a folder address serves its `index.md` (and `/` serves
   `/index.md`). Cloudflare bypasses its cache for those requests (a Cache Rule), so a
@@ -68,15 +70,15 @@ integration in `astro.config.mjs`):
 | File | What |
 |---|---|
 | `/<lang>/<page>/index.md` | each page's `<main>` as Markdown, with front matter (title, description, url, language, translation) and the contact line. Elements marked `data-md-skip` (phone-only duplicates, the story rail) and anything `aria-hidden` are left out |
-| `/index.md` | the root page (both languages) as Markdown |
+| `/index.md`, `/free/index.md` | the root page and the Free front door (both languages) as Markdown. The Free pages' own Markdown is `/free/<lang>/index.md` |
 | `/404.md` | the 404 page as Markdown, with the sitemap and `llms.txt` |
 | `/llms.txt`, `/llms-full.txt` | "When to use Madar POS" (who it fits, who it doesn't, how to act), then the page list with descriptions; every page in full, English then Arabic |
-| `/sitemap.xml` (and `sitemap-index.xml`, `sitemap-0.xml`) | the language pages with `lastmod` (the last commit to `src/` or `public/`) and en, ar and x-default alternates |
+| `/sitemap.xml` (and `sitemap-index.xml`, `sitemap-0.xml`) | the language pages (the Free pages at `/free/<lang>/`; the root and `/free/` front doors are left out) with `lastmod` (the last commit to `src/` or `public/`) and en, ar and x-default alternates |
 | `/robots.txt` | `public/robots.txt`, with Content Signals |
 | `/.well-known/mcp.json` | `public/.well-known/mcp.json`: a pointer to the MCP server on api.madar-pos.cloud, whose own server card lists the tools |
 
 JSON-LD comes from `src/lib/schema.ts`: Organization on every page; WebSite and
-SoftwareApplication on the home pages; SoftwareApplication on Pricing; FAQPage on
+SoftwareApplication on the home pages; SoftwareApplication on Pricing; on the Free page a FAQPage, a SoftwareApplication "Madar Free" with a 0 EGP Offer (`freeApplication()`) and a breadcrumb to `/free/<lang>/`; FAQPage on
 the FAQ; BreadcrumbList on every page but home; Organization, WebSite and
 SoftwareApplication on `/`. The dashboard's sign-in page (`index.html` at the repo root)
 carries a hand-kept copy of the Organization and SoftwareApplication: change both together.
@@ -125,6 +127,7 @@ screenshots, the 3D and the cappuccino's animations, online or offline (owner).
 | Prices | `pricing.plans` in both copy files (the page opens on Advanced Operation for 6 months: `chosen` in `src/pages/[lang]/pricing.astro`) |
 | Store badges, app icons | `src/components/ui/AppStoreBadge.astro` (Apple's own badge, EN and AR, unaltered, in `src/assets/stores/`), app tiles in `src/assets/apps/` (from the Madar and Dawam design systems). Only Madar Cashier is on a store; the others say "coming soon" until they have a listing |
 | Phone, email, socials, dashboard link, App Store link | `src/lib/site.ts` |
+| Links to the downloads site (`downloads.madar-pos.cloud`, a separate project in `../downloads`) | `downloadsHref(lang, app)` in `src/lib/site.ts`: `?app=pos`, `kitchen`, `dawam`, `dashboard` spotlights that product's card |
 | Structured data (JSON-LD) | `src/lib/schema.ts` |
 | Home page order | `src/pages/[lang]/index.astro` |
 | Screenshots | see below |
