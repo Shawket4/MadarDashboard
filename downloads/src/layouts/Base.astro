@@ -1,0 +1,27 @@
+---
+import "@/styles/global.css";
+import { t, dirOf, type Lang } from "@/lib/i18n";
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const c = t(lang);
+const path = lang === "ar" ? "/ar/" : "/";
+const url = new URL(path, Astro.site).href;
+---
+<!doctype html>
+<html lang={lang} dir={dirOf(lang)}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{c.title}</title>
+    <meta name="description" content={c.description} />
+    <link rel="canonical" href={url} />
+    <link rel="alternate" hreflang="en" href={new URL("/", Astro.site).href} />
+    <link rel="alternate" hreflang="ar" href={new URL("/ar/", Astro.site).href} />
+    <link rel="alternate" hreflang="x-default" href={new URL("/", Astro.site).href} />
+    <meta name="theme-color" content="#14181e" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

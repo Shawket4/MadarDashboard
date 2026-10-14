@@ -1,0 +1,99 @@
+# Downloads -- ISOLATED static origin (downloads/ in MadarDashboard): the page, plus every
+# built artifact CI uploads. Reached only through Cloudflare (the wildcard *.madar-pos.cloud
+# A record is proxied, so no DNS record is needed), same Origin CA certificate as get.
+#
+# On the box:   /var/www/madar-downloads/site/      the page (npm run deploy in downloads/)
+#               /var/www/madar-downloads/files/     <product>/<version>/<file> + manifest.json,
+#                                                   owned by madar-deploy (CI uploads, rrsync-jailed)
+#               /var/www/madar-downloads/madar-brochure.pdf   untouched: madar-pos.cloud serves it
+# No autoindex anywhere: the page is the only listing.
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name downloads.madar-pos.cloud;
+
+    location /.well-known/acme-challenge/ { root /var/www/letsencrypt; try_files $uri =404; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name downloads.madar-pos.cloud;
+
+    root /var/www/madar-downloads/site;
+    index index.html;
+    absolute_redirect off;
+    autoindex off;
+    charset utf-8;
+    charset_types text/plain application/json;
+
+    ssl_certificate /etc/nginx/ssl/cloudflare-origin/cert.pem; # Cloudflare Origin CA (proxied host, valid to 2041)
+    ssl_certificate_key /etc/nginx/ssl/cloudflare-origin/key.pem;
+    include /etc/nginx/cloudflare-real-ip.conf;
+    include /etc/nginx/cloudflare-only.conf;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # Server level too: covers redirects and error pages made before a location is chosen.
+    include snippets/madar-security-headers.conf;
+    include snippets/madar-csp-public.conf;
+
+    access_log /var/log/nginx/downloads.access.log;
+    error_log  /var/log/nginx/downloads.error.log;
+
+    # The page: always revalidated, so a new build shows at once (Cloudflare may hold it briefly).
+    location / {
+        include snippets/madar-security-headers.conf;
+        include snippets/madar-csp-public.conf;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri $uri/index.html =404;
+    }
+
+    # Hashed JS, CSS and fonts of the page.
+    location ^~ /assets/ {
+        include snippets/madar-security-headers.conf;
+        include snippets/madar-csp-public.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        access_log off;
+        try_files $uri =404;
+    }
+
+    # The manifest the page reads: rebuilt by CI after each upload, so a short cache.
+    location = /manifest.json {
+        include snippets/madar-security-headers.conf;
+        include snippets/madar-csp-public.conf;
+        alias /var/www/madar-downloads/files/manifest.json;
+        default_type application/json;
+        add_header Cache-Control "public, max-age=60" always;
+        add_header Access-Control-Allow-Origin "*" always;
+    }
+
+    # Stable links: /files/<product>/latest/<name with "latest" for its version> (symlinks the
+    # rebuild keeps pointed at the newest stable release). They change, so they are not immutable.
+    location ~ ^/files/[^/]+/latest/[^/]+$ {
+        include snippets/madar-security-headers.conf;
+        include snippets/madar-csp-public.conf;
+        root /var/www/madar-downloads;
+        include /etc/nginx/snippets/madar-download-types.conf;
+        add_header Content-Disposition "attachment" always;
+        add_header Cache-Control "public, max-age=300" always;
+        add_header Accept-Ranges bytes always;
+    }
+
+    # A version's files never change once uploaded.
+    location ~* ^/files/[^/]+/[^/]+/[^/]+\.(apk|aab|ipa|dmg|exe|msi|appimage|zip|deb|rpm|gz|sha256)$ {
+        include snippets/madar-security-headers.conf;
+        include snippets/madar-csp-public.conf;
+        root /var/www/madar-downloads;
+        include /etc/nginx/snippets/madar-download-types.conf;
+        add_header Content-Disposition "attachment" always;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        add_header Accept-Ranges bytes always;
+    }
+
+    # Everything else under /files/ (folders, stray files, manifest.json itself) is not served. A regex, last: a ^~ prefix would win over the regexes above.
+    location ~ ^/files/ { return 404; }
+}
