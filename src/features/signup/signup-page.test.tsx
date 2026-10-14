@@ -21,10 +21,10 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@/data/api/generated/api", () => ({
   useSignupOtp: (o: { mutation: object }) =>
     useMutation({ mutationFn: (v: { data: unknown }) => otpCall(v.data), ...(o.mutation as object) }),
-}));
-vi.mock("./signup-api", () => ({
-  useSignupVerify: (o: object) => useMutation({ mutationFn: (v: { data: unknown }) => verifyCall(v.data), ...o }),
-  useSignupCreate: (o: object) => useMutation({ mutationFn: (v: { data: unknown }) => signupCall(v.data), ...o }),
+  useSignupVerify: (o: { mutation: object }) =>
+    useMutation({ mutationFn: (v: { data: unknown }) => verifyCall(v.data), ...(o.mutation as object) }),
+  useSignup: (o: { mutation: object }) =>
+    useMutation({ mutationFn: (v: { data: unknown }) => signupCall(v.data), ...(o.mutation as object) }),
 }));
 vi.mock("./signup-shell", () => ({
   SignupShell: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,

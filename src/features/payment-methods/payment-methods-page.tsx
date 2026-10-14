@@ -36,7 +36,9 @@ export function PaymentMethodsPage() {
   // A short configuration list on an unpaginated endpoint: what the table shows
   // IS the whole set, so the export reads it straight from memory.
   const list = useListPaymentMethods({ query: { enabled: !!orgId } });
-  const methods = useMemo(() => list.data ?? [], [list.data]);
+  // Talabat's tenders are a delivery channel, a paid-plan feature: Free does not see them (the server refuses turning them on).
+  const free = useIsFree();
+  const methods = useMemo(() => (list.data ?? []).filter((m) => !(free && m.name.startsWith("talabat_"))), [list.data, free]);
 
   const logoUrl = useExportLogo();
   const [exporting, setExporting] = useState(false);
@@ -54,7 +56,6 @@ export function PaymentMethodsPage() {
   };
 
   // Partner sharing is a paid-plan setting: Free has no such column.
-  const free = useIsFree();
   const columns = useMemo<ColumnDef<OrgPaymentMethod>[]>(
     () => ([
       {

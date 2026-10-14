@@ -921,6 +921,8 @@ export * from './signupOtpRequest';
 export * from './signupOtpResponse';
 export * from './signupRequest';
 export * from './signupResponse';
+export * from './signupVerifyRequest';
+export * from './signupVerifyResponse';
 export * from './sizeBaseResult';
 export * from './sizeCostOut';
 export * from './sizeInput';

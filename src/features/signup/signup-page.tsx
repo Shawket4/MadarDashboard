@@ -22,7 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { LEGAL_URLS, TERMS_VERSION } from "@/config/legal";
-import { useSignupOtp } from "@/data/api/generated/api";
+import { useSignup, useSignupOtp, useSignupVerify } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
@@ -31,7 +31,6 @@ import { cn } from "@/lib/utils";
 
 import { OtpInput } from "./otp-input";
 import { PhoneInput } from "./phone-input";
-import { useSignupCreate, useSignupVerify } from "./signup-api";
 import { SignupShell } from "./signup-shell";
 import { SIGNUP_STEPS, StepIndicator, type SignupStep } from "./step-indicator";
 import {
@@ -170,7 +169,7 @@ export function SignupPage() {
     },
   });
 
-  const verify = useSignupVerify({
+  const verify = useSignupVerify({ mutation: {
     onSuccess: (r, v) => {
       setVerified({ token: r.signup_token, code: v.data.code });
       go("details");
@@ -185,9 +184,9 @@ export function SignupPage() {
       // A spent or locked code is replaced, not retried: let a new one be asked for at once.
       if (p === "code_expired" || p === "code_locked") setResendAt(null);
     },
-  });
+  } });
 
-  const signup = useSignupCreate({
+  const signup = useSignup({ mutation: {
     onSuccess: (r) => {
       signIn(r.token, r.user, r.plan);
       useAppStore.getState().setSelectedBranch(r.branch_id);
@@ -212,7 +211,7 @@ export function SignupPage() {
           : getErrorMessage(e),
       );
     },
-  });
+  } });
 
   const sendCode = () => {
     if (!canonical || otp.isPending) return;

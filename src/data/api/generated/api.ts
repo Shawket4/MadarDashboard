@@ -623,6 +623,8 @@ import type {
   SignupOtpResponse,
   SignupRequest,
   SignupResponse,
+  SignupVerifyRequest,
+  SignupVerifyResponse,
   SizeBaseResult,
   SizeCostOut,
   SkuCost,
@@ -27337,6 +27339,76 @@ export const useSignupOtp = <TError = ErrorBody | void,
         TContext
       > => {
       return useMutation(getSignupOtpMutationOptions(options), queryClient);
+    }
+
+/**
+ * The server compares it (constant time, five attempts per code across every
+ * caller) and, when it is right, answers with a signup token for
+ * `POST /public/signup`. 400 `SIGNUP_CODE_WRONG` / `SIGNUP_CODE_EXPIRED` /
+ * `SIGNUP_CODE_LOCKED`; 409 `SIGNUP_PHONE_TAKEN` when the phone already owns
+ * a shop (said only to someone who proved it).
+ * @summary Check the code at the code step.
+ */
+export const signupVerify = (
+    signupVerifyRequest: SignupVerifyRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SignupVerifyResponse>(
+      {url: `/public/signup/verify`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: signupVerifyRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getSignupVerifyMutationOptions = <TError = ErrorBody | void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signupVerify>>, TError,{data: SignupVerifyRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof signupVerify>>, TError,{data: SignupVerifyRequest}, TContext> => {
+
+const mutationKey = ['signupVerify'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof signupVerify>>, {data: SignupVerifyRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  signupVerify(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SignupVerifyMutationResult = NonNullable<Awaited<ReturnType<typeof signupVerify>>>
+    export type SignupVerifyMutationBody = SignupVerifyRequest
+    export type SignupVerifyMutationError = ErrorBody | void
+
+    /**
+ * @summary Check the code at the code step.
+ */
+export const useSignupVerify = <TError = ErrorBody | void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signupVerify>>, TError,{data: SignupVerifyRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof signupVerify>>,
+        TError,
+        {data: SignupVerifyRequest},
+        TContext
+      > => {
+      return useMutation(getSignupVerifyMutationOptions(options), queryClient);
     }
 
 /**
