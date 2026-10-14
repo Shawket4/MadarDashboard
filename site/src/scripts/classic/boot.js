@@ -18,4 +18,17 @@
   // Arriving on a # address: the browser opens on that section, which plays its entrance
   // in CSS too (global.css, ":target"), however the page was reached.
   if (motion && location.hash.length > 1) d.setAttribute("data-arrive", "");
+  // A page transition the browser skips (a second click mid-transition, a hidden tab)
+  // rejects its promises, and nothing else holds them: catch them here, before the
+  // first paint, so a skipped transition isn't an uncaught error.
+  var quiet = function (e) {
+    var vt = e.viewTransition;
+    if (!vt) return;
+    var no = function () {};
+    if (vt.ready) vt.ready.catch(no);
+    if (vt.finished) vt.finished.catch(no);
+    if (vt.updateCallbackDone) vt.updateCallbackDone.catch(no);
+  };
+  window.addEventListener("pagereveal", quiet);
+  window.addEventListener("pageswap", quiet);
 })(document.documentElement);
