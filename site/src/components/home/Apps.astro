@@ -12,7 +12,7 @@ import kitchen from "@/assets/apps/kitchen.svg?url";
 import dashboard from "@/assets/apps/dashboard.svg?url";
 import dawam from "@/assets/apps/dawam.svg?url";
 import { t } from "@/i18n";
-import { type Lang, type AppKey, APP_KEYS, DASHBOARD_URL, isLive } from "@/lib/site";
+import { type Lang, type AppKey, APP_KEYS, DASHBOARD_URL, isLive, downloadsHref } from "@/lib/site";
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -39,6 +39,7 @@ const soon = APP_KEYS.filter((k) => !isLive(k));
             <p class="mt-0.5 text-muted-ink">{a.items[key].line}</p>
           </div>
           <StoreBadges lang={lang} app={key} where="home-apps" />
+          <a class="link-cta basis-full text-sm" href={downloadsHref(lang, key)} data-umami-event="downloads" data-umami-event-where="home-apps" data-umami-event-app={key}>{a.downloadsLink} <Icon name="arrow" size={14} /></a>
         </div>
       ))}
       <ul class="mt-9 grid gap-x-8 gap-y-7 border-t border-line-ink pt-9 sm:grid-cols-3">
@@ -49,6 +50,7 @@ const soon = APP_KEYS.filter((k) => !isLive(k));
               <p class="font-semibold">{a.items[key].name}</p>
               <p class="mt-0.5 text-sm text-muted-ink">{a.items[key].line}</p>
               <p class="mt-2 text-xs font-medium text-muted-ink">{a.soon}</p>
+              <a class="link-cta mt-1 text-sm" href={downloadsHref(lang, key)} data-umami-event="downloads" data-umami-event-where="home-apps" data-umami-event-app={key}>{a.downloadsLink} <Icon name="arrow" size={14} /></a>
               {key === "dashboard" && (
                 <a class="link-cta text-sm" href={DASHBOARD_URL} rel="noopener">{a.browser} <Icon name="arrow" size={16} /></a>
               )}

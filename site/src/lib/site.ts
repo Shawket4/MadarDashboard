@@ -31,12 +31,11 @@ export const APPS = {
 export type AppKey = keyof typeof APPS;
 export const APP_KEYS = Object.keys(APPS) as AppKey[];
 /** An app is live once it is on at least one store. */
-/**
- * Madar Cashier for Android until its Google Play listing is live: a direct, signed APK.
- * Null shows "ask us on WhatsApp" instead of a download. When Play goes live, set
- * APPS.cashier.googlePlay and set this back to null.
- */
-export const CASHIER_APK_URL: string | null = null;
+/** Every build (Android APKs, Mac, Windows, Linux) lives on the downloads site, apart from this one. */
+export const DOWNLOADS_URL = "https://downloads.madar-pos.cloud";
+const DOWNLOAD_ID: Record<AppKey, string> = { cashier: "pos", kitchen: "kitchen", dashboard: "dashboard", dawam: "dawam" };
+/** The downloads page in `lang`, with this app's card in the middle of the screen. */
+export const downloadsHref = (lang: Lang, app: AppKey): string => `${DOWNLOADS_URL}/${lang === "ar" ? "ar/" : ""}?app=${DOWNLOAD_ID[app]}`;
 export const isLive = (app: AppKey): boolean => Boolean(APPS[app].appStore || APPS[app].googlePlay);
 /** Every store listing, for the organisation's `sameAs`. */
 export const STORE_URLS: string[] = APP_KEYS.flatMap((k) => [APPS[k].appStore, APPS[k].googlePlay]).filter(

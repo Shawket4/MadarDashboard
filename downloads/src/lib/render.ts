@@ -56,13 +56,16 @@ function release(r: Release, lang: Lang, isLatest: boolean): string {
   <ul class="files">${r.files.map((f) => fileRow(f, lang)).join("")}</ul></div>`;
 }
 
+// The real app icons (copied from the site's assets): public/apps/<name>.svg.
+const APP_ICON: Record<string, string> = { pos: "pos", kitchen: "kitchen", dawam: "dawam", dashboard: "dashboard", "dashboard-desktop": "dashboard" };
+
 function card(id: string, releases: Release[], lang: Lang): string {
   const c = t(lang);
   const def = PRODUCTS.find((p) => p.id === id);
   const name = def?.name[lang] ?? id;
   const [first, ...rest] = releases;
   return `<section class="card" id="${esc(id)}" aria-labelledby="h-${esc(id)}">
-  <header class="card-head"><span class="card-ic">${ICONS[def?.icon ?? "file"]}</span>
+  <header class="card-head">${APP_ICON[id] ? `<img class="card-icon" src="/apps/${APP_ICON[id]}.svg" width="48" height="48" alt="">` : `<span class="card-ic">${ICONS[def?.icon ?? "file"]}</span>`}
     <div><h2 id="h-${esc(id)}">${esc(name)}</h2>${def ? `<p>${def.blurb[lang]}</p>` : ""}</div></header>
   ${first ? release(first, lang, true) : `<p class="empty">${c.noBuilds}</p>`}
   ${rest.length ? `<details class="older"><summary>${c.versions(rest.length)}</summary>${rest.map((r) => release(r, lang, false)).join("")}</details>` : ""}

@@ -6,7 +6,7 @@ import Orbit from "@/components/ui/Orbit.astro";
 import StoreBadges from "@/components/ui/StoreBadges.astro";
 import cashier from "@/assets/apps/cashier.svg?url";
 import { t } from "@/i18n";
-import { type Lang, LANGS, whatsappHref, pageHref, signupHref } from "@/lib/site";
+import { type Lang, LANGS, whatsappHref, pageHref, signupHref, downloadsHref } from "@/lib/site";
 import { softwareApplication, breadcrumbs } from "@/lib/schema";
 
 export function getStaticPaths() {
@@ -167,6 +167,7 @@ const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing
           <img class="app-icon size-12" src={cashier} width="48" height="48" alt="" />
           <p class="min-w-0 flex-1 basis-48 text-sm text-muted-ink">{p.free.tillApp}</p>
           <StoreBadges lang={lang} app="cashier" where="pricing" />
+          <a class="link-cta basis-full text-sm" href={downloadsHref(lang, "cashier")} data-umami-event="downloads" data-umami-event-where="pricing">{t(lang).apps.downloadsLink} <Icon name="arrow" size={14} /></a>
         </div>
       </div>
     </div>

@@ -59,8 +59,13 @@
   #products { display: grid; gap: 1.25rem; }
 
   .card { background: var(--color-surface); border: 1px solid var(--color-rule); border-radius: 1rem; padding: clamp(1rem, 0.7rem + 1.4vw, 1.75rem); }
+  .card { scroll-margin-block: 1.5rem; transition: border-color .3s, box-shadow .3s; }
+  .card.spotlight { border-color: var(--color-teal); box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-teal) 28%, transparent), 0 18px 50px -24px color-mix(in oklab, var(--color-teal) 55%, transparent); }
+  @media (prefers-reduced-motion: no-preference) { .card.spotlight { animation: spot 1.6s ease-out 1; } }
+  @keyframes spot { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-teal) 60%, transparent); } 100% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-teal) 28%, transparent), 0 18px 50px -24px color-mix(in oklab, var(--color-teal) 55%, transparent); } }
   .card-head { display: flex; gap: 0.9rem; align-items: center; margin-block-end: 1.1rem; }
   .card-ic { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 0.75rem; background: var(--color-ink); color: var(--color-teal-light); flex: none; }
+  .card-icon { flex: none; width: 3rem; height: 3rem; border-radius: 22.5%; box-shadow: 0 0 0 1px var(--color-rule); }
   .card-ic .ic { width: 1.4rem; height: 1.4rem; }
   .card h2 { font-size: 1.25rem; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
   .card-head p { margin: 0.1rem 0 0; color: var(--color-muted); font-size: 0.95rem; }

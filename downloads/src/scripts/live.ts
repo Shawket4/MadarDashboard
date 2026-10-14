@@ -21,6 +21,20 @@ document.addEventListener("click", async (e) => {
   setTimeout(() => b.classList.remove("done"), 1400);
 });
 
+// ?app=<product> (or #<product>) spotlights that product's card: scrolled to the middle
+// of the screen, ringed. The links on get.madar-pos.cloud use it ("pos", "kitchen", "dawam",
+// "dashboard", "dashboard-desktop"). Without JS the #<product> address still scrolls to it.
+function spotlight() {
+  const id = new URLSearchParams(location.search).get("app") ?? decodeURIComponent(location.hash.slice(1));
+  root.querySelectorAll(".spotlight").forEach((c) => c.classList.remove("spotlight"));
+  const card = id ? root.querySelector<HTMLElement>(`#${CSS.escape(id)}`) : null;
+  if (!card) return;
+  card.classList.add("spotlight");
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  card.scrollIntoView({ block: "center", behavior: calm ? "auto" : "smooth" });
+}
+spotlight();
+
 fetch("/manifest.json", { cache: "no-cache" })
   .then((r) => (r.ok ? (r.json() as Promise<Manifest>) : null))
   .then((m) => {
@@ -30,5 +44,6 @@ fetch("/manifest.json", { cache: "no-cache" })
     root.dataset.generated = m.generated;
     for (const id of open) if (id) root.querySelector<HTMLDetailsElement>(`#${CSS.escape(id)} details`)!.open = true;
     reveal();
+    spotlight();
   })
   .catch(() => {});

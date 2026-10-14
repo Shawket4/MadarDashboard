@@ -13,7 +13,7 @@ import NuqtaCount from "@/components/free/NuqtaCount.astro";
 import Shariha from "@/components/free/Shariha.astro";
 import ZReport from "@/components/free/ZReport.astro";
 import { t } from "@/i18n";
-import { type Lang, LANGS, CASHIER_APK_URL, pageHref, signupHref, whatsappHref } from "@/lib/site";
+import { type Lang, LANGS, downloadsHref, pageHref, signupHref, whatsappHref } from "@/lib/site";
 import { breadcrumbs } from "@/lib/schema";
 
 export function getStaticPaths() {
@@ -221,18 +221,12 @@ const jsonLd = [{
                   <img class="app-icon size-11" src={cashier} width="44" height="44" alt="" />
                   <StoreBadges lang={lang} app="cashier" where="free-steps" />
                 </div>
-                {CASHIER_APK_URL ? (
-                  <div>
-                    <a class="btn btn-outline" href={CASHIER_APK_URL} data-umami-event="android-apk" data-umami-event-where="free-steps">
-                      <Icon name="arrow-down" size={18} /> {f.steps.apk}
-                    </a>
-                    <p class="mt-2 text-xs text-muted">{f.steps.apkNote}</p>
-                  </div>
-                ) : (
-                  <a class="link-cta !min-h-0 text-sm" href={whatsappHref(lang, f.steps.waAndroid)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="free-android">
-                    <Icon name="whatsapp" size={16} /> {f.steps.askAndroid}
+                <div>
+                  <a class="btn btn-outline" href={downloadsHref(lang, "cashier")} data-umami-event="downloads" data-umami-event-where="free-steps">
+                    <Icon name="arrow-down" size={18} /> {f.steps.apk}
                   </a>
-                )}
+                  <p class="mt-2 text-xs text-muted">{f.steps.apkNote}</p>
+                </div>
               </div>
             )}
           </li>
