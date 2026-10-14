@@ -12,6 +12,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ChefHat,
+  Gem,
   CupSoda,
   Image as ImageIcon,
   CreditCard,
@@ -30,6 +31,7 @@ import {
 import type { OrgModule } from "@/config/nav";
 import type { Authz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
+import { hasFeature, type Feature } from "@/generated/plans";
 
 export interface SettingsLeaf {
   to: string;
@@ -43,6 +45,10 @@ export interface SettingsLeaf {
   superAdminOnly?: boolean;
   /** The org module this pane configures (PS-3). Omitted = every org. */
   module?: OrgModule;
+  /** The plan feature this pane needs (`generated/plans.ts`). Omitted = every plan. */
+  feature?: Feature;
+  /** Shown only to a Free org (Settings › Plan). */
+  freeOnly?: boolean;
 }
 
 export interface SettingsGroup {
@@ -65,10 +71,24 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         icon: Palette,
       },
       {
+        // Free plan only: which till each branch sells on. Switching is the
+        // owner's; the pane says so for anyone else who opens it.
+        to: "/settings/plan",
+        module: "pos",
+        freeOnly: true,
+        caps: [Cap.orgSettingsRead],
+        labelKey: "settings.plan",
+        fallback: "Plan",
+        descKey: "settings.planDesc",
+        desc: "Your Free plan, and which till each branch sells on.",
+        icon: Gem,
+      },
+      {
         // A manager owns their own mark and their own links; everything else
         // about an organisation stays super-admin territory.
         to: "/settings/brand",
         module: "pos",
+        feature: "branding",
         labelKey: "settings.brand",
         fallback: "Brand",
         descKey: "settings.brandDesc",
@@ -80,6 +100,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         // shop's own face, edited by its manager.
         to: "/settings/links",
         module: "pos",
+        feature: "branding",
         labelKey: "settings.linksPage",
         fallback: "Links page",
         descKey: "settings.linksPageDesc",
@@ -95,6 +116,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       {
         to: "/settings/delivery",
         module: "pos",
+        feature: "online",
         caps: [Cap.deliverySettingsRead],
         labelKey: "nav.delivery",
         fallback: "Delivery",
@@ -105,6 +127,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       {
         to: "/settings/bookings",
         module: "pos",
+        feature: "bookings",
         caps: [Cap.bookingsEdit],
         labelKey: "nav.bookings",
         fallback: "Bookings",
@@ -115,6 +138,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       {
         to: "/settings/loyalty",
         module: "pos",
+        feature: "loyalty",
         caps: [Cap.loyaltyUse, Cap.loyaltyMembersList],
         labelKey: "nav.loyalty",
         fallback: "Loyalty",
@@ -125,6 +149,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       {
         to: "/settings/qr",
         module: "pos",
+        feature: "online",
         labelKey: "nav.qr",
         fallback: "QR codes",
         descKey: "settings.qrDesc",
@@ -186,6 +211,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       {
         to: "/settings/kitchen-stations",
         module: "pos",
+        feature: "kitchen",
         caps: [Cap.kitchenStationsEdit],
         labelKey: "nav.kitchenStations",
         fallback: "Stations",
@@ -196,6 +222,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       {
         to: "/settings/kitchen-routing",
         module: "pos",
+        feature: "kitchen",
         caps: [Cap.kitchenStationsEdit],
         labelKey: "nav.kitchenRouting",
         fallback: "Order routing",
@@ -212,6 +239,7 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       {
         to: "/settings/integrations",
         module: "pos",
+        feature: "online",
         labelKey: "nav.integrations",
         fallback: "Integrations",
         descKey: "settings.integrationsDesc",
@@ -235,13 +263,16 @@ export const SETTINGS_NAV: SettingsGroup[] = [
 /**
  * The entries this person may see, in an org with these modules on. A pane
  * of a switched-off module is gone (a Dawam-only org has no delivery, till
- * or kitchen to configure); until the modules are known, none shows.
+ * or kitchen to configure); until the modules are known, none shows. A pane
+ * of a feature the plan lacks is gone too; unknown plan reads as Paid.
  */
-export const visibleSettings = (authz: Authz, modules: readonly string[]): SettingsGroup[] =>
+export const visibleSettings = (authz: Authz, modules: readonly string[], plan?: string | null): SettingsGroup[] =>
   SETTINGS_NAV.map((g) => ({
     ...g,
     items: g.items.filter((i) => {
       if (i.module && !modules.includes(i.module)) return false;
+      if (i.feature && !hasFeature(plan, i.feature)) return false;
+      if (i.freeOnly && plan !== "free") return false;
       if (i.superAdminOnly) return authz.platform;
       if (i.caps) return authz.canAny(...i.caps);
       return true;

@@ -18,6 +18,17 @@ export interface ErrorBody {
   /** Human-readable error message. */
   error: string;
   /**
+     * A plan refusal's message in Arabic; `error` is the English one.
+     * @nullable
+     */
+  error_ar?: string | null;
+  /**
+     * A plan refusal's feature (`inventory`, `loyalty`, `online`, `bookings`,
+     * `floor`, `kitchen`, `dawam`, `branding`, `basira`), when it is about one.
+     * @nullable
+     */
+  feature?: string | null;
+  /**
      * How long to wait before trying again, in seconds. Present on a
      * `PIN_THROTTLED` refusal, absent everywhere else, so the PIN pad can run
      * a countdown rather than inventing one.

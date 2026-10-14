@@ -18,6 +18,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useGetOnboarding } from "@/data/api/generated/api";
 import { ONBOARDING_SKIP_KEY } from "@/features/onboarding/config";
 import { sendsToOnboarding } from "@/features/onboarding/gate";
+import { useSyncPlan } from "@/hooks/use-plan";
 import { useOrgModulesState } from "@/hooks/use-org-modules";
 
 /**
@@ -46,6 +47,8 @@ function AppLayout() {
   // Resolve the active branch/org timezone so every formatter renders in the
   // configured zone, not the device's. See data/scope/use-timezone.ts.
   useSyncTimezone();
+  // The org's plan (Free / Paid) gates nav, panes and routes.
+  useSyncPlan();
 
   // One realtime stream for the selected branch, shared by every page (floor,
   // bookings, tickets, delivery). Mounted here so navigation never reconnects.

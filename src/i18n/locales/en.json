@@ -432,7 +432,20 @@
       "summaryRefund": "Refunds need a manager's approval.",
       "summaryWaiter": "Waiters can't refund.",
       "summaryTax": "Tax {{rate}}% unless set."
-    }
+    },
+    "plan": "Plan",
+    "anyPlan": "Any plan",
+    "source": "Created",
+    "anySource": "Any source",
+    "sourceSelf": "Signed up",
+    "sourceAdmin": "By Madar",
+    "planHint": "Free is POS only: one branch, one till. Upgrading is done here.",
+    "planSelfHint": "This shop signed up by itself.",
+    "planDowngradeHint": "Moving to Free keeps every record. Inventory, loyalty, online ordering, bookings, kitchen screens, floor, Dawam and branding switch off, and each branch keeps one active till.",
+    "overFreeTitle": "Over the Free plan's limits",
+    "overFreeBranches": "{{branches}} branches; Free includes {{limit}}. It cannot add a branch.",
+    "overFreeTills": "Tills switched off: {{tills}}. The owner chooses each branch's active till under Settings > Plan.",
+    "overFreeAction": "Move it back to the paid plan to switch every till on again."
   },
   "branches": {
     "title": "Branches",
@@ -1983,7 +1996,12 @@
     "beforeStaffDrinks": "Items at normal price",
     "staffDrinksGiven": "Staff drinks · given free",
     "exportStaffComp": "Staff drinks given free",
-    "exportStaffCharged": "Staff drink charged (with extras)"
+    "exportStaffCharged": "Staff drink charged (with extras)",
+    "service": "Service",
+    "serviceMode": {
+      "takeaway": "Pickup",
+      "dine_in": "Dine in"
+    }
   },
   "ordersExport": {
     "title": "Export Orders",
@@ -2111,7 +2129,10 @@
     "revenueByWeekday": "Revenue by Day of Week",
     "ordersByWeekday": "Orders by Day of Week",
     "discountsByWeekday": "Discounts by Day of Week",
-    "addonsSold": "Add-ons Sold"
+    "addonsSold": "Add-ons Sold",
+    "byServiceMode": "Pickup and Dine in",
+    "serviceModeShare": "{{mode}} share of revenue",
+    "serviceModeOrders": "{{orders}} orders"
   },
   "discounts": {
     "title": "Discounts",
@@ -2461,7 +2482,11 @@
       "OVER_RECEIVE_NEEDS_NOTE": "More arrived than was sent. Add a note saying why.",
       "WAREHOUSE_LIMIT": "This business already has as many warehouses as it can have.",
       "BRANCH_STILL_SELLING": "This branch is still selling. Close its tills, finish its open orders and bills, unpair its devices, and turn off its delivery apps, delivery, pickup and bookings first.",
-      "WAREHOUSE_CANNOT_SELL": "This is a warehouse: it holds stock and doesn't sell."
+      "WAREHOUSE_CANNOT_SELL": "This is a warehouse: it holds stock and doesn't sell.",
+      "SIGNUP_PHONE_TAKEN": "A shop already uses this phone number.",
+      "SIGNUP_EMAIL_TAKEN": "An account with this email already exists.",
+      "SIGNUP_OTP_COOLDOWN": "A code was just sent. Please wait a minute before asking for another.",
+      "SIGNUP_OTP_LIMIT": "Too many codes for this number. Try again in an hour."
     },
     "tooManyRequests": "Too many requests just now. Try again in a moment."
   },
@@ -2582,7 +2607,9 @@
     "groupMenu": "Menu",
     "combosDesc": "Where combos and deals are sold, per channel and branch, and the margin that warns you.",
     "linksPage": "Links page",
-    "linksPageDesc": "The page your address opens on: order, menu, rewards, your socials."
+    "linksPageDesc": "The page your address opens on: order, menu, rewards, your socials.",
+    "plan": "Plan",
+    "planDesc": "Your Free plan, and which till each branch sells on."
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -3105,7 +3132,8 @@
     "nudge": {
       "title": "Your café is open · {{done}}/{{total}} set up",
       "body": "Keep building — add recipes, your team and more to unlock cost insights.",
-      "cta": "Keep building"
+      "cta": "Keep building",
+      "bodyFree": "Keep building — add your team and add-ons to get the most out of your till."
     }
   },
   "scope": {
@@ -7439,5 +7467,92 @@
   },
   "shell": {
     "accessLoadError": "Couldn't load what you're allowed to do here."
+  },
+  "plan": {
+    "free": "Free",
+    "paid": "Paid",
+    "features": {
+      "basira": "Basira (AI assistant)",
+      "bookings": "Bookings",
+      "branding": "Brand, links page and shop address",
+      "dawam": "Dawam (staff scheduling and payroll)",
+      "floor": "Floor plan and open tickets",
+      "inventory": "Inventory, purchasing and recipes",
+      "kitchen": "Kitchen screens and stations",
+      "loyalty": "Loyalty",
+      "online": "Online ordering, delivery and QR menus"
+    },
+    "upgrade": {
+      "title": "{{feature}} is on the paid plan",
+      "body": "Your shop is on the Free plan. Contact Madar to move to the paid plan; your sales and your data stay exactly as they are.",
+      "cta": "Contact Madar on WhatsApp",
+      "message": "Hello Madar, I would like to move my shop to the paid plan ({{feature}}).",
+      "messageGeneric": "Hello Madar, I would like to move my shop to the paid plan.",
+      "hint": "Contact Madar to move to the paid plan."
+    },
+    "refused": "This is not part of the Free plan.",
+    "pane": {
+      "desc": "What the Free plan includes, and which till each branch sells on.",
+      "loadError": "Couldn't load your plan",
+      "paidTitle": "Your shop is on the paid plan",
+      "paidBody": "Every feature is included and every till can sell.",
+      "yourPlan": "Your plan",
+      "limitBranch": "One branch, selling on one till.",
+      "limitStaff": "As many staff accounts as you need.",
+      "limitFeatures": "Selling, menu, payment methods, discounts and basic sales reports.",
+      "overBranches": "Your shop has {{branches}} branches and the Free plan includes {{limit}}. Every branch keeps selling, on one till each, but you can't add a branch until you move to the paid plan.",
+      "noBranches": "No branches yet",
+      "noTills": "No till has signed in to this branch yet.",
+      "lastSale": "Last sale {{when}}",
+      "noSales": "No sales yet",
+      "lastSeen": "Last online {{when}}",
+      "active": "Active",
+      "off": "Switched off",
+      "switch": "Sell on this till",
+      "switchTitle": "Sell on {{till}} at {{branch}}?",
+      "switchBody": "{{others}} will stop selling. Its sales so far are kept.",
+      "switchBodyNone": "This till will start selling again. Its sales so far are kept.",
+      "switched": "The active till was changed.",
+      "ownerOnly": "Only the shop's owner can change the active till."
+    }
+  },
+  "signup": {
+    "noAccount": "No account?",
+    "signUpFree": "Sign up free",
+    "haveAccount": "Already have an account?",
+    "signInInstead": "Sign in instead",
+    "title": "Open your shop for free",
+    "subtitle": "Sell with Madar POS on one till, free. No card needed.",
+    "codeTitle": "Enter the code",
+    "codeSubtitle": "We sent a six-digit code to your WhatsApp.",
+    "detailsTitle": "Set up your shop",
+    "detailsSubtitle": "Last step: your shop, your account and how you start.",
+    "steps": "Sign-up steps",
+    "stepOf": "Step {{step}} of {{total}}",
+    "phone": "Your mobile number",
+    "phoneHint": "We send the code to this number on WhatsApp, and it becomes the owner's contact.",
+    "sendCode": "Send the code",
+    "codeSentTo": "Sent to",
+    "code": "Code",
+    "badCode": "That code is wrong or has expired. Check it, or ask for a new one.",
+    "continue": "Continue",
+    "changeNumber": "Change the number",
+    "resend": "Send the code again",
+    "resendIn": "Send again in {{seconds}} s",
+    "shopName": "Shop name",
+    "template": "What kind of place is it?",
+    "templateCafe": "Café",
+    "templateCafeHint": "Counter service, takeaway, drinks and pastries",
+    "templateRestaurant": "Restaurant",
+    "templateRestaurantHint": "Meals, a kitchen and a fuller menu",
+    "ownerName": "Your name",
+    "create": "Create my shop",
+    "errors": {
+      "shopName": "Enter your shop's name (at least 2 letters).",
+      "tooLong": "Keep it under 80 characters.",
+      "password": "Use at least 8 characters.",
+      "terms": "Accept the terms to continue."
+    },
+    "terms": "I accept the <terms>Terms of Service</terms> and the <privacy>Privacy Policy</privacy>"
   }
 }

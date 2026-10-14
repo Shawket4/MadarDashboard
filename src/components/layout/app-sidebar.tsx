@@ -23,6 +23,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { usePlan } from "@/hooks/use-plan";
 import { NAV, isParent, leafVisible, type NavEntry, type NavGroup, type NavLeaf } from "@/config/nav";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
@@ -209,13 +210,14 @@ export function AppSidebar() {
   const authz = useAuthz();
   const modules = useOrgModules();
   const setup = useSetupProgress(authz.can(Cap.hrRulesEdit) && modules.includes("dawam"));
-  const visible = (leaf: NavLeaf) => leafVisible(leaf, authz, modules, setup.ready && !setup.complete);
+  const plan = usePlan();
+  const visible = (leaf: NavLeaf) => leafVisible(leaf, authz, modules, setup.ready && !setup.complete, plan);
   const close = () => setOpenMobile(false);
 
   // A deep link to a page low in the list scrolls its row into sight (a
   // child row before its group's). "nearest": a row in view stays put. Again
   // once permissions and modules answer: until then the row is not drawn.
-  const drawn = `${authz.ready}|${modules.join(",")}`;
+  const drawn = `${authz.ready}|${modules.join(",")}|${plan}`;
   useEffect(() => {
     const row =
       document.querySelector('[data-sidebar="menu-sub-button"][data-active="true"]') ??

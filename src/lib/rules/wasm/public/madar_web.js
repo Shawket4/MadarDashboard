@@ -164,6 +164,23 @@ export function combo_quote(combo, picks, n) {
 }
 
 /**
+ * What a plan switches on: its features, limits (`null` is unlimited) and
+ * whether its tills hold a realtime stream. `"free"` is Free; any other
+ * value is Paid, so an old server never locks a paying shop out.
+ * @param {string} plan
+ * @returns {Entitlements}
+ */
+export function entitlements(plan) {
+    const ptr0 = passStringToWasm0(plan, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.entitlements(ptr0, len0);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
  * The card for `balance` against `next_reward_cost`.
  * @param {number} balance
  * @param {number} next_reward_cost

@@ -23,6 +23,7 @@ vi.mock("@/data/api/generated/api", () => ({
 }));
 await import("@/i18n");
 const { ModuleGate } = await import("./module-gate");
+const { useAuthStore } = await import("@/data/stores/auth.store");
 
 const page = () => render(<ModuleGate><p>the page</p></ModuleGate>);
 
@@ -32,6 +33,7 @@ beforeEach(() => {
   answer = undefined;
   failure = null;
   authzFailure = null;
+  useAuthStore.setState({ plan: null });
 });
 
 describe("ModuleGate", () => {
@@ -98,5 +100,34 @@ describe("ModuleGate", () => {
     expect(screen.getByText(/Couldn't load what you're allowed to do here/)).toBeInTheDocument();
     screen.getByRole("button", { name: /retry/i }).click();
     expect(authzRefetch).toHaveBeenCalled();
+  });
+
+  it("a Free org gets the upgrade page, with a WhatsApp link, instead of a paid feature", () => {
+    answer = { modules: ["pos", "dawam"] };
+    useAuthStore.setState({ plan: "free" });
+    for (const p of ["/floor", "/inventory/today", "/settings/brand", "/bookings"]) {
+      pathname = p;
+      const { unmount } = page();
+      expect(screen.queryByText("the page")).toBeNull();
+      const link = screen.getByRole("link", { name: /WhatsApp|واتساب/ });
+      expect(link.getAttribute("href")).toMatch(/^https:\/\/wa\.me\/\d+\?text=/);
+      unmount();
+    }
+  });
+
+  it("a Free org still opens what Free includes, and a paid or unknown plan opens everything", () => {
+    answer = { modules: ["pos", "dawam"] };
+    useAuthStore.setState({ plan: "free" });
+    pathname = "/orders";
+    const first = page();
+    expect(screen.getByText("the page")).toBeInTheDocument();
+    first.unmount();
+    for (const plan of ["paid", null]) {
+      useAuthStore.setState({ plan });
+      pathname = "/floor";
+      const { unmount } = page();
+      expect(screen.getByText("the page")).toBeInTheDocument();
+      unmount();
+    }
   });
 });

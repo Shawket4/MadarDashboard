@@ -2,7 +2,8 @@
  * Route-level module gating (PS-2, PS-3): a page that belongs to a module the
  * org has switched off is not reachable by typing its URL, not just hidden
  * from the nav. The module of a path comes from the nav config (the one place
- * pages are tagged), and the org's modules from the server.
+ * pages are tagged), and the org's modules from the server. A page of a plan
+ * feature the org's plan lacks (Free) shows the upgrade page the same way.
  */
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,7 +12,10 @@ import { Blocks } from "lucide-react";
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { getErrorMessage } from "@/data/api/errors";
-import { moduleOfPath } from "@/config/nav";
+import { featureOfPath, moduleOfPath } from "@/config/nav";
+import { UpgradePage } from "@/components/app/upgrade-page";
+import { useAuthStore } from "@/data/stores/auth.store";
+import { hasFeature } from "@/generated/plans";
 import { useAuthzLoadError } from "@/data/authz/use-authz";
 import { useOrgModulesState } from "@/hooks/use-org-modules";
 
@@ -21,6 +25,8 @@ export function ModuleGate({ children }: { children: ReactNode }) {
   const { modules, known, error, retry } = useOrgModulesState();
   const authzFailed = useAuthzLoadError();
   const needs = moduleOfPath(pathname);
+  const plan = useAuthStore((s) => s.plan);
+  const feature = featureOfPath(pathname);
   if (authzFailed) {
     return (
       <div className="p-6">
@@ -32,7 +38,10 @@ export function ModuleGate({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  if (!needs) return <>{children}</>;
+  // A page of a feature the Free plan lacks is the upgrade page, however the
+  // URL was reached. An unknown plan reads as Paid (nothing is hidden on a guess).
+  const lacksFeature = !!feature && !hasFeature(plan, feature);
+  if (!needs) return lacksFeature ? <UpgradePage feature={feature} /> : <>{children}</>;
   if (!known && error) {
     // Say so: a blank page (or every module on a guess) is worse.
     return (
@@ -61,5 +70,5 @@ export function ModuleGate({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  return <>{children}</>;
+  return lacksFeature ? <UpgradePage feature={feature} /> : <>{children}</>;
 }

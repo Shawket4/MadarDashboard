@@ -45,6 +45,12 @@ export interface Org {
      */
   modules: string[];
   name: string;
+  /**
+     * `free` | `paid`. What the organization may use (madar-plan): Free is
+     * POS only, one branch, one till; Paid is the whole product. Super admin
+     * changes it (`PATCH /orgs/{id}`).
+     */
+  plan: string;
   /** @nullable */
   receipt_footer?: string | null;
   /**
@@ -57,6 +63,8 @@ export interface Org {
   service_charge_rate: number;
   /** Whether the service charge is itself taxed. */
   service_charge_taxable: boolean;
+  /** `admin` (the super admin made the org) | `self` (the shop signed up). */
+  signup_source: string;
   /**
      * `None` when the shop has no address of its own. Never an empty string —
      * the column holds NULL for that and a CHECK keeps it so.

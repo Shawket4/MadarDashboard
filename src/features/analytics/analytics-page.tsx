@@ -28,6 +28,7 @@ import {
 } from "@/data/api/generated/api";
 import type { PeakDayPoint, PeakHourPoint, TimeseriesPoint } from "@/data/api/generated/models";
 import { WEEKDAYS } from "@/features/staff/util";
+import { ServiceModeSplit } from "./service-mode-split";
 import { GRANULARITIES, type Granularity, type MethodMap, tName } from "./lib";
 
 export type Range = { from?: string; to?: string };
@@ -165,6 +166,10 @@ export function OverviewTab({ branchId, range }: { branchId: string; range: Rang
               )}
           </ChartCard>
         </motion.div>
+      </motion.div>
+
+      <motion.div initial="hidden" animate="show" variants={fadeInUp}>
+        <ServiceModeSplit rows={d?.by_service_mode} loading={q.isLoading} />
       </motion.div>
 
       <motion.div initial="hidden" animate="show" variants={fadeInUp}>

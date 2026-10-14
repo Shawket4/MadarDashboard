@@ -26,6 +26,10 @@ import { getErrorMessage } from "@/data/api/errors";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { usePageSearch } from "@/data/scope/use-page-search";
+import { useListFilters } from "@/data/scope/use-list-filters";
+import { ClearFiltersButton } from "@/components/app/clear-filters-button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { orgsSearch } from "./search";
 
 import { formatRate, fractionToPercent } from "./tax-rate";
 /** Platform admins only: the nav hides this, but a typed URL must not render a page whose every request 403s. */
@@ -42,7 +46,12 @@ function OrgsContent() {
 
   // `/orgs` is unpaginated, so the table already holds every organization the
   // caller can see and the export has nothing extra to fetch.
-  const list = useListOrgs();
+  const filters = useListFilters(orgsSearch);
+  const { plan: planFilter, source: sourceFilter } = filters.values;
+  const list = useListOrgs({
+    plan: planFilter === "all" ? undefined : planFilter,
+    signup_source: sourceFilter === "all" ? undefined : sourceFilter,
+  });
   const orgs = useMemo(() => list.data ?? [], [list.data]);
 
   const logoUrl = useExportLogo();
@@ -70,6 +79,21 @@ function OrgsContent() {
               ? <AssetImage asset={assetOf(row.original, "logo")} legacyUrl={row.original.logo_url} sizes="128px" className="size-8 shrink-0 rounded-lg object-cover" />
               : <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary text-xs font-bold text-muted-foreground">{row.original.name.slice(0, 2).toUpperCase()}</span>}
             <div className="min-w-0"><p className="truncate text-sm font-semibold">{row.original.name}</p><p className="truncate font-mono text-xs text-muted-foreground">{row.original.slug}</p></div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "plan",
+        header: t("orgs.plan", "Plan"),
+        meta: { label: t("orgs.plan", "Plan") },
+        cell: ({ row }) => (
+          <div className="flex flex-col items-start gap-0.5">
+            {row.original.plan === "free"
+              ? <StatusPill tone="info">{t("plan.free", "Free")}</StatusPill>
+              : <StatusPill tone="success">{t("plan.paid", "Paid")}</StatusPill>}
+            {row.original.signup_source === "self"
+              ? <span className="text-xs text-muted-foreground">{t("orgs.sourceSelf", "Signed up")}</span>
+              : null}
           </div>
         ),
       },
@@ -104,6 +128,8 @@ function OrgsContent() {
       { header: t("orgs.slug", "Slug"), accessor: (o) => o.slug, type: "text", width: 20 },
       { header: t("orgs.currency", "Currency"), accessor: (o) => o.currency_code, type: "text", width: 12 },
       { header: t("orgs.taxRate", "Tax Rate (%)"), accessor: (o) => fractionToPercent(o.tax_rate), type: "number", width: 12 },
+      { header: t("orgs.plan", "Plan"), accessor: (o) => (o.plan === "free" ? t("plan.free", "Free") : t("plan.paid", "Paid")), type: "text", width: 10 },
+      { header: t("orgs.source", "Created"), accessor: (o) => (o.signup_source === "self" ? t("orgs.sourceSelf", "Signed up") : t("orgs.sourceAdmin", "By Madar")), type: "text", width: 12 },
       { header: t("common.status", "Status"), accessor: (o) => (o.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
     ];
     setExporting(true);
@@ -150,6 +176,31 @@ function OrgsContent() {
           getRowId={(o) => o.id}
           onRowClick={(o) => update({ edit: o.id })}
           searchPlaceholder={t("common.search", "Search…")}
+          toolbar={
+            <>
+              <Select value={planFilter} onValueChange={(v) => filters.set({ plan: v as typeof planFilter })}>
+                <SelectTrigger className="w-full sm:w-40" aria-label={t("orgs.plan", "Plan")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("orgs.anyPlan", "Any plan")}</SelectItem>
+                  <SelectItem value="free">{t("plan.free", "Free")}</SelectItem>
+                  <SelectItem value="paid">{t("plan.paid", "Paid")}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sourceFilter} onValueChange={(v) => filters.set({ source: v as typeof sourceFilter })}>
+                <SelectTrigger className="w-full sm:w-48" aria-label={t("orgs.source", "Created")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("orgs.anySource", "Any source")}</SelectItem>
+                  <SelectItem value="self">{t("orgs.sourceSelf", "Signed up")}</SelectItem>
+                  <SelectItem value="admin">{t("orgs.sourceAdmin", "By Madar")}</SelectItem>
+                </SelectContent>
+              </Select>
+              <ClearFiltersButton filters={filters} />
+            </>
+          }
           emptyState={<EmptyState icon={Building2} title={t("orgs.empty", "Organizations you add appear here")} />}
         />
       {creating ? <ProvisionWizard open onOpenChange={(o) => { if (!o) update({ edit: undefined }); }} /> : null}

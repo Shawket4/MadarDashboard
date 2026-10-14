@@ -28,6 +28,8 @@ const apiBase = z.union([
 const envSchema = z.object({
   VITE_API_URL: apiBase.default("http://localhost:8080"),
   VITE_APP_NAME: z.string().default("Madar"),
+  /** `1` / `true` switches the public sign-up on (features/signup/flag.ts). Off by default. */
+  VITE_SIGNUP_ENABLED: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(import.meta.env);

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
@@ -53,6 +54,7 @@ import { Route as AppStaffApprovalsRouteImport } from './routes/_app/staff/appro
 import { Route as AppSettingsWhatsappRouteImport } from './routes/_app/settings/whatsapp'
 import { Route as AppSettingsStaffPoolRouteImport } from './routes/_app/settings/staff-pool'
 import { Route as AppSettingsQrRouteImport } from './routes/_app/settings/qr'
+import { Route as AppSettingsPlanRouteImport } from './routes/_app/settings/plan'
 import { Route as AppSettingsPaymentMethodsRouteImport } from './routes/_app/settings/payment-methods'
 import { Route as AppSettingsLoyaltyRouteImport } from './routes/_app/settings/loyalty'
 import { Route as AppSettingsLinksRouteImport } from './routes/_app/settings/links'
@@ -109,6 +111,11 @@ import { Route as AppReportsOperationsProfitabilityRouteImport } from './routes/
 import { Route as AppMenuItemsItemIdRouteImport } from './routes/_app/menu/items_.$itemId'
 import { Route as AppMenuCombosComboIdRouteImport } from './routes/_app/menu/combos_.$comboId'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -326,6 +333,11 @@ const AppSettingsStaffPoolRoute = AppSettingsStaffPoolRouteImport.update({
 const AppSettingsQrRoute = AppSettingsQrRouteImport.update({
   id: '/qr',
   path: '/qr',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppSettingsPlanRoute = AppSettingsPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
 const AppSettingsPaymentMethodsRoute =
@@ -617,6 +629,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/signup': typeof SignupRoute
   '/access': typeof AppAccessRouteRouteWithChildren
   '/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/inventory': typeof AppInventoryRouteRouteWithChildren
@@ -688,6 +701,7 @@ export interface FileRoutesByFullPath {
   '/settings/links': typeof AppSettingsLinksRoute
   '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/settings/plan': typeof AppSettingsPlanRoute
   '/settings/qr': typeof AppSettingsQrRoute
   '/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
@@ -716,6 +730,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/signup': typeof SignupRoute
   '/analytics': typeof AppAnalyticsRoute
   '/basira': typeof AppBasiraRoute
   '/bookings': typeof AppBookingsRoute
@@ -783,6 +798,7 @@ export interface FileRoutesByTo {
   '/settings/links': typeof AppSettingsLinksRoute
   '/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/settings/plan': typeof AppSettingsPlanRoute
   '/settings/qr': typeof AppSettingsQrRoute
   '/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/settings/whatsapp': typeof AppSettingsWhatsappRoute
@@ -813,6 +829,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
+  '/signup': typeof SignupRoute
   '/_app/access': typeof AppAccessRouteRouteWithChildren
   '/_app/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/_app/inventory': typeof AppInventoryRouteRouteWithChildren
@@ -885,6 +902,7 @@ export interface FileRoutesById {
   '/_app/settings/links': typeof AppSettingsLinksRoute
   '/_app/settings/loyalty': typeof AppSettingsLoyaltyRoute
   '/_app/settings/payment-methods': typeof AppSettingsPaymentMethodsRoute
+  '/_app/settings/plan': typeof AppSettingsPlanRoute
   '/_app/settings/qr': typeof AppSettingsQrRoute
   '/_app/settings/staff-pool': typeof AppSettingsStaffPoolRoute
   '/_app/settings/whatsapp': typeof AppSettingsWhatsappRoute
@@ -916,6 +934,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/onboarding'
+    | '/signup'
     | '/access'
     | '/delivery'
     | '/inventory'
@@ -987,6 +1006,7 @@ export interface FileRouteTypes {
     | '/settings/links'
     | '/settings/loyalty'
     | '/settings/payment-methods'
+    | '/settings/plan'
     | '/settings/qr'
     | '/settings/staff-pool'
     | '/settings/whatsapp'
@@ -1015,6 +1035,7 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/onboarding'
+    | '/signup'
     | '/analytics'
     | '/basira'
     | '/bookings'
@@ -1082,6 +1103,7 @@ export interface FileRouteTypes {
     | '/settings/links'
     | '/settings/loyalty'
     | '/settings/payment-methods'
+    | '/settings/plan'
     | '/settings/qr'
     | '/settings/staff-pool'
     | '/settings/whatsapp'
@@ -1111,6 +1133,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/onboarding'
+    | '/signup'
     | '/_app/access'
     | '/_app/delivery'
     | '/_app/inventory'
@@ -1183,6 +1206,7 @@ export interface FileRouteTypes {
     | '/_app/settings/links'
     | '/_app/settings/loyalty'
     | '/_app/settings/payment-methods'
+    | '/_app/settings/plan'
     | '/_app/settings/qr'
     | '/_app/settings/staff-pool'
     | '/_app/settings/whatsapp'
@@ -1213,10 +1237,18 @@ export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -1523,6 +1555,13 @@ declare module '@tanstack/react-router' {
       path: '/qr'
       fullPath: '/settings/qr'
       preLoaderRoute: typeof AppSettingsQrRouteImport
+      parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/settings/plan': {
+      id: '/_app/settings/plan'
+      path: '/plan'
+      fullPath: '/settings/plan'
+      preLoaderRoute: typeof AppSettingsPlanRouteImport
       parentRoute: typeof AppSettingsRouteRoute
     }
     '/_app/settings/payment-methods': {
@@ -2023,6 +2062,7 @@ interface AppSettingsRouteRouteChildren {
   AppSettingsLinksRoute: typeof AppSettingsLinksRoute
   AppSettingsLoyaltyRoute: typeof AppSettingsLoyaltyRoute
   AppSettingsPaymentMethodsRoute: typeof AppSettingsPaymentMethodsRoute
+  AppSettingsPlanRoute: typeof AppSettingsPlanRoute
   AppSettingsQrRoute: typeof AppSettingsQrRoute
   AppSettingsStaffPoolRoute: typeof AppSettingsStaffPoolRoute
   AppSettingsWhatsappRoute: typeof AppSettingsWhatsappRoute
@@ -2041,6 +2081,7 @@ const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
   AppSettingsLinksRoute: AppSettingsLinksRoute,
   AppSettingsLoyaltyRoute: AppSettingsLoyaltyRoute,
   AppSettingsPaymentMethodsRoute: AppSettingsPaymentMethodsRoute,
+  AppSettingsPlanRoute: AppSettingsPlanRoute,
   AppSettingsQrRoute: AppSettingsQrRoute,
   AppSettingsStaffPoolRoute: AppSettingsStaffPoolRoute,
   AppSettingsWhatsappRoute: AppSettingsWhatsappRoute,
@@ -2167,6 +2208,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

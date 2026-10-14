@@ -17,6 +17,12 @@ export interface Device {
   label?: string | null;
   last_seen_at: string;
   org_id: string;
+  /**
+     * The Free plan switched this till off (it is not its branch's active
+     * one): it shows "This till isn't active" instead of the sell screen.
+     * Always `false` on Paid.
+     */
+  plan_inactive?: boolean;
   /** @nullable */
   platform?: string | null;
   /** @nullable */

@@ -12,6 +12,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { usePlan } from "@/hooks/use-plan";
 import { NAV, isParent, leafVisible, type NavLeaf } from "@/config/nav";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
@@ -27,7 +28,8 @@ export function CommandPalette() {
   const authz = useAuthz();
   const modules = useOrgModules();
   const setup = useSetupProgress(authz.can(Cap.hrRulesEdit) && modules.includes("dawam"));
-  const visible = (leaf: NavLeaf) => leafVisible(leaf, authz, modules, setup.ready && !setup.complete);
+  const plan = usePlan();
+  const visible = (leaf: NavLeaf) => leafVisible(leaf, authz, modules, setup.ready && !setup.complete, plan);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

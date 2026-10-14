@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { moduleOfPath } from "@/config/nav";
+import { featureOfPath, moduleOfPath } from "@/config/nav";
 import { authzFrom } from "@/data/authz/use-authz";
 
 import { SETTINGS_NAV, visibleSettings } from "./settings-nav";
@@ -52,6 +52,40 @@ describe("visibleSettings", () => {
   it("every POS pane is refused by URL too (one module table)", () => {
     for (const item of SETTINGS_NAV.flatMap((g) => g.items)) {
       expect(moduleOfPath(item.to)).toBe(item.module);
+    }
+  });
+
+  it("every pane is gated by the same plan feature in the rail and by URL", () => {
+    for (const item of SETTINGS_NAV.flatMap((g) => g.items)) {
+      expect(featureOfPath(item.to), item.to).toBe(item.feature);
+    }
+  });
+});
+
+describe("visibleSettings on the Free plan", () => {
+  const free = (modules: string[]) => visibleSettings(owner, modules, "free").flatMap((g) => g.items.map((i) => i.to));
+
+  it("drops brand, links, delivery, bookings, loyalty, QR, kitchen and integrations", () => {
+    const shown = free(["pos"]);
+    for (const p of [
+      "/settings/brand", "/settings/links", "/settings/delivery", "/settings/bookings", "/settings/loyalty",
+      "/settings/qr", "/settings/kitchen-stations", "/settings/kitchen-routing", "/settings/integrations",
+    ]) {
+      expect(shown, p).not.toContain(p);
+    }
+  });
+
+  it("keeps what a till needs, and shows the Plan pane", () => {
+    const shown = free(["pos"]);
+    expect(shown).toContain("/settings/payment-methods");
+    expect(shown).toContain("/settings/plan");
+  });
+
+  it("a paid org (or an unknown plan) sees every pane and no Plan pane", () => {
+    for (const plan of ["paid", null, undefined]) {
+      const shown = visibleSettings(owner, ["pos"], plan).flatMap((g) => g.items.map((i) => i.to));
+      expect(shown, String(plan)).toContain("/settings/brand");
+      expect(shown, String(plan)).not.toContain("/settings/plan");
     }
   });
 });

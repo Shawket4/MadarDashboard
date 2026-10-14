@@ -35,6 +35,14 @@ export interface UpdateOrgRequest {
   modules?: string[] | null;
   /** @nullable */
   name?: string | null;
+  /**
+     * `free` | `paid`. Super admin only. Paid -> Free keeps every branch and
+     * all data, switches the paid features off (the capability ceiling), and
+     * leaves ONE till per branch active (the most recently used); Free -> Paid
+     * switches every till back on. A repeat of the current plan changes nothing.
+     * @nullable
+     */
+  plan?: string | null;
   /** @nullable */
   receipt_footer?: string | null;
   /** @nullable */

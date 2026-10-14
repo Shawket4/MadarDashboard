@@ -17,12 +17,14 @@ Element.prototype.hasPointerCapture ??= () => false;
 Element.prototype.releasePointerCapture ??= () => {};
 Element.prototype.scrollIntoView ??= () => {};
 
+let planState: unknown;
 const updateOrg = vi.fn(async (_id: string, _b: unknown) => ({}));
 const createOrg = vi.fn(async (_b: unknown) => ({ id: "new-org" }));
 vi.mock("@/data/api/generated/api", () => ({
   updateOrg: (id: string, b: unknown) => updateOrg(id, b),
   createOrg: (b: unknown) => createOrg(b),
   uploadOrgLogo: vi.fn(),
+  useGetOrgPlan: () => ({ data: planState }),
 }));
 vi.mock("./util", () => ({ invalidateOrgs: vi.fn() }));
 vi.mock("@/components/app/timezone-select", () => ({ TimezoneSelect: () => null }));
@@ -44,6 +46,7 @@ const wrap = (node: ReactNode) => render(<QueryClientProvider client={new QueryC
 
 beforeEach(() => {
   updateOrg.mockClear();
+  planState = undefined;
   createOrg.mockClear();
 });
 
@@ -112,5 +115,48 @@ describe("OrgDialog keeps what was typed (ADM-ORG-058)", () => {
     // Another org is a fresh form.
     rerender(ui({ ...(ORG as object), id: "o2", name: "Nakhla" }));
     expect(screen.getByRole("textbox", { name: "Organization Name" })).toHaveValue("Nakhla");
+  });
+});
+
+describe("OrgDialog plan (madar-plan)", () => {
+  it("a super admin moves a paid org to Free: PATCH /orgs/{id} with plan, and the downgrade is explained", async () => {
+    as("super_admin");
+    const user = userEvent.setup();
+    wrap(<OrgDialog org={{ ...(ORG as object), plan: "paid", signup_source: "admin" } as never} open onOpenChange={vi.fn()} />);
+    await user.click(screen.getByRole("combobox", { name: "Plan" }));
+    await user.click(await screen.findByRole("option", { name: "Free" }));
+    expect(screen.getByText(/Moving to Free keeps every record/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(updateOrg).toHaveBeenCalledWith("o1", expect.objectContaining({ plan: "free" })));
+  });
+
+  it("sends no plan when it was not changed, and an org owner never sees the field", async () => {
+    as("super_admin");
+    const user = userEvent.setup();
+    const { unmount } = wrap(<OrgDialog org={{ ...(ORG as object), plan: "free", signup_source: "self" } as never} open onOpenChange={vi.fn()} />);
+    expect(screen.getByText("This shop signed up by itself.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(updateOrg).toHaveBeenCalled());
+    expect(updateOrg.mock.calls[0][1]).not.toHaveProperty("plan");
+    unmount();
+    as("org_admin");
+    wrap(<OrgDialog org={{ ...(ORG as object), plan: "free" } as never} open onOpenChange={vi.fn()} />);
+    expect(screen.queryByRole("combobox", { name: "Plan" })).toBeNull();
+  });
+
+  it("a downgraded org past Free's limits says so: branches past one, tills switched off", () => {
+    as("super_admin");
+    planState = { plan: "free", over_branch_limit: true, live_branches: 3, branch_limit: 1, inactive_tills: 2 };
+    wrap(<OrgDialog org={{ ...(ORG as object), plan: "free" } as never} open onOpenChange={vi.fn()} />);
+    expect(screen.getByText("Over the Free plan's limits")).toBeInTheDocument();
+    expect(screen.getByText(/3 branches; Free includes 1/)).toBeInTheDocument();
+    expect(screen.getByText(/Tills switched off: 2/)).toBeInTheDocument();
+  });
+
+  it("a Free org inside its limits has no note", () => {
+    as("super_admin");
+    planState = { plan: "free", over_branch_limit: false, live_branches: 1, branch_limit: 1, inactive_tills: 0 };
+    wrap(<OrgDialog org={{ ...(ORG as object), plan: "free" } as never} open onOpenChange={vi.fn()} />);
+    expect(screen.queryByText("Over the Free plan's limits")).toBeNull();
   });
 });
