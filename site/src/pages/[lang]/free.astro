@@ -8,6 +8,7 @@ import StoreBadges from "@/components/ui/StoreBadges.astro";
 import cashier from "@/assets/apps/cashier.svg?url";
 import CrewBadge from "@/components/free/CrewBadge.astro";
 import Nuqta from "@/components/free/Nuqta.astro";
+import NuqtaCup from "@/components/free/NuqtaCup.astro";
 import NuqtaCount from "@/components/free/NuqtaCount.astro";
 import Shariha from "@/components/free/Shariha.astro";
 import ZReport from "@/components/free/ZReport.astro";
@@ -264,6 +265,7 @@ const jsonLd = [{
       </div>
       <div class="mt-12 grid gap-4 md:grid-cols-2 md:gap-5" data-reveal-group>
         <div class="free-door free-door-main" data-reveal>
+          <div class="free-door-roundel" data-crew-host><NuqtaCup class="free-door-cup" /></div>
           <p class="free-door-tag">{f.doors.self.tag}</p>
           <h3 class="text-h3 mt-4">{f.doors.self.title}</h3>
           <p class="mt-3 max-w-md text-muted-ink">{f.doors.self.body}</p>
