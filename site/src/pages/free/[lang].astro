@@ -25,7 +25,9 @@ const f = c.freePage;
 const signup = signupHref(lang);
 /** "0 EGP" → the figure (Plex Mono) and its currency (the page's face: Arabic breaks in Mono). */
 const money = (s: string) => { const [n, ...cur] = s.split(" "); return { n, cur: cur.join(" ") }; };
-const tablePrice = money(f.compare.freePrice);
+const cmp = f.compare;
+const tablePrice = money(cmp.freePrice);
+const groupIcons = ["receipt", "chart", "table", "team"] as const;
 const jsonLd = [{
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -148,54 +150,70 @@ const jsonLd = [{
     </div>
   </section>
 
-  <!-- Free beside the paid plans, row by row: a feature is in Free whole, or not at all. -->
+  <!-- Free beside the paid plans. Free is a subset of paid, so every line is either in Free
+       or added by paid: on a phone, the two plans' sizes, then two lists; from md, the
+       plans side by side over one matrix with a column per plan (global.css "Free and paid"). -->
   <section id="compare" class="bg-surface" aria-labelledby="cmp-title">
     <div class="container-site py-20 md:py-28">
       <div class="max-w-3xl">
-        <p class="kicker text-teal" data-reveal>{f.compare.kicker}</p>
-        <h2 id="cmp-title" class="text-h2 mt-4" data-split>{f.compare.title}</h2>
-        <p class="text-lead mt-5 text-muted" data-reveal>{f.compare.sub}</p>
+        <p class="kicker text-teal" data-reveal>{cmp.kicker}</p>
+        <h2 id="cmp-title" class="text-h2 mt-4" data-split>{cmp.title}</h2>
+        <p class="text-lead mt-5 text-muted" data-reveal>{cmp.sub}</p>
       </div>
-      <div class="card mt-12 overflow-hidden" data-reveal>
-        <table class="free-table">
-          <caption class="sr-only">{f.compare.title}</caption>
-          <thead>
-            <tr>
-              <td></td>
-              <th scope="col" class="free-col">
-                <span class="block">{f.compare.free}</span>
-                <span class="free-table-price"><span class="ltr">{tablePrice.n}</span> <span class="free-cur">{tablePrice.cur}</span></span>
-              </th>
-              <th scope="col">
-                <span class="block">{f.compare.paid}</span>
-                <span class="free-table-note">{f.compare.paidPrice}</span>
-              </th>
-            </tr>
-          </thead>
-          {f.compare.groups.map((g) => (
-            <tbody>
-              <tr class="free-table-group"><th scope="rowgroup">{g.title}</th><td class="free-col"></td><td></td></tr>
-              {g.rows.map((r) => (
-                <tr>
-                  <th scope="row">{r.t}</th>
-                  <td class="free-col">
-                    {typeof r.free === "string" ? <span class="free-table-value ltr">{r.free}</span>
-                      : r.free ? <Fragment><span class="text-teal"><Icon name="check" size={18} /></span><span class="sr-only">{f.compare.yes}</span></Fragment>
-                      : <Fragment><span class="text-slate" aria-hidden="true">–</span><span class="sr-only">{f.compare.no}</span></Fragment>}
-                  </td>
-                  <td>
-                    {"paid" in r ? <span class="free-table-value">{r.paid}</span>
-                      : <Fragment><span class="text-teal"><Icon name="check" size={18} /></span><span class="sr-only">{f.compare.yes}</span></Fragment>}
-                  </td>
-                </tr>
+      <div class="fc mt-12">
+        <div class="fc-plans" data-reveal-group>
+          <div class="fc-plan fc-plan-free" data-reveal>
+            <h3 class="fc-plan-name">{cmp.free}</h3>
+            <p class="fc-plan-size">{cmp.freeSize.split(" · ").map((p, i) => <Fragment>{i > 0 && " · "}<span class="whitespace-nowrap">{p}</span></Fragment>)}</p>
+            <p class="fc-plan-price"><span class="ltr">{tablePrice.n}</span> <span class="free-cur">{tablePrice.cur}</span></p>
+          </div>
+          <div class="fc-plan fc-plan-paid" data-reveal>
+            <h3 class="fc-plan-name">{cmp.paid}</h3>
+            <p class="fc-plan-size">{cmp.paidSize}</p>
+            <!-- The figures in Plex Mono, left to right (Plex Sans Arabic's 0 reads as ٥). -->
+            <p class="fc-plan-price">{cmp.paidPrice.split(/([\d,]+)/).map((p, i) => (i % 2 ? <span class="fc-num ltr">{p}</span> : p))}</p>
+          </div>
+        </div>
+        <div class="fc-matrix">
+          <div class="fc-head" aria-hidden="true"><span></span><span>{cmp.free}</span><span>{cmp.paid}</span></div>
+          <section class="fc-card fc-in" aria-labelledby="fc-in-title">
+            <div class="fc-card-head">
+              <h3 id="fc-in-title" class="fc-card-title">{cmp.inFree}</h3>
+              <Shariha class="fc-peek" />
+            </div>
+            {cmp.groups.map((g, gi) => (
+              <Fragment>
+                <h4 class="fc-group"><Icon name={groupIcons[gi]} size={18} /> {g.title}</h4>
+                <ul class="fc-rows" data-ticks data-reveal-group>
+                  {g.rows.map((r, i) => (
+                    <li class="fc-row" data-reveal style={`--i:${i}`}>
+                      <span class="fc-yes" aria-hidden="true"><Icon name="check" size={14} /></span>
+                      <span class="fc-label">{r}</span>
+                      <span class="fc-also" aria-hidden="true"><Icon name="check" size={18} /></span>
+                    </li>
+                  ))}
+                </ul>
+              </Fragment>
+            ))}
+          </section>
+          <section class="fc-card fc-adds" aria-labelledby="fc-adds-title">
+            <h3 id="fc-adds-title" class="fc-card-head fc-card-title"><Icon name="spark" size={18} /> {cmp.adds}</h3>
+            <ul class="fc-rows" data-reveal-group>
+              {cmp.paidOnly.map((r) => (
+                <li class="fc-row fc-row-paid" data-reveal>
+                  <span class="fc-lock" aria-hidden="true"><Icon name="lock" size={14} /></span>
+                  <span class="fc-label">{r}</span>
+                  <span class="fc-pill" aria-hidden="true">{cmp.paidTag}</span>
+                  <span class="fc-also" aria-hidden="true"><Icon name="check" size={18} /></span>
+                </li>
               ))}
-            </tbody>
-          ))}
-        </table>
+            </ul>
+            <p class="fc-more">
+              <a class="link-cta" href={pageHref(lang, "pricing")} data-umami-event="free-upgrade" data-umami-event-where="free-compare">{cmp.more} <Icon name="arrow" size={18} /></a>
+            </p>
+          </section>
+        </div>
       </div>
-      <p class="mt-8" data-reveal>
-        <a class="link-cta" href={pageHref(lang, "pricing")} data-umami-event="free-upgrade" data-umami-event-where="free-compare">{f.compare.more} <Icon name="arrow" size={18} /></a>
-      </p>
     </div>
   </section>
 
