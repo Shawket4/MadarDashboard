@@ -103,6 +103,25 @@ const problems = [];
 // changes nothing on the page. Every other page error still fails the check.
 const benign = (e) => /AbortError: Transition was skipped/.test(String(e));
 
+// 0. No executable inline script in any built page: the CSP (script-src 'self') would
+// block it. JSON-LD is data, not script, and stays inline.
+{
+  const { readdir, readFile } = await import("node:fs/promises");
+  const dirs = [dist];
+  const html = [];
+  while (dirs.length) {
+    const d = dirs.pop();
+    for (const e of await readdir(d, { withFileTypes: true })) {
+      if (e.isDirectory()) dirs.push(path.join(d, e.name));
+      else if (e.name.endsWith(".html")) html.push(path.join(d, e.name));
+    }
+  }
+  for (const f of html) {
+    const inline = ((await readFile(f, "utf8")).match(/<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>/g) ?? []);
+    if (inline.length) problems.push(`${path.relative(dist, f)}: ${inline.length} inline <script> (the CSP blocks it)`);
+  }
+}
+
 // 1. Pages ─────────────────────────────────────────────────────────────────────────
 const open = await serve("open");
 const pages = ["", "features/", "pricing/", "free/", "faq/", "about/", "contact/"];
