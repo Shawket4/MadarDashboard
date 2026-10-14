@@ -46,6 +46,8 @@ server {
 
     # Short addresses: the English page, or the legal site. With or without the slash.
     location ~ ^/(pricing|features|faq|about|contact)/?$ { return 301 /en/$1/$is_args$args; }
+    # The Free page lives at /free/en/ and /free/ar/ (language last; /free/ is its bilingual front door); the old /en/free/ addresses lead there.
+    location ~ ^/(en|ar)/free/?$ { return 301 /free/$1/$is_args$args; }
     location ~ ^/privacy/?$ { return 301 https://legal.madar-pos.cloud/privacy-policy.html; }
     location ~ ^/terms/?$ { return 301 https://legal.madar-pos.cloud/terms-of-service.html; }
     # Where developers and agents look first: the developers page, and the API's own spec.
