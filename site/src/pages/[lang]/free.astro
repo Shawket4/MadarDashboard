@@ -8,6 +8,7 @@ import StoreBadges from "@/components/ui/StoreBadges.astro";
 import cashier from "@/assets/apps/cashier.svg?url";
 import CrewBadge from "@/components/free/CrewBadge.astro";
 import Nuqta from "@/components/free/Nuqta.astro";
+import NuqtaCount from "@/components/free/NuqtaCount.astro";
 import Shariha from "@/components/free/Shariha.astro";
 import ZReport from "@/components/free/ZReport.astro";
 import { t } from "@/i18n";
@@ -117,7 +118,10 @@ const jsonLd = [{
           <p class="text-lead mt-5 text-muted" data-reveal>{f.zr.body}</p>
         </div>
         <div class="lg:col-span-6 lg:col-start-7">
-          <ZReport lang={lang} />
+          <div class="zr-scene" data-crew-host>
+            <NuqtaCount class="zr-nuqta" />
+            <ZReport lang={lang} />
+          </div>
         </div>
       </div>
 

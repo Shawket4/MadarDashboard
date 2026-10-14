@@ -1,0 +1,32 @@
+---
+/**
+ * نقطة counting the till: holding the printed report (the owner's "Till close" poster,
+ * "Nuqta · the count"; paths copied from the Illustrator export, not redrawn). Same rig
+ * as Nuqta.astro, so crew.ts blinks him and follows the pointer; the paper also sways
+ * a little in his hands (global.css "The crew").
+ */
+interface Props { class?: string }
+const { class: cls = "" } = Astro.props;
+---
+<svg class:list={["crew-figure", cls]} viewBox="0 0 216.82 290.54" aria-hidden="true" data-crew>
+  <g class="crew-shadow" style="transform-origin: 108.41px 282.95px"><ellipse cx="108.41" cy="282.95" rx="67.76" ry="7.05" fill="#e1e7e9" /></g>
+  <g class="crew-hop" style="transform-origin: 108px 284px">
+    <path d="M82.39,189.72c-2.89,32.52-5.06,61.43-6.5,86.73l-20.6,1.08" fill="none" stroke="#14181e" stroke-width="14.09" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M134.43,189.72c2.89,32.52,5.06,61.43,6.5,86.73l20.6,1.08" fill="none" stroke="#14181e" stroke-width="14.09" stroke-linecap="round" stroke-linejoin="round" />
+    <g class="crew-body" style="transform-origin: 108px 282px">
+      <circle cx="108.41" cy="108.41" r="108.41" fill="#0d6273" />
+      <path d="M28.58,74.52c8.78-20.69,25.26-37.16,45.95-45.95" fill="none" stroke="#2e94a6" stroke-width="10.84" stroke-linecap="round" stroke-linejoin="round" />
+      <g class="crew-blink" style="transform-origin: 82.2px 98.65px"><ellipse cx="82.2" cy="98.65" rx="16.91" ry="21.14" fill="#eff3f4" /><g class="crew-pupil"><circle cx="82.2" cy="110.49" r="10.57" fill="#14181e" /><circle cx="86" cy="105.84" r="3.17" fill="#fff" /></g></g>
+      <g class="crew-blink" style="transform-origin: 134.63px 98.65px"><ellipse cx="134.63" cy="98.65" rx="16.91" ry="21.14" fill="#eff3f4" /><g class="crew-pupil"><circle cx="134.63" cy="110.49" r="10.57" fill="#14181e" /><circle cx="138.43" cy="105.84" r="3.17" fill="#fff" /></g></g>
+      <path d="M68.67,64.83l26.21,6.76M121.94,71.59l26.21-6.76" fill="none" stroke="#eff3f4" stroke-width="6.47" stroke-linecap="round" stroke-linejoin="round" />
+      <g class="crew-mouth" style="transform-origin: 114px 140px"><path d="M106.72,141.78l14.38-2.54" fill="none" stroke="#eff3f4" stroke-width="7.19" stroke-linecap="round" stroke-linejoin="round" /></g>
+      <g class="crew-paper" style="transform-origin: 108px 174px">
+        <path d="M63.96,174.54h88.9v92.15c0,13.73,6.87,20.96,20.6,21.68H75.89c-7.95,0-11.93-3.98-11.93-11.93V174.54z" fill="#fff" stroke="#14181e" stroke-width="4.34" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M76.97,192.97h62.88M76.97,208.15h47.7M76.97,223.33h57.46" fill="none" stroke="#76828b" stroke-width="3.79" stroke-linecap="round" />
+        <path d="M76.97,243.93h62.88" fill="none" stroke="#0d6273" stroke-width="4.88" stroke-linecap="round" />
+        <path d="M28.19,142.02c10.12,20.96,24.21,33.25,42.28,36.86" fill="none" stroke="#14181e" stroke-width="14.09" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M188.64,142.02c-10.12,20.96-24.21,33.25-42.28,36.86" fill="none" stroke="#14181e" stroke-width="14.09" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+    </g>
+  </g>
+</svg>

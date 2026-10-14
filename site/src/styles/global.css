@@ -803,6 +803,13 @@ html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; le
 .crew-armed .crew-col[data-in] li:nth-child(3) .free-tick { animation-delay: 1s; }
 @keyframes tick-pop { 0% { scale: 0; } 100% { scale: 1; } }
 
+/* نقطة with the count, beside the receipt it prints: stacked on a phone, side by side from md. */
+.zr-scene { display: grid; justify-items: center; gap: 1.5rem; }
+.zr-nuqta { width: 7.5rem; overflow: visible; cursor: pointer; }
+@media (min-width: 640px) { .zr-scene { grid-template-columns: auto 1fr; align-items: end; justify-items: stretch; } .zr-scene .zr { margin-inline: 0 auto; } .zr-nuqta { width: 8.5rem; } }
+.crew-armed .crew-paper { animation: crew-paper 4.2s ease-in-out infinite; }
+@keyframes crew-paper { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-1.6deg) translateY(1px); } 65% { transform: rotate(1.3deg); } }
+
 /* The Z-report: a printer's mouth, and the receipt feeding out of it. */
 .zr { position: relative; width: min(100%, 19rem); margin-inline: auto; rotate: 2deg; }
 [dir="rtl"] .zr { rotate: -2deg; }
