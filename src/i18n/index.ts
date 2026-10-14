@@ -55,7 +55,10 @@ void i18n
     supportedLngs: SUPPORTED_LANGUAGES,
     interpolation: { escapeValue: false },
     detection: {
-      order: ["localStorage", "navigatorLanguageOnly"],
+      // `?lang=ar` first: the marketing site's sign-up links carry the page's language,
+      // and the pick is cached like a manual switch.
+      order: ["querystring", "localStorage", "navigatorLanguageOnly"],
+      lookupQuerystring: "lang",
       caches: ["localStorage"],
       lookupLocalStorage: "madar.lang",
     },

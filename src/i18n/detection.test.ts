@@ -76,3 +76,35 @@ describe("what a phone gets", () => {
     expect(document.documentElement.dir).toBe("rtl");
   });
 });
+
+describe("arriving from the marketing site", () => {
+  /** The site's sign-up links carry the page's language: /signup?lang=ar. */
+  async function bootAt(search: string, languages: string[], stored?: string) {
+    window.history.replaceState({}, "", `/signup${search}`);
+    Object.defineProperty(window.navigator, "languages", { value: languages, configurable: true });
+    Object.defineProperty(window.navigator, "language", { value: languages[0], configurable: true });
+    localStorage.clear();
+    if (stored) localStorage.setItem("madar.lang", stored);
+    vi.resetModules();
+    const i18n = (await import("./index")).default;
+    const got = { language: i18n.language, dir: document.documentElement.dir, stored: localStorage.getItem("madar.lang") };
+    window.history.replaceState({}, "", "/");
+    return got;
+  }
+
+  it("opens in Arabic from an Arabic page, on an English phone, and remembers it", async () => {
+    const got = await bootAt("?lang=ar", ["en-US"]);
+    expect(got.language).toBe("ar");
+    expect(got.dir).toBe("rtl");
+    expect(got.stored).toBe("ar");
+  });
+
+  it("the page's language beats an earlier choice", async () => {
+    expect((await bootAt("?lang=en", ["ar-EG"], "ar")).language).toBe("en");
+  });
+
+  it("ignores a language we don't speak", async () => {
+    expect((await bootAt("?lang=fr", ["en-GB"])).language).toBe("en");
+    expect((await bootAt("?lang=fr", ["ar-EG"])).language).toBe("ar");
+  });
+});
