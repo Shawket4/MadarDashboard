@@ -822,7 +822,7 @@ html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; le
 .zr-scene { display: grid; justify-items: center; gap: 1.5rem; }
 .zr-nuqta { width: 7.5rem; overflow: visible; cursor: pointer; }
 @media (min-width: 640px) { .zr-scene { grid-template-columns: auto 1fr; align-items: end; justify-items: stretch; } .zr-scene .zr { margin-inline: 0 auto; } .zr-nuqta { width: 8.5rem; } }
-.crew-armed .crew-paper { animation: crew-paper 4.2s ease-in-out infinite; }
+[data-wave] .crew-paper { animation: crew-paper 1.7s ease-in-out; }
 @keyframes crew-paper { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-1.6deg) translateY(1px); } 65% { transform: rotate(1.3deg); } }
 
 /* The self-service door: نقطة with his coffee in a Paper roundel, top corner. */
@@ -868,9 +868,10 @@ html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; 
 .crew-armed [data-swing][data-held] .crew-badge { cursor: grabbing; }
 
 /* The characters: breathing, blinking, glancing, waving, and a hop when greeted. */
-.crew-armed .crew-body { animation: crew-breathe 3.6s ease-in-out infinite; }
-.crew-armed .crew-col:nth-child(2) .crew-body { animation-delay: -1.7s; }
-@keyframes crew-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.015, 1.035); } }
+/* A breath now and then, not a constant wobble (scaling strokes forever shimmers on phones). */
+.crew-armed svg[data-crew][data-in] .crew-body { animation: crew-breathe 7s ease-in-out infinite; }
+.crew-armed .crew-col:nth-child(2) .crew-body { animation-delay: -3.4s; }
+@keyframes crew-breathe { 0%, 55%, 100% { transform: scale(1, 1); } 78% { transform: scale(1.012, 1.028); } }
 .crew-blink { transition: transform .07s ease-in; }
 [data-blink] .crew-blink { transform: scaleY(.08); }
 .crew-pupil { transition: transform .28s cubic-bezier(.2, .8, .2, 1); }
@@ -895,7 +896,7 @@ html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; 
 
 /* The receipt feeds out in bursts, as a thermal printer does, and the stamp lands last. */
 .crew-armed .zr:not([data-in]) .zr-paper { transform: translateY(-104%); }
-.crew-armed .zr[data-in] .zr-paper { animation: zr-print 2.6s linear both; }
+.crew-armed .zr[data-in] .zr-paper { animation: zr-print 2.6s linear both; will-change: transform; }
 @keyframes zr-print {
   0% { transform: translateY(-104%); }
   16% { transform: translateY(-80%); }

@@ -85,7 +85,7 @@ export function pack() {
         for await (const file of walk(out)) {
           const name = rel(file);
           if (/\.(br|gz)$/.test(name)) continue;
-          if (name === "index.html" || name === "404.html" || /^(en|ar)\/(.+\/)?index\.html$/.test(name)) files.push(name);
+          if (name === "index.html" || name === "404.html" || /^(en|ar|free)\/(.+\/)?index\.html$/.test(name)) files.push(name);
           else if (/^assets\/.+\.webp$/.test(name)) {
             const group = shot.exec(`/${name}`)?.[1];
             if (!group) throw new Error(`pack: a WebP outside the screenshot pattern: ${name}`);
