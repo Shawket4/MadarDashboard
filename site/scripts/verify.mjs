@@ -97,10 +97,15 @@ if (process.env.SERVE) {
 const exe = process.env.CHROME_PATH ?? (existsSync("/opt/pw-browsers/chromium-1194/chrome-linux/chrome") ? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" : undefined);
 const browser = await chromium.launch(exe ? { executablePath: exe } : { channel: "chrome" });
 const problems = [];
+// Chrome's own cross-document view transition rejects with this when it skips one (a
+// scripted click lands mid-transition). The site catches the transition's promises in
+// boot.js; this one, seen about once in tens of runs, comes from inside the browser and
+// changes nothing on the page. Every other page error still fails the check.
+const benign = (e) => /AbortError: Transition was skipped/.test(String(e));
 
 // 1. Pages ─────────────────────────────────────────────────────────────────────────
 const open = await serve("open");
-const pages = ["", "features/", "pricing/", "faq/", "about/", "contact/"];
+const pages = ["", "features/", "pricing/", "free/", "faq/", "about/", "contact/"];
 const widths = (process.env.WIDTHS ?? "390,768,1280,1440").split(",").map(Number);
 // The root page (both languages, <html lang="en">), then every language page.
 const targets = [
@@ -116,7 +121,7 @@ for (const { lang, url, name, shot, alternates = 3 } of targets) {
     const page = await ctx.newPage();
     const errors = [];
     page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
-    page.on("pageerror", (e) => errors.push(String(e)));
+    page.on("pageerror", (e) => { if (!benign(e)) errors.push(String(e)); });
     await page.goto(open.base + url, { waitUntil: "networkidle" });
     // Walk down the page so lazy images and scroll scenes run.
     await page.evaluate(async () => {
@@ -187,7 +192,7 @@ for (const folders of ["open", "nginx"]) {
     const ctx = await browser.newContext({ locale, viewport: { width: 1280, height: 900 }, serviceWorkers: "block" });
     const page = await ctx.newPage();
     const errors = [];
-    page.on("pageerror", (e) => errors.push(String(e)));
+    page.on("pageerror", (e) => { if (!benign(e)) errors.push(String(e)); });
     await page.goto(base + url, { waitUntil: "networkidle" });
     await page.waitForTimeout(300);
     return { ctx, page, errors, path: new URL(page.url()).pathname, lang: await page.evaluate(() => document.documentElement.lang) };
@@ -339,7 +344,7 @@ for (const folders of ["open", "nginx"]) {
   const errors = [];
   // (The missing page's own 404 is expected.)
   page.on("console", (m) => { if (m.type() === "error" && !m.location().url.includes("no-such-page")) errors.push(m.text()); });
-  page.on("pageerror", (e) => errors.push(String(e)));
+  page.on("pageerror", (e) => { if (!benign(e)) errors.push(String(e)); });
   const unpacked = async () => {
     for (let i = 0; i < 300; i++) {
       const done = await page.evaluate(async () => {

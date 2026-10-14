@@ -6,7 +6,7 @@ import { t } from "@/i18n";
 import { currentYear } from "@shared/dates";
 import {
   type Lang, type PageKey, pageHref, otherLang, switchHref, whatsappHref, PHONE_HREF, PHONE_DISPLAY,
-  EMAIL_HREF, EMAIL, INSTAGRAM, FACEBOOK, LEGAL_URL, DASHBOARD_URL,
+  EMAIL_HREF, EMAIL, INSTAGRAM, FACEBOOK, LEGAL_URL, DASHBOARD_URL, signupHref,
 } from "@/lib/site";
 
 interface Props { lang: Lang; page: PageKey | "notFound" }
@@ -35,10 +35,12 @@ const badgesInPage = page === "home" || page === "pricing";
         <ul class="mt-4 space-y-3">
           <li><a class="link-quiet" href={pageHref(lang, "features")}>{c.nav.features}</a></li>
           <li><a class="link-quiet" href={pageHref(lang, "pricing")}>{c.nav.pricing}</a></li>
+          <li><a class="link-quiet" href={pageHref(lang, "free")}>{c.nav.free}</a></li>
           <li><a class="link-quiet" href={pageHref(lang, "faq")}>{c.nav.faq}</a></li>
           <li><a class="link-quiet" href={pageHref(lang, "about")}>{c.nav.about}</a></li>
           <li><a class="link-quiet" href={pageHref(lang, "contact")}>{c.nav.contact}</a></li>
           <li><a class="link-quiet" href={DASHBOARD_URL} rel="noopener">{c.footer.dashboard}</a></li>
+          <li><a class="link-quiet" href={signupHref(lang)} data-umami-event="free-signup" data-umami-event-where="footer">{c.footer.signup}</a></li>
           <li><a class="link-quiet" href={pageHref("en", "developers")} hreflang="en">{c.footer.developers}</a></li>
         </ul>
       </div>

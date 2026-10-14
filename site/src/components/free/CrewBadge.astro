@@ -1,0 +1,39 @@
+---
+/**
+ * A crew member's ID badge on its lanyard, after the owner's "New crew" posters: the
+ * header band, the avatar, the name and role, and the punchline, the salary. The
+ * lanyard runs up out of the section (the section clips it). crew.ts drops it in and
+ * lets it swing; without motion it simply hangs there.
+ */
+import Nuqta from "./Nuqta.astro";
+import Shariha from "./Shariha.astro";
+import { t } from "@/i18n";
+import type { Lang } from "@/lib/site";
+
+interface Props {
+  lang: Lang;
+  who: "nuqta" | "shariha";
+  class?: string;
+  /** Strap colour: Ink on light ground, Teal on Ink. */
+  strap?: "ink" | "teal";
+}
+const { lang, who, class: cls = "", strap = "ink" } = Astro.props;
+const crew = t(lang).freePage.crew;
+const member = crew[who];
+const no = who === "nuqta" ? "#0001" : "#0002";
+---
+<div class:list={["crew-badge-wrap", cls]} data-swing data-strap={strap}>
+  <div class="crew-badge" data-tone={who}>
+    <span class="crew-lanyard" aria-hidden="true"></span>
+    <span class="crew-clip" aria-hidden="true"></span>
+    <div class="crew-card">
+      <p class="crew-card-head" aria-hidden="true"><span>{crew.label}</span><span>{no}</span></p>
+      <div class="crew-avatar">
+        {who === "nuqta" ? <Nuqta class="crew-avatar-figure" /> : <Shariha class="crew-avatar-figure" />}
+      </div>
+      <p class="crew-name">{member.name}</p>
+      <p class="crew-role">{member.role}</p>
+      <p class="crew-salary">{crew.salary}</p>
+    </div>
+  </div>
+</div>

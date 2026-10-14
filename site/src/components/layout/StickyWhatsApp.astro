@@ -1,15 +1,25 @@
 ---
-/** Phones only: a slim WhatsApp bar once the hero has scrolled away; hidden over the closing band. */
+/**
+ * Phones only: a slim bar once the hero has scrolled away; hidden over the closing band.
+ * WhatsApp by default; a page can put its own action there instead (Free: sign up).
+ */
 import Icon from "@/components/ui/Icon.astro";
 import { t } from "@/i18n";
 import { type Lang, whatsappHref } from "@/lib/site";
 
-interface Props { lang: Lang }
-const { lang } = Astro.props;
+export interface StickyAction { href: string; label: string; event: string }
+interface Props { lang: Lang; action?: StickyAction }
+const { lang, action } = Astro.props;
 const c = t(lang);
 ---
 <div id="sticky-wa" class="sticky-wa fixed inset-x-3 z-40 md:hidden" style="bottom: max(0.75rem, env(safe-area-inset-bottom));" data-visible="false">
-  <a class="btn btn-ink btn-lg w-full" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="sticky">
-    <Icon name="whatsapp" size={18} /> <span data-sticky-label>{c.contact.whatsapp}</span>
-  </a>
+  {action ? (
+    <a class="btn btn-ink btn-lg w-full" href={action.href} data-umami-event={action.event} data-umami-event-where="sticky">
+      <span data-sticky-label>{action.label}</span> <Icon name="arrow" size={18} />
+    </a>
+  ) : (
+    <a class="btn btn-ink btn-lg w-full" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="sticky">
+      <Icon name="whatsapp" size={18} /> <span data-sticky-label>{c.contact.whatsapp}</span>
+    </a>
+  )}
 </div>

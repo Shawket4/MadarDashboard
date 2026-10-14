@@ -38,6 +38,10 @@
   --color-muted-ink: #9aa6ad;
   --color-bezel: #0b0e12;
   --color-line-ink: rgb(239 243 244 / 0.14);
+  /* The crew posters' accents (decorative fills, always under Ink text: Ink on Coral
+     6.0:1, Ink on Sun 10.9:1). */
+  --color-coral: #f26b5b;
+  --color-sun: #f6c445;
 
   --font-sans: "IBM Plex Sans Arabic", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
@@ -686,3 +690,188 @@ html[lang="ar"] .menu-group-label { font-size: .875rem; padding-top: .7rem; }
   .price-table :is(th, td) { padding-inline: 1.5rem; }
   .price-table :is(thead th, tbody td) { width: 12rem; }
 }
+
+/* ---------- Madar Free (pages/[lang]/free.astro) ----------
+   The hero's price chip, the included list, the limits callout, the Free-and-paid table,
+   the four steps and the two doors. The Free column wears the tint all the way down, so
+   the eye reads it as one column. */
+html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; letter-spacing: 0; }
+.free-tick { position: absolute; top: 0; inset-inline-start: 0; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 999px; background: var(--color-tint); color: var(--color-teal); }
+.free-limits { display: flex; flex-direction: column; gap: .5rem; padding: 1.4rem 1.5rem; border-radius: 1.25rem; border: 1px solid var(--color-rule); border-inline-start: 3px solid var(--color-teal); background: var(--color-surface); }
+.free-limits .link-cta { margin-top: .25rem; min-height: 2.75rem; }
+@media (min-width: 1024px) {
+  .free-limits { display: grid; grid-template-columns: 13rem 1fr auto; align-items: center; column-gap: 2rem; padding: 1.5rem 2rem; }
+  .free-limits .link-cta { margin-top: 0; }
+}
+
+.free-table { width: 100%; border-collapse: collapse; }
+.free-table :is(th, td) { padding: .85rem .75rem; border-top: 1px solid var(--color-rule); text-align: start; vertical-align: middle; }
+.free-table tbody th { font-weight: 400; line-height: 1.45; }
+.free-table thead :is(th, td) { border-top: 0; padding-block: 1.25rem 1rem; vertical-align: bottom; font-weight: 600; line-height: 1.25; }
+.free-table :is(thead th, tbody td) { width: 5.75rem; text-align: center; }
+.free-table td > span { display: inline-flex; justify-content: center; vertical-align: middle; }
+.free-table .free-col { background: color-mix(in oklab, var(--color-tint) 45%, transparent); }
+.free-table-price { display: block; margin-top: .3rem; font-family: var(--font-mono); font-size: 1.2rem; font-weight: 500; color: var(--color-teal); }
+.free-table-note { display: block; margin-top: .3rem; font-size: .75rem; font-weight: 400; line-height: 1.35; color: var(--color-muted); }
+.free-table-value { font-size: .875rem; font-weight: 500; line-height: 1.3; }
+.free-table-value.ltr { font-family: var(--font-mono); font-size: 1.05rem; }
+.free-table-group :is(th, td) { padding-block: 1.4rem .5rem; font-size: .8125rem; font-weight: 600; color: var(--color-muted); }
+.free-table-group + tr :is(th, td) { border-top: 0; }
+.free-table tbody:first-of-type .free-table-group :is(th, td) { border-top: 0; }
+@media (min-width: 768px) {
+  .free-table :is(th, td) { padding-inline: 1.5rem; }
+  .free-table :is(thead th, tbody td) { width: 13rem; }
+  .free-table-value { font-size: .95rem; }
+}
+
+.free-steps { display: grid; gap: 2.5rem; counter-reset: none; }
+.free-step { position: relative; min-width: 0; }
+.free-step-n { display: block; padding-bottom: 1rem; border-bottom: 1px solid var(--color-rule); font-family: var(--font-mono); font-size: 2rem; font-weight: 500; line-height: 1; letter-spacing: -0.02em; color: var(--color-teal); }
+@media (min-width: 640px) { .free-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 2.5rem; } }
+@media (min-width: 1024px) { .free-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; } }
+
+/* A quiet second button on Paper: hairline, Ink text. */
+.btn-outline { border: 1px solid color-mix(in oklab, var(--color-ink) 22%, transparent); color: var(--color-ink); background: transparent; }
+.btn-outline:hover { border-color: var(--color-ink); background: var(--color-white); }
+
+.free-door { display: flex; flex-direction: column; padding: 1.75rem; border-radius: 1.25rem; border: 1px solid var(--color-line-ink); background: color-mix(in oklab, var(--color-paper) 3%, var(--color-ink)); }
+.free-door-main { background: var(--color-ink-2); border-color: color-mix(in oklab, var(--color-teal-light) 45%, transparent); }
+.free-door-tag { display: flex; align-items: center; gap: .5rem; font-size: .8125rem; font-weight: 500; color: var(--color-teal-light); }
+.free-door-tag::before { content: ""; flex: none; width: .45rem; height: .45rem; border-radius: 999px; background: currentColor; }
+@media (min-width: 768px) { .free-door { padding: 2.25rem 2.25rem 2rem; } }
+/* The pricing page's Free band: words, the price, the actions; one row on wide screens. */
+.free-band { display: grid; gap: 1.5rem; padding: 1.75rem; border-inline-start: 3px solid var(--color-teal); }
+.free-band-price { font-family: var(--font-mono); font-size: 2.25rem; font-weight: 500; line-height: 1; letter-spacing: -0.02em; color: var(--color-teal); }
+.free-band-per { font-family: var(--font-sans); font-size: .9rem; letter-spacing: 0; color: var(--color-muted); }
+@media (min-width: 1024px) {
+  .free-band { grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; column-gap: 3rem; padding: 2rem 2.5rem; }
+}
+
+/* ---------- The crew (components/free, scripts/crew.ts) ----------
+   نقطة and شريحة from the owner's "New crew" posters: sticker-style badges (Ink outline,
+   a hard Ink shadow) and the characters themselves. The motion lives behind
+   .crew-armed, which crew.ts sets only when motion is allowed: without it every badge
+   hangs still, the receipt is printed and the characters stand. */
+.crew-badge-wrap { --w: 13rem; --lanyard: 40rem; --strap: var(--color-ink); position: relative; width: var(--w); }
+.crew-badge-wrap[data-strap="teal"] { --strap: var(--color-teal); }
+.crew-badge { position: relative; transform-origin: 50% calc(-1 * var(--lanyard)); }
+.crew-badge[data-tone="nuqta"] { --tone: var(--color-teal-light); }
+.crew-badge[data-tone="shariha"] { --tone: var(--color-coral); }
+.crew-lanyard { position: absolute; bottom: calc(100% - .5rem); left: 50%; width: 3.25rem; height: var(--lanyard); translate: -50% 0; border-inline: .5rem solid var(--strap); }
+.crew-clip { position: absolute; z-index: 1; top: -.85rem; left: 50%; width: 4rem; height: 1.35rem; translate: -50% 0; border: 3px solid var(--color-ink); border-radius: .45rem; background: var(--color-muted-ink); }
+.crew-card { position: relative; overflow: hidden; padding-bottom: 1.1rem; border: 3px solid var(--color-ink); border-radius: 1.25rem; background: var(--color-white); color: var(--color-ink); text-align: center; box-shadow: 7px 7px 0 var(--color-ink); }
+[dir="rtl"] .crew-card { box-shadow: -7px 7px 0 var(--color-ink); }
+.crew-card-head { display: flex; justify-content: space-between; padding: .85rem .9rem .55rem; border-bottom: 3px solid var(--color-ink); background: var(--tone); font-family: var(--font-mono); font-size: .66rem; font-weight: 500; letter-spacing: .14em; direction: ltr; }
+.crew-avatar { position: relative; width: 62%; aspect-ratio: 1; margin: 1rem auto 0; border: 3px solid var(--color-ink); border-radius: 999px; background: var(--tone); }
+.crew-avatar-figure { position: absolute; left: 50%; bottom: 7%; width: 78%; translate: -46% 0; overflow: visible; }
+.crew-name { margin-top: .7rem; font-size: 1.55rem; font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; }
+.crew-role { font-size: .9rem; color: var(--color-muted); }
+.crew-salary { display: inline-block; margin-top: .85rem; padding: .3rem .85rem; border: 2.5px solid var(--color-ink); border-radius: 999px; background: var(--color-sun); color: var(--color-ink); font-size: .875rem; font-weight: 600; line-height: 1.4; }
+
+/* The hero's badge hangs over the till's corner; its strap fades out above it, before it
+   reaches the words or the header. */
+.free-hero-badge { --w: 8.25rem; --lanyard: 9rem; position: absolute; z-index: 10; top: -2.25rem; inset-inline-end: -.25rem; }
+.free-hero-badge .crew-lanyard { -webkit-mask-image: linear-gradient(to top, #000 55%, transparent); mask-image: linear-gradient(to top, #000 55%, transparent); }
+.free-hero-badge .crew-name { font-size: 1.2rem; }
+.free-hero-badge .crew-role { font-size: .8rem; }
+.free-hero-badge .crew-salary { font-size: .75rem; padding: .2rem .6rem; }
+.free-hero-badge .crew-card-head { font-size: .55rem; padding: .7rem .7rem .45rem; }
+@media (min-width: 640px) { .free-hero-badge { --w: 10.5rem; top: -3rem; inset-inline-end: -1.5rem; } .free-hero-badge .crew-name { font-size: 1.4rem; } .free-hero-badge .crew-salary { font-size: .82rem; } }
+@media (min-width: 1024px) { .free-hero-badge { --w: 11.5rem; --lanyard: 6.5rem; top: -1.5rem; inset-inline-end: -2.5rem; } }
+
+/* The crew at work: each character standing on its line, its duties under it. */
+.crew-col-head { display: flex; align-items: flex-end; gap: 1.25rem; padding-inline: .25rem; border-bottom: 3px solid var(--color-ink); }
+.crew-col-figure { flex: none; width: clamp(6.5rem, 5rem + 4vw, 8.5rem); margin-bottom: -2px; overflow: visible; cursor: pointer; }
+.crew-col-who { padding-bottom: 1.1rem; }
+.crew-col-name { font-size: clamp(1.6rem, 1.3rem + 1vw, 2.1rem); font-weight: 600; line-height: 1.1; letter-spacing: -0.015em; }
+.crew-col-role { margin-top: .15rem; color: var(--color-muted); }
+.crew-col-items { display: grid; gap: 1.6rem; margin-top: 1.75rem; }
+.crew-col-items li { position: relative; padding-inline-start: 2.75rem; }
+.crew-col-items .free-tick { top: .05rem; }
+
+/* The Z-report: a printer's mouth, and the receipt feeding out of it. */
+.zr { position: relative; width: min(100%, 19rem); margin-inline: auto; rotate: 2deg; }
+[dir="rtl"] .zr { rotate: -2deg; }
+.zr-slot { position: relative; z-index: 2; display: block; height: 1.15rem; margin-inline: -1rem; border-radius: .6rem; background: var(--color-ink); box-shadow: inset 0 -5px 0 var(--color-ink-3); }
+.zr-feed { overflow: hidden; margin-top: -.6rem; padding: 0 12px 22px 4px; }
+[dir="rtl"] .zr-feed { padding: 0 4px 22px 12px; }
+.zr-paper {
+  position: relative; padding: 1.7rem 1.35rem 1.25rem; background: var(--color-white); color: var(--color-ink);
+  filter: drop-shadow(1.5px 0 0 var(--color-ink)) drop-shadow(-1.5px 0 0 var(--color-ink)) drop-shadow(0 1.5px 0 var(--color-ink)) drop-shadow(0 -1.5px 0 var(--color-ink)) drop-shadow(7px 7px 0 var(--color-ink));
+}
+[dir="rtl"] .zr-paper { filter: drop-shadow(1.5px 0 0 var(--color-ink)) drop-shadow(-1.5px 0 0 var(--color-ink)) drop-shadow(0 1.5px 0 var(--color-ink)) drop-shadow(0 -1.5px 0 var(--color-ink)) drop-shadow(-7px 7px 0 var(--color-ink)); }
+/* The torn edge: a row of teeth, the paper's own white. */
+.zr-paper::after { content: ""; position: absolute; inset-inline: 0; top: 100%; height: 10px; background: conic-gradient(from -45deg at 50% 100%, var(--color-white) 90deg, transparent 0) 0 0 / 20px 10px repeat-x; }
+.zr-top { display: grid; justify-items: center; gap: .5rem; }
+.zr-logo { width: 2.25rem; height: 2.25rem; }
+.zr-title { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 500; letter-spacing: .08em; }
+.zr-meta, .zr-rows { display: grid; gap: .45rem; margin-top: 1.1rem; padding-bottom: 1rem; border-bottom: 2px dashed color-mix(in oklab, var(--color-ink) 45%, transparent); }
+:is(.zr-meta, .zr-rows) > div { display: flex; justify-content: space-between; gap: 1rem; }
+:is(.zr-meta, .zr-rows) dt { font-weight: 500; }
+:is(.zr-meta, .zr-rows) dd { font-family: var(--font-mono); }
+html[lang="ar"] .zr-meta dd:not(.ltr) { font-family: var(--font-arabic); }
+.zr-total { display: flex; align-items: baseline; justify-content: space-between; margin-top: 1rem; padding-top: .9rem; border-top: 3px solid var(--color-ink); font-size: 1.15rem; font-weight: 600; }
+.zr-total-value { font-family: var(--font-mono); font-size: 2.1rem; font-weight: 500; letter-spacing: -0.02em; color: var(--color-teal); }
+.zr-stamp { position: absolute; inset-inline-start: .9rem; top: 1.3rem; padding: .15rem .65rem; border: 2.5px solid var(--color-teal); border-radius: .4rem; color: var(--color-teal); font-family: var(--font-mono); font-size: .8rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; rotate: -12deg; opacity: .92; }
+html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; font-weight: 600; letter-spacing: 0; }
+
+/* Motion (crew.ts sets .crew-armed). Badges wait above the section, then drop in on
+   their lanyards and settle into a slow sway; a pointer nudges them. */
+.crew-armed [data-swing]:not([data-in]) .crew-badge { transform: translateY(-130vh); }
+.crew-armed [data-swing][data-in] .crew-badge { animation: crew-drop 2s both, crew-sway 8s linear 2s infinite; }
+.crew-armed [data-swing][data-settled] .crew-badge { animation: crew-sway 8s linear infinite; }
+.crew-armed [data-swing][data-settled] .crew-badge.crew-nudge { animation: crew-nudge 1.5s ease-out, crew-sway 8s linear 1.5s infinite; }
+@keyframes crew-drop {
+  0% { transform: translateY(-130vh) rotate(0deg); animation-timing-function: cubic-bezier(.5, 0, .9, .5); }
+  38% { transform: translateY(0) rotate(0deg); animation-timing-function: cubic-bezier(.2, .7, .4, 1); }
+  50% { transform: translateY(-2.5%) rotate(2.2deg); animation-timing-function: ease-in-out; }
+  64% { transform: translateY(0) rotate(-1.5deg); animation-timing-function: ease-in-out; }
+  78% { transform: rotate(.8deg); animation-timing-function: ease-in-out; }
+  90% { transform: rotate(-.35deg); animation-timing-function: ease-in-out; }
+  100% { transform: rotate(0deg); }
+}
+@keyframes crew-sway { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(.45deg); } 75% { transform: rotate(-.45deg); } }
+@keyframes crew-nudge { 0% { transform: rotate(0deg); } 18% { transform: rotate(1.6deg); } 42% { transform: rotate(-1.1deg); } 66% { transform: rotate(.55deg); } 84% { transform: rotate(-.2deg); } 100% { transform: rotate(0deg); } }
+
+/* The characters: breathing, blinking, glancing, waving, and a hop when greeted. */
+.crew-armed .crew-body { animation: crew-breathe 3.6s ease-in-out infinite; }
+.crew-armed .crew-col:nth-child(2) .crew-body { animation-delay: -1.7s; }
+@keyframes crew-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.015, 1.035); } }
+.crew-blink { transition: transform .07s ease-in; }
+[data-blink] .crew-blink { transform: scaleY(.08); }
+.crew-pupil { transition: transform .28s cubic-bezier(.2, .8, .2, 1); }
+.crew-armed .crew-motion { opacity: 0; transition: opacity .25s; }
+.crew-armed [data-wave] .crew-motion { opacity: 1; }
+[data-wave] .crew-wave { animation: crew-wave 1.7s cubic-bezier(.45, 0, .3, 1); }
+@keyframes crew-wave { 0%, 100% { transform: rotate(0deg); } 14% { transform: rotate(-24deg); } 30% { transform: rotate(9deg); } 47% { transform: rotate(-21deg); } 64% { transform: rotate(7deg); } 81% { transform: rotate(-9deg); } }
+[data-wave] .crew-arm-rest { animation: crew-arm-rest 1.7s ease-in-out; }
+@keyframes crew-arm-rest { 0%, 100% { transform: rotate(0deg); } 35% { transform: rotate(6deg); } 70% { transform: rotate(-3deg); } }
+.crew-mouth { transition: transform .22s cubic-bezier(.3, 1.5, .5, 1); }
+[data-cheer] .crew-mouth, [data-wave] .crew-mouth { transform: scale(1.22); }
+[data-cheer] .crew-hop { animation: crew-hop .76s cubic-bezier(.3, .7, .4, 1); }
+[data-cheer] .crew-shadow { animation: crew-shadow .76s cubic-bezier(.3, .7, .4, 1); }
+@keyframes crew-hop {
+  0%, 100% { transform: none; }
+  14% { transform: scale(1.07, .88); }
+  44% { transform: translateY(-30px) scale(.95, 1.07); }
+  72% { transform: translateY(0) scale(1.06, .92); }
+  86% { transform: scale(.98, 1.03); }
+}
+@keyframes crew-shadow { 0%, 100% { transform: none; opacity: 1; } 44% { transform: scale(.6); opacity: .5; } }
+
+/* The receipt feeds out in bursts, as a thermal printer does, and the stamp lands last. */
+.crew-armed .zr:not([data-in]) .zr-paper { transform: translateY(-104%); }
+.crew-armed .zr[data-in] .zr-paper { animation: zr-print 2.6s linear both; }
+@keyframes zr-print {
+  0% { transform: translateY(-104%); }
+  16% { transform: translateY(-80%); }
+  24% { transform: translateY(-80%); }
+  44% { transform: translateY(-52%); }
+  52% { transform: translateY(-52%); }
+  74% { transform: translateY(-22%); }
+  82% { transform: translateY(-22%); }
+  100% { transform: translateY(0); }
+}
+.crew-armed .zr:not([data-in]) .zr-stamp { opacity: 0; }
+.crew-armed .zr[data-in] .zr-stamp { animation: zr-stamp .5s cubic-bezier(.3, 1.5, .5, 1) 2.7s both; }
+@keyframes zr-stamp { from { opacity: 0; transform: scale(1.9); } to { opacity: .92; transform: none; } }

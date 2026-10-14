@@ -4,8 +4,8 @@ export const SITE_URL = "https://get.madar-pos.cloud";
 /** The dashboard merchants log in to (the old landing build's VITE_DASHBOARD_URL). */
 export const DASHBOARD_URL = "https://madar-pos.cloud";
 
-/** Self-signup for the free plan (POS + reports). ponytail: placeholder path until the dashboard ships the signup route. */
-export const SIGNUP_URL = `${DASHBOARD_URL}/signup`;
+/** Self-signup for the Free plan, in the page's language (the dashboard reads `?lang=`). */
+export const signupHref = (lang: Lang): string => `${DASHBOARD_URL}/signup?lang=${lang}`;
 
 export const PHONE_DISPLAY = "+20 121 111 6899";
 export const PHONE_E164 = "+201211116899";
@@ -31,6 +31,12 @@ export const APPS = {
 export type AppKey = keyof typeof APPS;
 export const APP_KEYS = Object.keys(APPS) as AppKey[];
 /** An app is live once it is on at least one store. */
+/**
+ * Madar Cashier for Android until its Google Play listing is live: a direct, signed APK.
+ * Null shows "ask us on WhatsApp" instead of a download. When Play goes live, set
+ * APPS.cashier.googlePlay and set this back to null.
+ */
+export const CASHIER_APK_URL: string | null = null;
 export const isLive = (app: AppKey): boolean => Boolean(APPS[app].appStore || APPS[app].googlePlay);
 /** Every store listing, for the organisation's `sameAs`. */
 export const STORE_URLS: string[] = APP_KEYS.flatMap((k) => [APPS[k].appStore, APPS[k].googlePlay]).filter(
