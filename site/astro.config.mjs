@@ -167,6 +167,12 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      // Never inline a script: Astro inlines a page's script under 4 KB, and the CSP
+      // (script-src 'self') blocks inline scripts, so it would silently never run (the
+      // Free page's crew.ts, 2026-10-14). Everything else keeps Vite's default.
+      assetsInlineLimit: (file) => (/\.[cm]?js$/.test(file) ? false : undefined),
+    },
     resolve: {
       // Code shared with the dashboard (../shared): the family showcase's 3D engine.
       alias: { "@shared": fileURLToPath(new URL("../shared", import.meta.url)) },
