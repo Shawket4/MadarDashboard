@@ -24,4 +24,4 @@ export const LEGAL_URLS = {
  * server stores it with the org. Change it when `terms-of-service.html` changes
  * in a way owners must accept again.
  */
-export const TERMS_VERSION = "2026-10";
+export const TERMS_VERSION = "1.0";
