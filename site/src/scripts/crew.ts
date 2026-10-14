@@ -20,14 +20,15 @@ if (!reduce) {
       for (const e of entries) {
         if (e.isIntersecting) {
           onScreen.add(e.target);
-          // Into view once: the badge drops, the receipt prints.
-          if (e.target instanceof HTMLElement && e.target.hasAttribute("data-swing")) e.target.dataset.in = "";
+          // Into view once: the badge drops, a character pops up, the duties tick.
+          e.target.setAttribute("data-in", "");
         } else onScreen.delete(e.target);
       }
     },
     { rootMargin: "0px 0px -12% 0px" },
   );
-  for (const el of [...swings, ...figures]) io.observe(el);
+  const cols = Array.from(document.querySelectorAll<HTMLElement>(".crew-col"));
+  for (const el of [...swings, ...figures, ...cols]) io.observe(el);
 
   const rand = (a: number, b: number) => a + Math.random() * (b - a);
   const live = (f: Element) => onScreen.has(f) && !document.hidden;
@@ -124,20 +125,88 @@ if (!reduce) {
     window.setTimeout(glance, 2000);
   }
 
-  // A badge nudged with the pointer swings a little, as a hanging card would.
+  // A badge is a pendulum on its lanyard: a damped spring (degrees), kicked when the drop lands,
+  // by a breeze now and then, by a pointer passing over it, and held and flung by a finger or
+  // the mouse. The CSS only drops it in; from `data-settled` on, this owns its rotation.
+  const SWING_HZ = 0.42;
+  const K = (2 * Math.PI * SWING_HZ) ** 2;
+  const C = 1.1;
   for (const s of swings) {
-    const badge = s.querySelector(".crew-badge");
+    const badge = s.querySelector<HTMLElement>(".crew-badge");
     if (!badge) continue;
-    s.addEventListener("pointerenter", (e) => {
-      if ((e as PointerEvent).pointerType !== "mouse" || !s.hasAttribute("data-settled")) return;
-      badge.classList.remove("crew-nudge");
-      void (badge as HTMLElement).offsetWidth;
-      badge.classList.add("crew-nudge");
-    });
+    let a = 0; // angle
+    let v = 0; // degrees per second
+    let held = false;
+    let last = 0;
+    let raf = 0;
+    const tick = (now: number) => {
+      raf = 0;
+      const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
+      last = now;
+      if (!held) {
+        v += (-K * a - C * v) * dt;
+        a = Math.max(-40, Math.min(40, a + v * dt));
+      }
+      badge.style.transform = `rotate(${a.toFixed(3)}deg)`;
+      if (held || Math.abs(a) > 0.02 || Math.abs(v) > 0.05) raf = requestAnimationFrame(tick);
+      else badge.style.transform = "";
+    };
+    const kick = (dv: number) => {
+      v += dv;
+      if (!raf) {
+        last = performance.now();
+        raf = requestAnimationFrame(tick);
+      }
+    };
+    const settled = () => s.hasAttribute("data-settled");
     badge.addEventListener("animationend", (e) => {
-      const name = (e as AnimationEvent).animationName;
-      if (name === "crew-drop") s.setAttribute("data-settled", "");
-      if (name === "crew-nudge") badge.classList.remove("crew-nudge");
+      if ((e as AnimationEvent).animationName !== "crew-drop") return;
+      s.setAttribute("data-settled", "");
+      kick(rand(0, 1) < 0.5 ? 30 : -30); // the landing
+    });
+    // A breeze, only while it is on screen.
+    const breeze = () => {
+      if (settled() && live(s) && !held && Math.abs(a) < 1) kick(rand(14, 26) * (Math.random() < 0.5 ? -1 : 1));
+      window.setTimeout(breeze, rand(3200, 6000));
+    };
+    window.setTimeout(breeze, 4500);
+    s.addEventListener("pointerenter", (e) => {
+      if (e.pointerType === "mouse" && settled() && !held) kick(rand(30, 40) * (Math.random() < 0.5 ? -1 : 1));
+    });
+    // Hold it: the card follows the pointer around the lanyard's top; let go and it swings.
+    badge.addEventListener("pointerdown", (e) => {
+      if (!settled()) return;
+      held = true;
+      s.setAttribute("data-held", "");
+      badge.setPointerCapture(e.pointerId);
+      const r = badge.getBoundingClientRect();
+      // The pivot: the lanyard's top, straight above the card's centre.
+      const lanyard = parseFloat(getComputedStyle(s).getPropertyValue("--lanyard")) * parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const px = r.left + r.width / 2;
+      const py = r.top - lanyard;
+      let prev = a;
+      let prevT = performance.now();
+      const move = (m: PointerEvent) => {
+        const ang = (Math.atan2(m.clientX - px, m.clientY - py) * 180) / Math.PI;
+        a = Math.max(-38, Math.min(38, ang));
+        const t = performance.now();
+        v = ((a - prev) / Math.max(1, t - prevT)) * 1000;
+        prev = a;
+        prevT = t;
+      };
+      const up = () => {
+        held = false;
+        s.removeAttribute("data-held");
+        badge.removeEventListener("pointermove", move);
+        badge.removeEventListener("pointerup", up);
+        badge.removeEventListener("pointercancel", up);
+        v = Math.max(-110, Math.min(110, v));
+        kick(0);
+      };
+      badge.addEventListener("pointermove", move);
+      badge.addEventListener("pointerup", up);
+      badge.addEventListener("pointercancel", up);
+      kick(0);
     });
   }
 }
