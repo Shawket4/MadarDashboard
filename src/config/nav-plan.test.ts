@@ -20,14 +20,14 @@ describe("nav features", () => {
     for (const l of leaves) if (l.feature) expect(FEATURES, l.to).toContain(l.feature);
   });
 
-  it("a Free org loses floor, bookings, inventory, loyalty, Basira, kitchen setup and Dawam", () => {
+  it("a Free org loses bookings, inventory, loyalty, Basira, kitchen setup and Dawam", () => {
     const free = shown("free");
-    for (const p of ["/floor", "/bookings", "/inventory/today", "/inventory/ingredients", "/reports/loyalty", "/basira", "/branch-setup", "/staff/employees", "/menu/bases"]) {
+    for (const p of ["/bookings", "/inventory/today", "/inventory/ingredients", "/reports/loyalty", "/basira", "/branch-setup", "/staff/employees", "/menu/bases"]) {
       expect(free, p).not.toContain(p);
     }
   });
 
-  it("a Free org keeps selling, the menu, tills, discounts, reports and settings", () => {
+  it("a Free org keeps selling, the floor, the menu, tills, discounts, reports and settings", () => {
     const free = shown("free");
     for (const p of ["/", "/orders", "/tills", "/menu/items", "/discounts", "/reports/operations", "/settings", "/branches", "/devices"]) {
       expect(free, p).toContain(p);

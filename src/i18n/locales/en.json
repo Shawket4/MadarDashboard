@@ -441,7 +441,7 @@
     "sourceAdmin": "By Madar",
     "planHint": "Free is POS only: one branch, one till. Upgrading is done here.",
     "planSelfHint": "This shop signed up by itself.",
-    "planDowngradeHint": "Moving to Free keeps every record. Inventory, loyalty, online ordering, bookings, kitchen screens, floor, Dawam and branding switch off, and each branch keeps one active till.",
+    "planDowngradeHint": "Moving to Free keeps every record, and the floor plan and open tickets stay. Inventory, loyalty, online ordering, bookings, kitchen screens, Dawam and branding switch off, and each branch keeps one active till.",
     "overFreeTitle": "Over the Free plan's limits",
     "overFreeBranches": "{{branches}} branches; Free includes {{limit}}. It cannot add a branch.",
     "overFreeTills": "Tills switched off: {{tills}}. The owner chooses each branch's active till under Settings > Plan.",
