@@ -40,7 +40,7 @@ export const en = {
     free: {
       title: "Madar Free: a free café POS for Egypt, one till, for good",
       description:
-        "Madar Free gives your café a point of sale and sales reports on one till, for 0 EGP a month, for good. Sign up in two minutes: no card, no contract.",
+        "Madar Free gives your café a point of sale, sales reports and the floor (tables, floor plan, open tickets) on one till, for 0 EGP a month, for good. No card, no contract.",
     },
     developers: {
       title: "Madar POS developers: public API, OpenAPI and MCP server",

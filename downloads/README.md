@@ -20,6 +20,14 @@ npm run verify                             # EN/AR x 4 widths in Chrome (CHROME_
 npm run deploy                             # owner only: build + rsync dist/ to the box's site/ folder
 ```
 
+## Linking to a product: `?app=`
+
+`/?app=<id>` (and `/ar/?app=<id>`) centres that product's card and rings it (`.card.spotlight`,
+`src/scripts/live.ts`); no `app`, or an unknown id, changes nothing. Ids: `pos`, `kitchen`,
+`dawam`, `dashboard`, `dashboard-desktop`. Without JS, `#<id>` (the card's `id`) still scrolls
+to it. The marketing site links this way (`downloadsHref` in `site/src/lib/site.ts`); it is
+re-applied after a live refresh, and reduced motion jumps instead of scrolling smoothly.
+
 ## How it fits together (no Node on the box)
 
 ```

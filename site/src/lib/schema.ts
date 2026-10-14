@@ -76,6 +76,32 @@ export function softwareApplication(lang: Lang, page: PageKey) {
   };
 }
 
+/** The Free plan: Madar POS at 0 EGP a month, for good (the Free page). */
+export function freeApplication(lang: Lang) {
+  const c = t(lang);
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Madar Free",
+    alternateName: "مدار المجاني",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "iPadOS, Android, Web",
+    url: absoluteUrl(pageHref(lang, "free")),
+    inLanguage: lang,
+    description: c.meta.free.description,
+    isAccessibleForFree: true,
+    publisher: { "@id": ORG_ID },
+    offers: {
+      "@type": "Offer",
+      name: "Madar Free",
+      price: 0,
+      priceCurrency: "EGP",
+      availability: "https://schema.org/InStock",
+      url: absoluteUrl(pageHref(lang, "free")),
+    },
+  };
+}
+
 /** Home → this page, in the page's language. */
 export function breadcrumbs(lang: Lang, page: Exclude<PageKey, "home">) {
   const c = t(lang);

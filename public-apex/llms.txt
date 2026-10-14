@@ -15,6 +15,7 @@ The product is described in full, in English and Arabic, at https://get.madar-po
 - [Madar POS website, llms.txt](https://get.madar-pos.cloud/llms.txt): every page of the website, in English and Arabic, as Markdown.
 - [Madar POS, English](https://get.madar-pos.cloud/en/)
 - [مدار، بالعربية](https://get.madar-pos.cloud/ar/)
+- [Madar Free](https://get.madar-pos.cloud/free/): the free plan, one till and the floor, 0 EGP a month.
 - [Pricing](https://get.madar-pos.cloud/en/pricing/): two plans per branch, from 3,000 EGP a month.
 
 ## Legal
