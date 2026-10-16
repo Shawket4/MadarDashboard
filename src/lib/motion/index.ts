@@ -10,6 +10,7 @@ export * from "./tokens";
 export * as recipes from "./recipes";
 export type { Recipe } from "./recipes";
 export { useReducedMotion, useMotionCondition, prefersReducedMotion } from "./media";
+export { playIn, enter, leave, ENTER_PATIENCE_MS } from "./engine";
 export {
   useGsap,
   useReveal,
@@ -22,7 +23,6 @@ export {
   useShake,
   usePop,
   useChangeSignal,
-  playIn,
   type RevealOptions,
   type StaggerOptions,
   type CountUpOptions,

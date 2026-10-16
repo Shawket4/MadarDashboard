@@ -8,6 +8,7 @@ import { constants as zlibConstants } from "node:zlib";
 import { readFileSync, readdirSync } from "node:fs";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
+import { preloadMotion } from "./vite/preload-motion";
 import { zodJitless } from "./vite/zod-jitless";
 import { isDemo, pageHead } from "./vite/page-head";
 
@@ -52,6 +53,8 @@ export default defineConfig({
   plugins: [
     // `public/` is copied verbatim, so a README beside an asset ships with it.
     noDocsInTheBundle(),
+    // GSAP downloads with the HTML (still a lazy chunk): motion is ready at once.
+    preloadMotion(),
     zodJitless(),
     // index.html's title, description and canonical: the dashboard's, or the
     // demo's when VITE_DEMO=1 builds the same file for demo.madar-pos.cloud.
