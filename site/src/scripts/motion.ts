@@ -511,6 +511,9 @@ async function start() {
   if (has("[data-beams]")) void import("./beams").then((m) => m.drawBeams(true));
   smoothScroll();
   anchorLinks();
+  // A # address's arrival (CSS, ":target" in styles/motion.css) has played by now: retire it
+  // before the pins wrap their sections, or moving them would play it over again.
+  root.removeAttribute("data-arrive");
 
   // The scenes' pins first, in page order: every trigger after them measures the page with
   // the pins' extra scroll length in place. Then land on a # address before anything below
