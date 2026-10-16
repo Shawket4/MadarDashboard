@@ -25,7 +25,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
-import { AlertCircle, ArrowRight, Loader2, UserRound } from "lucide-react";
+import { AlertCircle, ArrowRight, UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,7 @@ import { RewardsList } from "./rewards-list";
 import { SocialLinks } from "./social-links";
 import { usePassDownload } from "./use-pass-download";
 import { WalletButtons } from "./wallet-buttons";
+import { Spinner } from "@/components/ui/spinner";
 
 export function JoinPage({
   branchId,
@@ -282,7 +283,7 @@ function Form({
         ) : null}
         {join.isPending ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
-            <Loader2 className="size-4 animate-spin" aria-hidden />
+            <Spinner />
             {t("loyalty.creating", "Making your card…")}
           </p>
         ) : null}

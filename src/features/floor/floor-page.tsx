@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   AlignHorizontalJustifyCenter, AlignVerticalJustifyCenter, Armchair, Check,
-  ChevronDown, CloudOff, Copy, Loader2, Lock, LockOpen, Maximize2, Minus, Pencil,
+  ChevronDown, CloudOff, Copy, Lock, LockOpen, Maximize2, Minus, Pencil,
   Plus, Redo2, Trash2, Undo2,
 } from "lucide-react";
 
@@ -60,6 +60,7 @@ import {
   ZOOM_STEP, alignItems, distributeItems, invalidateFloor, isHeldNow, needsClearing,
   parseClipboard, serializeTables, snapTo, uniqueLabel, type Alignment, type GeoItem,
 } from "./util";
+import { Spinner } from "@/components/ui/spinner";
 
 const UNASSIGNED = "__unassigned__";
 /** How far a pasted copy sits from where it was dropped, so it is visibly new. */
@@ -721,7 +722,7 @@ function SectionChip({
       onClick={onClick}
       aria-current={active ? "true" : undefined}
       className={cn(
-        "h-8 rounded-full border px-3 text-sm font-medium transition-colors duration-fast motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        "h-8 rounded-full border px-3 text-sm font-medium transition-colors duration-fast focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
@@ -767,7 +768,7 @@ function SaveIndicator({ state, editable }: { state: SaveState; editable: boolea
   useShake(ref, (state === "error" || state === "conflict") && changed);
   if (!editable || state === "idle") return null;
 
-  const spinner = <Loader2 className="size-3 animate-spin" />;
+  const spinner = <Spinner className="size-3" />;
   const map: Record<Exclude<SaveState, "idle">, { icon: React.ReactNode; text: string; tone: string }> = {
     pending: { icon: spinner, text: t("floor.saving", "Saving…"), tone: "text-muted-foreground" },
     saving: { icon: spinner, text: t("floor.saving", "Saving…"), tone: "text-muted-foreground" },

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Loader2, Sun } from "lucide-react";
+import { Sun } from "lucide-react";
 import { toast } from "sonner";
 
 import { ErrorState } from "@/components/app/empty-state";
@@ -17,6 +17,7 @@ import type { ScheduleAssignment, WorkShift } from "@/data/api/generated/models"
 import { getErrorMessage } from "@/data/api/errors";
 import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { invalidateStaff, WEEKDAYS } from "./util";
+import { Spinner } from "@/components/ui/spinner";
 
 /** Saturday first, as every other week view in Dawam reads (Egypt). */
 const WEEK_COLUMNS = [6, 0, 1, 2, 3, 4, 5].map((v) => WEEKDAYS.find((d) => d.value === v)!);
@@ -222,7 +223,7 @@ function Cell({
             type="button"
             disabled={busy}
             className={[
-              "h-8 w-full truncate rounded-md border px-2 text-xs transition-colors duration-fast motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+              "h-8 w-full truncate rounded-md border px-2 text-xs transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
               "hover:bg-accent hover:text-accent-foreground",
               assignment
                 ? "border-transparent bg-secondary font-medium text-foreground"
@@ -232,7 +233,7 @@ function Cell({
             ].join(" ")}
           >
             {busy ? (
-              <Loader2 className="mx-auto size-3.5 animate-spin" />
+              <Spinner className="mx-auto size-3.5" />
             ) : (
               effective?.work_shift_name ?? t("staff.restDay", "Rest")
             )}

@@ -19,7 +19,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Loader2, Lock, QrCode } from "lucide-react";
+import { Lock, QrCode } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,6 +29,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { QrPreviewDialog } from "@/features/qr/qr-preview-dialog";
 
 import type { ProgramScope } from "./use-program";
+import { Spinner } from "@/components/ui/spinner";
 
 export function SignUpCode({
   scope,
@@ -92,7 +93,7 @@ export function SignUpCode({
           onClick={() => void show()}
           disabled={busy || !scope.orgId}
         >
-          {busy ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
+          {busy ? <Spinner /> : <QrCode className="size-4" />}
           {scope.branchId
             ? t("loyalty.counterQr", "Counter code")
             : t("loyalty.orgQr", "Sign-up code")}

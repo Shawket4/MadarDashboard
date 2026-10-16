@@ -133,7 +133,7 @@ export function SectionTabBar({ tabs }: { tabs: SectionTab[] }) {
               aria-current={active ? "page" : undefined}
               data-active={tab.to === underlined || undefined}
               className={cn(
-                "inline-flex h-10 shrink-0 items-center px-3 text-sm font-medium whitespace-nowrap transition-colors duration-base first:ps-0 motion-reduce:transition-none",
+                "inline-flex h-10 shrink-0 items-center px-3 text-sm font-medium whitespace-nowrap transition-colors duration-base first:ps-0",
                 "focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
                 active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
               )}

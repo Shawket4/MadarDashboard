@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
-import { Loader2, LocateFixed, MapPin, Search, X } from "lucide-react";
+import { LocateFixed, MapPin, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import "leaflet/dist/leaflet.css";
 import markerIconUrl from "leaflet/dist/images/marker-icon.png";
 import markerIcon2xUrl from "leaflet/dist/images/marker-icon-2x.png";
 import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
+import { Spinner } from "@/components/ui/spinner";
 
 // Bundler fix for Leaflet's default icon (paths break under Vite). Applied once.
 L.Icon.Default.mergeOptions({
@@ -176,7 +177,7 @@ function MapSearch({ onPick }: { onPick: (p: LatLng) => void }) {
           className="h-10 rounded-full border-border/70 bg-background/95 ps-9 pe-9 shadow-lg backdrop-blur"
         />
         {loading ? (
-          <Loader2 className="absolute end-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+          <Spinner className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         ) : (
           q.length > 0 && (
             <button

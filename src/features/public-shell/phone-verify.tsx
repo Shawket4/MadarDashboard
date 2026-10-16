@@ -10,7 +10,7 @@
  */
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertCircle, Loader2, Phone, ShieldCheck } from "lucide-react";
+import { AlertCircle, Phone, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 import { OtpCodeInput } from "./otp-code-input";
 import { usePhoneOtp, type PhoneOtp, type PhoneOtpOptions } from "./use-phone-otp";
+import { Spinner } from "@/components/ui/spinner";
 
 export interface PhoneVerifyCopy {
   /** Heading of the phone card. */
@@ -80,13 +81,13 @@ export function PhoneVerifyView({ otp, copy, busy = false, disabled = false, sub
         ) : null}
         {loading ? (
           <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" />
+            <Spinner />
             {t("common.loading", "Loading…")}
           </p>
         ) : null}
         <div className="flex items-center justify-center gap-4 text-sm">
           <Button variant="link" size="sm" className="h-auto p-0 text-brand" disabled={otp.sending} onClick={() => void otp.resend()}>
-            {otp.sending ? <Loader2 className="size-3 animate-spin" /> : null}
+            {otp.sending ? <Spinner className="size-3" /> : null}
             {t("order.otp.resend", "Resend code")}
           </Button>
           <span className="text-muted-foreground/60">·</span>

@@ -82,7 +82,7 @@ export function AddonRecipeDialog({ orgId, addon, open, onOpenChange }: Props) {
         {open && addon ? (
           ingredients.isLoading ? (
             <div className="grid place-items-center py-10">
-              <Spinner />
+              <Spinner className="text-muted-foreground" />
             </div>
           ) : (
             <RecipeBuilder

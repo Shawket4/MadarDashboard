@@ -42,7 +42,7 @@ export function ProgressBar({ value, max = 100, ariaLabel, accent = "primary", c
           the track clips it), so its leading cap stays round at any value. */}
       <div
         className={cn(
-          "h-full rounded-full transition-transform duration-slow ease-out motion-reduce:transition-none ltr:-translate-x-(--unfilled) rtl:translate-x-(--unfilled)",
+          "h-full rounded-full transition-transform duration-slow ease-out ltr:-translate-x-(--unfilled) rtl:translate-x-(--unfilled)",
           accentFill[accent],
         )}
         style={{ "--unfilled": `${100 - pct}%` } as CSSProperties}

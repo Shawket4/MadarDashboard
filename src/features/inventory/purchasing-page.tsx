@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { Page, PageHeader } from "@/components/app/page";
 import { SectionHeader } from "@/components/app/section-header";
 import { StatusPill } from "@/components/app/status-pill";
-import { PopOnChange } from "@/components/app/pop-on-change";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
@@ -152,11 +151,9 @@ export function PurchasingPage() {
       header: t("inventory.purchasing.status", "Status"),
       meta: { label: t("inventory.purchasing.status", "Status") },
       cell: ({ row }) => (
-        <PopOnChange value={row.original.status}>
-          <StatusPill tone={PO_STATUS_TONES[row.original.status] ?? "neutral"}>
-            {t(`inventory.purchasing.statuses.${row.original.status}`, row.original.status)}
-          </StatusPill>
-        </PopOnChange>
+        <StatusPill popOn={row.original.status} tone={PO_STATUS_TONES[row.original.status] ?? "neutral"}>
+          {t(`inventory.purchasing.statuses.${row.original.status}`, row.original.status)}
+        </StatusPill>
       ),
     },
     {

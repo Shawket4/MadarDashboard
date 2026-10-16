@@ -35,7 +35,7 @@ export function SuggestionCard({ title, subtitle, tags = [], content, onAccept, 
   const decided = !!decision;
 
   return (
-    <Card className={cn("shadow-none transition-opacity duration-base motion-reduce:transition-none", decided && "opacity-70", className)}>
+    <Card className={cn("shadow-none transition-opacity duration-base", decided && "opacity-70", className)}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1">

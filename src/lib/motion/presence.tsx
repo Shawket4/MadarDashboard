@@ -86,6 +86,8 @@ export function usePresence(show: boolean, parts: PresencePart[], { initial = tr
  * Show or hide one child with an enter and exit. The child must accept a ref
  * (a DOM element or a component that forwards one).
  *   <Presence show={open}><div>…</div></Presence>
+ * While it leaves it keeps showing what it last showed: an alert counting
+ * "3 bookings without a table" does not fade out reading "0".
  */
 export function Presence({
   show,
@@ -103,9 +105,16 @@ export function Presence({
   const setRef = useCallback((node: HTMLElement | null) => {
     ref.current = node;
   }, []);
+  // The last content shown, kept from the last commit with `show` on.
+  const kept = useRef(children);
+  useIsoLayoutEffect(() => {
+    if (show) kept.current = children;
+  });
+  // eslint-disable-next-line react-hooks/refs
+  const shown = show ? children : kept.current;
   // The ref callback runs at commit, not during render.
   // eslint-disable-next-line react-hooks/refs
-  return mounted ? cloneElement(children, { ref: setRef }) : null;
+  return mounted ? cloneElement(shown, { ref: setRef }) : null;
 }
 
 /**

@@ -79,6 +79,7 @@ vi.mock("@/data/api/generated/api", () => ({
 vi.mock("@/data/api/custom-instance", () => ({ customInstance: vi.fn() }));
 
 await import("@/i18n");
+await (await import("@/lib/motion/gsap")).loadGsap();
 const { MenuItemDialog } = await import("./menu-item-dialog");
 
 function wrap() {

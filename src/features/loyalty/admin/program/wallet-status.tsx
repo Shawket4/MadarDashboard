@@ -12,12 +12,13 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertCircle, CheckCircle2, Loader2, Wallet } from "lucide-react";
+import { AlertCircle, CheckCircle2, Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { getLoyaltyWalletStatus } from "@/data/api/generated/api";
 import type { WalletProvider, WalletStatus } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { Spinner } from "@/components/ui/spinner";
 
 function Provider({ name, p }: { name: string; p: WalletProvider }) {
   const { t } = useTranslation();
@@ -101,7 +102,7 @@ export function WalletStatusPanel({ branchId }: { branchId: string | null }) {
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={run} disabled={busy}>
-          {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+          {busy ? <Spinner /> : null}
           {t("loyalty.walletCheck", "Check")}
         </Button>
       </div>

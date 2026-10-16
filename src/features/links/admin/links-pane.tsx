@@ -24,7 +24,6 @@ import {
   Copy,
   ExternalLink,
   Link2,
-  Loader2,
   Plus,
   QrCode,
   Trash2,
@@ -63,6 +62,7 @@ import {
 import { PaneHeader } from "@/features/settings/pane-header";
 import { QrPreviewDialog } from "@/features/qr/qr-preview-dialog";
 import { LinksPage } from "@/features/links/public/links-page";
+import { Spinner } from "@/components/ui/spinner";
 
 const MAX_TAGLINE = 160;
 const MAX_TITLE = 60;
@@ -257,7 +257,7 @@ function LinksEditor({
         )}
         actions={
           <Button ref={saveRef} onClick={() => void save()} disabled={put.isPending}>
-            {put.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+            {put.isPending ? <Spinner /> : null}
             {t("common.save", "Save")}
           </Button>
         }
@@ -295,7 +295,7 @@ function LinksEditor({
                         {t("links.editor.copy", "Copy")}
                       </Button>
                       <Button type="button" variant="outline" onClick={() => void showQr()} disabled={qrBusy}>
-                        {qrBusy ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
+                        {qrBusy ? <Spinner /> : <QrCode className="size-4" />}
                         {t("links.editor.qr", "QR code")}
                       </Button>
                       <Button type="button" variant="outline" asChild>

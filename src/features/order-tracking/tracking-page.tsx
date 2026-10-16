@@ -7,7 +7,6 @@ import {
   Check,
   ChefHat,
   Clock,
-  Loader2,
   MapPin,
   PackageCheck,
   ShoppingBag,
@@ -27,6 +26,7 @@ import { successBadge, useGrowSignal } from "@/features/public-shell/motion";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
+import { Spinner } from "@/components/ui/spinner";
 
 interface OrderTrackingPageProps {
   id: string;
@@ -85,7 +85,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
     return (
       <StorefrontShell brand={brand} product="ordering">
         <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground" role="status">
-          <Loader2 className="size-6 animate-spin motion-reduce:animate-none" />
+          <Spinner className="size-6" />
           <p className="text-sm">{t("order.track.loading", "Loading your order…")}</p>
         </div>
       </StorefrontShell>

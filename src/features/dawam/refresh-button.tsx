@@ -5,11 +5,12 @@
  */
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
+
+import { Spinner } from "@/components/ui/spinner";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { DAWAM_KEY_PREFIX, dawamFilters } from "./live";
 
 const DAWAM_ONLY = [DAWAM_KEY_PREFIX] as const;
@@ -48,10 +49,7 @@ export function DawamRefreshButton({
             onClick={refresh}
             className={className}
           >
-            <RefreshCw
-              aria-hidden
-              className={cn("size-4", busy && "animate-spin motion-reduce:animate-none motion-reduce:opacity-50")}
-            />
+            <Spinner icon={RefreshCw} spinning={busy} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>{label}</TooltipContent>

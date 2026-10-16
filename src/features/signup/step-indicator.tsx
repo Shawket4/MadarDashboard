@@ -30,7 +30,7 @@ export function StepIndicator({ step }: { step: SignupStep }) {
               <span
                 aria-hidden
                 className={cn(
-                  "grid size-7 shrink-0 place-items-center rounded-full border text-xs font-semibold tabular-nums transition-colors motion-reduce:transition-none",
+                  "grid size-7 shrink-0 place-items-center rounded-full border text-xs font-semibold tabular-nums transition-colors",
                   done && "border-brand bg-brand text-brand-foreground",
                   current && "border-brand bg-brand/10 text-brand ring-4 ring-brand/10",
                   !done && !current && "border-border bg-card text-muted-foreground",
@@ -47,7 +47,7 @@ export function StepIndicator({ step }: { step: SignupStep }) {
               </span>
             </span>
             {i < SIGNUP_STEPS.length - 1 ? (
-              <span aria-hidden className={cn("mx-3 h-px min-w-3 flex-1 transition-colors motion-reduce:transition-none", done ? "bg-brand" : "bg-border")} />
+              <span aria-hidden className={cn("mx-3 h-px min-w-3 flex-1 transition-colors", done ? "bg-brand" : "bg-border")} />
             ) : null}
           </li>
         );

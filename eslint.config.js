@@ -18,6 +18,25 @@ const motionPaths = [
   { name: 'framer-motion', message: OLD_MSG },
   { name: 'tw-animate-css', message: OLD_MSG },
 ]
+// One component per job, so no page skips the motion or rolls its own:
+// overlays only through components/ui (their roots carry the enter and exit),
+// vaul only through components/ui/drawer, and sonner's Toaster only in the two
+// toaster components. Those files get `motionPaths` alone (blocks below).
+const OVERLAY_MSG = 'Use the wrapper in @/components/ui (dialog, alert-dialog, popover, dropdown-menu, select, tooltip): it carries the motion.'
+const uiPaths = [
+  { name: 'radix-ui', importNames: ['Dialog', 'AlertDialog', 'Popover', 'DropdownMenu', 'Select', 'Tooltip', 'HoverCard', 'ContextMenu', 'Menubar'], message: OVERLAY_MSG },
+  ...['dialog', 'alert-dialog', 'popover', 'dropdown-menu', 'select', 'tooltip', 'hover-card', 'context-menu', 'menubar'].map((p) => ({
+    name: `@radix-ui/react-${p}`,
+    message: OVERLAY_MSG,
+  })),
+  { name: 'vaul', message: 'Use @/components/ui/drawer: vaul is used through that one component.' },
+  {
+    name: 'sonner',
+    importNames: ['Toaster'],
+    message: 'Mount <Toaster> from @/components/ui/sonner (dashboard) or <PublicToaster> (public bundles); call toast() from sonner anywhere.',
+  },
+]
+const appPaths = [...motionPaths, ...uiPaths]
 // A slash in the middle anchors these to the package, never to @/lib/motion.
 const motionImports = [
   { group: ['gsap/*'], message: GSAP_MSG },
@@ -84,6 +103,13 @@ export default [
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/lib/motion/**'],
     rules: {
+      'no-restricted-imports': ['error', { paths: appPaths, patterns: motionImports }],
+    },
+  },
+  // The wrappers themselves.
+  {
+    files: ['src/components/ui/**', 'src/features/public-shell/public-toaster.tsx'],
+    rules: {
       'no-restricted-imports': ['error', { paths: motionPaths, patterns: motionImports }],
     },
   },
@@ -98,7 +124,7 @@ export default [
       'no-restricted-imports': [
         'error',
         {
-          paths: motionPaths,
+          paths: appPaths,
           patterns: [
             ...motionImports,
             {
@@ -117,7 +143,7 @@ export default [
       'no-restricted-imports': [
         'error',
         {
-          paths: motionPaths,
+          paths: appPaths,
           patterns: [
             ...motionImports,
             {

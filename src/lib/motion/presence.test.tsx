@@ -54,6 +54,23 @@ describe("motion with GSAP", () => {
     await waitFor(() => expect(screen.queryByText("sheet")).toBeNull());
   });
 
+  it("keeps showing its last content while it leaves", async () => {
+    const quick = fade(40);
+    const { rerender } = render(
+      <Presence show recipe={quick}>
+        <p>3 bookings</p>
+      </Presence>,
+    );
+    rerender(
+      <Presence show={false} recipe={quick}>
+        <p>0 bookings</p>
+      </Presence>,
+    );
+    expect(screen.getByText("3 bookings")).toBeInTheDocument();
+    expect(screen.queryByText("0 bookings")).toBeNull();
+    await waitFor(() => expect(screen.queryByText("3 bookings")).toBeNull());
+  });
+
   it("reopening mid-exit keeps it and settles fully visible", async () => {
     const slow = fade(400);
     const { rerender } = render(

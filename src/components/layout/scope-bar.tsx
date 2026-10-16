@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "@tanstack/react-router";
-import { Loader2, SlidersHorizontal, Store, Warehouse } from "lucide-react";
+import { SlidersHorizontal, Store, Warehouse } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -23,6 +23,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { OrgPicker } from "./org-picker";
 import { SCOPE_PRESETS, type ScopePreset } from "@/data/scope/presets";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 const ALL_BRANCHES = "__all__";
 
@@ -101,7 +102,7 @@ function ScopeControls({ className }: { className?: string }) {
           className="flex h-8 w-auto min-w-32 items-center gap-2 rounded-md border bg-card px-3 text-sm text-muted-foreground"
           aria-busy="true"
         >
-          <Loader2 className="size-4 animate-spin" />
+          <Spinner />
           <span>{t("common.loading", "Loading…")}</span>
         </div>
       ) : canPickBranch ? (

@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { LucideIcon } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Building2,
   CalendarCheck,
@@ -387,7 +388,7 @@ export function QrPage() {
         className="self-start"
       >
         {busy ? (
-          <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
+          <Spinner icon={RefreshCw} />
         ) : (
           <QrCode className="size-4" />
         )}
@@ -457,7 +458,7 @@ export function QrPage() {
                   </div>
                   <Button type="submit" disabled={!available || busy} className="self-start">
                     {busy ? (
-                      <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
+                      <Spinner icon={RefreshCw} />
                     ) : (
                       <QrCode className="size-4" />
                     )}

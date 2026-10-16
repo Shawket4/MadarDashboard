@@ -148,7 +148,7 @@ export function DateRangeField({
             return (
               <button key={k} type="button" disabled={disabled} aria-pressed={on} onClick={() => onChange(r)}
                 className={cn(
-                  "h-7 rounded-full border px-2.5 text-xs transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50",
+                  "h-7 rounded-full border px-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50",
                   on ? "border-primary bg-primary/8 font-medium text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 )}>
                 {names[k]}

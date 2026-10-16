@@ -34,7 +34,6 @@ import {
   ArrowUp,
   ChevronDown,
   Clock3,
-  Loader2,
   MessageSquare,
   MessageSquarePlus,
   RefreshCw,
@@ -66,6 +65,7 @@ import { ResultView, ScopeBadge } from "./result-block";
 import { ConversationList } from "./conversation-list";
 import { blocksFromStoredTurn } from "./history";
 import type { ChatFrame, ConversationSummary, Exchange, ResultBlock } from "./types";
+import { Spinner } from "@/components/ui/spinner";
 
 /**
  * Questions offered on an empty conversation. Deliberately specific: a vague
@@ -400,7 +400,7 @@ export function BasiraPage() {
                 className="size-11 shrink-0 rounded-full"
                 disabled={busy || !question.trim()}
               >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
+                {busy ? <Spinner /> : <ArrowUp className="size-4" />}
                 <span className="sr-only">{t("basira.send", "Send")}</span>
               </Button>
             </form>
@@ -494,7 +494,7 @@ function Welcome({ onPick }: { onPick: (q: string) => void }) {
               key={s.key}
               type="button"
               onClick={() => onPick(label)}
-              className="rounded-xl border bg-card px-3.5 py-3 text-start text-sm leading-snug text-foreground transition-colors duration-base hover:bg-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+              className="rounded-xl border bg-card px-3.5 py-3 text-start text-sm leading-snug text-foreground transition-colors duration-base hover:bg-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
               {label}
             </button>
@@ -593,7 +593,7 @@ function Working({ step, querying }: { step?: number; querying?: string }) {
       : t("basira.thinking", "Working on it…");
   return (
     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-      <Loader2 className="size-3.5 animate-spin" />
+      <Spinner className="size-3.5" />
       <span>{label}</span>
     </div>
   );
@@ -628,7 +628,7 @@ function BlockCard({ block, stale, live }: { block: ResultBlock; stale?: boolean
             onClick={() => setOpen((v) => !v)}
             className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ChevronDown aria-hidden className={cn("size-3 transition-transform duration-base motion-reduce:transition-none", open && "rotate-180")} />
+            <ChevronDown aria-hidden className={cn("size-3 transition-transform duration-base", open && "rotate-180")} />
             {t("basira.provenance", "What was queried")}
           </button>
           {open ? <Provenance block={block} stale={stale} /> : null}

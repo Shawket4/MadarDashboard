@@ -517,7 +517,7 @@ export function DataTable<TData, TValue>({
                           }
                           tabIndex={onRowClick ? 0 : undefined}
                           className={cn(
-                            "group/row transition-colors duration-fast motion-reduce:transition-none",
+                            "group/row transition-colors duration-fast",
                             "[&>td]:border-b [&:last-child>td]:border-b-0",
                             isOpen && "[&>td]:border-b-0",
                             onRowClick &&
@@ -575,7 +575,7 @@ export function DataTable<TData, TValue>({
                                   <ChevronDown
                                     aria-hidden
                                     className={cn(
-                                      "transition-transform duration-base motion-reduce:transition-none",
+                                      "transition-transform duration-base",
                                       isOpen && "rotate-180",
                                     )}
                                   />

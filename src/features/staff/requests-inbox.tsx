@@ -20,7 +20,6 @@ import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import { useListFilters } from "@/data/scope/use-list-filters";
 import { requestsSearch } from "./search";
 import { StatusPill } from "@/components/app/status-pill";
-import { PopOnChange } from "@/components/app/pop-on-change";
 import { RowAction } from "@/features/users/row-action";
 import { fmtDate, fmtTime, fmtWireTime } from "@/lib/format";
 import { useAuthz } from "@/data/authz/use-authz";
@@ -342,11 +341,9 @@ export function RequestsInboxPage() {
                   </>}
                   trailing={
                     <>
-                      <PopOnChange value={r.status}>
-                        <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
-                          {t(`staff.req_${r.status}`, r.status)}
-                        </StatusPill>
-                      </PopOnChange>
+                      <StatusPill popOn={r.status} tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
+                        {t(`staff.req_${r.status}`, r.status)}
+                      </StatusPill>
                       {mayDecide(r, own) ? (
                         <>
                           {r.month_closed ? null : (

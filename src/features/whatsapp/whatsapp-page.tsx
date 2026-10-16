@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
@@ -10,6 +9,7 @@ import {
   RefreshCw,
   Smartphone,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
 import { PaneHeader } from "@/features/settings/pane-header";
@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { getErrorMessage } from "@/data/api/errors";
-import { Reveal, useChangeSignal, usePop } from "@/lib/motion";
+import { Reveal } from "@/lib/motion";
 import { queryClient } from "@/data/api/query";
 import {
   getWhatsappStatusQueryKey,
@@ -113,7 +113,7 @@ export function WhatsappPage() {
             onClick={() => void statusQuery.refetch()}
             disabled={statusQuery.isFetching}
           >
-            <RefreshCw className={statusQuery.isFetching ? "size-4 animate-spin" : "size-4"} />
+            <Spinner icon={RefreshCw} spinning={statusQuery.isFetching} />
             {t("common.refresh", "Refresh")}
           </Button>
         }
@@ -261,50 +261,35 @@ export function WhatsappPage() {
 // ── helpers ────────────────────────────────────────────────────
 
 function StatusBadge({
+  status,
+  loading,
   stateKey,
-  ...props
+  t,
 }: {
   status: WhatsappStatus | undefined;
   loading: boolean;
   stateKey: string | null;
   t: (key: string, fallback: string) => string;
 }) {
-  // The phone scanning the code lands here first: the pill settles into "Connected".
-  const ref = useRef<HTMLSpanElement>(null);
-  usePop(ref, useChangeSignal(stateKey));
-  return (
-    <span ref={ref} className="inline-flex">
-      <StatusPillFor {...props} />
-    </span>
-  );
-}
-
-function StatusPillFor({
-  status,
-  loading,
-  t,
-}: {
-  status: WhatsappStatus | undefined;
-  loading: boolean;
-  t: (key: string, fallback: string) => string;
-}) {
+  // The phone scanning the code lands here first: the pill settles into
+  // "Connected". Every branch is the same StatusPill, so it keeps its state.
   if (loading || !status) {
     return (
-      <StatusPill tone="neutral">{t("whatsapp.checking", "Checking…")}</StatusPill>
+      <StatusPill popOn={stateKey} tone="neutral">{t("whatsapp.checking", "Checking…")}</StatusPill>
     );
   }
   if (!status.configured || !status.reachable) {
     return (
-      <StatusPill tone="warning">{t("whatsapp.offline", "Offline")}</StatusPill>
+      <StatusPill popOn={stateKey} tone="warning">{t("whatsapp.offline", "Offline")}</StatusPill>
     );
   }
   if (status.logged_in) {
     return (
-      <StatusPill tone="success">{t("whatsapp.connected", "Connected")}</StatusPill>
+      <StatusPill popOn={stateKey} tone="success">{t("whatsapp.connected", "Connected")}</StatusPill>
     );
   }
   return (
-    <StatusPill tone="accent" icon={QrCode}>{t("whatsapp.awaitingScan", "Awaiting scan")}</StatusPill>
+    <StatusPill popOn={stateKey} tone="accent" icon={QrCode}>{t("whatsapp.awaitingScan", "Awaiting scan")}</StatusPill>
   );
 }
 

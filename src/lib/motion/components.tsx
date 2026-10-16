@@ -1,4 +1,4 @@
-import { useRef, type ComponentProps, type ReactNode } from "react";
+import { createContext, useContext, useRef, type ComponentProps, type ReactNode } from "react";
 import { Slot } from "radix-ui";
 
 import { useCountUp, useReveal, useStagger, type CountUpOptions, type RevealOptions, type StaggerOptions } from "./hooks";
@@ -7,6 +7,13 @@ import { fade } from "./recipes";
 import { DURATION } from "./tokens";
 
 type DivProps = Omit<ComponentProps<"div">, "ref">;
+
+/**
+ * True inside something that already brings its content in (a Stagger, a
+ * Reveal, a ChartEntrance), so a chart card placed in one does not arrive a
+ * second time on its own.
+ */
+const Arriving = createContext(false);
 
 /**
  * Rise into place on mount (or when `when` turns true). `asChild` puts the
@@ -25,7 +32,11 @@ export function Reveal({
   const ref = useRef<HTMLDivElement>(null);
   useReveal(ref, { register, recipe, delay, when, replayKey, scroll });
   const Comp = asChild ? Slot.Root : "div";
-  return <Comp ref={ref} {...props} />;
+  return (
+    <Arriving.Provider value>
+      <Comp ref={ref} {...props} />
+    </Arriving.Provider>
+  );
 }
 
 /** Bring the children in one after another (only those on screen, capped). */
@@ -42,7 +53,11 @@ export function Stagger({
   const ref = useRef<HTMLDivElement>(null);
   useStagger(ref, { register, recipe, selector, when, replayKey, delay });
   const Comp = asChild ? Slot.Root : "div";
-  return <Comp ref={ref} {...props} />;
+  return (
+    <Arriving.Provider value>
+      <Comp ref={ref} {...props} />
+    </Arriving.Provider>
+  );
 }
 
 interface NumberProps extends Omit<ComponentProps<"span">, "ref" | "children"> {
@@ -88,10 +103,27 @@ export function useChartMotion() {
   return { isAnimationActive: !reduced, animationDuration: DURATION.count, animationEasing: "ease-out" as const };
 }
 
-/** A chart card's entrance: the frame fades up while Recharts draws the series. */
-export function ChartEntrance({ className, children, when }: { className?: string; children: ReactNode; when?: boolean }) {
+/**
+ * A chart card's entrance: the frame fades up while Recharts draws the series.
+ * `ChartCard` already wears one; inside a Stagger or a Reveal it stays still
+ * and lets that bring it in. `asChild` puts it on the single child.
+ */
+export function ChartEntrance({
+  className,
+  children,
+  when,
+  asChild,
+}: {
+  className?: string;
+  children: ReactNode;
+  when?: boolean;
+  asChild?: boolean;
+}) {
+  const inside = useContext(Arriving);
+  const Comp = asChild ? Slot.Root : "div";
+  if (inside) return <Comp className={className}>{children}</Comp>;
   return (
-    <Reveal className={className} recipe={fade(DURATION.base)} when={when}>
+    <Reveal asChild={asChild} className={className} recipe={fade(DURATION.base)} when={when}>
       {children}
     </Reveal>
   );

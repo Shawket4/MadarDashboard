@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Copy, Download, Loader2, TriangleAlert } from "lucide-react";
+import { Check, Copy, Download, TriangleAlert } from "lucide-react";
 
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { getErrorMessage } from "@/data/api/errors";
 import { useCredentialHandoff, type IssuedCredential } from "./use-credential-handoff";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Props {
   /** Mount only when a credential has been issued — see `useCredentialHandoff`. */
@@ -155,7 +156,7 @@ export function HandoffDialog({ issued, onClose }: Props) {
             disabled={handoff.status !== "ready"}
           >
             {handoff.status === "building"
-              ? <Loader2 className="size-4 animate-spin" />
+              ? <Spinner />
               : <Download className="size-4" />}
             {t("integrations.handoff.downloadAgain", "Download again")}
           </Button>

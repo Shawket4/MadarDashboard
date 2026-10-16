@@ -118,7 +118,7 @@ export function AppearancePane() {
               href={item.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="block transition-colors duration-fast hover:bg-accent/50 focus-visible:bg-accent/60 focus-visible:outline-none motion-reduce:transition-none"
+              className="block transition-colors duration-fast hover:bg-accent/50 focus-visible:bg-accent/60 focus-visible:outline-none"
             >
               <ListRow
                 icon={FileText}

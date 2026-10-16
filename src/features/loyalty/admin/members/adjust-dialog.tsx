@@ -11,7 +11,6 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +40,7 @@ import { isPersonQuery } from "@/features/customers/util";
 import { loyaltyServerError } from "../../shared/server-errors";
 import { currencyLabel } from "../../shared/util";
 import { adjustSchema, adjustToWire, REASON_MAX, type AdjustValues } from "./adjust-schema";
+import { Spinner } from "@/components/ui/spinner";
 
 export function AdjustDialog({
   member,
@@ -194,7 +194,7 @@ export function AdjustDialog({
             {t("common.cancel", "Cancel")}
           </Button>
           <Button type="submit" form="loyalty-adjust" disabled={adjust.isPending}>
-            {adjust.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+            {adjust.isPending ? <Spinner /> : null}
             {t("loyalty.adjustConfirm", "Save adjustment")}
           </Button>
         </DialogFooter>

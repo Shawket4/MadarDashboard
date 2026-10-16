@@ -112,7 +112,7 @@ export function StatCard({
             : undefined
         }
         className={cn(
-          "h-full rounded-2xl shadow-none transition-colors duration-base motion-reduce:transition-none",
+          "h-full rounded-2xl shadow-none transition-colors duration-base",
           onClick &&
             "cursor-pointer hover:border-foreground/20 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
           pad,

@@ -9,12 +9,12 @@
  * Arabic too.
  */
 import { useEffect, useRef } from "react";
-import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { latinDigits } from "@/components/inputs/time";
 import { useShake } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 export interface OtpInputProps {
   value: string;
@@ -158,7 +158,7 @@ export function OtpInput({
           }}
           className={cn(
             "h-14 min-w-0 max-w-14 flex-1 rounded-xl border bg-card text-center text-2xl font-semibold tabular-nums shadow-xs outline-none caret-transparent",
-            "transition-[border-color,box-shadow,background-color] motion-reduce:transition-none",
+            "transition-[border-color,box-shadow,background-color]",
             "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
             "disabled:cursor-not-allowed disabled:opacity-60",
             invalid
@@ -169,7 +169,7 @@ export function OtpInput({
       ))}
       {busy ? (
         <span role="status" className="absolute inset-0 grid place-items-center">
-          <Loader2 aria-hidden className="size-6 animate-spin text-foreground" />
+          <Spinner className="size-6 text-foreground" />
           <span className="sr-only">{t("signup.verifying", "Checking the code…")}</span>
         </span>
       ) : null}

@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +42,7 @@ import { usePop, useShake } from "@/lib/motion";
 import { EligibleItemsControl } from "./eligible-items-control";
 import { fromWire, poolIsOff, staffPoolSchema, toWire, type StaffPoolValues } from "./form-schema";
 import { useStaffPoolSettings, type StaffPoolScope } from "./use-staff-pool";
+import { Spinner } from "@/components/ui/spinner";
 
 export function StaffPoolSettingsPage() {
   const { t } = useTranslation();
@@ -258,7 +259,7 @@ export function StaffPoolSettingsPage() {
       {canEdit ? (
         <div className="flex flex-wrap items-center gap-2">
           <Button ref={saveRef} type="submit" disabled={save.isPending || (!form.formState.isDirty && !inherited)}>
-            {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+            {save.isPending ? <Spinner /> : null}
             {t("common.save", "Save")}
           </Button>
           {scope.branchId && !inherited ? (

@@ -10,7 +10,7 @@ import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { AxiosError } from "axios";
-import { ArrowLeft, CalendarCheck, ChevronRight, Loader2, Minus, Plus, Store, Users } from "lucide-react";
+import { ArrowLeft, CalendarCheck, ChevronRight, Minus, Plus, Store, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 
 import { PhoneVerify } from "./phone-verify";
 import { fmtDay, fmtSlot, fmtWhen, pickableDates } from "./util";
+import { Spinner } from "@/components/ui/spinner";
 
 type Step = "branch" | "when" | "you" | "done";
 const STEPS: Step[] = ["branch", "when", "you", "done"];
@@ -292,7 +293,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
               <p className="text-center text-sm text-muted-foreground">{t("reservations.nameFirst", "Add your name to continue.")}</p>
             )}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            {create.isPending ? <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" />{t("reservations.booking", "Holding your table…")}</p> : null}
+            {create.isPending ? <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground"><Spinner />{t("reservations.booking", "Holding your table…")}</p> : null}
           </section>
         ) : null}
 

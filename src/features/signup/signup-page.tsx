@@ -14,7 +14,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans, useTranslation } from "react-i18next";
-import { AlertCircle, ArrowLeft, Coffee, Eye, EyeOff, Loader2, MessageCircle, Pencil, UtensilsCrossed } from "lucide-react";
+import { AlertCircle, ArrowLeft, Coffee, Eye, EyeOff, MessageCircle, Pencil, UtensilsCrossed } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ import {
   useCountdown,
   type SignupProblem,
 } from "./util";
+import { Spinner } from "@/components/ui/spinner";
 
 type Template = "cafe" | "restaurant";
 
@@ -370,7 +371,7 @@ export function SignupPage() {
                   onClick={sendCode}
                   className="inline-flex min-h-11 items-center gap-2 rounded-md px-2 font-medium text-foreground underline underline-offset-4 outline-none hover:no-underline focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:font-normal disabled:text-muted-foreground disabled:no-underline"
                 >
-                  {otp.isPending ? <Loader2 aria-hidden className="size-4 animate-spin" /> : null}
+                  {otp.isPending ? <Spinner /> : null}
                   {resendIn > 0
                     ? t("signup.resendIn", { time: clock(resendIn), defaultValue: "Resend the code in {{time}}" })
                     : t("signup.resend", "Send the code again")}
@@ -461,7 +462,7 @@ function StrengthMeter({ password }: { password: string }) {
     <div className="space-y-1.5" aria-live="polite">
       <div aria-hidden className="grid grid-cols-4 gap-1.5">
         {[1, 2, 3, 4].map((n) => (
-          <span key={n} className={cn("h-1 rounded-full transition-colors motion-reduce:transition-none", password && level >= n ? tone : "bg-muted")} />
+          <span key={n} className={cn("h-1 rounded-full transition-colors", password && level >= n ? tone : "bg-muted")} />
         ))}
       </div>
       <p className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
@@ -546,7 +547,7 @@ function DetailsForm({
                       aria-checked={on}
                       onClick={() => field.onChange(tpl.id)}
                       className={cn(
-                        "flex min-h-28 flex-col items-start gap-1.5 rounded-xl border p-3.5 text-start outline-none transition-[border-color,background-color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none",
+                        "flex min-h-28 flex-col items-start gap-1.5 rounded-xl border p-3.5 text-start outline-none transition-[border-color,background-color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50",
                         on ? "border-brand bg-brand/5 ring-1 ring-brand" : "border-input bg-card hover:bg-muted/50",
                       )}
                     >
@@ -615,7 +616,7 @@ function DetailsForm({
                   type="button"
                   onClick={toggleShowPw}
                   aria-pressed={showPw}
-                  className="absolute end-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-xl text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+                  className="absolute end-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-xl text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   aria-label={showPw ? t("signup.hidePassword", "Hide password") : t("signup.showPassword", "Show password")}
                 >
                   {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}

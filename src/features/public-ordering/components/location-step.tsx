@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { ArrowRight, CheckCircle2, ChevronDown, Crosshair, Loader2, MapPin, MapPinOff, Route } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, Crosshair, MapPin, MapPinOff, Route } from "lucide-react";
 
 import { useDeliveryQuote } from "@/data/api/generated/api";
 import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
@@ -13,6 +13,7 @@ import { fmtMoney } from "@/lib/format";
 
 import type { Channel } from "../types";
 import { DeliveryMap, type LatLng } from "./delivery-map";
+import { Spinner } from "@/components/ui/spinner";
 
 /** Initial map view before a point is set / when geolocation is unavailable.
  * Cairo centre — the customer searches or taps to their real spot. */
@@ -212,7 +213,7 @@ export function LocationStep({
             </div>
           ) : !point ? (
             <p className="mt-2 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
+              <Spinner />
               {t("order.location.locating")}
             </p>
           ) : (
@@ -380,7 +381,7 @@ function QuoteStatus({ quote, loading }: { quote: QuoteResponse | null; loading:
 
   if (loading || !quote) {
     return (
-      <Banner tone="neutral" icon={<Loader2 className="size-4 animate-spin" />}>
+      <Banner tone="neutral" icon={<Spinner />}>
         {t("order.location.checkingRange")}
       </Banner>
     );

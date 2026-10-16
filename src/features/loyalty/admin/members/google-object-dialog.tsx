@@ -14,7 +14,7 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Loader2, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
 import {
   Dialog,
@@ -31,6 +31,7 @@ import {
 } from "@/data/api/generated/api";
 import type { GoogleRefreshReport } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { Spinner } from "@/components/ui/spinner";
 
 export function GoogleObjectDialog({
   memberId,
@@ -93,7 +94,7 @@ export function GoogleObjectDialog({
             disabled={refresh.isPending}
           >
             {refresh.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
+              <Spinner />
             ) : (
               <RefreshCw className="size-4" />
             )}

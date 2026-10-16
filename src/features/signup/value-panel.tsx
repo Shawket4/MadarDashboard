@@ -105,7 +105,7 @@ export function CompactValue() {
       <details className="group mt-4 border-t border-border pt-3">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-md text-sm font-medium outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
           {t("signup.compactUpgrade", "Upgrade anytime for more")}
-          <Plus aria-hidden className="size-4 text-muted-foreground transition-transform group-open:rotate-45 motion-reduce:transition-none" />
+          <Plus aria-hidden className="size-4 text-muted-foreground transition-transform group-open:rotate-45" />
         </summary>
         <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
           {upgrade.map((item) => (

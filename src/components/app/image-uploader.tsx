@@ -1,10 +1,11 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Image as ImageIcon, Loader2, Upload, X } from "lucide-react";
+import { Image as ImageIcon, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getErrorMessage } from "@/data/api/errors";
 import { Button } from "@/components/ui/button";
 import { AssetImage, useAssetJob, type AssetGroupRef, type AssetGroupReady } from "@/components/app/asset-image";
+import { Spinner } from "@/components/ui/spinner";
 
 /** Upload routes answer with the job that converts the file (§11.3). */
 export interface UploadOutcome {
@@ -154,7 +155,7 @@ export function ImageUploader({
       >
         {processing ? (
           <div role="status" className="flex size-full flex-col items-center justify-center gap-2 bg-muted/40 text-muted-foreground">
-            <Loader2 className="size-5 animate-spin" />
+            <Spinner className="size-5" />
             <span className="text-xs font-medium">{t("uploader.processing", "Processing…")}</span>
           </div>
         ) : hasImage ? (
@@ -212,7 +213,7 @@ export function ImageUploader({
             onClick={() => inputRef.current?.click()}
             className="flex size-full flex-col items-center justify-center gap-2 text-muted-foreground transition-colors hover:bg-muted/30 hover:text-foreground disabled:cursor-not-allowed"
           >
-            {uploading ? <Loader2 className="size-5 animate-spin" /> : <ImageIcon className="size-5" />}
+            {uploading ? <Spinner className="size-5" /> : <ImageIcon className="size-5" />}
             <span className="text-xs font-medium">
               {uploading ? t("uploader.uploading", "Uploading…") : t("uploader.choose", "Upload image")}
             </span>

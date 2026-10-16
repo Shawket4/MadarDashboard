@@ -100,7 +100,7 @@ export function WindowsEditor({
                       aria-pressed={on}
                       onClick={() => patch(i, { weekdays: toggleDay(w.weekdays, d) })}
                       className={cn(
-                        "h-8 min-w-11 rounded-lg border px-2 text-xs font-medium transition-colors duration-fast motion-reduce:transition-none",
+                        "h-8 min-w-11 rounded-lg border px-2 text-xs font-medium transition-colors duration-fast",
                         "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-60",
                         on ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent",
                       )}

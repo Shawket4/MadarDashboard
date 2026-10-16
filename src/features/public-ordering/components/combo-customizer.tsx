@@ -422,7 +422,7 @@ function SlotSection({
                         aria-checked={on}
                         onClick={() => onSetSize(choice, s.label)}
                         className={cn(
-                          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-[color,background-color,border-color,box-shadow]",
                           on
                             ? "border-brand bg-brand text-brand-foreground shadow-sm"
                             : "border-border/70 bg-card hover:border-brand/40",

@@ -93,7 +93,7 @@ export function SettingsShell() {
                     aria-current={active ? "page" : undefined}
                     data-active={active || undefined}
                     className={cn(
-                      "relative flex h-9 items-center gap-2.5 overflow-hidden rounded-lg px-3 text-sm transition-colors duration-fast motion-reduce:transition-none",
+                      "relative flex h-9 items-center gap-2.5 overflow-hidden rounded-lg px-3 text-sm transition-colors duration-fast",
                       "focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
                       active
                         ? "bg-accent font-semibold text-foreground"

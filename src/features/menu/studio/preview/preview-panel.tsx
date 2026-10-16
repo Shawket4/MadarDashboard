@@ -202,7 +202,7 @@ export function PreviewPanel({ studio }: { studio: StudioAggregate }) {
               <span className="font-medium tabular-nums" data-testid="preview-price-line">
                 {priceLine(data.price, data.quantity)}
               </span>
-              {q.isFetching ? <Spinner className="size-3.5" /> : null}
+              {q.isFetching ? <Spinner className="size-3.5 text-muted-foreground" /> : null}
             </div>
             <PaidFeatureLock
               feature="inventory"

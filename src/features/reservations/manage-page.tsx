@@ -6,7 +6,7 @@
 import { useLayoutEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
-import { CalendarClock, CalendarX2, Loader2, Users } from "lucide-react";
+import { CalendarClock, CalendarX2, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +23,7 @@ import { rules } from "@/lib/rules";
 import { cn } from "@/lib/utils";
 
 import { fmtDay, fmtSlot, fmtWhen, pickableDates } from "./util";
+import { Spinner } from "@/components/ui/spinner";
 
 const STATUS_KEY: Record<string, string> = {
   confirmed: "reservations.statusConfirmed",
@@ -142,7 +143,7 @@ export function ManagePage({ token }: { token: string }) {
                     ))}
                   </div>
                   {date ? (
-                    slotsQ.isLoading ? <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" /> : (
+                    slotsQ.isLoading ? <Spinner className="mx-auto size-5 text-muted-foreground" /> : (
                       <div className="grid grid-cols-4 gap-2">
                         {(slotsQ.data?.slots ?? []).map((s) => (
                           <button key={s.starts_at} type="button" disabled={!s.available} onClick={() => setSlot(s.starts_at)} className={cn("rounded-xl border px-2 py-2.5 text-sm tabular-nums", slot === s.starts_at ? "border-brand bg-brand text-brand-foreground" : s.available ? "border-border/70 bg-card" : "border-dashed text-muted-foreground/40 line-through")}>

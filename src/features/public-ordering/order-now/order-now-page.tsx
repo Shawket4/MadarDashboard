@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Reveal } from "@/lib/motion";
-import { AlertCircle, ArrowRight, CreditCard, Hourglass, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowRight, CreditCard, Hourglass } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useOrderNowContext } from "@/data/api/generated/api";
@@ -36,6 +36,7 @@ import { ltrIsolate } from "@/lib/phone";
 
 import { PublicOrderingPage } from "../public-ordering-page";
 import { isTooManyAttempts, type OrderNowSession } from "./session";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Props {
   token: string;
@@ -173,7 +174,7 @@ export function OrderNowPage({ token, branch, channel, preview }: Props) {
           </div>
         ) : loading || !masked.data ? (
           <div className="flex flex-col items-center gap-4 py-16 text-muted-foreground" role="status">
-            <Loader2 className="size-8 animate-spin text-brand" />
+            <Spinner className="size-8 text-brand" />
             <p className="text-sm">{t("order.now.opening", "Opening your order…")}</p>
           </div>
         ) : (

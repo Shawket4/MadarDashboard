@@ -133,7 +133,7 @@ export function StampRow({
             key={i}
             ref={i === filled - 1 ? landed : undefined}
             aria-hidden
-            className="relative grid shrink-0 place-items-center rounded-full text-[13px] font-semibold leading-none transition-colors duration-slow motion-reduce:transition-none"
+            className="relative grid shrink-0 place-items-center rounded-full text-[13px] font-semibold leading-none transition-colors duration-slow"
             style={{
               width: "var(--step)",
               // NOT `height: size`. A percentage in `height` resolves against

@@ -65,7 +65,7 @@ export function SegmentedControl<V extends string>({
             disabled={disabled}
             onClick={() => onChange(opt.value)}
             className={cn(
-              "relative h-8 whitespace-nowrap rounded-[8px] px-3 text-sm font-medium transition-colors duration-base motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed",
+              "relative h-8 whitespace-nowrap rounded-[8px] px-3 text-sm font-medium transition-colors duration-base focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed",
               value === opt.value
                 ? "bg-primary text-primary-foreground group-data-[pill]/seg:bg-transparent"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground",

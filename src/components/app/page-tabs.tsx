@@ -54,7 +54,7 @@ export function PageTabsTrigger({
         // Text
         "text-sm font-medium whitespace-nowrap text-muted-foreground",
         // Transitions (the underline is PageTabsList's sliding indicator)
-        "transition-colors duration-base motion-reduce:transition-none",
+        "transition-colors duration-base",
         // States
         "hover:text-foreground",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:rounded-sm",

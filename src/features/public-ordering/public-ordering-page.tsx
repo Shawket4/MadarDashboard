@@ -15,7 +15,7 @@ import {
 import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
 import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
 import type { DeliveryOrderInput } from "@/data/api/generated/models/deliveryOrderInput";
-import { ArrowRight, Info, Loader2, MapPin, Search, ShoppingBag, Store } from "lucide-react";
+import { ArrowRight, Info, MapPin, Search, ShoppingBag, Store } from "lucide-react";
 import type { GuestSavedLocation } from "@/data/api/generated/models/guestSavedLocation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +54,7 @@ import { OrderHistoryDrawer } from "./components/order-history-drawer";
 import type { LatLng } from "./components/delivery-map";
 import { addressForChannel, identityRefusal, type OrderIdentityFields, type OrderNowSession, type PlaceOutcome } from "./order-now/session";
 import { useOrderIdentity } from "./order-now/use-order-identity";
+import { Spinner } from "@/components/ui/spinner";
 
 interface PublicOrderingPageProps {
   orgId: string;
@@ -987,7 +988,7 @@ export function PublicOrderingPage({
                 loader rather than the blank channel/phone step. */}
             {branchPending && (
               <div className="flex flex-col items-center gap-3 py-20 text-muted-foreground">
-                <Loader2 className="size-6 animate-spin" />
+                <Spinner className="size-6" />
                 <p className="text-sm">{t("common.loading", "Loading…")}</p>
               </div>
             )}

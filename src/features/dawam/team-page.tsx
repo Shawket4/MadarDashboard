@@ -20,7 +20,6 @@ import { toast } from "sonner";
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ListCard, ListRow } from "@/components/app/list-row";
-import { PopOnChange } from "@/components/app/pop-on-change";
 import { Restricted } from "@/components/app/restricted";
 import { StatCard } from "@/components/app/stat-card";
 import { StatusPill, type StatusTone } from "@/components/app/status-pill";
@@ -188,7 +187,7 @@ export function TeamPage() {
                   const coverer = !out && today ? coveredBy(todayRecords, r.employee_id, today) : null;
                   return (
                     <span className="flex flex-wrap items-center justify-end gap-2">
-                      <PopOnChange value={r.state}><StatusPill tone={STATE_TONE[r.state] ?? "neutral"}>{t(`dawam.state_${r.state}`, STATE_LABEL[r.state] ?? r.state)}</StatusPill></PopOnChange>
+                      <StatusPill popOn={r.state} tone={STATE_TONE[r.state] ?? "neutral"}>{t(`dawam.state_${r.state}`, STATE_LABEL[r.state] ?? r.state)}</StatusPill>
                       {coverer ? (
                         <span className="text-xs text-muted-foreground">{t("dawam.coveredBy", { name: coverer, defaultValue: `Covered by ${coverer}` })}</span>
                       ) : null}
@@ -416,7 +415,7 @@ function PunchDialog({ person, onOpenChange }: { person: PresenceRow | null; onO
                         key={r}
                         type="button"
                         onClick={() => form.setValue("reason", r, { shouldValidate: true })}
-                        className="h-7 rounded-full border px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+                        className="h-7 rounded-full border px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                       >
                         {r}
                       </button>

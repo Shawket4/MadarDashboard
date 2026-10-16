@@ -34,7 +34,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { fmtMoney, fmtMoneyCompact, fmtNumber } from "@/lib/format";
-import { CountUp, useChartMotion } from "@/lib/motion";
+import { ChartEntrance, CountUp, useChartMotion } from "@/lib/motion";
 import type { Column, ColumnKind, ResultBlock } from "./types";
 
 /** The chart palette, in the order series are assigned. */
@@ -265,11 +265,13 @@ export function ResultView({ block, className }: { block: ResultBlock; className
 /** Recharts needs an explicit height; a percentage inside an auto-height parent collapses. */
 function ChartFrame({ children }: { children: React.ReactElement }) {
   return (
-    <div dir="ltr" className="h-60 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        {children}
-      </ResponsiveContainer>
-    </div>
+    <ChartEntrance className="h-60 w-full">
+      <div dir="ltr" className="size-full">
+        <ResponsiveContainer width="100%" height="100%">
+          {children}
+        </ResponsiveContainer>
+      </div>
+    </ChartEntrance>
   );
 }
 

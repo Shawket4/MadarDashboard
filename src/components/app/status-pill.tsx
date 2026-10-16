@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import { useMemo, useRef, type ReactNode, type Ref } from "react";
 import { AlertTriangle, CheckCircle2, Circle, CircleDashed, Info, XCircle, type LucideIcon } from "lucide-react";
 
+import { composeRefs, useChangeSignal, usePop } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -40,12 +41,33 @@ export interface StatusPillProps {
   icon?: LucideIcon;
   size?: "sm" | "md";
   className?: string;
+  /**
+   * The value the pill shows (a status, a state). When it changes on a pill
+   * already on screen (an order voided, a request approved) the pill settles
+   * into its new state; arriving or loading never pops. This is the one way to
+   * pop a changed status (scripts/motion-check.mjs refuses hand-rolled ones).
+   */
+  popOn?: unknown;
+  ref?: Ref<HTMLSpanElement>;
 }
 
-export function StatusPill({ tone = "neutral", children, icon, size = "md", className }: StatusPillProps) {
+export function StatusPill(props: StatusPillProps) {
+  // Only a pill that watches a value pays for the motion hooks.
+  return "popOn" in props ? <PoppingPill {...props} /> : <Pill {...props} />;
+}
+
+function PoppingPill({ popOn, ref, ...props }: StatusPillProps) {
+  const own = useRef<HTMLSpanElement>(null);
+  usePop(own, useChangeSignal(popOn));
+  const setRef = useMemo(() => composeRefs(own, ref), [ref]);
+  return <Pill {...props} ref={setRef} />;
+}
+
+function Pill({ tone = "neutral", children, icon, size = "md", className, ref }: StatusPillProps) {
   const Glyph = icon ?? TONE_GLYPH[tone];
   return (
     <span
+      ref={ref}
       data-slot="status-pill"
       data-tone={tone}
       className={cn(
