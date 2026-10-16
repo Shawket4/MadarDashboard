@@ -5,6 +5,25 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tsParser from '@typescript-eslint/parser'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 
+// Animation goes through src/lib/motion only (CLAUDE.md, "Motion"). GSAP is
+// private to that folder so it can stay lazy, and the old libraries are gone.
+// Spread into every no-restricted-imports below: a later block's rule replaces
+// an earlier one's for the files they share.
+const GSAP_MSG = 'GSAP is private to src/lib/motion (it loads lazily). Use a motion hook or component from @/lib/motion.'
+const OLD_MSG = 'The app animates with GSAP through @/lib/motion.'
+const motionPaths = [
+  { name: 'gsap', message: GSAP_MSG },
+  { name: '@gsap/react', message: GSAP_MSG },
+  { name: 'motion', message: OLD_MSG },
+  { name: 'framer-motion', message: OLD_MSG },
+  { name: 'tw-animate-css', message: OLD_MSG },
+]
+// A slash in the middle anchors these to the package, never to @/lib/motion.
+const motionImports = [
+  { group: ['gsap/*'], message: GSAP_MSG },
+  { group: ['motion/*'], message: OLD_MSG },
+]
+
 export default [
   {
     ignores: [
@@ -61,6 +80,14 @@ export default [
     },
   },
 
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/lib/motion/**'],
+    rules: {
+      'no-restricted-imports': ['error', { paths: motionPaths, patterns: motionImports }],
+    },
+  },
+
   // The three public bundles are separately built, separately deployed apps on
   // their own hosts. Ordering and reservations must not reach into each other:
   // a change to the storefront should never be able to break the booking flow.
@@ -71,7 +98,9 @@ export default [
       'no-restricted-imports': [
         'error',
         {
+          paths: motionPaths,
           patterns: [
+            ...motionImports,
             {
               group: ['**/features/public-ordering/**', '../public-ordering/**'],
               message:
@@ -88,7 +117,9 @@ export default [
       'no-restricted-imports': [
         'error',
         {
+          paths: motionPaths,
           patterns: [
+            ...motionImports,
             {
               group: ['**/features/reservations/**', '../reservations/**'],
               message:

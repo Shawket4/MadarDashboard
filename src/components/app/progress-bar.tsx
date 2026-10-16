@@ -37,7 +37,7 @@ export function ProgressBar({ value, max = 100, ariaLabel, accent = "primary", c
       className={cn("h-1.5 overflow-hidden rounded-full bg-muted", className)}
     >
       <div
-        className={cn("h-full rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none", accentFill[accent])}
+        className={cn("h-full rounded-full transition-[width] duration-slow ease-out motion-reduce:transition-none", accentFill[accent])}
         style={{ width: `${pct}%` }}
       />
     </div>

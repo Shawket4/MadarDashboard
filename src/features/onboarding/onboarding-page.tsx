@@ -126,7 +126,7 @@ export function OnboardingPage() {
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-muted" aria-hidden="true">
             <div
-              className="h-full rounded-full bg-brand transition-[width] duration-700 ease-out motion-reduce:transition-none"
+              className="h-full rounded-full bg-brand transition-[width] duration-brand ease-out motion-reduce:transition-none"
               style={{ width: `${pct}%` }}
             />
           </div>

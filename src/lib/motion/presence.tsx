@@ -1,0 +1,218 @@
+import {
+  cloneElement,
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+  type Ref,
+  type RefObject,
+} from "react";
+
+import { getGsap, type Gsap } from "./gsap";
+import { prefersReducedMotion } from "./media";
+import { reduce, rise, type Recipe } from "./recipes";
+
+import { useIsoLayoutEffect, useLatest } from "./latest";
+
+/** One element in a presence group and the recipe it enters and leaves by. */
+export type PresencePart = [RefObject<HTMLElement | null>, Recipe];
+
+/**
+ * Keep something mounted while it animates out, the job AnimatePresence did.
+ * Returns whether to render it. `show` turning false plays every part's exit
+ * together and unmounts when they finish; turning true again mid-exit
+ * reverses from wherever it got to. Without GSAP (not loaded yet) it mounts
+ * and unmounts at once.
+ *
+ * `initial: false` skips the entrance for whatever is shown on the first render.
+ */
+export function usePresence(show: boolean, parts: PresencePart[], { initial = true }: { initial?: boolean } = {}) {
+  const [mounted, setMounted] = useState(show);
+  if (show && !mounted) setMounted(true);
+  const partsRef = useLatest(parts);
+  // What the DOM shows right now: "in", "out", or caught between ("mid").
+  const phase = useRef<"in" | "out" | "mid">(show && !initial ? "in" : "out");
+
+  useIsoLayoutEffect(() => {
+    if (!mounted) return;
+    const gsap = getGsap();
+    const els = partsRef.current.map(([ref, recipe]) => [ref.current, prefersReducedMotion() ? reduce(recipe) : recipe] as const);
+    const live = els.filter(([el]) => el) as [HTMLElement, Recipe][];
+
+    if (show) {
+      if (phase.current === "in") return;
+      const from = phase.current;
+      phase.current = "in";
+      if (!gsap || !live.length) return;
+      const tl = gsap.timeline();
+      for (const [el, r] of live) {
+        tl.add(from === "mid" ? gsap.to(el, { ...r.to, clearProps: "opacity,transform" }) : gsap.fromTo(el, r.from, { ...r.to, clearProps: "opacity,transform" }), 0);
+      }
+      return () => {
+        if (tl.progress() < 1) phase.current = "mid";
+        tl.kill();
+      };
+    }
+
+    if (!gsap || !live.length) {
+      phase.current = "out";
+      setMounted(false);
+      return;
+    }
+    const tl = gsap.timeline({
+      onComplete: () => {
+        phase.current = "out";
+        setMounted(false);
+      },
+    });
+    for (const [el, r] of live) {
+      el.style.pointerEvents = "none";
+      tl.add(gsap.to(el, r.exit), 0);
+    }
+    return () => {
+      if (tl.progress() < 1) phase.current = "mid";
+      tl.kill();
+      for (const [el] of live) el.style.pointerEvents = "";
+    };
+  }, [show, mounted, partsRef]);
+
+  return mounted;
+}
+
+/**
+ * Show or hide one child with an enter and exit. The child must accept a ref
+ * (a DOM element or a component that forwards one).
+ *   <Presence show={open}><div>…</div></Presence>
+ */
+export function Presence({
+  show,
+  recipe = rise(),
+  initial = true,
+  children,
+}: {
+  show: boolean;
+  recipe?: Recipe;
+  initial?: boolean;
+  children: ReactElement<{ ref?: Ref<HTMLElement> }>;
+}) {
+  const ref = useRef<HTMLElement>(null);
+  const mounted = usePresence(show, [[ref, recipe]], { initial });
+  const setRef = useCallback((node: HTMLElement | null) => {
+    ref.current = node;
+  }, []);
+  // The ref callback runs at commit, not during render.
+  // eslint-disable-next-line react-hooks/refs
+  return mounted ? cloneElement(children, { ref: setRef }) : null;
+}
+
+/**
+ * Swap content by key: the old content leaves, then the new one enters (what
+ * AnimatePresence mode="wait" did). For steps in a flow, a figure that
+ * changes, a tab body.
+ *   <SwapPresence swapKey={step}><Step … /></SwapPresence>
+ */
+export function SwapPresence({
+  swapKey,
+  recipe = rise(),
+  initial = true,
+  className,
+  children,
+}: {
+  swapKey: string | number;
+  recipe?: Recipe;
+  initial?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState({ key: swapKey, node: children });
+  const latest = useLatest(children);
+  const leaving = swapKey !== shown.key;
+  // Same key: keep the rendered content live.
+  if (!leaving && shown.node !== children) setShown({ key: swapKey, node: children });
+  // The key whose entrance has played (or was skipped by `initial: false`).
+  const entered = useRef<string | number | undefined>(initial ? undefined : swapKey);
+
+  useIsoLayoutEffect(() => {
+    const el = ref.current;
+    const gsap = getGsap();
+    const r = prefersReducedMotion() ? reduce(recipe) : recipe;
+    if (!leaving) {
+      if (entered.current === shown.key) return;
+      entered.current = shown.key;
+      if (!el || !gsap) return;
+      const t = gsap.fromTo(el, r.from, { ...r.to, clearProps: "opacity,transform" });
+      return () => {
+        if (t.progress() < 1) entered.current = undefined;
+        t.kill();
+      };
+    }
+    const swap = () => setShown({ key: swapKey, node: latest.current });
+    if (!el || !gsap) return swap();
+    const t = gsap.to(el, { ...r.exit, onComplete: swap });
+    return () => void t.kill();
+  }, [shown.key, swapKey, latest]);
+
+  return (
+    <div ref={ref} key={shown.key} className={className}>
+      {shown.node}
+    </div>
+  );
+}
+
+/* ── Overlays ────────────────────────────────────────────────────────────── */
+
+/** One ref callback feeding several refs (ours and the caller's). */
+export function composeRefs<T>(...refs: (Ref<T> | undefined)[]) {
+  return (node: T | null) => {
+    for (const r of refs) {
+      if (typeof r === "function") r(node);
+      else if (r) (r as { current: T | null }).current = node;
+    }
+  };
+}
+
+const OverlayOpen = createContext<boolean | null>(null);
+
+/**
+ * The open state of a Radix overlay root, held here so the content can stay
+ * mounted through its exit. Works controlled (`open`) or uncontrolled
+ * (`defaultOpen`), like the Radix root it wraps.
+ */
+export function useOverlayRoot(open: boolean | undefined, defaultOpen: boolean | undefined, onOpenChange?: (open: boolean) => void) {
+  const [inner, setInner] = useState(defaultOpen ?? false);
+  const controlled = open !== undefined;
+  const value = controlled ? open : inner;
+  const onChange = useLatest(onOpenChange);
+  const set = useCallback(
+    (next: boolean) => {
+      if (!controlled) setInner(next);
+      onChange.current?.(next);
+    },
+    [controlled, onChange],
+  );
+  return [value, set] as const;
+}
+
+export const OverlayOpenProvider = OverlayOpen.Provider;
+
+/** Inside an overlay root: whether it is open. Null outside one. */
+export function useOverlayOpen(): boolean | null {
+  return useContext(OverlayOpen);
+}
+
+/** Enter-only motion for content that mounts and unmounts on its own (menus, tooltips). */
+export function useEnter(ref: RefObject<HTMLElement | null>, recipe: () => Recipe) {
+  const recipeRef = useLatest(recipe);
+  useIsoLayoutEffect(() => {
+    const el = ref.current;
+    const gsap: Gsap | null = getGsap();
+    if (!el || !gsap) return;
+    const r = prefersReducedMotion() ? reduce(recipeRef.current()) : recipeRef.current();
+    const t = gsap.fromTo(el, r.from, { ...r.to, clearProps: "opacity,transform" });
+    return () => void t.progress(1).kill();
+  }, [ref, recipeRef]);
+}

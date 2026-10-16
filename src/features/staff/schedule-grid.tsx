@@ -222,7 +222,7 @@ function Cell({
             type="button"
             disabled={busy}
             className={[
-              "h-8 w-full truncate rounded-md border px-2 text-xs transition-colors duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+              "h-8 w-full truncate rounded-md border px-2 text-xs transition-colors duration-fast motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
               "hover:bg-accent hover:text-accent-foreground",
               assignment
                 ? "border-transparent bg-secondary font-medium text-foreground"

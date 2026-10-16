@@ -229,7 +229,7 @@ function FulfillDialog({
                   type="button"
                   aria-pressed={on}
                   onClick={() => setPicked(on ? null : tb.id)}
-                  className={`rounded-lg border p-2 text-start text-sm transition-colors duration-150 motion-reduce:transition-none ${on ? "border-primary bg-accent ring-1 ring-primary" : "hover:bg-accent"}`}
+                  className={`rounded-lg border p-2 text-start text-sm transition-colors duration-fast motion-reduce:transition-none ${on ? "border-primary bg-accent ring-1 ring-primary" : "hover:bg-accent"}`}
                 >
                   <div className="font-semibold">{tb.label}</div>
                   <div className="text-xs text-muted-foreground">

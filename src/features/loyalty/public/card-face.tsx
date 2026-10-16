@@ -228,7 +228,7 @@ export function CardFace({
             style={{ backgroundColor: brand.muted, opacity: 0.35 }}
           >
             <div
-              className="h-full rounded-full transition-[width] duration-500 motion-reduce:transition-none"
+              className="h-full rounded-full transition-[width] duration-brand motion-reduce:transition-none"
               style={{ width: `${pct}%`, backgroundColor: brand.accent }}
             />
           </div>

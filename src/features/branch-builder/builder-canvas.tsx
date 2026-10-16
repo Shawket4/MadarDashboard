@@ -376,7 +376,7 @@ export function BuilderCanvas({
             <foreignObject x={box.x} y={box.y} width={box.w} height={box.h} overflow="visible">
               <div
                 className={cn(
-                  "relative flex h-full flex-col justify-center gap-0.5 rounded-xl border bg-card px-3 shadow-sm transition-shadow duration-150 motion-reduce:transition-none",
+                  "relative flex h-full flex-col justify-center gap-0.5 rounded-xl border bg-card px-3 shadow-sm transition-shadow duration-fast motion-reduce:transition-none",
                   piece.placeholder && "border-dashed",
                   isSelected && "border-primary ring-2 ring-primary/40",
                   takes && hoverKey === piece.key && "ring-[3px] ring-primary",

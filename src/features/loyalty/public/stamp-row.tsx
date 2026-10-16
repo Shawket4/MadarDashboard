@@ -108,7 +108,7 @@ export function StampRow({
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full transition-[width] duration-500 motion-reduce:transition-none"
+        className="pointer-events-none absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full transition-[width] duration-brand motion-reduce:transition-none"
         style={{ insetInlineStart: half, width: done, backgroundColor: accent }}
       />
 
@@ -119,7 +119,7 @@ export function StampRow({
           <li
             key={i}
             aria-hidden
-            className="relative grid shrink-0 place-items-center rounded-full text-[13px] font-semibold leading-none transition-colors duration-300 motion-reduce:transition-none"
+            className="relative grid shrink-0 place-items-center rounded-full text-[13px] font-semibold leading-none transition-colors duration-slow motion-reduce:transition-none"
             style={{
               width: "var(--step)",
               // NOT `height: size`. A percentage in `height` resolves against

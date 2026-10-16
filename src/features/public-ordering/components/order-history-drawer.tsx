@@ -147,7 +147,7 @@ function OrderCard({ order }: { order: OrderHistorySummary }) {
           </span>
           <ChevronDown
             className={cn(
-              "size-4 text-muted-foreground transition-transform duration-200",
+              "size-4 text-muted-foreground transition-transform duration-base",
               expanded && "rotate-180",
             )}
           />

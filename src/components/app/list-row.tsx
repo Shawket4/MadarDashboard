@@ -114,7 +114,7 @@ export function ListRow({
   const cls = cn(
     "relative flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-start sm:px-5",
     interactive &&
-      "cursor-pointer transition-colors duration-150 hover:bg-accent/50 focus-visible:bg-accent/60 focus-visible:outline-none motion-reduce:transition-none",
+      "cursor-pointer transition-colors duration-fast hover:bg-accent/50 focus-visible:bg-accent/60 focus-visible:outline-none motion-reduce:transition-none",
     selected && "bg-accent hover:bg-accent",
     disabled && "text-disabled-foreground",
     className,

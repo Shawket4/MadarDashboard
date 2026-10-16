@@ -106,7 +106,7 @@ export function BrandShowcase({ className }: { className?: string }) {
         <Suspense fallback={null}>
           <div
             className={cn(
-              "size-full transition-opacity duration-700 ease-out",
+              "size-full transition-opacity duration-brand ease-out",
               mode === "3d" ? "opacity-100" : "opacity-0",
             )}
           >

@@ -516,7 +516,7 @@ function Timeline({
                     type="button"
                     onClick={() => onOpen(b)}
                     title={`${b.guest_name} · ${b.party_size} · ${fmtTime(b.starts_at)}–${fmtTime(b.ends_at)}`}
-                    className={cn("absolute top-1.5 h-8 truncate rounded-md border px-2 text-start text-xs font-medium transition-colors duration-150 hover:brightness-95 motion-reduce:transition-none", tone)}
+                    className={cn("absolute top-1.5 h-8 truncate rounded-md border px-2 text-start text-xs font-medium transition-colors duration-fast hover:brightness-95 motion-reduce:transition-none", tone)}
                     style={{ insetInlineStart: `${span.left}%`, width: `${span.width}%` }}
                   >
                     {b.status === "seated" ? <Armchair aria-hidden className="me-1 inline size-3" /> : isHeld(b, now) ? <CalendarClock aria-hidden className="me-1 inline size-3" /> : null}

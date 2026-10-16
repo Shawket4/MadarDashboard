@@ -52,6 +52,7 @@ explicit — see "Floor / tables" below. When you change a shared surface, check
 ## UI & Styling
 - Tailwind CSS + Radix UI primitives, `clsx`/`tailwind-merge`
 - Lucide icons, Lottie, TanStack Table, Recharts
+- Motion: GSAP, only through `src/lib/motion` (see "Motion" below)
 - i18n via `i18next`/`react-i18next` — **always** wrap UI strings in `t()`, and add keys
   to both `src/i18n/locales/en.json` and `ar.json`. Arabic is first-class, RTL included.
 
@@ -137,6 +138,98 @@ lands near hue 117 in dark mode — a red that renders **green** — and near hu
 means. `oklab` interpolates in rectangular coordinates, so the hue holds.
 Older call sites still mix `in oklch` (grep `in_oklch`); move them to `oklab` when you
 touch them, and never copy them.
+
+## Motion
+Every animation goes through **`src/lib/motion`** (`import … from "@/lib/motion"`).
+GSAP is private to that folder: it loads lazily in its own chunk after the first paint
+(`bootMotion()` in each bundle's `main.tsx`), and until it lands every primitive shows
+its final state, still. Content is never hidden while waiting for an animation.
+
+**Tokens** (`tokens.ts`, mirrored as CSS variables in `motion.css`; `tokens.test.ts`
+fails if the two drift):
+- Durations: `fast` 160 ms (hover, press, every exit) · `base` 220 (the product default)
+  · `slow` 320 (sheets) · `brand` 500 · `count` 1100 (KPI count-ups and chart draws, in
+  lockstep).
+- Eases: `out` (entrances) · `in` (exits) · `inOut` · `expo` (brand) · `drawer` (sheets,
+  sidebar) · `overshoot` (brand only).
+- Plus `DISTANCE` (4/6/12/18 px), `SCALE` and `STAGGER` (capped at 0.3 s in total).
+- In CSS: `duration-fast|base|slow|brand|count`, `ease-out|in|in-out|expo|drawer|overshoot`.
+  A bare `transition-colors` already gets `fast` + `out`.
+
+**Registers.**
+- **Product** (the dashboard): 160–220 ms, 4–6 px. Motion says what changed (arrived,
+  left, moved, updated), never decorates. No overshoot.
+- **Brand** (ordering, tracking, reservations, loyalty, sign-in, sign-up, onboarding):
+  `register: "brand"` on the same hooks, so it runs longer (500 ms), travels further and
+  uses `expo` or `recipes.pop`.
+
+**The vocabulary.** Use the highest-level piece that fits:
+
+| Need | Use |
+|---|---|
+| Content arriving (a page, a card, data after a skeleton) | `<Reveal>` / `useReveal`, `<SkeletonSwap>` |
+| A group arriving one by one (KPIs, rows, cards) | `<Stagger>` / `useStagger` (on-screen items only, capped) |
+| A KPI figure | `<CountUp>` (count once, snap after); a live figure: `<AnimatedNumber>`; low level: `useCountUp` |
+| A chart | `<ChartEntrance>` around it, `{...useChartMotion()}` on each Recharts series |
+| Show/hide with an exit (was `AnimatePresence`) | `<Presence show>` / `usePresence` |
+| Swap content by key (steps, a changed figure) | `<SwapPresence swapKey>` |
+| A list that reorders or loses items | `useFlip` (GSAP Flip, transforms only) |
+| Active tab or segment | `useIndicator` (a sliding bar, physical px, RTL-safe) |
+| Error / success feedback | `useShake` (the row or form, never a field being typed in) / `usePop` |
+| A pressable card or tile | `data-press="product"` or `"brand"`; `Button` has it already |
+| A set piece or ambient loop | `useTimeline` (`pauseOffscreen` for loops) |
+| Anything else | `useGsap(fn, deps, { scope })`: scoped, reverted on cleanup, StrictMode-safe |
+
+Recipes (`recipes.rise`, `fade`, `dialog`, `sheet(side)`, `popper(side)`, `pop`) are the
+named enter/exit shapes; hooks take a recipe, nothing writes raw tween values.
+
+**Already wired, nothing to add:**
+- Dialogs, alert dialogs and sheets enter and exit (their roots hold the open state so
+  the content stays mounted through the exit).
+- Menus, popovers, selects and tooltips enter from their side and close at once.
+- Tab panels rise in, and `PageTabsList` slides its underline.
+- `Page` fades in on every route.
+- `Skeleton` shimmers in the reading direction.
+- `Button` presses.
+
+Vaul (the public drawer), sonner (toasts) and Recharts keep their own engines.
+
+**Rules (correctness, not taste):**
+- **Reduced motion.** `media.ts` reads it once. Every hook drops travel and scale, keeps
+  short opacity fades for overlays, snaps count-ups, skips staggers and set pieces, and
+  stops loops. CSS transitions land at once (`motion.css`).
+- **Transform and opacity only.** The sidebar collapse is the one width transition, a
+  layout change by design.
+- **Nothing animates off screen.** Entrances skip what is out of view (brand pages may
+  `scroll`-reveal), and loops pause off screen.
+- **RTL.**
+  - Directional motion follows the layout: sheets use their physical `side`, poppers
+    their `data-side`, indicators physical offsets, and the shimmer reverses.
+  - A shake is symmetric.
+  - Never mirror the floor canvas.
+- **No motion on data entry.** Never animate an input someone is typing in, and never
+  move focus during a transition.
+- **CSP.** GSAP uses no eval, and inline styles are set through the CSSOM. No `<style>`
+  keyframes in components.
+
+**When to reach for CSS instead.** Hover and colour transitions, and the two infinite
+loops (spinner, shimmer), stay CSS with token classes: the compositor runs them for free.
+Everything one-shot or state-driven is GSAP.
+
+**Adding motion to a feature:**
+1. Decide what changed for the user.
+2. Pick the row above.
+3. Pass `register: "brand"` on a customer surface.
+4. Check it in EN and AR with reduced motion on.
+
+**Enforced.**
+- ESLint refuses `gsap`, `motion`, `framer-motion` and `tw-animate-css` imports outside
+  `src/lib/motion`.
+- `scripts/motion-check.mjs` (part of `npm run lint`) refuses:
+  - `@keyframes` outside `motion.css`;
+  - `animate-[…]`, pulse, bounce and the old tw-animate classes;
+  - numeric `duration-*` and arbitrary eases;
+  - inline `transition` and `animation` styles.
 
 ## Permissions (architecture E — PERMISSIONS_ARCHITECTURE.md)
 - **Gate by capability, never by role name.** The UI reads the signed-in person's

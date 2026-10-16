@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "tw-animate-css";
+@import "../lib/motion/motion.css";
 
 /* The marketing site (site/) is its own Astro package with its own Tailwind. */
 @source not "../../site";
@@ -274,22 +274,6 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background-color: color-mix(in oklch, var(--muted-foreground) 50%, transparent);
-  }
-}
-
-/* ── View Transitions (route navigation) ────────────────────────────────────
- * A quick, quiet cross-fade between routes. Kept short so the operator never
- * waits on choreography. Fully disabled (snapshot swaps instantly) for users
- * who prefer reduced motion. */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.2s;
-  animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
-}
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none;
   }
 }
 

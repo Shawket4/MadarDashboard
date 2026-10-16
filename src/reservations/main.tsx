@@ -24,7 +24,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { MotionConfig } from "motion/react";
 import { z } from "zod";
 import {
   Outlet,
@@ -66,6 +65,7 @@ import "@fontsource/ibm-plex-mono/latin-600.css";
 // intentionally NOT imported — this origin never holds a session.
 import "@/i18n";
 import "@/styles/globals.css";
+import { bootMotion } from "@/lib/motion";
 
 // Customer surface: the brand register, where the primary is Madar teal.
 document.documentElement.classList.add("brand-surface");
@@ -83,6 +83,7 @@ import { ReservePage } from "@/features/reservations/reserve-page";
 // LIGHT unless this visitor chose otherwise on this shop — not the device's
 // preference. A storefront should look the same to every customer.
 initPublicTheme();
+bootMotion();
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
 
@@ -155,10 +156,8 @@ void initRules(rulesWasm).then(() =>
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <MotionConfig reducedMotion="user">
           <RouterProvider router={router} />
           <PublicToaster />
-        </MotionConfig>
       </QueryClientProvider>
     </StrictMode>,
   ),

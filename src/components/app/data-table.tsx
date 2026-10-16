@@ -433,7 +433,7 @@ export function DataTable<TData, TValue>({
                   // instead, named by the card's title, controls above it.
                   <div
                     key={row.id}
-                    className="relative rounded-2xl transition-transform duration-200 has-[>button:active]:scale-[0.99] motion-reduce:transition-none"
+                    className="relative rounded-2xl transition-transform duration-base has-[>button:active]:scale-[0.99] motion-reduce:transition-none"
                     onMouseEnter={() => onRowPrefetch?.(row.original)}
                   >
                     <button
@@ -452,7 +452,7 @@ export function DataTable<TData, TValue>({
                     onClick={() => onRowClick(row.original)}
                     onMouseEnter={() => onRowPrefetch?.(row.original)}
                     onFocus={() => onRowPrefetch?.(row.original)}
-                    className="block w-full rounded-2xl text-start transition-transform duration-200 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100"
+                    className="block w-full rounded-2xl text-start transition-transform duration-base focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100"
                   >
                     {renderPhoneCard(row)}
                   </button>
@@ -498,7 +498,7 @@ export function DataTable<TData, TValue>({
                           }
                           tabIndex={onRowClick ? 0 : undefined}
                           className={cn(
-                            "group/row transition-colors duration-150 motion-reduce:transition-none",
+                            "group/row transition-colors duration-fast motion-reduce:transition-none",
                             "[&>td]:border-b [&:last-child>td]:border-b-0",
                             isOpen && "[&>td]:border-b-0",
                             onRowClick &&
@@ -556,7 +556,7 @@ export function DataTable<TData, TValue>({
                                   <ChevronDown
                                     aria-hidden
                                     className={cn(
-                                      "transition-transform duration-200 motion-reduce:transition-none",
+                                      "transition-transform duration-base motion-reduce:transition-none",
                                       isOpen && "rotate-180",
                                     )}
                                   />

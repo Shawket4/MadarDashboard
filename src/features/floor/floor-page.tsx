@@ -716,7 +716,7 @@ function SectionChip({
       onClick={onClick}
       aria-current={active ? "true" : undefined}
       className={cn(
-        "h-8 rounded-full border px-3 text-sm font-medium transition-colors duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        "h-8 rounded-full border px-3 text-sm font-medium transition-colors duration-fast motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",

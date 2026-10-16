@@ -1,0 +1,106 @@
+/*
+ * Motion tokens for CSS: a mirror of src/lib/motion/tokens.ts.
+ * tokens.test.ts fails if a value here drifts from the TypeScript source, so
+ * change both together. This file is also the only place in src/ allowed to
+ * declare @keyframes (scripts/motion-check.mjs enforces it).
+ *
+ * CSS keeps what the compositor does best: colour and hover transitions, the
+ * sidebar collapse, and the two infinite loops (spinner, skeleton shimmer).
+ * Everything one-shot and state-driven runs through GSAP (src/lib/motion).
+ */
+
+@theme {
+  /* `ease-out`, `ease-in`, `ease-in-out` resolve to the motion curves, and the
+     named ones add `ease-expo`, `ease-drawer`, `ease-overshoot`. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* A bare `transition-colors` (no duration class) gets the fast token. */
+  --default-transition-duration: 160ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-shimmer: motion-shimmer 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+:root {
+  --motion-fast: 160ms;
+  --motion-base: 220ms;
+  --motion-slow: 320ms;
+  --motion-brand: 500ms;
+  --motion-count: 1100ms;
+}
+
+/* Duration utilities named after the tokens: `duration-fast` … `duration-count`.
+   Numeric `duration-200` style classes are refused by motion-check. */
+@utility duration-fast {
+  transition-duration: var(--motion-fast);
+}
+@utility duration-base {
+  transition-duration: var(--motion-base);
+}
+@utility duration-slow {
+  transition-duration: var(--motion-slow);
+}
+@utility duration-brand {
+  transition-duration: var(--motion-brand);
+}
+@utility duration-count {
+  transition-duration: var(--motion-count);
+}
+
+/* Skeleton shimmer: a highlight band swept across with transform only, in the
+   reading direction (start → end), so it mirrors with the layout. */
+@keyframes motion-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@utility shimmer {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-background) 55%, transparent),
+      transparent
+    );
+    animation: var(--animate-shimmer);
+  }
+  &:where([dir="rtl"], [dir="rtl"] *)::after {
+    animation-direction: reverse;
+  }
+}
+
+/* Reduced motion. GSAP reads the same query (src/lib/motion/media.ts); this
+   covers what CSS runs: transitions land at once and the loops stop, except
+   the spinner, which is the only sign that something is still loading. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0s !important;
+  }
+  .shimmer::after {
+    animation: none;
+  }
+}
+
+/* Paper never animates: whatever GSAP left mid-tween prints at rest. */
+@media print {
+  [data-motion] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

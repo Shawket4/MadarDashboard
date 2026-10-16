@@ -109,7 +109,7 @@ export function SectionTabBar({ tabs }: { tabs: SectionTab[] }) {
             search={keepScope}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "-mb-px inline-flex h-10 shrink-0 items-center border-b-2 px-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 first:ps-0 motion-reduce:transition-none",
+              "-mb-px inline-flex h-10 shrink-0 items-center border-b-2 px-3 text-sm font-medium whitespace-nowrap transition-colors duration-base first:ps-0 motion-reduce:transition-none",
               "focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
               active
                 ? "border-foreground text-foreground"
@@ -175,7 +175,7 @@ export function PageHeader({
   if (back) {
     const cls = cn(
       tile,
-      "border bg-card text-foreground transition-colors duration-200 hover:bg-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+      "border bg-card text-foreground transition-colors duration-base hover:bg-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
     );
     const glyph = <ChevronLeft className="size-5 rtl:rotate-180" aria-hidden />;
     leading =

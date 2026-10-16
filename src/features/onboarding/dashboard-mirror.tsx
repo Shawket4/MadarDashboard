@@ -101,7 +101,7 @@ function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }
       className={cn(
         // Springy overshoot so a tile "pops" as it lights up. Pure CSS transition
         // (robust everywhere); resting state is visible so it can't get stuck.
-        "transition-all duration-500 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none",
+        "transition-all duration-brand [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none",
         shown ? "translate-y-0 scale-100 opacity-100" : "translate-y-2 scale-90 opacity-0",
       )}
     >
@@ -168,7 +168,7 @@ function CoverageRing({ ratio }: { ratio: number }) {
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={offset}
-          className={cn("text-brand", !reduce && "transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none")}
+          className={cn("text-brand", !reduce && "transition-[stroke-dashoffset] duration-brand ease-out motion-reduce:transition-none")}
         />
       </svg>
       <div className="min-w-0">
