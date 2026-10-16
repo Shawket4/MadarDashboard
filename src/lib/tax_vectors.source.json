@@ -1,0 +1,7 @@
+{
+  "about": "src/lib/tax_vectors.json is a byte-for-byte copy of madar-shared's file at this tag (madar-money tax::compute, which the backend prices every bill with; features/public-ordering/bill.test.ts runs the storefront's checkout bill against it). A change is made there, released with a tag, and copied here with the tag and hash below updated; scripts/check-shared-vectors.sh (CI) and shared_vectors.test.ts check it.",
+  "repo": "Shawket4/madar-shared",
+  "tag": "v0.8.1",
+  "path": "crates/madar-money/vectors/tax_vectors.json",
+  "sha256": "e4ef53968d95ea67c87cc28f260cc0c00f7543a68f401fc6dcf39ee425fdb45d"
+}

@@ -11,15 +11,18 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import type { CartQuote } from "@/data/api/generated/models/cartQuote";
+import type { OnlineTaxPolicy } from "@/data/api/generated/models/onlineTaxPolicy";
 import type { QuotedDeal } from "@/data/api/generated/models/quotedDeal";
 import { cn } from "@/lib/utils";
 import { fmtMoney } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { AnimatedNumber, recipes, useFlip, usePresence } from "@/lib/motion";
 import i18n from "@/i18n";
+import { formatRate } from "@/features/orgs/tax-rate";
 
 import type { CartLine } from "../types";
-import { cartSubtotal, lineTotal } from "../utils";
+import { basketBill, taxOf, type TaxLine } from "../bill";
+import { lineTotal } from "../utils";
 import { fmtMoneyFigure } from "../ordering-motion";
 import { ComboPickList, DealRows, summarizeLine } from "./cart-lines";
 
@@ -34,6 +37,11 @@ interface CartSheetProps {
   deliveryFee?: number | null;
   /** estimated channel discount on the subtotal (piastres); 0/undefined = none. */
   discountAmount?: number;
+  /**
+   * The branch's online tax policy (the delivery quote's, else the branch
+   * list's). Absent for a table's basket: its tax is on the table's bill.
+   */
+  taxPolicy?: OnlineTaxPolicy | null;
   onEdit: (line: CartLine) => void;
   onRemove: (uid: string) => void;
   onSetQty: (uid: string, qty: number) => void;
@@ -58,12 +66,6 @@ interface CartSheetProps {
   error?: string | null;
 }
 
-/** Subtotal, deals and total as the customer should see them. */
-const priced = (lines: CartLine[], quote: CartQuote | null | undefined, discount: number, fee: number | null | undefined) => {
-  const subtotal = quote ? quote.items_total : cartSubtotal(lines);
-  const afterDeals = quote ? quote.total_after_deals : subtotal;
-  return { subtotal, deals: quote?.deals ?? [], total: afterDeals - discount + (fee ?? 0) };
-};
 
 /** The failure, where the customer is looking: right above the button. */
 function CheckoutError({ error }: { error?: string | null }) {
@@ -87,6 +89,7 @@ export function CartSheet({
   lines,
   deliveryFee,
   discountAmount = 0,
+  taxPolicy,
   onEdit,
   onRemove,
   onSetQty,
@@ -99,7 +102,7 @@ export function CartSheet({
   error,
 }: CartSheetProps) {
   const { t } = useTranslation();
-  const { subtotal, deals, total } = priced(lines, quote, discountAmount, deliveryFee);
+  const bill = basketBill(lines, quote, discountAmount, deliveryFee, taxPolicy);
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -139,12 +142,13 @@ export function CartSheet({
         {lines.length > 0 && (
           <div className="border-t border-border/60 bg-background px-4 py-3">
             <Totals
-              subtotal={subtotal}
-              deals={deals}
+              subtotal={bill.subtotal}
+              deals={bill.deals}
               dealHint={dealHint}
               deliveryFee={deliveryFee}
-              total={total}
-              discount={discountAmount}
+              tax={taxOf(bill)}
+              total={bill.total}
+              discount={bill.discount}
             />
             <CheckoutError error={error} />
             <Button
@@ -171,6 +175,7 @@ export function CartPanel({
   lines,
   deliveryFee,
   discountAmount = 0,
+  taxPolicy,
   onEdit,
   onRemove,
   onSetQty,
@@ -182,7 +187,7 @@ export function CartPanel({
   error,
 }: CartPanelProps) {
   const { t } = useTranslation();
-  const { subtotal, deals, total } = priced(lines, quote, discountAmount, deliveryFee);
+  const bill = basketBill(lines, quote, discountAmount, deliveryFee, taxPolicy);
 
   return (
     <div className="flex max-h-[calc(100dvh-6rem)] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
@@ -202,12 +207,13 @@ export function CartPanel({
       {lines.length > 0 && (
         <div className="border-t border-border/60 px-4 py-3">
           <Totals
-            subtotal={subtotal}
-            deals={deals}
+            subtotal={bill.subtotal}
+            deals={bill.deals}
             dealHint={dealHint}
             deliveryFee={deliveryFee}
-            total={total}
-            discount={discountAmount}
+            tax={taxOf(bill)}
+            total={bill.total}
+            discount={bill.discount}
           />
           <CheckoutError error={error} />
           <Button
@@ -371,6 +377,7 @@ export function Totals({
   deals = [],
   dealHint,
   deliveryFee,
+  tax,
   total,
   discount,
   emphasizeTotal = true,
@@ -382,6 +389,8 @@ export function Totals({
   dealHint?: string;
   /** null = not known yet ("—"); undefined = no delivery at all (no row). */
   deliveryFee?: number | null;
+  /** The order's tax: a row before the total (exclusive), a note under it (inclusive); none when zero. */
+  tax?: TaxLine | null;
   total: number;
   /** Discount amount in piastres applied to the subtotal; omitted/0 = none. */
   discount?: number | null;
@@ -411,6 +420,9 @@ export function Totals({
           }
         />
       )}
+      {tax && tax.amount > 0 && !tax.inclusive && (
+        <Row label={t("order.cart.tax", { rate: formatRate(tax.rate), defaultValue: "Tax ({{rate}})" })} value={fmtMoney(tax.amount)} />
+      )}
       <div className={cn("flex items-center justify-between pt-1.5", emphasizeTotal && "border-t border-border/60")}>
         <dt className={cn(emphasizeTotal ? "font-bold" : "text-muted-foreground")}>
           {t("order.cart.total")}
@@ -419,6 +431,15 @@ export function Totals({
           <AnimatedNumber value={total} format={fmtMoneyFigure} />
         </dd>
       </div>
+      {tax && tax.amount > 0 && tax.inclusive && (
+        <p className="text-end text-xs text-muted-foreground">
+          {t("order.cart.taxIncluded", {
+            amount: fmtMoney(tax.amount),
+            rate: formatRate(tax.rate),
+            defaultValue: "Includes {{amount}} tax ({{rate}})",
+          })}
+        </p>
+      )}
     </dl>
   );
 }

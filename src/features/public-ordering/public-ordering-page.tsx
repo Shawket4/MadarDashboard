@@ -47,6 +47,7 @@ import { ComboCustomizer } from "./components/combo-customizer";
 import { isCombo } from "./combo";
 import { useCartQuote } from "./use-cart-quote";
 import { getErrorMessage } from "@/data/api/errors";
+import { basketBill } from "./bill";
 import { CartSheet, CartPanel } from "./components/cart-sheet";
 import { CheckoutStep, emptyForm, type CheckoutForm } from "./components/checkout-step";
 import { CheckoutChannelSheet } from "./components/checkout-channel-sheet";
@@ -488,6 +489,9 @@ export function PublicOrderingPage({
   // fee; in-mall: flat fee + haversine distance) or the flat quote above.
   const activeQuote = feeWithoutLocation ? flatQuote : mapQuote;
   const deliveryFee: number | null = activeQuote?.status === "ok" ? (activeQuote.fee ?? 0) : null;
+  // The tax intake will book the order with: the quote's (fresh), else the
+  // branch list's. The same policy either way; the branch's, not the address's.
+  const taxPolicy = activeQuote?.tax_policy ?? branchObj?.tax_policy ?? null;
 
   // ── Mutations ─────────────────────────────────────────────────────────────
   // Checkout's OTP talks to the same endpoints as the phone step, through the same transport.
@@ -725,7 +729,7 @@ export function PublicOrderingPage({
   // customer (`useOrderIdentity`), not failures to report.
   const sendOrder = async (identity: OrderIdentityFields): Promise<PlaceOutcome> => {
     setSubmitError(null);
-    const estimate = itemsAfterDeals - discountAmount + (deliveryFee ?? 0);
+    const estimate = basketBill(lines, pricing.quote, discountAmount, deliveryFee, taxPolicy).total;
     try {
       const order = await createOrder.mutateAsync({ data: { ...buildInput(identity.device_token), ...identity } });
       setOtpOpen(false);
@@ -1125,6 +1129,7 @@ export function PublicOrderingPage({
                       lines={lines}
                       deliveryFee={deliveryFee}
                       discountAmount={discountAmount}
+                      taxPolicy={taxPolicy}
                       onEdit={startEdit}
                       onRemove={removeLine}
                       onSetQty={setLineQty}
@@ -1148,6 +1153,7 @@ export function PublicOrderingPage({
                 deliveryFee={deliveryFee}
                 discountAmount={discountAmount}
                 quote={pricing.quote}
+                taxPolicy={taxPolicy}
                 submitting={createOrder.isPending || otp.sending || identity.busy}
                 error={submitError}
                 phoneError={phoneError}
@@ -1171,6 +1177,7 @@ export function PublicOrderingPage({
         lines={lines}
         deliveryFee={deliveryFee}
         discountAmount={discountAmount}
+        taxPolicy={taxPolicy}
         onEdit={startEdit}
         onRemove={removeLine}
         onSetQty={setLineQty}
