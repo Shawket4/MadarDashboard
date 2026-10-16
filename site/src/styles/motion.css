@@ -80,6 +80,19 @@ html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; m
 /* The light under and behind the hero art (data-light) comes up with the art, never before it. */
 .m [data-hero-media][data-light]::before, .m [data-hero-media][data-light]::after { animation: fade-in 1.4s var(--ease-out-expo) .5s backwards; }
 
+/* Waiting for the engine (scripts/waits.ts holds the same list: change both together).
+   With motion allowed the head script sets .reveal-wait before the first paint, so what
+   the engine moves in is hidden from the very first frame, on screen or not, and plays
+   once the engine has armed; it lifts the class then. Never painted whole and then
+   hidden, never skipped for arriving late. A # address's section is the exception: it
+   enters in CSS (":target" below). If the engine is late (.reveal-late, after the
+   patience in scripts/load-motion.ts), what scrolls into view (data-shown) rises in on
+   these transitions instead. Reduced motion and no JavaScript never get the class. */
+.reveal-wait :is([data-reveal], [data-split], [data-pop], [data-draw], [data-count]:not([data-hero] *), [data-sequence="band"], [data-step-n] > span, [data-step-rule], [data-stage-time], [data-basira]):not(:target, :target *) { opacity: 0; }
+.reveal-wait [data-reveal]:not(:target, :target *) { translate: 0 var(--reveal-y); }
+.reveal-late :is([data-reveal], [data-split], [data-pop], [data-draw], [data-count], [data-sequence="band"], [data-step-n] > span, [data-step-rule], [data-stage-time], [data-basira]) { transition: opacity var(--dur-reveal) var(--ease-out-expo), translate var(--dur-reveal) var(--ease-out-expo); }
+.reveal-wait [data-shown], .reveal-wait [data-shown] :is([data-reveal], [data-split], [data-pop], [data-draw], [data-count], [data-step-n] > span, [data-step-rule]) { opacity: 1 !important; translate: none !important; }
+
 /* A # address from another page (the phone menu's areas, a shared link): the browser
    opens on that section before the engine is here, and the engine leaves what is on
    screen at its start alone, so the section's entrance is CSS as well: its lines rise in

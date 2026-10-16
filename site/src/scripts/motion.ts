@@ -37,6 +37,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import Lenis from "lenis";
+import { WAITS } from "./waits";
 import { DUR, EASE, PARALLAX_PHONE, PHONE, REVEAL_Y, REVEAL_Y_PHONE, STAGGER, STAGGER_PHONE, STAGGER_WORD } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin);
@@ -60,7 +61,13 @@ export const passed = (el: Element) => el.getBoundingClientRect().bottom <= 0;
  * above it (a # address, a reload half-way down). It has been on show since the first
  * paint; hiding it now to play an entrance would make it blink.
  */
-export const settled = (el: Element) => el.getBoundingClientRect().top < window.innerHeight;
+export const settled = (el: Element) => {
+  // Hidden from the first paint, waiting for the engine (scripts/waits.ts): it plays,
+  // wherever it is, unless the late fallback has already shown it or it is a # address's
+  // section (which entered in CSS).
+  if (root.classList.contains("reveal-wait") && el.closest(WAITS) && !el.closest("[data-shown], :target")) return false;
+  return el.getBoundingClientRect().top < window.innerHeight;
+};
 
 /**
  * A flick: the page is moving fast (a thumb's fling, a trackpad throw). Entrances that
@@ -93,7 +100,8 @@ export function whenSeen(el: Element, start: string, anim: gsap.core.Animation) 
     trigger: el,
     start,
     once: true,
-    onEnter: () => void (passed(el) || flicking() ? anim.progress(1) : anim.play()),
+    // Mid-flick it still plays, twice as fast: nothing that was waiting just appears.
+    onEnter: () => void (passed(el) ? anim.progress(1) : (flicking() && anim.timeScale(2), anim.play())),
   });
 }
 
@@ -182,8 +190,8 @@ function reveals(feel: Feel) {
       // A jump or a flick can pass a whole page of these at once: what it passed (or all
       // of them, mid-flick) shows at once, and only what is on screen plays.
       const fast = flicking();
-      const gone = batch.filter((el) => fast || passed(el));
-      const here = batch.filter((el) => !fast && !passed(el));
+      const gone = batch.filter((el) => passed(el));
+      const here = batch.filter((el) => !passed(el));
       if (gone.length) gsap.set(gone, { autoAlpha: 1, y: 0, overwrite: true });
       if (!here.length) return;
       const group = (el: Element) => el.closest("[data-reveal-group]");
@@ -196,7 +204,8 @@ function reveals(feel: Feel) {
         count.set(g, k + 1);
         return k * Math.min(feel.step, 0.35 / (size.get(g) ?? 1));
       });
-      gsap.to(here, { autoAlpha: 1, y: 0, duration: DUR.reveal, delay: (i: number) => delay[i] ?? 0, overwrite: true });
+      // Mid-flick they still rise, quicker and together.
+      gsap.to(here, { autoAlpha: 1, y: 0, duration: fast ? DUR.reveal * 0.5 : DUR.reveal, delay: (i: number) => (fast ? 0 : (delay[i] ?? 0)), overwrite: true });
     },
   });
 }
@@ -245,14 +254,13 @@ function popsAndDraws(feel: Feel) {
     start: "top 92%",
     once: true,
     onEnter: (batch) => {
-      const fast = flicking();
       const n = { pop: 0, draw: 0 };
       for (const el of batch) {
         const pop = el.hasAttribute("data-pop");
         const svg = !pop && el instanceof SVGSVGElement;
         const targets = svg ? strokes(el) : el;
         const done = svg ? { drawSVG: "100%" } : { scale: 1, scaleX: 1, scaleY: 1 };
-        if (fast || passed(el)) {
+        if (passed(el)) {
           gsap.set(targets, done);
           continue;
         }
@@ -487,29 +495,6 @@ defineSequence(
 
 // ---------- Setting it up ----------
 
-/**
- * Sets the engine up once the first screen's entrance (CSS) has played and the page is
- * idle, or as soon as the visitor scrolls or touches it, whichever comes first. The setup
- * is the page's one long piece of work (about 220 ms on a mid phone) and it also starts
- * the 3D's download (family.ts), so it never lands mid-entrance. Nothing below the first
- * screen needs it before the page moves: until then that content is simply there.
- */
-function afterEntrance(start: () => void) {
-  let started = false;
-  const events = ["scroll", "touchstart", "wheel", "keydown"] as const;
-  const go = () => {
-    if (started) return;
-    started = true;
-    for (const type of events) window.removeEventListener(type, go);
-    start();
-  };
-  for (const type of events) window.addEventListener(type, go, { passive: true });
-  // The entrance: every finite animation running now (the CSS ones, a page transition).
-  const entrance = document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity);
-  const idle = () => ("requestIdleCallback" in window ? requestIdleCallback(go, { timeout: 300 }) : setTimeout(go, 50));
-  Promise.all(entrance.map((a) => a.finished.catch(() => {}))).then(idle);
-  setTimeout(go, 4000); // whatever an animation does, the engine is set up by then
-}
 
 /** Smooth scroll on mouse and trackpad only (touch keeps its native momentum), on GSAP's ticker. */
 function smoothScroll() {
@@ -659,7 +644,7 @@ async function start() {
   // (and every piece reverted to the still page) with reduced motion.
   gsap.matchMedia().add({ motion: "(prefers-reduced-motion: no-preference)", phone: PHONE, fine: "(hover: hover) and (pointer: fine)" }, (context) => {
     const { motion, phone, fine } = context.conditions ?? {};
-    if (!motion) return;
+    if (!motion) return void root.classList.remove("reveal-wait", "reveal-late", "crew-wait");
     root.classList.add("crew-armed");
     const feel = phone ? PHONE_FEEL : WIDE_FEEL;
     splits(feel);
@@ -671,6 +656,9 @@ async function start() {
     lights();
     orbits();
     progress();
+    // Every entrance is set up: what waited hidden from the first paint is the engine's now.
+    root.classList.remove("reveal-wait", "reveal-late");
+    document.dispatchEvent(new Event("motion:armed"));
     const unhover = fine && !phone ? hovers() : null;
     return () => {
       unhover?.();
@@ -685,4 +673,7 @@ async function start() {
 }
 
 if (!soft) heroCount();
-afterEntrance(() => void start());
+// At once, not after the first screen's entrance or an idle moment: what waits for the
+// engine is hidden until it arms, so every moment it holds back plays as soon as it can.
+// The first screen's entrance is CSS on the compositor and carries on through the setup.
+void start();

@@ -7,9 +7,12 @@
   // The crew wait hidden (styles/sections/crew.css) until the engine has built their
   // entrances, so the first paint never shows a figure or a badge that the engine then
   // hides to play it in. If the engine never comes (offline, blocked), they show anyway.
+  // The same for everything else the engine moves in (src/scripts/waits.ts): hidden
+  // before the first paint, played when the engine arms. The timer is the last resort
+  // if no script after this one ever runs.
   if (motion) {
-    d.classList.add("crew-wait");
-    setTimeout(function () { d.classList.remove("crew-wait"); }, 8000);
+    d.classList.add("crew-wait", "reveal-wait");
+    setTimeout(function () { d.classList.remove("crew-wait", "reveal-wait"); }, 8000);
   }
   // A click from another page of this site: the page transition brings the page
   // in, so nothing on screen waits for an entrance ("soft").

@@ -7,7 +7,7 @@
 // Also here: the family (family.ts), the cappuccino (barista.ts), the features page's
 // pinned sets, the day's rail, the stage clocks, Basira's demo and the roadmap. They use
 // the engine's GSAP, ticker, tokens and helpers; reduced motion never loads them.
-import { gsap, ScrollTrigger, whenSeen, passed, flicking, settled, rtl } from "./motion";
+import { gsap, ScrollTrigger, whenSeen, passed, settled, rtl } from "./motion";
 import { initBarista } from "./barista";
 import { familyScene, type SceneKit } from "./family";
 import { carousel } from "./carousel";
@@ -121,7 +121,7 @@ function roadmap() {
       start: "top 85%",
       once: true,
       onEnter: () => {
-        if (passed(el) || flicking()) return void tl.progress(1);
+        if (passed(el)) return void tl.progress(1);
         const wait = Math.max(0, free - gsap.ticker.time);
         free = gsap.ticker.time + wait + reach;
         gsap.delayedCall(wait, () => void tl.play());
