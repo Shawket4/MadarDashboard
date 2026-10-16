@@ -92,11 +92,11 @@ html[lang="ar"] .fc-num { font-family: var(--font-mono); }
 
 /* The steps. Phones: a timeline, each number at the start with a line down to the next
    (shorter than a number over a rule, and it reads as one path). From sm: columns, each
-   number over its rule. The number sits in a clip box it rises into (crew.ts, below). */
-.free-steps { display: grid; gap: 2rem; }
+   number over its rule. The number rises from its mask (data-split) and the rule draws
+   (data-draw), the steps of a row one after another. */
+.free-steps { --delay: .3s; --stagger: .12s; display: grid; gap: 2rem; }
 .free-step { position: relative; min-width: 0; display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: .75rem; }
-.free-step-n { grid-area: 1 / 1; display: block; overflow: clip; font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; color: var(--color-teal); }
-.free-step-n > span { display: block; }
+.free-step-n { grid-area: 1 / 1; display: block; font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; color: var(--color-teal); }
 .free-step-rule { grid-area: 2 / 1; justify-self: center; width: 1px; margin-block: .5rem -1.5rem; background: var(--color-rule); transform-origin: 50% 0; }
 .free-step:last-child .free-step-rule { display: none; }
 .free-step-body { grid-area: 1 / 2 / 3 / 3; min-width: 0; }
@@ -106,6 +106,8 @@ html[lang="ar"] .fc-num { font-family: var(--font-mono); }
   .free-step-n { margin-bottom: 1rem; font-size: 2rem; line-height: 1; }
   .free-step-rule, .free-step:last-child .free-step-rule { display: block; justify-self: auto; width: auto; height: 1px; margin: 0 0 1.25rem; transform-origin: 0 50%; }
   [dir="rtl"] .free-step-rule { transform-origin: 100% 50%; }
+  /* The rule draws across here, down the timeline on a phone (data-draw="down"). */
+  .free-step-rule { --draw-from: scaleX(0); }
 }
 @media (min-width: 1024px) { .free-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; } }
 

@@ -62,6 +62,7 @@
   --dur-intro: 1.15s;  /* the first screen's entrance */
   --dur-draw: 1.2s;    /* a rule drawing across */
   --stagger: 70ms;     /* between the items of a reveal group, the ticks of a list */
+  --stagger-word: 50ms; /* between a heading's words as they rise */
   --reveal-y: 26px;    /* how far a reveal rises */
   /* The crew's beats (crew.ts times its flags by these). */
   --dur-wave: 1.7s;

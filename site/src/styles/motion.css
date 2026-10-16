@@ -46,6 +46,35 @@ html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; m
   }
 }
 
+/* ---------- The reveal vocabulary: how anything comes in as it scrolls into view ----------
+   Mark it up; never write a page's own keyframes for this (scripts/lint-motion.mjs).
+     data-reveal         a line or a card rises into place (story.ts, GSAP)
+     data-reveal-group   on a list: its data-reveal items rise one after another
+     data-split          a heading's words rise from their masks (story.ts)
+     data-pop            pops in on the spring: a tick, a badge, a dot
+     data-draw           an <svg>'s strokes draw themselves; any other element (a rule)
+                         draws across from the start, or down with data-draw="down"
+   data-pop and data-draw play when scripts/motion.ts marks them data-in, and wait only
+   behind .crew-armed: without JavaScript or with reduced motion all of it is simply there.
+   Timing: --delay (on the element or any parent) waits before it; things that come in
+   together are numbered --n by motion.ts and spaced by --stagger (set either on a
+   parent for a slower beat). A stroke inside a pop draws once the pop has landed. */
+:is([data-pop], [data-draw]) { --in-delay: calc(var(--delay, 0s) + var(--after, 0s) + var(--n, 0) * var(--stagger)); }
+[data-pop] [data-draw] { --after: calc(var(--dur-pop) * .36); }
+.crew-armed [data-pop]:not([data-in]) { scale: 0; }
+.crew-armed [data-pop][data-in=""] { animation: pop var(--dur-pop) var(--ease-pop) var(--in-delay) both; }
+.crew-armed svg[data-draw] :is(path, line, polyline, circle) { stroke-dasharray: 1 1; }
+.crew-armed svg[data-draw]:not([data-in]) :is(path, line, polyline, circle) { stroke-dashoffset: 1; }
+.crew-armed svg[data-draw][data-in=""] :is(path, line, polyline, circle) { animation: draw-stroke var(--dur-pop) var(--ease-draw) var(--in-delay) both; }
+:where([data-draw]:not(svg)) { --draw-from: scaleX(0); transform-origin: 0 0; }
+:where([dir="rtl"] [data-draw]:not(svg)) { transform-origin: 100% 0; }
+:where([data-draw="down"]) { --draw-from: scaleY(0); }
+.crew-armed [data-draw]:not(svg):not([data-in]) { transform: var(--draw-from); }
+.crew-armed [data-draw]:not(svg)[data-in=""] { animation: draw-rule var(--dur-draw) var(--ease-out-expo) var(--in-delay) both; }
+@keyframes pop { from { scale: 0; } }
+@keyframes draw-stroke { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes draw-rule { from { transform: var(--draw-from); } }
+
 /* First screen, arriving fresh (.m: no page transition and motion allowed, set by the
    head script). The hero's or a page intro's entrance is CSS: it starts with the first
    paint and runs off the main thread, so it never waits for story.ts (gsap) to load and
@@ -61,7 +90,7 @@ html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; m
 @keyframes hero-browser { from { transform: perspective(1400px) translateY(70px) rotateX(7deg); } to { transform: perspective(1400px); } }
 @keyframes hero-chip { from { opacity: 0; transform: translateY(24px) scale(.92); } }
 .m [data-intro] { animation: rise-in var(--dur-intro) var(--ease-out-expo) calc(300ms + var(--i, 0) * var(--stagger)) backwards; }
-.m .intro-word { animation: rise-word var(--dur-intro) var(--ease-out-expo) calc(50ms + var(--w, 0) * 55ms) backwards; }
+.m .intro-word { animation: rise-word var(--dur-intro) var(--ease-out-expo) calc(50ms + var(--w, 0) * var(--stagger-word)) backwards; }
 .m [data-hero-browser] { animation: hero-browser 1.5s var(--ease-out-expo) .15s backwards; }
 .m [data-hero-ipad] { --rise: 110px; animation: rise-in 1.5s var(--ease-out-expo) .4s backwards; }
 .m [data-hero-chip] { animation: hero-chip 1s var(--ease-out-expo) .9s backwards; }

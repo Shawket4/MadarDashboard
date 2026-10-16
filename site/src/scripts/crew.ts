@@ -1,54 +1,41 @@
-// The crew on the Free page (components/free): the badges drop in and swing, the Z-report
-// prints, the steps' numbers rise, and the characters live a little: they pop in once,
-// blink and wave at their own uneven pace, follow the pointer with their eyes (or glance
-// around on a phone), and hop when tapped or pointed at; the joyful ones jump as they
-// arrive. All of it only with motion allowed, and only while on screen: nothing loops or
-// spends a frame out of sight. Without this file everything is simply there, still
-// (global.css "The crew").
-
-const root = document.documentElement;
-const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// The crew (components/crew): the badges drop in and swing, the Z-report prints, and the
+// characters live a little: they pop in once, blink and wave at their own uneven pace,
+// follow the pointer with their eyes (or glance around on a phone), and hop when tapped or
+// pointed at; the joyful ones jump as they arrive. This file is the crew's CHARACTER
+// motion only: when each comes in (data-in) and whether it is on screen is
+// scripts/motion.ts's, as is the .crew-armed switch, and the beats are the tokens'. All
+// of it only with motion allowed, and only while on screen: nothing loops or spends a
+// frame out of sight. Without this file everything is simply there, still
+// (styles/sections/crew.css).
+import { reduce, watch, onScreen } from "./motion";
+import { DUR } from "@/lib/motion";
 
 if (!reduce) {
-  // From here on the page may hold the badges and the receipt back until they scroll in.
-  root.classList.add("crew-armed");
-
+  const WAVE = DUR.wave * 1000;
+  const HOP = DUR.hop * 1000;
   const swings = Array.from(document.querySelectorAll<HTMLElement>("[data-swing]"));
   const figures = Array.from(document.querySelectorAll<SVGSVGElement>("svg[data-crew]"));
-  const onScreen = new Set<Element>();
+  const seen = new Set<Element>();
   /** What carries on when it comes back on screen (a swing paused mid-swing). */
   const resume = new Map<Element, () => void>();
   /** What a joyful character does the first time it comes in: a jump. */
   const joys = new Map<Element, () => void>();
 
-  const io = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) {
-        const el = e.target;
-        if (e.isIntersecting) {
-          onScreen.add(el);
-          // Into view once: the badge drops, a character pops up, the duties tick.
-          if (!el.hasAttribute("data-in")) {
-            el.setAttribute("data-in", "");
-            joys.get(el)?.();
-          }
-          resume.get(el)?.();
-        } else onScreen.delete(el);
-        // The endless bits (a sip, the steam) run only while on screen.
-        if (el instanceof SVGSVGElement) el.toggleAttribute("data-live", e.isIntersecting);
-      }
-    },
-    { rootMargin: "0px 0px -4% 0px" },
-  );
-  // The crew's duty lists, and Free and paid's lists ([data-ticks]): their ticks pop in once seen.
-  const cols = Array.from(document.querySelectorAll<HTMLElement>(".crew-col, [data-ticks]"));
-  for (const el of [...swings, ...figures, ...cols]) io.observe(el);
+  // Into view once: the badge drops, a character pops up (a joyful one jumps), the
+  // receipt prints. The endless bits (a sip, the steam) run only while on screen (data-live).
+  for (const el of [...swings, ...figures]) {
+    watch(el, { onIn: () => joys.get(el)?.() });
+    onScreen(el, (on) => {
+      if (!on) return void seen.delete(el);
+      seen.add(el);
+      resume.get(el)?.();
+    });
+  }
+  for (const el of document.querySelectorAll(".zr")) watch(el);
 
   const rand = (a: number, b: number) => a + Math.random() * (b - a);
-  const live = (f: Element) => onScreen.has(f) && !document.hidden;
+  const live = (f: Element) => seen.has(f) && !document.hidden;
 
-  // The steps: each number rises and its rule draws on once seen.
-  for (const el of document.querySelectorAll(".free-step")) io.observe(el);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) for (const go of resume.values()) go();
   });
@@ -72,7 +59,7 @@ if (!reduce) {
 
     // Waves: one soon after it arrives (staggered, so two never wave in step), then idly.
     const wave = () => {
-      if (live(f)) flash(f, "data-wave", 1700);
+      if (live(f)) flash(f, "data-wave", WAVE);
       window.setTimeout(wave, rand(6500, 12000));
     };
     window.setTimeout(wave, 1600 + i * 900);
@@ -80,8 +67,8 @@ if (!reduce) {
     // Pointed at or tapped: a hop, a big smile and a wave.
     const cheer = () => {
       if (f.hasAttribute("data-cheer")) return;
-      flash(f, "data-cheer", 760);
-      flash(f, "data-wave", 1700);
+      flash(f, "data-cheer", HOP);
+      flash(f, "data-wave", WAVE);
     };
     const target = f.closest("[data-crew-host]") ?? f;
     target.addEventListener("pointerenter", (e) => {
@@ -108,7 +95,7 @@ if (!reduce) {
     frame = 0;
     if (!pointer) return;
     for (const { f, els } of pupils) {
-      if (!onScreen.has(f)) continue;
+      if (!seen.has(f)) continue;
       const r = f.getBoundingClientRect();
       const cx = r.left + r.width / 2;
       const cy = r.top + r.height * 0.45;

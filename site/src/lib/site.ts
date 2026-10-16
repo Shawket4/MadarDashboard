@@ -38,7 +38,7 @@ const DOWNLOAD_ID: Record<AppKey, string> = { cashier: "pos", kitchen: "kitchen"
 export const downloadsHref = (lang: Lang, app: AppKey): string => `${DOWNLOADS_URL}/${lang === "ar" ? "ar/" : ""}?app=${DOWNLOAD_ID[app]}`;
 export const isLive = (app: AppKey): boolean => Boolean(APPS[app].appStore || APPS[app].googlePlay);
 /** Every store listing, for the organisation's `sameAs`. */
-export const STORE_URLS: string[] = APP_KEYS.flatMap((k) => [APPS[k].appStore, APPS[k].googlePlay]).filter(
+export const STORE_URLS: string[] = APP_KEYS.flatMap((k): (string | null)[] => [APPS[k].appStore, APPS[k].googlePlay]).filter(
   (u): u is string => typeof u === "string",
 );
 

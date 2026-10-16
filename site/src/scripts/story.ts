@@ -21,8 +21,11 @@ import Lenis from "lenis";
 import { initBarista } from "./barista";
 import { familyScene, type SceneKit } from "./family";
 import { carousel } from "./carousel";
+import { DUR, EASE, REVEAL_Y, STAGGER, STAGGER_WORD } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin);
+// Whatever arrives eases out on the tokens' curve unless a tween says otherwise.
+gsap.defaults({ ease: EASE.out });
 // Phones: the address bar showing and hiding is not a resize worth re-measuring for.
 ScrollTrigger.config({ ignoreMobileResize: true });
 
@@ -144,7 +147,6 @@ async function run() {
   reveals();
   counts();
   orbits();
-  lines();
   stageClocks();
   basira();
   roadmap();
@@ -254,7 +256,6 @@ function countUp(el: HTMLElement, paused = false) {
   return gsap.to(figure, {
     value: Number(el.dataset.count ?? 0),
     duration: 1.9,
-    ease: "expo.out",
     paused,
     onUpdate: () => void (el.textContent = fmt.format(figure.value)),
   });
@@ -294,7 +295,6 @@ function whenSeen(el: Element, start: string, anim: gsap.core.Animation) {
 function rise(split: SplitText, vars: gsap.TweenVars) {
   return gsap.from(split.words, {
     y: (_: number, word: Element) => word.parentElement?.offsetHeight ?? 0,
-    ease: "expo.out",
     onComplete: () => void gsap.set(split.words, { clearProps: "transform" }),
     ...vars,
   });
@@ -305,13 +305,19 @@ function splits() {
     if (settled(el)) continue;
     const split = SplitText.create(el, { type: "words", mask: "words", wordsClass: "split-word" });
     gsap.set(el, { autoAlpha: 1 });
-    whenSeen(el, "top 88%", rise(split, { duration: 1, stagger: 0.045, paused: true }));
+    whenSeen(el, "top 88%", rise(split, { duration: DUR.reveal, stagger: STAGGER_WORD, paused: true }));
   }
 }
 
+/**
+ * Lines and cards rise into place as they scroll in (data-reveal, the tokens' distance and
+ * duration). What comes in together rises one after another, --stagger apart (and the
+ * whole run in at most 0.35 s): each data-reveal-group's items on their own count, the
+ * loose ones on theirs.
+ */
 function reveals() {
   const items = gsap.utils.toArray<HTMLElement>("[data-reveal]").filter((el) => !settled(el));
-  gsap.set(items, { autoAlpha: 0, y: 26 });
+  gsap.set(items, { autoAlpha: 0, y: REVEAL_Y });
   ScrollTrigger.batch(items, {
     start: "top 92%",
     once: true,
@@ -323,7 +329,17 @@ function reveals() {
       const here = batch.filter((el) => !fast && !passed(el));
       if (gone.length) gsap.set(gone, { autoAlpha: 1, y: 0, overwrite: true });
       if (here.length) {
-        gsap.to(here, { autoAlpha: 1, y: 0, duration: 0.95, ease: "expo.out", stagger: Math.min(0.07, 0.35 / here.length), overwrite: true });
+        const group = (el: Element) => el.closest("[data-reveal-group]");
+        const size = new Map<Element | null, number>();
+        for (const el of here) size.set(group(el), (size.get(group(el)) ?? 0) + 1);
+        const seen = new Map<Element | null, number>();
+        const delay = here.map((el) => {
+          const g = group(el);
+          const k = seen.get(g) ?? 0;
+          seen.set(g, k + 1);
+          return k * Math.min(STAGGER, 0.35 / (size.get(g) ?? 1));
+        });
+        gsap.to(here, { autoAlpha: 1, y: 0, duration: DUR.reveal, delay: (i: number) => delay[i] ?? 0, overwrite: true });
       }
     },
   });
@@ -332,7 +348,7 @@ function reveals() {
 function orbits() {
   for (const svg of gsap.utils.toArray<SVGSVGElement>("[data-orbit]")) {
     if (!settled(svg)) {
-      const draw = gsap.fromTo(svg.querySelectorAll("[data-draw]"), { drawSVG: "50% 50%" }, {
+      const draw = gsap.fromTo(svg.querySelectorAll("[data-orbit-ring]"), { drawSVG: "50% 50%" }, {
         drawSVG: "0% 100%",
         duration: 2.4,
         ease: "expo.inOut",
@@ -352,16 +368,6 @@ function orbits() {
   }
 }
 
-function lines() {
-  for (const el of gsap.utils.toArray<HTMLElement>("[data-draw-line]")) {
-    if (settled(el)) continue;
-    const draw = gsap.fromTo(el, { scaleX: 0, transformOrigin: rtl ? "100% 50%" : "0% 50%" }, {
-      scaleX: 1, duration: 1.4, ease: "expo.out", paused: true,
-    });
-    whenSeen(el, "top 92%", draw);
-  }
-}
-
 /** The stage clock runs up to its hour as the stage comes in: 04:00 → 07:00. */
 function stageClocks() {
   for (const el of gsap.utils.toArray<HTMLElement>("[data-stage-time]")) {
@@ -374,7 +380,7 @@ function stageClocks() {
       el.textContent = `${String(Math.floor(v / 60) % 24).padStart(2, "0")}:${String(v % 60).padStart(2, "0")}`;
     };
     show();
-    whenSeen(el, "top 85%", gsap.to(clock, { t: target, duration: 1.6, ease: "expo.out", onUpdate: show, paused: true }));
+    whenSeen(el, "top 85%", gsap.to(clock, { t: target, duration: 1.6, onUpdate: show, paused: true }));
   }
 }
 
@@ -383,9 +389,9 @@ function basira() {
     if (settled(box)) continue;
     const tl = gsap.timeline({ paused: true });
     whenSeen(box, "top 75%", tl);
-    tl.from(box.querySelector("[data-basira-q]"), { y: 16, autoAlpha: 0, duration: 0.7, ease: "expo.out" })
-      .from(box.querySelector("[data-basira-a]"), { y: 16, autoAlpha: 0, duration: 0.7, ease: "expo.out" }, "+=0.25")
-      .from(box.querySelectorAll("[data-bar]"), { scaleX: 0, transformOrigin: rtl ? "100% 50%" : "0% 50%", duration: 1.1, ease: "expo.out", stagger: 0.09 }, "-=0.3");
+    tl.from(box.querySelector("[data-basira-q]"), { y: 16, autoAlpha: 0, duration: 0.7 })
+      .from(box.querySelector("[data-basira-a]"), { y: 16, autoAlpha: 0, duration: 0.7 }, "+=0.25")
+      .from(box.querySelectorAll("[data-bar]"), { scaleX: 0, transformOrigin: rtl ? "100% 50%" : "0% 50%", duration: 1.1, stagger: 0.09 }, "-=0.3");
   }
 }
 
@@ -409,8 +415,8 @@ function roadmap() {
   const stop = (tl: gsap.core.Timeline, el: HTMLElement, at: number) => {
     const check = el.querySelector("[data-rm-check]");
     const out = el.querySelector("[data-rm-seg='out']");
-    tl.fromTo(el.querySelector("[data-rm-marker]"), { scale: 0.4, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.55, ease: "back.out(1.7)" }, at)
-      .fromTo(el.querySelector("[data-rm-text]"), { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: "expo.out" }, at + 0.1);
+    tl.fromTo(el.querySelector("[data-rm-marker]"), { scale: 0.4, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.55, ease: EASE.pop }, at)
+      .fromTo(el.querySelector("[data-rm-text]"), { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.8 }, at + 0.1);
     if (check) tl.fromTo(check, { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.4, ease: "power2.out" }, at + 0.18);
     if (out) tl.fromTo(out, from, { ...to, duration: 0.42, ease: "power1.inOut" }, at + 0.16);
     return at + 0.5;
@@ -419,7 +425,7 @@ function roadmap() {
   if (across) {
     if (settled(box)) return;
     const tl = gsap.timeline({ paused: true });
-    tl.fromTo(box.querySelectorAll("[data-rm-zone]"), { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: "expo.out", stagger: 0.15 }, 0)
+    tl.fromTo(box.querySelectorAll("[data-rm-zone]"), { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.15 }, 0)
       .fromTo(box.querySelectorAll("[data-rm-bracket]"), { scaleX: 0, transformOrigin: rtl ? "100% 0%" : "0% 0%" }, { scaleX: 1, duration: 0.9, ease: "expo.inOut", stagger: 0.15 }, 0.1);
     let at = 0.2;
     const lead = box.querySelector("[data-rm-seg='lead']");
@@ -560,7 +566,7 @@ function areaScene(area: HTMLElement) {
     if (ta && tb) {
       const way = to > from ? 1 : -1;
       tl.to(ta, { autoAlpha: 0, y: -8 * way, duration: 0.18, ease: "power2.in" }, 0)
-        .fromTo(tb, { autoAlpha: 0, y: 12 * way }, { autoAlpha: 1, y: 0, duration: 0.5, ease: "expo.out" }, 0.2);
+        .fromTo(tb, { autoAlpha: 0, y: 12 * way }, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.2);
     }
     return tl;
   };
@@ -650,7 +656,7 @@ function rail() {
     gsap.to(progress, { scaleX: 1, ease: "none", scrollTrigger: { trigger: story, start: "top 20%", end: "bottom bottom", scrub: 0.4, refreshPriority: -1 } });
   }
   gsap.fromTo(pill, { autoAlpha: 0, y: 16 }, {
-    autoAlpha: 1, y: 0, duration: 0.5, ease: "expo.out",
+    autoAlpha: 1, y: 0, duration: 0.5,
     scrollTrigger: { trigger: story, start: "top 40%", end: "bottom 55%", toggleActions: "play reverse play reverse", refreshPriority: -1 },
   });
   for (const block of gsap.utils.toArray<HTMLElement>("[data-stage-block]")) {

@@ -57,22 +57,15 @@
 
 @media (max-width: 767px) { .crew-col-items { gap: 1.25rem; margin-top: 1.5rem; } }
 
-/* Entrances (crew.ts sets data-in as they scroll into view), once each. A character pops up
-   onto its line: the whole drawing, shadow and all (the <svg> itself, so the hop inside stays
-   free for a greeting). Then each duty's tick pops and its check draws, in turn. */
+/* Entrances (motion.ts sets data-in as they scroll into view), once each. A character pops
+   up onto its line: the whole drawing, shadow and all (the <svg> itself, so the hop inside
+   stays free for a greeting). Then each duty's tick pops and its check draws (data-pop,
+   data-draw: styles/motion.css), on a slower beat than a list's. */
 .crew-armed svg[data-crew] { transform-origin: 50% 100%; }
 .crew-armed svg[data-crew]:not([data-in]) { opacity: 0; transform: translateY(14%) scale(.9); }
 .crew-armed svg[data-crew][data-in] { animation: crew-enter .7s var(--ease-spring) both; }
 @keyframes crew-enter { 0% { opacity: 0; transform: translateY(14%) scale(.9); } 100% { opacity: 1; transform: none; } }
-.crew-col-items li:nth-child(1) { --d: .5s; }
-.crew-col-items li:nth-child(2) { --d: .75s; }
-.crew-col-items li:nth-child(3) { --d: 1s; }
-.crew-armed .crew-col:not([data-in]) .free-tick { scale: 0; }
-.crew-armed .crew-col[data-in] .free-tick { animation: tick-pop var(--dur-pop) var(--ease-pop) var(--d) both; }
-@keyframes tick-pop { 0% { scale: 0; } 100% { scale: 1; } }
-/* Free and paid: each group's ticks pop in turn as its lines rise in (data-reveal). */
-.crew-armed [data-ticks]:not([data-in]) .fc-yes { scale: 0; }
-.crew-armed [data-ticks][data-in] .fc-yes { animation: tick-pop var(--dur-pop) var(--ease-pop) calc(.3s + var(--i, 0) * .09s) both; }
+.crew-col-items { --delay: .5s; --stagger: .25s; }
 
 /* نقطة with the count, beside the receipt it prints: stacked on a phone, side by side from md. */
 .zr-scene { display: grid; justify-items: center; gap: 1.5rem; }
@@ -80,12 +73,6 @@
 @media (min-width: 640px) { .zr-scene { grid-template-columns: auto 1fr; align-items: end; justify-items: stretch; } .zr-scene .zr { margin-inline: 0 auto; } .zr-nuqta { width: 8.5rem; } }
 [data-wave] .crew-paper { animation: crew-paper var(--dur-wave) ease-in-out; }
 @keyframes crew-paper { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-1.6deg) translateY(1px); } 65% { transform: rotate(1.3deg); } }
-
-/* Each duty's check draws itself once its tick has popped. */
-.crew-armed .crew-col .free-tick path { stroke-dasharray: 20; }
-.crew-armed .crew-col:not([data-in]) .free-tick path { stroke-dashoffset: 20; }
-.crew-armed .crew-col[data-in] .free-tick path { animation: tick-draw .4s var(--ease-draw) calc(var(--d) + .18s) both; }
-@keyframes tick-draw { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
 
 /* شريحة comes in the way a pie chart draws its slice: the mask in Shariha.astro sweeps her
    wedge open from its corner, a quarter turn, as she pops up. */
@@ -97,23 +84,6 @@
 .crew-armed svg[data-crew]:not([data-in]) .crew-limb { opacity: 0; }
 .crew-armed svg[data-crew][data-in] .crew-limb { animation: crew-limb .4s ease-out .55s both; }
 @keyframes crew-limb { from { opacity: 0; } }
-
-/* The steps: each number rises into its place and its rule draws on (down the timeline on a
-   phone, across from the start on wider screens), the steps of a row one after another. */
-.free-step:nth-child(2) { --d: .12s; }
-.free-step:nth-child(3) { --d: .24s; }
-.free-step:nth-child(4) { --d: .36s; }
-.crew-armed .free-step:not([data-in]) .free-step-n > span { transform: translateY(110%); }
-.crew-armed .free-step[data-in] .free-step-n > span { animation: step-n .9s var(--ease-out-expo) calc(var(--d, 0s) + .1s) both; }
-@keyframes step-n { from { transform: translateY(110%); } }
-.crew-armed .free-step:not([data-in]) .free-step-rule { transform: scaleY(0); }
-.crew-armed .free-step[data-in] .free-step-rule { animation: step-rule-y 1.2s var(--ease-out-expo) calc(var(--d, 0s) + .3s) both; }
-@keyframes step-rule-y { from { transform: scaleY(0); } }
-@keyframes step-rule-x { from { transform: scaleX(0); } }
-@media (min-width: 640px) {
-  .crew-armed .free-step:not([data-in]) .free-step-rule { transform: scaleX(0); }
-  .crew-armed .free-step[data-in] .free-step-rule { animation-name: step-rule-x; }
-}
 
 /* A direct call to action between the crew and the limits, for ad traffic. The joyful pair
    stands on its top edge over the button (their feet on the edge: each drawing has a little

@@ -111,7 +111,7 @@ const jsonLd = [{
             <ul class="crew-col-items">
               {f.included.items.slice(col * 3, col * 3 + 3).map((i) => (
                 <li>
-                  <span class="free-tick" aria-hidden="true"><Icon name="check" size={16} /></span>
+                  <span class="free-tick" aria-hidden="true" data-pop><Icon name="check" size={16} draw /></span>
                   <h4 class="font-semibold leading-snug">{i.t}</h4>
                   <p class="mt-1.5 text-muted">{i.b}</p>
                 </li>
@@ -190,10 +190,10 @@ const jsonLd = [{
             {cmp.groups.map((g, gi) => (
               <Fragment>
                 <h4 class="fc-group"><Icon name={groupIcons[gi]} size={18} /> {g.title}</h4>
-                <ul class="fc-rows" data-ticks data-reveal-group>
-                  {g.rows.map((r, i) => (
-                    <li class="fc-row" data-reveal style={`--i:${i}`}>
-                      <span class="fc-yes" aria-hidden="true"><Icon name="check" size={14} /></span>
+                <ul class="fc-rows" data-reveal-group>
+                  {g.rows.map((r) => (
+                    <li class="fc-row" data-reveal>
+                      <span class="fc-yes" aria-hidden="true" data-pop><Icon name="check" size={14} /></span>
                       <span class="fc-label">{r}</span>
                       <span class="fc-also" aria-hidden="true"><Icon name="check" size={18} /></span>
                     </li>
@@ -235,8 +235,8 @@ const jsonLd = [{
       <ol class="free-steps mt-10 md:mt-14" data-reveal-group>
         {f.steps.items.map((s, i) => (
           <li class="free-step" data-reveal>
-            <span class="free-step-n" aria-hidden="true"><span>{String(i + 1).padStart(2, "0")}</span></span>
-            <span class="free-step-rule" aria-hidden="true"></span>
+            <span class="free-step-n" aria-hidden="true" data-split>{String(i + 1).padStart(2, "0")}</span>
+            <span class="free-step-rule" aria-hidden="true" data-draw="down"></span>
             <div class="free-step-body">
             <h3 class="text-lg font-semibold leading-snug">{s.t}</h3>
             <p class="mt-2 text-muted">{s.b}</p>
