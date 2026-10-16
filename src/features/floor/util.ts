@@ -316,8 +316,7 @@ export const marqueeHits = (marquee: Rect, items: GeoItem[]): string[] => {
   return items.filter((it) => rectsIntersect(norm, envelopeOf(it))).map((it) => it.id);
 };
 
-const ALIGNMENTS = ["left", "hcenter", "right", "top", "vcenter", "bottom"] as const;
-export type Alignment = (typeof ALIGNMENTS)[number];
+export type Alignment = "left" | "hcenter" | "right" | "top" | "vcenter" | "bottom";
 
 /**
  * Align a selection, returning only the items that actually move.

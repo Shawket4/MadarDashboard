@@ -11,14 +11,11 @@
  * editor uses, so the viewport maths in `features/floor/util.ts` applies as is.
  */
 
-const DEVICE_KINDS = ["pos", "waiter", "kitchen"] as const;
-export type DeviceKind = (typeof DEVICE_KINDS)[number];
+export type DeviceKind = "pos" | "waiter" | "kitchen";
 
-const PRINTER_ROLES = ["receipt", "kitchen"] as const;
-export type PrinterRole = (typeof PRINTER_ROLES)[number];
+export type PrinterRole = "receipt" | "kitchen";
 
-const CONNECTIONS = ["network", "usb", "bluetooth"] as const;
-export type Connection = (typeof CONNECTIONS)[number];
+export type Connection = "network" | "usb" | "bluetooth";
 
 export interface PlanDevice {
   id: string;

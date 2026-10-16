@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { TZDate } from "@date-fns/tz";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { APP_TZ } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
 import { cairoParts, fmtDate } from "@/lib/format";
 import { dayBoundaryISO } from "@/data/scope/presets";
-import { daysIntoWeek, WEEK_ORDER } from "@/lib/week";
+import { MonthNav, useMonthView, WeekdayHeader } from "@/components/app/month-grid";
 
 type DayParts = { y: number; m: number; d: number };
 
@@ -56,8 +55,7 @@ export function DateRangePicker({ preset, from, to, presets, onSelectPreset, onA
   const today = cairoParts(Date.now(), tz);
   const partsOf = (iso: string): DayParts => cairoParts(iso, tz);
   const cairoDateISO = (y: number, m: number, d: number, endOfDay = false) => dayBoundaryISO(tz, y, m, d, endOfDay);
-  const [month, setMonth] = React.useState(today.m);
-  const [year, setYear] = React.useState(today.y);
+  const { month, year, cells, monthName, weekdayNames, prevMonth, nextMonth, show } = useMonthView(tz, locale, today);
 
   // Seed the working selection + visible month from props whenever opened.
   React.useEffect(() => {
@@ -67,8 +65,7 @@ export function DateRangePicker({ preset, from, to, presets, onSelectPreset, onA
     setSelected({ from: f, to: tp });
     setHovered(undefined);
     const anchor = f ?? today;
-    setMonth(anchor.m);
-    setYear(anchor.y);
+    show(anchor);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -96,28 +93,9 @@ export function DateRangePicker({ preset, from, to, presets, onSelectPreset, onA
     setOpen(false);
   };
 
-  const daysInMonth = new TZDate(year, month + 1, 0, tz).getDate();
-  const firstDay = new TZDate(year, month, 1, tz).getDay();
-  const cells: (number | null)[] = [
-    ...Array(daysIntoWeek(firstDay)).fill(null),
-    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
-  ];
-
   const fromNum = toNum(selected.from);
   const toNum_ = toNum(selected.to ?? hovered);
   const todayNum = today.y * 10000 + today.m * 100 + today.d;
-
-  const prevMonth = () => (month === 0 ? (setMonth(11), setYear((y) => y - 1)) : setMonth((m) => m - 1));
-  const nextMonth = () => (month === 11 ? (setMonth(0), setYear((y) => y + 1)) : setMonth((m) => m + 1));
-
-  const monthName = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: tz }).format(
-    new TZDate(year, month, 1, tz),
-  );
-  const weekdayNames = React.useMemo(() => {
-    const fmt = new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: tz });
-    // 7 Jan 2024 is a Sunday (getDay 0); the columns start on WEEK_START.
-    return WEEK_ORDER.map((day) => fmt.format(new TZDate(2024, 0, 7 + day, tz)));
-  }, [locale, tz]);
 
   const activeLabel =
     preset !== "custom"
@@ -173,25 +151,9 @@ export function DateRangePicker({ preset, from, to, presets, onSelectPreset, onA
           </div>
         </div>
 
-        {/* Month nav */}
-        <div className="mb-3 flex items-center justify-between">
-          <Button variant="ghost" size="icon-sm" onClick={prevMonth} aria-label={t("common.previous", "Previous")}>
-            <ChevronLeft className="size-4 rtl:rotate-180" />
-          </Button>
-          <span className="text-sm font-semibold">{monthName}</span>
-          <Button variant="ghost" size="icon-sm" onClick={nextMonth} aria-label={t("common.next", "Next")}>
-            <ChevronRight className="size-4 rtl:rotate-180" />
-          </Button>
-        </div>
+        <MonthNav title={monthName} onPrev={prevMonth} onNext={nextMonth} />
 
-        {/* Weekday header */}
-        <div className="mb-1 grid grid-cols-7">
-          {weekdayNames.map((d) => (
-            <div key={d} className="py-1 text-center text-xs font-semibold text-muted-foreground">
-              {d}
-            </div>
-          ))}
-        </div>
+        <WeekdayHeader names={weekdayNames} />
 
         {/* Day grid */}
         <div className="grid grid-cols-7 gap-y-0.5">
