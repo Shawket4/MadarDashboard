@@ -240,7 +240,9 @@ function popsAndDraws(feel: Feel) {
           gsap.set(targets, done);
           continue;
         }
-        const step = seconds(el, "--stagger", feel.step);
+        // A list may slow its beat (--stagger on a parent); otherwise the feel's (calmer on phones).
+        const own = seconds(el, "--stagger", STAGGER);
+        const step = own === STAGGER ? feel.step : own;
         const after = !pop && el.parentElement?.closest("[data-pop]") ? DUR.pop * 0.36 : 0;
         const delay = seconds(el, "--delay", 0) + after + n[pop ? "pop" : "draw"]++ * step;
         if (pop) gsap.to(el, { scale: 1, duration: DUR.pop, ease: EASE.pop, delay });

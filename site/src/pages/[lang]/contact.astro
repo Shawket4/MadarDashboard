@@ -31,7 +31,7 @@ const rows = [
   <Section intro split={5} kicker={cp.kicker} title={c.contact.title} lead={c.contact.subtitle}>
     <Fragment slot="head">
       <h2 class="mt-12 text-lg font-semibold" data-reveal>{cp.nextTitle}</h2>
-      <ol class="mt-4 grid list-decimal gap-3 ps-5 text-muted marker:font-mono marker:text-teal" data-reveal-group>
+      <ol class="mt-4 grid list-decimal gap-3 ps-5 text-muted marker:font-medium marker:text-teal" data-reveal-group>
         {cp.next.map((line) => <li data-reveal>{line}</li>)}
       </ol>
     </Fragment>
