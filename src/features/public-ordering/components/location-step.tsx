@@ -12,6 +12,7 @@ import { DISTANCE, Reveal, recipes } from "@/lib/motion";
 import { fmtMoney } from "@/lib/format";
 
 import type { Channel } from "../types";
+import { savedPointFor } from "../location-rules";
 import { DeliveryMap, type LatLng } from "./delivery-map";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -60,13 +61,13 @@ export function LocationStep({
   const hasSaved = channelLocations.length > 0;
 
   // Auto-select the most recent location for a returning branch (same branch+channel).
-  // Only fires on mount if we don't already have a point.
+  // Only fires on mount if we don't already have a point. In-mall takes the
+  // address fields only: the point there is the device's own location.
   useEffect(() => {
     if (point || branchSavedLocations.length === 0) return;
     const best = branchSavedLocations[0];
-    if (best.customer_lat != null && best.customer_lng != null) {
-      onPointChange({ lat: best.customer_lat, lng: best.customer_lng });
-    }
+    const saved = savedPointFor(channel, best);
+    if (saved) onPointChange(saved);
     onApplySavedAddress?.(best);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -125,9 +126,8 @@ export function LocationStep({
   };
 
   const applyLocation = (loc: GuestSavedLocation) => {
-    if (loc.customer_lat != null && loc.customer_lng != null) {
-      onPointChange({ lat: loc.customer_lat, lng: loc.customer_lng });
-    }
+    const saved = savedPointFor(channel, loc);
+    if (saved) onPointChange(saved);
     onApplySavedAddress?.(loc);
     setSavedOpen(false);
   };
