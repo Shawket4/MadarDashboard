@@ -5,7 +5,7 @@
 // GSAP and show every page complete and still.
 //
 // One gsap.matchMedia() arms it: .crew-armed on <html> (the crew's CSS may wait behind it)
-// and the vocabulary, with a calmer variant on phones (the *-phone tokens). If the visitor
+// and the vocabulary, with a phone-scaled variant (the *-phone tokens). If the visitor
 // turns reduced motion on, all of it reverts to the still page.
 //
 // The vocabulary. Mark it up; never write a page's own reveal keyframes or observers:
@@ -16,7 +16,7 @@
 //   data-draw           an <svg>'s strokes draw (DrawSVG); any other element (a rule)
 //                       draws along its longer side from the start
 //   data-count          a figure counts up to the value in the HTML
-//   data-parallax="f"   drifts f of its height as its section scrolls (calmer on phones)
+//   data-parallax="f"   drifts f of its height as its section scrolls (a little less on phones)
 //   data-sequence="x"   a set piece: the timeline defineSequence("x") builds, played as
 //                       it comes in, paused off screen, resumed when back
 //   data-progress       the header's page progress line
@@ -115,14 +115,26 @@ export function onScreen(el: Element, onChange?: (on: boolean) => void) {
 }
 
 /** A set piece's timeline, built when its element is set up (data-sequence="name"). */
-type Sequence = { build: (el: HTMLElement, tl: gsap.core.Timeline) => void; always: boolean };
+type Sequence = {
+  build: (el: HTMLElement, tl: gsap.core.Timeline, feel: Feel) => void;
+  always: boolean;
+  scrub: false | { start: string; end: string };
+};
 const sequences = new Map<string, Sequence>();
 /**
  * Names a set piece. `always`: it plays even when it is on screen as the engine starts (a
- * character's entrance); otherwise a settled one is left as it is.
+ * character's entrance); otherwise a settled one is left as it is. `scrub`: the scroll
+ * drives it instead (from `start` to `end`, ScrollTrigger's terms; by default while the
+ * element scrolls out from the top), so it is built wherever it is, at its start state
+ * (which must be the page as rendered: nothing jumps when it is set up).
  */
-export function defineSequence(name: string, build: Sequence["build"], { always = false } = {}) {
-  sequences.set(name, { build, always });
+export function defineSequence(
+  name: string,
+  build: Sequence["build"],
+  { always = false, scrub = false as boolean | { start?: string; end?: string } } = {},
+) {
+  const range = scrub ? { start: "top top", end: "bottom top", ...(scrub === true ? {} : scrub) } : false;
+  sequences.set(name, { build, always: always || !!range, scrub: range });
 }
 
 /** A custom property on `el` (inherited, so a parent can set it), in seconds. */
@@ -148,8 +160,11 @@ let lenis: Lenis | null = null;
 
 // ---------- The vocabulary ----------
 
-/** How it moves: the rise, the beat between items and between words, the parallax share (calmer on phones). */
-type Feel = { y: number; step: number; word: number; parallax: number };
+/** How it moves: the rise, the beat between items and between words, the parallax share (phone-scaled below 768 px). */
+type Feel = { y: number; step: number; word: number; parallax: number; phone: boolean };
+/** Phones keep every moment the wide screen has, at a phone's scale (the *-phone tokens). */
+const PHONE_FEEL: Feel = { y: REVEAL_Y_PHONE, step: STAGGER_PHONE, word: STAGGER_WORD, parallax: PARALLAX_PHONE, phone: true };
+const WIDE_FEEL: Feel = { y: REVEAL_Y, step: STAGGER, word: STAGGER_WORD, parallax: 1, phone: false };
 
 /**
  * Lines and cards rise into place (data-reveal). What comes in together rises one after
@@ -240,7 +255,7 @@ function popsAndDraws(feel: Feel) {
           gsap.set(targets, done);
           continue;
         }
-        // A list may slow its beat (--stagger on a parent); otherwise the feel's (calmer on phones).
+        // A list may slow its beat (--stagger on a parent); otherwise the feel's (phone-scaled).
         const own = seconds(el, "--stagger", STAGGER);
         const step = own === STAGGER ? feel.step : own;
         const after = !pop && el.parentElement?.closest("[data-pop]") ? DUR.pop * 0.36 : 0;
@@ -297,7 +312,7 @@ function heroCount() {
 
 /** Set pieces (data-sequence): built paused, played as they come in, paused off screen. `only`: the `always` ones alone (the crew's, built early). */
 const built = new WeakSet<Element>();
-function playSequences(only?: "always") {
+function playSequences(feel: Feel, only?: "always") {
   for (const el of gsap.utils.toArray<HTMLElement>("[data-sequence]")) {
     if (built.has(el)) continue;
     const name = el.dataset.sequence ?? "";
@@ -308,9 +323,16 @@ function playSequences(only?: "always") {
     }
     if (only && !seq.always) continue;
     if (!seq.always && settled(el)) continue;
+    if (only && seq.scrub) continue;
     built.add(el);
+    if (seq.scrub) {
+      const tl = gsap.timeline({ defaults: { ease: "none" } });
+      seq.build(el, tl, feel);
+      ScrollTrigger.create({ trigger: el, ...seq.scrub, scrub: true, animation: tl });
+      continue;
+    }
     const tl = gsap.timeline({ paused: true });
-    seq.build(el, tl);
+    seq.build(el, tl, feel);
     ScrollTrigger.create({ trigger: el, start: "top 92%", end: "bottom top", toggleActions: "play pause resume pause", animation: tl });
   }
 }
@@ -357,6 +379,49 @@ function progress() {
   gsap.fromTo(bar, { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: 0.3 } });
 }
 
+/**
+ * A real pointer only: cards that lift (.lift) also tip toward it, a few degrees, and the
+ * big buttons (.btn-lg, a band's button) lean toward it as it nears, a magnet. Both settle
+ * back on the arrival curve when it leaves. Touch keeps .press's dip. Returns the undo.
+ */
+function hovers() {
+  const off: (() => void)[] = [];
+  const on = (el: Element, type: string, fn: (e: PointerEvent) => void) => {
+    el.addEventListener(type, fn as EventListener);
+    off.push(() => el.removeEventListener(type, fn as EventListener));
+  };
+  for (const card of gsap.utils.toArray<HTMLElement>(".lift")) {
+    gsap.set(card, { transformPerspective: 900 });
+    const rx = gsap.quickTo(card, "rotationX", { duration: DUR.reveal * 0.6 });
+    const ry = gsap.quickTo(card, "rotationY", { duration: DUR.reveal * 0.6 });
+    on(card, "pointermove", (e) => {
+      if (e.pointerType !== "mouse") return;
+      const r = card.getBoundingClientRect();
+      rx(-((e.clientY - r.top) / r.height - 0.5) * 6);
+      ry(((e.clientX - r.left) / r.width - 0.5) * 6);
+    });
+    on(card, "pointerleave", () => {
+      rx(0);
+      ry(0);
+    });
+  }
+  for (const btn of gsap.utils.toArray<HTMLElement>(".btn-lg, .cta-band .btn")) {
+    const x = gsap.quickTo(btn, "x", { duration: DUR.reveal * 0.5 });
+    const y = gsap.quickTo(btn, "y", { duration: DUR.reveal * 0.5 });
+    on(btn, "pointermove", (e) => {
+      if (e.pointerType !== "mouse") return;
+      const r = btn.getBoundingClientRect();
+      x(gsap.utils.clamp(-8, 8, (e.clientX - (r.left + r.width / 2)) * 0.22));
+      y(gsap.utils.clamp(-6, 6, (e.clientY - (r.top + r.height / 2)) * 0.3));
+    });
+    on(btn, "pointerleave", () => {
+      x(0);
+      y(0);
+    });
+  }
+  return () => off.forEach((f) => f());
+}
+
 // ---------- Built-in set pieces ----------
 
 /** A step of a StepList: its number rises from its mask and its rule draws; a row's steps one after another. */
@@ -374,6 +439,33 @@ defineSequence("band", (band, tl) => {
   tl.fromTo(band, { autoAlpha: 0, y: REVEAL_Y }, { autoAlpha: 1, y: 0, duration: DUR.reveal });
   tl.fromTo(band.querySelectorAll(":scope > :not(.cta-band-crew)"), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.7, stagger: STAGGER * 1.5 }, 0.15);
 });
+
+/**
+ * A page's first screen, scrolled away (scrubbed, data-sequence="hero"): three depths. The
+ * backdrop (the orbit) turns and sinks slowest, the words lift away and dim, the hero's
+ * pictures ([data-hero-media]) tip back into the page and the light on them goes with
+ * them. Transform and opacity only; at the top of the page it is the page as rendered.
+ */
+defineSequence(
+  "hero",
+  (hero, tl, feel) => {
+    const orbit = hero.querySelector(":scope > [data-orbit]");
+    const copy = hero.querySelector("[data-hero-copy]");
+    const media = hero.querySelector("[data-hero-media]");
+    if (orbit) tl.to(orbit, { rotation: 14 * (rtl ? -1 : 1), yPercent: 8, transformOrigin: "50% 50%" }, 0);
+    // A long first section (a page whose list sits beside its heading) only drifts its
+    // words a little and never dims them: they are still being read as it scrolls.
+    const tall = hero.offsetHeight > window.innerHeight * 1.5;
+    if (copy) {
+      tl.to(copy, { y: () => -0.18 * Math.min(hero.offsetHeight, window.innerHeight) * (feel.phone ? 0.7 : 1) }, 0);
+      if (!tall) tl.to(copy, { autoAlpha: 0.35, duration: 0.5 }, 0.5);
+    }
+    if (media) {
+      tl.to(media, { rotationX: feel.phone ? 8 : 12, scale: 0.92, yPercent: -6, transformPerspective: 1400, transformOrigin: "50% 100%" }, 0);
+    }
+  },
+  { scrub: true },
+);
 
 // ---------- Setting it up ----------
 
@@ -505,8 +597,6 @@ function refreshWhenNeeded() {
   );
 }
 
-const PHONE_FEEL: Feel = { y: REVEAL_Y_PHONE, step: STAGGER_PHONE, word: STAGGER_WORD * 0.7, parallax: PARALLAX_PHONE };
-const WIDE_FEEL: Feel = { y: REVEAL_Y, step: STAGGER, word: STAGGER_WORD, parallax: 1 };
 
 /**
  * The crew, at once (not after the first screen's entrance): their figures, badges and the
@@ -517,7 +607,7 @@ const crewReady = has("[data-crew], [data-swing], .zr")
   ? import("./crew").then((crew) => {
       gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
         root.classList.add("crew-armed");
-        playSequences("always");
+        playSequences(window.matchMedia(PHONE).matches ? PHONE_FEEL : WIDE_FEEL, "always");
         return () => root.classList.remove("crew-armed");
       });
       crew.live();
@@ -547,10 +637,10 @@ async function start() {
   await breathe();
   story?.extras();
 
-  // The vocabulary, armed by one matchMedia: the calmer feel on phones, nothing at all
+  // The vocabulary, armed by one matchMedia: the phone-scaled feel below 768 px, nothing at all
   // (and every piece reverted to the still page) with reduced motion.
-  gsap.matchMedia().add({ motion: "(prefers-reduced-motion: no-preference)", phone: PHONE }, (context) => {
-    const { motion, phone } = context.conditions ?? {};
+  gsap.matchMedia().add({ motion: "(prefers-reduced-motion: no-preference)", phone: PHONE, fine: "(hover: hover) and (pointer: fine)" }, (context) => {
+    const { motion, phone, fine } = context.conditions ?? {};
     if (!motion) return;
     root.classList.add("crew-armed");
     const feel = phone ? PHONE_FEEL : WIDE_FEEL;
@@ -558,11 +648,15 @@ async function start() {
     reveals(feel);
     popsAndDraws(feel);
     counts();
-    playSequences();
+    playSequences(feel);
     parallax(feel);
     orbits();
     progress();
-    return () => root.classList.remove("crew-armed");
+    const unhover = fine && !phone ? hovers() : null;
+    return () => {
+      unhover?.();
+      root.classList.remove("crew-armed");
+    };
   });
   await breathe();
 

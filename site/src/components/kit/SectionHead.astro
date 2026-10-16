@@ -29,7 +29,7 @@ const H = intro ? "h1" : "h2";
 // The first screen enters in CSS (styles/motion.css), the rest as it scrolls in (story.ts).
 const line = (i: number) => (intro ? { "data-intro": "", style: `--i:${i}` } : { "data-reveal": "" });
 ---
-<div class={cls}>
+<div class={cls} data-hero-copy={intro ? "" : undefined}>
   <slot name="mark" />
   {kicker && <p class:list={["kicker", ink ? "text-teal-light" : "text-teal"]} {...line(0)}>{kicker}</p>}
   <H id={titleId} class:list={[size, kicker && (intro ? "mt-5" : "mt-4")]} data-split={intro ? undefined : ""}>{intro ? <Words text={title} /> : title}</H>

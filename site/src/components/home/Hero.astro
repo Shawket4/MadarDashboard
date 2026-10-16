@@ -11,12 +11,12 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const c = t(lang);
 ---
-<section class="on-ink relative isolate overflow-hidden bg-ink text-paper" aria-labelledby="hero-title" data-hero>
+<section class="on-ink relative isolate overflow-hidden bg-ink text-paper" aria-labelledby="hero-title" data-hero data-sequence="hero">
   <Orbit tone="ink" class="absolute -top-[30rem] -end-[34rem] -z-10 h-[78rem] w-[78rem] md:-end-[22rem]" />
   <div aria-hidden="true" class="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-b from-transparent to-ink"></div>
 
   <div class="container-site grid items-center gap-14 pb-20 pt-32 md:pt-36 lg:grid-cols-12 lg:gap-10 lg:pb-28 lg:pt-40">
-    <div class="lg:col-span-5">
+    <div class="lg:col-span-5" data-hero-copy>
       <p class="kicker text-teal-light" data-intro style="--i:0">{c.hero.kicker}</p>
       <h1 id="hero-title" class="text-display mt-6"><Words text={c.hero.title} /></h1>
       <p class="text-lead mt-6 font-medium text-paper" data-intro style="--i:1">{c.hero.sub}</p>

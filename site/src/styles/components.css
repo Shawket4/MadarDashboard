@@ -54,7 +54,13 @@
   .chip { display: inline-flex; align-items: center; gap: .45rem; border-radius: 999px; padding: .32rem .8rem; font-size: .8rem; font-weight: 500; }
 
   /* Header: transparent over an Ink hero, solid Paper once scrolled. */
-  .site-header { transition: background-color .35s var(--ease-out-expo), border-color .35s, color .35s; border-bottom: 1px solid transparent; color: var(--color-ink); }
+  .site-header { transition: background-color .35s var(--ease-out-expo), border-color .35s, color .35s, translate var(--dur-reveal) var(--ease-out-expo); border-bottom: 1px solid transparent; color: var(--color-ink); }
+  /* Once the page moves it condenses: the bar rises 8 px (its top goes above the screen)
+     and its row comes back down half that, so it reads 56 px tall with the progress line
+     on its edge. Transforms only: the header is fixed, nothing below it moves. */
+  .site-header > .container-site { transition: translate var(--dur-reveal) var(--ease-out-expo); }
+  .site-header[data-solid="true"] { translate: 0 -8px; }
+  .site-header[data-solid="true"] > .container-site { translate: 0 4px; }
   .site-header[data-solid="true"] { background: rgb(239 243 244 / 0.86); -webkit-backdrop-filter: saturate(1.5) blur(14px); backdrop-filter: saturate(1.5) blur(14px); border-bottom-color: rgb(20 24 30 / 0.08); }
   .site-header[data-tone="ink"]:not([data-solid="true"]) { color: var(--color-paper); }
   .site-header[data-tone="ink"]:not([data-solid="true"]) .nav-link:hover { background: rgb(239 243 244 / .08); }

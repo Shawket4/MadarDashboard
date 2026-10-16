@@ -30,20 +30,34 @@ export function initBarista({ mode, ScrollTrigger }: { mode: Mode; ScrollTrigger
   const n = canvases.length;
   if (!n) return;
 
+  const make = (canvas: HTMLCanvasElement) =>
+    new DotLottie({
+      canvas,
+      src: canvas.dataset.lottie ?? "",
+      autoplay: false,
+      loop: false,
+      renderConfig: { devicePixelRatio: Math.min(2, window.devicePixelRatio || 1), freezeOnOffscreen: true },
+    });
+  /** Every player, now (any not warmed yet). */
   const ensure = () => {
-    if (players.length) return;
-    players = canvases.map(
-      (canvas) =>
-        new DotLottie({
-          canvas,
-          src: canvas.dataset.lottie ?? "",
-          autoplay: false,
-          loop: false,
-          renderConfig: { devicePixelRatio: Math.min(2, window.devicePixelRatio || 1), freezeOnOffscreen: true },
-        }),
-    );
+    for (let j = players.length; j < n; j++) players.push(make(canvases[j]!));
   };
-
+  /**
+   * The players, made a screen or two before the block arrives and one per task: made all
+   * at once as it came in (the wasm, seven animations), they were a phone's longest frames.
+   */
+  let warming = false;
+  const warm = () => {
+    if (warming) return;
+    warming = true;
+    const next = () => {
+      if (players.length >= n) return;
+      players.push(make(canvases[players.length]!));
+      const later = (go: () => void) => ("requestIdleCallback" in window ? requestIdleCallback(go, { timeout: 400 }) : setTimeout(go, 60));
+      later(next);
+    };
+    next();
+  };
   let shown = -1;
   const show = (i: number) => {
     if (i === shown) return;
@@ -104,6 +118,7 @@ export function initBarista({ mode, ScrollTrigger }: { mode: Mode; ScrollTrigger
       }
     };
     show(0);
+    ScrollTrigger.create({ trigger: root, start: "top bottom+=1200", once: true, onEnter: warm });
     ScrollTrigger.create({
       trigger: root,
       start: "top 70%",
@@ -119,7 +134,7 @@ export function initBarista({ mode, ScrollTrigger }: { mode: Mode; ScrollTrigger
 
   if (mode === "scrub") {
     const pin = root.querySelector<HTMLElement>(".barista-pin") ?? root;
-    ScrollTrigger.create({ trigger: root, start: "top bottom+=400", once: true, onEnter: ensure });
+    ScrollTrigger.create({ trigger: root, start: "top bottom+=1200", once: true, onEnter: warm });
     show(0);
     ScrollTrigger.create({
       trigger: pin,

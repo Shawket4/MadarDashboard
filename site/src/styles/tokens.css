@@ -64,11 +64,12 @@
   --stagger: 70ms;     /* between the items of a reveal group, the ticks of a list */
   --stagger-word: 50ms; /* between a heading's words as they rise */
   --reveal-y: 26px;    /* how far a reveal rises */
-  /* Phones get a calmer variant (scripts/motion.ts): shorter rises, a quicker beat, half
-     the parallax. */
-  --reveal-y-phone: 16px;
-  --stagger-phone: 45ms;
-  --parallax-phone: 0.4;
+  /* Phones (most of the site's visitors, from ads) keep every moment the wide screens
+     have, scaled to a phone: a rise in proportion to the smaller type, the same beat, most
+     of the parallax (scripts/motion.ts). Transform and opacity only, so it stays cheap. */
+  --reveal-y-phone: 22px;
+  --stagger-phone: 60ms;
+  --parallax-phone: 0.8;
   /* The crew's beats (crew.ts times its flags by these). */
   --dur-wave: 1.7s;
   --dur-hop: 0.76s;

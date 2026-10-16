@@ -30,7 +30,7 @@ export const STAGGER_WORD = read("--stagger-word");
 /** How far a reveal rises, px. */
 export const REVEAL_Y = read("--reveal-y");
 
-/** Phones: the calmer variant (the engine's matchMedia picks it below md, 768 px). */
+/** Phones: every moment, scaled to a phone (the engine's matchMedia picks it below md, 768 px). */
 export const PHONE = "(max-width: 767px)";
 export const REVEAL_Y_PHONE = read("--reveal-y-phone");
 export const STAGGER_PHONE = read("--stagger-phone");
