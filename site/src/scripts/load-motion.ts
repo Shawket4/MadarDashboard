@@ -6,7 +6,7 @@
 // are drawn without GSAP: the cappuccino's still frame, the ledger's beams.
 const MOVES = [
   "[data-reveal]", "[data-split]", "[data-pop]", "[data-draw]", "[data-count]", "[data-parallax]", "[data-sequence]",
-  "[data-orbit]", "[data-crew]", "[data-swing]", "[data-beams]",
+  "[data-orbit]", "[data-light]", "[data-crew]", "[data-swing]", "[data-beams]",
   "[data-family]", "[data-order]", "[data-barista]", "[data-pin-set]", "[data-roadmap]", "[data-rail]",
 ].join(", ");
 

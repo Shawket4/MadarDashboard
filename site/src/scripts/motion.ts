@@ -19,6 +19,7 @@
 //   data-parallax="f"   drifts f of its height as its section scrolls (a little less on phones)
 //   data-sequence="x"   a set piece: the timeline defineSequence("x") builds, played as
 //                       it comes in, paused off screen, resumed when back
+//   data-light          hero art, a big card: its soft shadow and glow move with the scroll
 //   data-progress       the header's page progress line
 // The scenes (pins, the screens, the family, the cappuccino, the roadmap, the rail) are
 // story.ts's, set up first so every trigger after them measures the page at its length.
@@ -349,6 +350,23 @@ function parallax(feel: Feel) {
   }
 }
 
+/**
+ * The light on hero art and the big cards (data-light): a pre-rendered soft shadow under
+ * it and a glow behind it (pseudo-elements, styles/components.css) that the scroll moves
+ * through --light, 0 to 1, as it passes. Only their opacity and transform follow: no
+ * shadow or filter is ever re-rendered. What is on screen at the start starts from where
+ * it is (its range begins when its top reaches the top), so nothing jumps.
+ */
+function lights() {
+  for (const el of gsap.utils.toArray<HTMLElement>("[data-light]")) {
+    gsap.fromTo(el, { "--light": 0 }, {
+      "--light": 1,
+      ease: "none",
+      scrollTrigger: { trigger: el, start: settled(el) ? "top top" : "top bottom", end: "bottom top", scrub: true },
+    });
+  }
+}
+
 /** The orbit motif: its rings draw in from the middle as it arrives; its satellite turns while on screen. */
 function orbits() {
   for (const svg of gsap.utils.toArray<SVGSVGElement>("[data-orbit]")) {
@@ -650,6 +668,7 @@ async function start() {
     counts();
     playSequences(feel);
     parallax(feel);
+    lights();
     orbits();
     progress();
     const unhover = fine && !phone ? hovers() : null;

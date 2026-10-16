@@ -135,3 +135,28 @@ html:not([lang="ar"]) .lang-switch { font-family: ui-sans-serif, system-ui, -app
 /* A quiet second button on Paper: hairline, Ink text. */
 .btn-outline { border: 1px solid color-mix(in oklab, var(--color-ink) 22%, transparent); color: var(--color-ink); background: transparent; }
 .btn-outline:hover { border-color: var(--color-ink); background: var(--color-white); }
+
+/* ---------- Light that moves with the scroll (data-light: hero art, the big cards) ----------
+   Pre-rendered layers, painted once: a soft Ink shadow under the piece, and (data-light=
+   "glow", hero art only) a Teal glow behind it; both gradients, no box-shadow, no filter.
+   The engine scrubs --light from 0 to 1 as the piece scrolls by (scripts/motion.ts,
+   lights()); only the layers' opacity and transform follow it: the shadow spreads and
+   drops as if the piece rose toward the light, the glow drifts up and toward the reading
+   end. The host isolates, so the layers sit right behind its own content. Without motion
+   --light stays 0: a still, faint shadow and glow. */
+[data-light] { --light: 0; position: relative; isolation: isolate; }
+[data-light]::before, [data-light="glow"]::after { content: ""; position: absolute; z-index: -1; pointer-events: none; }
+[data-light]::before {
+  inset-inline: 6%; top: calc(100% - .25rem); height: 4rem; border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(11 14 18 / .3), rgb(11 14 18 / .1) 55%, transparent);
+  transform-origin: 50% 0;
+  opacity: calc(.4 + var(--light) * .6);
+  transform: translateY(calc(var(--light) * 1.5rem)) scale(calc(.9 + var(--light) * .2), calc(.7 + var(--light) * .6));
+}
+.on-ink [data-light]::before { background: radial-gradient(closest-side, rgb(0 0 0 / .6), rgb(0 0 0 / .22) 55%, transparent); }
+[data-light="glow"]::after {
+  inset: -14% -10%; border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(46 148 166 / .24), transparent 72%);
+  opacity: calc(.35 + var(--light) * .65);
+  transform: translate(calc(var(--flip) * (var(--light) * 12% - 6%)), calc(var(--light) * -10%));
+}

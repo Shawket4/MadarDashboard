@@ -24,7 +24,7 @@ interface Props {
 const { title, kicker, body, price, cta, more, class: cls } = Astro.props;
 const [figure, ...cur] = price?.amount.split(" ") ?? [];
 ---
-<div class:list={["cta-band", cls]} data-sequence="band" data-hides-sticky>
+<div class:list={["cta-band", cls]} data-sequence="band" data-hides-sticky data-light>
   {Astro.slots.has("crew") && <div class="cta-band-crew" data-crew-host><slot name="crew" /></div>}
   <div class="min-w-0">
     {kicker && <p class="kicker text-teal-light">{kicker}</p>}

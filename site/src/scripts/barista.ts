@@ -43,20 +43,27 @@ export function initBarista({ mode, ScrollTrigger }: { mode: Mode; ScrollTrigger
     for (let j = players.length; j < n; j++) players.push(make(canvases[j]!));
   };
   /**
-   * The players, made a screen or two before the block arrives and one per task: made all
-   * at once as it came in (the wasm, seven animations), they were a phone's longest frames.
+   * The players, made ahead of the block and only while the page is at rest: making one
+   * (the wasm, then each animation's decode) is a main-thread task of 30-180 ms on a mid
+   * phone, which dropped frames when it ran mid-scroll as the block arrived. Warming starts
+   * three screens ahead; each player waits for the scroll to stop (ScrollTrigger's
+   * scrollEnd) and an idle moment. A visitor who flicks straight to it gets them made on
+   * arrival (ensure), as before.
    */
   let warming = false;
   const warm = () => {
-    if (warming) return;
+    if (warming || !ScrollTrigger) return;
     warming = true;
+    const idle = (go: () => void) => ("requestIdleCallback" in window ? requestIdleCallback(go, { timeout: 600 }) : setTimeout(go, 80));
     const next = () => {
-      if (players.length >= n) return;
+      if (players.length >= n) return void ScrollTrigger.removeEventListener("scrollEnd", resume);
+      if (ScrollTrigger.isScrolling()) return; // scrollEnd brings it back
       players.push(make(canvases[players.length]!));
-      const later = (go: () => void) => ("requestIdleCallback" in window ? requestIdleCallback(go, { timeout: 400 }) : setTimeout(go, 60));
-      later(next);
+      idle(next);
     };
-    next();
+    const resume = () => idle(next);
+    ScrollTrigger.addEventListener("scrollEnd", resume);
+    if (!ScrollTrigger.isScrolling()) idle(next);
   };
   let shown = -1;
   const show = (i: number) => {
@@ -118,7 +125,7 @@ export function initBarista({ mode, ScrollTrigger }: { mode: Mode; ScrollTrigger
       }
     };
     show(0);
-    ScrollTrigger.create({ trigger: root, start: "top bottom+=1200", once: true, onEnter: warm });
+    ScrollTrigger.create({ trigger: root, start: () => `top bottom+=${window.innerHeight * 3}`, once: true, onEnter: warm });
     ScrollTrigger.create({
       trigger: root,
       start: "top 70%",
@@ -134,7 +141,7 @@ export function initBarista({ mode, ScrollTrigger }: { mode: Mode; ScrollTrigger
 
   if (mode === "scrub") {
     const pin = root.querySelector<HTMLElement>(".barista-pin") ?? root;
-    ScrollTrigger.create({ trigger: root, start: "top bottom+=1200", once: true, onEnter: warm });
+    ScrollTrigger.create({ trigger: root, start: () => `top bottom+=${window.innerHeight * 3}`, once: true, onEnter: warm });
     show(0);
     ScrollTrigger.create({
       trigger: pin,
