@@ -34,6 +34,11 @@ export function usePresence(show: boolean, parts: PresencePart[], { initial = tr
   const partsRef = useLatest(parts);
   // What the DOM shows right now: "in", "out", or caught between ("mid").
   const phase = useRef<"in" | "out" | "mid">(show && !initial ? "in" : "out");
+  // A portal (Radix's) mounts its content one layout pass after we do, so on
+  // the first pass the parts may not exist yet: look again on the next one,
+  // still before paint, instead of letting the entrance go unplayed.
+  const [retry, setRetry] = useState(0);
+  const tries = useRef(0);
 
   useIsoLayoutEffect(() => {
     if (!mounted) return;
@@ -41,6 +46,11 @@ export function usePresence(show: boolean, parts: PresencePart[], { initial = tr
 
     if (show) {
       if (phase.current === "in") return;
+      if (!live.length) {
+        if (tries.current++ < 3) setRetry((n) => n + 1);
+        return;
+      }
+      tries.current = 0;
       phase.current = "in";
       // Plays before GSAP has loaded too (engine.ts); a reopen mid-exit
       // carries on from where the exit got to.
@@ -51,6 +61,7 @@ export function usePresence(show: boolean, parts: PresencePart[], { initial = tr
       };
     }
 
+    tries.current = 0;
     if (!live.length) {
       phase.current = "out";
       setMounted(false);
@@ -70,7 +81,7 @@ export function usePresence(show: boolean, parts: PresencePart[], { initial = tr
       runs.forEach((run) => run());
       for (const [el] of live) el.style.pointerEvents = "";
     };
-  }, [show, mounted, partsRef]);
+  }, [show, mounted, partsRef, retry]);
 
   return mounted;
 }
