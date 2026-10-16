@@ -295,16 +295,20 @@ function heroCount() {
   }
 }
 
-/** Set pieces (data-sequence): built paused, played as they come in, paused off screen. */
-function playSequences() {
+/** Set pieces (data-sequence): built paused, played as they come in, paused off screen. `only`: the `always` ones alone (the crew's, built early). */
+const built = new WeakSet<Element>();
+function playSequences(only?: "always") {
   for (const el of gsap.utils.toArray<HTMLElement>("[data-sequence]")) {
+    if (built.has(el)) continue;
     const name = el.dataset.sequence ?? "";
     const seq = sequences.get(name);
     if (!seq) {
-      console.error(`data-sequence="${name}" has no defineSequence("${name}")`);
+      if (!only) console.error(`data-sequence="${name}" has no defineSequence("${name}")`);
       continue;
     }
+    if (only && !seq.always) continue;
     if (!seq.always && settled(el)) continue;
+    built.add(el);
     const tl = gsap.timeline({ paused: true });
     seq.build(el, tl);
     ScrollTrigger.create({ trigger: el, start: "top 92%", end: "bottom top", toggleActions: "play pause resume pause", animation: tl });
@@ -504,11 +508,29 @@ function refreshWhenNeeded() {
 const PHONE_FEEL: Feel = { y: REVEAL_Y_PHONE, step: STAGGER_PHONE, word: STAGGER_WORD * 0.7, parallax: PARALLAX_PHONE };
 const WIDE_FEEL: Feel = { y: REVEAL_Y, step: STAGGER, word: STAGGER_WORD, parallax: 1 };
 
+/**
+ * The crew, at once (not after the first screen's entrance): their figures, badges and the
+ * receipt wait hidden from the first paint (.crew-wait, styles/sections/crew.css) and play
+ * their entrances as soon as the engine is here. It is a small setup; the rest waits.
+ */
+const crewReady = has("[data-crew], [data-swing], .zr")
+  ? import("./crew").then((crew) => {
+      gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
+        root.classList.add("crew-armed");
+        playSequences("always");
+        return () => root.classList.remove("crew-armed");
+      });
+      crew.live();
+      root.classList.remove("crew-wait");
+      return crew;
+    })
+  : null;
+
 async function start() {
   // The modules a page needs, before anything is measured.
-  const [story, crew] = await Promise.all([
+  const [story] = await Promise.all([
     has("[data-family], [data-order], [data-barista], [data-pin-set], [data-roadmap], [data-basira], [data-stage-time], [data-rail]") ? import("./story") : null,
-    has("[data-crew], [data-swing], .zr") ? import("./crew") : null,
+    crewReady,
   ]);
   if (has("[data-beams]")) void import("./beams").then((m) => m.drawBeams(true));
   smoothScroll();
@@ -542,7 +564,6 @@ async function start() {
     progress();
     return () => root.classList.remove("crew-armed");
   });
-  crew?.live();
   await breathe();
 
   ScrollTrigger.sort();

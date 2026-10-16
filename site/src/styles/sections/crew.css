@@ -118,6 +118,12 @@ html[lang="ar"] .zr-meta dd:not(.ltr) { font-family: var(--font-arabic); }
 .zr-stamp { position: absolute; inset-inline-start: .9rem; top: 1.3rem; padding: .15rem .65rem; border: 2.5px solid var(--color-teal); border-radius: .4rem; color: var(--color-teal); font-family: var(--font-mono); font-size: .8rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; rotate: -12deg; opacity: .92; }
 html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; font-weight: 600; letter-spacing: 0; }
 
+/* Before the engine: with motion allowed, the head script (classic/boot.js) sets .crew-wait
+   before the first paint and the engine lifts it once each entrance is built, so a figure,
+   a badge or the receipt is never painted whole and then hidden to play its entrance.
+   Reduced motion and no JavaScript never get the class: everything is simply there. */
+.crew-wait :is(svg[data-crew][data-sequence], [data-swing] .crew-badge, [data-sequence="receipt"] :is(.zr-paper, .zr-stamp)) { opacity: 0; }
+
 /* Motion (the engine sets .crew-armed). Badges wait above the section, then drop in on
    their lanyards (crew.ts: a spring fall, then a pendulum swing). */
 /* Its own layer: the card turns as a picture, so its text never re-rasterises (shimmers). */
