@@ -52,8 +52,10 @@ export function Page({
   width?: PageWidth;
 }) {
   const embedded = useContext(EmbeddedContext);
-  // Every route change brings the page in, even where the same Page stays mounted.
-  const { pathname } = useLocation();
+  // Every route change brings the page in, even where the same Page stays
+  // mounted. Read from the URL (the router has already moved it when we render),
+  // not a router hook, so pages render anywhere a router is mocked or absent.
+  const pathname = typeof window === "undefined" ? "" : window.location.pathname;
   if (embedded) {
     return (
       <div data-page-width={width} className={cn("w-full space-y-6", width !== "full" && PAGE_WIDTH_CLASS[width], className)}>

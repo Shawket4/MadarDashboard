@@ -16,6 +16,14 @@ const card = (loading: boolean) => (
   </Stagger>
 );
 
+// A browser has the Web Animations API; jsdom does not. Stand one in so the
+// "before GSAP" path runs as it does in a browser.
+Element.prototype.animate ??= function () {
+  const a = { onfinish: null as null | (() => void), cancel() {} };
+  setTimeout(() => a.onfinish?.(), 10);
+  return a as unknown as Animation;
+};
+
 describe("data landing on a skeleton", () => {
   it("before GSAP has loaded: the new card is hidden before paint, then it rises in", async () => {
     expect(getGsap()).toBeNull();

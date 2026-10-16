@@ -35,6 +35,7 @@ export {
   useOverlayOpen,
   OverlayOpenProvider,
   useEnter,
+  usePopperPresence,
   composeRefs,
   type PresencePart,
 } from "./presence";

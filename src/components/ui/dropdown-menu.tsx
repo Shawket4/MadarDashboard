@@ -3,12 +3,21 @@ import { CheckIcon, ChevronRightIcon } from "lucide-react"
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
-import { composeRefs, recipes, useEnter } from "@/lib/motion"
+import { composeRefs, OverlayOpenProvider, recipes, useEnter, useOverlayRoot, usePopperPresence } from "@/lib/motion"
 
 function DropdownMenu({
+  open,
+  defaultOpen,
+  onOpenChange,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
-  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
+  // Held here so DropdownMenuContent can stay mounted through its exit.
+  const [isOpen, setOpen] = useOverlayRoot(open, defaultOpen, onOpenChange)
+  return (
+    <OverlayOpenProvider value={isOpen}>
+      <DropdownMenuPrimitive.Root data-slot="dropdown-menu" open={isOpen} onOpenChange={setOpen} {...props} />
+    </OverlayOpenProvider>
+  )
 }
 
 function DropdownMenuTrigger({
@@ -29,11 +38,13 @@ function DropdownMenuContent({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   const own = React.useRef<HTMLDivElement>(null)
-  useEnter(own, () => recipes.popper(own.current?.dataset.side))
+  const { mounted, forceMount } = usePopperPresence(own)
+  if (!mounted) return null
   return (
-    <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Portal forceMount={forceMount}>
       <DropdownMenuPrimitive.Content
         ref={composeRefs(own, ref)}
+        forceMount={forceMount}
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(

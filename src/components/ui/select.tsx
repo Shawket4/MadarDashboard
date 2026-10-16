@@ -5,12 +5,17 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 import { Select as SelectPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
-import { composeRefs, recipes, useEnter } from "@/lib/motion"
+import { composeRefs, OverlayOpenProvider, useOverlayRoot, usePopperPresence } from "@/lib/motion"
 
 function Select({
   onValueChange,
+  open,
+  defaultOpen,
+  onOpenChange,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
+  // Held here so SelectContent can stay mounted through its exit.
+  const [isOpen, setOpen] = useOverlayRoot(open, defaultOpen, onOpenChange)
   // Radix keeps a hidden native <select> for forms. When `value` changes after
   // mount (a form.reset from loaded data) to an option the closed list hasn't
   // registered, the native select reads "" and Radix reports that as a pick,
@@ -22,7 +27,11 @@ function Select({
     },
     [onValueChange],
   )
-  return <SelectPrimitive.Root data-slot="select" onValueChange={onChange} {...props} />
+  return (
+    <OverlayOpenProvider value={isOpen}>
+      <SelectPrimitive.Root data-slot="select" onValueChange={onChange} open={isOpen} onOpenChange={setOpen} {...props} />
+    </OverlayOpenProvider>
+  )
 }
 
 function SelectGroup({
@@ -72,11 +81,15 @@ function SelectContent({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   const own = React.useRef<HTMLDivElement>(null)
-  useEnter(own, () => recipes.popper(own.current?.dataset.side))
+  const presence = usePopperPresence(own)
+  // Closed and gone, Radix still renders the list off-DOM so the trigger can
+  // show the chosen item's text: let it (no forceMount), never return null.
+  const forceMount = presence.mounted ? presence.forceMount : undefined
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal forceMount={forceMount}>
       <SelectPrimitive.Content
         ref={composeRefs(own, ref)}
+        forceMount={forceMount}
         data-slot="select-content"
         className={cn(
           "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md",

@@ -189,6 +189,9 @@ export function enter(els: HTMLElement[], recipe: Recipe, { delay = 0, stagger }
     return playing(() => stop(), () => done);
   }
 
+  // No GSAP and no Web Animations (a test DOM): nothing could play it, so the
+  // final state, and GSAP is not fetched for it.
+  if (!canAnimate()) return NOOP;
   // GSAP is still on its way: hide before paint, then whichever comes first.
   setPreState(els, r);
   let state: "waiting" | "playing" | "stopped" = "waiting";

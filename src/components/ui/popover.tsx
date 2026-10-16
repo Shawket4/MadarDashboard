@@ -2,12 +2,21 @@ import * as React from "react"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
-import { composeRefs, recipes, useEnter } from "@/lib/motion"
+import { composeRefs, OverlayOpenProvider, useOverlayRoot, usePopperPresence } from "@/lib/motion"
 
 function Popover({
+  open,
+  defaultOpen,
+  onOpenChange,
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Root>) {
-  return <PopoverPrimitive.Root data-slot="popover" {...props} />
+  // Held here so PopoverContent can stay mounted through its exit.
+  const [isOpen, setOpen] = useOverlayRoot(open, defaultOpen, onOpenChange)
+  return (
+    <OverlayOpenProvider value={isOpen}>
+      <PopoverPrimitive.Root data-slot="popover" open={isOpen} onOpenChange={setOpen} {...props} />
+    </OverlayOpenProvider>
+  )
 }
 
 function PopoverTrigger({
@@ -24,11 +33,13 @@ function PopoverContent({
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Content>) {
   const own = React.useRef<HTMLDivElement>(null)
-  useEnter(own, () => recipes.popper(own.current?.dataset.side))
+  const { mounted, forceMount } = usePopperPresence(own)
+  if (!mounted) return null
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal forceMount={forceMount}>
       <PopoverPrimitive.Content
         ref={composeRefs(own, ref)}
+        forceMount={forceMount}
         data-slot="popover-content"
         align={align}
         sideOffset={sideOffset}
