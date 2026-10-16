@@ -61,6 +61,7 @@
   --dur-reveal: 0.95s; /* a line rising into place as it scrolls in */
   --dur-intro: 1.15s;  /* the first screen's entrance */
   --dur-draw: 1.2s;    /* a rule drawing across */
+  --scrub: 0.7s;       /* how far a scroll-driven piece trails the scroll: it eases to where the page is, both ways, never jumps when the scroll stops */
   --stagger: 70ms;     /* between the items of a reveal group, the ticks of a list */
   --stagger-word: 50ms; /* between a heading's words as they rise */
   --reveal-y: 26px;    /* how far a reveal rises */
