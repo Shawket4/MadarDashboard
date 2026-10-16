@@ -170,7 +170,7 @@ fails if the two drift):
 | Content arriving (a page, a card, data after a skeleton) | `<Reveal>` / `useReveal`, `<SkeletonSwap>` |
 | A group arriving one by one (KPIs, rows, cards) | `<Stagger>` / `useStagger` (on-screen items only, capped) |
 | A KPI figure | `<CountUp>` (count once, snap after); a live figure: `<AnimatedNumber>`; low level: `useCountUp` |
-| A chart | `<ChartCard>` (it wears `ChartEntrance`; inside a `Stagger` or `Reveal` it holds still), `{...useChartMotion()}` on each Recharts series. A chart outside a card: `<ChartEntrance>` |
+| A chart | `<ChartCard>` (it wears `ChartEntrance`; inside a `Stagger` it holds still), `{...useChartMotion()}` on each Recharts series. A chart outside a card: `<ChartEntrance>` |
 | Show/hide with an exit (was `AnimatePresence`) | `<Presence show>` / `usePresence` |
 | Swap content by key (steps, a changed figure) | `<SwapPresence swapKey>` |
 | A list that reorders or loses items | `useFlip` (GSAP Flip, transforms only; it measures only when its key changes, never on a keystroke) |
@@ -209,6 +209,15 @@ bundles; `toast()` is called from anywhere), Recharts series with `useChartMotio
   the only sign that something is still loading.
 - **Transform and opacity only.** The sidebar collapse is the one width transition, a
   layout change by design. Never `transition-all`; name the properties.
+- **No ghost first frames.** The first painted frame of anything that animates is its
+  clean pre-state or its final state, never content that shows, vanishes and then
+  animates in. Entrances hide their targets in a layout effect (before paint), skip
+  whatever has already been on screen at rest (shown while GSAP was loading, skeleton
+  cards a `when` turns into figures, content a Suspense boundary re-shows) unless
+  `replayKey` changed, and an entrance cut off by its cleanup (StrictMode's second run,
+  a Suspense hide) carries on from where it was. Shake and pop fire once per signal.
+  Without GSAP nothing is ever hidden. `scripts/motion-harness/ghost-probe.mjs` finds
+  violations in cold loads and navigations at 4× throttle.
 - **Nothing animates off screen.** Entrances skip what is out of view (brand pages may
   `scroll`-reveal), and loops pause off screen.
 - **RTL.**

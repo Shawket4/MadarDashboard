@@ -9,9 +9,10 @@ import { DURATION } from "./tokens";
 type DivProps = Omit<ComponentProps<"div">, "ref">;
 
 /**
- * True inside something that already brings its content in (a Stagger, a
- * Reveal, a ChartEntrance), so a chart card placed in one does not arrive a
- * second time on its own.
+ * True inside a Stagger or a ChartEntrance, which bring their items in with the
+ * same commit that mounts them, so a chart card placed in one does not arrive
+ * a second time on its own. (A Page's fade is not one: a chart that mounts
+ * later in a page still needs its own entrance.)
  */
 const Arriving = createContext(false);
 
@@ -32,11 +33,7 @@ export function Reveal({
   const ref = useRef<HTMLDivElement>(null);
   useReveal(ref, { register, recipe, delay, when, replayKey, scroll });
   const Comp = asChild ? Slot.Root : "div";
-  return (
-    <Arriving.Provider value>
-      <Comp ref={ref} {...props} />
-    </Arriving.Provider>
-  );
+  return <Comp ref={ref} {...props} />;
 }
 
 /** Bring the children in one after another (only those on screen, capped). */
@@ -105,8 +102,8 @@ export function useChartMotion() {
 
 /**
  * A chart card's entrance: the frame fades up while Recharts draws the series.
- * `ChartCard` already wears one; inside a Stagger or a Reveal it stays still
- * and lets that bring it in. `asChild` puts it on the single child.
+ * `ChartCard` already wears one; inside a Stagger it stays still and lets the
+ * Stagger bring it in. `asChild` puts it on the single child.
  */
 export function ChartEntrance({
   className,
@@ -123,9 +120,11 @@ export function ChartEntrance({
   const Comp = asChild ? Slot.Root : "div";
   if (inside) return <Comp className={className}>{children}</Comp>;
   return (
-    <Reveal asChild={asChild} className={className} recipe={fade(DURATION.base)} when={when}>
-      {children}
-    </Reveal>
+    <Arriving.Provider value>
+      <Reveal asChild={asChild} className={className} recipe={fade(DURATION.base)} when={when}>
+        {children}
+      </Reveal>
+    </Arriving.Provider>
   );
 }
 

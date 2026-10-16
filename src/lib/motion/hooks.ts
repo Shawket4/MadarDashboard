@@ -48,10 +48,96 @@ export function useGsap(
   }, deps);
 }
 
+/*
+ * No ghost first frames. An entrance hides its targets (the recipe's `from`)
+ * before the browser paints them, in a layout effect, so the first frame is
+ * the clean pre-state. It must never hide something already painted at rest:
+ * content shown while GSAP was still loading, skeleton cards a `when` turns
+ * into figures, or content React hid and re-showed (a Suspense boundary
+ * re-suspending re-runs layout effects). That is the faint flash of content
+ * that vanishes and then animates in. So once an element has been on screen
+ * for a frame it is marked, and entrances skip marked elements unless their
+ * `replayKey` changed (new content in the same commit, never painted).
+ */
+const painted = new WeakSet<Element>();
+
+/** Mark `els` as painted once the frame that shows them has been drawn. */
+function markPainted(els: Element[]) {
+  if (!els.length || typeof requestAnimationFrame === "undefined") return;
+  // Two frames: the first callback runs before its paint. StrictMode's double
+  // run is synchronous, so it never sees its own mark.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      // Waiting off screen for a scroll reveal, or still arriving, is not at rest.
+      const gsap = getGsap();
+      for (const el of els) {
+        if ((el instanceof HTMLElement && "motion" in el.dataset) || gsap?.isTweening(el)) continue;
+        painted.add(el);
+      }
+    }),
+  );
+}
+
+/** Whether an entrance may hide `el`: never painted, or its content was just replaced. */
+export function mayEnter(el: Element, replayed: boolean) {
+  return replayed || !painted.has(el);
+}
+
+/** A ref'd value's "did it change since the last run" flag, for replayKey. */
+function useReplayed(replayKey: unknown) {
+  const last = useRef(replayKey);
+  return () => {
+    const changed = !Object.is(last.current, replayKey);
+    last.current = replayKey;
+    return changed;
+  };
+}
+
+/*
+ * An entrance cut off by its effect's cleanup (React StrictMode's second run,
+ * which in development comes a frame or two after the first; a Suspense
+ * boundary hiding and re-showing its content) is reverted to rest and run
+ * again. The re-run carries on from where the first one was, never from the
+ * start, so nothing fades in, blinks and fades in again.
+ */
+const interrupted = new WeakMap<Element, Record<string, unknown>>();
+
+/**
+ * Note where each still-arriving target of an entrance is, for a re-run to
+ * carry on from. Call it from the effect's cleanup, before GSAP reverts.
+ */
+function holdInterrupted(gsap: Gsap, tween: gsap.core.Tween) {
+  const keys = (tween.data as { enterKeys?: string[] } | undefined)?.enterKeys;
+  if (!keys || tween.progress() >= 1) return;
+  for (const el of tween.targets() as Element[]) {
+    const at: Record<string, unknown> = {};
+    for (const k of keys) at[k] = gsap.getProperty(el, k);
+    interrupted.set(el, at);
+  }
+}
+
 /** Tween `targets` from a recipe's resting state into place, then hand styling back to CSS. */
 export function playIn(gsap: Gsap, targets: gsap.TweenTarget, recipe: Recipe, extra: gsap.TweenVars = {}) {
   const r = prefersReducedMotion() ? reduce(recipe) : recipe;
-  return gsap.fromTo(targets, r.from, { ...r.to, ...extra, clearProps: "opacity,transform" });
+  const keys = Object.keys(r.from);
+  // Each target starts from the recipe's `from`, or from where an interrupted
+  // run of the same entrance left it.
+  const from: gsap.TweenVars = {};
+  for (const k of keys) {
+    from[k] = (_i: number, el: Element) => (interrupted.get(el)?.[k] ?? r.from[k]) as gsap.TweenValue;
+  }
+  const els = gsap.utils.toArray<Element>(targets);
+  const tween = gsap.fromTo(els, from, {
+    ...r.to,
+    ...extra,
+    clearProps: "opacity,transform",
+    data: { enterKeys: keys },
+    onComplete: () => {
+      for (const el of els) painted.add(el);
+    },
+  });
+  for (const el of els) interrupted.delete(el);
+  return tween;
 }
 
 export interface RevealOptions {
@@ -74,14 +160,16 @@ export interface RevealOptions {
 /** Rise an element into place once, on mount or when `when` turns true. */
 export function useReveal(ref: RefObject<HTMLElement | null>, opts: RevealOptions = {}) {
   const { register = "product", recipe, delay = 0, when = true, replayKey, scroll = false } = opts;
+  const replayed = useReplayed(replayKey);
   useGsap(
     (gsap, { reduced }) => {
       const el = ref.current;
-      if (!el || !when || reduced) return;
+      const fresh = replayed();
+      if (!el || !when || reduced || !mayEnter(el, fresh)) return;
       const r = recipe ?? rise(register);
       if (inViewport(el)) {
-        playIn(gsap, el, r, { delay });
-        return;
+        const t = playIn(gsap, el, r, { delay });
+        return () => holdInterrupted(gsap, t);
       }
       if (!scroll || typeof IntersectionObserver === "undefined") return;
       gsap.set(el, r.from);
@@ -103,6 +191,10 @@ export function useReveal(ref: RefObject<HTMLElement | null>, opts: RevealOption
     },
     [when, replayKey],
   );
+  // With or without GSAP, whatever this shows is on screen from the next frame.
+  useIsoLayoutEffect(() => {
+    if (ref.current) markPainted([ref.current]);
+  }, [when, replayKey]);
 }
 
 export interface StaggerOptions {
@@ -123,20 +215,27 @@ export interface StaggerOptions {
  */
 export function useStagger(ref: RefObject<HTMLElement | null>, opts: StaggerOptions = {}) {
   const { register = "product", recipe, selector = ":scope > *", when = true, replayKey, delay = 0 } = opts;
+  const replayed = useReplayed(replayKey);
   useGsap(
     (gsap, { reduced }) => {
       const el = ref.current;
+      const fresh = replayed();
       if (!el || !when || reduced) return;
-      const items = Array.from(el.querySelectorAll<HTMLElement>(selector)).filter(inViewport);
+      const items = Array.from(el.querySelectorAll<HTMLElement>(selector)).filter((i) => inViewport(i) && mayEnter(i, fresh));
       if (!items.length) return;
       const each = staggerFor(items.length, register);
-      playIn(gsap, items, recipe ?? rise(register), {
+      const t = playIn(gsap, items, recipe ?? rise(register), {
         delay,
         stagger: (i: number) => Math.min(i, STAGGER.maxItems - 1) * each,
       });
+      return () => holdInterrupted(gsap, t);
     },
     [when, replayKey],
   );
+  useIsoLayoutEffect(() => {
+    const el = ref.current;
+    if (el) markPainted(Array.from(el.querySelectorAll(selector)));
+  }, [when, replayKey]);
 }
 
 export interface CountUpOptions {
@@ -385,16 +484,34 @@ export function useIndicator(
 }
 
 /**
+ * Feedback plays once per signal value: a Suspense re-show re-runs layout
+ * effects with the same signal, which must not shake or pop again. StrictMode's
+ * synchronous double run is let through (its first run is reverted at once).
+ */
+function useFiredOnce(signal: unknown) {
+  const last = useRef<{ signal: unknown; sameTask: boolean } | null>(null);
+  return () => {
+    const prev = last.current;
+    if (prev && Object.is(prev.signal, signal) && !prev.sameTask) return false;
+    const mark = { signal, sameTask: true };
+    last.current = mark;
+    queueMicrotask(() => (mark.sameTask = false));
+    return true;
+  };
+}
+
+/**
  * Error feedback: a short horizontal shake (symmetric, so it reads the same in
  * RTL) each time `signal` changes to a new truthy value — a wrong code, a
  * refused sign-in. Never on a field while the person is typing in it; shake
  * the row or the form. Reduced motion: no shake; the error text carries it.
  */
 export function useShake(ref: RefObject<HTMLElement | null>, signal: unknown) {
+  const fired = useFiredOnce(signal);
   useGsap(
     (gsap, { reduced }) => {
       const el = ref.current;
-      if (!el || !signal || reduced) return;
+      if (!el || !signal || reduced || !fired()) return;
       gsap.to(el, {
         keyframes: { x: [0, -6, 5, -3, 2, 0] },
         duration: sec(DURATION.slow),
@@ -412,10 +529,11 @@ export function useShake(ref: RefObject<HTMLElement | null>, signal: unknown) {
  * time `signal` changes to a new truthy value — a saved row, a confirmed step.
  */
 export function usePop(ref: RefObject<HTMLElement | null>, signal: unknown) {
+  const fired = useFiredOnce(signal);
   useGsap(
     (gsap, { reduced }) => {
       const el = ref.current;
-      if (!el || !signal || reduced) return;
+      if (!el || !signal || reduced || !fired()) return;
       gsap.fromTo(el, { scale: 0.94 }, { scale: 1, duration: sec(DURATION.slow), ease: EASE_NAME.out, clearProps: "transform" });
     },
     [signal],

@@ -27,7 +27,7 @@ interface ChartCardProps {
   contentClassName?: string;
 }
 
-/** A chart's card. It arrives by itself (ChartEntrance), or with the Stagger or Reveal it sits in. */
+/** A chart's card. It arrives by itself (ChartEntrance), or with the Stagger it sits in. */
 export function ChartCard({ title, description, actions, children, className, contentClassName }: ChartCardProps) {
   return (
     <ChartEntrance asChild>
