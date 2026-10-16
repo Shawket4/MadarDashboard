@@ -74,6 +74,7 @@ never write a page's own reveal keyframes, observers or `requestAnimationFrame` 
 | `data-draw` | an `<svg>`'s strokes draw (`<Icon draw>`); any other element (a rule) draws along its longer side |
 | `data-count` | a figure counts up to the value in the HTML (`CountUp.astro`; Plex Mono, `.ltr`) |
 | `data-parallax="0.06"` | drifts that share of its height as its section scrolls; less on phones. Only where it helps |
+| `data-light` (`="glow"`) | hero art or a big card: a pre-rendered soft shadow under it (and a glow behind it) that moves with the scroll; only the layers' opacity and transform change |
 | `data-sequence="name"` | a set piece: the timeline `defineSequence("name", build)` makes, played as it comes in, paused off screen, resumed when back. `{ scrub: true }`: the scroll drives it instead (its start state must be the page as rendered). Built in: `step`, `band`, `hero` (scrubbed: a first section scrolling away at three depths, the orbit, `[data-hero-copy]`, `[data-hero-media]`; kit intros get it unless `sticky`); crew.ts: `figure`, `receipt` |
 | `data-intro` + `style="--i:n"` | the first screen's entrance, CSS, with the first paint (Section/Hero `intro` does it) |
 

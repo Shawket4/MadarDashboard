@@ -77,6 +77,8 @@ html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; m
 .m [data-hero-browser] { animation: hero-browser 1.5s var(--ease-out-expo) .15s backwards; }
 .m [data-hero-ipad] { --rise: 110px; animation: rise-in 1.5s var(--ease-out-expo) .4s backwards; }
 .m [data-hero-chip] { animation: hero-chip 1s var(--ease-out-expo) .9s backwards; }
+/* The light under and behind the hero art (data-light) comes up with the art, never before it. */
+.m [data-hero-media][data-light]::before, .m [data-hero-media][data-light]::after { animation: fade-in 1.4s var(--ease-out-expo) .5s backwards; }
 
 /* A # address from another page (the phone menu's areas, a shared link): the browser
    opens on that section before the engine is here, and the engine leaves what is on
