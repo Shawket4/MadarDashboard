@@ -1,0 +1,150 @@
+/* ---------- The kit's styles (components/kit) ----------
+   Shared page pieces, the same on every page that uses them. */
+
+/* ---------- Plan table (kit/PlanTable.astro) ----------
+   Two plans, the second a superset of the first, so a line is in both or added by the
+   second. Phones: the plans' sizes as two tiles (when given), then "In <first>" (a filled
+   tick per line, the label never squeezed, a crew member on the corner) and "What
+   <second> adds" (a lock and a pill). From md the same markup is one matrix: the plans
+   side by side, then a column per plan under a sticky head, the first plan's column
+   tinted to the rounded edge. */
+.pt { --pt-col: 10rem; }
+.pt-plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.pt-plan { display: flex; flex-direction: column; padding: 1rem 1rem 1.1rem; border-radius: 1rem; }
+.pt-plan-ink { background: var(--color-ink); color: var(--color-paper); }
+.pt-plan-paper { border: 1px solid var(--color-rule); background: var(--color-paper); }
+.pt-plan-name { font-size: .8125rem; font-weight: 600; line-height: 1.3; color: var(--color-muted); }
+.pt-plan-ink .pt-plan-name { color: var(--color-teal-light); }
+.pt-plan-size { margin-top: .35rem; font-size: 1.05rem; font-weight: 600; line-height: 1.3; }
+.pt-plan-price { margin-top: auto; padding-top: .8rem; font-size: .75rem; line-height: 1.4; color: var(--color-muted); }
+.pt-plan-ink .pt-plan-price { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 500; line-height: 1; color: var(--color-teal-light); }
+html[lang="ar"] .pt-num { font-family: var(--font-mono); }
+html[lang="ar"] .pt-plan-ink .pt-cur { font-family: var(--font-arabic); font-size: .7em; letter-spacing: 0; }
+.pt-head { display: none; }
+
+.pt-card { position: relative; margin-top: .75rem; padding: 0 1.1rem 1rem; border: 1px solid var(--color-hairline); border-radius: var(--radius-card); background: var(--color-white); }
+.pt-in { margin-top: 2.5rem; }
+.pt-card-head { position: relative; display: flex; align-items: center; gap: .5rem; padding-block: 1.1rem .9rem; border-bottom: 1px solid var(--color-rule); }
+.pt-card-title { font-size: 1.2rem; font-weight: 600; line-height: 1.3; }
+.pt-card-head svg { color: var(--color-teal); }
+.pt-peek { position: absolute; bottom: -1px; inset-inline-end: .25rem; width: 5.25rem; overflow: visible; cursor: pointer; }
+.pt-group { display: flex; align-items: center; gap: .5rem; margin-top: 1.25rem; font-size: .8125rem; font-weight: 600; line-height: 1.3; color: var(--color-muted); }
+.pt-group svg { color: var(--color-teal); }
+.pt-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; column-gap: .75rem; padding-block: .5rem; line-height: 1.45; }
+.pt-yes, .pt-lock { display: grid; place-items: center; width: 1.375rem; height: 1.375rem; margin-top: .05rem; border-radius: 999px; }
+.pt-yes { background: var(--color-teal); color: var(--color-white); }
+.pt-yes svg { stroke-width: 2.6; }
+.pt-lock { background: var(--color-paper); color: var(--color-slate); }
+.pt-adds .pt-rows { margin-top: .6rem; }
+/* A row's tick pops once the row has begun to rise (data-reveal, then data-pop). */
+.pt-rows { --delay: .3s; }
+.pt-pill { margin-top: .1rem; padding-inline: .5rem; border: 1px solid var(--color-rule); border-radius: 999px; font-size: .6875rem; font-weight: 600; line-height: 1.5rem; color: var(--color-muted); }
+.pt-also { display: none; }
+.pt-more { margin-top: .4rem; }
+
+@media (min-width: 768px) {
+  .pt-plans { gap: 1.25rem; }
+  .pt-plan { padding: 1.75rem 2rem 1.9rem; border-radius: var(--radius-card); }
+  .pt-plan-name { font-size: .9375rem; }
+  .pt-plan-size { margin-top: .5rem; font-size: 1.6rem; line-height: 1.2; letter-spacing: -0.01em; }
+  .pt-plan-price { padding-top: 1.5rem; font-size: .9375rem; }
+  .pt-plan-ink .pt-plan-price { font-size: 2rem; }
+
+  .pt-matrix { position: relative; isolation: isolate; margin-top: 1.25rem; overflow: clip; border: 1px solid var(--color-hairline); border-radius: var(--radius-card); background: var(--color-white); }
+  .pt-matrix::before { content: ""; position: absolute; z-index: -1; inset-block: 0; inset-inline-end: var(--pt-col); width: var(--pt-col); background: color-mix(in oklab, var(--color-tint) 45%, transparent); }
+  /* clip, not hidden, above: a scroll box would stop the head sticking under the site header. */
+  .pt-head { position: sticky; top: 4rem; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) var(--pt-col) var(--pt-col); border-bottom: 1px solid var(--color-rule); background: var(--color-white); font-size: .9375rem; font-weight: 600; line-height: 1.3; text-align: center; }
+  .pt-head span { padding: 1rem .75rem; }
+  .pt-head span:nth-child(2) { background: color-mix(in oklab, var(--color-tint) 45%, var(--color-white)); color: var(--color-teal); }
+  .pt-card { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; }
+  /* The column heads say it: "In Free" stays for screen readers, شريحة sits this one out. */
+  .pt-in .pt-card-head { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .pt-group, .pt-adds .pt-card-head { margin: 0; padding: 1.5rem 1.5rem .6rem; border: 0; font-size: .8125rem; font-weight: 600; line-height: 1.3; color: var(--color-muted); }
+  .pt-adds .pt-card-head { color: var(--color-ink); }
+  .pt-adds .pt-rows { margin-top: 0; }
+  .pt-row { grid-template-columns: minmax(0, 1fr) var(--pt-col) var(--pt-col); align-items: center; column-gap: 0; padding-block: .8rem; padding-inline-start: 1.5rem; border-top: 1px solid var(--color-rule); }
+  .pt-row > * { grid-row: 1; }
+  .pt-label { grid-column: 1; }
+  .pt-yes, .pt-lock { grid-column: 2; justify-self: center; margin: 0; }
+  .pt-lock { background: none; }
+  .pt-also { display: grid; grid-column: 3; justify-self: center; color: var(--color-teal); }
+  .pt-pill { display: none; }
+  .pt-row-paid .pt-label { color: var(--color-muted); }
+  .pt-more { margin: 0; padding: 1rem 1.5rem 1.25rem; border-top: 1px solid var(--color-rule); }
+}
+@media (min-width: 768px) and (hover: hover) {
+  .pt-row { transition: background-color .15s; }
+  .pt-row:hover { background: color-mix(in oklab, var(--color-ink) 4%, transparent); }
+}
+@media (min-width: 1024px) {
+  .pt { --pt-col: 13rem; }
+  /* Wide plans: the size on the start, the price on the end. */
+  .pt-plan { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: 1.5rem; }
+  .pt-plan-price { grid-row: 1 / 3; grid-column: 2; padding: 0; text-align: end; }
+  .pt-plan-paper .pt-plan-price { max-width: 15rem; }
+  .pt-group, .pt-adds .pt-card-head, .pt-more { padding-inline: 2rem; }
+  .pt-row { padding-inline-start: 2rem; }
+}
+
+/* ---------- Section (kit/Section.astro): the site's rhythm ----------
+   One padding for every section (tight and loose for the few that need them), from the
+   tokens; an intro adds the header's height on top. */
+.sec { padding-block: var(--section-y); }
+.sec-tight { padding-block: var(--section-y-tight); }
+.sec-loose { padding-block: var(--section-y-loose); }
+.sec-intro { padding-top: calc(var(--section-y) + 4rem); }
+
+/* ---------- Call-to-action band (kit/CtaBand.astro) ----------
+   A dark strip in a light section: the words, a price, the button. The joyful crew stand
+   on its top edge (their feet on the edge: each drawing has a little room under the feet,
+   taken back with translate; no shadow on the Ink "floor"). */
+.cta-band { position: relative; display: flex; flex-direction: column; gap: 1.5rem; padding: 1.75rem; border-radius: var(--radius-card); background: var(--color-ink); color: var(--color-paper); }
+.cta-band-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.5rem; }
+.cta-band-price { font-family: var(--font-mono); font-size: 2.25rem; font-weight: 500; line-height: 1; letter-spacing: -0.02em; color: var(--color-teal-light); white-space: nowrap; }
+.cta-band-per { font-family: var(--font-sans); font-size: .9rem; letter-spacing: 0; color: var(--color-muted-ink); }
+html[lang="ar"] .cta-band-cur { font-family: var(--font-arabic); font-size: .7em; letter-spacing: 0; }
+@media (min-width: 768px) {
+  .cta-band { flex-direction: row; align-items: center; justify-content: space-between; gap: 2rem; padding: 2rem 2.25rem; }
+  .cta-band > .min-w-0 { flex: 1; }
+  .cta-band-actions { flex: none; }
+}
+.cta-band-crew { position: absolute; bottom: 100%; inset-inline-end: 1.5rem; display: flex; align-items: flex-end; gap: .4rem; }
+.cta-band-crew .crew-shadow { display: none; }
+.cta-band-shariha { width: 4.5rem; translate: 0 3.9%; overflow: visible; cursor: pointer; }
+.cta-band-nuqta { width: 3.5rem; translate: 0 1.9%; overflow: visible; cursor: pointer; }
+@media (min-width: 768px) { .cta-band-crew { inset-inline-end: 2.75rem; } .cta-band-shariha { width: 5.75rem; } .cta-band-nuqta { width: 4.5rem; } }
+
+/* ---------- Check list (kit/CheckList.astro) ----------
+   A tick per line, held to the first line of its text (1lh), popping as the line rises. */
+.checks { --delay: .25s; display: grid; gap: .875rem; }
+.checks > li { display: flex; align-items: flex-start; gap: .75rem; }
+.tick { display: grid; place-items: center; flex: none; width: 1.375rem; height: 1.375rem; margin-top: calc((1lh - 1.375rem) / 2); border-radius: 999px; background: var(--color-tint); color: var(--color-teal); }
+.tick svg { stroke-width: 2.4; }
+.on-ink .tick { background: color-mix(in oklab, var(--color-teal-light) 22%, var(--color-ink)); color: var(--color-teal-light); }
+.checks-ruled { gap: 0; border-block: 1px solid var(--color-rule); }
+.checks-ruled > li { padding-block: .875rem; }
+.checks-ruled > li + li { border-top: 1px solid var(--color-rule); }
+.on-ink :is(.checks-ruled, .checks-ruled > li + li) { border-color: var(--color-line-ink); }
+
+/* ---------- Data table (kit/DataTable.astro) ----------
+   Scrolls in its own box on a narrow screen, the first column stuck at the start. The soft
+   edge at the end is two backgrounds: a shadow fixed to the box (scroll) and a Paper cover
+   at the very end of the content (local) that slides over it once you get there. */
+.data-table {
+  margin-top: 1rem; overflow-x: auto; overscroll-behavior-x: contain;
+  background:
+    linear-gradient(to left, var(--color-paper) 1.5rem, transparent) right / 3rem 100% no-repeat local,
+    linear-gradient(to left, rgb(20 24 30 / .14), transparent) right / 1.25rem 100% no-repeat scroll;
+}
+[dir="rtl"] .data-table {
+  background:
+    linear-gradient(to right, var(--color-paper) 1.5rem, transparent) left / 3rem 100% no-repeat local,
+    linear-gradient(to right, rgb(20 24 30 / .14), transparent) left / 1.25rem 100% no-repeat scroll;
+}
+.data-table:focus-visible { outline: 2px solid var(--color-teal); outline-offset: 3px; }
+.data-table table { width: 100%; min-width: 36rem; border-collapse: collapse; font-size: .95rem; }
+.data-table :is(th, td) { padding: .7rem .75rem; border-bottom: 1px solid var(--color-rule); text-align: start; vertical-align: top; line-height: 1.65; }
+.data-table th { font-weight: 600; border-bottom-color: var(--color-ink); }
+.data-table :is(th, td):first-child { position: sticky; inset-inline-start: 0; padding-inline-start: 0; background: var(--color-paper); white-space: nowrap; }
+.data-table td:nth-child(2) { min-width: 13rem; }
+@media (max-width: 47.99rem) { .data-table :is(th, td):first-child { box-shadow: inset calc(var(--flip) * -1px) 0 var(--color-rule); } }

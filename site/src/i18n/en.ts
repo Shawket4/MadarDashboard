@@ -575,9 +575,9 @@ export const en = {
     yours: "Your package",
     perBranch: "per branch",
     ask: "Ask for it on WhatsApp",
-    included: "What each plan includes",
-    yes: "Included",
-    no: "Not included",
+    included: "What each plan includes.",
+    /** The plan table (kit/PlanTable): Advanced Operation is Essential Café and more. */
+    compare: { kicker: "Side by side", inFirst: "In both plans", adds: "What Advanced Operation adds", tag: "Advanced" },
     /** The WhatsApp message a package opens with ({plan}, and its term from termTotal). */
     wa: "Hi Madar, I run a café and I'd like {plan}, {term}.",
     plans: [

@@ -20,6 +20,7 @@
 @import "./type.css";
 @import "./motion.css";
 @import "./components.css";
+@import "./kit.css";
 @import "./sections/menu.css";
 @import "./sections/screens.css";
 @import "./sections/family.css";

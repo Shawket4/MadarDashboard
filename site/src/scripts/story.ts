@@ -7,7 +7,7 @@
 //
 // Two ways in:
 //  - fresh (from outside, or a reload): the hero or the page's intro plays its entrance,
-//    in CSS (global.css, "First screen"), so it starts with the first paint, not when
+//    in CSS (styles/motion.css, "First screen"), so it starts with the first paint, not when
 //    this file arrives.
 //  - soft (a click from another page of the site): the page transition brings the new
 //    page in.
@@ -224,13 +224,13 @@ function landOnHash() {
   window.setTimeout(release, 5000);
   ScrollTrigger.addEventListener("refresh", land);
   land();
-  // The section it opened on entered in CSS (":target" in global.css); a later # change
+  // The section it opened on entered in CSS (":target" in styles/motion.css); a later # change
   // is this file's to play, not that rule's.
   window.addEventListener("hashchange", () => root.removeAttribute("data-arrive"), { once: true });
 }
 
 /**
- * The hero's entrance is CSS (global.css, "First screen"). Its chip's figures count up
+ * The hero's entrance is CSS (styles/motion.css, "First screen"). Its chip's figures count up
  * as the chip settles, when this file is in time for that; otherwise they stay at the
  * values the page rendered (never a count that restarts from zero in plain sight).
  */
@@ -287,7 +287,7 @@ function whenSeen(el: Element, start: string, anim: gsap.core.Animation) {
 
 /**
  * A heading's words rise into place, each from below its mask. The masks are padded
- * past descenders and Arabic tails and marks (.split-word-mask in global.css), so the
+ * past descenders and Arabic tails and marks (.split-word-mask in styles/motion.css), so the
  * words start far enough down to be fully hidden: the mask's whole height. The split
  * stays once they land: undoing it can re-wrap a heading that fits its line to the
  * pixel, and the heading would jump.

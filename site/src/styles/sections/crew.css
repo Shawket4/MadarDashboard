@@ -85,17 +85,6 @@
 .crew-armed svg[data-crew][data-in] .crew-limb { animation: crew-limb .4s ease-out .55s both; }
 @keyframes crew-limb { from { opacity: 0; } }
 
-/* A direct call to action between the crew and the limits, for ad traffic. The joyful pair
-   stands on its top edge over the button (their feet on the edge: each drawing has a little
-   room under the feet, taken back with translate; no shadow on the Ink "floor"). */
-.free-cta-band { position: relative; display: flex; flex-direction: column; gap: 1.5rem; padding: 1.75rem; border-radius: var(--radius-card); background: var(--color-ink); color: var(--color-paper); }
-.free-cta-band .text-muted-ink { color: var(--color-muted-ink); }
-@media (min-width: 768px) { .free-cta-band { flex-direction: row; align-items: center; justify-content: space-between; gap: 2rem; padding: 2rem 2.25rem; } }
-.free-band-crew { position: absolute; bottom: 100%; inset-inline-end: 1.5rem; display: flex; align-items: flex-end; gap: .4rem; }
-.free-band-crew .crew-shadow { display: none; }
-.free-band-shariha { width: 4.5rem; translate: 0 3.9%; overflow: visible; cursor: pointer; }
-.free-band-nuqta { width: 3.5rem; translate: 0 1.9%; overflow: visible; cursor: pointer; }
-@media (min-width: 768px) { .free-band-crew { inset-inline-end: 2.75rem; } .free-band-shariha { width: 5.75rem; } .free-band-nuqta { width: 4.5rem; } }
 
 /* The self-service door: نقطة with his coffee in a Paper roundel, top corner. */
 .free-door-main { position: relative; }

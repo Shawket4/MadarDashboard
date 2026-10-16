@@ -1,0 +1,40 @@
+---
+/**
+ * A dark strip with one call to action, inside a light section (the Free page's "Start
+ * selling today."): the words on the start, a price if there is one, the button (and a
+ * quiet link) on the end; one column on phones. Its top edge is a floor for the crew to
+ * stand on (slot "crew": the joyful figures, sized by .cta-band-shariha / -nuqta). Its
+ * button is the call to action here, so the phones' sticky one steps aside while it shows.
+ * Styles: styles/kit.css, "Call-to-action band".
+ */
+import Icon from "@/components/ui/Icon.astro";
+
+type Link = { href: string; label: string; event: string; where: string };
+interface Props {
+  title: string;
+  kicker?: string;
+  body?: string;
+  /** "0 EGP" and what it is per ("a month"): the figure in Plex Mono. */
+  price?: { amount: string; per: string };
+  cta: Link;
+  more?: Link;
+  class?: string;
+}
+const { title, kicker, body, price, cta, more, class: cls } = Astro.props;
+const [figure, ...cur] = price?.amount.split(" ") ?? [];
+---
+<div class:list={["cta-band", cls]} data-reveal data-hides-sticky>
+  {Astro.slots.has("crew") && <div class="cta-band-crew" data-crew-host><slot name="crew" /></div>}
+  <div class="min-w-0">
+    {kicker && <p class="kicker text-teal-light">{kicker}</p>}
+    <p class:list={["text-h3", kicker && "mt-3"]}>{title}</p>
+    {body && <p class="mt-2 max-w-xl text-muted-ink">{body}</p>}
+  </div>
+  {price && (
+    <p class="cta-band-price"><span class="ltr">{figure}</span> <span class="cta-band-cur">{cur.join(" ")}</span> <span class="cta-band-per">{price.per}</span></p>
+  )}
+  <div class="cta-band-actions">
+    <a class="btn btn-paper btn-lg" href={cta.href} data-umami-event={cta.event} data-umami-event-where={cta.where}>{cta.label} <Icon name="arrow" size={18} /></a>
+    {more && <a class="link-cta" href={more.href} data-umami-event={more.event} data-umami-event-where={more.where}>{more.label}</a>}
+  </div>
+</div>

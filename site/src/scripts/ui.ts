@@ -38,7 +38,7 @@ menu?.addEventListener("click", (e) => {
   else if (target.closest("[data-close-menu]")) closeMenu();
 });
 
-/** The menu's way out: its short fade (global.css), then shut. Instant when there is none. */
+/** The menu's way out: its short fade (styles/motion.css), then shut. Instant when there is none. */
 function closeMenu() {
   if (!menu?.open || menu.hasAttribute("data-closing")) return;
   menu.setAttribute("data-closing", "");
@@ -80,11 +80,11 @@ window.addEventListener("scroll", onScroll, { passive: true });
 
 // Phones: WhatsApp bar once the first section is gone, hidden again from the closing band
 // down (the band and the footer carry their own contact links), and while a page's own
-// WhatsApp button is on screen (data-hides-sticky: the pricing pick), never two at once.
+// call to action is on screen (data-hides-sticky: the pricing pick, a CtaBand), never two at once.
 const sticky = document.getElementById("sticky-wa");
 const first = document.querySelector("main > section, main > div > section");
 const closing = document.getElementById("closing");
-const own = document.querySelector("[data-hides-sticky]");
+const own = document.querySelectorAll("[data-hides-sticky]");
 if (sticky && "IntersectionObserver" in window) {
   let firstVisible = true;
   let closingVisible = false;
@@ -94,7 +94,13 @@ if (sticky && "IntersectionObserver" in window) {
   };
   if (first) new IntersectionObserver(([en]) => { firstVisible = !!en?.isIntersecting; update(); }).observe(first);
   if (closing) new IntersectionObserver(([en]) => { closingVisible = !!en && (en.isIntersecting || en.boundingClientRect.top < 0); update(); }).observe(closing);
-  if (own) new IntersectionObserver(([en]) => { ownVisible = !!en?.isIntersecting; update(); }).observe(own);
+  const showing = new Set<Element>();
+  const io = new IntersectionObserver((entries) => {
+    for (const en of entries) if (en.isIntersecting) showing.add(en.target); else showing.delete(en.target);
+    ownVisible = showing.size > 0;
+    update();
+  });
+  for (const el of own) io.observe(el);
 }
 
 // Pricing: the package follows the pick (its name, its price and the WhatsApp message,

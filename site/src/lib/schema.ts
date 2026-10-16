@@ -102,6 +102,16 @@ export function freeApplication(lang: Lang) {
   };
 }
 
+/** A FAQPage of the questions a page shows (FaqList.astro), in the page's language. */
+export function faqPage(lang: Lang, items: readonly { q: string; a: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    inLanguage: lang,
+    mainEntity: items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })),
+  };
+}
+
 /** Home → this page, in the page's language. */
 export function breadcrumbs(lang: Lang, page: Exclude<PageKey, "home">) {
   const c = t(lang);
