@@ -78,8 +78,13 @@ export function playIn(gsap: Gsap, targets: gsap.TweenTarget, recipe: Recipe, ex
   const tween = gsap.fromTo(els, from, {
     ...r.to,
     ...extra,
-    clearProps: "opacity,transform",
-    onComplete: () => markArrived(els),
+    // Hand styling back to CSS by hand: GSAP's clearProps re-parses every
+    // target's transform as it clears it, which upsets a form typing inside
+    // (react-hook-form lost the tail of a word typed while a dialog arrived).
+    onComplete: () => {
+      for (const el of els) clearInline([el as HTMLElement]);
+      markArrived(els);
+    },
   });
   for (const el of els) interrupted.delete(el);
   return tween;
@@ -123,8 +128,7 @@ function setPreState(els: HTMLElement[], r: Recipe) {
 
 function clearInline(els: HTMLElement[]) {
   for (const el of els) {
-    el.style.removeProperty("opacity");
-    el.style.removeProperty("transform");
+    for (const p of ["opacity", "transform", "translate", "rotate", "scale"]) el.style.removeProperty(p);
   }
 }
 
@@ -173,13 +177,14 @@ export function enter(els: HTMLElement[], recipe: Recipe, { delay = 0, stagger }
   const withGsap = (gsap: Gsap) => {
     const t = playIn(gsap, els, r, { delay, ...(stagger ? { stagger: (i: number) => stagger(i) } : {}) });
     t.eventCallback("onComplete", () => {
+      clearInline(els);
       done = true;
       markArrived(els);
     });
     stop = () => {
       hold(gsap, t, keys);
       t.kill();
-      gsap.set(els, { clearProps: "opacity,transform" });
+      clearInline(els);
     };
   };
 
@@ -249,6 +254,11 @@ export function leave(els: HTMLElement[], recipe: Recipe, onDone: () => void): P
     onDone();
     return NOOP;
   }
+  // A DOM that cannot animate (jsdom in tests): leave at once, whatever is loaded.
+  if (!canAnimate()) {
+    onDone();
+    return NOOP;
+  }
   let done = false;
   const finish = () => {
     done = true;
@@ -266,10 +276,6 @@ export function leave(els: HTMLElement[], recipe: Recipe, onDone: () => void): P
       },
       () => done,
     );
-  }
-  if (!canAnimate()) {
-    finish();
-    return NOOP;
   }
   const cancel = waapi(els, {}, r.exit, () => 0, finish);
   return playing(cancel, () => done);
