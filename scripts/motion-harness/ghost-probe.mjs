@@ -50,6 +50,14 @@ function detector() {
     return 0;
   };
   const ghosts = [];
+  // A ghost comes back: something hidden and then gone for good (a skeleton
+  // fading out as its content arrives) is an exit, not a ghost.
+  const ghostEls = [];
+  window.__ghostList = () => ghosts.filter((_, i) => ghostEls[i].isConnected);
+  window.__ghostReset = () => {
+    ghosts.length = 0;
+    ghostEls.length = 0;
+  };
   const opacityOf = (style) => {
     const m = /opacity:\s*([\d.]+)/.exec(style ?? "");
     return m ? parseFloat(m[1]) : 1;
@@ -85,6 +93,7 @@ function detector() {
       touched.add(el);
       if (!(before > 0.6 && after < 0.6)) continue;
       if (painted === 0 || !visibleNow(el)) continue;
+      ghostEls.push(el);
       ghosts.push({ at: Math.round(now - t0), shownFor: painted, connected: Math.round(since - t0), what: describe(el), from: before, to: after });
     }
   }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["style"], attributeOldValue: true });
@@ -148,7 +157,7 @@ for (const vp of Object.keys(VIEWPORTS)) {
     await page.goto(base + l.path);
     await page.waitForTimeout(5000);
     const n = await stop();
-    results[`load.${l.name}.${vp}`] = { frames: n, ghosts: await page.evaluate(() => window.__ghosts) };
+    results[`load.${l.name}.${vp}`] = { frames: n, ghosts: await page.evaluate(() => window.__ghostList()) };
     await ctx.close();
   }
   for (const nv of NAVS.filter((x) => !only || x.name.startsWith(only))) {
@@ -156,7 +165,7 @@ for (const vp of Object.keys(VIEWPORTS)) {
     await page.goto(base + nv.from);
     await page.waitForLoadState("networkidle").catch(() => {});
     await page.waitForTimeout(2500);
-    await page.evaluate(() => window.__ghosts.splice(0));
+    await page.evaluate(() => window.__ghostReset());
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
     const stop = await record(cdp, `nav-${nv.name}-${vp}`, 1000);
     await page.evaluate((to) => {
@@ -166,7 +175,7 @@ for (const vp of Object.keys(VIEWPORTS)) {
     }, nv.to);
     await page.waitForTimeout(2500);
     const n = await stop();
-    results[`nav.${nv.name}.${vp}`] = { frames: n, ghosts: await page.evaluate(() => window.__ghosts) };
+    results[`nav.${nv.name}.${vp}`] = { frames: n, ghosts: await page.evaluate(() => window.__ghostList()) };
     await ctx.close();
   }
 }

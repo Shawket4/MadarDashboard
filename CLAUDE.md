@@ -143,7 +143,9 @@ touch them, and never copy them.
 Every animation goes through **`src/lib/motion`** (`import … from "@/lib/motion"`).
 GSAP is private to that folder: it loads lazily in its own chunk after the first paint
 (`bootMotion()` in each bundle's `main.tsx`), and until it lands every primitive shows
-its final state, still. Content is never hidden while waiting for an animation.
+its final state, still. Content is never hidden while waiting for an animation, with one
+bounded exception: data that lands before GSAP is hidden before paint and waits for it
+at most 1.2 s (`ARRIVAL_PATIENCE_MS`), then simply shows.
 
 **Tokens** (`tokens.ts`, mirrored as CSS variables in `motion.css`; `tokens.test.ts`
 fails if the two drift):
@@ -178,7 +180,7 @@ fails if the two drift):
 | Error / success feedback | `useShake` (the row or form, never a field being typed in) / `usePop` |
 | A status that changes in place | `<StatusPill popOn={status}>` (pops on a change, never on arrival) |
 | Loading | `<Spinner>` (`components/ui/spinner`; `icon={RefreshCw} spinning={busy}` for a refresh arrow); `Button loading` has it |
-| A placeholder | `<Skeleton>` (`components/ui/skeleton`), or `<SkeletonSwap>` to fade the content in |
+| A placeholder | `<Skeleton>` (`components/ui/skeleton`); `<SkeletonSwap>` when data replaces it (content rises in, skeleton fades out) |
 | A pressable card or tile | `data-press="product"` or `"brand"`; `Button` has it already |
 | A set piece or ambient loop | `useTimeline` (`pauseOffscreen` for loops) |
 | Anything else | `useGsap(fn, deps, { scope })`: scoped, reverted on cleanup, StrictMode-safe |
@@ -212,12 +214,18 @@ bundles; `toast()` is called from anywhere), Recharts series with `useChartMotio
 - **No ghost first frames.** The first painted frame of anything that animates is its
   clean pre-state or its final state, never content that shows, vanishes and then
   animates in. Entrances hide their targets in a layout effect (before paint), skip
-  whatever has already been on screen at rest (shown while GSAP was loading, skeleton
-  cards a `when` turns into figures, content a Suspense boundary re-shows) unless
-  `replayKey` changed, and an entrance cut off by its cleanup (StrictMode's second run,
-  a Suspense hide) carries on from where it was. Shake and pop fire once per signal.
-  Without GSAP nothing is ever hidden. `scripts/motion-harness/ghost-probe.mjs` finds
-  violations in cold loads and navigations at 4× throttle.
+  whatever has already been on screen at rest (shown while GSAP was loading, content a
+  Suspense boundary re-shows) unless `replayKey` changed, and an entrance cut off by its
+  cleanup (StrictMode's second run, a Suspense hide) carries on from where it was. Shake
+  and pop fire once per signal.
+- **Data landing is new content.** `SkeletonSwap` (every `StatCard` uses it) renders the
+  content as a new element, hidden in the same commit that swaps the skeleton out, rises
+  it in step with its `Stagger`, and fades the skeleton out over it: never a blink. If
+  GSAP has not loaded, the pre-state is set with plain inline styles, GSAP is fetched at
+  once, and after `ARRIVAL_PATIENCE_MS` the content just shows. A `Stagger`'s `when`
+  landing does the same. Reduced motion: final state at once.
+  `scripts/motion-harness/ghost-probe.mjs` finds ghosts in cold loads and navigations
+  at 4× throttle.
 - **Nothing animates off screen.** Entrances skip what is out of view (brand pages may
   `scroll`-reveal), and loops pause off screen.
 - **RTL.**
