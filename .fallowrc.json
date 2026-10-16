@@ -19,5 +19,31 @@
   "ignoreDependencies": [
     "@faker-js/faker",
     "@tanstack/react-query-devtools"
+  ],
+  "ignoreExports": [
+    {
+      "file": "src/generated/**",
+      "exports": [
+        "*"
+      ]
+    },
+    {
+      "file": "shared/**",
+      "exports": [
+        "*"
+      ]
+    },
+    {
+      "file": "src/data/api/custom-instance.ts",
+      "exports": [
+        "default"
+      ]
+    },
+    {
+      "file": "src/lib/rules/wasm/**",
+      "exports": [
+        "*"
+      ]
+    }
   ]
 }

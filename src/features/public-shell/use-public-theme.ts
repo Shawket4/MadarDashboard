@@ -13,7 +13,7 @@ import { useTheme } from "@/lib/theme";
  * Each page applies this on mount and restores the dashboard theme on unmount,
  * so it stays scoped to the guest flow.
  */
-export type PublicThemeMode = "light" | "dark";
+type PublicThemeMode = "light" | "dark";
 
 const STORAGE_KEY = "madar.public.theme";
 /** What this was called when it belonged to the ordering feature alone. */

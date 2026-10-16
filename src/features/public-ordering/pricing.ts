@@ -14,7 +14,7 @@ import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuI
 import type { DeliveryOptionPricing } from "@/data/api/generated/models/deliveryOptionPricing";
 import { rules, type CatalogView, type ItemView, type OptionView, type PricedOptions, type PriceError, type Selection } from "@/lib/rules";
 
-export type { CatalogView, ItemView, OptionView, PricedOptions, PriceError, Selection };
+export type { CatalogView, ItemView, PricedOptions, PriceError, Selection };
 
 /**
  * One unit of the item at `size`, before any option; with no size, the "from"

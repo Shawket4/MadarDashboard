@@ -17,7 +17,6 @@ import type {
   ChatFrame,
   ConversationDetail,
   ConversationSummary,
-  QuerySpec,
 } from "./types";
 
 // ── Conversations ───────────────────────────────────────────────────────────
@@ -139,15 +138,3 @@ function parseFrame(raw: string): ChatFrame | null {
 
 // ── Pinning an answer ───────────────────────────────────────────────────────
 
-/**
- * Run a spec directly through the metrics endpoint.
- *
- * This is what makes "pin this answer" a single action: the spec Basira returns
- * is already a valid widget definition, so re-running it needs no translation.
- */
-export async function runSpec(spec: QuerySpec) {
-  const { data } = await apiClient.post("/metrics/query", {
-    widgets: [{ key: "pinned", spec }],
-  });
-  return data;
-}

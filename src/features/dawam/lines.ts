@@ -79,7 +79,7 @@ export const reasonText = (
 };
 
 /** Base pay before overtime, bonuses, deductions and the advance installment. */
-export const basePiastres = (p: ComputedPayslip | Payslip): number =>
+const basePiastres = (p: ComputedPayslip | Payslip): number =>
   "base_piastres" in p && typeof p.base_piastres === "number"
     ? p.base_piastres
     : p.net_piastres - p.overtime_piastres - p.bonuses_piastres + p.deductions_piastres + p.advance_installment_piastres;

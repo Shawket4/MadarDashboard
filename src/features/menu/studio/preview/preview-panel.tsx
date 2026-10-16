@@ -41,7 +41,7 @@ function useDebounced<T>(value: T, ms: number): T {
 const plain = (p: number) => fmtMoney(p, { currency: false, fractionDigits: 0 });
 
 /** "150 + 55 + 30 = 235" (× quantity when > 1). */
-export function priceLine(price: PreviewResponse["price"], quantity: number): string {
+function priceLine(price: PreviewResponse["price"], quantity: number): string {
   const parts = [price.base, ...price.options.filter((o) => o.price_delta !== 0).map((o) => o.price_delta)].map(plain);
   const sum = parts.join(" + ");
   const lhs = quantity > 1 ? `(${sum}) × ${quantity}` : sum;

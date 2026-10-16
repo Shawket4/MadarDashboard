@@ -6,7 +6,7 @@ import { WEEK_ORDER } from "@/lib/week";
 import { useLang } from "./use-lang";
 
 /** A weekday's name in the app language; `dow` is 0 = Sunday … 6 = Saturday. */
-export function weekdayName(dow: number, lang: "en" | "ar", width: "short" | "long" = "short"): string {
+function weekdayName(dow: number, lang: "en" | "ar", width: "short" | "long" = "short"): string {
   // 7 Jan 2024 was a Sunday.
   return new Intl.DateTimeFormat(lang === "ar" ? "ar-EG" : "en-GB", { weekday: width, timeZone: "UTC" }).format(
     new Date(Date.UTC(2024, 0, 7 + dow)),

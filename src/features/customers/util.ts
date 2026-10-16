@@ -5,12 +5,11 @@
 import { AxiosError } from "axios";
 import { z } from "zod";
 
-import { PHONE_RAW_MAX, phoneSchema } from "@/lib/phone";
+import { phoneSchema } from "@/lib/phone";
 import type { CreateCustomerRequest, Customer, MemberView, UpdateCustomerRequest } from "@/data/api/generated/models";
 
 export const NAME_MAX = 120;
 export const NOTES_MAX = 2000;
-export const PHONE_MAX = PHONE_RAW_MAX;
 export const PAGE_SIZE = 50;
 /** The server clamps `limit` to 500. */
 export const LIMIT_MAX = 500;

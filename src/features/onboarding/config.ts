@@ -74,20 +74,6 @@ export const STEPS: StepDef[] = [
   { key: "go_live", stageId: "live", icon: Rocket },
 ];
 
-/** Mirror tiles, in display order — each reads a count (and optional ring) from
- *  the onboarding status. `first_order` powers the "go live" finale tile. */
-export const MIRROR_TILES = [
-  "org_profile",
-  "branch",
-  "payment_methods",
-  "categories",
-  "menu_items",
-  "ingredients",
-  "addons",
-  "team",
-  "first_order",
-] as const;
-
 /** localStorage / sessionStorage keys for the gate + nudge. */
 export const ONBOARDING_SKIP_KEY = "madar.onboarding.skip";
 export const NUDGE_DISMISS_KEY = "madar.onboarding.nudge.dismissed";

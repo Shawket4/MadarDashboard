@@ -42,8 +42,8 @@ const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 const WHOLE_BUSINESS = "__all__";
 
 /** Common shifts to start a new one from; each fills the name (if empty) and both times. */
-export interface ShiftPreset { key: string; labelKey: string; fallback: string; start: string; end: string }
-export const SHIFT_PRESETS: ShiftPreset[] = [
+interface ShiftPreset { key: string; labelKey: string; fallback: string; start: string; end: string }
+const SHIFT_PRESETS: ShiftPreset[] = [
   { key: "morning", labelKey: "staff.presetMorning", fallback: "Morning", start: "08:00", end: "16:00" },
   { key: "day", labelKey: "staff.presetDay", fallback: "Day", start: "09:00", end: "17:00" },
   { key: "evening", labelKey: "staff.presetEvening", fallback: "Evening", start: "16:00", end: "00:00" },

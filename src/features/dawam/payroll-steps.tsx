@@ -14,7 +14,7 @@ export type PayPhase = "open" | "approved" | "paid";
 const ORDER: PayPhase[] = ["open", "approved", "paid"];
 
 /** The sentence under the steps: what to do now. */
-export function nextStepKey(phase: PayPhase, blockers: number, paid: number, people: number): [string, string] {
+function nextStepKey(phase: PayPhase, blockers: number, paid: number, people: number): [string, string] {
   if (phase === "open") {
     return blockers > 0
       ? ["dawamOps.payNextBlocked", "Fix what is listed below, then approve."]

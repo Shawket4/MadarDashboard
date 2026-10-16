@@ -5,7 +5,7 @@ import { rules, type TillRefusal } from "@/lib/rules";
 import type { CloseTillPreview, ReconciliationInput } from "./api";
 
 /** One editable row of the close form (non-cash methods only; cash is the count). */
-export const reconciliationRowSchema = z
+const reconciliationRowSchema = z
   .object({
     method: z.string(),
     status: z.enum(["checked", "disagreed"]),
@@ -81,6 +81,3 @@ export function reconcileRefusal(
   return Array.isArray(lines) ? null : lines;
 }
 
-/** Row is flagged on the list when either flag applies. */
-export const isFlagged = (t: { opened_while_another_open: boolean; reconciliation_status?: string | null }) =>
-  t.opened_while_another_open || t.reconciliation_status === "disagreed";

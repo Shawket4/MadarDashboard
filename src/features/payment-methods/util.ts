@@ -39,7 +39,7 @@ export const PM_COLORS = [
 ];
 
 /** System (built-in) method names whose ID cannot be changed. */
-export const SYSTEM_METHODS = ["cash", "card", "digital_wallet", "mixed", "talabat_online", "talabat_cash"];
+const SYSTEM_METHODS = ["cash", "card", "digital_wallet", "mixed", "talabat_online", "talabat_cash"];
 export const isSystemMethod = (m: OrgPaymentMethod) => SYSTEM_METHODS.includes(m.name);
 
 export const iconFor = (id: string): LucideIcon => PM_ICONS.find((i) => i.id === id)?.icon ?? Banknote;

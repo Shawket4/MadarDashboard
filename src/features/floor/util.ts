@@ -296,7 +296,7 @@ export const envelopeOf = (it: GeoItem): Rect => {
 };
 
 /** Do two rectangles overlap at all? */
-export const rectsIntersect = (a: Rect, b: Rect): boolean =>
+const rectsIntersect = (a: Rect, b: Rect): boolean =>
   a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
 /**
@@ -316,7 +316,7 @@ export const marqueeHits = (marquee: Rect, items: GeoItem[]): string[] => {
   return items.filter((it) => rectsIntersect(norm, envelopeOf(it))).map((it) => it.id);
 };
 
-export const ALIGNMENTS = ["left", "hcenter", "right", "top", "vcenter", "bottom"] as const;
+const ALIGNMENTS = ["left", "hcenter", "right", "top", "vcenter", "bottom"] as const;
 export type Alignment = (typeof ALIGNMENTS)[number];
 
 /**
@@ -404,7 +404,7 @@ export interface ClipboardTable {
  * in one branch and pasting into another — or into a second tab — works for
  * free, and costs nothing extra to support.
  */
-export const CLIPBOARD_KIND = "madar.floor.tables.v1";
+const CLIPBOARD_KIND = "madar.floor.tables.v1";
 
 export const serializeTables = (
   tables: { label: string; seats: number; shape: string }[],

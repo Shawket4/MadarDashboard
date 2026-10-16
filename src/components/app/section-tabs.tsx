@@ -5,4 +5,4 @@
  * title sits at the same position as on every other page. A section layout
  * wraps its <Outlet/> in <SectionTabsProvider>.
  */
-export { SectionTabsProvider, SectionTabBar, type SectionTab } from "@/components/app/page";
+export { SectionTabsProvider } from "@/components/app/page";

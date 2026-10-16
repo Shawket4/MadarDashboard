@@ -532,7 +532,7 @@ export function CorrectExpenseTagDialog({
   );
 }
 
-export const PAY_METHODS = ["cash", "bank", "wallet"] as const;
+const PAY_METHODS = ["cash", "bank", "wallet"] as const;
 export const PAY_METHOD_FALLBACK: Record<string, string> = { cash: "Cash", bank: "Bank transfer", wallet: "Mobile wallet", none: "Nothing to pay" };
 
 /** Paid, per person, with how (PAY-7). */

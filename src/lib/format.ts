@@ -1,5 +1,4 @@
 import { APP_TZ, DEFAULT_CURRENCY, DEFAULT_LOCALE_AR, DEFAULT_LOCALE_EN } from "@/data/config/constants";
-import { useAppStore } from "@/data/stores/app.store";
 import i18n from "@/i18n";
 import { rules } from "@/lib/rules";
 
@@ -15,7 +14,18 @@ const getLocale = (): string => {
  * zone (resolved by `useSyncTimezone` into the app store) — NEVER the device's
  * browser timezone. Falls back to APP_TZ before the scope's tz is known.
  */
-export const getActiveTz = (): string => useAppStore.getState().activeTimezone || APP_TZ;
+export const getActiveTz = (): string => readActiveTz() || APP_TZ;
+
+let readActiveTz: () => string | undefined = () => undefined;
+
+/**
+ * The app store registers where the active timezone lives. Importing the store
+ * here would close a cycle (errors -> format -> store -> query -> errors); a
+ * bundle that never loads the store renders in APP_TZ, the store's own default.
+ */
+export const registerActiveTzSource = (read: () => string | undefined): void => {
+  readActiveTz = read;
+};
 
 /**
  * Intl renders `en-GB`'s meridiem lowercase ("6:02 pm"); the POS and the
@@ -54,9 +64,9 @@ export const egpToPiastres = (egp: number): number => Math.round(egp * 100);
 // and in Arabic the figure is LTR-isolated so the bidi algorithm never moves
 // the sign or splits the digits from their label.
 
-export const MINUS = "\u2212";
-export const LRI = "\u2066";
-export const PDI = "\u2069";
+const MINUS = "\u2212";
+const LRI = "\u2066";
+const PDI = "\u2069";
 
 /** Wrap a figure so it reads left-to-right inside RTL text. */
 export const ltr = (s: string): string => `${LRI}${s}${PDI}`;

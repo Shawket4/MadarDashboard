@@ -82,7 +82,7 @@ const centre = (b: PieceBox) => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
  * printer under its till is joined bottom-to-top and a screen beside its
  * section side-to-side, never a line looping round a card.
  */
-export const routeBetween = (a: PieceBox, b: PieceBox) => {
+const routeBetween = (a: PieceBox, b: PieceBox) => {
   const ca = centre(a);
   const cb = centre(b);
   const dx = cb.x - ca.x;

@@ -57,7 +57,7 @@ const STATE_TONE: Record<string, StatusTone> = {
   in: "success", late: "warning", absent: "danger", on_leave: "info", off: "neutral", done: "neutral",
 };
 
-export const FLAG_META: Record<string, { icon: LucideIcon; labelKey: string; fallback: string }> = {
+const FLAG_META: Record<string, { icon: LucideIcon; labelKey: string; fallback: string }> = {
   left_mid_shift: { icon: MapPinOff, labelKey: "dawam.flag_left_mid_shift", fallback: "Left mid-shift" },
   suspicious: { icon: ShieldAlert, labelKey: "dawam.flag_suspicious", fallback: "Location looks spoofed" },
   tracking_off: { icon: TimerOff, labelKey: "dawam.flag_tracking_off", fallback: "Tracking off" },

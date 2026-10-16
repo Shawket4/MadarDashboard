@@ -2,7 +2,7 @@
 // for, and the pure shaping of what comes back.
 import type { QuerySpec, WidgetOutcome } from "@/data/api/generated/models";
 
-export const TABLE_MEASURES = [
+const TABLE_MEASURES = [
   "turns",
   "turns_per_day",
   "covers",
@@ -69,7 +69,7 @@ const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v)
 const str = (v: unknown): string => (typeof v === "string" ? v : "");
 
 /** The rows of a widget that succeeded; an empty list for one that failed. */
-export function rowsOf(outcome: WidgetOutcome | undefined): Row[] {
+function rowsOf(outcome: WidgetOutcome | undefined): Row[] {
   if (!outcome || outcome.status !== "ok") return [];
   return outcome.rows as Row[];
 }

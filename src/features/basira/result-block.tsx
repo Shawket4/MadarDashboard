@@ -47,7 +47,7 @@ const SERIES = CHART_COLORS;
  * showing 0 there would read as "this item costs nothing", which is a different
  * and much worse claim than "we do not know".
  */
-export function formatCell(value: unknown, kind: ColumnKind, compact = false): string {
+function formatCell(value: unknown, kind: ColumnKind, compact = false): string {
   if (value === null || value === undefined) return "—";
   switch (kind) {
     case "money":

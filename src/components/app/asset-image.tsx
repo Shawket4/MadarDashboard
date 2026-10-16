@@ -41,15 +41,15 @@ export interface AssetGroupProcessing {
 
 export type AssetGroupRef = AssetGroupReady | AssetGroupProcessing;
 
-export interface AssetJob {
+interface AssetJob {
   id: string;
   status: "queued" | "running" | "done" | "failed";
   result: { group_id?: string; variants?: AssetGroupReady["variants"] } | Record<string, unknown> | null;
   error: string | null;
 }
 
-export const POLL_MS = 3_000;
-export const POLL_LIMIT_MS = 60_000;
+const POLL_MS = 3_000;
+const POLL_LIMIT_MS = 60_000;
 
 const isProcessing = (a: AssetGroupRef | null | undefined): a is AssetGroupProcessing =>
   !!a && (a as AssetGroupProcessing).status === "processing";
@@ -73,7 +73,7 @@ export function useAssetJob(jobId: string | null | undefined) {
 }
 
 /** Pick a variant for intrinsic width/height (avoids layout shift). */
-export function srcSetFor(asset: AssetGroupReady): string {
+function srcSetFor(asset: AssetGroupReady): string {
   const v = asset.variants;
   return [
     v.thumb ? `${v.thumb.url} 128w` : null,

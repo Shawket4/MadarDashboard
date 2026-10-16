@@ -16,12 +16,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  ArrowDown,
-  ArrowUp,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronsUpDown,
   Search,
   SlidersHorizontal,
 } from "lucide-react";
@@ -625,37 +622,3 @@ export function DataTable<TData, TValue>({
   );
 }
 
-/** Sortable column header button for use in column defs. */
-export function DataTableColumnHeader<TData, TValue>({
-  column,
-  title,
-  className,
-}: {
-  column: Column<TData, TValue>;
-  title: string;
-  className?: string;
-}) {
-  if (!column.getCanSort()) return <span className={className}>{title}</span>;
-  const sorted = column.getIsSorted();
-  return (
-    <button
-      type="button"
-      className={cn(
-        "-mx-1 inline-flex h-7 items-center gap-1 rounded-md px-1 tracking-[inherit] uppercase transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
-        sorted && "text-foreground",
-        className,
-      )}
-      onClick={() => column.toggleSorting(sorted === "asc")}
-      aria-sort={sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none"}
-    >
-      {title}
-      {sorted === "asc" ? (
-        <ArrowUp aria-hidden className="size-3.5" />
-      ) : sorted === "desc" ? (
-        <ArrowDown aria-hidden className="size-3.5" />
-      ) : (
-        <ChevronsUpDown aria-hidden className="size-3.5 opacity-50" />
-      )}
-    </button>
-  );
-}

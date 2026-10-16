@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { Combobox } from "@/components/app/combobox";
 
-export interface PickerItem {
+interface PickerItem {
   id: string;
   name: string;
   /** A quiet second line: a role, a branch. */
@@ -37,24 +37,3 @@ export function EmployeePicker({ items, value, onChange, placeholder, ...rest }:
   );
 }
 
-/** Pick one branch; with `everyBranch`, the first choice is the whole business. */
-export function BranchPicker({
-  items, value, onChange, placeholder, everyBranch, ...rest
-}: PickerProps & { everyBranch?: { value: string; label?: string } }) {
-  const { t } = useTranslation();
-  const options = [
-    ...(everyBranch ? [{ value: everyBranch.value, label: everyBranch.label ?? t("inputs.everyBranch", "Every branch") }] : []),
-    ...items.map((b) => ({ value: b.id, label: b.name, hint: b.hint })),
-  ];
-  return (
-    <Combobox
-      {...rest}
-      options={options}
-      value={value ?? null}
-      onChange={onChange}
-      placeholder={placeholder ?? t("inputs.pickBranch", "Pick a branch")}
-      searchPlaceholder={t("inputs.searchBranch", "Type a branch name")}
-      emptyText={t("inputs.noBranchMatches", "No branch by that name")}
-    />
-  );
-}

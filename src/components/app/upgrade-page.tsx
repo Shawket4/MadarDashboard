@@ -13,7 +13,7 @@ import { madarWhatsAppHref } from "@/config/contact";
 import type { Feature } from "@/generated/plans";
 
 /** The upgrade link: a WhatsApp message to Madar in the reader's language. */
-export function useUpgradeHref(feature?: Feature): string {
+function useUpgradeHref(feature?: Feature): string {
   const { t } = useTranslation();
   const featureName = feature ? t(`plan.features.${feature}`) : undefined;
   const text = featureName

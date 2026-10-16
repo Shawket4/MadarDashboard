@@ -46,10 +46,10 @@ import { capView, warningsOf } from "./phase-d";
 /** An approval the approver backed out of: nothing was sent, nothing to say. */
 const BACKED_OUT = Symbol("backed out");
 
-export type Section = "all" | "requests" | "money" | "shifts";
+type Section = "all" | "requests" | "money" | "shifts";
 
 /** One thing waiting, whatever its kind. */
-export interface Pending {
+interface Pending {
   key: string;
   section: Exclude<Section, "all">;
   icon: LucideIcon;

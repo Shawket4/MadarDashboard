@@ -11,16 +11,14 @@
  * editor uses, so the viewport maths in `features/floor/util.ts` applies as is.
  */
 
-export const DEVICE_KINDS = ["pos", "waiter", "kitchen"] as const;
+const DEVICE_KINDS = ["pos", "waiter", "kitchen"] as const;
 export type DeviceKind = (typeof DEVICE_KINDS)[number];
 
-export const PRINTER_ROLES = ["receipt", "kitchen"] as const;
+const PRINTER_ROLES = ["receipt", "kitchen"] as const;
 export type PrinterRole = (typeof PRINTER_ROLES)[number];
 
-export const CONNECTIONS = ["network", "usb", "bluetooth"] as const;
+const CONNECTIONS = ["network", "usb", "bluetooth"] as const;
 export type Connection = (typeof CONNECTIONS)[number];
-
-export const PAPER_WIDTHS = [58, 80] as const;
 
 export interface PlanDevice {
   id: string;
@@ -77,7 +75,7 @@ export const EMPTY_PLAN: Plan = { devices: [], printers: [], sections: [], till_
 /** Footprint of a piece on the canvas, in canvas units. */
 export const NODE_W = 216;
 export const NODE_H = 76;
-export const SECTION_H = 104;
+const SECTION_H = 104;
 
 export type PieceKind = "device" | "printer" | "section";
 export interface PieceRef {
@@ -322,7 +320,7 @@ export const setupOf = (plan: Plan): Setup | null => {
 type NewId = () => string;
 
 /** Canvas columns: front of house, kitchen sections, kitchen outputs. */
-export const COLUMN_X = { front: 0, sections: 340, outputs: 680 } as const;
+const COLUMN_X = { front: 0, sections: 340, outputs: 680 } as const;
 const ROW = 120;
 
 /**

@@ -293,7 +293,7 @@ const OPEN_TEXT = "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color
 const OPEN_TONE_CLASS = `bg-success/12 ${OPEN_TEXT}`;
 
 /** Open right now at this branch; kept live by the `tills` realtime topic. */
-export function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenBillsNotice; onOpen: (id: string) => void }) {
+function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenBillsNotice; onOpen: (id: string) => void }) {
   const { t } = useTranslation();
   return (
     <section className="space-y-3">

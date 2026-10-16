@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { OtpCodeInput } from "./otp-code-input";
 import { usePhoneOtp, type PhoneOtp, type PhoneOtpOptions } from "./use-phone-otp";
 
-export interface PhoneVerifyCopy {
+interface PhoneVerifyCopy {
   /** Heading of the phone card. */
   title: string;
   /** The line under it. */

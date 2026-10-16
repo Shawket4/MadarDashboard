@@ -26,7 +26,7 @@ export interface StaffDrinkLine {
   charged: number;
 }
 
-export const isStaffDrinkLine = (it: Pick<OrderItem, "staff_comp_minor" | "staff_drink_id">): boolean =>
+const isStaffDrinkLine = (it: Pick<OrderItem, "staff_comp_minor" | "staff_drink_id">): boolean =>
   (it.staff_comp_minor ?? 0) > 0 || !!it.staff_drink_id;
 
 export function staffDrinkLine(it: StaffItem): StaffDrinkLine | null {

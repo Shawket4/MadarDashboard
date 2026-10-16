@@ -62,7 +62,7 @@ const TAB_MODULE: Record<TabKey, "pos" | "dawam"> = {
 };
 
 /** The tabs this person sees, in order. Pure, so it is tested directly. */
-export function legalTabs(can: (c: Capability) => boolean, modules: readonly string[]): TabKey[] {
+function legalTabs(can: (c: Capability) => boolean, modules: readonly string[]): TabKey[] {
   return TABS.filter((k) => modules.includes(TAB_MODULE[k]) && (!EXTRA_CAP[k] || can(EXTRA_CAP[k])));
 }
 

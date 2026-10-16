@@ -42,7 +42,7 @@ export function catalogGroups(): CatalogGroup[] {
   }).filter((g) => g.main.length + g.advanced.length > 0);
 }
 
-export const isArabic = (lang: string | undefined) => (lang ?? "").startsWith("ar");
+const isArabic = (lang: string | undefined) => (lang ?? "").startsWith("ar");
 
 export const capLabel = (meta: Pick<CapabilityMeta, "en" | "ar">, lang: string | undefined) =>
   isArabic(lang) ? meta.ar : meta.en;

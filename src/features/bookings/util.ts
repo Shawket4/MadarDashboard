@@ -60,7 +60,7 @@ export const invalidateBookings = () =>
   });
 
 const pad = (n: number) => String(n).padStart(2, "0");
-export const ymd = (y: number, m0: number, d: number) => `${y}-${pad(m0 + 1)}-${pad(d)}`;
+const ymd = (y: number, m0: number, d: number) => `${y}-${pad(m0 + 1)}-${pad(d)}`;
 
 /** Today's calendar date (`YYYY-MM-DD`) in `tz` for the instant `now`; rolls over at midnight (madar-time `business_date`). */
 export function serviceToday(now: Date = new Date(), tz: string = getActiveTz()): string {
@@ -96,7 +96,7 @@ export function localHHMM(iso: string, tz: string = getActiveTz()): string {
 }
 
 /** Minutes since midnight for `HH:MM`. */
-export const minutesOf = (hhmm: string): number => {
+const minutesOf = (hhmm: string): number => {
   const [h, m] = hhmm.split(":").map(Number);
   return h * 60 + (m || 0);
 };

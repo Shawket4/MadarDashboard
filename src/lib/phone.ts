@@ -57,7 +57,7 @@ export const formatPhoneInput = (phone: string | null | undefined): string => {
   return c.startsWith("20") ? `0${c.slice(2)}` : `+${c}`;
 };
 
-export const PHONE_ERRORS = {
+const PHONE_ERRORS = {
   required: "common.errors.phoneRequired",
   invalid: "common.errors.phoneInvalid",
 } as const;

@@ -27,7 +27,7 @@ import type { StaffPoolSettings } from "@/data/api/generated/models";
  * going over is marked, never blocked, so a zero allowance is a real setting
  * (every staff drink is an overspend) rather than a way of switching off.
  */
-export const dailyAllowance = z
+const dailyAllowance = z
   .string()
   .trim()
   .refine((v) => /^\d+$/.test(v) && Number(v) <= 1000, {

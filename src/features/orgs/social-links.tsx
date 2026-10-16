@@ -44,7 +44,7 @@ import type { OrgSocialLinks } from "@/data/api/generated/models/orgSocialLinks"
  * the platform's mark is a cross. It is decorative and never a button here, so
  * it cannot be mistaken for a "clear this row" control.
  */
-export const SOCIAL_PLATFORMS = [
+const SOCIAL_PLATFORMS = [
   { key: "instagram", label: "Instagram", Icon: Camera, sample: "https://instagram.com/yourshop" },
   { key: "facebook", label: "Facebook", Icon: ThumbsUp, sample: "https://facebook.com/yourshop" },
   { key: "tiktok", label: "TikTok", Icon: Music, sample: "https://tiktok.com/@yourshop" },
@@ -60,7 +60,7 @@ export const SOCIAL_PLATFORMS = [
   sample: string;
 }>;
 
-export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number]["key"];
+type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number]["key"];
 
 /**
  * `https` and nothing else — the same rule the server holds to.

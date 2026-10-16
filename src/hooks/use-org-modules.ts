@@ -5,7 +5,7 @@ import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 
 /** Every module: what a platform user with no org pinned sees. */
-export const ALL_MODULES: readonly string[] = ["pos", "dawam"];
+const ALL_MODULES: readonly string[] = ["pos", "dawam"];
 
 /**
  * The current org, when this person may read it (`orgs:read`, the owner's).

@@ -7,7 +7,7 @@ import { ShoppingBag, UtensilsCrossed, type LucideIcon } from "lucide-react";
 
 export type ServiceMode = "takeaway" | "dine_in";
 
-export const SERVICE_MODES: readonly ServiceMode[] = ["takeaway", "dine_in"];
+const SERVICE_MODES: readonly ServiceMode[] = ["takeaway", "dine_in"];
 
 export const serviceModeOf = (order: { service_mode?: string | null } | null | undefined): ServiceMode =>
   order?.service_mode === "dine_in" ? "dine_in" : "takeaway";

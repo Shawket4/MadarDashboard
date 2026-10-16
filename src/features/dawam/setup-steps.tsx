@@ -34,7 +34,7 @@ import { branchPinned } from "./setup";
 
 type PinBranch = Pick<Branch, "id" | "name" | "latitude" | "longitude" | "geo_radius_meters">;
 
-export const DEFAULT_RADIUS = 200;
+const DEFAULT_RADIUS = 200;
 
 // ── Step 1: branches ─────────────────────────────────────────────────────────
 

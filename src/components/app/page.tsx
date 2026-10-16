@@ -96,7 +96,7 @@ const keepScope = (prev: Record<string, unknown>) => ({
   to: prev.to,
 });
 
-export function SectionTabBar({ tabs }: { tabs: SectionTab[] }) {
+function SectionTabBar({ tabs }: { tabs: SectionTab[] }) {
   const { pathname } = useLocation();
   return (
     <nav className="-mb-px flex w-full overflow-x-auto border-b no-scrollbar">
@@ -126,7 +126,7 @@ export function SectionTabBar({ tabs }: { tabs: SectionTab[] }) {
 
 // ── Header ──────────────────────────────────────────────────────────────────
 
-export type PageBack = { to: string; search?: Record<string, unknown> } | { onClick: () => void };
+type PageBack = { to: string; search?: Record<string, unknown> } | { onClick: () => void };
 
 interface PageHeaderProps {
   title: ReactNode;

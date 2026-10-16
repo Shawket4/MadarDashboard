@@ -8,8 +8,6 @@ import { MAX_PERCENT, percentToFraction } from "./tax-rate";
 export const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
-/** Step indexes of the wizard (0-based): business, first branch, owner. */
-export const STEPS = ["business", "branch", "owner"] as const;
 export type StepIndex = 0 | 1 | 2;
 
 export function provisionSchemas(t: TFunction) {

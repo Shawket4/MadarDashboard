@@ -17,7 +17,7 @@ type DayParts = { y: number; m: number; d: number };
 const toNum = (p?: DayParts | null) => (p ? p.y * 10000 + p.m * 100 + p.d : null);
 
 
-export interface PeriodPreset {
+interface PeriodPreset {
   value: string;
   label: string;
 }

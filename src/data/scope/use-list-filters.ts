@@ -156,11 +156,11 @@ export function useSearchInput(value: string, commit: (v: string) => void, delay
 // ── DataTable binding ────────────────────────────────────────────────────────
 
 /** `name` / `-name` ⇄ TanStack Table sorting state. */
-export function sortToState(sort: string): SortingState {
+function sortToState(sort: string): SortingState {
   if (!sort) return [];
   return sort.startsWith("-") ? [{ id: sort.slice(1), desc: true }] : [{ id: sort, desc: false }];
 }
-export function stateToSort(state: SortingState): string {
+function stateToSort(state: SortingState): string {
   const first = state[0];
   return first ? `${first.desc ? "-" : ""}${first.id}` : "";
 }

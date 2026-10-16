@@ -62,7 +62,7 @@ export function StatusPill({ tone = "neutral", children, icon, size = "md", clas
 }
 
 /** Maps a status word to a tone. Features keep their own maps; these are the shared defaults. */
-export const STATUS_TONES: Record<string, StatusTone> = {
+const STATUS_TONES: Record<string, StatusTone> = {
   active: "success",
   completed: "success",
   paid: "success",
