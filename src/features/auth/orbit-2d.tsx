@@ -29,7 +29,11 @@ const BODIES: Body[] = [
  * the labels counter-turn so they stay upright; under reduced motion everything
  * holds still. Decorative: the words on the panel carry the meaning.
  */
-export function Orbit2D({ className }: { className?: string }) {
+/** "ink": on the dark brand panel. "page": straight on the page, in either theme. */
+export type ShowcaseTone = "ink" | "page";
+
+export function Orbit2D({ className, tone = "ink" }: { className?: string; tone?: ShowcaseTone }) {
+  const page = tone === "page";
   const { t } = useTranslation();
   const stage = useRef<HTMLDivElement>(null);
   // Ambient: paused off screen, still under reduced motion (useTimeline skips it).
@@ -45,7 +49,7 @@ export function Orbit2D({ className }: { className?: string }) {
   return (
     <div ref={stage} aria-hidden="true" className={cn("relative mx-auto aspect-square w-[min(100%,28rem,50svh)]", className)}>
       <div data-orbit-turn className="absolute inset-0">
-        <svg viewBox="0 0 200 200" className="absolute inset-0 size-full text-sidebar-foreground/10">
+        <svg viewBox="0 0 200 200" className={cn("absolute inset-0 size-full", page ? "text-foreground/15" : "text-sidebar-foreground/10")}>
           <g fill="none" stroke="currentColor" strokeWidth="0.5">
             <circle cx="100" cy="100" r="50" />
             <circle cx="100" cy="100" r="74" />
@@ -63,9 +67,12 @@ export function Orbit2D({ className }: { className?: string }) {
             >
               <span
                 data-orbit-label
-                className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-sidebar-border bg-sidebar-accent py-1.5 ps-2 pe-3 text-xs font-medium"
+                className={cn(
+                  "flex items-center gap-1.5 whitespace-nowrap rounded-full border py-1.5 ps-2 pe-3 text-xs font-medium",
+                  page ? "border-border bg-card text-foreground shadow-xs" : "border-sidebar-border bg-sidebar-accent",
+                )}
               >
-                {Icon ? <Icon className="size-3.5 text-sidebar-muted" /> : <DawamMark className="h-3.5 w-auto" />}
+                {Icon ? <Icon className={cn("size-3.5", page ? "text-muted-foreground" : "text-sidebar-muted")} /> : <DawamMark className="h-3.5 w-auto" />}
                 {t(`auth.orbit.${key}`, fallback)}
               </span>
             </div>

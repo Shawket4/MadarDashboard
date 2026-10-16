@@ -19,7 +19,7 @@ import { BrandShowcase, useDesktop } from "./brand-showcase";
  * the page's own (`panel`, or the title by default).
  *
  * The showcase (the family on its orbit) sits in the panel (`showcase:
- * "panel"`, sign-in) or in an ink band above the form at every width
+ * "panel"`, sign-in) or straight on the page above the form at every width
  * (`"above"`, sign-up). Below the panel's breakpoint it is always in the band,
  * so a phone sees the same picture as a desktop.
  */
@@ -98,11 +98,8 @@ export function AuthShell({
           )}
         >
           {(showcase === "above" || !desktop) && (
-            <div
-              aria-hidden
-              className="mb-8 overflow-hidden rounded-3xl border border-sidebar-border bg-sidebar px-4 py-5 text-sidebar-foreground"
-            >
-              <BrandShowcase size="compact" />
+            <div aria-hidden className="mb-6">
+              <BrandShowcase size="compact" tone="page" />
             </div>
           )}
 

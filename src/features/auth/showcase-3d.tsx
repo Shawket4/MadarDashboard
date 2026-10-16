@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { DISTANCE, recipes, SwapPresence } from "@/lib/motion";
 
 import { createShowcase, type ShowcaseKey } from "@shared/showcase/engine";
+import type { ShowcaseTone } from "./orbit-2d";
+import { cn } from "@/lib/utils";
 
 /**
  * The sign-in panel's 3D showcase (lazy-loaded; see `brand-showcase.tsx`): the
@@ -26,9 +28,11 @@ export type Showcase3DProps = {
   onReady: () => void;
   /** No GPU context, or it was lost: the caller shows the 2D orbit instead. */
   onFail: () => void;
+  /** The caption's colours: on the ink panel, or straight on the page. */
+  tone?: ShowcaseTone;
 };
 
-export default function Showcase3D({ onReady, onFail }: Showcase3DProps) {
+export default function Showcase3D({ onReady, onFail, tone = "ink" }: Showcase3DProps) {
   const host = useRef<HTMLDivElement>(null);
   const [caption, setCaption] = useState<ShowcaseKey | null>(null);
   // The latest callbacks, without rebuilding the scene when they change.
@@ -67,12 +71,12 @@ export default function Showcase3D({ onReady, onFail }: Showcase3DProps) {
   return (
     <div className="flex size-full flex-col">
       <div ref={host} className="relative min-h-0 flex-1" />
-      <Caption showing={caption} />
+      <Caption showing={caption} tone={tone} />
     </div>
   );
 }
 
-function Caption({ showing }: { showing: ShowcaseKey | null }) {
+function Caption({ showing, tone }: { showing: ShowcaseKey | null; tone: ShowcaseTone }) {
   const { t } = useTranslation();
   return (
     <div className="relative h-16 shrink-0">
@@ -80,7 +84,7 @@ function Caption({ showing }: { showing: ShowcaseKey | null }) {
         {showing && (
           <>
             <p className="text-sm font-semibold">{t(`auth.showcase.${showing}.title`, CAPTIONS[showing].title)}</p>
-            <p className="mx-auto mt-1 max-w-sm text-xs text-sidebar-muted">
+            <p className={cn("mx-auto mt-1 max-w-sm text-xs", tone === "page" ? "text-muted-foreground" : "text-sidebar-muted")}>
               {t(`auth.showcase.${showing}.line`, CAPTIONS[showing].line)}
             </p>
           </>

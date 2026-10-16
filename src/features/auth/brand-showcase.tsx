@@ -1,7 +1,7 @@
 import { Component, lazy, Suspense, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { DURATION, prefersReducedMotion, recipes, Reveal, useReducedMotion } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { Orbit2D } from "./orbit-2d";
+import { Orbit2D, type ShowcaseTone } from "./orbit-2d";
 
 /**
  * The signed-out pages' picture: the 3D showcase where it can run well, the 2D
@@ -9,10 +9,11 @@ import { Orbit2D } from "./orbit-2d";
  * `size="compact"` is the ink band above the form (every width on sign-up,
  * below the panel's breakpoint on sign-in).
  *
- * The 3D lives in its own lazy chunk (three.js and the shared engine) that is only
- * requested on a desktop-width screen, with motion allowed, data saving off and
- * WebGL available, so phones and the reduced-motion crowd never download it and
- * the form never waits for it. It fades in once its first frame is drawn. If it
+ * The 3D runs wherever the device can render it, phones included. It lives in
+ * its own lazy chunk (three.js and the shared engine), requested only with
+ * motion allowed, data saving off and WebGL available, so the reduced-motion
+ * crowd never downloads it and the form never waits for it. It fades in once
+ * its first frame is drawn. If it
  * hasn't arrived within a few seconds, fails to load, throws, or loses its GPU
  * context, the 2D orbit takes its place for the rest of the visit.
  */
@@ -86,27 +87,34 @@ const ORBIT_COMPACT = "w-[min(100%,17rem,34svh)]";
 
 type Mode = "loading" | "3d" | "2d";
 
-export function BrandShowcase({ className, size = "panel" }: { className?: string; size?: "panel" | "compact" }) {
+export function BrandShowcase({
+  className,
+  size = "panel",
+  tone = "ink",
+}: {
+  className?: string;
+  size?: "panel" | "compact";
+  tone?: ShowcaseTone;
+}) {
   const desktop = useDesktop();
   const reduced = useReducedMotion();
   const [mode, setMode] = useState<Mode>(() => (wants3D() ? "loading" : "2d"));
 
   // Not there in time: the 2D orbit for this visit.
   useEffect(() => {
-    if (mode !== "loading" || !desktop) return;
+    if (mode !== "loading" || (!desktop && size === "panel")) return;
     const id = window.setTimeout(() => setMode((m) => (m === "loading" ? "2d" : m)), PATIENCE_MS);
     return () => window.clearTimeout(id);
-  }, [mode, desktop]);
+  }, [mode, desktop, size]);
 
   // The panel only shows on desktop widths; there, nothing to draw below them.
   if (!desktop && size === "panel") return null;
 
-  // Phones and tablets get the 2D orbit: the 3D chunk is never fetched below the
-  // desktop breakpoint.
-  if (mode === "2d" || reduced || !desktop) {
+  // The 2D orbit only where the 3D can't run (see wants3D and the fallbacks).
+  if (mode === "2d" || reduced) {
     return (
       <Reveal recipe={recipes.fade(DURATION.brand)} className={className}>
-        <Orbit2D className={size === "compact" ? ORBIT_COMPACT : undefined} />
+        <Orbit2D tone={tone} className={size === "compact" ? ORBIT_COMPACT : undefined} />
       </Reveal>
     );
   }
@@ -121,7 +129,7 @@ export function BrandShowcase({ className, size = "panel" }: { className?: strin
               mode === "3d" ? "opacity-100" : "opacity-0",
             )}
           >
-            <Showcase3D onReady={() => setMode("3d")} onFail={() => setMode("2d")} />
+            <Showcase3D tone={tone} onReady={() => setMode("3d")} onFail={() => setMode("2d")} />
           </div>
         </Suspense>
       </ShowcaseBoundary>
