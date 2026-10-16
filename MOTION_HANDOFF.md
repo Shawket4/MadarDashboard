@@ -5,18 +5,17 @@ first, especially its **Motion** section: it is the contract for everything here
 file is the state of the work and what is left. Delete it when the branch merges.
 
 ## Getting the branch
-The branch is **not pushed**. It travels as a git bundle that holds only the branch's
-commits on top of `2fe2a37a`, which `origin/main` already contains:
+The branch is pushed to `origin`:
 
 ```bash
 git clone https://github.com/Shawket4/MadarDashboard.git && cd MadarDashboard
-git fetch /path/to/feat-dashboard-motion.bundle feat/dashboard-motion:feat/dashboard-motion
 git switch feat/dashboard-motion
 npm ci
 npx playwright install chromium   # for the harness below
 ```
 
-Push, merge and tag only when the owner says so. Another session works in `site/`,
+Commit and push as you go so the work never lives on one machine only.
+Merging and tagging are the owner's call. Another session works in `site/`,
 `downloads/` and one pointer line in this `CLAUDE.md`; tell it (or the owner) before
 tagging or pushing `main`. Do not edit `site/`, `downloads/`, `vitest.config.ts` or CI.
 
