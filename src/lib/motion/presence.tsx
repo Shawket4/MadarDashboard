@@ -11,9 +11,8 @@ import {
   type RefObject,
 } from "react";
 
-import { getGsap, type Gsap } from "./gsap";
-import { prefersReducedMotion } from "./media";
-import { reduce, rise, type Recipe } from "./recipes";
+import { enter, leave } from "./engine";
+import { rise, type Recipe } from "./recipes";
 
 import { useIsoLayoutEffect, useLatest } from "./latest";
 
@@ -24,8 +23,8 @@ export type PresencePart = [RefObject<HTMLElement | null>, Recipe];
  * Keep something mounted while it animates out, the job AnimatePresence did.
  * Returns whether to render it. `show` turning false plays every part's exit
  * together and unmounts when they finish; turning true again mid-exit
- * reverses from wherever it got to. Without GSAP (not loaded yet) it mounts
- * and unmounts at once.
+ * reverses from wherever it got to. Before GSAP has loaded it still plays
+ * (engine.ts: inline pre-state, then GSAP or the Web Animations API).
  *
  * `initial: false` skips the entrance for whatever is shown on the first render.
  */
@@ -38,43 +37,37 @@ export function usePresence(show: boolean, parts: PresencePart[], { initial = tr
 
   useIsoLayoutEffect(() => {
     if (!mounted) return;
-    const gsap = getGsap();
-    const els = partsRef.current.map(([ref, recipe]) => [ref.current, prefersReducedMotion() ? reduce(recipe) : recipe] as const);
-    const live = els.filter(([el]) => el) as [HTMLElement, Recipe][];
+    const live = partsRef.current.filter(([ref]) => ref.current).map(([ref, r]) => [ref.current!, r] as const);
 
     if (show) {
       if (phase.current === "in") return;
-      const from = phase.current;
       phase.current = "in";
-      if (!gsap || !live.length) return;
-      const tl = gsap.timeline();
-      for (const [el, r] of live) {
-        tl.add(from === "mid" ? gsap.to(el, { ...r.to, clearProps: "opacity,transform" }) : gsap.fromTo(el, r.from, { ...r.to, clearProps: "opacity,transform" }), 0);
-      }
+      // Plays before GSAP has loaded too (engine.ts); a reopen mid-exit
+      // carries on from where the exit got to.
+      const runs = live.map(([el, r]) => enter([el], r));
       return () => {
-        if (tl.progress() < 1) phase.current = "mid";
-        tl.kill();
+        if (runs.some((run) => !run.finished())) phase.current = "mid";
+        runs.forEach((run) => run());
       };
     }
 
-    if (!gsap || !live.length) {
+    if (!live.length) {
       phase.current = "out";
       setMounted(false);
       return;
     }
-    const tl = gsap.timeline({
-      onComplete: () => {
+    for (const [el] of live) el.style.pointerEvents = "none";
+    let left = live.length;
+    const runs = live.map(([el, r]) =>
+      leave([el], r, () => {
+        if (--left > 0) return;
         phase.current = "out";
         setMounted(false);
-      },
-    });
-    for (const [el, r] of live) {
-      el.style.pointerEvents = "none";
-      tl.add(gsap.to(el, r.exit), 0);
-    }
+      }),
+    );
     return () => {
-      if (tl.progress() < 1) phase.current = "mid";
-      tl.kill();
+      if (runs.some((run) => !run.finished())) phase.current = "mid";
+      runs.forEach((run) => run());
       for (const [el] of live) el.style.pointerEvents = "";
     };
   }, [show, mounted, partsRef]);
@@ -147,22 +140,19 @@ export function SwapPresence({
 
   useIsoLayoutEffect(() => {
     const el = ref.current;
-    const gsap = getGsap();
-    const r = prefersReducedMotion() ? reduce(recipe) : recipe;
     if (!leaving) {
       if (entered.current === shown.key) return;
       entered.current = shown.key;
-      if (!el || !gsap) return;
-      const t = gsap.fromTo(el, r.from, { ...r.to, clearProps: "opacity,transform" });
+      if (!el) return;
+      const run = enter([el], recipe);
       return () => {
-        if (t.progress() < 1) entered.current = undefined;
-        t.kill();
+        if (!run.finished()) entered.current = undefined;
+        run();
       };
     }
     const swap = () => setShown({ key: swapKey, node: latest.current });
-    if (!el || !gsap) return swap();
-    const t = gsap.to(el, { ...r.exit, onComplete: swap });
-    return () => void t.kill();
+    if (!el) return swap();
+    return leave([el], recipe, swap);
   }, [shown.key, swapKey, latest]);
 
   return (
@@ -218,10 +208,7 @@ export function useEnter(ref: RefObject<HTMLElement | null>, recipe: () => Recip
   const recipeRef = useLatest(recipe);
   useIsoLayoutEffect(() => {
     const el = ref.current;
-    const gsap: Gsap | null = getGsap();
-    if (!el || !gsap) return;
-    const r = prefersReducedMotion() ? reduce(recipeRef.current()) : recipeRef.current();
-    const t = gsap.fromTo(el, r.from, { ...r.to, clearProps: "opacity,transform" });
-    return () => void t.progress(1).kill();
+    if (!el) return;
+    return enter([el], recipeRef.current());
   }, [ref, recipeRef]);
 }

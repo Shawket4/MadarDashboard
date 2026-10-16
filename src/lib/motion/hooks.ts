@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type DependencyList, type RefObject } from "react";
 
+import { enter, markArrived, mayEnter } from "./engine";
 import { getFlip, getGsap, loadFlip, loadGsap, type Gsap, type Timeline } from "./gsap";
 import { inViewport, prefersReducedMotion } from "./media";
-import { reduce, rise, type Recipe } from "./recipes";
+import { rise, type Recipe } from "./recipes";
 import { DURATION, EASE_NAME, sec, staggerFor, STAGGER, type Register } from "./tokens";
 
 import { useIsoLayoutEffect, useLatest } from "./latest";
@@ -48,114 +49,6 @@ export function useGsap(
   }, deps);
 }
 
-/*
- * No ghost first frames. An entrance hides its targets (the recipe's `from`)
- * before the browser paints them, in a layout effect, so the first frame is
- * the clean pre-state. It must never hide something already painted at rest:
- * content shown while GSAP was still loading, skeleton cards a `when` turns
- * into figures, or content React hid and re-showed (a Suspense boundary
- * re-suspending re-runs layout effects). That is the faint flash of content
- * that vanishes and then animates in. So once an element has been on screen
- * for a frame it is marked, and entrances skip marked elements unless their
- * `replayKey` changed (new content in the same commit, never painted).
- */
-const painted = new WeakSet<Element>();
-
-/** Mark `els` as painted once the frame that shows them has been drawn. */
-function markPainted(els: Element[]) {
-  if (!els.length || typeof requestAnimationFrame === "undefined") return;
-  // Two frames: the first callback runs before its paint. StrictMode's double
-  // run is synchronous, so it never sees its own mark.
-  requestAnimationFrame(() =>
-    requestAnimationFrame(() => {
-      // Waiting off screen for a scroll reveal, or still arriving, is not at rest.
-      const gsap = getGsap();
-      for (const el of els) {
-        if ((el instanceof HTMLElement && "motion" in el.dataset) || holding.has(el) || gsap?.isTweening(el)) continue;
-        painted.add(el);
-      }
-    }),
-  );
-}
-
-/** Whether an entrance may hide `el`: never painted, or its content was just replaced. */
-export function mayEnter(el: Element, replayed: boolean) {
-  return replayed || !painted.has(el);
-}
-
-/*
- * Data that lands before GSAP has loaded is still new content: it is hidden
- * before its first paint with plain inline styles (the recipe's `from`), GSAP
- * is fetched at once, and the entrance plays when it arrives. If it has not
- * arrived within ARRIVAL_PATIENCE_MS, the content simply shows: nothing stays
- * hidden waiting on the library. Only for data landing (a `when` turning
- * true, a skeleton swapped out), never for a page's first render.
- */
-export const ARRIVAL_PATIENCE_MS = 1200;
-const holding = new WeakSet<Element>();
-
-export function holdForGsap(els: HTMLElement[], recipe: Recipe, play: (gsap: Gsap) => gsap.core.Tween | void) {
-  const from = recipe.from as Record<string, number | undefined>;
-  const parts = [
-    from.x ? `translateX(${from.x}px)` : "",
-    from.y ? `translateY(${from.y}px)` : "",
-    from.scale !== undefined ? `scale(${from.scale})` : "",
-  ].filter(Boolean);
-  for (const el of els) {
-    holding.add(el);
-    el.style.opacity = String(from.opacity ?? 0);
-    if (parts.length) el.style.transform = parts.join(" ");
-  }
-  let state: "waiting" | "playing" | "done" = "waiting";
-  let tween: gsap.core.Tween | void;
-  const release = () => {
-    for (const el of els) {
-      holding.delete(el);
-      el.style.removeProperty("opacity");
-      el.style.removeProperty("transform");
-    }
-  };
-  const timer = setTimeout(() => {
-    if (state !== "waiting") return;
-    state = "done";
-    release();
-  }, ARRIVAL_PATIENCE_MS);
-  loadGsap().then(
-    (gsap) => {
-      if (state !== "waiting") return;
-      clearTimeout(timer);
-      state = "playing";
-      for (const el of els) holding.delete(el);
-      tween = play(gsap);
-    },
-    () => {
-      if (state !== "waiting") return;
-      clearTimeout(timer);
-      state = "done";
-      release();
-    },
-  );
-  return () => {
-    clearTimeout(timer);
-    if (state === "playing" && tween) {
-      holdInterrupted(getGsap()!, tween);
-      tween.kill();
-    }
-    state = "done";
-    release();
-  };
-}
-
-/** Whether `when` turned true since the last run: data landed. */
-function useLanded(when: boolean) {
-  const last = useRef(when);
-  return () => {
-    const landed = when && !last.current;
-    last.current = when;
-    return landed;
-  };
-}
-
 /**
  * The delay that puts an element arriving on its own (a SkeletonSwap whose
  * data landed) in step with the Stagger it sits in, by its item's index.
@@ -179,53 +72,6 @@ function useReplayed(replayKey: unknown) {
   };
 }
 
-/*
- * An entrance cut off by its effect's cleanup (React StrictMode's second run,
- * which in development comes a frame or two after the first; a Suspense
- * boundary hiding and re-showing its content) is reverted to rest and run
- * again. The re-run carries on from where the first one was, never from the
- * start, so nothing fades in, blinks and fades in again.
- */
-const interrupted = new WeakMap<Element, Record<string, unknown>>();
-
-/**
- * Note where each still-arriving target of an entrance is, for a re-run to
- * carry on from. Call it from the effect's cleanup, before GSAP reverts.
- */
-export function holdInterrupted(gsap: Gsap, tween: gsap.core.Tween) {
-  const keys = (tween.data as { enterKeys?: string[] } | undefined)?.enterKeys;
-  if (!keys || tween.progress() >= 1) return;
-  for (const el of tween.targets() as Element[]) {
-    const at: Record<string, unknown> = {};
-    for (const k of keys) at[k] = gsap.getProperty(el, k);
-    interrupted.set(el, at);
-  }
-}
-
-/** Tween `targets` from a recipe's resting state into place, then hand styling back to CSS. */
-export function playIn(gsap: Gsap, targets: gsap.TweenTarget, recipe: Recipe, extra: gsap.TweenVars = {}) {
-  const r = prefersReducedMotion() ? reduce(recipe) : recipe;
-  const keys = Object.keys(r.from);
-  // Each target starts from the recipe's `from`, or from where an interrupted
-  // run of the same entrance left it.
-  const from: gsap.TweenVars = {};
-  for (const k of keys) {
-    from[k] = (_i: number, el: Element) => (interrupted.get(el)?.[k] ?? r.from[k]) as gsap.TweenValue;
-  }
-  const els = gsap.utils.toArray<Element>(targets);
-  const tween = gsap.fromTo(els, from, {
-    ...r.to,
-    ...extra,
-    clearProps: "opacity,transform",
-    data: { enterKeys: keys },
-    onComplete: () => {
-      for (const el of els) painted.add(el);
-    },
-  });
-  for (const el of els) interrupted.delete(el);
-  return tween;
-}
-
 export interface RevealOptions {
   register?: Register;
   /** Overrides the register's rise. */
@@ -243,43 +89,48 @@ export interface RevealOptions {
   scroll?: boolean;
 }
 
-/** Rise an element into place once, on mount or when `when` turns true. */
+/**
+ * Rise an element into place on mount, when `when` turns true, or when
+ * `replayKey` changes. It plays even before GSAP has loaded (see engine.ts);
+ * only content re-shown as it was (a Suspense re-show) stays still.
+ */
 export function useReveal(ref: RefObject<HTMLElement | null>, opts: RevealOptions = {}) {
   const { register = "product", recipe, delay = 0, when = true, replayKey, scroll = false } = opts;
   const replayed = useReplayed(replayKey);
-  useGsap(
-    (gsap, { reduced }) => {
-      const el = ref.current;
-      const fresh = replayed();
-      if (!el || !when || reduced || !mayEnter(el, fresh)) return;
-      const r = recipe ?? rise(register);
-      if (inViewport(el)) {
-        const t = playIn(gsap, el, r, { delay });
-        return () => holdInterrupted(gsap, t);
-      }
-      if (!scroll || typeof IntersectionObserver === "undefined") return;
-      gsap.set(el, r.from);
-      el.dataset.motion = "";
-      const io = new IntersectionObserver(
-        ([entry]) => {
-          if (!entry.isIntersecting) return;
-          io.disconnect();
-          delete el.dataset.motion;
-          playIn(gsap, el, r);
-        },
-        { rootMargin: "0px 0px -8% 0px" },
-      );
-      io.observe(el);
-      return () => {
+  useIsoLayoutEffect(() => {
+    const el = ref.current;
+    const fresh = replayed();
+    if (!el) return;
+    // Waiting for data (a skeleton shown at rest), or reduced motion: still.
+    if (!when || prefersReducedMotion()) return void markArrived([el]);
+    if (!mayEnter(el, fresh)) return;
+    const r = recipe ?? rise(register);
+    if (inViewport(el)) return enter([el], r, { delay });
+    if (!scroll || typeof IntersectionObserver === "undefined") {
+      markArrived([el]);
+      return;
+    }
+    // Below the fold on a brand page: hidden until scrolled into view.
+    let playing: (() => void) | undefined;
+    const pre = enter([el], r, { delay: 1e6 });
+    el.dataset.motion = "";
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
         io.disconnect();
         delete el.dataset.motion;
-      };
-    },
-    [when, replayKey],
-  );
-  // With or without GSAP, whatever this shows is on screen from the next frame.
-  useIsoLayoutEffect(() => {
-    if (ref.current) markPainted([ref.current]);
+        pre();
+        playing = enter([el], r);
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      delete el.dataset.motion;
+      pre();
+      playing?.();
+    };
   }, [when, replayKey]);
 }
 
@@ -302,38 +153,25 @@ export interface StaggerOptions {
 export function useStagger(ref: RefObject<HTMLElement | null>, opts: StaggerOptions = {}) {
   const { register = "product", recipe, selector = ":scope > *", when = true, replayKey, delay = 0 } = opts;
   const replayed = useReplayed(replayKey);
-  const landed = useLanded(when);
-  // Data landed before GSAP: hide the new items before paint, play on arrival.
   useIsoLayoutEffect(() => {
     const el = ref.current;
-    if (!landed() || getGsap() || !el || prefersReducedMotion()) return;
-    const items = Array.from(el.querySelectorAll<HTMLElement>(selector)).filter((i) => inViewport(i) && mayEnter(i, false));
-    if (!items.length) return;
-    const r = recipe ?? rise(register);
-    const each = staggerFor(items.length, register);
-    return holdForGsap(items, r, (gsap) =>
-      playIn(gsap, items, r, { delay, stagger: (i: number) => Math.min(i, STAGGER.maxItems - 1) * each }),
-    );
-  }, [when, replayKey]);
-  useGsap(
-    (gsap, { reduced }) => {
-      const el = ref.current;
-      const fresh = replayed();
-      if (!el || !when || reduced) return;
-      const items = Array.from(el.querySelectorAll<HTMLElement>(selector)).filter((i) => inViewport(i) && mayEnter(i, fresh));
-      if (!items.length) return;
-      const each = staggerFor(items.length, register);
-      const t = playIn(gsap, items, recipe ?? rise(register), {
-        delay,
-        stagger: (i: number) => Math.min(i, STAGGER.maxItems - 1) * each,
-      });
-      return () => holdInterrupted(gsap, t);
-    },
-    [when, replayKey],
-  );
-  useIsoLayoutEffect(() => {
-    const el = ref.current;
-    if (el) markPainted(Array.from(el.querySelectorAll(selector)));
+    const fresh = replayed();
+    if (!el) return;
+    const all = Array.from(el.querySelectorAll<HTMLElement>(selector));
+    // Waiting for data (skeletons), or reduced motion: shown at rest.
+    if (!when || prefersReducedMotion()) {
+      markArrived(all);
+      return;
+    }
+    const items = all.filter((i) => mayEnter(i, fresh));
+    const onScreen = items.filter(inViewport);
+    markArrived(items.filter((i) => !onScreen.includes(i)));
+    if (!onScreen.length) return;
+    const each = staggerFor(onScreen.length, register);
+    return enter(onScreen, recipe ?? rise(register), {
+      delay,
+      stagger: (i: number) => Math.min(i, STAGGER.maxItems - 1) * each,
+    });
   }, [when, replayKey]);
 }
 
@@ -349,7 +187,8 @@ export interface CountUpOptions {
  * Count a figure up into place. The element's only child must be the text
  * React renders for `format(value)`; the tween rewrites that same text node,
  * so React and GSAP never disagree about which node holds the number. Starts
- * only on screen; reduced motion and a not-yet-loaded GSAP show the figure.
+ * only on screen; reduced motion shows the figure. Counts before GSAP has
+ * loaded too.
  */
 export function useCountUp(
   ref: RefObject<HTMLElement | null>,
@@ -367,7 +206,7 @@ export function useCountUp(
       s.revealed = true;
       s.current = value;
     };
-    if (!el || !gsap || prefersReducedMotion()) return settle();
+    if (!el || prefersReducedMotion()) return settle();
     let from: number;
     if (!s.revealed) {
       if (!s.started && !inViewport(el)) return settle();
@@ -382,16 +221,15 @@ export function useCountUp(
       if (node && node.nodeType === Node.TEXT_NODE) node.nodeValue = fmt.current(state.v);
     };
     paint();
-    const tween = gsap.to(state, {
-      v: value,
-      duration: sec(duration),
-      ease: EASE_NAME.out,
-      onUpdate: () => {
-        s.current = state.v;
-        paint();
-      },
-      onComplete: settle,
-    });
+    const step = () => {
+      s.current = state.v;
+      paint();
+    };
+    // GSAP if it is there; before it lands, the same count on animation frames
+    // (ease-out-quint, the shape of the `out` token), so a figure never just appears.
+    const tween = gsap
+      ? gsap.to(state, { v: value, duration: sec(duration), ease: EASE_NAME.out, onUpdate: step, onComplete: settle })
+      : frameTween(state, from, value, duration, step, settle);
     return () => {
       tween.kill();
       if (tween.progress() >= 1) return;
@@ -401,6 +239,20 @@ export function useCountUp(
       if (node && node.nodeType === Node.TEXT_NODE) node.nodeValue = fmt.current(value);
     };
   }, [value]);
+}
+
+/** A minimal tween on animation frames, for a count-up before GSAP has loaded. */
+function frameTween(state: { v: number }, from: number, to: number, ms: number, onUpdate: () => void, onComplete: () => void) {
+  const start = performance.now();
+  let p = 0;
+  let id = requestAnimationFrame(function tick(now) {
+    p = Math.min(1, (now - start) / ms);
+    state.v = from + (to - from) * (1 - (1 - p) ** 5);
+    onUpdate();
+    if (p < 1) id = requestAnimationFrame(tick);
+    else onComplete();
+  });
+  return { kill: () => cancelAnimationFrame(id), progress: () => p };
 }
 
 /**

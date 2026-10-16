@@ -52,6 +52,8 @@ export function Page({
   width?: PageWidth;
 }) {
   const embedded = useContext(EmbeddedContext);
+  // Every route change brings the page in, even where the same Page stays mounted.
+  const { pathname } = useLocation();
   if (embedded) {
     return (
       <div data-page-width={width} className={cn("w-full space-y-6", width !== "full" && PAGE_WIDTH_CLASS[width], className)}>
@@ -62,7 +64,8 @@ export function Page({
   return (
     <PageWidthContext.Provider value={width}>
       <Reveal
-        recipe={recipes.fade()}
+        recipe={recipes.rise()}
+        replayKey={pathname}
         data-page-width={width}
         className={cn("w-full space-y-6 px-4 pt-3 pb-8 sm:px-6 lg:px-8 lg:pt-4", PAGE_WIDTH_CLASS[width], className)}
       >

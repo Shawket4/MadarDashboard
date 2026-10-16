@@ -142,11 +142,14 @@ touch them, and never copy them.
 
 ## Motion
 Every animation goes through **`src/lib/motion`** (`import … from "@/lib/motion"`).
-GSAP is private to that folder: it loads lazily in its own chunk after the first paint
-(`bootMotion()` in each bundle's `main.tsx`), and until it lands every primitive shows
-its final state, still. Content is never hidden while waiting for an animation, with one
-bounded exception: data that lands before GSAP is hidden before paint and waits for it
-at most 1.2 s (`ARRIVAL_PATIENCE_MS`), then simply shows.
+GSAP is private to that folder. It is its own chunk, modulepreloaded from the HTML
+(`vite/preload-motion.ts`) and imported at boot (`bootMotion()` in each bundle's
+`main.tsx`), never on an idle callback. **An entrance is never skipped because GSAP is
+not there yet** (`engine.ts`): its targets are hidden before their first paint with
+plain inline styles, it waits for GSAP at most `ENTER_PATIENCE_MS` (300 ms), and then
+plays the same recipe with the Web Animations API (transform and opacity, the token
+eases as `cubic-bezier`). Only if neither is available does it show the final state.
+Exits never wait: GSAP, else the Web Animations API, else at once.
 
 **Tokens** (`tokens.ts`, mirrored as CSS variables in `motion.css`; `tokens.test.ts`
 fails if the two drift):
@@ -195,7 +198,7 @@ named enter/exit shapes; hooks take a recipe, nothing writes raw tween values.
   content while it leaves.
 - Menus, popovers, selects and tooltips enter from their side and close at once.
 - Tab panels rise in, and `PageTabsList` slides its underline.
-- `Page` fades in on every route.
+- `Page` rises in on every route change.
 - `Skeleton` shimmers in the reading direction.
 - `Button` presses.
 
@@ -214,20 +217,19 @@ bundles; `toast()` is called from anywhere), Recharts series with `useChartMotio
   layout change by design. Never `transition-all`; name the properties.
 - **No ghost first frames.** The first painted frame of anything that animates is its
   clean pre-state or its final state, never content that shows, vanishes and then
-  animates in. Entrances hide their targets in a layout effect (before paint), skip
-  whatever has already been on screen at rest (shown while GSAP was loading, content a
-  Suspense boundary re-shows) unless `replayKey` changed, and an entrance cut off by its
-  cleanup (StrictMode's second run, a Suspense hide) carries on from where it was. Shake
-  and pop fire once per signal.
+  animates in. Entrances hide their targets in a layout effect (before paint). The only
+  content that does not animate is content genuinely re-shown: an element whose
+  entrance already finished, run again with no new content (a Suspense re-show), and
+  skeletons waiting for data. Every route (the `Page` rises on each pathname), first
+  load, tab panel, dialog, sheet, list arrival and data landing animates. An entrance
+  cut off by its cleanup (StrictMode's second run, a Suspense hide) carries on from
+  where it was. Shake and pop fire once per signal.
 - **Data landing is new content.** `SkeletonSwap` (every `StatCard` uses it) renders the
   content as a new element, hidden in the same commit that swaps the skeleton out, fades
   the skeleton out first (120 ms) and only then rises the content, in step with its
-  `Stagger`: never a blink, never a figure showing through a grey bar. If
-  GSAP has not loaded, the pre-state is set with plain inline styles, GSAP is fetched at
-  once, and after `ARRIVAL_PATIENCE_MS` the content just shows. A `Stagger`'s `when`
-  landing does the same. Reduced motion: final state at once.
-  `scripts/motion-harness/ghost-probe.mjs` finds ghosts in cold loads and navigations
-  at 4× throttle.
+  `Stagger`: never a blink, never a figure showing through a grey bar. Reduced motion:
+  final state at once. `scripts/motion-harness/play-probe.mjs` checks both ways at 4×
+  throttle, phone and desktop: every scenario's main content animates, with no ghosts.
 - **Nothing animates off screen.** Entrances skip what is out of view (brand pages may
   `scroll`-reveal), and loops pause off screen.
 - **RTL.**

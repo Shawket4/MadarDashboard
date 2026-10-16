@@ -4,9 +4,9 @@ import { EASE, EASE_NAME, REGISTER, sec, type EaseName } from "./tokens";
 
 /**
  * GSAP, loaded lazily. Nothing outside src/lib/motion imports it (lint
- * enforces that): the core is fetched in its own chunk after the first paint,
- * and until it lands every motion primitive renders its final state, still.
- * Content is never hidden while waiting for an animation library.
+ * enforces that): the core is fetched in its own chunk at boot (modulepreloaded),
+ * and entrances that run before it lands still play: they wait for it,
+ * hidden, at most ENTER_PATIENCE_MS, then use the Web Animations API (engine.ts).
  */
 export type Gsap = typeof GsapCore;
 export type Tween = GSAPTween;
@@ -39,18 +39,16 @@ export function loadGsap(): Promise<Gsap> {
 }
 
 /**
- * Fetch GSAP once the first paint is done, so the first animation finds it
- * ready. Called once per bundle, at boot. A failed fetch (offline, a blocked
- * chunk) leaves the app still and working; the next call tries again.
+ * Fetch GSAP now, at boot, in parallel with the app (its chunk is also
+ * modulepreloaded from the HTML, vite/preload-motion.ts). Entrances that run
+ * before it lands still play (engine.ts). A failed fetch leaves the Web
+ * Animations fallback; the next call tries again.
  */
 export function preloadGsap(): void {
   if (typeof window === "undefined") return;
-  const go = () =>
-    void loadGsap().catch(() => {
-      pending = null;
-    });
-  if ("requestIdleCallback" in window) window.requestIdleCallback(go, { timeout: 1500 });
-  else setTimeout(go, 200);
+  void loadGsap().catch(() => {
+    pending = null;
+  });
 }
 
 export type FlipPlugin = typeof import("gsap/Flip").Flip;

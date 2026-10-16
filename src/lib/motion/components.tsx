@@ -1,13 +1,9 @@
-import { createContext, useContext, useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { createContext, useContext, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { Slot } from "radix-ui";
 
-import { getGsap, loadGsap } from "./gsap";
+import { enter, leave } from "./engine";
 import {
-  ARRIVAL_PATIENCE_MS,
   groupDelay,
-  holdForGsap,
-  holdInterrupted,
-  playIn,
   useCountUp,
   useReveal,
   useStagger,
@@ -17,7 +13,7 @@ import {
 } from "./hooks";
 import { useIsoLayoutEffect } from "./latest";
 import { inViewport, prefersReducedMotion, useReducedMotion } from "./media";
-import { fade, rise } from "./recipes";
+import { fade, rise, type Recipe } from "./recipes";
 import { DURATION, EASE_NAME, sec } from "./tokens";
 
 type DivProps = Omit<ComponentProps<"div">, "ref">;
@@ -179,27 +175,15 @@ export function SkeletonSwap({
   const content = useRef<HTMLDivElement>(null);
   const ghost = useRef<HTMLDivElement>(null);
 
-  // The content rises in, before its first paint.
+  // Sequenced, never layered: the skeleton fades out first (SKELETON_OUT) and
+  // the content rises only then, in step with its Stagger, so no figure shows
+  // through a grey bar. The content is hidden before its first paint.
   useIsoLayoutEffect(() => {
     const el = content.current;
     if (!arrivals || !el || prefersReducedMotion() || !inViewport(el)) return;
-    const r = rise();
-    // Sequenced, never layered: the content starts only as its skeleton has
-    // faded out (SKELETON_OUT), so no figure shows through a grey bar.
-    const play = (gsap: NonNullable<ReturnType<typeof getGsap>>) =>
-      playIn(gsap, el, r, { delay: groupDelay(el) + SKELETON_OUT });
-    const gsap = getGsap();
-    if (!gsap) return holdForGsap([el], r, play);
-    const t = play(gsap);
-    return () => {
-      holdInterrupted(gsap, t);
-      t.kill();
-      gsap.set(el, { clearProps: "opacity,transform" });
-    };
+    return enter([el], rise(), { delay: groupDelay(el) + SKELETON_OUT });
   }, [arrivals]);
 
-  // The skeleton fades out over it, once GSAP is there to fade it. Off screen
-  // it just goes (and GSAP is not fetched for it).
   useIsoLayoutEffect(() => {
     const el = ghost.current;
     if (!leaving || !el) return;
@@ -207,30 +191,12 @@ export function SkeletonSwap({
       setLeaving(false);
       return;
     }
-    let tween: ReturnType<NonNullable<ReturnType<typeof getGsap>>["to"]> | undefined;
-    let live = true;
-    const fadeOut = (gsap: NonNullable<ReturnType<typeof getGsap>>) => {
-      if (!live) return;
-      tween = gsap.to(el, {
-        opacity: 0,
-        duration: SKELETON_OUT,
-        delay: groupDelay(el),
-        ease: EASE_NAME.in,
-        onComplete: () => setLeaving(false),
-      });
+    const out: Recipe = {
+      from: {},
+      to: {},
+      exit: { opacity: 0, duration: SKELETON_OUT, delay: groupDelay(el), ease: EASE_NAME.in },
     };
-    const gsap = getGsap();
-    if (gsap) fadeOut(gsap);
-    else loadGsap().then(fadeOut, () => setLeaving(false));
-    return () => {
-      live = false;
-      tween?.kill();
-    };
-  }, [leaving]);
-  useEffect(() => {
-    if (!leaving) return;
-    const id = setTimeout(() => setLeaving(false), ARRIVAL_PATIENCE_MS + DURATION.slow);
-    return () => clearTimeout(id);
+    return leave([el], out, () => setLeaving(false));
   }, [leaving]);
 
   return (

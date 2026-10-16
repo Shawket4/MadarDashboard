@@ -55,7 +55,7 @@ import { listScrollKey } from "@/data/scope/list-search";
 import { routeTree } from "./routeTree.gen";
 
 initDeviceTheme();
-// GSAP after first paint + the delegated press feedback (src/lib/motion).
+// GSAP fetched now, in parallel with the app + the delegated press feedback (src/lib/motion).
 bootMotion();
 
 const router = createRouter({
