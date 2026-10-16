@@ -7,8 +7,16 @@ import { useCountUp } from "./hooks";
 import { Presence, SwapPresence } from "./presence";
 import { fade } from "./recipes";
 
+// A browser has the Web Animations API; jsdom does not, and without it the
+// engine leaves at once. Stand one in so exits run as they do in a browser.
+Element.prototype.animate ??= function () {
+  const a = { onfinish: null as null | (() => void), cancel() {} };
+  setTimeout(() => a.onfinish?.(), 10);
+  return a as unknown as Animation;
+};
+
 describe("motion before GSAP has loaded", () => {
-  it("shows and hides at once, never waiting on the library", () => {
+  it("shows and hides without waiting on the library", async () => {
     expect(getGsap()).toBeNull();
     const { rerender } = render(
       <Presence show>
@@ -21,7 +29,8 @@ describe("motion before GSAP has loaded", () => {
         <p>hello</p>
       </Presence>,
     );
-    expect(screen.queryByText("hello")).toBeNull();
+    // The exit runs on the Web Animations API, never waiting for GSAP.
+    await waitFor(() => expect(screen.queryByText("hello")).toBeNull());
   });
 });
 
