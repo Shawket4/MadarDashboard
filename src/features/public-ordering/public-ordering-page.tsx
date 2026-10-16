@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { AnimatedNumber, Reveal, recipes, SwapPresence } from "@/lib/motion";
 
 import { isFlatChannel, type CartLine, type Channel, type Step } from "./types";
+import { locationStepRequired } from "./location-rules";
 import { stepSwap, useStepDirection } from "@/features/public-shell/motion";
 import { fmtMoneyFigure, STEP_ORDER } from "./ordering-motion";
 import { CartCount } from "./components/cart-count";
@@ -85,6 +86,15 @@ interface PublicOrderingPageProps {
 
 /** What goes on the wire: canonical digits. Callers validate first; "" never matches a guest. */
 const wirePhone = (raw: string): string => canonicalPhone(raw) ?? "";
+
+/** The form fields a saved address fills; what it leaves empty stays as it was. */
+const savedAddressFields = (loc: GuestSavedLocation, f: CheckoutForm): Partial<CheckoutForm> => ({
+  address_line: loc.address_line ?? f.address_line,
+  place_name: loc.place_name ?? f.place_name,
+  floor: loc.floor ?? f.floor,
+  unit_number: loc.unit_number ?? f.unit_number,
+  landmark: loc.landmark ?? f.landmark,
+});
 
 export function PublicOrderingPage({
   orgId,
@@ -340,37 +350,39 @@ export function PublicOrderingPage({
   const addons = menu?.addons ?? [];
 
   // ── Derive the active step ────────────────────────────────────────────────
-  // Both channels now capture a location: outside = delivery address pin (zones);
-  // in-mall = device-GPS confirm you're at the branch (anti-spam).
-  // Flat channels (umbrella / pickup) capture no location. Outside = delivery pin
-  // (zones); in-mall = device-GPS "confirm you're at the branch" (anti-spam).
+  // `needsLocation`: the channel delivers to a place (outside = an address and
+  // its pin; in-mall = shop/floor/unit). `locationRequired`: the location step
+  // runs: outside always (the pin prices the order), in-mall only where the
+  // branch's "Require GPS location" toggle is on (device GPS, "confirm you're
+  // at the branch"). With it off the step is skipped and nothing is asked.
+  // Flat channels (umbrella / pickup) need neither.
   const needsLocation = selectedChannel != null && !isFlatChannel(selectedChannel);
   const isOutside = selectedChannel === "outside";
-  const locationRequired =
-    needsLocation && (isOutside || (branchObj?.in_mall_require_location ?? true));
+  const locationRequired = locationStepRequired(selectedChannel, branchObj);
   const step: Step = (() => {
     if (!branchId) return "branch";
     // Browse-only jumps straight to the menu — no channel/phone/location gates.
     if (browseOnly) return "menu";
     if (!selectedChannel) return "channel";
     if (!resolvedPhone) return "phone";
-    if (needsLocation && !locationDone) return "location";
+    if (locationRequired && !locationDone) return "location";
     if (enteredCheckout) return "checkout";
     return "menu";
   })();
   // Which way the flow moved, so the swap travels forward or back.
   const stepDir = useStepDirection(step, STEP_ORDER);
 
-  // Flat channels (umbrella / pickup) capture no location, so the location step
-  // never runs its quote. Fetch the flat per-branch fee directly (coords ignored
-  // server-side for these channels) so checkout can show it instead of a blank "—".
-  const flatChannelSelected = selectedChannel != null && isFlatChannel(selectedChannel);
+  // Flat channels (umbrella / pickup), and in-mall where the branch does not ask
+  // for a location, never run the location step's quote. Their fee is a flat
+  // per-branch fee, so fetch it directly (no coordinates needed for it) and
+  // checkout shows it instead of a blank "—".
+  const feeWithoutLocation = selectedChannel != null && !locationRequired;
   const { data: flatQuote } = useDeliveryQuote(
     branchId ?? "",
     { lat: 0, lng: 0, channel: selectedChannel ?? "in_mall" },
     {
       query: {
-        enabled: !!branchId && flatChannelSelected && !channelClosed,
+        enabled: !!branchId && feeWithoutLocation && !channelClosed,
         staleTime: 30_000,
         retry: false,
       },
@@ -406,11 +418,10 @@ export function PublicOrderingPage({
       // A delivery pin they have used before: straight to the menu.
       setPoint({ lat: cardAddress.lat!, lng: cardAddress.lng! });
       setLocationDone(true);
-    } else if (selectedChannel === "in_mall" && !branchObj.in_mall_require_location) {
-      // In-mall asks for the DEVICE's location (proof of being there), which a
-      // saved address cannot stand in for — skipped only where the branch does not ask.
-      setLocationDone(true);
     }
+    // In-mall asks for the DEVICE's location (proof of being there), which a
+    // saved address cannot stand in for: where the branch asks, the location
+    // step still runs; where it does not, there is no step to skip.
   }, [onLastBranch, branchObj, cardAddress, selectedChannel]);
 
   // The location step computes the quote; skipped, somebody else has to.
@@ -475,7 +486,7 @@ export function PublicOrderingPage({
 
   // The fee comes from the location-step quote for map channels (outside: zone
   // fee; in-mall: flat fee + haversine distance) or the flat quote above.
-  const activeQuote = flatChannelSelected ? flatQuote : mapQuote;
+  const activeQuote = feeWithoutLocation ? flatQuote : mapQuote;
   const deliveryFee: number | null = activeQuote?.status === "ok" ? (activeQuote.fee ?? 0) : null;
 
   // ── Mutations ─────────────────────────────────────────────────────────────
@@ -501,6 +512,12 @@ export function PublicOrderingPage({
   const handleSelectChannel = (c: Channel) => {
     setUrl({ branch: branchId ?? undefined, channel: c });
     setLocationDone(false);
+    // A point belongs to the channel it was taken for: an outside delivery pin
+    // (dropped anywhere on a map) must not confirm an in-mall "you're here".
+    if (c !== selectedChannel) {
+      setPoint(null);
+      setQuote(null);
+    }
   };
 
   // Switch branch inline (from the header / channel selector). A different branch
@@ -555,7 +572,7 @@ export function PublicOrderingPage({
         setUrl({ branch: branchId ?? undefined, channel: undefined, preview: undefined });
         return;
       }
-      if (needsLocation) setLocationDone(false);
+      if (locationRequired) setLocationDone(false);
       else setUrl({ branch: branchId ?? undefined, channel: undefined });
       return;
     }
@@ -662,15 +679,25 @@ export function PublicOrderingPage({
 
   // ── Apply a saved address to checkout form (all fields, not just lat/lng) ──
   const handleApplySavedAddress = useCallback((loc: GuestSavedLocation) => {
-    setForm((f) => ({
-      ...f,
-      address_line: loc.address_line ?? f.address_line,
-      place_name: loc.place_name ?? f.place_name,
-      floor: loc.floor ?? f.floor,
-      unit_number: loc.unit_number ?? f.unit_number,
-      landmark: loc.landmark ?? f.landmark,
-    }));
+    setForm((f) => ({ ...f, ...savedAddressFields(loc, f) }));
   }, []);
+
+  // In-mall with no location step: the step is where a returning customer's
+  // saved shop/floor/unit used to be filled in, so fill it here instead, once,
+  // from their latest in-mall address at this branch. Only the fields: nothing
+  // here is a location.
+  const savedFieldsApplied = useRef<string | null>(null);
+  useEffect(() => {
+    if (selectedChannel !== "in_mall" || locationRequired || !branchId) return;
+    if (savedFieldsApplied.current === branchId) return;
+    const latest = (locations as GuestSavedLocation[]).find(
+      (l) => l.channel === "in_mall" && l.branch_id === branchId,
+    );
+    if (!latest) return;
+    savedFieldsApplied.current = branchId;
+    // Never over what the customer (or an "Order now" card) already filled in.
+    setForm((f) => (f.place_name.trim() ? f : { ...f, ...savedAddressFields(latest, f) }));
+  }, [selectedChannel, locationRequired, branchId, locations]);
 
   // ── Place order (with device-bound OTP) ───────────────────────────────────
   const buildInput = (deviceToken: string): DeliveryOrderInput => ({
@@ -951,7 +978,7 @@ export function PublicOrderingPage({
     <>
       <StepShell
         step={step}
-        showLocationDot={needsLocation}
+        showLocationDot={locationRequired}
         title={headers.title}
         subtitle={headers.subtitle}
         onBack={
@@ -1072,7 +1099,7 @@ export function PublicOrderingPage({
                     : ""
                 }
                 onChange={() => {
-                  if (needsLocation) setLocationDone(false);
+                  if (locationRequired) setLocationDone(false);
                   else setUrl({ branch: branchId ?? undefined, channel: undefined });
                 }}
               />
