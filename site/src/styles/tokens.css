@@ -1,0 +1,46 @@
+/* Brand kit (Madar Design System/README.txt) + the deck's derived neutrals.
+   Contrast: Ink/Paper 15.94 · Teal deep on Paper 6.24 · Teal light on Ink 5.01 ·
+   muted #4B565E on Paper 6.73 · #9AA6AD on Ink 7.15. Slate is large text / UI only. */
+@theme {
+  --color-ink: #14181e;
+  --color-ink-2: #1b2128;
+  --color-ink-3: #232a32;
+  --color-paper: #eff3f4;
+  --color-surface: #f7f9fa;
+  --color-white: #ffffff;
+  --color-teal: #0d6273;
+  --color-teal-light: #2e94a6;
+  /* Teal light raised 0.018 in OKLCH lightness (same hue and chroma) for text on the
+     lifted Ink of an active row (~#23272d): 4.55:1 there, where Teal light is 4.21:1. */
+  --color-teal-light-raised: #359aac;
+  --color-tint: #cfe3e7;
+  --color-slate: #76828b;
+  --color-rule: #d3dce0;
+  --color-muted: #4b565e;
+  --color-muted-ink: #9aa6ad;
+  --color-bezel: #0b0e12;
+  --color-line-ink: rgb(239 243 244 / 0.14);
+  /* The crew posters' accents (decorative fills, always under Ink text: Ink on Coral
+     6.0:1, Ink on Sun 10.9:1). */
+  --color-coral: #f26b5b;
+  --color-sun: #f6c445;
+
+  --font-sans: "IBM Plex Sans Arabic", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-100% - var(--gap))); }
+  }
+  @keyframes marquee-vertical {
+    from { transform: translateY(0); }
+    to { transform: translateY(calc(-100% - var(--gap))); }
+  }
+}

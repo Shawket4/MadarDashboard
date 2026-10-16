@@ -1,0 +1,38 @@
+/* ---------- Phone menu: a full-screen Ink panel (Header.astro, ui.ts) ----------
+   One list in one size, hairlines between rows, every target at least 44 px. The current
+   page wears the logo's teal satellite in a gutter the labels share; Features opens onto
+   its areas, set out like the café's day. Quick in, quicker out. */
+dialog.menu-sheet { position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; overflow-y: auto; overscroll-behavior: contain; background: var(--color-ink); color: var(--color-paper); }
+dialog.menu-sheet::backdrop { background: transparent; }
+dialog.menu-sheet[open] { animation: menu-in .24s var(--ease-out-expo) both; }
+dialog.menu-sheet[data-closing] { animation: menu-out .16s var(--ease-in-out-quart) both; }
+@keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes menu-out { to { opacity: 0; transform: translateY(-6px); } }
+html:has(dialog[open]) { overflow: hidden; }
+.menu-panel { display: flex; flex-direction: column; min-height: 100dvh; padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+.menu-close, .menu-more { display: inline-grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; border-radius: 999px; -webkit-tap-highlight-color: transparent; transition: background-color .2s, color .2s; }
+.menu-close { border: 1px solid var(--color-line-ink); }
+.menu-more { color: var(--color-muted-ink); }
+@media (hover: hover) { :is(.menu-close, .menu-more):hover { background: color-mix(in oklab, var(--color-paper) 7%, transparent); color: var(--color-paper); } }
+.menu-more svg { transition: rotate .32s var(--ease-out-expo); }
+.menu-more[aria-expanded="true"] { color: var(--color-paper); }
+.menu-more[aria-expanded="true"] svg { rotate: 180deg; }
+.menu-item { border-bottom: 1px solid var(--color-line-ink); }
+.menu-row { display: flex; align-items: center; gap: .5rem; }
+.menu-link { flex: 1; display: flex; align-items: center; gap: .75rem; min-height: 3.5rem; font-size: 1.375rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.012em; -webkit-tap-highlight-color: transparent; transition: opacity .15s; }
+html[lang="ar"] .menu-link { font-size: 1.3rem; line-height: 1.5; letter-spacing: 0; }
+.menu-link::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 999px; }
+.menu-link[aria-current]::before { background: var(--color-teal-light); }
+:is(.menu-link, .menu-area, .menu-quiet):active { opacity: .6; }
+/* The areas: the row's height eases open (0fr to 1fr); shut, they are inert (no focus, no
+   screen reader). */
+.menu-areas { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .32s var(--ease-out-expo); }
+.menu-areas:not([inert]) { grid-template-rows: 1fr; }
+.menu-areas-inner { min-height: 0; overflow: hidden; }
+.menu-group { display: grid; grid-template-columns: 6.25rem 1fr; column-gap: 1rem; padding-inline-start: 1.25rem; }
+.menu-group:last-child { padding-bottom: 1rem; }
+.menu-group-label { padding-top: .8rem; font-size: .8125rem; line-height: 1.35; color: var(--color-muted-ink); }
+html[lang="ar"] .menu-group-label { font-size: .875rem; padding-top: .7rem; }
+.menu-area { display: flex; align-items: center; min-height: 2.75rem; font-weight: 500; line-height: 1.3; color: color-mix(in oklab, var(--color-paper) 88%, var(--color-ink)); transition: color .15s; }
+@media (hover: hover) { :is(.menu-area, .menu-quiet):hover { color: var(--color-paper); } }
+.menu-quiet { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; padding-inline: .25rem; font-weight: 500; color: var(--color-muted-ink); transition: color .15s; }
