@@ -65,7 +65,8 @@ export const settled = (el: Element) => {
   // Hidden from the first paint, waiting for the engine (scripts/waits.ts): it plays,
   // wherever it is, unless the late fallback has already shown it or it is a # address's
   // section (which entered in CSS).
-  if (root.classList.contains("reveal-wait") && el.closest(WAITS) && !el.closest("[data-shown], :target")) return false;
+  // (Not one this width doesn't show, display: none: it is left as it is, as before.)
+  if (root.classList.contains("reveal-wait") && el.getClientRects().length && el.closest(WAITS) && !el.closest("[data-shown], :target")) return false;
   return el.getBoundingClientRect().top < window.innerHeight;
 };
 
