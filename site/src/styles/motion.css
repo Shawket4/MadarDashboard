@@ -63,9 +63,11 @@ html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; m
    (Words.astro) and rise from below their masks. Fill "backwards" only: once played,
    each piece is back on its own styles. Anything else on the first screen is simply
    there; the engine reveals only what scrolls in later. */
-/* Lines fade from 1%, not 0: Chrome counts a paint at opacity 0 as no paint, and with the
-   fade on the compositor it would date the page's largest paint (LCP) to the fade's end. */
-@keyframes rise-in { from { opacity: .01; transform: translateY(var(--rise, var(--reveal-y))); } }
+/* Lines fade from 0, never from a sliver: a 1% start (once used to date the largest paint
+   earlier) paints a ghost of every line and button on the Ink heroes for the whole delay.
+   The first painted frame is the clean hidden state; the heading's words, which rise from
+   their masks without fading, are the first screen's largest paint on phones. */
+@keyframes rise-in { from { opacity: 0; transform: translateY(var(--rise, var(--reveal-y))); } }
 @keyframes rise-word { from { transform: translateY(calc(100% + 2 * var(--mask-pad))); } }
 /* The browser card doesn't fade at all: on wide screens it is the largest paint. */
 @keyframes hero-browser { from { transform: perspective(1400px) translateY(70px) rotateX(7deg); } to { transform: perspective(1400px); } }
@@ -75,6 +77,8 @@ html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; m
 .m [data-hero-browser] { animation: hero-browser 1.5s var(--ease-out-expo) .15s backwards; }
 .m [data-hero-ipad] { --rise: 110px; animation: rise-in 1.5s var(--ease-out-expo) .4s backwards; }
 .m [data-hero-chip] { animation: hero-chip 1s var(--ease-out-expo) .9s backwards; }
+/* The light under and behind the hero art (data-light) comes up with the art, never before it. */
+.m [data-hero-media][data-light]::before, .m [data-hero-media][data-light]::after { animation: fade-in 1.4s var(--ease-out-expo) .5s backwards; }
 
 /* A # address from another page (the phone menu's areas, a shared link): the browser
    opens on that section before the engine is here, and the engine leaves what is on

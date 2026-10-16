@@ -52,7 +52,7 @@ copy in one of its languages, or a page file is not registered.
 
 Use the variables, never their values: `--ease-out-expo` (arrivals), `--ease-in-out-quart`
 (leaving), `--ease-pop`, `--ease-spring`, `--ease-draw`, `--ease-hop`; `--dur-quick|pop|reveal|intro|draw|wave|hop`;
-`--stagger`, `--stagger-word`, `--reveal-y` (and the phone feel: `--reveal-y-phone`,
+`--stagger`, `--stagger-word`, `--reveal-y` (and the phone scale: `--reveal-y-phone`,
 `--stagger-phone`, `--parallax-phone`); `--gutter`, `--section-y(-tight|-loose)`;
 `--radius-card|btn`; `--color-hairline`; `--shadow-float|lift|device`; `--sticker` (the hard
 Ink shadow's offset) with `--flip` (-1 in Arabic). Tailwind gets them too (`rounded-card`,
@@ -74,11 +74,13 @@ never write a page's own reveal keyframes, observers or `requestAnimationFrame` 
 | `data-draw` | an `<svg>`'s strokes draw (`<Icon draw>`); any other element (a rule) draws along its longer side |
 | `data-count` | a figure counts up to the value in the HTML (`CountUp.astro`; Plex Mono, `.ltr`) |
 | `data-parallax="0.06"` | drifts that share of its height as its section scrolls; less on phones. Only where it helps |
-| `data-sequence="name"` | a set piece: the timeline `defineSequence("name", build)` makes, played as it comes in, paused off screen, resumed when back. Built in: `step`, `band`; crew.ts: `figure`, `receipt` |
+| `data-light` (`="glow"`) | hero art or a big card: a pre-rendered soft shadow under it (and a glow behind it) that moves with the scroll; only the layers' opacity and transform change |
+| `data-sequence="name"` | a set piece: the timeline `defineSequence("name", build)` makes, played as it comes in, paused off screen, resumed when back. `{ scrub: true }`: the scroll drives it instead (its start state must be the page as rendered). Built in: `step`, `band`, `hero` (scrubbed: a first section scrolling away at three depths, the orbit, `[data-hero-copy]`, `[data-hero-media]`; kit intros get it unless `sticky`); crew.ts: `figure`, `receipt` |
 | `data-intro` + `style="--i:n"` | the first screen's entrance, CSS, with the first paint (Section/Hero `intro` does it) |
 
 - One `gsap.matchMedia()`: motion allowed arms `.crew-armed` and the vocabulary, with the
-  calmer phone feel below 768 px; reduced motion gets nothing and reverts what played.
+  phone-scaled feel below 768 px (phones keep every moment); reduced motion gets nothing
+  and reverts what played.
 - The engine is lazy: `load-motion.ts` imports it only when the page has motion markup and
   motion is allowed. Reduced motion, no JavaScript, or a page with nothing to move: no GSAP,
   and every page complete and still. What is on screen when the engine starts is settled
@@ -91,7 +93,12 @@ never write a page's own reveal keyframes, observers or `requestAnimationFrame` 
 - Animate `transform`, `opacity`, `scale` only. Nothing may shift layout (verify with a
   PerformanceObserver: zero `layout-shift` entries).
 - Hover and press: `.press` (dips, springs back), `.lift` (lifts on a real pointer, dips on
-  press); buttons press by themselves. Never hand-write hover transforms.
+  press, and the engine tips it toward the pointer); buttons press by themselves, and the
+  engine pulls `.btn-lg` and a band's button toward a nearing pointer. Never hand-write
+  hover transforms. The header condenses (CSS, `data-solid`) and carries the progress line.
+- Load: nothing is painted and then hidden. The first screen's entrance fades from 0; the
+  crew's figures, badges and receipt wait behind `.crew-wait` (set by `classic/boot.js`
+  before the first paint, lifted by the engine once their entrances are built).
 
 ## The kit (`src/components/kit/`)
 

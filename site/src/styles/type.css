@@ -50,6 +50,15 @@
   html[lang="ar"] {
     font-family: var(--font-arabic);
   }
+  /* A page that opens on an Ink hero paints its first screen Ink from the very first
+     frame: the browser may paint the page's background before the hero has arrived (the
+     parser yielding), and that frame was Paper, a light flash before the dark hero. Every
+     section sets its own ground, so this only ever shows before the hero does. */
+  html.ink-top body {
+    background-image: linear-gradient(var(--color-ink), var(--color-ink));
+    background-size: 100% 100svh;
+    background-repeat: no-repeat;
+  }
   body {
     min-height: 100dvh;
     overflow-x: clip;

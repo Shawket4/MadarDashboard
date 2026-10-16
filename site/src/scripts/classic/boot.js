@@ -4,6 +4,13 @@
   d.classList.add("js");
   var motion = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   if (motion) d.classList.add("motion");
+  // The crew wait hidden (styles/sections/crew.css) until the engine has built their
+  // entrances, so the first paint never shows a figure or a badge that the engine then
+  // hides to play it in. If the engine never comes (offline, blocked), they show anyway.
+  if (motion) {
+    d.classList.add("crew-wait");
+    setTimeout(function () { d.classList.remove("crew-wait"); }, 8000);
+  }
   // A click from another page of this site: the page transition brings the page
   // in, so nothing on screen waits for an entrance ("soft").
   var soft = false;

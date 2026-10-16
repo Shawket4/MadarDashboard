@@ -39,10 +39,10 @@ const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(l
   headerCta={{ href: signup, label: f.stickyCta, event: "free-signup" }}
 >
   <!-- The offer, and the till it buys: Madar Cashier, with what Free costs pinned to it. -->
-  <section class="on-ink relative isolate overflow-hidden bg-ink text-paper" aria-labelledby="free-title">
+  <section class="on-ink relative isolate overflow-hidden bg-ink text-paper" aria-labelledby="free-title" data-sequence="hero">
     <Orbit tone="ink" class="absolute -end-[34rem] -top-[30rem] -z-10 h-[78rem] w-[78rem] md:-end-[22rem]" />
     <div class="container-site grid items-center gap-12 pb-20 pt-32 md:gap-16 md:pb-24 md:pt-36 lg:grid-cols-12 lg:gap-10 lg:pb-32 lg:pt-40">
-      <div class="relative lg:col-span-6">
+      <div class="relative lg:col-span-6" data-hero-copy>
         <!-- On a phone the badge hangs beside the headline, in the first screen (the one
              over the till, below, is for wider screens). -->
         <CrewBadge lang={lang} who="nuqta" strap="teal" class="free-hero-badge-m" />
@@ -61,7 +61,7 @@ const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(l
         </p>
       </div>
 
-      <div class="free-hero-media relative lg:col-span-6" data-hero-media>
+      <div class="free-hero-media relative lg:col-span-6" data-hero-media data-light="glow">
         <div class="relative mx-auto max-w-[40rem] lg:ms-[6%]">
           <Shot
             id="pos-cart"

@@ -46,7 +46,7 @@ const umamiSrc = (import.meta.env.PUBLIC_UMAMI_SRC as string | undefined) ?? "ht
 const ld = [organization(), ...jsonLd];
 ---
 <!doctype html>
-<html lang={lang} dir={dirOf(lang)}>
+<html lang={lang} dir={dirOf(lang)} class:list={[headerTone === "ink" && "ink-top"]}>
   <head>
     <meta charset="utf-8" />
     <!-- Before anything paints: motion and entrance classes (src/scripts/classic/boot.js). -->
