@@ -13,10 +13,10 @@
     soft = !!ref && ref.indexOf(location.origin + "/") === 0 && !(nav && nav.type === "reload");
   } catch (e) {}
   if (soft) d.setAttribute("data-soft", "");
-  // Arriving fresh: the first screen plays its entrance (CSS, global.css "First screen").
+  // Arriving fresh: the first screen plays its entrance (CSS, styles/motion.css "First screen").
   if (motion && !soft) d.classList.add("m");
   // Arriving on a # address: the browser opens on that section, which plays its entrance
-  // in CSS too (global.css, ":target"), however the page was reached.
+  // in CSS too (styles/motion.css, ":target"), however the page was reached.
   if (motion && location.hash.length > 1) d.setAttribute("data-arrive", "");
   // A page transition the browser skips (a second click mid-transition, a hidden tab)
   // rejects its promises, and nothing else holds them: catch them here, before the

@@ -1,7 +1,8 @@
 ---
 import Logo from "@/components/ui/Logo.astro";
 import Icon from "@/components/ui/Icon.astro";
-import { t, featureGroups } from "@/i18n";
+import { t, featureGroups, pageLabel } from "@/i18n";
+import { PAGES } from "@/lib/pages";
 import { type Lang, type PageKey, pageHref, otherLang, switchHref as switchTo, DASHBOARD_URL, whatsappHref } from "@/lib/site";
 
 interface Props {
@@ -15,15 +16,12 @@ const { lang, page, tone, cta } = Astro.props;
 const c = t(lang);
 const other = otherLang(lang);
 const switchHref = switchTo(lang, page);
-const links: { key: PageKey; label: string }[] = [
-  { key: "features", label: c.nav.features },
-  { key: "pricing", label: c.nav.pricing },
-  { key: "free", label: c.nav.free },
-  { key: "faq", label: c.nav.faq },
-  { key: "about", label: c.nav.about },
-];
+// The header's links: the registry's nav pages, in its order (lib/pages.ts).
+const links: { key: PageKey; label: string }[] = PAGES.filter((p) => "nav" in p && p.nav).map((p) => ({ key: p.key, label: pageLabel(lang, p.key) }));
 ---
 <header class="vt-header site-header fixed inset-x-0 top-0 z-50" data-tone={tone} data-solid="false">
+  <!-- How far down the page you are: filled as it scrolls (scripts/motion.ts); empty without motion. -->
+  <span class="page-progress" aria-hidden="true" data-progress></span>
   <div class="container-site flex h-16 items-center justify-between gap-4">
     <a href={pageHref(lang, "home")} aria-label={c.nav.home} class="flex h-11 items-center text-[1.4rem] md:text-[1.55rem]">
       <Logo lang={lang} tone="paper" class="logo-on-paper" />

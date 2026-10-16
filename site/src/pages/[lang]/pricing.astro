@@ -1,10 +1,14 @@
 ---
 import BaseLayout from "@/components/layout/BaseLayout.astro";
-import Words from "@/components/kit/Words.astro";
+import Section from "@/components/kit/Section.astro";
+import Hero from "@/components/kit/Hero.astro";
+import FeatureGrid from "@/components/kit/FeatureGrid.astro";
+import CrewMoment from "@/components/kit/CrewMoment.astro";
+import PlanTable from "@/components/kit/PlanTable.astro";
+import CtaBand from "@/components/kit/CtaBand.astro";
+import CheckList from "@/components/kit/CheckList.astro";
 import Icon from "@/components/ui/Icon.astro";
-import Orbit from "@/components/ui/Orbit.astro";
 import StoreBadges from "@/components/ui/StoreBadges.astro";
-import NuqtaJoy from "@/components/free/NuqtaJoy.astro";
 import cashier from "@/assets/apps/cashier.svg?url";
 import { t } from "@/i18n";
 import { type Lang, LANGS, whatsappHref, pageHref, signupHref, downloadsHref } from "@/lib/site";
@@ -43,140 +47,97 @@ const chosen = pkg(advanced, "six");
 const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing")];
 ---
 <BaseLayout lang={lang} page="pricing" headerTone="paper" closing={false} jsonLd={jsonLd}>
-  <section class="relative isolate overflow-hidden bg-paper">
-    <Orbit tone="paper" class="absolute -end-[36rem] -top-[30rem] -z-10 h-[76rem] w-[76rem] opacity-60" />
-    <div class="container-site pb-8 pt-28 md:pb-12 md:pt-40">
-      <p class="kicker text-teal" data-intro style="--i:0">{p.kicker}</p>
-      <h1 class="text-display mt-5 max-w-3xl"><Words text={p.title} /></h1>
-      <p class="text-lead mt-5 max-w-2xl text-muted" data-intro style="--i:1">{p.sub}</p>
-    </div>
-  </section>
-
   <!-- The price list: both plans side by side on every screen, every term in sight.
        Each price is an option (one radio group); the page opens on Advanced for 6 months,
        and the package below (with its WhatsApp message) follows the pick. -->
-  <section class="bg-paper" aria-label={p.pick}>
-    <div class="container-site pb-16 md:pb-24">
-      <div class="price-sheet card" data-intro style="--i:2">
-        <fieldset class="price-grid" data-price-list>
-          <legend class="sr-only">{p.pick}</legend>
-          <p class="price-corner">{p.termLabel}<span class="block">{p.currency} · {p.perBranch}</span></p>
-          {p.plans.map((plan) => (
-            <div class="price-plan" data-plan={plan.key}>
-              <p class="price-plan-name">{plan.name}</p>
-              <p class="price-plan-blurb">{plan.blurb}</p>
-              {plan.tag && <p class="price-plan-tag">{plan.tag}</p>}
-            </div>
-          ))}
-          {terms.map((term) => (
-            <Fragment>
-              <p class="price-term" aria-hidden="true">{p.terms[term]}</p>
-              {p.plans.map((plan) => {
-                const k = pkg(plan, term);
-                return (
-                  <label class="price-cell">
-                    <input type="radio" name="package" value={k.value} checked={k.value === chosen.value} data-name={k.name} data-price={k.price} data-href={k.href} />
-                    <span class="sr-only">{k.name}: </span>
-                    <span class="price-amount"><span class="ltr">{fmt(k.total)}</span> <span class="price-cur">{p.currency}</span></span>
-                    <span class="price-meta">
-                      {k.perMonth === null ? p.termTotal.monthly : <Fragment>≈ <span class="ltr">{fmt(k.perMonth)}</span> {p.perMonthEquiv}</Fragment>}
-                    </span>
-                    {k.save > 0 && <span class="price-save">{p.save} <span class="ltr">{fmt(k.save)}</span></span>}
-                  </label>
-                );
-              })}
-            </Fragment>
-          ))}
-        </fieldset>
-
-        <div class="price-pick" aria-live="polite" data-hides-sticky>
-          <div class="min-w-0">
-            <p class="text-sm text-muted">{p.yours}</p>
-            <p class="mt-1 text-xl font-semibold" data-pick-name>{chosen.name}</p>
-            <p class="mt-1 text-muted" data-pick-price>{chosen.price}</p>
-          </div>
-          <a class="btn btn-ink btn-lg" href={chosen.href} target="_blank" rel="noopener" data-pick-cta data-umami-event="whatsapp" data-umami-event-where="pricing">
-            <Icon name="whatsapp" size={18} /> {p.ask}
-          </a>
-        </div>
-
-        <table class="price-table">
-          <caption class="price-table-title">{p.included}</caption>
-          <thead>
-            <tr><td></td>{p.plans.map((plan) => <th scope="col">{plan.name}</th>)}</tr>
-          </thead>
-          <tbody>
-            {[...essential.features.map((f) => [f, true]), ...advanced.features.map((f) => [f, false])].map(([feat, both]) => (
-              <tr>
-                <th scope="row">{feat}</th>
-                <td>{both ? <Fragment><span class="text-teal"><Icon name="check" size={18} /></span><span class="sr-only">{p.yes}</span></Fragment> : <Fragment><span class="text-slate" aria-hidden="true">–</span><span class="sr-only">{p.no}</span></Fragment>}</td>
-                <td><span class="text-teal"><Icon name="check" size={18} /></span><span class="sr-only">{p.yes}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div class="mt-12 grid gap-8 md:grid-cols-3" data-reveal-group>
-        {p.notes.map((n) => (
-          <div data-reveal>
-            <h2 class="text-lg font-semibold">{n.title}</h2>
-            <p class="mt-2 text-muted">{n.body}</p>
+  <Hero kicker={p.kicker} title={p.title} lead={p.sub} orbit="-end-[36rem] -top-[30rem] h-[76rem] w-[76rem] opacity-60">
+    <div class="price-sheet card" data-intro style="--i:2">
+      <fieldset class="price-grid" data-price-list>
+        <legend class="sr-only">{p.pick}</legend>
+        <p class="price-corner">{p.termLabel}<span class="block">{p.currency} · {p.perBranch}</span></p>
+        {p.plans.map((plan) => (
+          <div class="price-plan" data-plan={plan.key}>
+            <p class="price-plan-name">{plan.name}</p>
+            <p class="price-plan-blurb">{plan.blurb}</p>
+            {plan.tag && <p class="price-plan-tag">{plan.tag}</p>}
           </div>
         ))}
-      </div>
+        {terms.map((term) => (
+          <Fragment>
+            <p class="price-term" aria-hidden="true">{p.terms[term]}</p>
+            {p.plans.map((plan) => {
+              const k = pkg(plan, term);
+              return (
+                <label class="price-cell">
+                  <input type="radio" name="package" value={k.value} checked={k.value === chosen.value} data-name={k.name} data-price={k.price} data-href={k.href} />
+                  <span class="sr-only">{k.name}: </span>
+                  <span class="price-amount"><span class="ltr">{fmt(k.total)}</span> <span class="price-cur">{p.currency}</span></span>
+                  <span class="price-meta">
+                    {k.perMonth === null ? p.termTotal.monthly : <Fragment>≈ <span class="ltr">{fmt(k.perMonth)}</span> {p.perMonthEquiv}</Fragment>}
+                  </span>
+                  {k.save > 0 && <span class="price-save">{p.save} <span class="ltr">{fmt(k.save)}</span></span>}
+                </label>
+              );
+            })}
+          </Fragment>
+        ))}
+      </fieldset>
 
-      <!-- The other door: Madar Free, signed up for alone (owner, 2026-10-14). Under the
-           paid list, so the paid plans lead and Free is there for whoever needs less. -->
-      <div class="free-band card mt-24" data-reveal>
-        <!-- نقطة jumping for joy on the Free band's top edge (as on the Free page's band). -->
-        <div class="free-band-crew" data-crew-host><NuqtaJoy class="free-band-nuqta" /></div>
+      <div class="price-pick" aria-live="polite" data-hides-sticky>
         <div class="min-w-0">
-          <p class="kicker text-teal">{p.freePlan.kicker}</p>
-          <h2 class="text-h3 mt-3">{p.freePlan.title}</h2>
-          <p class="mt-3 max-w-xl text-muted">{p.freePlan.body}</p>
+          <p class="text-sm text-muted">{p.yours}</p>
+          <p class="mt-1 text-xl font-semibold" data-pick-name>{chosen.name}</p>
+          <p class="mt-1 text-muted" data-pick-price>{chosen.price}</p>
         </div>
-        <p class="free-band-price"><span class="ltr">{p.freePlan.price.split(" ")[0]}</span> <span class="free-cur">{p.freePlan.price.split(" ").slice(1).join(" ")}</span> <span class="free-band-per">{p.freePlan.per}</span></p>
-        <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
-          <a class="btn btn-ink btn-lg" href={signupHref(lang)} data-umami-event="free-signup" data-umami-event-where="pricing">{p.freePlan.cta} <Icon name="arrow" size={18} /></a>
-          <a class="link-cta" href={pageHref(lang, "free")} data-umami-event="free-page" data-umami-event-where="pricing">{p.freePlan.more}</a>
-        </div>
+        <a class="btn btn-ink btn-lg" href={chosen.href} target="_blank" rel="noopener" data-pick-cta data-umami-event="whatsapp" data-umami-event-where="pricing">
+          <Icon name="whatsapp" size={18} /> {p.ask}
+        </a>
       </div>
     </div>
-  </section>
+  </Hero>
+
+  <!-- What each plan carries: Advanced Operation is Essential Café and more (kit/PlanTable),
+       then how the plans are sold, then the other door, Madar Free (owner, 2026-10-14). -->
+  <Section id="plans" tone="surface" kicker={p.compare.kicker} title={p.included}>
+    <PlanTable
+      id="pc"
+      columns={[essential.name, advanced.name]}
+      groups={[{ rows: essential.features }]}
+      adds={advanced.features}
+      copy={{ inFirst: p.compare.inFirst, adds: p.compare.adds, tag: p.compare.tag }}
+    />
+
+    <FeatureGrid class="mt-16" items={p.notes} columns={3} />
+
+    <!-- نقطة jumping for joy on the band's top edge, as on the Free page. -->
+    <CtaBand
+      class="mt-24"
+      kicker={p.freePlan.kicker}
+      title={p.freePlan.title}
+      body={p.freePlan.body}
+      price={{ amount: p.freePlan.price, per: p.freePlan.per }}
+      cta={{ href: signupHref(lang), label: p.freePlan.cta, event: "free-signup", where: "pricing" }}
+      more={{ href: pageHref(lang, "free"), label: p.freePlan.more, event: "free-page", where: "pricing" }}
+    >
+      <CrewMoment slot="crew" pose="joy" class="cta-band-nuqta" />
+    </CtaBand>
+  </Section>
 
   <!-- The free month closes the page (the site-wide closing band would say it twice). -->
-  <section id="closing" class="on-ink bg-ink text-paper" aria-labelledby="free-title">
-    <div class="container-site grid gap-12 py-20 md:py-28 lg:grid-cols-12 lg:gap-10">
-      <div class="lg:col-span-6">
-        <p class="kicker text-teal-light" data-reveal>{p.free.kicker}</p>
-        <h2 id="free-title" class="text-h2 mt-4" data-split>{p.free.title}</h2>
-        <p class="text-lead mt-5 max-w-xl text-muted-ink" data-reveal>{p.free.body}</p>
-        <div class="mt-9" data-reveal>
-          <a class="btn btn-paper btn-lg" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="free-month" data-umami-event-where="pricing">
-            {p.free.cta} <Icon name="arrow" size={18} />
-          </a>
-          <p class="mt-4 text-sm text-muted-ink">{p.free.note}</p>
-        </div>
-      </div>
-      <div class="lg:col-span-5 lg:col-start-8" data-reveal>
-        <h3 class="text-lg font-semibold">{p.free.needTitle}</h3>
-        <ul class="mt-5 divide-y divide-line-ink border-y border-line-ink">
-          {p.free.need.map((n) => (
-            <li class="flex gap-3 py-3.5"><span class="mt-0.5 text-teal-light"><Icon name="check" size={18} /></span><span>{n}</span></li>
-          ))}
-        </ul>
-        <div class="mt-7 flex flex-wrap items-center gap-x-5 gap-y-4">
-          <img class="app-icon size-12" src={cashier} width="48" height="48" alt="" />
-          <p class="min-w-0 flex-1 basis-48 text-sm text-muted-ink">{p.free.tillApp}</p>
-          <StoreBadges lang={lang} app="cashier" where="pricing" />
-          <a class="link-cta basis-full text-sm" href={downloadsHref(lang, "cashier")} data-umami-event="downloads" data-umami-event-where="pricing">{t(lang).apps.downloadsLink} <Icon name="arrow" size={14} /></a>
-        </div>
-      </div>
+  <Section id="closing" tone="ink" split={6} kicker={p.free.kicker} title={p.free.title} lead={p.free.body}>
+    <div slot="head" class="mt-9" data-reveal>
+      <a class="btn btn-paper btn-lg" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="free-month" data-umami-event-where="pricing">
+        {p.free.cta} <Icon name="arrow" size={18} />
+      </a>
+      <p class="mt-4 text-sm text-muted-ink">{p.free.note}</p>
     </div>
-  </section>
+    <h3 class="text-lg font-semibold" data-reveal>{p.free.needTitle}</h3>
+    <CheckList class="mt-5" items={p.free.need} ruled />
+    <div class="mt-7 flex flex-wrap items-center gap-x-5 gap-y-4" data-reveal>
+      <img class="app-icon size-12" src={cashier} width="48" height="48" alt="" />
+      <p class="min-w-0 flex-1 basis-48 text-sm text-muted-ink">{p.free.tillApp}</p>
+      <StoreBadges lang={lang} app="cashier" where="pricing" />
+      <a class="link-cta basis-full text-sm" href={downloadsHref(lang, "cashier")} data-umami-event="downloads" data-umami-event-where="pricing">{c.apps.downloadsLink} <Icon name="arrow" size={14} /></a>
+    </div>
+  </Section>
 </BaseLayout>
-
-<script>
-  import "@/scripts/crew";
-</script>

@@ -1,365 +1,44 @@
-// The scroll story: GSAP (ScrollTrigger, SplitText, DrawSVG) with Lenis smooth
-// scrolling on mouse and trackpad. An area with screens is a scene: the page pauses on
-// it briefly while scrolling turns its screens (all on show, the current one in the
-// middle: carousel.ts; a progress line shows the scroll is doing something), then
+// The scenes of the scroll story (the motion engine, scripts/motion.ts, loads this where a
+// page has them, and sets them up before anything else so every trigger after them
+// measures the page with their pins in place). An area with screens is a scene: the page
+// pauses on it briefly while scrolling turns its screens (all on show, the current one in
+// the middle: carousel.ts; a progress line shows the scroll is doing something), then
 // carries on. However fast the page moves, every change plays; the ones behind hurry.
-// Reduced motion gets none of it (the content is fully visible without this file).
-//
-// Two ways in:
-//  - fresh (from outside, or a reload): the hero or the page's intro plays its entrance,
-//    in CSS (global.css, "First screen"), so it starts with the first paint, not when
-//    this file arrives.
-//  - soft (a click from another page of the site): the page transition brings the new
-//    page in.
-// Either way, whatever is on screen when this file starts stays as it is; only what is
-// further down reveals as it scrolls in.
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap/SplitText";
-import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
-import Lenis from "lenis";
+// Also here: the family (family.ts), the cappuccino (barista.ts), the features page's
+// pinned sets, the day's rail, the stage clocks, Basira's demo and the roadmap. They use
+// the engine's GSAP, ticker, tokens and helpers; reduced motion never loads them.
+import { gsap, ScrollTrigger, whenSeen, passed, flicking, settled, rtl } from "./motion";
 import { initBarista } from "./barista";
 import { familyScene, type SceneKit } from "./family";
 import { carousel } from "./carousel";
-
-gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin);
-// Phones: the address bar showing and hiding is not a resize worth re-measuring for.
-ScrollTrigger.config({ ignoreMobileResize: true });
+import { EASE } from "@/lib/motion";
 
 const root = document.documentElement;
-const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const soft = root.hasAttribute("data-soft");
-const rtl = root.dir === "rtl";
-const dir = rtl ? -1 : 1;
 const desktop = window.matchMedia("(min-width: 1024px)");
 
-/** Above the viewport: the page opened, or a # link jumped, past it. */
-const passed = (el: Element) => el.getBoundingClientRect().bottom <= 0;
-
 /**
- * A flick: the page is moving fast (a thumb's fling, a trackpad throw).
- * Entrances that come up mid-flick just finish: nobody can watch them, and things
- * fading in behind a fast scroll is what reads as jank.
+ * The pinned scenes, in page order (the cappuccino pins on desktop only; on phones its
+ * steps play while it is on screen). Returns how many there are, so the engine knows to
+ * measure the page again before anything else.
  */
-let speed = 0;
-let lastY = window.scrollY;
-let lastT = performance.now();
-window.addEventListener(
-  "scroll",
-  () => {
-    const t = performance.now();
-    const dt = t - lastT;
-    if (dt > 0) speed = (Math.abs(window.scrollY - lastY) / dt) * 1000;
-    lastY = window.scrollY;
-    lastT = t;
-  },
-  { passive: true },
-);
-const flicking = () => performance.now() - lastT < 150 && speed > 2400;
-
-/**
- * Left exactly as it is, never animated: whatever is on screen when this file starts, or
- * above it (a # address, a reload half-way down). It has been on show since the first
- * paint; hiding it now to play an entrance would make it blink.
- */
-const settled = (el: Element) => el.getBoundingClientRect().top < window.innerHeight;
-
-/** The # target in the address, if it names an element on this page. */
-const hashTarget = (hash = location.hash) =>
-  hash.length > 1 ? document.getElementById(decodeURIComponent(hash.slice(1))) : null;
-
-let lenis: Lenis | null = null;
-
-if (reduce) initBarista({ mode: "still" });
-else {
-  if (!soft) hero();
-  afterEntrance(() => void run());
-}
-
-/**
- * Sets the story up once the first screen's entrance (CSS) has played and the page is
- * idle, or as soon as the visitor scrolls or touches it, whichever comes first. The setup
- * is the page's one long piece of work (about 220 ms on a mid phone) and it also starts
- * the 3D's download (family.ts), so it never lands mid-entrance. Nothing below the first
- * screen needs it before the page moves: until then that content is simply there.
- */
-function afterEntrance(start: () => void) {
-  let started = false;
-  const events = ["scroll", "touchstart", "wheel", "keydown"] as const;
-  const go = () => {
-    if (started) return;
-    started = true;
-    for (const type of events) window.removeEventListener(type, go);
-    start();
-  };
-  for (const type of events) window.addEventListener(type, go, { passive: true });
-  // The entrance: every finite animation running now (the CSS ones, a page transition).
-  const entrance = document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity);
-  const idle = () => ("requestIdleCallback" in window ? requestIdleCallback(go, { timeout: 300 }) : setTimeout(go, 50));
-  Promise.all(entrance.map((a) => a.finished.catch(() => {}))).then(idle);
-  setTimeout(go, 4000); // whatever an animation does, the story is set up by then
-}
-
-/** Hands the main thread back between parts of the setup, so no part is one long task. */
-const breathe = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
-
-async function run() {
-  // Smooth scroll on mouse and trackpad only; touch keeps its native momentum.
-  if (window.matchMedia("(pointer: fine)").matches) {
-    const smooth = new Lenis({ lerp: 0.11, autoRaf: false });
-    smooth.on("scroll", ScrollTrigger.update);
-    gsap.ticker.add((time) => smooth.raf(time * 1000));
-    gsap.ticker.lagSmoothing(0);
-    lenis = smooth;
-  }
-  anchorLinks();
-
-  // Pins next, in page order: every trigger created after them measures the page with
-  // the pins' extra scroll length already in place. (The cappuccino pins on desktop
-  // only; on phones its steps play while it is on screen.) The features page's screen
-  // sets pin too (pinnedSets).
-  const scenes = Array.from(document.querySelectorAll<HTMLElement>("[data-family], [data-order], [data-barista]"));
+export function scenes() {
+  const found = Array.from(document.querySelectorAll<HTMLElement>("[data-family], [data-order], [data-barista]"));
   // What the family scene (family.ts) borrows to behave like the area scenes.
   const sceneKit: SceneKit = { sequencer, whenSeen, hold };
-  for (const el of scenes) {
-    if (el.hasAttribute("data-barista")) initBarista({ mode: desktop.matches ? "scrub" : "play" });
+  for (const el of found) {
+    if (el.hasAttribute("data-barista")) initBarista({ mode: desktop.matches ? "scrub" : "play", ScrollTrigger });
     else if (el.hasAttribute("data-family")) familyScene(el, sceneKit);
     else areaScene(el);
   }
-  const sets = pinnedSets();
-  // With the page at its full length, land on a # address before anything below decides
-  // what is on screen and what was passed.
-  if (scenes.length || sets) ScrollTrigger.refresh();
-  landOnHash();
-  await breathe();
+  return found.length + pinnedSets();
+}
 
-  if (desktop.matches) {
-    root.classList.add("story-on");
-    parallax();
-    rail();
-  }
-  splits();
-  await breathe();
-
-  reveals();
-  counts();
-  orbits();
-  lines();
+/** The rest of the story, measured against the pinned page: the rail, clocks, Basira, the roadmap. */
+export function extras() {
+  if (desktop.matches) rail();
   stageClocks();
   basira();
   roadmap();
-  await breathe();
-
-  ScrollTrigger.sort();
-  ScrollTrigger.refresh();
-  // Late fonts change line heights a little: measure again once they are in.
-  document.fonts?.ready.then(() => ScrollTrigger.refresh()).catch(() => {});
-}
-
-/**
- * Same-page # links (the hero's "See a café's day", the rail, the day's cards, the
- * features chips, the phone menu's areas) jump there (owner: no long scroll down the
- * page), then what lands on screen plays its entrance. Whatever the jump passes skips
- * its entrance (whenSeen), so nothing above is left half-shown. Keyboard activation
- * keeps the browser's jump, which also moves focus along.
- */
-function anchorLinks() {
-  document.addEventListener("click", (e) => {
-    if (e.defaultPrevented || e.button !== 0 || e.detail === 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    const link = (e.target as Element | null)?.closest?.("a[href*='#']");
-    if (!(link instanceof HTMLAnchorElement) || (link.target && link.target !== "_self")) return;
-    const url = new URL(link.href);
-    if (url.origin !== location.origin || url.pathname !== location.pathname || url.search !== location.search) return;
-    const to = hashTarget(url.hash);
-    if (!to) return;
-    e.preventDefault();
-    if (url.hash !== location.hash) history.pushState(null, "", url.hash);
-    jump(to);
-  });
-}
-
-/**
- * Puts `to` at the top at once (the page's scroll-padding keeps it clear of the header).
- * Lenis measures again first: the page's length (it learns of the pins' extra length
- * only after a debounce) and where the page really is (a scroll it didn't see, the
- * browser's own or a script's, would otherwise offset where it lands). A jump is not a
- * flick: the speed reading starts again from here, so what it lands on plays.
- */
-function jump(to: HTMLElement) {
-  if (lenis) {
-    lenis.resize();
-    lenis.scrollTo(to, { immediate: true, force: true });
-  } else {
-    to.scrollIntoView({ behavior: "instant", block: "start" });
-  }
-  speed = 0;
-  lastY = window.scrollY;
-  lastT = performance.now();
-}
-
-/**
- * A # address (a link from another page, a shared link). The browser jumps there while
- * the page loads, before the scenes add their scroll length, and the refreshes after it
- * can drop the jump. Land on it now, and again after each refresh until the visitor
- * moves the page themselves. A reload or back/forward keeps the browser's own memory
- * of where you were.
- */
-function landOnHash() {
-  const to = hashTarget();
-  const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-  if (!to || (nav && nav.type !== "navigate")) return;
-  let holding = true;
-  const land = () => {
-    if (holding) jump(to);
-  };
-  const release = () => {
-    holding = false;
-    ScrollTrigger.removeEventListener("refresh", land);
-  };
-  for (const type of ["wheel", "touchstart", "keydown", "pointerdown"]) {
-    window.addEventListener(type, release, { once: true, passive: true });
-  }
-  window.setTimeout(release, 5000);
-  ScrollTrigger.addEventListener("refresh", land);
-  land();
-  // The section it opened on entered in CSS (":target" in global.css); a later # change
-  // is this file's to play, not that rule's.
-  window.addEventListener("hashchange", () => root.removeAttribute("data-arrive"), { once: true });
-}
-
-/**
- * The hero's entrance is CSS (global.css, "First screen"). Its chip's figures count up
- * as the chip settles, when this file is in time for that; otherwise they stay at the
- * values the page rendered (never a count that restarts from zero in plain sight).
- */
-function hero() {
-  const chip = document.querySelector<HTMLElement>("[data-hero-chip]");
-  // How far into the entrance we are (ms); the chip shows from 900 ms (its CSS delay).
-  const at = Number(chip?.getAnimations()[0]?.currentTime ?? Infinity);
-  if (!chip || at >= 900) return;
-  for (const figure of chip.querySelectorAll<HTMLElement>("[data-count]")) {
-    countUp(figure).delay((1000 - at) / 1000 + Number(figure.dataset.delay ?? 0));
-  }
-}
-
-/**
- * A figure counting up to the value the page rendered (CountUp.astro). It reads
- * from zero from the moment it's made, so it never shows the final value first.
- */
-function countUp(el: HTMLElement, paused = false) {
-  const digits = Number(el.dataset.decimals ?? 0);
-  const fmt = new Intl.NumberFormat("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
-  const figure = { value: 0 };
-  el.textContent = fmt.format(0);
-  return gsap.to(figure, {
-    value: Number(el.dataset.count ?? 0),
-    duration: 1.9,
-    ease: "expo.out",
-    paused,
-    onUpdate: () => void (el.textContent = fmt.format(figure.value)),
-  });
-}
-
-/** Figures outside the hero count up the first time they scroll in. */
-function counts() {
-  for (const el of gsap.utils.toArray<HTMLElement>("[data-count]")) {
-    if (el.closest("[data-hero]") || settled(el)) continue;
-    const tween = countUp(el, true);
-    tween.delay(Number(el.dataset.delay ?? 0));
-    whenSeen(el, "top 92%", tween);
-  }
-}
-
-/**
- * Plays `anim` (made paused) the first time `el` scrolls in. A jump (a # link, the
- * rail, a chip) can carry the page past `el` in one go: then `anim` just finishes, so
- * nothing you skipped plays out of sight or holds up what is on screen where you land.
- */
-function whenSeen(el: Element, start: string, anim: gsap.core.Animation) {
-  ScrollTrigger.create({
-    trigger: el,
-    start,
-    once: true,
-    onEnter: () => void (passed(el) || flicking() ? anim.progress(1) : anim.play()),
-  });
-}
-
-/**
- * A heading's words rise into place, each from below its mask. The masks are padded
- * past descenders and Arabic tails and marks (.split-word-mask in global.css), so the
- * words start far enough down to be fully hidden: the mask's whole height. The split
- * stays once they land: undoing it can re-wrap a heading that fits its line to the
- * pixel, and the heading would jump.
- */
-function rise(split: SplitText, vars: gsap.TweenVars) {
-  return gsap.from(split.words, {
-    y: (_: number, word: Element) => word.parentElement?.offsetHeight ?? 0,
-    ease: "expo.out",
-    onComplete: () => void gsap.set(split.words, { clearProps: "transform" }),
-    ...vars,
-  });
-}
-
-function splits() {
-  for (const el of gsap.utils.toArray<HTMLElement>("[data-split]")) {
-    if (settled(el)) continue;
-    const split = SplitText.create(el, { type: "words", mask: "words", wordsClass: "split-word" });
-    gsap.set(el, { autoAlpha: 1 });
-    whenSeen(el, "top 88%", rise(split, { duration: 1, stagger: 0.045, paused: true }));
-  }
-}
-
-function reveals() {
-  const items = gsap.utils.toArray<HTMLElement>("[data-reveal]").filter((el) => !settled(el));
-  gsap.set(items, { autoAlpha: 0, y: 26 });
-  ScrollTrigger.batch(items, {
-    start: "top 92%",
-    once: true,
-    onEnter: (batch) => {
-      // A jump or a flick can pass a whole page of these at once: what it passed (or
-      // all of them, mid-flick) shows at once, and only what is on screen plays.
-      const fast = flicking();
-      const gone = batch.filter((el) => fast || passed(el));
-      const here = batch.filter((el) => !fast && !passed(el));
-      if (gone.length) gsap.set(gone, { autoAlpha: 1, y: 0, overwrite: true });
-      if (here.length) {
-        gsap.to(here, { autoAlpha: 1, y: 0, duration: 0.95, ease: "expo.out", stagger: Math.min(0.07, 0.35 / here.length), overwrite: true });
-      }
-    },
-  });
-}
-
-function orbits() {
-  for (const svg of gsap.utils.toArray<SVGSVGElement>("[data-orbit]")) {
-    if (!settled(svg)) {
-      const draw = gsap.fromTo(svg.querySelectorAll("[data-draw]"), { drawSVG: "50% 50%" }, {
-        drawSVG: "0% 100%",
-        duration: 2.4,
-        ease: "expo.inOut",
-        stagger: 0.12,
-        paused: true,
-      });
-      whenSeen(svg.parentElement ?? svg, "top 90%", draw);
-    }
-    const sat = svg.querySelector(".orbit-satellite");
-    // It turns only while its orbit is on screen: out of sight it would cost a frame for ever.
-    if (sat) {
-      gsap.to(sat, {
-        rotation: 360 * dir, svgOrigin: "800 800", duration: 90, ease: "none", repeat: -1,
-        scrollTrigger: { trigger: svg, start: "top bottom", end: "bottom top", toggleActions: "play pause resume pause" },
-      });
-    }
-  }
-}
-
-function lines() {
-  for (const el of gsap.utils.toArray<HTMLElement>("[data-draw-line]")) {
-    if (settled(el)) continue;
-    const draw = gsap.fromTo(el, { scaleX: 0, transformOrigin: rtl ? "100% 50%" : "0% 50%" }, {
-      scaleX: 1, duration: 1.4, ease: "expo.out", paused: true,
-    });
-    whenSeen(el, "top 92%", draw);
-  }
 }
 
 /** The stage clock runs up to its hour as the stage comes in: 04:00 → 07:00. */
@@ -374,7 +53,7 @@ function stageClocks() {
       el.textContent = `${String(Math.floor(v / 60) % 24).padStart(2, "0")}:${String(v % 60).padStart(2, "0")}`;
     };
     show();
-    whenSeen(el, "top 85%", gsap.to(clock, { t: target, duration: 1.6, ease: "expo.out", onUpdate: show, paused: true }));
+    whenSeen(el, "top 85%", gsap.to(clock, { t: target, duration: 1.6, onUpdate: show, paused: true }));
   }
 }
 
@@ -383,9 +62,9 @@ function basira() {
     if (settled(box)) continue;
     const tl = gsap.timeline({ paused: true });
     whenSeen(box, "top 75%", tl);
-    tl.from(box.querySelector("[data-basira-q]"), { y: 16, autoAlpha: 0, duration: 0.7, ease: "expo.out" })
-      .from(box.querySelector("[data-basira-a]"), { y: 16, autoAlpha: 0, duration: 0.7, ease: "expo.out" }, "+=0.25")
-      .from(box.querySelectorAll("[data-bar]"), { scaleX: 0, transformOrigin: rtl ? "100% 50%" : "0% 50%", duration: 1.1, ease: "expo.out", stagger: 0.09 }, "-=0.3");
+    tl.from(box.querySelector("[data-basira-q]"), { y: 16, autoAlpha: 0, duration: 0.7 })
+      .from(box.querySelector("[data-basira-a]"), { y: 16, autoAlpha: 0, duration: 0.7 }, "+=0.25")
+      .from(box.querySelectorAll("[data-bar]"), { scaleX: 0, transformOrigin: rtl ? "100% 50%" : "0% 50%", duration: 1.1, stagger: 0.09 }, "-=0.3");
   }
 }
 
@@ -409,8 +88,8 @@ function roadmap() {
   const stop = (tl: gsap.core.Timeline, el: HTMLElement, at: number) => {
     const check = el.querySelector("[data-rm-check]");
     const out = el.querySelector("[data-rm-seg='out']");
-    tl.fromTo(el.querySelector("[data-rm-marker]"), { scale: 0.4, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.55, ease: "back.out(1.7)" }, at)
-      .fromTo(el.querySelector("[data-rm-text]"), { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: "expo.out" }, at + 0.1);
+    tl.fromTo(el.querySelector("[data-rm-marker]"), { scale: 0.4, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.55, ease: EASE.pop }, at)
+      .fromTo(el.querySelector("[data-rm-text]"), { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.8 }, at + 0.1);
     if (check) tl.fromTo(check, { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.4, ease: "power2.out" }, at + 0.18);
     if (out) tl.fromTo(out, from, { ...to, duration: 0.42, ease: "power1.inOut" }, at + 0.16);
     return at + 0.5;
@@ -419,7 +98,7 @@ function roadmap() {
   if (across) {
     if (settled(box)) return;
     const tl = gsap.timeline({ paused: true });
-    tl.fromTo(box.querySelectorAll("[data-rm-zone]"), { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: "expo.out", stagger: 0.15 }, 0)
+    tl.fromTo(box.querySelectorAll("[data-rm-zone]"), { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.15 }, 0)
       .fromTo(box.querySelectorAll("[data-rm-bracket]"), { scaleX: 0, transformOrigin: rtl ? "100% 0%" : "0% 0%" }, { scaleX: 1, duration: 0.9, ease: "expo.inOut", stagger: 0.15 }, 0.1);
     let at = 0.2;
     const lead = box.querySelector("[data-rm-seg='lead']");
@@ -447,17 +126,6 @@ function roadmap() {
         free = gsap.ticker.time + wait + reach;
         gsap.delayedCall(wait, () => void tl.play());
       },
-    });
-  }
-}
-
-function parallax() {
-  for (const el of gsap.utils.toArray<HTMLElement>("[data-parallax]")) {
-    const f = Number(el.dataset.parallax ?? "0.05");
-    gsap.to(el, {
-      yPercent: -f * 100,
-      ease: "none",
-      scrollTrigger: { trigger: el.closest("section") ?? el, start: "top top", end: "bottom top", scrub: true },
     });
   }
 }
@@ -560,7 +228,7 @@ function areaScene(area: HTMLElement) {
     if (ta && tb) {
       const way = to > from ? 1 : -1;
       tl.to(ta, { autoAlpha: 0, y: -8 * way, duration: 0.18, ease: "power2.in" }, 0)
-        .fromTo(tb, { autoAlpha: 0, y: 12 * way }, { autoAlpha: 1, y: 0, duration: 0.5, ease: "expo.out" }, 0.2);
+        .fromTo(tb, { autoAlpha: 0, y: 12 * way }, { autoAlpha: 1, y: 0, duration: 0.5 }, 0.2);
     }
     return tl;
   };
@@ -650,7 +318,7 @@ function rail() {
     gsap.to(progress, { scaleX: 1, ease: "none", scrollTrigger: { trigger: story, start: "top 20%", end: "bottom bottom", scrub: 0.4, refreshPriority: -1 } });
   }
   gsap.fromTo(pill, { autoAlpha: 0, y: 16 }, {
-    autoAlpha: 1, y: 0, duration: 0.5, ease: "expo.out",
+    autoAlpha: 1, y: 0, duration: 0.5,
     scrollTrigger: { trigger: story, start: "top 40%", end: "bottom 55%", toggleActions: "play reverse play reverse", refreshPriority: -1 },
   });
   for (const block of gsap.utils.toArray<HTMLElement>("[data-stage-block]")) {

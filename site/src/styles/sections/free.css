@@ -1,0 +1,18 @@
+/* ---------- Madar Free (pages/free/[lang].astro) ----------
+   The hero's price chip, the included list, the limits callout, Free and paid, the four
+   steps and the two doors. */
+.free-tick { position: absolute; top: 0; inset-inline-start: 0; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 999px; background: var(--color-tint); color: var(--color-teal); }
+.free-limits { display: flex; flex-direction: column; gap: .5rem; padding: 1.4rem 1.5rem; border-radius: var(--radius-card); border: 1px solid var(--color-rule); border-inline-start: 3px solid var(--color-teal); background: var(--color-surface); }
+.free-limits .link-cta { margin-top: .25rem; min-height: 2.75rem; }
+@media (min-width: 1024px) {
+  .free-limits { display: grid; grid-template-columns: 13rem 1fr auto; align-items: center; column-gap: 2rem; padding: 1.5rem 2rem; }
+  .free-limits .link-cta { margin-top: 0; }
+}
+
+
+
+.free-door { display: flex; flex-direction: column; padding: 1.75rem; border-radius: var(--radius-card); border: 1px solid var(--color-line-ink); background: color-mix(in oklab, var(--color-paper) 3%, var(--color-ink)); }
+.free-door-main { background: var(--color-ink-2); border-color: color-mix(in oklab, var(--color-teal-light) 45%, transparent); }
+.free-door-tag { display: flex; align-items: center; gap: .5rem; font-size: .8125rem; font-weight: 500; color: var(--color-teal-light); }
+.free-door-tag::before { content: ""; flex: none; width: .45rem; height: .45rem; border-radius: 999px; background: currentColor; }
+@media (min-width: 768px) { .free-door { padding: 2.25rem 2.25rem 2rem; } }

@@ -3,12 +3,12 @@
  * نقطة counting the till: holding the printed report (the owner's "Till close" poster,
  * "Nuqta · the count"; paths copied from the Illustrator export, not redrawn). Same rig
  * as Nuqta.astro, so crew.ts blinks him and follows the pointer; the paper also sways
- * a little in his hands (global.css "The crew").
+ * a little in his hands (styles/sections/crew.css).
  */
 interface Props { class?: string }
 const { class: cls = "" } = Astro.props;
 ---
-<svg class:list={["crew-figure", cls]} viewBox="0 0 216.82 290.54" aria-hidden="true" data-crew>
+<svg class:list={["crew-figure", cls]} viewBox="0 0 216.82 290.54" aria-hidden="true" data-crew data-sequence="figure">
   <g class="crew-shadow" style="transform-origin: 108.41px 282.95px"><ellipse cx="108.41" cy="282.95" rx="67.76" ry="7.05" fill="#e1e7e9" /></g>
   <g class="crew-hop" style="transform-origin: 108px 284px">
     <path d="M82.39,189.72c-2.89,32.52-5.06,61.43-6.5,86.73l-20.6,1.08" fill="none" stroke="#14181e" stroke-width="14.09" stroke-linecap="round" stroke-linejoin="round" />

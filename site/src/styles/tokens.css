@@ -1,0 +1,90 @@
+/* ---------- Tokens: the one place for colours, type, curves, durations, rhythm, radii
+   and shadows. Nothing else in the site writes these values out; scripts read the motion
+   ones through src/lib/motion.ts (the same CSS variables, at runtime). ---------- */
+
+/* Brand kit (Madar Design System/README.txt) + the deck's derived neutrals.
+   Contrast: Ink/Paper 15.94 · Teal deep on Paper 6.24 · Teal light on Ink 5.01 ·
+   muted #4B565E on Paper 6.73 · #9AA6AD on Ink 7.15. Slate is large text / UI only. */
+@theme {
+  --color-ink: #14181e;
+  --color-ink-2: #1b2128;
+  --color-ink-3: #232a32;
+  --color-paper: #eff3f4;
+  --color-surface: #f7f9fa;
+  --color-white: #ffffff;
+  --color-teal: #0d6273;
+  --color-teal-light: #2e94a6;
+  /* Teal light raised 0.018 in OKLCH lightness (same hue and chroma) for text on the
+     lifted Ink of an active row (~#23272d): 4.55:1 there, where Teal light is 4.21:1. */
+  --color-teal-light-raised: #359aac;
+  --color-tint: #cfe3e7;
+  --color-slate: #76828b;
+  --color-rule: #d3dce0;
+  --color-muted: #4b565e;
+  --color-muted-ink: #9aa6ad;
+  --color-bezel: #0b0e12;
+  --color-line-ink: rgb(239 243 244 / 0.14);
+  /* A card's edge on Paper (.card, the plan table). */
+  --color-hairline: rgb(20 24 30 / 0.07);
+  /* The crew posters' accents (decorative fills, always under Ink text: Ink on Coral
+     6.0:1, Ink on Sun 10.9:1). */
+  --color-coral: #f26b5b;
+  --color-sun: #f6c445;
+
+  --font-sans: "IBM Plex Sans Arabic", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Curves (GSAP's names for the same curves are in src/lib/motion.ts). */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);      /* whatever arrives: reveals, words, rules */
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1); /* whatever leaves, and the scroll cue */
+  --ease-pop: cubic-bezier(0.3, 1.6, 0.5, 1);          /* the spring-ish pop: ticks, a stamp, a smile */
+  --ease-spring: cubic-bezier(0.3, 1.4, 0.5, 1);       /* a figure popping up onto its line */
+  --ease-draw: cubic-bezier(0.4, 0, 0.2, 1);           /* a stroke drawing itself */
+  --ease-hop: cubic-bezier(0.3, 0.7, 0.4, 1);          /* the crew's jump: up fast, down soft */
+
+  --radius-card: 1.25rem; /* cards, bands, the plan table, the crew's badges */
+  --radius-btn: 0.625rem;
+
+  /* Soft shadows. The hard Ink "sticker" shadow is --sticker below. */
+  --shadow-float: 0 24px 60px -20px rgb(11 14 18 / 0.6);                        /* lifted over Ink: the hero's chip, the story rail */
+  --shadow-lift: 0 30px 60px -30px rgb(20 24 30 / 0.35);                        /* a card lifted on Paper */
+  --shadow-device: 0 0 0 1px #303842, 0 30px 70px -20px rgb(11 14 18 / 0.55);  /* an iPad or iPhone frame */
+
+  --animate-marquee: marquee var(--duration) infinite linear;
+}
+
+:root {
+  /* Motion: durations by role, the stagger step and how far a reveal rises. */
+  --dur-quick: 0.2s;   /* hover and colour changes */
+  --dur-pop: 0.5s;     /* a pop, a small stroke drawing */
+  --dur-reveal: 0.95s; /* a line rising into place as it scrolls in */
+  --dur-intro: 1.15s;  /* the first screen's entrance */
+  --dur-draw: 1.2s;    /* a rule drawing across */
+  --stagger: 70ms;     /* between the items of a reveal group, the ticks of a list */
+  --stagger-word: 50ms; /* between a heading's words as they rise */
+  --reveal-y: 26px;    /* how far a reveal rises */
+  /* Phones get a calmer variant (scripts/motion.ts): shorter rises, a quicker beat, half
+     the parallax. */
+  --reveal-y-phone: 16px;
+  --stagger-phone: 45ms;
+  --parallax-phone: 0.4;
+  /* The crew's beats (crew.ts times its flags by these). */
+  --dur-wave: 1.7s;
+  --dur-hop: 0.76s;
+
+  /* Rhythm: the page gutter and a section's padding (tight, standard, loose). */
+  --gutter: clamp(1rem, 0.4rem + 2.6vw, 2.5rem);
+  --section-y-tight: 4rem;
+  --section-y: 5rem;
+  --section-y-loose: 6rem;
+
+  /* The hard Ink "sticker" shadow's offset (the crew's badges, the receipt). It falls
+     toward the reading end: --flip is -1 in Arabic. */
+  --sticker: 7px;
+  --flip: 1;
+}
+@media (min-width: 48rem) {
+  :root { --section-y-tight: 6rem; --section-y: 7rem; --section-y-loose: 8rem; }
+}
+[dir="rtl"] { --flip: -1; }

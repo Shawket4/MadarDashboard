@@ -1,0 +1,81 @@
+---
+/**
+ * A page section in the site's one rhythm (styles/kit.css, "Section"): a tone, the
+ * standard padding, a head (SectionHead: kicker, heading, lead) and its content. Pages
+ * are built from these, so a new page comes out aligned with the rest.
+ *  - Stacked (default): the head, then the content under it.
+ *  - `split`: from lg the head takes 4, 5 or 6 of 12 columns and the content the rest;
+ *    `sticky` holds the head while the content scrolls by.
+ *  - `center`: the head centred.
+ *  - `intro`: the page's first section. Its heading is the <h1> and enters with the first
+ *    paint; the padding clears the header.
+ * Slots: the default one is the content; "head" adds to the head under the lead (a
+ * button, a list); "mark" goes over the kicker (a logo).
+ * Tones: paper, surface, ink (light text, teal-light marks: on-ink). `orbit` puts the orbit
+ * motif behind it, placed by the classes given. `rule` draws a hairline over the content
+ * (two sections of one tone in a row).
+ */
+import Orbit from "@/components/ui/Orbit.astro";
+import SectionHead from "./SectionHead.astro";
+
+interface Props {
+  id?: string;
+  tone?: "paper" | "surface" | "ink";
+  kicker?: string;
+  title?: string;
+  /** The heading's id, for aria-labelledby: `${id}-title` unless given. */
+  titleId?: string;
+  lead?: string;
+  intro?: boolean;
+  size?: "display" | "h2" | "h3";
+  split?: 4 | 5 | 6;
+  sticky?: boolean;
+  center?: boolean;
+  /** The padding: standard, tight or loose; none when the section sets its own (class). */
+  pad?: "tight" | "standard" | "loose" | "none";
+  rule?: boolean;
+  /** Classes placing the orbit motif (size, offsets, opacity). */
+  orbit?: string;
+  /** The section's name for screen readers when it has no heading. */
+  label?: string;
+  /** The head's width when stacked (default max-w-3xl). */
+  headClass?: string;
+  class?: string;
+}
+const {
+  id, tone = "paper", kicker, title, lead, intro = false, size, split, sticky = false, center = false,
+  pad = "standard", rule = false, orbit, label, headClass = "max-w-3xl", class: cls,
+} = Astro.props;
+const titleId = Astro.props.titleId ?? (id ? `${id}-title` : undefined);
+const TONE = { paper: "bg-paper", surface: "bg-surface", ink: "on-ink bg-ink text-paper" };
+const PAD = { tight: "sec-tight", standard: "sec", loose: "sec-loose", none: "" };
+const SPLIT = { 4: ["lg:col-span-4", "lg:col-span-8"], 5: ["lg:col-span-5", "lg:col-span-7"], 6: ["lg:col-span-6", "lg:col-span-6"] } as const;
+const head = { title: title ?? "", titleId, kicker, lead, tone, intro, size };
+// Rendered first, so an empty default slot (a Hero with nothing under its words) adds no gap.
+const body = Astro.slots.has("default") ? (await Astro.slots.render("default")).trim() : "";
+---
+<section
+  id={id}
+  class:list={[TONE[tone], orbit && "relative isolate overflow-hidden", cls]}
+  aria-labelledby={title ? titleId : undefined}
+  aria-label={title ? undefined : label}
+>
+  {orbit && <Orbit tone={tone === "ink" ? "ink" : "paper"} class={`absolute -z-10 ${orbit}`} />}
+  <div class="container-site">
+    <div class:list={[PAD[pad], intro && "sec-intro", rule && (tone === "ink" ? "border-t border-line-ink" : "border-t border-rule"), split && "grid gap-12 lg:grid-cols-12 lg:gap-16"]}>
+      {split ? (
+        <Fragment>
+          <div class={SPLIT[split][0]}>
+            {title && <SectionHead {...head} class={sticky ? "sec-sticky" : undefined}><slot name="mark" slot="mark" /><slot name="head" /></SectionHead>}
+          </div>
+          <div class={SPLIT[split][1]}><Fragment set:html={body} /></div>
+        </Fragment>
+      ) : (
+        <Fragment>
+          {title && <SectionHead {...head} class={center ? "mx-auto max-w-3xl text-center [&_.text-lead]:mx-auto" : headClass}><slot name="mark" slot="mark" /><slot name="head" /></SectionHead>}
+          {body && <div class:list={[title && "mt-12 md:mt-16"]}><Fragment set:html={body} /></div>}
+        </Fragment>
+      )}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,74 @@
+/* ---------- Roadmap: a line through time (features page, story.ts draws it in) ----------
+   Phones: a column, each marker at the start of its stop, the line running down from
+   one marker's centre to the next. Desktop: a row of stops under labels for each run of
+   states, the line running from one marker's centre to the next across the gap. The
+   markers sit over the line on an Ink fill, so the line seems to pass behind them. */
+.rm {
+  --rm-gap: 2rem;
+  --rm-row: 2.75rem;
+  --rm-size: 2.25rem;
+  --rm-line: 6px;
+  --rm-done: var(--color-teal-light);
+  --rm-dev: color-mix(in oklab, var(--color-teal-light) 58%, var(--color-paper));
+  --rm-track: color-mix(in oklab, var(--color-slate) 36%, var(--color-ink));
+}
+.rm-zones { display: none; }
+.rm-zone { display: flex; flex-direction: column; gap: .625rem; color: var(--rm-done); }
+.rm-zone[data-state="dev"] { color: var(--rm-dev); }
+.rm-bracket { display: block; height: 8px; border-top: 1px solid currentColor; border-inline-start: 1px solid currentColor; }
+
+.rm-track { list-style: none; margin: 0; padding: 0; display: grid; row-gap: var(--rm-row); }
+.rm-stop { position: relative; min-width: 0; padding-inline-start: calc(var(--rm-size) + 1.5rem); }
+.rm-marker { position: absolute; z-index: 2; inset-inline-start: 0; top: 0; display: block; width: var(--rm-size); height: var(--rm-size); }
+.rm-marker svg { position: relative; display: block; width: 100%; height: 100%; }
+.rm-fill { fill: var(--rm-done); }
+.rm-check { fill: none; stroke: var(--color-ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.rm-ring { fill: var(--color-ink); stroke: var(--rm-dev); stroke-width: 4; }
+.rm-dot { fill: var(--rm-dev); }
+.rm-halo { position: absolute; inset: 0; border: 2px solid var(--rm-dev); border-radius: 50%; opacity: 0; }
+.motion .rm-halo { animation: rm-pulse 2.4s cubic-bezier(.2, .6, .3, 1) infinite; animation-delay: calc(var(--i, 0) * -0.8s); }
+@media (prefers-reduced-motion: reduce) { .motion .rm-halo { animation: none; } }
+
+.rm-seg {
+  position: absolute; z-index: 1;
+  inset-inline-start: calc(var(--rm-size) / 2 - var(--rm-line) / 2); top: calc(var(--rm-size) / 2);
+  width: var(--rm-line); height: calc(100% + var(--rm-row));
+  border-radius: calc(var(--rm-line) / 2); background: var(--rm-track);
+}
+.rm-seg[data-kind="done"] { background: var(--rm-done); }
+.rm-seg[data-kind="lead"] { display: none; }
+.rm-seg[data-kind="end"] {
+  height: 7rem; border-radius: 0;
+  background: radial-gradient(circle, var(--rm-track) 0 3px, transparent 3.5px) 50% 0 / var(--rm-line) 16px repeat-y;
+  mask-image: linear-gradient(180deg, #000 25%, transparent);
+}
+.rm-text { display: flex; flex-direction: column; gap: .625rem; }
+.rm-state { color: var(--rm-done); }
+.rm-stop[data-state="dev"] .rm-state { color: var(--rm-dev); }
+
+@media (min-width: 1024px) {
+  .rm-zones { display: grid; grid-template-columns: repeat(var(--rm-n), minmax(0, 1fr)); column-gap: var(--rm-gap); margin-bottom: 1.75rem; }
+  .rm-track { grid-template-columns: repeat(var(--rm-n), minmax(0, 1fr)); column-gap: var(--rm-gap); row-gap: 0; }
+  .rm-stop { padding-inline-start: 0; }
+  .rm-marker { position: relative; inset-inline-start: auto; }
+  .rm-text { margin-top: 2rem; }
+  /* The labels over the line say it here; screen readers still get each stop's own. */
+  .rm-state { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .rm-seg {
+    inset-inline-start: calc(var(--rm-size) / 2); top: calc(var(--rm-size) / 2 - var(--rm-line) / 2);
+    width: calc(100% + var(--rm-gap)); height: var(--rm-line);
+  }
+  .rm-seg[data-kind="lead"] {
+    display: block; inset-inline-start: -4.5rem; width: calc(4.5rem + var(--rm-size) / 2); border-radius: 0;
+    mask-image: linear-gradient(90deg, transparent, #000 80%);
+  }
+  .rm-seg[data-kind="lead"][data-state="shipped"] { background: var(--rm-done); }
+  .rm-seg[data-kind="end"] {
+    width: calc(100% - var(--rm-size) / 2); height: var(--rm-line);
+    background: radial-gradient(circle, var(--rm-track) 0 3px, transparent 3.5px) 0 50% / 16px var(--rm-line) repeat-x;
+    mask-image: linear-gradient(90deg, #000 25%, transparent);
+  }
+  /* Arabic reads the line from the right: the fades turn with it. */
+  [dir="rtl"] .rm-seg[data-kind="lead"] { mask-image: linear-gradient(270deg, transparent, #000 80%); }
+  [dir="rtl"] .rm-seg[data-kind="end"] { mask-image: linear-gradient(270deg, #000 25%, transparent); background-position: 100% 50%; }
+}

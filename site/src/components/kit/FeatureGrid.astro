@@ -1,0 +1,34 @@
+---
+/**
+ * Short items in a grid, each a title and a line (the home page's pillars, About's
+ * principles, what today's POS gets wrong, pricing's notes): over a hairline (`rule`) or in
+ * a card (`card`, Ink on an Ink section), numbered in Plex Mono if `numbered`. They rise one
+ * after another as they scroll in.
+ */
+interface Props {
+  items: readonly { title: string; body: string }[];
+  columns?: 2 | 3 | 4;
+  numbered?: boolean;
+  variant?: "rule" | "card";
+  tone?: "paper" | "ink";
+  /** The titles' size. */
+  size?: "lg" | "xl" | "2xl";
+  /** The titles' level: h2 when the grid is a section of its own, h3 under a heading. */
+  as?: "h2" | "h3";
+  class?: string;
+}
+const { items, columns = 2, numbered = false, variant = "rule", tone = "paper", size = "lg", as: H = "h3", class: cls } = Astro.props;
+const ink = tone === "ink";
+const COLS = { 2: "sm:grid-cols-2", 3: "md:grid-cols-3", 4: "sm:grid-cols-2 lg:grid-cols-4" };
+const SIZE = { lg: "text-lg", xl: "text-xl", "2xl": "text-2xl" };
+const List = numbered ? "ol" : "ul";
+---
+<List class:list={["grid", variant === "card" ? "gap-5" : "gap-x-8 gap-y-10", COLS[columns], cls]} data-reveal-group>
+  {items.map((it, i) => (
+    <li class:list={[variant === "card" ? [ink ? "card-ink" : "card", "flex flex-col p-7"] : [ink ? "border-line-ink" : "border-ink/15", "border-t pt-5"]]} data-reveal>
+      {numbered && <span class:list={["ltr font-mono text-sm", ink ? "text-teal-light" : "text-teal"]}>{String(i + 1).padStart(2, "0")}</span>}
+      <H class:list={[SIZE[size], "font-semibold leading-snug", numbered && (variant === "card" ? "mt-6" : "mt-3")]}>{it.title}</H>
+      <p class:list={["max-w-xl", size === "lg" ? "mt-2" : "mt-3", size === "2xl" && "text-lg", ink ? "text-muted-ink" : "text-muted"]}>{it.body}</p>
+    </li>
+  ))}
+</List>

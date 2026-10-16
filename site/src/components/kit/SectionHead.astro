@@ -1,0 +1,38 @@
+---
+/**
+ * A section's head: kicker, heading and lead, in the site's one rhythm and motion. Inside
+ * a scroll the kicker and lead rise (data-reveal) and the heading's words rise from their
+ * masks (data-split); as a page's intro (`intro`) the heading is the page's <h1>, split at
+ * build time, and all of it enters with the first paint (CSS, data-intro). Section.astro
+ * uses it; use it alone only where a section can't be a Section (a scene's own head).
+ * Slot "mark": something over the kicker (a logo); the default slot: more under the lead.
+ */
+import Words from "./Words.astro";
+
+interface Props {
+  title: string;
+  /** The heading's id (the section's aria-labelledby). */
+  titleId?: string;
+  kicker?: string;
+  lead?: string;
+  tone?: "paper" | "surface" | "ink";
+  /** The page's first section: <h1>, entering with the first paint. */
+  intro?: boolean;
+  /** Heading size: display (an intro's default), h2 (a section's default), h3. */
+  size?: "display" | "h2" | "h3";
+  class?: string;
+}
+const { title, titleId, kicker, lead, tone = "paper", intro = false, class: cls } = Astro.props;
+const size = { display: "text-display", h2: "text-h2", h3: "text-h3" }[Astro.props.size ?? (intro ? "display" : "h2")];
+const ink = tone === "ink";
+const H = intro ? "h1" : "h2";
+// The first screen enters in CSS (styles/motion.css), the rest as it scrolls in (story.ts).
+const line = (i: number) => (intro ? { "data-intro": "", style: `--i:${i}` } : { "data-reveal": "" });
+---
+<div class={cls}>
+  <slot name="mark" />
+  {kicker && <p class:list={["kicker", ink ? "text-teal-light" : "text-teal"]} {...line(0)}>{kicker}</p>}
+  <H id={titleId} class:list={[size, kicker && (intro ? "mt-5" : "mt-4")]} data-split={intro ? undefined : ""}>{intro ? <Words text={title} /> : title}</H>
+  {lead && <p class:list={["text-lead max-w-2xl", intro ? "mt-6" : "mt-5", ink ? "text-muted-ink" : "text-muted"]} {...line(1)}>{lead}</p>}
+  <slot />
+</div>

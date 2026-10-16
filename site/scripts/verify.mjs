@@ -26,6 +26,8 @@ import { readFile, stat, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+// Every page, from the page registry.
+import { PAGE_URLS, langsOf } from "../src/lib/pages.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.resolve(here, "../dist");
@@ -124,17 +126,13 @@ const benign = (e) => /AbortError: Transition was skipped/.test(String(e));
 
 // 1. Pages ─────────────────────────────────────────────────────────────────────────
 const open = await serve("open");
-const pages = ["", "features/", "pricing/", "free/", "faq/", "about/", "contact/"];
-// The Free page is /free/<lang>/, the others /<lang>/<page>.
-const pageUrl = (lang, p) => (p === "free/" ? `/free/${lang}/` : `/${lang}/${p}`);
 const widths = (process.env.WIDTHS ?? "390,768,1280,1440").split(",").map(Number);
-// The root page (both languages, <html lang="en">), then every language page.
+// The root page and the Free front door (both languages, <html lang="en">), then every
+// page of the registry in each of its languages: its own alternates and x-default.
 const targets = [
   { lang: "en", url: "/", name: "root", shot: "root" },
   { lang: "en", url: "/free/", name: "free-root", shot: "free-root" },
-  ...["en", "ar"].flatMap((lang) => pages.map((p) => ({ lang, url: pageUrl(lang, p), name: `${lang}/${p || "home/"}`, shot: `${lang}-${(p || "home/").replace("/", "")}` }))),
-  // English only: en and x-default alternates, no Arabic.
-  { lang: "en", url: "/en/developers/", name: "en/developers/", shot: "en-developers", alternates: 2 },
+  ...PAGE_URLS.map(({ key, lang, href }) => ({ lang, url: href, name: `${lang}/${key}`, shot: `${lang}-${key}`, alternates: langsOf(key).length + 1 })),
 ];
 let views = 0;
 for (const { lang, url, name, shot, alternates = 3 } of targets) {

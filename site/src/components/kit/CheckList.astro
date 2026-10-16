@@ -1,0 +1,23 @@
+---
+/**
+ * What something includes, a line each: every line rises as it scrolls in, its tick pops
+ * and the check draws itself (data-reveal, data-pop, data-draw). On Ink the tick is Teal
+ * light. `ruled`: hairlines between the lines. Styles: styles/kit.css, "Check list".
+ */
+import Icon from "@/components/ui/Icon.astro";
+
+interface Props {
+  items: readonly string[];
+  ruled?: boolean;
+  class?: string;
+}
+const { items, ruled = false, class: cls } = Astro.props;
+---
+<ul class:list={["checks", ruled && "checks-ruled", cls]} data-reveal-group>
+  {items.map((item) => (
+    <li data-reveal>
+      <span class="tick" aria-hidden="true" data-pop><Icon name="check" size={14} draw /></span>
+      <span>{item}</span>
+    </li>
+  ))}
+</ul>

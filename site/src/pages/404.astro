@@ -2,7 +2,7 @@
 import BaseLayout from "@/components/layout/BaseLayout.astro";
 import Icon from "@/components/ui/Icon.astro";
 import Orbit from "@/components/ui/Orbit.astro";
-import Kanaka from "@/components/free/Kanaka.astro";
+import CrewMoment from "@/components/kit/CrewMoment.astro";
 import { t } from "@/i18n";
 import { pageHref } from "@/lib/site";
 const en = t("en");
@@ -14,7 +14,7 @@ const ar = t("ar");
     <div class="container-site grid min-h-[80svh] content-center gap-16 py-32 md:grid-cols-2">
       <!-- The Kanaka looking around for the page (the crew, crew.ts: it blinks, glances about,
            follows the pointer and hops when tapped). -->
-      <div class="md:col-span-2" data-crew-host><Kanaka class="nf-kanaka" /></div>
+      <CrewMoment pose="pot" class="nf-kanaka" host="md:col-span-2" />
       <div>
         <p class="ltr font-mono text-teal-light">404</p>
         <h1 class="text-h2 mt-4">{en.notFound.title}</h1>
@@ -30,7 +30,3 @@ const ar = t("ar");
     </div>
   </section>
 </BaseLayout>
-
-<script>
-  import "@/scripts/crew";
-</script>

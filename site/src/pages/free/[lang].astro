@@ -2,22 +2,21 @@
 import BaseLayout from "@/components/layout/BaseLayout.astro";
 import Shot from "@/components/media/Shot.astro";
 import Words from "@/components/kit/Words.astro";
+import Section from "@/components/kit/Section.astro";
+import PlanTable from "@/components/kit/PlanTable.astro";
+import CtaBand from "@/components/kit/CtaBand.astro";
+import FaqList from "@/components/kit/FaqList.astro";
 import Icon from "@/components/ui/Icon.astro";
 import Orbit from "@/components/ui/Orbit.astro";
 import StoreBadges from "@/components/ui/StoreBadges.astro";
 import cashier from "@/assets/apps/cashier.svg?url";
 import CrewBadge from "@/components/free/CrewBadge.astro";
-import Nuqta from "@/components/free/Nuqta.astro";
-import NuqtaCup from "@/components/free/NuqtaCup.astro";
-import NuqtaCount from "@/components/free/NuqtaCount.astro";
-import NuqtaJoy from "@/components/free/NuqtaJoy.astro";
-import Kanaka from "@/components/free/Kanaka.astro";
-import Shariha from "@/components/free/Shariha.astro";
-import SharihaJoy from "@/components/free/SharihaJoy.astro";
 import ZReport from "@/components/free/ZReport.astro";
+import CrewMoment from "@/components/kit/CrewMoment.astro";
+import StepList from "@/components/kit/StepList.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS, downloadsHref, pageHref, signupHref, whatsappHref } from "@/lib/site";
-import { breadcrumbs, freeApplication } from "@/lib/schema";
+import { breadcrumbs, faqPage, freeApplication } from "@/lib/schema";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -26,17 +25,9 @@ const { lang } = Astro.params as { lang: Lang };
 const c = t(lang);
 const f = c.freePage;
 const signup = signupHref(lang);
-/** "0 EGP" → the figure (Plex Mono) and its currency (the page's face: Arabic breaks in Mono). */
-const money = (s: string) => { const [n, ...cur] = s.split(" "); return { n, cur: cur.join(" ") }; };
 const cmp = f.compare;
-const tablePrice = money(cmp.freePrice);
 const groupIcons = ["receipt", "chart", "table", "team"] as const;
-const jsonLd = [{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  inLanguage: lang,
-  mainEntity: f.faq.items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })),
-}, freeApplication(lang), breadcrumbs(lang, "free")];
+const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(lang, "free")];
 ---
 <BaseLayout
   lang={lang}
@@ -90,246 +81,136 @@ const jsonLd = [{
 
   <!-- What Free carries, as the crew it hires (the owner's "New crew" posters): نقطة on
        the till, شريحة on the numbers. Then the till close, printed; then the limits. -->
-  <section id="included" class="bg-paper" aria-labelledby="inc-title">
-    <div class="container-site py-20 md:py-28">
-      <div class="max-w-3xl">
-        <p class="kicker text-teal" data-reveal>{f.included.kicker}</p>
-        <h2 id="inc-title" class="text-h2 mt-4" data-split>{f.included.title}</h2>
-        <p class="text-lead mt-5 text-muted" data-reveal>{f.included.lead}</p>
-      </div>
-      <div class="mt-12 grid gap-14 md:mt-16 md:grid-cols-2 md:gap-12 lg:gap-20" data-reveal-group>
-        {(["nuqta", "shariha"] as const).map((who, col) => (
-          <div class="crew-col" data-reveal>
-            <div class="crew-col-head" data-crew-host>
-              {who === "nuqta" ? <Nuqta class="crew-col-figure" /> : <Shariha class="crew-col-figure" />}
-              <div class="crew-col-who">
-                <h3 class="crew-col-name">{f.crew[who].name}</h3>
-                <p class="crew-col-role">{f.crew[who].role}</p>
-                <p class="crew-salary">{f.crew.salary}</p>
-              </div>
+  <Section id="included" titleId="inc-title" kicker={f.included.kicker} title={f.included.title} lead={f.included.lead}>
+    <div class="grid gap-14 md:grid-cols-2 md:gap-12 lg:gap-20" data-reveal-group>
+      {(["nuqta", "shariha"] as const).map((who, col) => (
+        <div class="crew-col" data-reveal>
+          <div class="crew-col-head" data-crew-host>
+            <CrewMoment pose={who === "nuqta" ? "wave" : "slice"} class="crew-col-figure" />
+            <div class="crew-col-who">
+              <h3 class="crew-col-name">{f.crew[who].name}</h3>
+              <p class="crew-col-role">{f.crew[who].role}</p>
+              <p class="crew-salary">{f.crew.salary}</p>
             </div>
-            <ul class="crew-col-items">
-              {f.included.items.slice(col * 3, col * 3 + 3).map((i) => (
-                <li>
-                  <span class="free-tick" aria-hidden="true"><Icon name="check" size={16} /></span>
-                  <h4 class="font-semibold leading-snug">{i.t}</h4>
-                  <p class="mt-1.5 text-muted">{i.b}</p>
-                </li>
-              ))}
-            </ul>
           </div>
-        ))}
-      </div>
-
-      <div class="mt-20 grid items-center gap-10 md:mt-32 md:gap-12 lg:grid-cols-12">
-        <div class="lg:col-span-5">
-          <p class="kicker text-teal" data-reveal>{f.zr.kicker}</p>
-          <h3 class="text-h3 mt-4" data-split>{f.zr.title}</h3>
-          <p class="text-lead mt-5 text-muted" data-reveal>{f.zr.body}</p>
-        </div>
-        <div class="lg:col-span-6 lg:col-start-7">
-          <div class="zr-scene" data-crew-host>
-            <NuqtaCount class="zr-nuqta" />
-            <ZReport lang={lang} />
-          </div>
-        </div>
-      </div>
-
-      <!-- The crew cheering on the band's top edge (the owner's "Not a penny" poster). Its own
-           button is the call to action here, so the phones' sticky one steps aside. -->
-      <div class="free-cta-band mt-24 md:mt-32" data-reveal data-hides-sticky>
-        <div class="free-band-crew" data-crew-host><SharihaJoy class="free-band-shariha" /><NuqtaJoy class="free-band-nuqta" /></div>
-        <div>
-          <p class="text-h3">{f.band}</p>
-          <p class="mt-2 text-muted-ink">{f.note}</p>
-        </div>
-        <a class="btn btn-paper btn-lg shrink-0" href={signup} data-umami-event="free-signup" data-umami-event-where="free-mid">
-          {f.cta} <Icon name="arrow" size={18} />
-        </a>
-      </div>
-
-      <div class="free-limits mt-16 md:mt-24" data-reveal>
-        <h3 class="font-semibold">{f.included.limitsTitle}</h3>
-        <p class="text-muted">{f.included.limits}</p>
-        <a class="link-cta shrink-0" href="#compare">{f.compare.title.replace(/[.؟?]$/, "")} <Icon name="arrow-down" size={18} /></a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Free beside the paid plans. Free is a subset of paid, so every line is either in Free
-       or added by paid: on a phone, the two plans' sizes, then two lists; from md, the
-       plans side by side over one matrix with a column per plan (global.css "Free and paid"). -->
-  <section id="compare" class="bg-surface" aria-labelledby="cmp-title">
-    <div class="container-site py-20 md:py-28">
-      <div class="max-w-3xl">
-        <p class="kicker text-teal" data-reveal>{cmp.kicker}</p>
-        <h2 id="cmp-title" class="text-h2 mt-4" data-split>{cmp.title}</h2>
-        <p class="text-lead mt-5 text-muted" data-reveal>{cmp.sub}</p>
-      </div>
-      <div class="fc mt-12">
-        <div class="fc-plans" data-reveal-group>
-          <div class="fc-plan fc-plan-free" data-reveal>
-            <h3 class="fc-plan-name">{cmp.free}</h3>
-            <p class="fc-plan-size">{cmp.freeSize.split(" · ").map((p, i) => <Fragment>{i > 0 && " · "}<span class="whitespace-nowrap">{p}</span></Fragment>)}</p>
-            <p class="fc-plan-price"><span class="ltr">{tablePrice.n}</span> <span class="free-cur">{tablePrice.cur}</span></p>
-          </div>
-          <div class="fc-plan fc-plan-paid" data-reveal>
-            <h3 class="fc-plan-name">{cmp.paid}</h3>
-            <p class="fc-plan-size">{cmp.paidSize}</p>
-            <!-- The figures in Plex Mono, left to right (Plex Sans Arabic's 0 reads as ٥). -->
-            <p class="fc-plan-price">{cmp.paidPrice.split(/([\d,]+)/).map((p, i) => (i % 2 ? <span class="fc-num ltr">{p}</span> : p))}</p>
-          </div>
-        </div>
-        <div class="fc-matrix">
-          <div class="fc-head" aria-hidden="true"><span></span><span>{cmp.free}</span><span>{cmp.paid}</span></div>
-          <section class="fc-card fc-in" aria-labelledby="fc-in-title">
-            <div class="fc-card-head">
-              <h3 id="fc-in-title" class="fc-card-title">{cmp.inFree}</h3>
-              <Shariha class="fc-peek" />
-            </div>
-            {cmp.groups.map((g, gi) => (
-              <Fragment>
-                <h4 class="fc-group"><Icon name={groupIcons[gi]} size={18} /> {g.title}</h4>
-                <ul class="fc-rows" data-ticks data-reveal-group>
-                  {g.rows.map((r, i) => (
-                    <li class="fc-row" data-reveal style={`--i:${i}`}>
-                      <span class="fc-yes" aria-hidden="true"><Icon name="check" size={14} /></span>
-                      <span class="fc-label">{r}</span>
-                      <span class="fc-also" aria-hidden="true"><Icon name="check" size={18} /></span>
-                    </li>
-                  ))}
-                </ul>
-              </Fragment>
+          <ul class="crew-col-items">
+            {f.included.items.slice(col * 3, col * 3 + 3).map((i) => (
+              <li>
+                <span class="free-tick" aria-hidden="true" data-pop><Icon name="check" size={16} draw /></span>
+                <h4 class="font-semibold leading-snug">{i.t}</h4>
+                <p class="mt-1.5 text-muted">{i.b}</p>
+              </li>
             ))}
-          </section>
-          <section class="fc-card fc-adds" aria-labelledby="fc-adds-title">
-            <h3 id="fc-adds-title" class="fc-card-head fc-card-title"><Icon name="spark" size={18} /> {cmp.adds}</h3>
-            <ul class="fc-rows" data-reveal-group>
-              {cmp.paidOnly.map((r) => (
-                <li class="fc-row fc-row-paid" data-reveal>
-                  <span class="fc-lock" aria-hidden="true"><Icon name="lock" size={14} /></span>
-                  <span class="fc-label">{r}</span>
-                  <span class="fc-pill" aria-hidden="true">{cmp.paidTag}</span>
-                  <span class="fc-also" aria-hidden="true"><Icon name="check" size={18} /></span>
-                </li>
-              ))}
-            </ul>
-            <p class="fc-more">
-              <a class="link-cta" href={pageHref(lang, "pricing")} data-umami-event="free-upgrade" data-umami-event-where="free-compare">{cmp.more} <Icon name="arrow" size={18} /></a>
-            </p>
-          </section>
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-20 grid items-center gap-10 md:mt-32 md:gap-12 lg:grid-cols-12">
+      <div class="lg:col-span-5">
+        <p class="kicker text-teal" data-reveal>{f.zr.kicker}</p>
+        <h3 class="text-h3 mt-4" data-split>{f.zr.title}</h3>
+        <p class="text-lead mt-5 text-muted" data-reveal>{f.zr.body}</p>
+      </div>
+      <div class="lg:col-span-6 lg:col-start-7">
+        <div class="zr-scene" data-crew-host>
+          <CrewMoment pose="count" class="zr-nuqta" />
+          <ZReport lang={lang} />
         </div>
       </div>
     </div>
-  </section>
+
+    <!-- The crew cheering on the band's top edge (the owner's "Not a penny" poster). -->
+    <CtaBand class="mt-24 md:mt-32" title={f.band} body={f.note} cta={{ href: signup, label: f.cta, event: "free-signup", where: "free-mid" }}>
+      <Fragment slot="crew"><CrewMoment pose="slice-joy" class="cta-band-shariha" /><CrewMoment pose="joy" class="cta-band-nuqta" /></Fragment>
+    </CtaBand>
+
+    <div class="free-limits mt-16 md:mt-24" data-reveal>
+      <h3 class="font-semibold">{f.included.limitsTitle}</h3>
+      <p class="text-muted">{f.included.limits}</p>
+      <a class="link-cta shrink-0" href="#compare">{cmp.title.replace(/[.؟?]$/, "")} <Icon name="arrow-down" size={18} /></a>
+    </div>
+  </Section>
+
+  <!-- Free beside the paid plans: Free is a subset of paid, so every line is either in Free
+       or added by paid (kit/PlanTable). -->
+  <Section id="compare" titleId="cmp-title" tone="surface" kicker={cmp.kicker} title={cmp.title} lead={cmp.sub}>
+    <PlanTable
+      id="fc"
+      columns={[cmp.free, cmp.paid]}
+      plans={[{ name: cmp.free, size: cmp.freeSize, price: cmp.freePrice }, { name: cmp.paid, size: cmp.paidSize, price: cmp.paidPrice }]}
+      groups={cmp.groups.map((g, i) => ({ ...g, icon: groupIcons[i] }))}
+      adds={cmp.paidOnly}
+      copy={{ inFirst: cmp.inFree, adds: cmp.adds, tag: cmp.paidTag }}
+      more={{ href: pageHref(lang, "pricing"), label: cmp.more, event: "free-upgrade", where: "free-compare" }}
+    >
+      <CrewMoment slot="peek" pose="slice" class="pt-peek" />
+    </PlanTable>
+  </Section>
 
   <!-- Sign-up to first order. The till app sits in its step, with both ways to get it. -->
-  <section class="bg-paper" aria-labelledby="steps-title">
-    <div class="container-site py-20 md:py-28">
-      <div class="max-w-3xl">
-        <p class="kicker text-teal" data-reveal>{f.steps.kicker}</p>
-        <h2 id="steps-title" class="text-h2 mt-4" data-split>{f.steps.title}</h2>
-      </div>
-      <!-- Phones: a timeline, each number at the start with a line down to the next. Wider:
-           four columns, each number over a rule. crew.ts plays each step's number and rule in. -->
-      <ol class="free-steps mt-10 md:mt-14" data-reveal-group>
-        {f.steps.items.map((s, i) => (
-          <li class="free-step" data-reveal>
-            <span class="free-step-n" aria-hidden="true"><span>{String(i + 1).padStart(2, "0")}</span></span>
-            <span class="free-step-rule" aria-hidden="true"></span>
-            <div class="free-step-body">
-            <h3 class="text-lg font-semibold leading-snug">{s.t}</h3>
-            <p class="mt-2 text-muted">{s.b}</p>
-            {i === 0 && (
-              <a class="link-cta mt-3" href={signup} data-umami-event="free-signup" data-umami-event-where="free-steps">{f.cta} <Icon name="arrow" size={18} /></a>
-            )}
-            {i === 1 && (
-              <div class="mt-5 grid gap-4">
-                <div class="flex items-center gap-3">
-                  <img class="app-icon size-11" src={cashier} width="44" height="44" alt="" />
-                  <StoreBadges lang={lang} app="cashier" where="free-steps" />
-                </div>
-                <div>
-                  <a class="btn btn-outline" href={downloadsHref(lang, "cashier")} data-umami-event="downloads" data-umami-event-where="free-steps">
-                    <Icon name="arrow-down" size={18} /> {f.steps.apk}
-                  </a>
-                  <p class="mt-2 text-xs text-muted">{f.steps.apkNote}</p>
-                </div>
-              </div>
-            )}
-            </div>
-          </li>
-        ))}
-      </ol>
-      <p class="mt-12 flex max-w-2xl items-start gap-2.5 text-muted" data-reveal>
-        <span class="mt-0.5 text-teal"><Icon name="check" size={18} /></span>
-        <span>{f.steps.need}</span>
-      </p>
-    </div>
-  </section>
-
-  <section class="bg-paper" aria-labelledby="free-faq-title">
-    <div class="container-site"><div class="grid gap-10 border-t border-rule pb-24 pt-20 md:pb-32 md:pt-28 lg:grid-cols-12 lg:gap-16">
-      <div class="lg:col-span-4">
-        <h2 id="free-faq-title" class="text-h3" data-split>{f.faq.kicker}</h2>
-      </div>
-      <div class="lg:col-span-8">
-        <div class="divide-y divide-ink/10 border-y border-ink/10" data-reveal-group>
-          {f.faq.items.map((item, i) => (
-            <details class="faq-item group" open={i === 0} data-reveal>
-              <summary class="flex cursor-pointer list-none items-start justify-between gap-6 py-6 text-lg font-semibold leading-snug marker:hidden [&::-webkit-details-marker]:hidden">
-                <span>{item.q}</span>
-                <span class="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-full border border-rule text-teal transition-transform duration-300 group-open:rotate-45">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-                </span>
-              </summary>
-              <p class="max-w-2xl pb-7 text-muted">{item.a}</p>
-            </details>
-          ))}
+  <Section titleId="steps-title" kicker={f.steps.kicker} title={f.steps.title}>
+    <StepList items={f.steps.items.map((s) => ({ title: s.t, body: s.b }))}>
+      <a slot="step-0" class="link-cta mt-3" href={signup} data-umami-event="free-signup" data-umami-event-where="free-steps">{f.cta} <Icon name="arrow" size={18} /></a>
+      <div slot="step-1" class="mt-5 grid gap-4">
+        <div class="flex items-center gap-3">
+          <img class="app-icon size-11" src={cashier} width="44" height="44" alt="" />
+          <StoreBadges lang={lang} app="cashier" where="free-steps" />
+        </div>
+        <div>
+          <a class="btn btn-outline" href={downloadsHref(lang, "cashier")} data-umami-event="downloads" data-umami-event-where="free-steps">
+            <Icon name="arrow-down" size={18} /> {f.steps.apk}
+          </a>
+          <p class="mt-2 text-xs text-muted">{f.steps.apkNote}</p>
         </div>
       </div>
-    </div></div>
-  </section>
+    </StepList>
+    <p class="mt-12 flex max-w-2xl items-start gap-2.5 text-muted" data-reveal>
+      <span class="mt-0.5 text-teal"><Icon name="check" size={18} /></span>
+      <span>{f.steps.need}</span>
+    </p>
+  </Section>
+
+  <Section titleId="free-faq-title" title={f.faq.kicker} size="h3" split={4} rule>
+    <FaqList items={f.faq.items} />
+  </Section>
 
   <!-- The two doors (owner, 2026-10-14): Free, set up yourself; or a paid plan we set up
        with you, its first month on us. -->
-  <section id="closing" class="on-ink relative isolate overflow-hidden bg-ink text-paper" aria-labelledby="doors-title">
-    <Orbit tone="ink" class="absolute -end-[28rem] top-1/2 -z-10 h-[64rem] w-[64rem] -translate-y-1/2 md:-end-[20rem]" />
-    <div class="container-site py-24 md:py-32">
-      <div class="max-w-3xl">
-        <p class="kicker text-teal-light" data-reveal>{f.doors.kicker}</p>
-        <h2 id="doors-title" class="text-h2 mt-4" data-split>{f.doors.title}</h2>
-      </div>
-      <div class="mt-12 grid gap-4 md:grid-cols-2 md:gap-5" data-reveal-group>
-        <div class="free-door free-door-main" data-reveal>
-          <div class="free-door-roundel" data-crew-host><NuqtaCup class="free-door-cup" /></div>
-          <p class="free-door-tag">{f.doors.self.tag}</p>
-          <h3 class="text-h3 mt-4">{f.doors.self.title}</h3>
-          <p class="mt-3 max-w-md text-muted-ink">{f.doors.self.body}</p>
-          <div class="mt-auto pt-8">
-            <a class="btn btn-paper btn-lg" href={signup} data-umami-event="free-signup" data-umami-event-where="free-closing">
-              {f.doors.self.cta} <Icon name="arrow" size={18} />
-            </a>
-            <p class="mt-3 text-sm text-muted-ink">{f.doors.self.note}</p>
-          </div>
+  <Section
+    id="closing"
+    titleId="doors-title"
+    tone="ink"
+    pad="loose"
+    orbit="-end-[28rem] top-1/2 h-[64rem] w-[64rem] -translate-y-1/2 md:-end-[20rem]"
+    kicker={f.doors.kicker}
+    title={f.doors.title}
+  >
+    <div class="grid gap-4 md:grid-cols-2 md:gap-5" data-reveal-group>
+      <div class="free-door free-door-main" data-reveal>
+        <CrewMoment pose="cup" class="free-door-cup" host="free-door-roundel" />
+        <p class="free-door-tag">{f.doors.self.tag}</p>
+        <h3 class="text-h3 mt-4">{f.doors.self.title}</h3>
+        <p class="mt-3 max-w-md text-muted-ink">{f.doors.self.body}</p>
+        <div class="mt-auto pt-8">
+          <a class="btn btn-paper btn-lg" href={signup} data-umami-event="free-signup" data-umami-event-where="free-closing">
+            {f.doors.self.cta} <Icon name="arrow" size={18} />
+          </a>
+          <p class="mt-3 text-sm text-muted-ink">{f.doors.self.note}</p>
         </div>
-        <div class="free-door" data-reveal>
-          <div class="free-door-roundel free-door-roundel-ink" data-crew-host><Kanaka class="free-door-kanaka" /></div>
-          <p class="free-door-tag">{f.doors.assisted.tag}</p>
-          <h3 class="text-h3 mt-4">{f.doors.assisted.title}</h3>
-          <p class="mt-3 max-w-md text-muted-ink">{f.doors.assisted.body}</p>
-          <div class="mt-auto pt-8">
-            <a class="btn btn-ghost-ink btn-lg" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="free-month" data-umami-event-where="free-closing">
-              <Icon name="whatsapp" size={18} /> {f.doors.assisted.cta}
-            </a>
-            <p class="mt-3 text-sm text-muted-ink">{f.doors.assisted.note}</p>
-          </div>
+      </div>
+      <div class="free-door" data-reveal>
+        <CrewMoment pose="pot" class="free-door-kanaka" host="free-door-roundel free-door-roundel-ink" />
+        <p class="free-door-tag">{f.doors.assisted.tag}</p>
+        <h3 class="text-h3 mt-4">{f.doors.assisted.title}</h3>
+        <p class="mt-3 max-w-md text-muted-ink">{f.doors.assisted.body}</p>
+        <div class="mt-auto pt-8">
+          <a class="btn btn-ghost-ink btn-lg" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="free-month" data-umami-event-where="free-closing">
+            <Icon name="whatsapp" size={18} /> {f.doors.assisted.cta}
+          </a>
+          <p class="mt-3 text-sm text-muted-ink">{f.doors.assisted.note}</p>
         </div>
       </div>
     </div>
-  </section>
+  </Section>
 </BaseLayout>
-
-<script>
-  import "@/scripts/crew";
-</script>

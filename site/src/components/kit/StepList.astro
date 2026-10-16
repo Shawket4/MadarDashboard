@@ -1,0 +1,29 @@
+---
+/**
+ * Numbered steps (Getting started): a timeline on phones, columns from sm. Each step rises
+ * as it scrolls in, its number rises from its mask and its rule draws (the engine's "step"
+ * set piece). Slots `step-0`, `step-1`, … add to a step under its words (a link, the
+ * store badges). Styles: styles/kit.css, "Steps".
+ */
+interface Props {
+  items: readonly { title: string; body: string }[];
+  /** Columns from lg: 4 (default) or 3. */
+  columns?: 3 | 4;
+  class?: string;
+}
+const { items, columns = 4, class: cls } = Astro.props;
+const extra = await Promise.all(items.map((_, i) => (Astro.slots.has(`step-${i}`) ? Astro.slots.render(`step-${i}`) : "")));
+---
+<ol class:list={["steps", columns === 3 ? "steps-3" : "steps-4", cls]} data-reveal-group>
+  {items.map((s, i) => (
+    <li class="step" data-reveal data-sequence="step">
+      <span class="step-n" aria-hidden="true" data-step-n><span class="ltr">{String(i + 1).padStart(2, "0")}</span></span>
+      <span class="step-rule" aria-hidden="true" data-step-rule></span>
+      <div class="step-body">
+        <h3 class="text-lg font-semibold leading-snug">{s.title}</h3>
+        <p class="mt-2 text-muted">{s.body}</p>
+        {extra[i] && <Fragment set:html={extra[i]} />}
+      </div>
+    </li>
+  ))}
+</ol>

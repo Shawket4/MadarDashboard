@@ -1,4 +1,6 @@
-/** Contact and link facts for the site. One place to change them. */
+/** Contact and link facts for the site. One place to change them. (The pages themselves: lib/pages.ts.) */
+import { type Lang, type PageKey, LANGS, pageHref, isEnglishOnly } from "./pages";
+export { type Lang, type PageKey, LANGS, pageHref, isEnglishOnly };
 export const SITE_URL = "https://get.madar-pos.cloud";
 
 /** The dashboard merchants log in to (the old landing build's VITE_DASHBOARD_URL). */
@@ -38,14 +40,11 @@ const DOWNLOAD_ID: Record<AppKey, string> = { cashier: "pos", kitchen: "kitchen"
 export const downloadsHref = (lang: Lang, app: AppKey): string => `${DOWNLOADS_URL}/${lang === "ar" ? "ar/" : ""}?app=${DOWNLOAD_ID[app]}`;
 export const isLive = (app: AppKey): boolean => Boolean(APPS[app].appStore || APPS[app].googlePlay);
 /** Every store listing, for the organisation's `sameAs`. */
-export const STORE_URLS: string[] = APP_KEYS.flatMap((k) => [APPS[k].appStore, APPS[k].googlePlay]).filter(
+export const STORE_URLS: string[] = APP_KEYS.flatMap((k): (string | null)[] => [APPS[k].appStore, APPS[k].googlePlay]).filter(
   (u): u is string => typeof u === "string",
 );
 
 export const LEGAL_URL = "https://legal.madar-pos.cloud";
-
-export type Lang = "en" | "ar";
-export const LANGS: readonly Lang[] = ["en", "ar"] as const;
 
 const WA_TEXT: Record<Lang, string> = {
   en: "Hi Madar, I run a café and I'd like to hear about the free first month.",
@@ -57,34 +56,11 @@ export function whatsappHref(lang: Lang, text = WA_TEXT[lang]): string {
   return `https://wa.me/${PHONE_E164.replace("+", "")}?text=${encodeURIComponent(text)}`;
 }
 
-export type PageKey = "home" | "features" | "pricing" | "faq" | "about" | "contact" | "developers" | "free";
-
-const PAGE_PATH: Record<PageKey, string> = {
-  home: "",
-  features: "features/",
-  pricing: "pricing/",
-  faq: "faq/",
-  about: "about/",
-  contact: "contact/",
-  developers: "developers/",
-  free: "free/",
-};
-
-/** Site-relative URL of a page in a language, e.g. /ar/pricing/ */
-export function pageHref(lang: Lang, page: PageKey, hash = ""): string {
-  // The Free page is the campaign landing page: /free/en/, /free/ar/ (language last).
-  const base = page === "free" ? `/free/${lang}/` : `/${lang}/${PAGE_PATH[page]}`;
-  return `${base}${hash ? `#${hash}` : ""}`;
-}
-
 export function absoluteUrl(path: string): string {
   return new URL(path, SITE_URL).toString();
 }
 
 export const otherLang = (lang: Lang): Lang => (lang === "en" ? "ar" : "en");
-
-/** Pages written in English only (no Arabic copy): their language switch leads to the Arabic home. */
-export const isEnglishOnly = (page: PageKey | "notFound"): boolean => page === "developers";
 
 /** The language switch's target: this page in the other language, or that language's home. */
 export function switchHref(lang: Lang, page: PageKey | "notFound"): string {

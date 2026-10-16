@@ -1,0 +1,96 @@
+---
+/**
+ * Two plans compared, the second a superset of the first: every line is either in both
+ * (in groups) or added by the second. One markup, two layouts (styles/kit.css, "Plan
+ * table"): on phones the plans as two tiles, then "In <first>" (a filled tick per line)
+ * and "What <second> adds" (a lock and a pill); from md the plan cards side by side over
+ * one matrix with a column per plan under a sticky head, the first plan's column tinted.
+ * The lines rise as they scroll in and their ticks pop (data-reveal, data-pop).
+ *
+ * Used for Free / Paid (the Free page, with plan cards and شريحة peeking) and Essential /
+ * Advanced (pricing, without cards: the price list above says it).
+ */
+import Icon, { type IconName } from "@/components/ui/Icon.astro";
+
+type Plan = { name: string; size?: string; price: string };
+interface Props {
+  /** Prefix for the cards' heading ids. */
+  id: string;
+  /** The columns' heads, the plan the table is about first (its column is tinted). */
+  columns: [string, string];
+  /** Plan cards over the table, the first on Ink: the plans' sizes and prices. */
+  plans?: [Plan, Plan];
+  /** Lines both plans have, in groups (a group's title and icon are optional). */
+  groups: { title?: string; icon?: IconName; rows: readonly string[] }[];
+  /** Lines only the second plan has. */
+  adds: readonly string[];
+  /** "In Free", "What paid adds", and the pill on an added line on phones ("Paid"). */
+  copy: { inFirst: string; adds: string; tag: string };
+  /** A link under the added lines. */
+  more?: { href: string; label: string; event: string; where: string };
+}
+const { id, columns, plans, groups, adds, copy, more } = Astro.props;
+
+/** "from 3,000 EGP a month" → figures (Plex Mono, left to right) and words, each in its span. */
+const parts = (s: string) =>
+  s.split(/(\d[\d,.]*)/).filter(Boolean).map((p) => {
+    if (/^\d/.test(p)) return { num: p };
+    const [, lead = "", word = "", tail = ""] = /^(\s*)(.*?)(\s*)$/s.exec(p) ?? [];
+    return { lead, word, tail };
+  });
+---
+<div class="pt">
+  {plans && (
+    <div class="pt-plans" data-reveal-group>
+      {plans.map((p, i) => (
+        <div class:list={["pt-plan", i === 0 ? "pt-plan-ink" : "pt-plan-paper"]} data-reveal>
+          <h3 class="pt-plan-name">{p.name}</h3>
+          {/* "1 branch · 1 till": each part stays whole; a plain phrase wraps as it likes. */}
+          {p.size && <p class="pt-plan-size">{p.size.includes(" · ") ? p.size.split(" · ").map((s, k) => <Fragment>{k > 0 && " · "}<span class="whitespace-nowrap">{s}</span></Fragment>) : p.size}</p>}
+          <p class="pt-plan-price">{parts(p.price).map((x) => ("num" in x ? <span class="pt-num ltr">{x.num}</span> : <Fragment>{x.lead}{x.word && <span class="pt-cur">{x.word}</span>}{x.tail}</Fragment>))}</p>
+        </div>
+      ))}
+    </div>
+  )}
+  <div class="pt-matrix">
+    <div class="pt-head" aria-hidden="true"><span></span><span>{columns[0]}</span><span>{columns[1]}</span></div>
+    <section class="pt-card pt-in" aria-labelledby={`${id}-in`}>
+      <div class="pt-card-head">
+        <h3 id={`${id}-in`} class="pt-card-title">{copy.inFirst}</h3>
+        <slot name="peek" />
+      </div>
+      {groups.map((g) => (
+        <Fragment>
+          {g.title && <h4 class="pt-group">{g.icon && <Icon name={g.icon} size={18} />} {g.title}</h4>}
+          <ul class="pt-rows" data-reveal-group>
+            {g.rows.map((r) => (
+              <li class="pt-row" data-reveal>
+                <span class="pt-yes" aria-hidden="true" data-pop><Icon name="check" size={14} /></span>
+                <span class="pt-label">{r}</span>
+                <span class="pt-also" aria-hidden="true"><Icon name="check" size={18} /></span>
+              </li>
+            ))}
+          </ul>
+        </Fragment>
+      ))}
+    </section>
+    <section class="pt-card pt-adds" aria-labelledby={`${id}-adds`}>
+      <h3 id={`${id}-adds`} class="pt-card-head pt-card-title"><Icon name="spark" size={18} /> {copy.adds}</h3>
+      <ul class="pt-rows" data-reveal-group>
+        {adds.map((r) => (
+          <li class="pt-row pt-row-paid" data-reveal>
+            <span class="pt-lock" aria-hidden="true"><Icon name="lock" size={14} /></span>
+            <span class="pt-label">{r}</span>
+            <span class="pt-pill" aria-hidden="true">{copy.tag}</span>
+            <span class="pt-also" aria-hidden="true"><Icon name="check" size={18} /></span>
+          </li>
+        ))}
+      </ul>
+      {more && (
+        <p class="pt-more">
+          <a class="link-cta" href={more.href} data-umami-event={more.event} data-umami-event-where={more.where}>{more.label} <Icon name="arrow" size={18} /></a>
+        </p>
+      )}
+    </section>
+  </div>
+</div>

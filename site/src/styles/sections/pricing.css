@@ -1,0 +1,45 @@
+/* ---------- Pricing: one price list (pages/[lang]/pricing.astro) ----------
+   Both plans side by side on every screen and every term in sight: each price is an
+   option of one radio group, the pick in Ink with the logo's teal satellite. Figures in
+   Plex Mono, as everywhere on the site. */
+.price-sheet { overflow: hidden; }
+.price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .375rem; min-width: 0; margin: 0; padding: .5rem; border: 0; }
+/* Phones: the plans take the whole width and each term is a line above its two prices. */
+.price-corner { display: none; align-self: end; padding: .75rem .75rem 1rem; font-size: .8125rem; font-weight: 500; line-height: 1.35; }
+.price-corner span { font-weight: 400; color: var(--color-muted); }
+.price-plan { padding: 1rem .5rem .5rem; }
+.price-plan-name { font-size: 1.0625rem; font-weight: 600; line-height: 1.25; }
+.price-plan-blurb { display: none; margin-top: .35rem; font-size: .9rem; line-height: 1.45; color: var(--color-muted); }
+.price-plan-tag { display: flex; align-items: center; gap: .45rem; margin-top: .5rem; font-size: .8125rem; font-weight: 500; color: var(--color-teal); }
+.price-plan-tag::before { content: ""; flex: none; width: .45rem; height: .45rem; border-radius: 999px; background: currentColor; }
+.price-term { grid-column: 1 / -1; padding: .6rem .5rem 0; font-size: .875rem; font-weight: 500; color: var(--color-muted); }
+.price-cell { position: relative; display: flex; flex-direction: column; justify-content: center; min-height: 4.5rem; padding: .7rem .8rem; border: 1px solid var(--color-rule); border-radius: .875rem; background: var(--color-surface); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color .2s var(--ease-out-expo), border-color .2s, color .2s; }
+.price-cell input { position: absolute; inset: 0; opacity: 0; margin: 0; pointer-events: none; }
+@media (hover: hover) { .price-cell:hover { border-color: color-mix(in oklab, var(--color-teal) 45%, var(--color-rule)); } }
+.price-cell:has(:focus-visible) { outline: 2px solid var(--color-teal-light); outline-offset: 2px; }
+.price-cell:has(:checked) { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-paper); }
+.price-cell:has(:checked)::after { content: ""; position: absolute; top: .7rem; inset-inline-end: .7rem; width: .5rem; height: .5rem; border-radius: 999px; background: var(--color-teal-light); }
+.price-amount { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; }
+.price-cur { font-family: var(--font-sans); font-size: .75rem; letter-spacing: 0; color: var(--color-muted); }
+.price-meta { margin-top: .3rem; font-size: .8125rem; line-height: 1.35; color: var(--color-muted); }
+.price-save { font-size: .8125rem; font-weight: 500; line-height: 1.35; color: var(--color-teal); }
+.price-cell:has(:checked) :is(.price-cur, .price-meta) { color: var(--color-muted-ink); }
+.price-cell:has(:checked) .price-save { color: var(--color-teal-light); }
+.price-pick { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; margin-inline: .5rem; padding: 1.25rem .5rem 1.5rem; border-top: 1px solid var(--color-rule); }
+.price-pick .btn { width: 100%; }
+@media (min-width: 640px) {
+  .price-plan-blurb { display: block; }
+  .price-pick .btn { width: auto; }
+}
+@media (min-width: 768px) {
+  .price-grid { grid-template-columns: 11rem 1fr 1fr; gap: .5rem; padding: .75rem; }
+  .price-corner { display: block; }
+  .price-plan { padding: 1.5rem 1rem 1rem; }
+  .price-plan-name { font-size: 1.375rem; }
+  .price-term { grid-column: auto; align-self: center; padding: 0 .75rem; font-size: 1rem; color: var(--color-ink); }
+  .price-cell { min-height: 6rem; padding: 1rem 1.25rem; }
+  .price-cell:has(:checked)::after { top: 1rem; inset-inline-end: 1rem; }
+  .price-amount { font-size: 2rem; }
+  .price-pick { margin-inline: .75rem; padding: 1.5rem .75rem; }
+}
+

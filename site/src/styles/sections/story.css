@@ -1,0 +1,12 @@
+.rail-progress { transform-origin: 0% 50%; }
+[dir="rtl"] .rail-progress { transform-origin: 100% 50%; }
+
+.rail-chip[data-active] { background: var(--color-teal-light); color: var(--color-ink); }
+.rail-chip[data-active] .opacity-70 { opacity: 0.9; }
+.barista-progress { transform-origin: 0% 50%; }
+[dir="rtl"] .barista-progress { transform-origin: 100% 50%; }
+.barista-step[data-active] { background: rgb(239 243 244 / 0.07); }
+.barista-step[data-active] .text-paper,
+.barista-step[data-active] .text-teal-light { color: var(--color-teal-light-raised); }
+
+.barista-note { display: none; }

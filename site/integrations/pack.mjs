@@ -16,6 +16,9 @@ import { createHash } from "node:crypto";
 import { promisify } from "node:util";
 import { brotliCompress, gzip, constants as zlib } from "node:zlib";
 import ts from "typescript";
+// Every page's folder: the registry's top-level folders (src/lib/pages.ts).
+import { TOP_FOLDERS } from "../src/lib/pages.ts";
+const pageFile = new RegExp(`^(${TOP_FOLDERS.join("|")})\\/(.+\\/)?index\\.html$`);
 
 /** Screenshot widths the archive keeps: the smallest at or above these. */
 const PHONE = 720;
@@ -85,7 +88,7 @@ export function pack() {
         for await (const file of walk(out)) {
           const name = rel(file);
           if (/\.(br|gz)$/.test(name)) continue;
-          if (name === "index.html" || name === "404.html" || /^(en|ar|free)\/(.+\/)?index\.html$/.test(name)) files.push(name);
+          if (name === "index.html" || name === "404.html" || pageFile.test(name)) files.push(name);
           else if (/^assets\/.+\.webp$/.test(name)) {
             const group = shot.exec(`/${name}`)?.[1];
             if (!group) throw new Error(`pack: a WebP outside the screenshot pattern: ${name}`);

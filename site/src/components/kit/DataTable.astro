@@ -1,0 +1,15 @@
+---
+/**
+ * A data table (put the <table> in the slot) that never widens the page: on a narrow
+ * screen it scrolls sideways in its own box, its first column stays put, and a soft edge
+ * on the reading end says there is more (it fades once you reach the end; CSS only, no
+ * script). Keyboard users scroll it too (it takes focus). Styles: styles/kit.css,
+ * "Data table".
+ */
+interface Props {
+  /** The region's name for screen readers ("Endpoints"). */
+  label: string;
+}
+const { label } = Astro.props;
+---
+<div class="data-table" tabindex="0" role="region" aria-label={label}><slot /></div>

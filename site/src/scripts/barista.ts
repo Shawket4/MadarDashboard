@@ -5,14 +5,16 @@
 //  still  (reduced motion) one finished frame, no movement
 import { DotLottie } from "@lottiefiles/dotlottie-web";
 import wasmUrl from "@lottiefiles/dotlottie-web/dotlottie-player.wasm?url";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+// The scroll modes use the motion engine's ScrollTrigger, handed in (story.ts), so the still
+// frame (reduced motion: scripts/load-motion.ts) loads no GSAP.
+import type { ScrollTrigger as Trigger } from "gsap/ScrollTrigger";
 
 type Mode = "scrub" | "play" | "still";
 let players: DotLottie[] = [];
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-export function initBarista({ mode }: { mode: Mode }): (() => void) | void {
+export function initBarista({ mode, ScrollTrigger }: { mode: Mode; ScrollTrigger?: typeof Trigger }): (() => void) | void {
   const root = document.querySelector<HTMLElement>("[data-barista]");
   if (!root) return;
   DotLottie.setWasmUrl(wasmUrl);
@@ -70,6 +72,7 @@ export function initBarista({ mode }: { mode: Mode }): (() => void) | void {
     return;
   }
 
+  if (!ScrollTrigger) return;
   if (mode === "play") {
     let i = 0;
     let on = false;

@@ -3,12 +3,12 @@
  * شريحة jumping for joy, arms up: the owner's "Not a penny" poster ("Shariha joy"; paths
  * copied from the Illustrator export, not redrawn). The body is its outline only (the
  * export's first contour; the export cut the face out of it), the face drawn on top, as in
- * Shariha.astro. Same rig as the others (global.css "The crew", crew.ts).
+ * Shariha.astro. Same rig as the others (styles/sections/crew.css, crew.ts).
  */
 interface Props { class?: string }
 const { class: cls = "" } = Astro.props;
 ---
-<svg class:list={["crew-figure", cls]} viewBox="0 0 245.71 240" aria-hidden="true" data-crew data-joy>
+<svg class:list={["crew-figure", cls]} viewBox="0 0 245.71 240" aria-hidden="true" data-crew data-joy data-sequence="figure">
   <g class="crew-shadow" style="transform-origin: 129.15px 236.48px"><ellipse cx="129.15" cy="236.48" rx="75.53" ry="3.52" fill="#e1e7e9" /></g>
   <g class="crew-hop" style="transform-origin: 130px 232px">
     <path d="M88.11,174.54v50.35c0,3.2,2.59,5.79,5.79,5.79h16.36c3.2,0,5.79-2.59,5.79-5.79s-2.59-5.79-5.79-5.79h-10.57v-44.56h-11.58Z" fill="#14181e" />

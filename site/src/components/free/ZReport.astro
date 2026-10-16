@@ -1,8 +1,8 @@
 ---
 /**
  * The till's Z-report, printing: the receipt from the owner's "Till close" poster, as
- * live text in the page's language. crew.ts feeds it out of the printer when it scrolls
- * in; the figures count up (story.ts, CountUp) and the stamp lands last. Without motion
+ * live text in the page's language. Its set piece (crew.ts, "receipt") feeds it out of
+ * the printer as it scrolls in; the figures count up (CountUp) and the stamp lands last. Without motion
  * it is simply the printed receipt.
  */
 import CountUp from "@/components/kit/CountUp.astro";
@@ -19,7 +19,7 @@ const rows = [
   [z.counted, 190],
 ] as const;
 ---
-<div class:list={["zr", cls]} data-swing>
+<div class:list={["zr", cls]} data-sequence="receipt">
   <span class="zr-slot" aria-hidden="true"></span>
   <div class="zr-feed">
     <div class="zr-paper">

@@ -11,12 +11,12 @@
 //  - /llms-full.txt: the same opening, then every page's Markdown in full, English
 //    then Arabic.
 // Everything is read back from the built HTML, so titles and copy have one source.
-import { readFile, writeFile, readdir, access } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
-
-const ORDER = ["", "features/", "pricing/", "faq/", "about/", "contact/", "developers/", "free/"];
+// The pages, in the site's order: the registry (src/lib/pages.ts).
+import { LANGS, PAGE_URLS } from "../src/lib/pages.ts";
 const LEGAL = "https://legal.madar-pos.cloud/";
 const API = "https://api.madar-pos.cloud";
 
@@ -143,22 +143,11 @@ export function agentFiles(site) {
         const out = fileURLToPath(dir);
         const toMd = converter(site);
         const pages = { en: [], ar: [] };
-        for (const lang of ["en", "ar"]) {
-          // Every language page, in the site's order (any new page goes last).
-          const found = new Set();
-          async function walk(rel) {
-            for (const e of await readdir(path.join(out, lang, rel), { withFileTypes: true })) {
-              if (e.isDirectory()) await walk(`${rel}${e.name}/`);
-              else if (e.name === "index.html") found.add(rel);
-            }
-          }
-          await walk("");
-          // The Free page lives at /free/<lang>/, outside the language folders.
-          const dirOf = (rel) => (rel === "free/" ? path.join(out, "free", lang) : path.join(out, lang, rel));
-          if (await access(path.join(out, "free", lang, "index.html")).then(() => true, () => false)) found.add("free/");
-          const rels = [...ORDER.filter((r) => found.has(r)), ...[...found].filter((r) => !ORDER.includes(r)).sort()];
-          for (const rel of rels) {
-            const html = await readFile(path.join(dirOf(rel), "index.html"), "utf8");
+        for (const lang of LANGS) {
+          // Every page in this language, in the registry's order.
+          for (const { key, href } of PAGE_URLS.filter((u) => u.lang === lang)) {
+            const folder = path.join(out, href);
+            const html = await readFile(path.join(folder, "index.html"), "utf8");
             const m = meta(html);
             const other = m.alternates.find((a) => a.lang !== lang && a.lang !== "x-default");
             const body = toMd(html);
@@ -178,13 +167,13 @@ export function agentFiles(site) {
               contactLine(m, lang, site),
               "",
             ].filter((x) => x !== null).join("\n");
-            await writeFile(path.join(dirOf(rel), "index.md"), md);
-            pages[lang].push({ rel, md, body, ...m });
+            await writeFile(path.join(folder, "index.md"), md);
+            pages[lang].push({ key, md, body, ...m });
           }
         }
 
         // /index.md: the root page, both languages, with the contact line.
-        const home = { en: pages.en.find((p) => p.rel === ""), ar: pages.ar.find((p) => p.rel === "") };
+        const home = { en: pages.en.find((p) => p.key === "home"), ar: pages.ar.find((p) => p.key === "home") };
         const root = await readFile(path.join(out, "index.html"), "utf8");
         const rm = meta(root);
         await writeFile(

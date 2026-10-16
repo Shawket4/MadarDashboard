@@ -1,0 +1,92 @@
+---
+/**
+ * A data page, from its copy alone (src/i18n/pages/<key>.ts, shaped by types/page.ts):
+ * BaseLayout, a Hero, then one kit piece per section, in the site's rhythm and motion.
+ * JSON-LD: the breadcrumb, and a FAQPage when it has questions. `npm run new:page`
+ * makes the page file that renders it.
+ */
+import BaseLayout from "@/components/layout/BaseLayout.astro";
+import Hero from "./Hero.astro";
+import Section from "./Section.astro";
+import FeatureGrid from "./FeatureGrid.astro";
+import StepList from "./StepList.astro";
+import CheckList from "./CheckList.astro";
+import FaqList from "./FaqList.astro";
+import DataTable from "./DataTable.astro";
+import CtaBand from "./CtaBand.astro";
+import CrewMoment from "./CrewMoment.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { pageCopy } from "@/i18n";
+import { breadcrumbs, faqPage } from "@/lib/schema";
+import { type Lang, pageHref, whatsappHref, signupHref, PHONE_HREF, EMAIL_HREF } from "@/lib/site";
+import type { PageKey } from "@/lib/pages";
+import type { Action, Href } from "@/types/page";
+
+interface Props {
+  page: PageKey;
+  lang: Lang;
+}
+const { page, lang } = Astro.props;
+const copy = pageCopy(lang, page);
+const to = (h: Href) =>
+  "page" in h ? pageHref(lang, h.page, h.hash) : "url" in h ? h.url : { whatsapp: whatsappHref(lang), signup: signupHref(lang), phone: PHONE_HREF, email: EMAIL_HREF }[h.to];
+/** An action's link attributes: outside the site (WhatsApp, another host) opens apart. */
+const link = (a: Action) => {
+  const away = ("to" in a.href && a.href.to === "whatsapp") || ("url" in a.href && /^https?:/.test(a.href.url));
+  return { href: to(a.href), ...(away ? { target: "_blank", rel: "noopener" } : {}) };
+};
+const faqs = copy.sections.flatMap((s) => (s.kind === "faq" ? s.items : []));
+const jsonLd = [breadcrumbs(lang, page as Exclude<PageKey, "home">), ...(faqs.length ? [faqPage(lang, faqs)] : [])];
+const ink = copy.hero.tone === "ink";
+---
+<BaseLayout lang={lang} page={page} headerTone={ink ? "ink" : "paper"} jsonLd={jsonLd}>
+  <Hero
+    tone={copy.hero.tone}
+    kicker={copy.hero.kicker}
+    title={copy.hero.title}
+    lead={copy.hero.lead}
+    orbit={ink ? "-end-[30rem] -top-[26rem] h-[76rem] w-[76rem]" : "-end-[34rem] -top-[34rem] h-[76rem] w-[76rem] opacity-70"}
+  >
+    {copy.hero.action && (
+      <a slot="actions" class:list={["btn btn-lg", ink ? "btn-paper" : "btn-ink"]} {...link(copy.hero.action)}>{copy.hero.action.label} <Icon name="arrow" size={18} /></a>
+    )}
+  </Hero>
+
+  {copy.sections.map((s, i) =>
+    s.kind === "band" ? (
+      <Section pad="tight" label={s.title}>
+        <CtaBand class="mt-16" kicker={s.kicker} title={s.title} body={s.body} cta={{ ...link(s.action), label: s.action.label, event: "cta", where: page }} more={s.more && { ...link(s.more), label: s.more.label, event: "cta-more", where: page }}>
+          {s.crew && s.crew.length > 0 && (
+            <Fragment slot="crew">{s.crew.map((pose) => <CrewMoment pose={pose} class={pose.startsWith("slice") ? "cta-band-shariha" : "cta-band-nuqta"} />)}</Fragment>
+          )}
+        </CtaBand>
+      </Section>
+    ) : (
+      <Section
+        id={s.id ?? `${page}-${i + 1}`}
+        tone={s.tone}
+        kicker={s.kicker}
+        title={s.title}
+        lead={s.lead}
+        split={s.kind === "checks" ? 6 : s.kind === "faq" ? 4 : undefined}
+        size={s.kind === "faq" ? "h3" : undefined}
+      >
+        {s.kind === "checks" && s.action && (
+          <a slot="head" class:list={["btn btn-lg mt-8", s.tone === "ink" ? "btn-paper" : "btn-ink"]} data-reveal {...link(s.action)}>{s.action.label} <Icon name="arrow" size={18} /></a>
+        )}
+        {s.kind === "grid" && <FeatureGrid items={s.items} columns={s.columns} numbered={s.numbered} variant={s.cards ? "card" : "rule"} tone={s.tone === "ink" ? "ink" : "paper"} />}
+        {s.kind === "steps" && <StepList items={s.items} columns={s.items.length === 3 ? 3 : 4} />}
+        {s.kind === "checks" && <CheckList items={s.items} ruled />}
+        {s.kind === "faq" && <FaqList items={s.items} />}
+        {s.kind === "table" && (
+          <DataTable label={s.label}>
+            <table>
+              <thead><tr>{s.columns.map((c) => <th scope="col">{c}</th>)}</tr></thead>
+              <tbody>{s.rows.map((r) => <tr>{r.map((cell) => <td>{cell}</td>)}</tr>)}</tbody>
+            </table>
+          </DataTable>
+        )}
+      </Section>
+    ),
+  )}
+</BaseLayout>

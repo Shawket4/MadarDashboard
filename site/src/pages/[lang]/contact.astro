@@ -4,7 +4,7 @@
  * crawlers and agents. The contact sheet (the header's "Talk to us") stays as it is.
  */
 import BaseLayout from "@/components/layout/BaseLayout.astro";
-import Words from "@/components/kit/Words.astro";
+import Section from "@/components/kit/Section.astro";
 import Icon from "@/components/ui/Icon.astro";
 import { t } from "@/i18n";
 import {
@@ -28,48 +28,41 @@ const rows = [
 ] as const;
 ---
 <BaseLayout lang={lang} page="contact" headerTone="paper" jsonLd={jsonLd}>
-  <section class="bg-paper">
-    <div class="container-site grid gap-12 pb-20 pt-36 md:pt-44 lg:grid-cols-12 lg:gap-16 lg:pb-28">
-      <div class="lg:col-span-5">
-        <p class="kicker text-teal" data-intro style="--i:0">{cp.kicker}</p>
-        <h1 class="text-display mt-5"><Words text={c.contact.title} /></h1>
-        <p class="text-lead mt-6 text-muted" data-intro style="--i:1">{c.contact.subtitle}</p>
-        <h2 class="mt-12 text-lg font-semibold" data-reveal>{cp.nextTitle}</h2>
-        <ol class="mt-4 grid list-decimal gap-3 ps-5 text-muted marker:font-mono marker:text-teal" data-reveal-group>
-          {cp.next.map((line) => <li data-reveal>{line}</li>)}
-        </ol>
-      </div>
-      <div class="lg:col-span-7">
-        <h2 class="text-lg font-semibold" data-reveal>{cp.channels}</h2>
-        <ul class="mt-5 divide-y divide-ink/10 border-y border-ink/10" data-reveal-group>
-          {rows.map((r) => (
-            <li class="flex items-center gap-4 py-5" data-reveal>
-              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal/10 text-teal"><Icon name={r.icon} /></span>
-              <span class="min-w-0">
-                <span class="block text-sm text-muted">{r.label}<span class="sr-only">:</span></span>
-                <a
-                  class:list={["break-all font-medium underline decoration-ink/25 underline-offset-4 hover:decoration-teal", r.ltr && "ltr inline-block"]}
-                  href={r.href}
-                  target={r.external ? "_blank" : undefined}
-                  rel={r.external ? "noopener" : undefined}
-                  data-umami-event={r.event}
-                  data-umami-event-where="contact-page"
-                >{r.value}</a>
-              </span>
-            </li>
-          ))}
-          <li class="flex items-center gap-4 py-5" data-reveal>
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal/10 text-teal"><Icon name="globe" /></span>
-            <span>
-              <span class="block text-sm text-muted">{cp.city}<span class="sr-only">:</span></span>
-              <span class="font-medium">{cp.cityValue}</span>
-            </span>
-          </li>
-        </ul>
-        <a class="btn btn-ink btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="contact-page-cta" data-reveal>
-          {c.contact.whatsapp} <Icon name="arrow" size={18} />
-        </a>
-      </div>
-    </div>
-  </section>
+  <Section intro split={5} kicker={cp.kicker} title={c.contact.title} lead={c.contact.subtitle}>
+    <Fragment slot="head">
+      <h2 class="mt-12 text-lg font-semibold" data-reveal>{cp.nextTitle}</h2>
+      <ol class="mt-4 grid list-decimal gap-3 ps-5 text-muted marker:font-medium marker:text-teal" data-reveal-group>
+        {cp.next.map((line) => <li data-reveal>{line}</li>)}
+      </ol>
+    </Fragment>
+    <h2 class="text-lg font-semibold" data-reveal>{cp.channels}</h2>
+    <ul class="mt-5 divide-y divide-ink/10 border-y border-ink/10" data-reveal-group>
+      {rows.map((r) => (
+        <li class="flex items-center gap-4 py-5" data-reveal>
+          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal/10 text-teal" data-pop><Icon name={r.icon} /></span>
+          <span class="min-w-0">
+            <span class="block text-sm text-muted">{r.label}<span class="sr-only">:</span></span>
+            <a
+              class:list={["hit break-all font-medium underline decoration-ink/25 underline-offset-4 hover:decoration-teal", r.ltr && "ltr inline-block"]}
+              href={r.href}
+              target={r.external ? "_blank" : undefined}
+              rel={r.external ? "noopener" : undefined}
+              data-umami-event={r.event}
+              data-umami-event-where="contact-page"
+            >{r.value}</a>
+          </span>
+        </li>
+      ))}
+      <li class="flex items-center gap-4 py-5" data-reveal>
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal/10 text-teal" data-pop><Icon name="globe" /></span>
+        <span>
+          <span class="block text-sm text-muted">{cp.city}<span class="sr-only">:</span></span>
+          <span class="font-medium">{cp.cityValue}</span>
+        </span>
+      </li>
+    </ul>
+    <a class="btn btn-ink btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="contact-page-cta" data-reveal>
+      {c.contact.whatsapp} <Icon name="arrow" size={18} />
+    </a>
+  </Section>
 </BaseLayout>

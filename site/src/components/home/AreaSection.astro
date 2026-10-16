@@ -81,7 +81,7 @@ const mutedTone = ink ? "text-muted-ink" : "text-muted";
           ))}
         </ul>
         {moreHref && (
-          <a class:list={["mt-8 inline-flex items-center gap-2 font-medium", kickerTone]} href={moreHref}>
+          <a class:list={["mt-8 inline-flex min-h-11 items-center gap-2 font-medium", kickerTone]} href={moreHref}>
             {moreLabel} <Icon name="arrow" size={18} />
           </a>
         )}
@@ -102,7 +102,7 @@ const mutedTone = ink ? "text-muted-ink" : "text-muted";
           </div>
         )}
         {scene && moreHref && (
-          <a class:list={["area-more-m mt-5 items-center gap-2 font-medium", kickerTone]} href={moreHref} data-md-skip>
+          <a class:list={["area-more-m mt-5 min-h-11 items-center gap-2 font-medium", kickerTone]} href={moreHref} data-md-skip>
             {moreLabel} <Icon name="arrow" size={18} />
           </a>
         )}

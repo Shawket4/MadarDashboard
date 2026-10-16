@@ -11,6 +11,7 @@ import { brotliCompress, gzip, constants as zlib } from "node:zlib";
 import { execSync } from "node:child_process";
 import { pack } from "./integrations/pack.mjs";
 import { agentFiles } from "./scripts/agent-files.mjs";
+import { PAGES, PAGE_URLS, LANGS } from "./src/lib/pages.ts";
 
 export const SITE = "https://get.madar-pos.cloud";
 
@@ -28,6 +29,49 @@ function rootAlias() {
         await copyFile(`${out}index.html`, `${out}get.html`);
         const urls = `${out}sitemap-0.xml`;
         if (await access(urls).then(() => true, () => false)) await copyFile(urls, `${out}sitemap.xml`);
+      },
+    },
+  };
+}
+
+/**
+ * The page registry (src/lib/pages.ts) against the source: every registered page has its
+ * file and its copy in each of its languages, and every page file is registered. Fails the
+ * build, saying what is missing and where, before anything is built.
+ */
+function pagesRegistry() {
+  return {
+    name: "madar-pages-registry",
+    hooks: {
+      "astro:config:setup": async () => {
+        const src = fileURLToPath(new URL("./src/", import.meta.url));
+        const exists = (p) => access(path.join(src, p)).then(() => true, () => false);
+        const { en } = await import("./src/i18n/en.ts");
+        const { ar } = await import("./src/i18n/ar.ts");
+        const copy = { en, ar };
+        const problems = [];
+        const files = new Set();
+        for (const page of PAGES) {
+          const file = page.langLast
+            ? `pages/${page.path}[lang].astro`
+            : `pages/[lang]/${page.path ? page.path.replace(/\/$/, "") : "index"}.astro`;
+          files.add(file);
+          if (!(await exists(file))) problems.push(`page "${page.key}" is registered but src/${file} is missing`);
+          const module = (await exists(`i18n/pages/${page.key}.ts`)) ? await import(`./src/i18n/pages/${page.key}.ts`) : null;
+          for (const lang of page.langs ?? LANGS) {
+            if (!copy[lang].meta[page.key] && !module?.[lang]) {
+              problems.push(`page "${page.key}" has no ${lang === "ar" ? "Arabic" : "English"} copy (meta.${page.key} in src/i18n/${lang}.ts, or \`export const ${lang}\` in src/i18n/pages/${page.key}.ts)`);
+            }
+          }
+        }
+        for (const dir of ["pages/[lang]"]) {
+          for (const entry of await readdir(path.join(src, dir))) {
+            if (entry.endsWith(".astro") && !entry.startsWith("_") && !files.has(`${dir}/${entry}`)) {
+              problems.push(`src/${dir}/${entry} is not in the page registry (src/lib/pages.ts): add it there, or run npm run new:page`);
+            }
+          }
+        }
+        if (problems.length) throw new Error(`The page registry and the source disagree:\n  ${problems.join("\n  ")}`);
       },
     },
   };
@@ -148,23 +192,26 @@ export default defineConfig({
   },
   prefetch: { prefetchAll: true, defaultStrategy: "hover" },
   integrations: [
+    pagesRegistry(),
     sitemap({
-      i18n: { defaultLocale: "en", locales: { en: "en", ar: "ar" } },
-      // Only the language pages: the root is a bilingual signpost to them, 404 isn't a page.
-      filter: (page) => /\/(en|ar)\//.test(page),
+      // Only the registry's pages (src/lib/pages.ts): the root and /free/ are bilingual
+      // signposts to them, 404 isn't a page.
+      filter: (page) => PAGE_URLS.some((u) => new URL(u.href, SITE).href === page),
       lastmod: lastModified(),
-      // x-default: the English page, as each page's own hreflang says.
-      serialize: (item) => ({
-        ...item,
-        // The Free page is /free/<lang>/ (the i18n option only knows /<lang>/…), so give it both alternates.
-        links: /\/free\/(en|ar)\/$/.test(item.url)
-          ? [
-              { url: item.url.replace(/\/ar\/$/, "/en/"), lang: "en" },
-              { url: item.url.replace(/\/en\/$/, "/ar/"), lang: "ar" },
-              { url: item.url.replace(/\/ar\/$/, "/en/"), lang: "x-default" },
-            ]
-          : [...(item.links ?? []), { url: item.url.replace(/\/ar\//, "/en/"), lang: "x-default" }],
-      }),
+      // Each page's alternates from the registry: its languages, and x-default (English),
+      // as each page's own hreflang says.
+      serialize: (item) => {
+        const key = PAGE_URLS.find((u) => new URL(u.href, SITE).href === item.url)?.key;
+        const alternates = PAGE_URLS.filter((u) => u.key === key);
+        const en = alternates.find((u) => u.lang === "en");
+        return {
+          ...item,
+          links: [
+            ...alternates.map((u) => ({ url: new URL(u.href, SITE).href, lang: u.lang })),
+            ...(en ? [{ url: new URL(en.href, SITE).href, lang: "x-default" }] : []),
+          ],
+        };
+      },
     }),
     modulePreload(),
     rootAlias(),

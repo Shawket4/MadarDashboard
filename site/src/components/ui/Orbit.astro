@@ -27,7 +27,7 @@ const sy = c + r2 * Math.sin(-Math.PI / 4 - Math.PI / 2 + 0.35);
   data-orbit
 >
   <g fill="none" stroke={line} stroke-opacity="0.1" stroke-width="2">
-    {rings.map((r) => <circle class="orbit-ring" cx={c} cy={c} r={r} data-draw />)}
+    {rings.map((r) => <circle class="orbit-ring" cx={c} cy={c} r={r} data-orbit-ring />)}
   </g>
   <circle cx={c} cy={c} r="10" fill={line} fill-opacity="0.85" />
   <g class="orbit-satellite" style={`transform-origin: ${c}px ${c}px`}>

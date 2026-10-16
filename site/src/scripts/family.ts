@@ -10,9 +10,9 @@
 // picks the object and turns it; GSAP tweens pop objects in and out. Until the
 // 3D is ready the stage shows the 2D orbit; where it can't run (no WebGL, data
 // saving on) nothing pins and the whole list shows beside the orbit.
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger } from "./motion";
 import type { Showcase, Stage } from "@shared/showcase/engine";
+import { EASE } from "@/lib/motion";
 
 /** Scrolling per object, as a share of the screen's height. */
 const SPAN = 0.35;
@@ -90,12 +90,12 @@ export function familyScene(section: HTMLElement, kit: SceneKit) {
       .set(stage, { leaving: true })
       .to(stage, { presence: 0, duration: 0.2, ease: "back.in(1.6)" })
       .set(stage, { index: to, leaving: false })
-      .to(stage, { presence: 1, duration: 0.5, ease: "back.out(1.7)" });
+      .to(stage, { presence: 1, duration: 0.5, ease: EASE.pop });
   };
   const go = kit.sequencer(change, snap, inView);
 
   // The first object pops in as the stage comes into view.
-  kit.whenSeen(stageEl, "top 75%", gsap.to(stage, { presence: 1, duration: 0.7, ease: "back.out(1.7)", paused: true }));
+  kit.whenSeen(stageEl, "top 75%", gsap.to(stage, { presence: 1, duration: 0.7, ease: EASE.pop, paused: true }));
 
   // Each object gets a third of a screen of scrolling, and turns through it.
   ScrollTrigger.create({

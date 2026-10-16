@@ -5,6 +5,7 @@
  * are coming to both stores, said in words. The dashboard already runs in a browser.
  * Icons are the kits' own app tiles (Madar Design System, Dawam Design System v2).
  */
+import Section from "@/components/kit/Section.astro";
 import StoreBadges from "@/components/ui/StoreBadges.astro";
 import Icon from "@/components/ui/Icon.astro";
 import cashier from "@/assets/apps/cashier.svg?url";
@@ -22,15 +23,8 @@ const icons: Record<AppKey, string> = { cashier, kitchen, dashboard, dawam };
 const live = APP_KEYS.filter(isLive);
 const soon = APP_KEYS.filter((k) => !isLive(k));
 ---
-<section class="on-ink bg-ink text-paper" aria-labelledby="apps-title">
-  <div class="container-site grid gap-12 border-t border-line-ink py-20 md:py-28 lg:grid-cols-12 lg:gap-10">
-    <div class="lg:col-span-5">
-      <p class="kicker text-teal-light" data-reveal>{a.kicker}</p>
-      <h2 id="apps-title" class="text-h2 mt-4" data-split>{a.title}</h2>
-      <p class="text-lead mt-5 text-muted-ink" data-reveal>{a.body}</p>
-    </div>
-
-    <div class="lg:col-span-7 lg:col-start-6 lg:ps-10" data-reveal>
+<Section id="apps" tone="ink" split={5} rule kicker={a.kicker} title={a.title} lead={a.body}>
+    <div data-reveal>
       {live.map((key, i) => (
         <div class:list={["flex flex-wrap items-center gap-x-6 gap-y-5", i > 0 && "mt-7"]}>
           <img class="app-icon size-16" src={icons[key]} width="64" height="64" alt="" />
@@ -59,5 +53,4 @@ const soon = APP_KEYS.filter((k) => !isLive(k));
         ))}
       </ul>
     </div>
-  </div>
-</section>
+</Section>

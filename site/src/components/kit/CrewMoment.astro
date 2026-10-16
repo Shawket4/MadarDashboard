@@ -1,0 +1,31 @@
+---
+/**
+ * A crew member by pose, so a page places a character by name (components/crew holds the
+ * owner's artwork). The engine plays its entrance and crew.ts its idle life; without motion
+ * it simply stands there. Size and place it with `class` (sections/crew.css has the sizes
+ * the pages use). `host`: the figure greets a pointer over (or a tap on) the box around it.
+ *   wave       نقطة, waving                 count      نقطة with the till report
+ *   joy        نقطة, jumping for joy         cup        نقطة with a coffee (needs a light ground)
+ *   slice      شريحة                          slice-joy  شريحة, jumping for joy
+ *   pot        the Kanaka, steaming (drawn for an Ink ground)
+ */
+import Nuqta from "@/components/crew/Nuqta.astro";
+import NuqtaJoy from "@/components/crew/NuqtaJoy.astro";
+import NuqtaCount from "@/components/crew/NuqtaCount.astro";
+import NuqtaCup from "@/components/crew/NuqtaCup.astro";
+import Kanaka from "@/components/crew/Kanaka.astro";
+import Shariha from "@/components/crew/Shariha.astro";
+import SharihaJoy from "@/components/crew/SharihaJoy.astro";
+import type { Pose } from "@/types/page";
+
+interface Props {
+  pose: Pose;
+  class?: string;
+  /** Wrap it in a greeting box (data-crew-host) with these classes. */
+  host?: string;
+}
+const { pose, class: cls = "", host } = Astro.props;
+const FIGURES = { wave: Nuqta, joy: NuqtaJoy, count: NuqtaCount, cup: NuqtaCup, pot: Kanaka, slice: Shariha, "slice-joy": SharihaJoy };
+const Figure = FIGURES[pose];
+---
+{host !== undefined ? <div class={host || undefined} data-crew-host><Figure class={cls} /></div> : <Figure class={cls} />}

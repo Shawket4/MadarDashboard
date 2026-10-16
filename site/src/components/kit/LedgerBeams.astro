@@ -3,8 +3,9 @@
  * "One ledger under everything": every surface writes to the same ledger, and
  * every report reads from it. The nodes are plain HTML; `scripts/beams.ts` draws
  * the beams between them (curves measured from where the nodes sit) and sends a
- * light along each one, on screen only. Under reduced motion the beams are still
- * drawn, without the light; without JavaScript the nodes stand on their own.
+ * light along each one, on screen only (scripts/load-motion.ts loads it). Under reduced
+ * motion the beams are still drawn, without the light; without JavaScript the nodes
+ * stand on their own.
  * (Rebuilt without React from the Magic UI AnimatedBeam it began as, MIT.)
  */
 interface Props {
@@ -71,6 +72,3 @@ const node = "relative z-10 flex max-w-full items-center gap-2 rounded-2xl borde
   </div>
 </div>
 
-<script>
-  import "@/scripts/beams";
-</script>
