@@ -13,6 +13,7 @@ const { chromium } = require("playwright");
 const [base, out] = process.argv.slice(2);
 const reduced = process.argv.includes("--reduced");
 const frames = !process.argv.includes("--no-frames");
+const only = process.argv.find((a) => a.startsWith("--only="))?.slice(7);
 mkdirSync(out, { recursive: true });
 
 const VIEWPORTS = { desktop: { width: 1440, height: 900 }, phone: { width: 390, height: 844 } };
@@ -136,21 +137,21 @@ async function record(cdp, name, ms) {
 
 const results = {};
 for (const vp of Object.keys(VIEWPORTS)) {
-  for (const l of LOADS) {
+  for (const l of LOADS.filter((x) => !only || x.name === only)) {
     const { ctx, page, cdp } = await newPage(vp, l.signedOut);
     // Warm the dev server's module graph once so a cold load measures the app, not Vite.
     await page.goto(base + l.path);
     await page.waitForLoadState("networkidle").catch(() => {});
     await page.goto("about:blank");
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
-    const stop = await record(cdp, `load-${l.name}-${vp}`, 1500);
+    const stop = await record(cdp, `load-${l.name}-${vp}`, 5000);
     await page.goto(base + l.path);
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
     const n = await stop();
     results[`load.${l.name}.${vp}`] = { frames: n, ghosts: await page.evaluate(() => window.__ghosts) };
     await ctx.close();
   }
-  for (const nv of NAVS) {
+  for (const nv of NAVS.filter((x) => !only || x.name.startsWith(only))) {
     const { ctx, page, cdp } = await newPage(vp, false);
     await page.goto(base + nv.from);
     await page.waitForLoadState("networkidle").catch(() => {});
