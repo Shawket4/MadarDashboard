@@ -4,8 +4,10 @@ import { cn } from "@/lib/utils";
 import { Orbit2D } from "./orbit-2d";
 
 /**
- * The sign-in panel's picture: the 3D showcase where it can run well, the 2D
- * orbit everywhere else.
+ * The signed-out pages' picture: the 3D showcase where it can run well, the 2D
+ * orbit everywhere else. `size="panel"` fills the wide-screen brand panel;
+ * `size="compact"` is the ink band above the form (every width on sign-up,
+ * below the panel's breakpoint on sign-in).
  *
  * The 3D lives in its own lazy chunk (three.js and the shared engine) that is only
  * requested on a desktop-width screen, with motion allowed, data saving off and
@@ -21,6 +23,9 @@ const Showcase3D = lazy(() => import("./showcase-3d"));
 const PATIENCE_MS = 4000;
 
 const DESKTOP = "(min-width: 1024px)";
+
+/** Wide enough for the brand panel (and for the 3D at all). */
+export const useDesktop = () => useMedia(DESKTOP);
 
 function useMedia(query: string): boolean {
   return useSyncExternalStore(
@@ -71,12 +76,18 @@ class ShowcaseBoundary extends Component<{ onError: () => void; children: ReactN
 }
 
 /** The 3D's footprint: room for the object and its caption, never taller than half the screen and a bit. */
-const FRAME = "relative mx-auto h-[min(32rem,56svh)] w-full max-w-[38rem]";
+const FRAME = {
+  panel: "relative mx-auto h-[min(32rem,56svh)] w-full max-w-[38rem]",
+  compact: "relative mx-auto h-[min(16rem,30svh)] w-full",
+};
+
+/** The 2D orbit's size in the band: small enough to leave the form above the fold on a phone. */
+const ORBIT_COMPACT = "w-[min(100%,17rem,34svh)]";
 
 type Mode = "loading" | "3d" | "2d";
 
-export function BrandShowcase({ className }: { className?: string }) {
-  const desktop = useMedia(DESKTOP);
+export function BrandShowcase({ className, size = "panel" }: { className?: string; size?: "panel" | "compact" }) {
+  const desktop = useDesktop();
   const reduced = useReducedMotion();
   const [mode, setMode] = useState<Mode>(() => (wants3D() ? "loading" : "2d"));
 
@@ -87,19 +98,21 @@ export function BrandShowcase({ className }: { className?: string }) {
     return () => window.clearTimeout(id);
   }, [mode, desktop]);
 
-  // The panel only shows on desktop widths; elsewhere there's nothing to draw.
-  if (!desktop) return null;
+  // The panel only shows on desktop widths; there, nothing to draw below them.
+  if (!desktop && size === "panel") return null;
 
-  if (mode === "2d" || reduced) {
+  // Phones and tablets get the 2D orbit: the 3D chunk is never fetched below the
+  // desktop breakpoint.
+  if (mode === "2d" || reduced || !desktop) {
     return (
       <Reveal recipe={recipes.fade(DURATION.brand)} className={className}>
-        <Orbit2D />
+        <Orbit2D className={size === "compact" ? ORBIT_COMPACT : undefined} />
       </Reveal>
     );
   }
 
   return (
-    <div aria-hidden="true" className={cn(FRAME, className)}>
+    <div aria-hidden="true" className={cn(FRAME[size], className)}>
       <ShowcaseBoundary onError={() => setMode("2d")}>
         <Suspense fallback={null}>
           <div

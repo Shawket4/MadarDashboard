@@ -72,6 +72,14 @@ export function LoginPage() {
     <AuthShell
       title={t("auth.welcome", "Welcome back")}
       subtitle={t("auth.signInSubtitle", "Sign in to your account to continue")}
+      crossLink={
+        <>
+          {t("signup.noAccount", "No account?")}{" "}
+          <Link to="/signup" className="font-medium text-foreground underline underline-offset-4">
+            {t("signup.signUpFree", "Sign up free")}
+          </Link>
+        </>
+      }
     >
       <Form {...form}>
         <form ref={formRef} onSubmit={form.handleSubmit((v) => mutate({ data: v }))} className="space-y-4">
@@ -124,12 +132,6 @@ export function LoginPage() {
         </form>
       </Form>
 
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        {t("signup.noAccount", "No account?")}{" "}
-        <Link to="/signup" className="font-medium text-foreground underline underline-offset-4">
-          {t("signup.signUpFree", "Sign up free")}
-        </Link>
-      </p>
     </AuthShell>
   );
 }

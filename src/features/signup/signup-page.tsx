@@ -274,7 +274,7 @@ export function SignupPage() {
       <Stagger
         register="brand"
         selector=":scope > ol, :scope > div > :not(form), :scope > div > form > *"
-        className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-8"
+        data-own-motion=""
       >
         <StepIndicator step={step} />
         <p className="sr-only" role="status">
