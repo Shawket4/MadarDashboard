@@ -137,7 +137,7 @@ screenshots, the 3D and the cappuccino's animations, online or offline (owner).
 | An area's screens | `media` and `stepMap` on each `AreaSection` in `src/pages/[lang]/index.astro`: the screens play in the order the steps first need them (step 0 is the intro, then one per point). On the features page, `shots` on each `FeatureArea` (`src/pages/[lang]/features.astro`): two or more wide screens make a strip, two or more phones a fan |
 | The cappuccino steps | `src/scripts/barista.ts`, files in `src/assets/lottie/` (Madar's own prep-step animations) |
 | The roadmap | `features.roadmap` in both copy files (`state`: `shipped` or `dev`), drawn by `src/components/features/Roadmap.astro` and `roadmap()` in `story.ts` |
-| Colours, type, buttons | `src/styles/global.css`: the brand kit's palette, and the design system's type (MadarDashboard `DESIGN.md`): IBM Plex Sans Arabic leads in both languages, IBM Plex Sans behind it, IBM Plex Mono for figures |
+| Colours, type, buttons, motion, spacing | `src/styles/tokens.css` (every value; `site/CLAUDE.md` has the map and the rules): the brand kit's palette, and the design system's type (MadarDashboard `DESIGN.md`): IBM Plex Sans Arabic leads in both languages, IBM Plex Sans behind it, IBM Plex Mono for figures |
 
 Buttons are **Ink & Paper**: one solid button per spot, `btn-ink` on light ground and
 `btn-paper` on Ink, flat, a trailing arrow that turns with the language; a second
@@ -183,7 +183,7 @@ Motion rules:
   outside (or a reload) plays the hero's entrance, or the page intro's (`data-intro`,
   and the heading's words split at build time by `Words.astro`).
 - **The first screen never waits for JavaScript.** That entrance is CSS ("First
-  screen" in `global.css`): it starts with the first paint and runs off the main
+  screen" in `styles/motion.css`): it starts with the first paint and runs off the main
   thread, so the gsap bundle loading, or `story.ts` setting up the pins, can't delay
   or stall it. Whatever else is on screen when `story.ts` starts stays as it is
   (`settled`); only what scrolls in later reveals.
@@ -206,7 +206,7 @@ Motion rules:
   never a long scroll down the page (owner), and the section they land on plays its
   entrance: a same-page link through `story.ts` (`jump`, which doesn't count as a
   flick), a `#` address from another page in CSS (`data-arrive` from the head script and
-  `:target` in `global.css`). Anything a jump carries the page past finishes at once
+  `:target` in `styles/motion.css`). Anything a jump carries the page past finishes at once
   (`whenSeen`). A `#` address lands again once the pins have added their length
   (`landOnHash`).
 - Pins are created in page order. ScrollTriggers whose range contains a pin use

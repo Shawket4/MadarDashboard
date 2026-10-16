@@ -1,13 +1,15 @@
 ---
 import BaseLayout from "@/components/layout/BaseLayout.astro";
-import Words from "@/components/kit/Words.astro";
+import Section from "@/components/kit/Section.astro";
 import FeatureArea from "@/components/features/FeatureArea.astro";
 import Roadmap from "@/components/features/Roadmap.astro";
 import BasiraDemo from "@/components/home/BasiraDemo.astro";
-import Orbit from "@/components/ui/Orbit.astro";
 import LedgerBeams from "@/components/kit/LedgerBeams.astro";
+import CtaBand from "@/components/kit/CtaBand.astro";
+import NuqtaJoy from "@/components/crew/NuqtaJoy.astro";
+import SharihaJoy from "@/components/crew/SharihaJoy.astro";
 import { t, featureGroups } from "@/i18n";
-import { type Lang, LANGS } from "@/lib/site";
+import { type Lang, LANGS, pageHref, signupHref } from "@/lib/site";
 import { breadcrumbs } from "@/lib/schema";
 
 export function getStaticPaths() {
@@ -21,48 +23,27 @@ const f = c.features;
 const groups = featureGroups(lang);
 ---
 <BaseLayout lang={lang} page="features" headerTone="paper" jsonLd={[breadcrumbs(lang, "features")]}>
-  <!-- Intro -->
-  <section class="relative isolate overflow-hidden bg-paper">
-    <Orbit tone="paper" class="absolute -end-[34rem] -top-[34rem] -z-10 h-[76rem] w-[76rem] opacity-70" />
-    <div class="container-site pb-14 pt-36 md:pb-20 md:pt-44">
-      <p class="kicker text-teal" data-intro style="--i:0">{f.kicker}</p>
-      <h1 class="text-display mt-5 max-w-5xl"><Words text={f.title} /></h1>
-      <p class="text-lead mt-6 max-w-2xl text-muted" data-intro style="--i:1">{f.intro}</p>
-    </div>
-  </section>
+  <Section intro kicker={f.kicker} title={f.title} lead={f.intro} headClass="max-w-5xl" orbit="-end-[34rem] -top-[34rem] h-[76rem] w-[76rem] opacity-70" />
 
   <!-- What today's POS gets wrong -->
-  <section class="on-ink bg-ink text-paper" aria-labelledby="wrong-title">
-    <div class="container-site grid gap-12 py-20 md:py-28 lg:grid-cols-12">
-      <div class="lg:col-span-4">
-        <p class="kicker text-teal-light" data-reveal>{f.wrongKicker}</p>
-        <h2 id="wrong-title" class="text-h2 mt-4" data-split>{f.wrongTitle}</h2>
-      </div>
-      <ol class="grid gap-5 sm:grid-cols-2 lg:col-span-8" data-reveal-group>
-        {f.wrong.map((w, i) => (
-          <li class="card-ink flex flex-col p-7" data-reveal>
-            <span class="ltr font-mono text-sm text-teal-light">0{i + 1}</span>
-            <h3 class="mt-6 text-xl font-semibold leading-snug">{w.title}</h3>
-            <p class="mt-3 text-muted-ink">{w.body}</p>
-          </li>
-        ))}
-      </ol>
-    </div>
-  </section>
+  <Section id="wrong" tone="ink" split={4} kicker={f.wrongKicker} title={f.wrongTitle}>
+    <ol class="grid gap-5 sm:grid-cols-2" data-reveal-group>
+      {f.wrong.map((w, i) => (
+        <li class="card-ink flex flex-col p-7" data-reveal>
+          <span class="ltr font-mono text-sm text-teal-light">0{i + 1}</span>
+          <h3 class="mt-6 text-xl font-semibold leading-snug">{w.title}</h3>
+          <p class="mt-3 text-muted-ink">{w.body}</p>
+        </li>
+      ))}
+    </ol>
+  </Section>
 
   <!-- One ledger -->
-  <section class="bg-surface" aria-labelledby="ledger-title">
-    <div class="container-site py-20 md:py-28">
-      <div class="mx-auto max-w-2xl text-center">
-        <p class="kicker text-teal" data-reveal>{f.ledger.kicker}</p>
-        <h2 id="ledger-title" class="text-h2 mt-4" data-split>{f.ledger.title}</h2>
-        <p class="text-lead mt-5 text-muted" data-reveal>{f.ledger.body}</p>
-      </div>
-      <div class="mt-14" data-reveal>
-        <LedgerBeams labels={f.ledger.labels} />
-      </div>
+  <Section id="ledger" tone="surface" center kicker={f.ledger.kicker} title={f.ledger.title} lead={f.ledger.body}>
+    <div data-reveal>
+      <LedgerBeams labels={f.ledger.labels} />
     </div>
-  </section>
+  </Section>
 
   <!-- Jump to -->
   <nav class="sticky top-16 z-20 border-y border-ink/10 bg-paper/90 backdrop-blur-md" aria-label={f.indexLabel} data-jump-nav>
@@ -71,7 +52,7 @@ const groups = featureGroups(lang);
         <div class="flex shrink-0 items-center gap-1.5">
           <span class="me-1 text-xs font-semibold text-muted">{g.label}</span>
           {g.items.map(([id, label]) => (
-            <a class="chip border border-rule bg-white text-ink transition-colors hover:border-teal" href={`#${id}`}>{label}</a>
+            <a class="chip hit border border-rule bg-white text-ink transition-colors hover:border-teal" href={`#${id}`}>{label}</a>
           ))}
         </div>
       ))}
@@ -131,5 +112,24 @@ const groups = featureGroups(lang);
     { id: "dash-payments", frame: "browser", alt: a.setup.alts.payments },
   ]} />
 
+  <!-- The other door, as on pricing: Madar Free, with the crew cheering on its edge. -->
+  <Section pad="tight" label={c.pricing.freePlan.kicker}>
+    <CtaBand
+      class="mt-16"
+      kicker={c.pricing.freePlan.kicker}
+      title={c.pricing.freePlan.title}
+      body={c.pricing.freePlan.body}
+      price={{ amount: c.pricing.freePlan.price, per: c.pricing.freePlan.per }}
+      cta={{ href: signupHref(lang), label: c.pricing.freePlan.cta, event: "free-signup", where: "features" }}
+      more={{ href: pageHref(lang, "free"), label: c.pricing.freePlan.more, event: "free-page", where: "features" }}
+    >
+      <Fragment slot="crew"><SharihaJoy class="cta-band-shariha" /><NuqtaJoy class="cta-band-nuqta" /></Fragment>
+    </CtaBand>
+  </Section>
+
   <Roadmap lang={lang} />
 </BaseLayout>
+
+<script>
+  import "@/scripts/crew";
+</script>

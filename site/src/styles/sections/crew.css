@@ -94,6 +94,9 @@
    handle reaching out to the side. */
 .free-door-roundel-ink { background: var(--color-ink-3); }
 .free-door-kanaka { position: absolute; inset-inline: 0; bottom: 10%; width: 62%; margin-inline: auto; translate: 18% 0; overflow: visible; cursor: pointer; }
+/* The FAQ page: نقطة under the questions' head, waving (wide screens only). */
+.faq-crew { display: none; }
+@media (min-width: 64rem) { .faq-crew { display: block; margin-top: 3rem; } .faq-nuqta { width: 7.5rem; overflow: visible; cursor: pointer; } }
 /* The 404: the Kanaka, looking about for the page. */
 .nf-kanaka { display: block; width: 6.5rem; margin-bottom: -2rem; overflow: visible; cursor: pointer; }
 /* The endless bits run only while their character is on screen (crew.ts sets data-live). */

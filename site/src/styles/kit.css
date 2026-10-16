@@ -93,6 +93,9 @@ html[lang="ar"] .pt-plan-ink .pt-cur { font-family: var(--font-arabic); font-siz
 .sec-tight { padding-block: var(--section-y-tight); }
 .sec-loose { padding-block: var(--section-y-loose); }
 .sec-intro { padding-top: calc(var(--section-y) + 4rem); }
+/* A split section's head holding still beside its content (clear of the header; a page
+   with more stuck under the header sets --sticky-top on the section). */
+@media (min-width: 64rem) { .sec-sticky { position: sticky; top: var(--sticky-top, 8rem); } }
 
 /* ---------- Call-to-action band (kit/CtaBand.astro) ----------
    A dark strip in a light section: the words, a price, the button. The joyful crew stand

@@ -7,6 +7,7 @@
  * own label on phones and for screen readers), so nothing rests on colour or a glyph.
  * story.ts draws the line in as it arrives; without motion it simply stands there.
  */
+import Section from "@/components/kit/Section.astro";
 import { t } from "@/i18n";
 import type { Lang } from "@/lib/site";
 
@@ -26,15 +27,8 @@ for (const item of r.items) {
 }
 let pulse = 0;
 ---
-<section id="roadmap" class="on-ink scroll-mt-32 bg-ink text-paper" aria-labelledby="roadmap-title">
-  <div class="container-site py-20 md:py-28">
-    <div class="max-w-2xl">
-      <p class="kicker text-teal-light" data-reveal>{r.kicker}</p>
-      <h2 id="roadmap-title" class="text-h2 mt-4" data-split>{r.title}</h2>
-      <p class="text-lead mt-5 text-muted-ink" data-reveal>{r.body}</p>
-    </div>
-
-    <div class="rm mt-16 lg:mt-20" style={`--rm-n:${r.items.length}`} data-roadmap>
+<Section id="roadmap" tone="ink" kicker={r.kicker} title={r.title} lead={r.body} class="scroll-mt-32">
+    <div class="rm" style={`--rm-n:${r.items.length}`} data-roadmap>
       <div class="rm-zones" aria-hidden="true">
         {zones.map((z) => (
           <div class="rm-zone" data-state={z.state} style={`grid-column:span ${z.span}`} data-rm-zone>
@@ -78,5 +72,4 @@ let pulse = 0;
         })}
       </ol>
     </div>
-  </div>
-</section>
+</Section>

@@ -47,6 +47,7 @@
     text-decoration-color: color-mix(in oklab, currentColor 40%, transparent); transition: text-decoration-color var(--dur-quick);
   }
   .link-cta:hover { text-decoration-color: currentColor; }
+  .link-cta { min-width: 2.75rem; }
   .link-quiet { text-decoration: none; color: inherit; opacity: .78; transition: opacity var(--dur-quick); }
   .link-quiet:hover { opacity: 1; }
   .chip { display: inline-flex; align-items: center; gap: .45rem; border-radius: 999px; padding: .32rem .8rem; font-size: .8rem; font-weight: 500; }
@@ -108,6 +109,11 @@ html:not([lang="ar"]) .lang-switch { font-family: ui-sans-serif, system-ui, -app
 .site-header .logo-on-ink { display: none; }
 .site-header[data-tone="ink"]:not([data-solid="true"]) .logo-on-ink { display: inline-flex; }
 .site-header[data-tone="ink"]:not([data-solid="true"]) .logo-on-paper { display: none; }
+
+/* A tap target of at least 44 px however small it looks (WCAG 2.5.5): an invisible hit
+   area around it, so the footer's links and the jump chips keep their size on screen. */
+.hit { position: relative; }
+.hit::after { content: ""; position: absolute; inset: min(0px, (100% - 2.75rem) / 2); }
 
 /* A quiet second button on Paper: hairline, Ink text. */
 .btn-outline { border: 1px solid color-mix(in oklab, var(--color-ink) 22%, transparent); color: var(--color-ink); background: transparent; }

@@ -65,13 +65,13 @@ const body = Astro.slots.has("default");
       {split ? (
         <Fragment>
           <div class={SPLIT[split][0]}>
-            {title && <SectionHead {...head} class={sticky ? "lg:sticky lg:top-32" : undefined}><slot name="mark" slot="mark" /><slot name="head" /></SectionHead>}
+            {title && <SectionHead {...head} class={sticky ? "sec-sticky" : undefined}><slot name="mark" slot="mark" /><slot name="head" /></SectionHead>}
           </div>
           <div class={SPLIT[split][1]}><slot /></div>
         </Fragment>
       ) : (
         <Fragment>
-          {title && <SectionHead {...head} class={center ? "mx-auto max-w-2xl text-center [&_.text-lead]:mx-auto" : headClass}><slot name="mark" slot="mark" /><slot name="head" /></SectionHead>}
+          {title && <SectionHead {...head} class={center ? "mx-auto max-w-3xl text-center [&_.text-lead]:mx-auto" : headClass}><slot name="mark" slot="mark" /><slot name="head" /></SectionHead>}
           {body && <div class:list={[title && "mt-12 md:mt-16"]}><slot /></div>}
         </Fragment>
       )}

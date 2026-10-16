@@ -5,6 +5,8 @@
  * /public/); the MCP server is MadarRust src/mcp.rs. Change them together.
  */
 import BaseLayout from "@/components/layout/BaseLayout.astro";
+import Section from "@/components/kit/Section.astro";
+import DataTable from "@/components/kit/DataTable.astro";
 import { type Lang, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_E164, absoluteUrl } from "@/lib/site";
 import { breadcrumbs } from "@/lib/schema";
 
@@ -103,15 +105,15 @@ content-type: application/json
 };
 ---
 <BaseLayout lang={lang} page="developers" headerTone="paper" closing={false} jsonLd={jsonLd}>
-  <article class="container-site pb-20 pt-36 md:pt-44 lg:pb-28">
-    <div class="dev max-w-4xl">
-      <p class="kicker text-teal">Developers</p>
-      <h1 class="text-h2 mt-5">Madar POS API and MCP server</h1>
-      <p class="text-lead mt-6 text-muted">
-        Read a café's own public data: its brand and links page, branches, menu with prices in EGP,
-        table booking times and the status of an online order. No account and no key.
-      </p>
-
+  <Section
+    intro
+    size="h2"
+    headClass="max-w-4xl"
+    kicker="Developers"
+    title="Madar POS API and MCP server"
+    lead="Read a café's own public data: its brand and links page, branches, menu with prices in EGP, table booking times and the status of an online order. No account and no key."
+  >
+    <article class="dev max-w-4xl">
       <dl class="facts">
         <dt>Base URL</dt><dd><code>{API}</code></dd>
         <dt>Version</dt><dd>1, at <code>/v1/</code> (see <a href="#versioning">versioning</a>)</dd>
@@ -140,7 +142,7 @@ content-type: application/json
 
       <h2>Endpoints</h2>
       <p>All are <code>GET</code>, under <code>{API}</code>.</p>
-      <div class="table-wrap" tabindex="0">
+      <DataTable label="Endpoints">
         <table>
           <thead><tr><th scope="col">Method</th><th scope="col">Path</th><th scope="col">Returns</th></tr></thead>
           <tbody>
@@ -149,7 +151,7 @@ content-type: application/json
             ))}
           </tbody>
         </table>
-      </div>
+      </DataTable>
       <p>
         A typical path: the links page by the shop's address name gives its branches and their ids;
         a branch id gives the menu and the booking times.
@@ -229,7 +231,7 @@ content-type: application/json
       </dl>
 
       <h3>Tools</h3>
-      <div class="table-wrap" tabindex="0">
+      <DataTable label="Tools">
         <table>
           <thead><tr><th scope="col">Tool</th><th scope="col">Input</th><th scope="col">Returns</th></tr></thead>
           <tbody>
@@ -238,10 +240,10 @@ content-type: application/json
             ))}
           </tbody>
         </table>
-      </div>
+      </DataTable>
 
       <h3>Resources</h3>
-      <div class="table-wrap" tabindex="0">
+      <DataTable label="Resources">
         <table>
           <thead><tr><th scope="col">URI</th><th scope="col">Type</th><th scope="col">Holds</th></tr></thead>
           <tbody>
@@ -249,7 +251,7 @@ content-type: application/json
             <tr><td><code>{SPEC}</code></td><td><code>application/json</code></td><td>The public API as OpenAPI 3.1</td></tr>
           </tbody>
         </table>
-      </div>
+      </DataTable>
 
       <h3>Try it</h3>
       <p>Start a session (optional, since the server keeps no state):</p>
@@ -265,30 +267,24 @@ content-type: application/json
         Questions about the API or the MCP server, or something you need from it: email
         <a href={EMAIL_HREF}>{EMAIL}</a> or WhatsApp <a href={WHATSAPP} target="_blank" rel="noopener">{PHONE_DISPLAY}</a>.
       </p>
-    </div>
-  </article>
+    </article>
+  </Section>
 </BaseLayout>
 
 <style>
-  /* Long URLs and paths break rather than widen the page; tables scroll in their box on phones. */
+  /* Long URLs and paths break rather than widen the page (the tables are kit/DataTable). */
   .dev :not(pre) > code, .dev a { overflow-wrap: anywhere; }
   .dev h2 { margin-top: 3.5rem; font-size: 1.6rem; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
   .dev h3 { margin-top: 2rem; font-size: 1.15rem; font-weight: 600; }
   .dev p { margin-top: 1rem; }
-  .dev p, .dev dd, .dev td { line-height: 1.65; }
+  .dev p, .dev dd { line-height: 1.65; }
   .dev a { text-decoration: underline; text-decoration-color: color-mix(in oklab, currentColor 35%, transparent); text-underline-offset: .25em; }
   .dev a:hover { text-decoration-color: currentColor; }
   .dev code { font-family: var(--font-mono); font-size: .88em; }
   .dev :not(pre) > code { background: var(--color-white); border: 1px solid var(--color-rule); border-radius: .3rem; padding: .05em .3em; }
   .dev pre { margin-top: 1rem; overflow-x: auto; border-radius: .75rem; background: var(--color-ink); color: var(--color-paper); padding: 1rem 1.15rem; font-size: .85rem; line-height: 1.55; }
-  .dev .facts { display: grid; grid-template-columns: minmax(8rem, max-content) 1fr; gap: .6rem 1.5rem; margin-top: 2rem; }
+  .dev .facts { display: grid; grid-template-columns: minmax(8rem, max-content) 1fr; gap: .6rem 1.5rem; }
   .dev .facts dt { font-weight: 600; }
   @media (max-width: 479px) { .dev .facts { grid-template-columns: 1fr; gap: .15rem; } .dev .facts dd { margin-bottom: .6rem; } }
-  .dev .table-wrap { margin-top: 1rem; overflow-x: auto; }
-  .dev :is(pre, .table-wrap):focus-visible { outline: 2px solid var(--color-teal); outline-offset: 3px; }
-  .dev table { width: 100%; min-width: 36rem; border-collapse: collapse; font-size: .95rem; }
-  .dev th, .dev td { text-align: start; vertical-align: top; padding: .7rem .75rem; border-bottom: 1px solid var(--color-rule); }
-  .dev th { font-weight: 600; border-bottom-color: var(--color-ink); }
-  .dev td:first-child, .dev th:first-child { padding-inline-start: 0; white-space: nowrap; }
-  .dev td:nth-child(2) { min-width: 13rem; }
+  .dev pre:focus-visible { outline: 2px solid var(--color-teal); outline-offset: 3px; }
 </style>
