@@ -219,8 +219,9 @@ bundles; `toast()` is called from anywhere), Recharts series with `useChartMotio
   cleanup (StrictMode's second run, a Suspense hide) carries on from where it was. Shake
   and pop fire once per signal.
 - **Data landing is new content.** `SkeletonSwap` (every `StatCard` uses it) renders the
-  content as a new element, hidden in the same commit that swaps the skeleton out, rises
-  it in step with its `Stagger`, and fades the skeleton out over it: never a blink. If
+  content as a new element, hidden in the same commit that swaps the skeleton out, fades
+  the skeleton out first (120 ms) and only then rises the content, in step with its
+  `Stagger`: never a blink, never a figure showing through a grey bar. If
   GSAP has not loaded, the pre-state is set with plain inline styles, GSAP is fetched at
   once, and after `ARRIVAL_PATIENCE_MS` the content just shows. A `Stagger`'s `when`
   landing does the same. Reduced motion: final state at once.

@@ -142,6 +142,9 @@ export function ChartEntrance({
   );
 }
 
+/** Seconds a leaving skeleton takes to fade out; its content's rise waits for it. */
+const SKELETON_OUT = sec(DURATION.fast) * 0.75;
+
 /**
  * Skeleton while loading; when the data lands, the content rises in where the
  * skeleton was (in step with the Stagger it sits in) and the skeleton fades
@@ -181,7 +184,10 @@ export function SkeletonSwap({
     const el = content.current;
     if (!arrivals || !el || prefersReducedMotion() || !inViewport(el)) return;
     const r = rise();
-    const play = (gsap: NonNullable<ReturnType<typeof getGsap>>) => playIn(gsap, el, r, { delay: groupDelay(el) });
+    // Sequenced, never layered: the content starts only as its skeleton has
+    // faded out (SKELETON_OUT), so no figure shows through a grey bar.
+    const play = (gsap: NonNullable<ReturnType<typeof getGsap>>) =>
+      playIn(gsap, el, r, { delay: groupDelay(el) + SKELETON_OUT });
     const gsap = getGsap();
     if (!gsap) return holdForGsap([el], r, play);
     const t = play(gsap);
@@ -205,7 +211,13 @@ export function SkeletonSwap({
     let live = true;
     const fadeOut = (gsap: NonNullable<ReturnType<typeof getGsap>>) => {
       if (!live) return;
-      tween = gsap.to(el, { opacity: 0, duration: sec(DURATION.base), ease: EASE_NAME.in, onComplete: () => setLeaving(false) });
+      tween = gsap.to(el, {
+        opacity: 0,
+        duration: SKELETON_OUT,
+        delay: groupDelay(el),
+        ease: EASE_NAME.in,
+        onComplete: () => setLeaving(false),
+      });
     };
     const gsap = getGsap();
     if (gsap) fadeOut(gsap);
