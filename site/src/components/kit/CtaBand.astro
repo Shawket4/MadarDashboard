@@ -27,7 +27,7 @@ const [figure, ...cur] = price?.amount.split(" ") ?? [];
   {Astro.slots.has("crew") && <div class="cta-band-crew" data-crew-host><slot name="crew" /></div>}
   <div class="min-w-0">
     {kicker && <p class="kicker text-teal-light">{kicker}</p>}
-    <p class:list={["text-h3", kicker && "mt-3"]}>{title}</p>
+    <h3 class:list={["text-h3", kicker && "mt-3"]}>{title}</h3>
     {body && <p class="mt-2 max-w-xl text-muted-ink">{body}</p>}
   </div>
   {price && (
