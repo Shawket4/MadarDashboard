@@ -24,6 +24,8 @@ export const DUR = {
   wave: read("--dur-wave"),
   hop: read("--dur-hop"),
 };
+/** Seconds a scroll-driven piece (parallax, the hero, the light) takes to catch up with the scroll, up or down. */
+export const SCRUB = read("--scrub");
 /** Seconds between the items of a reveal group, and between a heading's words. */
 export const STAGGER = read("--stagger");
 export const STAGGER_WORD = read("--stagger-word");

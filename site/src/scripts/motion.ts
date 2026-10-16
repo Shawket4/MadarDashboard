@@ -38,7 +38,7 @@ import { SplitText } from "gsap/SplitText";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import Lenis from "lenis";
 import { WAITS } from "./waits";
-import { DUR, EASE, PARALLAX_PHONE, PHONE, REVEAL_Y, REVEAL_Y_PHONE, STAGGER, STAGGER_PHONE, STAGGER_WORD } from "@/lib/motion";
+import { DUR, EASE, PARALLAX_PHONE, PHONE, REVEAL_Y, REVEAL_Y_PHONE, SCRUB, STAGGER, STAGGER_PHONE, STAGGER_WORD } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin);
 // Whatever arrives eases out on the tokens' curve unless a tween says otherwise.
@@ -338,12 +338,16 @@ function playSequences(feel: Feel, only?: "always") {
     if (seq.scrub) {
       const tl = gsap.timeline({ defaults: { ease: "none" } });
       seq.build(el, tl, feel);
-      ScrollTrigger.create({ trigger: el, ...seq.scrub, scrub: true, animation: tl });
+      ScrollTrigger.create({ trigger: el, ...seq.scrub, scrub: SCRUB, animation: tl });
       continue;
     }
     const tl = gsap.timeline({ paused: true });
     seq.build(el, tl, feel);
-    ScrollTrigger.create({ trigger: el, start: "top 92%", end: "bottom top", toggleActions: "play pause resume pause", animation: tl });
+    // A figure on a hanging badge is measured by the badge's place on the page, never by
+    // the badge itself: that waits above the screen to fall in, and a trigger measured
+    // there thought the figure long gone and paused its entrance half way.
+    const trigger = el.closest("[data-swing]") ?? el;
+    ScrollTrigger.create({ trigger, start: "top 92%", end: "bottom top", toggleActions: "play pause resume pause", animation: tl });
   }
 }
 
@@ -354,7 +358,7 @@ function parallax(feel: Feel) {
     gsap.to(el, {
       yPercent: -f * 100,
       ease: "none",
-      scrollTrigger: { trigger: el.closest("section") ?? el, start: "top top", end: "bottom top", scrub: true },
+      scrollTrigger: { trigger: el.closest("section") ?? el, start: "top top", end: "bottom top", scrub: SCRUB },
     });
   }
 }
@@ -371,7 +375,7 @@ function lights() {
     gsap.fromTo(el, { "--light": 0 }, {
       "--light": 1,
       ease: "none",
-      scrollTrigger: { trigger: el, start: settled(el) ? "top top" : "top bottom", end: "bottom top", scrub: true },
+      scrollTrigger: { trigger: el, start: settled(el) ? "top top" : "top bottom", end: "bottom top", scrub: SCRUB },
     });
   }
 }
