@@ -71,7 +71,7 @@ function markPainted(els: Element[]) {
       // Waiting off screen for a scroll reveal, or still arriving, is not at rest.
       const gsap = getGsap();
       for (const el of els) {
-        if ((el instanceof HTMLElement && "motion" in el.dataset) || gsap?.isTweening(el)) continue;
+        if ((el instanceof HTMLElement && "motion" in el.dataset) || holding.has(el) || gsap?.isTweening(el)) continue;
         painted.add(el);
       }
     }),
@@ -81,6 +81,92 @@ function markPainted(els: Element[]) {
 /** Whether an entrance may hide `el`: never painted, or its content was just replaced. */
 export function mayEnter(el: Element, replayed: boolean) {
   return replayed || !painted.has(el);
+}
+
+/*
+ * Data that lands before GSAP has loaded is still new content: it is hidden
+ * before its first paint with plain inline styles (the recipe's `from`), GSAP
+ * is fetched at once, and the entrance plays when it arrives. If it has not
+ * arrived within ARRIVAL_PATIENCE_MS, the content simply shows: nothing stays
+ * hidden waiting on the library. Only for data landing (a `when` turning
+ * true, a skeleton swapped out), never for a page's first render.
+ */
+export const ARRIVAL_PATIENCE_MS = 1200;
+const holding = new WeakSet<Element>();
+
+export function holdForGsap(els: HTMLElement[], recipe: Recipe, play: (gsap: Gsap) => gsap.core.Tween | void) {
+  const from = recipe.from as Record<string, number | undefined>;
+  const parts = [
+    from.x ? `translateX(${from.x}px)` : "",
+    from.y ? `translateY(${from.y}px)` : "",
+    from.scale !== undefined ? `scale(${from.scale})` : "",
+  ].filter(Boolean);
+  for (const el of els) {
+    holding.add(el);
+    el.style.opacity = String(from.opacity ?? 0);
+    if (parts.length) el.style.transform = parts.join(" ");
+  }
+  let state: "waiting" | "playing" | "done" = "waiting";
+  let tween: gsap.core.Tween | void;
+  const release = () => {
+    for (const el of els) {
+      holding.delete(el);
+      el.style.removeProperty("opacity");
+      el.style.removeProperty("transform");
+    }
+  };
+  const timer = setTimeout(() => {
+    if (state !== "waiting") return;
+    state = "done";
+    release();
+  }, ARRIVAL_PATIENCE_MS);
+  loadGsap().then(
+    (gsap) => {
+      if (state !== "waiting") return;
+      clearTimeout(timer);
+      state = "playing";
+      for (const el of els) holding.delete(el);
+      tween = play(gsap);
+    },
+    () => {
+      if (state !== "waiting") return;
+      clearTimeout(timer);
+      state = "done";
+      release();
+    },
+  );
+  return () => {
+    clearTimeout(timer);
+    if (state === "playing" && tween) {
+      holdInterrupted(getGsap()!, tween);
+      tween.kill();
+    }
+    state = "done";
+    release();
+  };
+}
+
+/** Whether `when` turned true since the last run: data landed. */
+function useLanded(when: boolean) {
+  const last = useRef(when);
+  return () => {
+    const landed = when && !last.current;
+    last.current = when;
+    return landed;
+  };
+}
+
+/**
+ * The delay that puts an element arriving on its own (a SkeletonSwap whose
+ * data landed) in step with the Stagger it sits in, by its item's index.
+ */
+export function groupDelay(el: HTMLElement, register: Register = "product") {
+  const root = el.closest<HTMLElement>("[data-stagger]");
+  if (!root) return 0;
+  const items = Array.from(root.children);
+  const i = items.findIndex((c) => c.contains(el));
+  if (i < 0) return 0;
+  return Math.min(i, STAGGER.maxItems - 1) * staggerFor(items.length, register);
 }
 
 /** A ref'd value's "did it change since the last run" flag, for replayKey. */
@@ -106,7 +192,7 @@ const interrupted = new WeakMap<Element, Record<string, unknown>>();
  * Note where each still-arriving target of an entrance is, for a re-run to
  * carry on from. Call it from the effect's cleanup, before GSAP reverts.
  */
-function holdInterrupted(gsap: Gsap, tween: gsap.core.Tween) {
+export function holdInterrupted(gsap: Gsap, tween: gsap.core.Tween) {
   const keys = (tween.data as { enterKeys?: string[] } | undefined)?.enterKeys;
   if (!keys || tween.progress() >= 1) return;
   for (const el of tween.targets() as Element[]) {
@@ -216,6 +302,19 @@ export interface StaggerOptions {
 export function useStagger(ref: RefObject<HTMLElement | null>, opts: StaggerOptions = {}) {
   const { register = "product", recipe, selector = ":scope > *", when = true, replayKey, delay = 0 } = opts;
   const replayed = useReplayed(replayKey);
+  const landed = useLanded(when);
+  // Data landed before GSAP: hide the new items before paint, play on arrival.
+  useIsoLayoutEffect(() => {
+    const el = ref.current;
+    if (!landed() || getGsap() || !el || prefersReducedMotion()) return;
+    const items = Array.from(el.querySelectorAll<HTMLElement>(selector)).filter((i) => inViewport(i) && mayEnter(i, false));
+    if (!items.length) return;
+    const r = recipe ?? rise(register);
+    const each = staggerFor(items.length, register);
+    return holdForGsap(items, r, (gsap) =>
+      playIn(gsap, items, r, { delay, stagger: (i: number) => Math.min(i, STAGGER.maxItems - 1) * each }),
+    );
+  }, [when, replayKey]);
   useGsap(
     (gsap, { reduced }) => {
       const el = ref.current;

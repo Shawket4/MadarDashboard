@@ -22,7 +22,7 @@ import {
   useBranchInventoryValuation, useBranchMaterialCostTrend, useBranchSupplierSpend, useListCatalog,
   useOrgInventoryValuation, useOrgMaterialCostTrend, useOrgSupplierSpend,
 } from "@/data/api/generated/api";
-import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, exportToCsv, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { ProfitabilityPage } from "@/features/insights/profitability-page";
 import { ChannelTab, RevenueTab, type Range } from "@/features/analytics/analytics-page";
 import { AnalyticsExportButton } from "@/features/analytics/analytics-export-button";
@@ -151,7 +151,7 @@ export function FinancialReportsPage() {
     try {
       await exportToExcel({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
       throw e;
     } finally {
       setInvExporting(false);

@@ -19,9 +19,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { exportOrders, useGetBranch } from "@/data/api/generated/api";
 import type { ExportOrdersParams } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel } from "@/lib/excel";
+import { exportToExcel, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { Presence } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -128,7 +127,7 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
       });
       onOpenChange(false);
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
     } finally {
       setBusy(false);
     }

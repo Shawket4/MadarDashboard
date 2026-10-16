@@ -11,7 +11,8 @@ import { Orbit2D, type ShowcaseTone } from "./orbit-2d";
  *
  * The 3D runs wherever the device can render it, phones included. It lives in
  * its own lazy chunk (three.js and the shared engine), requested only with
- * motion allowed, data saving off and WebGL available, so the reduced-motion
+ * motion allowed and WebGL available (data saving does not opt out: the owner
+ * wants it wherever it can render), so the reduced-motion
  * crowd never downloads it and the form never waits for it. It fades in once
  * its first frame is drawn. If it
  * hasn't arrived within a few seconds, fails to load, throws, or loses its GPU
@@ -57,8 +58,6 @@ function webglAvailable(): boolean {
 function wants3D(): boolean {
   if (typeof window === "undefined") return false;
   if (prefersReducedMotion()) return false;
-  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-  if (connection?.saveData) return false;
   return webglAvailable();
 }
 

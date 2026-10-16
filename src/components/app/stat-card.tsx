@@ -4,6 +4,7 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonSwap } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { fmtPercent } from "@/lib/format";
 import { StatValue, type StatFormat } from "@/components/app/stat-value";
@@ -63,21 +64,15 @@ export function StatCard({
   const pad = dense ? "gap-2 p-4" : "gap-3 p-5";
   const iconSize = "size-4";
 
-  if (loading) {
-    return (
-      // h-full down the chain: grid cells stretch, and sibling cards in one
-      // strip must share the row height (content-sized cards read as ragged).
-      <div className="h-full">
-        <Card className={cn(pad, "h-full rounded-2xl shadow-none")}>
-          <div className="flex items-center justify-between gap-3">
-            <Skeleton className="h-4 w-20" />
-            {Icon ? <Skeleton className="size-4 rounded" /> : null}
-          </div>
-          <Skeleton className="h-7 w-24" />
-        </Card>
+  const skeleton = (
+    <Card className={cn(pad, "h-full rounded-2xl shadow-none")}>
+      <div className="flex items-center justify-between gap-3">
+        <Skeleton className="h-4 w-20" />
+        {Icon ? <Skeleton className="size-4 rounded" /> : null}
       </div>
-    );
-  }
+      <Skeleton className="h-7 w-24" />
+    </Card>
+  );
 
   const isNumeric = typeof value === "number";
   const isNode = !isNumeric && typeof value !== "string";
@@ -96,7 +91,10 @@ export function StatCard({
   const up = (trend ?? 0) >= 0;
 
   return (
-    <div className="h-full">
+    // h-full down the chain: grid cells stretch, and sibling cards in one
+    // strip must share the row height (content-sized cards read as ragged).
+    // When the figures land, the card rises in and the skeleton fades out.
+    <SkeletonSwap loading={!!loading} className="h-full" contentClassName="h-full" skeleton={skeleton}>
       <Card
         onClick={onClick}
         role={onClick ? "button" : undefined}
@@ -146,6 +144,6 @@ export function StatCard({
           </div>
         ) : null}
       </Card>
-    </div>
+    </SkeletonSwap>
   );
 }

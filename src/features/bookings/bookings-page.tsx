@@ -42,7 +42,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { EXPORT_REQUEST } from "@/lib/export-all";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtTime } from "@/lib/format";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { Presence, Stagger, SwapPresence, recipes } from "@/lib/motion";
@@ -214,7 +214,7 @@ export function BookingsPage() {
         }],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
       throw e;
     } finally {
       setExporting(false);

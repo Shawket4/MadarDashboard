@@ -15,7 +15,7 @@ import { useBranchLowStock, useOrgLowStock } from "@/data/api/generated/api";
 import type { LowStockRow } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, exportToCsv, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtNumber, fmtUnit } from "@/lib/format";
 
 export function LowStockTab({ orgId, branchId }: { orgId: string; branchId: string | null }) {
@@ -78,7 +78,7 @@ export function LowStockTab({ orgId, branchId }: { orgId: string; branchId: stri
     try {
       await exportToExcel({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
       throw e;
     } finally {
       setExporting(false);

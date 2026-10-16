@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import type { ColumnDef } from "@tanstack/react-table";
 import { CalendarRange } from "lucide-react";
 
@@ -11,8 +10,7 @@ import { ExportButton } from "@/components/app/export-button";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Restricted } from "@/components/app/restricted";
-import { exportToCsv, exportToExcel, type ExcelColumn } from "@/lib/excel";
-import { getErrorMessage } from "@/data/api/errors";
+import { exportToCsv, exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { SalesTab } from "./sales-tab";
 import { TimingTab } from "./timing-tab";
 import { Badge } from "@/components/ui/badge";
@@ -114,7 +112,7 @@ export function TillSessionsPage() {
       if (kind === "excel") await exportToExcel({ filename: `Madar-${title}`, logoUrl, sheets });
       else await exportToCsv({ filename: `Madar-${title}`, sheets });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
       throw e;
     } finally {
       setExporting(false);

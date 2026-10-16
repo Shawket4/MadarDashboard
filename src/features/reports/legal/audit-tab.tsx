@@ -14,7 +14,7 @@ import type { AuditReport, DeductionOverrideEvent, DiscountAuditEntry } from "@/
 import { bpsLabel, discountKindLabel } from "@/features/discounts/discount-attribution";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, exportToCsv, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtDate, fmtDateTime, fmtMoney, fmtNumber } from "@/lib/format";
 import { Stagger } from "@/lib/motion";
 
@@ -132,7 +132,7 @@ export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: 
     try {
       await exportToExcel({ filename: `Madar-${exportTitle}`, logoUrl, sheets: buildSheets() });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
       throw e;
     } finally {
       setExporting(false);

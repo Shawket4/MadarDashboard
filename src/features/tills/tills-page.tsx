@@ -27,7 +27,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { businessDate, cairoDateISO, dateParts, fmtDateTime, fmtDuration, fmtMoney, fmtMoneySigned } from "@/lib/format";
 
 import {
@@ -174,7 +174,7 @@ export function TillsPage() {
         sheets: [{ name: t("nav.tills", "Tills"), title: t("nav.tills", "Tills"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
       throw e;
     } finally {
       setExporting(false);

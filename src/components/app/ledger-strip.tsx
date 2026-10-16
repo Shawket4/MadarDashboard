@@ -54,7 +54,7 @@ export function LedgerStrip({
   const cols = gridCols[items.length] ?? "sm:grid-cols-2 lg:grid-cols-4";
   const isDense = dense ?? items.length >= 5;
   return (
-    // The figures arrive once, when they land: skeleton cards stay still.
+    // Each card rises in when its figures land (SkeletonSwap, in step with this group).
     <Stagger when={!items.some((i) => i.loading)} className={cn("grid grid-cols-2 gap-3 sm:gap-4", cols, className)}>
       {items.map((item) => (
         <StatCard

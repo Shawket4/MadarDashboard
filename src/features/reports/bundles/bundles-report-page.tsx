@@ -12,7 +12,6 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Layers } from "lucide-react";
-import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
@@ -21,13 +20,12 @@ import { ExportButton } from "@/components/app/export-button";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Restricted } from "@/components/app/restricted";
 import { SegmentedControl } from "@/components/app/segmented-control";
-import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { bundlesReportSearch } from "../search";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { cairoParts, fmtDate, fmtMoney, fmtNumber } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { useBundlesReport } from "@/features/combos/api";
@@ -158,7 +156,7 @@ export function BundlesReportPage() {
         ],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
       throw e;
     } finally {
       setExporting(false);

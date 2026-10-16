@@ -45,7 +45,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useCurrentOrg } from "@/hooks/use-org-modules";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtDate, fmtMoney, fmtMoneySigned, fmtPeriod } from "@/lib/format";
 import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "@/features/staff/util";
 
@@ -263,7 +263,7 @@ export function PayrollPage() {
         ],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
       throw e;
     } finally {
       setExporting(false);

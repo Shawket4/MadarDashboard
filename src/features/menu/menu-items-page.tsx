@@ -63,7 +63,7 @@ import { runBulk } from "@/lib/bulk-runner";
 import { useDropUnknown, useListFilters, useSearchInput, tableStateFrom } from "@/data/scope/use-list-filters";
 import { keepScope } from "@/data/scope/list-search";
 import { menuItemsSearch } from "./search";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -347,7 +347,7 @@ export function MenuItemsPage() {
         ],
       });
     } catch (e) {
-      onErr(e);
+      toastExportError(e);
       throw e;
     } finally {
       setExporting(false);

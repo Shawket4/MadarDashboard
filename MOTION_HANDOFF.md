@@ -81,9 +81,8 @@ Decisions the owner made in conversation:
    - The step block is flat, with no card.
 5. **3D showcase wherever the device can render it**, on phones too.
    - It falls back to the 2D orbit on: no WebGL, a failed load or one slower than 4 s, a
-     lost GPU context, data saving, or reduced motion.
-   - Open question for the owner: should data saving still fall back? Reduced motion
-     must, per the repo's accessibility rules.
+     lost GPU context, or reduced motion. Data saving does not fall back (owner's
+     decision, 2026-10-16).
    - `tone="page"` colours the caption and orbit for a plain page in both themes.
 6. **The last commit (WIP):**
    - The two sweep agents' expansion across the remaining features.

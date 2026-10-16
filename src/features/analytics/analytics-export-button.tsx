@@ -25,7 +25,7 @@ import type {
 } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, exportToCsv, type ExcelColumn, type ExcelSheet } from "@/lib/excel";
+import { exportToExcel, exportToCsv, type ExcelColumn, type ExcelSheet, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { tName } from "./lib";
 
@@ -183,7 +183,7 @@ export function AnalyticsExportButton({
         sheets: await getSheets(),
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
       throw e;
     } finally {
       setExporting(false);

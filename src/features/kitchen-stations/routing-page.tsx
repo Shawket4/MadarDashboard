@@ -19,7 +19,7 @@ import {
 } from "@/data/api/generated/api";
 import type { MenuItemWithCosts } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { Stagger, SwapPresence, recipes } from "@/lib/motion";
 import { getTranslatedName } from "@/lib/translation";
@@ -167,7 +167,7 @@ export function RoutingPage() {
         ],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
       throw e;
     } finally {
       setExporting(false);
