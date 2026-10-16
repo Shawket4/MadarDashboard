@@ -3447,6 +3447,8 @@
       "qty": "× {{count}}",
       "estimate": "Final total is confirmed at checkout.",
       "discount": "Discount",
+      "tax": "Tax ({{rate}})",
+      "taxIncluded": "Includes {{amount}} tax ({{rate}})",
       "units_one": "item",
       "units_other": "items"
     },

@@ -224,6 +224,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
           <Totals
             subtotal={order.subtotal}
             deliveryFee={order.delivery_fee}
+            tax={{ amount: order.tax_amount ?? 0, inclusive: order.tax_inclusive ?? false, rate: order.tax_rate_applied ?? 0 }}
             total={order.total}
             discount={order.discount_amount}
           />

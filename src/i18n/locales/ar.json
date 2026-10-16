@@ -3471,6 +3471,8 @@
       "qty": "× {{count}}",
       "estimate": "يتم تأكيد الإجمالي النهائي عند الدفع.",
       "discount": "خصم",
+      "tax": "الضريبة ({{rate}})",
+      "taxIncluded": "يشمل ضريبة {{amount}} ({{rate}})",
       "units_zero": "أصناف",
       "units_one": "صنف",
       "units_two": "صنفان",
