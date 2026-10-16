@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useHasFeature } from "@/hooks/use-plan";
 import { useTranslation } from "react-i18next";
-import { motion, useReducedMotion } from "motion/react";
 import { Ban, CalendarRange, Coins, HandCoins, Receipt, Store, TrendingUp } from "lucide-react";
 import {
   Area,
@@ -29,7 +28,7 @@ import { MarginWatchCard } from "@/features/insights/margin-watch-card";
 import { ProgressBar } from "@/components/app/progress-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CHART_AXIS_TICK } from "@/components/app/chart-card";
-import { COUNT_ANIM_MS, fadeInUp, listItem, staggerContainer } from "@/lib/motion";
+import { Stagger, useChartMotion } from "@/lib/motion";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPeriod, fmtShare } from "@/lib/format";
 import { APP_TZ, PAYMENT_COLORS, type PaymentMethod } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
@@ -65,7 +64,7 @@ const PRESET_FALLBACK: Record<string, string> = {
 export function DashboardPage() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir() === "rtl";
-  const reduced = useReducedMotion();
+  const chartMotion = useChartMotion();
   const name = useAuthStore((s) => s.user?.name);
   const role = useAuthStore((s) => s.user?.role);
   const userOrgId = useAuthStore((s) => s.user?.org_id);
@@ -196,19 +195,14 @@ export function DashboardPage() {
         }
       />
       <KeepBuildingCard />
-      <motion.section variants={fadeInUp} initial="hidden" animate="show" className="space-y-4">
+      <section className="space-y-4">
         <LedgerStrip items={kpiCards} dense />
         <OpenTillsCard branchId={branchId} />
-      </motion.section>
+      </section>
 
-      <motion.div
-        initial="hidden"
-        animate="show"
-        variants={staggerContainer(0.06)}
-        className="grid grid-cols-1 gap-4 lg:grid-cols-3"
-      >
+      <Stagger className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Revenue trend */}
-        <motion.div variants={fadeInUp} className="h-full lg:col-span-2">
+        <div className="h-full lg:col-span-2">
           <ChartCard className="h-full" title={t("dashboard.revenueTrend", "Revenue trend")}>
             {timeseries.isLoading ? (
               <Skeleton className="h-64 w-full" />
@@ -256,19 +250,17 @@ export function DashboardPage() {
                       strokeWidth={2}
                       fill={chartColor(0)}
                       fillOpacity={0.12}
-                      isAnimationActive={!reduced}
-                      animationDuration={COUNT_ANIM_MS}
-                      animationEasing="ease-out"
+                      {...chartMotion}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             )}
           </ChartCard>
-        </motion.div>
+        </div>
 
         {/* Payment mix — donut + ledger-style legend */}
-        <motion.div variants={fadeInUp} className="h-full">
+        <div className="h-full">
           <ChartCard className="h-full" title={t("dashboard.payments", "Payment mix")}>
             {kpiLoading ? (
               <Skeleton className="h-64 w-full" />
@@ -293,7 +285,7 @@ export function DashboardPage() {
                         outerRadius={72}
                         paddingAngle={2}
                         strokeWidth={0}
-                        isAnimationActive={!reduced}
+                        {...chartMotion}
                       >
                         {paymentData.map((d, i) => (
                           <Cell key={d.method} fill={PAYMENT_COLORS[d.method as PaymentMethod] ?? chartColor(i)} />
@@ -328,8 +320,8 @@ export function DashboardPage() {
               </div>
             )}
           </ChartCard>
-        </motion.div>
-      </motion.div>
+        </div>
+      </Stagger>
 
       {/* Branch leaderboard */}
       <ChartCard title={t("dashboard.branchPerformance", "Branch performance")}>
@@ -340,42 +332,35 @@ export function DashboardPage() {
         ) : rankedBranches.length === 0 ? (
           <EmptyState title={t("dashboard.noSalesPeriod", "Sales for this period will appear here.")} className="border-0" />
         ) : (
-          <motion.ol
-            initial="hidden"
-            animate="show"
-            variants={staggerContainer(0.04)}
-            className="space-y-1"
-          >
-            {rankedBranches.map((b, i) => (
-              <motion.li
-                key={b.branch_id}
-                variants={listItem}
-                className="flex items-center gap-3 rounded-lg px-2 py-2.5"
-              >
-                <span className="w-5 shrink-0 text-end font-mono text-xs text-muted-foreground tabular-nums">
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  <div className="flex items-center justify-between gap-2 text-sm">
-                    <span className="truncate font-medium">{b.branch_name}</span>
-                    <span className="shrink-0 text-muted-foreground">
-                      <bdi className="font-mono tabular-nums">{fmtNumber(b.total_orders)}</bdi>{" "}
-                      {t("dashboard.ordersWord", "orders")}
-                    </span>
+          <Stagger asChild>
+            <ol className="space-y-1">
+              {rankedBranches.map((b, i) => (
+                <li key={b.branch_id} className="flex items-center gap-3 rounded-lg px-2 py-2.5">
+                  <span className="w-5 shrink-0 text-end font-mono text-xs text-muted-foreground tabular-nums">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="truncate font-medium">{b.branch_name}</span>
+                      <span className="shrink-0 text-muted-foreground">
+                        <bdi className="font-mono tabular-nums">{fmtNumber(b.total_orders)}</bdi>{" "}
+                        {t("dashboard.ordersWord", "orders")}
+                      </span>
+                    </div>
+                    <ProgressBar
+                      value={Math.max(2, b.pct * 100)}
+                      max={100}
+                      ariaLabel={t("dashboard.branchRevenueBar", { name: b.branch_name, defaultValue: `Revenue share for ${b.branch_name}` })}
+                      accent="primary"
+                    />
                   </div>
-                  <ProgressBar
-                    value={Math.max(2, b.pct * 100)}
-                    max={100}
-                    ariaLabel={t("dashboard.branchRevenueBar", { name: b.branch_name, defaultValue: `Revenue share for ${b.branch_name}` })}
-                    accent="primary"
-                  />
-                </div>
-                <span className="shrink-0 text-end font-mono text-sm font-semibold tabular-nums">
-                  <ConciseValue full={fmtMoney(b.total_revenue)} compact={fmtMoneyCompact(b.total_revenue)} />
-                </span>
-              </motion.li>
-            ))}
-          </motion.ol>
+                  <span className="shrink-0 text-end font-mono text-sm font-semibold tabular-nums">
+                    <ConciseValue full={fmtMoney(b.total_revenue)} compact={fmtMoneyCompact(b.total_revenue)} />
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </Stagger>
         )}
       </ChartCard>
 

@@ -102,7 +102,7 @@ export function TransferDrawer({ transfer: tr, onOpenChange, onChanged, branches
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <span className="font-mono">{tr.reference}</span>
-              <StatusPill tone={TRANSFER_TONES[tr.status] ?? "neutral"}>{transferStatusLabel(t, tr.status)}</StatusPill>
+              <StatusPill popOn={tr.status} tone={TRANSFER_TONES[tr.status] ?? "neutral"}>{transferStatusLabel(t, tr.status)}</StatusPill>
             </SheetTitle>
             <SheetDescription className="flex items-center gap-1.5">
               {tr.source_kind === "warehouse" ? <Warehouse className="size-3.5" /> : null}

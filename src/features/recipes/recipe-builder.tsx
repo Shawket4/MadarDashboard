@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Plus, Save, Trash2 } from "lucide-react";
@@ -13,6 +13,7 @@ import type { OrgIngredient } from "@/data/api/generated/models";
 import { fmtMoney, fmtPercent } from "@/lib/format";
 import { BAND_STYLE, draftLineCost, draftRecipeCost, foodCostBand, recipeMargin } from "@/lib/recipe-cost";
 import { rules } from "@/lib/rules";
+import { Presence, useFlip, useShake } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export interface RecipeRowInit {
@@ -70,6 +71,13 @@ export function RecipeBuilder({
 
   const form = useForm<{ rows: BuilderRow[] }>({ defaultValues: { rows: [] } });
   const { fields, append, remove, replace } = useFieldArray({ control: form.control, name: "rows" });
+  // An ingredient added or removed: the rows below slide rather than jump.
+  const rootRef = useRef<HTMLDivElement>(null);
+  useFlip(rootRef, fields.map((f) => f.id).join(), "[data-recipe-row], [data-recipe-add]");
+  // A refused save shakes the button beside the toast.
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const [failed, setFailed] = useState(0);
+  useShake(saveRef, failed);
 
   const initialKey = useMemo(() => initialRows.map((r) => `${rowKey(r)}=${r.quantity_used}`).sort().join("|"), [initialRows]);
   useEffect(() => {
@@ -165,13 +173,16 @@ export function RecipeBuilder({
     try {
       await onSave(cleaned, removed);
       form.reset({ rows: current });
+    } catch (e) {
+      setFailed((n) => n + 1);
+      throw e;
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="space-y-5">
+    <div ref={rootRef} className="space-y-5">
       {/* toolbar */}
       <div className="flex flex-wrap items-center gap-3">
         {/* leading cluster: copy-from + new ingredient */}
@@ -206,7 +217,7 @@ export function RecipeBuilder({
       </div>
 
       {/* scaling panel */}
-      {scaling && sizes.length > 1 ? (
+      <Presence show={scaling && sizes.length > 1}>
         <div className="rounded-lg border bg-muted/30 p-3">
           <p className="mb-2.5 text-xs text-muted-foreground">
             {t("recipes.builder.scaleHint", {
@@ -237,7 +248,7 @@ export function RecipeBuilder({
             </Button>
           </div>
         </div>
-      ) : null}
+      </Presence>
 
       {/* size sections */}
       {sizes.map((size) => {
@@ -290,6 +301,7 @@ export function RecipeBuilder({
                 return (
                   <div
                     key={fields[row._index]?.id ?? row._index}
+                    data-recipe-row
                     className="grid grid-cols-[1fr_auto_5rem_auto] items-center gap-3 rounded-md px-1 py-1"
                   >
                     {/* 1. Ingredient combobox — primary control */}
@@ -350,6 +362,7 @@ export function RecipeBuilder({
               <button
                 type="button"
                 onClick={() => addRow(size)}
+                data-recipe-add
                 className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
                 <Plus className="size-4" />
@@ -366,7 +379,7 @@ export function RecipeBuilder({
           {dirty ? (
             <span className="text-xs text-warning">{t("recipes.builder.unsaved", "Unsaved changes")}</span>
           ) : null}
-          <Button type="button" onClick={() => void save()} loading={saving} disabled={!dirty}>
+          <Button ref={saveRef} type="button" onClick={() => void save()} loading={saving} disabled={!dirty}>
             <Save className="size-4" /> {t("recipes.builder.saveAll", "Save recipe")}
           </Button>
         </div>

@@ -25,6 +25,7 @@ import type { QrResponse } from "@/data/api/generated/models/qrResponse";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Stagger } from "@/lib/motion";
 
 import { QrPreviewDialog } from "./qr-preview-dialog";
 
@@ -167,7 +168,8 @@ function TableCodeSheet({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="print-sheet grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    // A fresh batch arrives card by card (the print sheet takes it at rest).
+    <Stagger replayKey={codes} className="print-sheet grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {codes.map((code) => (
         <button
           key={code.id}
@@ -192,6 +194,6 @@ function TableCodeSheet({
           </span>
         </button>
       ))}
-    </div>
+    </Stagger>
   );
 }

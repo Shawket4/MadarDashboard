@@ -1,5 +1,5 @@
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AnimatePresence, motion } from "motion/react";
 import { AlertCircle, Minus, Pencil, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 
 import {
@@ -15,11 +15,12 @@ import type { QuotedDeal } from "@/data/api/generated/models/quotedDeal";
 import { cn } from "@/lib/utils";
 import { fmtMoney } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
-import { easeOut } from "@/lib/motion";
+import { AnimatedNumber, recipes, useFlip, usePresence } from "@/lib/motion";
 import i18n from "@/i18n";
 
 import type { CartLine } from "../types";
 import { cartSubtotal, lineTotal } from "../utils";
+import { fmtMoneyFigure } from "../ordering-motion";
 import { ComboPickList, DealRows, summarizeLine } from "./cart-lines";
 
 interface CartSheetProps {
@@ -253,28 +254,35 @@ function CartList({
   footerSlot?: React.ReactNode;
 }) {
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  const ref = useRef<HTMLUListElement>(null);
+  // A removed line leaves first, then the rest close the gap.
+  useFlip(ref, lines.map((l) => l.uid).join());
   return (
-    <ul className="space-y-2.5">
-      <AnimatePresence initial={false}>
-        {lines.map((line) => {
-          const summary = summarizeLine(line, lang);
-          return (
-            <motion.li
-              key={line.uid}
-              layout
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={easeOut}
-              className="overflow-hidden"
-            >
-              <CartLineCard line={line} summary={summary} onEdit={onEdit} onRemove={onRemove} onSetQty={onSetQty} />
-            </motion.li>
-          );
-        })}
-      </AnimatePresence>
+    <ul ref={ref} className="space-y-2.5">
+      {lines.map((line) => (
+        <CartLineItem key={line.uid} line={line} summary={summarizeLine(line, lang)} onEdit={onEdit} onRemove={onRemove} onSetQty={onSetQty} />
+      ))}
       {footerSlot && <li>{footerSlot}</li>}
     </ul>
+  );
+}
+
+/** One line, kept on screen through its exit; the cart drops it once that has played. */
+function CartLineItem({
+  onRemove,
+  ...props
+}: Omit<Parameters<typeof CartLineCard>[0], "onRemove"> & { onRemove: (uid: string) => void }) {
+  const [leaving, setLeaving] = useState(false);
+  const ref = useRef<HTMLLIElement>(null);
+  const mounted = usePresence(!leaving, [[ref, recipes.pop]], { initial: false });
+  const uid = props.line.uid;
+  useEffect(() => {
+    if (!mounted) onRemove(uid);
+  }, [mounted, onRemove, uid]);
+  return (
+    <li ref={ref}>
+      <CartLineCard {...props} onRemove={() => setLeaving(true)} />
+    </li>
   );
 }
 
@@ -288,7 +296,7 @@ function CartLineCard({
   line: CartLine;
   summary: string;
   onEdit: (line: CartLine) => void;
-  onRemove: (uid: string) => void;
+  onRemove: () => void;
   onSetQty: (uid: string, qty: number) => void;
 }) {
   const { t } = useTranslation();
@@ -306,9 +314,11 @@ function CartLineCard({
             <p className="mt-0.5 text-xs italic text-muted-foreground">“{line.notes}”</p>
           )}
         </div>
-        <span className="shrink-0 text-sm font-semibold tabular-nums text-brand">
-          {fmtMoney(lineTotal(line))}
-        </span>
+        <AnimatedNumber
+          value={lineTotal(line)}
+          format={fmtMoneyFigure}
+          className="shrink-0 text-sm font-semibold tabular-nums text-brand"
+        />
       </div>
 
       <div className="mt-2.5 flex items-center justify-between">
@@ -318,7 +328,7 @@ function CartLineCard({
             size="icon-xs"
             className="rounded-full"
             onClick={() =>
-              line.quantity <= 1 ? onRemove(line.uid) : onSetQty(line.uid, line.quantity - 1)
+              line.quantity <= 1 ? onRemove() : onSetQty(line.uid, line.quantity - 1)
             }
             aria-label={t("order.menu.decrease")}
           >
@@ -345,7 +355,7 @@ function CartLineCard({
             variant="ghost"
             size="xs"
             className="text-destructive hover:text-destructive"
-            onClick={() => onRemove(line.uid)}
+            onClick={() => onRemove()}
           >
             <Trash2 className="size-3" />
             {t("order.cart.remove")}
@@ -406,7 +416,7 @@ export function Totals({
           {t("order.cart.total")}
         </dt>
         <dd className={cn("tabular-nums", emphasizeTotal ? "text-base font-bold" : "font-semibold")}>
-          {fmtMoney(total)}
+          <AnimatedNumber value={total} format={fmtMoneyFigure} />
         </dd>
       </div>
     </dl>

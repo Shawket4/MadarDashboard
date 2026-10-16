@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, Pencil, Plus, Settings2, Tags, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ import {
 } from "@/data/api/generated/api";
 import { useOrgId } from "@/hooks/use-org-id";
 import { getErrorMessage } from "@/data/api/errors";
+import { useFlip, usePop, useShake } from "@/lib/motion";
 import { invalidateInventory } from "./lib";
 
 /** Inventory ▸ Settings — org-wide rules: variance tolerance and categories. */
@@ -51,6 +52,15 @@ export function SettingsPage() {
 
   const sorted = useMemo(() => [...(categories.data ?? [])].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)), [categories.data]);
   const reassignOptions = useMemo(() => sorted.filter((c) => c.id !== deleting?.id), [sorted, deleting]);
+  // A save reads at the button as well as in the toast; categories added or
+  // removed let the rest slide to their places.
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const [saves, setSaves] = useState(0);
+  const [refused, setRefused] = useState(0);
+  usePop(saveRef, saves);
+  useShake(saveRef, refused);
+  const listRef = useRef<HTMLUListElement>(null);
+  useFlip(listRef, sorted.map((c) => c.id).join());
 
   if (!orgId) {
     return (
@@ -69,8 +79,10 @@ export function SettingsPage() {
       await updateInventorySettings(orgId, { stocktake_variance_threshold_pct: value });
       await invalidateInventory();
       toast.success(t("inventory.settings.saved", "Settings saved"));
+      setSaves((n) => n + 1);
     } catch (e) {
       toast.error(getErrorMessage(e));
+      setRefused((n) => n + 1);
     } finally {
       setBusy(false);
     }
@@ -154,7 +166,7 @@ export function SettingsPage() {
                 <span className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
               </div>
             </div>
-            <Button loading={busy} disabled={settings.isLoading || pct === ""} onClick={() => void save()}>
+            <Button ref={saveRef} loading={busy} disabled={settings.isLoading || pct === ""} onClick={() => void save()}>
               {t("common.save", "Save")}
             </Button>
           </CardContent>
@@ -183,7 +195,7 @@ export function SettingsPage() {
                 ))}
               </div>
             ) : (
-            <ul className="divide-y rounded-lg border">
+            <ul ref={listRef} className="divide-y rounded-lg border">
               {sorted.map((c) => (
                 <li key={c.id} className="flex min-h-14 items-center justify-between gap-2 ps-4 pe-2 py-2">
                   {editing?.id === c.id ? (

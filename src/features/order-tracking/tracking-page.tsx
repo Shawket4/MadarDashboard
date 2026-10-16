@@ -1,14 +1,12 @@
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { Link } from "@tanstack/react-router";
-import { motion } from "motion/react";
 import {
   Bike,
   Check,
   ChefHat,
   Clock,
-  Loader2,
   MapPin,
   PackageCheck,
   ShoppingBag,
@@ -21,12 +19,14 @@ import { useTrackDeliveryOrder } from "@/data/api/generated/api";
 import type { DeliveryTracking } from "@/data/api/generated/models/deliveryTracking";
 import { Button } from "@/components/ui/button";
 import { fmtMoney } from "@/lib/format";
-import { listItem, riseIn, spring, staggerContainer } from "@/lib/motion";
+import { DISTANCE, recipes, Stagger, SwapPresence, usePop } from "@/lib/motion";
 
 import { Totals } from "../public-ordering/components/cart-sheet";
+import { successBadge, useGrowSignal } from "@/features/public-shell/motion";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
+import { Spinner } from "@/components/ui/spinner";
 
 interface OrderTrackingPageProps {
   id: string;
@@ -77,11 +77,15 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
   // chrome and the brand arrives with the order.
   const brand = usePublicBrand(data?.org_id);
 
+  // The order moved along the line: the step it reached pops.
+  const activeDot = useRef<HTMLSpanElement>(null);
+  usePop(activeDot, useGrowSignal(data ? STEPS.findIndex((s) => s.key === data.status) : undefined));
+
   if (isLoading) {
     return (
       <StorefrontShell brand={brand} product="ordering">
         <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground" role="status">
-          <Loader2 className="size-6 animate-spin motion-reduce:animate-none" />
+          <Spinner className="size-6" />
           <p className="text-sm">{t("order.track.loading", "Loading your order…")}</p>
         </div>
       </StorefrontShell>
@@ -112,22 +116,23 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
 
   return (
     <StorefrontShell brand={brand} product="ordering">
-      <motion.div variants={staggerContainer(0.06)} initial="hidden" animate="show" className="space-y-5">
+      <Stagger register="brand" recipe={recipes.rise("brand", DISTANCE.md)} className="space-y-5">
         {/* Headline + ref */}
-        <motion.div variants={riseIn} className="text-center">
-          <motion.span
-            initial={{ scale: 0, rotate: -20 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={spring}
-            className={`mx-auto mb-4 flex size-16 items-center justify-center rounded-full ${
-              cancelled ? "bg-destructive/10 text-destructive" : "bg-brand/10 text-brand"
-            }`}
-          >
-            {cancelled ? <XCircle className="size-8" /> : delivered ? <Check className="size-8" /> : <Bike className="size-8" />}
-          </motion.span>
-          <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
-            {t(`order.track.status.${order.status}`, statusFallback(order.status))}
-          </h1>
+        <div className="text-center">
+          <SwapPresence swapKey={order.status} recipe={successBadge} className="mx-auto mb-4 size-16">
+            <span
+              className={`flex size-16 items-center justify-center rounded-full ${
+                cancelled ? "bg-destructive/10 text-destructive" : "bg-brand/10 text-brand"
+              }`}
+            >
+              {cancelled ? <XCircle className="size-8" /> : delivered ? <Check className="size-8" /> : <Bike className="size-8" />}
+            </span>
+          </SwapPresence>
+          <SwapPresence swapKey={order.status} initial={false} recipe={recipes.rise("brand", DISTANCE.sm)}>
+            <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground">
+              {t(`order.track.status.${order.status}`, statusFallback(order.status))}
+            </h1>
+          </SwapPresence>
           <p className="mt-1 text-sm text-muted-foreground">
             {order.branch_name}
             {!cancelled && !delivered && order.estimated_prep_minutes > 0 && (
@@ -145,16 +150,16 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
               {order.delivery_ref}
             </p>
           )}
-        </motion.div>
+        </div>
 
         {/* Cancelled / rejected banner, or the live timeline */}
         {cancelled ? (
-          <motion.div variants={listItem} className="rounded-2xl border border-destructive/30 bg-destructive/10 p-5 text-center text-destructive">
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-5 text-center text-destructive">
             <p className="font-semibold">{t("order.track.cancelledTitle", "This order was cancelled")}</p>
             {order.cancel_reason && <p className="mt-1 text-sm opacity-90">{order.cancel_reason}</p>}
-          </motion.div>
+          </div>
         ) : (
-          <motion.ol variants={listItem} className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
+          <ol className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
             {STEPS.map((stepDef, idx) => {
               const done = currentIdx >= 0 && idx <= currentIdx;
               const active = idx === currentIdx;
@@ -165,13 +170,23 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
                 <li key={stepDef.key} className="flex gap-3">
                   <div className="flex flex-col items-center">
                     <span
+                      ref={active ? activeDot : undefined}
                       className={`flex size-8 shrink-0 items-center justify-center rounded-full transition-colors ${
                         done ? "bg-brand text-brand-foreground" : "bg-muted text-muted-foreground"
                       } ${active ? "ring-4 ring-brand/20" : ""}`}
                     >
                       <Icon className="size-4" />
                     </span>
-                    {!last && <span className={`my-1 w-0.5 flex-1 ${idx < currentIdx ? "bg-brand" : "bg-border"}`} />}
+                    {!last && (
+                      // The line fills downward as the order moves past this step.
+                      <span className="relative my-1 w-0.5 flex-1 bg-border">
+                        <span
+                          className={`absolute inset-0 origin-top bg-brand transition-transform duration-brand ease-expo ${
+                            idx < currentIdx ? "scale-y-100" : "scale-y-0"
+                          }`}
+                        />
+                      </span>
+                    )}
                   </div>
                   <div className={`pb-5 ${last ? "pb-0" : ""}`}>
                     <p className={`text-sm font-medium ${done ? "text-foreground" : "text-muted-foreground"}`}>
@@ -182,12 +197,12 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
                 </li>
               );
             })}
-          </motion.ol>
+          </ol>
         )}
 
         {/* Items */}
         {(order as DeliveryTracking & { items?: { name: string; quantity: number }[] }).items && (
-          <motion.div variants={listItem} className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
+          <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
             <p className="mb-3 text-sm font-semibold text-foreground">
               {t("order.track.items", "Your order")}
             </p>
@@ -201,30 +216,30 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
                 ),
               )}
             </ul>
-          </motion.div>
+          </div>
         )}
 
         {/* Totals */}
-        <motion.div variants={listItem} className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
+        <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
           <Totals
             subtotal={order.subtotal}
             deliveryFee={order.delivery_fee}
             total={order.total}
             discount={order.discount_amount}
           />
-        </motion.div>
+        </div>
 
         {priceChanged && estimate != null && (
-          <motion.div variants={listItem} className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
+          <div className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
             <p className="font-semibold">{t("order.done.priceUpdatedTitle", "Final price updated")}</p>
             <p className="text-xs opacity-90">
               {t("order.done.wasNow", { old: fmtMoney(estimate), new: fmtMoney(order.total), defaultValue: "Was {{old}}, now {{new}}" })}
             </p>
-          </motion.div>
+          </div>
         )}
 
         {/* Destination + payment */}
-        <motion.div variants={listItem} className="rounded-2xl border border-border/70 bg-card p-5 text-start shadow-sm">
+        <div className="rounded-2xl border border-border/70 bg-card p-5 text-start shadow-sm">
           <p className="flex items-center gap-2 text-sm font-medium text-foreground">
             <MapPin className="size-4 text-brand" />
             {t(`order.track.channel.${order.channel}`, order.channel === "outside" ? "Delivery" : "In-mall")}
@@ -236,16 +251,16 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
               {t(`order.track.pay.${order.payment_method_hint}`, order.payment_method_hint === "card" ? "Card on delivery" : "Cash on delivery")}
             </p>
           )}
-        </motion.div>
+        </div>
 
-        <motion.div variants={listItem}>
+        <div>
           <Button asChild variant="outline" size="lg" className="w-full">
             <Link to="/order/$orgId" params={{ orgId: order.org_id }}>
               {t("order.track.orderAgain", "Order again")}
             </Link>
           </Button>
-        </motion.div>
-      </motion.div>
+        </div>
+      </Stagger>
     </StorefrontShell>
   );
 }

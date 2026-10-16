@@ -39,6 +39,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 
 import { egpToPiastres } from "@/lib/format";
+import { Presence, useShake } from "@/lib/motion";
 import { getTranslatedName } from "@/lib/translation";
 import { useOrgId } from "@/hooks/use-org-id";
 import { invalidateCatalog } from "../util";
@@ -297,6 +298,13 @@ function MenuStudio() {
 
   // ── Unsaved-changes guard (browser/tab close) ───────────────────────────────
   const anyDirty = dirtyCount > 0;
+  // The save bar rises in with the first change and leaves once saved; a
+  // refused save shakes its button. It keeps its last count while leaving.
+  const [barCount, setBarCount] = useState(dirtyCount);
+  if (dirtyCount > 0 && dirtyCount !== barCount) setBarCount(dirtyCount);
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const [refused, setRefused] = useState(0);
+  useShake(saveRef, refused);
   useEffect(() => {
     if (!anyDirty) return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -547,6 +555,7 @@ function MenuStudio() {
       invalidateStudio(itemId);
       void invalidateCatalog();
       toast.success(t("common.savedChanges", "Changes saved"));
+      return true;
     } finally {
       setSaving(false);
     }
@@ -771,21 +780,23 @@ function MenuStudio() {
       </div>
 
       {/* ── Sticky save bar — only while there are unsaved changes ── */}
-      {dirtyCount > 0 ? (
+      <Presence show={dirtyCount > 0}>
         <div className="pointer-events-none sticky bottom-4 z-30 flex justify-center">
           <div className="pointer-events-auto flex items-center gap-3 rounded-full border bg-card/95 px-4 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/80">
             <span className="text-sm font-medium tabular-nums">
-              {t("menu.studio.unsavedN", "{{count}} unsaved changes", { count: dirtyCount })}
+              {t("menu.studio.unsavedN", "{{count}} unsaved changes", { count: barCount })}
             </span>
             <Button variant="ghost" size="sm" onClick={discard} disabled={saving}>
               {t("menu.studio.discard", "Discard")}
             </Button>
-            <Button size="sm" onClick={() => void save()} loading={saving} disabled={saving}>
+            <Button ref={saveRef} size="sm" onClick={() => void save().then((ok) => {
+              if (!ok) setRefused((n) => n + 1);
+            })} loading={saving} disabled={saving}>
               {t("common.save", "Save")}
             </Button>
           </div>
         </div>
-      ) : null}
+      </Presence>
     </Page>
   );
 }

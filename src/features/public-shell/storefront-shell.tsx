@@ -53,7 +53,7 @@ export function HeaderIcon({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-card text-foreground transition-colors hover:bg-muted motion-reduce:transition-none"
+      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-card text-foreground transition-colors hover:bg-muted"
     >
       {children}
     </button>

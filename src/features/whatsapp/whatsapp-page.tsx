@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Smartphone,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
 import { PaneHeader } from "@/features/settings/pane-header";
@@ -21,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { getErrorMessage } from "@/data/api/errors";
+import { Reveal } from "@/lib/motion";
 import { queryClient } from "@/data/api/query";
 import {
   getWhatsappStatusQueryKey,
@@ -92,6 +94,10 @@ export function WhatsappPage() {
 
   const loading = statusQuery.isLoading && !status;
   const busy = pair.isPending || logout.isPending;
+  // Which of the connection's states shows; the poll refreshing the QR is not a change.
+  const stateKey = loading || !status
+    ? null
+    : !status.configured ? "unconfigured" : !status.reachable ? "unreachable" : status.logged_in ? "linked" : status.has_qr && status.qr_image ? "qr" : "unlinked";
 
   return (
     <div className="space-y-3">
@@ -107,7 +113,7 @@ export function WhatsappPage() {
             onClick={() => void statusQuery.refetch()}
             disabled={statusQuery.isFetching}
           >
-            <RefreshCw className={statusQuery.isFetching ? "size-4 animate-spin" : "size-4"} />
+            <Spinner icon={RefreshCw} spinning={statusQuery.isFetching} />
             {t("common.refresh", "Refresh")}
           </Button>
         }
@@ -129,9 +135,11 @@ export function WhatsappPage() {
                   </p>
                 </div>
               </div>
-              <StatusBadge status={status} loading={loading} t={t} />
+              <StatusBadge status={status} loading={loading} stateKey={stateKey} t={t} />
             </div>
 
+            {/* Scanned, unlinked, gateway down: the panel arrives in its new state. */}
+            <Reveal replayKey={stateKey} when={stateKey !== null}>
             {loading ? (
               <div className="space-y-2 py-2" aria-busy>
                 <Skeleton className="h-12 w-full rounded-xl" />
@@ -210,6 +218,7 @@ export function WhatsappPage() {
                 </Button>
               </div>
             )}
+            </Reveal>
           </CardContent>
         </Card>
 
@@ -254,29 +263,33 @@ export function WhatsappPage() {
 function StatusBadge({
   status,
   loading,
+  stateKey,
   t,
 }: {
   status: WhatsappStatus | undefined;
   loading: boolean;
+  stateKey: string | null;
   t: (key: string, fallback: string) => string;
 }) {
+  // The phone scanning the code lands here first: the pill settles into
+  // "Connected". Every branch is the same StatusPill, so it keeps its state.
   if (loading || !status) {
     return (
-      <StatusPill tone="neutral">{t("whatsapp.checking", "Checking…")}</StatusPill>
+      <StatusPill popOn={stateKey} tone="neutral">{t("whatsapp.checking", "Checking…")}</StatusPill>
     );
   }
   if (!status.configured || !status.reachable) {
     return (
-      <StatusPill tone="warning">{t("whatsapp.offline", "Offline")}</StatusPill>
+      <StatusPill popOn={stateKey} tone="warning">{t("whatsapp.offline", "Offline")}</StatusPill>
     );
   }
   if (status.logged_in) {
     return (
-      <StatusPill tone="success">{t("whatsapp.connected", "Connected")}</StatusPill>
+      <StatusPill popOn={stateKey} tone="success">{t("whatsapp.connected", "Connected")}</StatusPill>
     );
   }
   return (
-    <StatusPill tone="accent" icon={QrCode}>{t("whatsapp.awaitingScan", "Awaiting scan")}</StatusPill>
+    <StatusPill popOn={stateKey} tone="accent" icon={QrCode}>{t("whatsapp.awaitingScan", "Awaiting scan")}</StatusPill>
   );
 }
 

@@ -62,7 +62,7 @@ export function PhoneInput({ value, onChange, id, disabled, autoFocus, invalid, 
       <div
         dir="ltr"
         className={cn(
-          "flex h-12 w-full items-stretch overflow-hidden rounded-xl border bg-card shadow-xs transition-[border-color,box-shadow] motion-reduce:transition-none",
+          "flex h-12 w-full items-stretch overflow-hidden rounded-xl border bg-card shadow-xs transition-[border-color,box-shadow]",
           "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
           bad ? "border-destructive focus-within:border-destructive focus-within:ring-destructive/20" : "border-input",
           disabled && "cursor-not-allowed opacity-60",

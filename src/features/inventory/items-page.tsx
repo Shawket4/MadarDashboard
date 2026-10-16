@@ -24,7 +24,7 @@ import { keepScope } from "@/data/scope/list-search";
 import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import { ingredientsSearch } from "./search";
 import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { ItemDialog } from "./item-dialog";
 import { ItemDrawer } from "./item-drawer";
 import { WasteDialog } from "./waste-dialog";
@@ -182,7 +182,8 @@ export function ItemsPage() {
     try {
       await exportToExcel({ filename: "Madar-Ingredients", logoUrl, sheets: [{ name: t("inventory.catalog.title", "Ingredients"), title: t("inventory.catalog.title", "Ingredients"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }

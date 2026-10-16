@@ -1,12 +1,11 @@
 import { useTranslation } from "react-i18next";
-import { motion } from "motion/react";
 import { ChevronRight, MapPin, Store } from "lucide-react";
 
 import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
 import { usePublicBranches } from "@/data/api/generated/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { listItem, staggerContainer } from "@/lib/motion";
+import { DISTANCE, recipes, Stagger } from "@/lib/motion";
 
 interface BranchStepProps {
   orgId: string;
@@ -73,7 +72,8 @@ export function BranchStep({ orgId, onSelect, onPreview, browse }: BranchStepPro
   }
 
   return (
-    <motion.ul variants={staggerContainer(0.05)} initial="hidden" animate="show" className="space-y-3">
+    <Stagger asChild register="brand" recipe={recipes.rise("brand", DISTANCE.md)}>
+    <ul className="space-y-3">
       {branches.map((b) => {
         const anyOpen =
           b.in_mall_open_now ||
@@ -88,12 +88,13 @@ export function BranchStep({ orgId, onSelect, onPreview, browse }: BranchStepPro
         const lit = browse || anyOpen;
         const tappable = lit || canPreview;
         return (
-          <motion.li key={b.id} variants={listItem}>
+          <li key={b.id}>
             <button
               type="button"
               onClick={() => (lit || !onPreview ? onSelect(b) : onPreview(b))}
+              data-press="brand"
               className={cn(
-                "group flex w-full items-center gap-3 rounded-2xl p-4 text-start transition-all",
+                "group flex w-full items-center gap-3 rounded-2xl p-4 text-start transition-[color,background-color,border-color,box-shadow]",
                 lit
                   ? "border border-border/70 bg-card shadow-sm hover:border-brand/40 hover:shadow-md"
                   : "border border-dashed border-border/70 bg-muted/30 hover:border-brand/40 hover:bg-muted/50",
@@ -158,10 +159,11 @@ export function BranchStep({ orgId, onSelect, onPreview, browse }: BranchStepPro
                 <ChevronRight className="size-5 shrink-0 text-muted-foreground rtl:rotate-180" />
               )}
             </button>
-          </motion.li>
+          </li>
         );
       })}
-    </motion.ul>
+    </ul>
+    </Stagger>
   );
 }
 

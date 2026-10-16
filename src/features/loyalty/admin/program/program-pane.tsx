@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,6 +30,7 @@ import { ErrorState } from "@/components/app/empty-state";
 import { useAuthz } from "@/data/authz/use-authz";
 
 import { loyaltyAccess } from "../../shared/access";
+import { Spinner } from "@/components/ui/spinner";
 
 export function ProgramPane({ scope }: { scope: ProgramScope }) {
   const { t } = useTranslation();
@@ -159,7 +160,7 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
       {canEditProgram ? (
       <div className="flex flex-wrap items-center gap-2">
         <Button type="submit" disabled={save.isPending || (!form.formState.isDirty && !inherited)}>
-          {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+          {save.isPending ? <Spinner /> : null}
           {t("common.save", "Save")}
         </Button>
         {scope.branchId && !inherited ? (

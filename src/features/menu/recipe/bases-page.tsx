@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useFlip } from "@/lib/motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -50,6 +51,9 @@ export function RecipeBasesPage() {
   const basesQ = useListBases({ query: { enabled: !!orgId } });
   const [editing, setEditing] = useState<RecipeBaseOut | "new" | null>(null);
   const canEdit = useAuthz().can(Cap.menuItemsEdit);
+  // A base added or deleted: the rest slide to their places.
+  const listRef = useRef<HTMLUListElement>(null);
+  useFlip(listRef, (basesQ.data ?? []).map((b) => b.id).join());
 
   const remove = async (b: RecipeBaseOut) => {
     const ok = await confirm({
@@ -102,7 +106,7 @@ export function RecipeBasesPage() {
           description={t("modeling.bases.emptyHint", "Create one for lines many drinks share, then pick it in an item's recipe.")}
         />
       ) : (
-        <ul className="divide-y rounded-lg border">
+        <ul ref={listRef} className="divide-y rounded-lg border">
           {(basesQ.data ?? []).map((b) => (
             <li key={b.id} className="flex items-center justify-between gap-3 py-2 pe-2 ps-4">
               <div className="min-w-0">

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ import { useCan } from "@/data/authz/use-authz";
 
 import { cn } from "@/lib/utils";
 import { arOf, invalidateCatalog } from "../util";
+import { useFlip } from "@/lib/motion";
 import { GroupEditorDialog } from "./group-editor-dialog";
 import { GroupUsageDialog } from "./group-usage-dialog";
 import { isSwapType, selectionToPickRule, SWAP_SLUGS, SWAP_TYPES } from "./group-model";
@@ -68,6 +69,11 @@ export function GroupsPage() {
 
   const [order, setOrder] = useState<GroupOut[]>(groups);
   const [saving, setSaving] = useState(false);
+  // Arrow moves, a failed save's rollback and a group added or deleted slide
+  // the rows; a drag already put them there, so it does not count.
+  const listRef = useRef<HTMLOListElement>(null);
+  const [slides, setSlides] = useState(0);
+  useFlip(listRef, `${slides}:${order.length}`);
   useEffect(() => {
     if (!saving) setOrder(groups);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,6 +102,7 @@ export function GroupsPage() {
       toast.success(t("common.savedChanges", "Changes saved"));
     } catch (e) {
       setOrder(groups);
+      setSlides((n) => n + 1);
       toast.error(getErrorMessage(e));
     } finally {
       setSaving(false);
@@ -105,6 +112,7 @@ export function GroupsPage() {
   };
   const move = (from: number, to: number) => {
     if (to < 0 || to >= order.length) return;
+    setSlides((n) => n + 1);
     void commit(arrayMove(order, from, to));
   };
   const onDragEnd = (e: DragEndEvent) => {
@@ -162,7 +170,7 @@ export function GroupsPage() {
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={order.map((g) => g.id)} strategy={verticalListSortingStrategy}>
-            <ol className="space-y-2" aria-busy={saving}>
+            <ol ref={listRef} className="space-y-2" aria-busy={saving}>
               {order.map((g, idx) => (
                 <GroupRow
                   key={g.id}

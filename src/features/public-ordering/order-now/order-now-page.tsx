@@ -22,8 +22,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useTranslation } from "react-i18next";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { motion, useReducedMotion } from "motion/react";
-import { AlertCircle, ArrowRight, CreditCard, Hourglass, Loader2 } from "lucide-react";
+import { Reveal } from "@/lib/motion";
+import { AlertCircle, ArrowRight, CreditCard, Hourglass } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useOrderNowContext } from "@/data/api/generated/api";
@@ -36,6 +36,7 @@ import { ltrIsolate } from "@/lib/phone";
 
 import { PublicOrderingPage } from "../public-ordering-page";
 import { isTooManyAttempts, type OrderNowSession } from "./session";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Props {
   token: string;
@@ -53,7 +54,6 @@ interface Proof {
 export function OrderNowPage({ token, branch, channel, preview }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const reduced = useReducedMotion();
 
   useLayoutEffect(() => {
     usePublicTheme.getState().apply();
@@ -144,10 +144,8 @@ export function OrderNowPage({ token, branch, channel, preview }: Props) {
 
   return (
     <StorefrontShell brand={brand} product="ordering">
-      <motion.div
-        initial={reduced ? false : { opacity: 0, y: 14 }}
-        animate={reduced ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      <Reveal
+        register="brand"
         className="mx-auto flex min-h-[58vh] w-full max-w-md flex-col justify-center gap-6"
       >
         {masked.isError && isTooManyAttempts(masked.error) ? (
@@ -176,7 +174,7 @@ export function OrderNowPage({ token, branch, channel, preview }: Props) {
           </div>
         ) : loading || !masked.data ? (
           <div className="flex flex-col items-center gap-4 py-16 text-muted-foreground" role="status">
-            <Loader2 className="size-8 animate-spin text-brand" />
+            <Spinner className="size-8 text-brand" />
             <p className="text-sm">{t("order.now.opening", "Opening your order…")}</p>
           </div>
         ) : (
@@ -247,7 +245,7 @@ export function OrderNowPage({ token, branch, channel, preview }: Props) {
             </p>
           </>
         )}
-      </motion.div>
+      </Reveal>
     </StorefrontShell>
   );
 }

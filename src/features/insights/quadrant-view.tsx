@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useReducedMotion } from "motion/react";
 import {
   CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart,
   Tooltip as ReTooltip, XAxis, YAxis,
@@ -8,6 +7,7 @@ import {
 
 import { CHART_AXIS_TICK, ChartCard } from "@/components/app/chart-card";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
+import { useChartMotion } from "@/lib/motion";
 import type { MarginLedgerRow } from "@/data/api/generated/models";
 import { QUADRANT_CLASSES, quadrantModel, type QuadrantClass, type QuadrantDot } from "./quadrant";
 
@@ -67,7 +67,7 @@ function DotTooltip({ active, payload }: { active?: boolean; payload?: Array<{ p
  */
 export function QuadrantView({ rows }: { rows: MarginLedgerRow[] }) {
   const { t } = useTranslation();
-  const reduced = useReducedMotion();
+  const chartMotion = useChartMotion();
   const model = useMemo(() => quadrantModel(rows), [rows]);
 
   const className = (c: QuadrantClass) => t(`insights.class.${c}`, CLASS_MARK[c].fallback);
@@ -127,7 +127,7 @@ export function QuadrantView({ rows }: { rows: MarginLedgerRow[] }) {
                 fill={CLASS_MARK[c].color}
                 shape={CLASS_MARK[c].shape}
                 legendType={CLASS_MARK[c].shape}
-                isAnimationActive={!reduced}
+                {...chartMotion}
               />
             ))}
           </ScatterChart>

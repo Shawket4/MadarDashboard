@@ -1,11 +1,12 @@
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { motion, useReducedMotion } from "motion/react";
 import { CalendarCheck, ScanLine } from "lucide-react";
 
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
+import { useScanSweep } from "@/features/public-shell/use-scan-sweep";
+import { Reveal } from "@/lib/motion";
 
 /**
  * The reservations app's landing at `/` (reservations.madar-pos.cloud root),
@@ -21,7 +22,8 @@ import { usePublicBrand } from "@/features/public-shell/use-brand";
  */
 export function ScanToBook() {
   const { t } = useTranslation();
-  const reduced = useReducedMotion();
+  const line = useRef<HTMLSpanElement>(null);
+  useScanSweep(line);
 
   // Nothing in this URL says which venue, so the only thing that can: the
   // host. On a shop's own domain this landing wears their mark; on our
@@ -37,10 +39,8 @@ export function ScanToBook() {
 
   return (
     <StorefrontShell brand={brand} product="reservations">
-      <motion.div
-        initial={reduced ? false : { opacity: 0, y: 18 }}
-        animate={reduced ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      <Reveal
+        register="brand"
         className="flex min-h-[58vh] flex-col items-center justify-center gap-8 text-center"
       >
         {/* QR viewfinder */}
@@ -57,16 +57,10 @@ export function ScanToBook() {
 
             <CalendarCheck className="size-20 text-foreground/80" strokeWidth={1.25} aria-hidden />
 
-            <motion.span
+            <span
+              ref={line}
               aria-hidden
-              className="absolute inset-x-6 h-0.5 rounded-full bg-gradient-to-r from-transparent via-brand to-transparent"
-              initial={reduced ? { top: "50%" } : { top: "20%" }}
-              animate={reduced ? { top: "50%" } : { top: ["20%", "80%", "20%"] }}
-              transition={
-                reduced
-                  ? { duration: 0 }
-                  : { duration: 2.8, repeat: Infinity, ease: "easeInOut" }
-              }
+              className="absolute inset-x-6 top-1/2 h-0.5 rounded-full bg-gradient-to-r from-transparent via-brand to-transparent"
             />
           </div>
         </div>
@@ -87,7 +81,7 @@ export function ScanToBook() {
           <ScanLine className="size-4 text-brand" />
           {t("reservations.scan.hint", "Point your phone's camera at the Madar code")}
         </div>
-      </motion.div>
+      </Reveal>
     </StorefrontShell>
   );
 }

@@ -24,7 +24,6 @@ import {
   Outlet,
 } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { MotionConfig } from "motion/react";
 import { z } from "zod";
 
 import { orderSearchSchema } from "./search";
@@ -58,6 +57,7 @@ import "@fontsource/ibm-plex-mono/latin-500.css";
 import "@fontsource/ibm-plex-mono/latin-600.css";
 
 import "@/styles/globals.css";
+import { bootMotion } from "@/lib/motion";
 
 // Customer surface: the brand register, where the primary is Madar teal.
 document.documentElement.classList.add("brand-surface");
@@ -81,6 +81,7 @@ import { OrderNowPage } from "@/features/public-ordering/order-now/order-now-pag
 // LIGHT unless this visitor chose otherwise on this shop — not the device's
 // preference. A storefront should look the same to every customer.
 initPublicTheme();
+bootMotion();
 
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
@@ -248,7 +249,6 @@ const router = createRouter({
   basepath: import.meta.env.BASE_URL,
   defaultPreload: "intent",
   scrollRestoration: true,
-  defaultViewTransition: true,
   // Any unrecognized path falls back to the branded scan-to-order prompt.
   defaultNotFoundComponent: ScanToOrder,
 });
@@ -257,10 +257,8 @@ function render() {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <MotionConfig reducedMotion="user">
           <RouterProvider router={router} />
           <PublicToaster />
-        </MotionConfig>
       </QueryClientProvider>
     </StrictMode>,
   );

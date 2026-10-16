@@ -4,7 +4,7 @@
  * change does is what they meant (CH-4).
  */
 import { useTranslation } from "react-i18next";
-import { ArrowRight, LayoutGrid, Loader2, Printer, ReceiptText, Split, TriangleAlert, type LucideIcon } from "lucide-react";
+import { ArrowRight, LayoutGrid, Printer, ReceiptText, Split, TriangleAlert, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,7 @@ import {
   SETUPS, diffPlans, routingModeFor, type PieceRef, type Plan, type RoutingMode, type Setup,
 } from "./plan";
 import { pieceName, setupLabel } from "./vocabulary";
+import { Spinner } from "@/components/ui/spinner";
 
 const SETUP_ICON: Record<Setup, LucideIcon> = {
   till: ReceiptText,
@@ -46,7 +47,7 @@ export function SetupPicker({ onPick, disabled }: { onPick: (s: Setup) => void; 
                 type="button"
                 disabled={disabled}
                 onClick={() => onPick(s)}
-                className="group flex h-full w-full items-start gap-3 rounded-xl border bg-card p-4 text-start transition-colors duration-150 hover:border-primary/60 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-60 motion-reduce:transition-none"
+                className="group flex h-full w-full items-start gap-3 rounded-xl border bg-card p-4 text-start transition-colors duration-fast hover:border-primary/60 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-60"
               >
                 <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
                   <Icon className="size-5" />
@@ -158,7 +159,7 @@ export function ReviewDialog({
             {t("common.cancel", "Cancel")}
           </Button>
           <Button onClick={onConfirm} disabled={saving || busy.length > 0} className="gap-1.5">
-            {saving ? <Loader2 className="size-4 animate-spin" /> : null}
+            {saving ? <Spinner /> : null}
             {t("builder.save", "Save plan")}
           </Button>
         </DialogFooter>

@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowLeftRight, ArrowRight, PackageSearch, PlusCircle, Warehouse } from "lucide-react";
-import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
@@ -13,7 +12,6 @@ import { StatusPill } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import type { StockTransfer, TransferDifferenceRow, TransferLineInput } from "@/data/api/generated/models";
 import { listTransfers, useListBranches, useListTransfers, useTransferDifferences, useTransferLocations } from "@/data/api/generated/api";
-import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz, useAuthzAt } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
@@ -22,7 +20,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { transfersSearch } from "./search";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { TransferDialog } from "./transfer-dialog";
 import { TransferDrawer, transferStatusLabel } from "./transfer-drawer";
@@ -173,7 +171,8 @@ export function TransfersPage() {
       ];
       await exportToExcel({ filename: "Madar-Transfers", logoUrl, sheets: [{ name: t("inventory.transfers.title", "Transfers"), title: t("inventory.transfers.title", "Transfers"), rows: flat as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }

@@ -23,7 +23,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { AlertTriangle, Loader2, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,6 +57,7 @@ import {
   rowsToWire,
   type RewardRow,
 } from "./catalogue-schema";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({ items: catalogueSchema });
 type FormValues = z.infer<typeof formSchema>;
@@ -295,7 +296,7 @@ export function RewardsPane({ scope }: { scope: ProgramScope }) {
             type="submit"
             disabled={save.isPending || (!dirty && !inherited) || problems.some(isBlocking)}
           >
-            {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+            {save.isPending ? <Spinner /> : null}
             {t("common.save", "Save")}
           </Button>
           {dirty && catalogue.data ? (

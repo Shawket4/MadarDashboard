@@ -13,7 +13,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { CircleCheck, KeyRound, Loader2, Trash2, TriangleAlert } from "lucide-react";
+import { CircleCheck, KeyRound, Trash2, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,6 +39,7 @@ import { installKindFor, presenceOf, useSlotCode, type PlanRegisteredDevice } fr
 import {
   connectionLabel, deviceKindLabel, printerRoleLabel, problemText, setupLabel,
 } from "./vocabulary";
+import { Spinner } from "@/components/ui/spinner";
 
 export interface InspectorProps {
   branchId: string;
@@ -468,7 +469,7 @@ function SetupCode({ branchId, slotId, saved }: { branchId: string; slotId: stri
         )
       }
     >
-      {issue.isPending ? <Loader2 className="size-4 animate-spin" /> : <KeyRound className="size-4" />}
+      {issue.isPending ? <Spinner /> : <KeyRound className="size-4" />}
       {t("builder.getCode", "Get a setup code")}
     </Button>
   );

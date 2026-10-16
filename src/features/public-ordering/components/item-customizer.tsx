@@ -805,7 +805,7 @@ function Chip({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition-all",
+        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition-[color,background-color,border-color,box-shadow]",
         active
           ? "border-brand bg-brand text-brand-foreground shadow-sm"
           : "border-border/70 bg-card hover:border-brand/40",

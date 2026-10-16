@@ -14,6 +14,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { useDisciplineReport } from "@/data/api/generated/api";
 import type { DisciplineRow } from "@/data/api/generated/models";
 import { cairoParts, fmtNumber } from "@/lib/format";
+import { Stagger } from "@/lib/motion";
 import { dawamQuery } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 
@@ -97,7 +98,7 @@ export function StaffDisciplinePage() {
       ) : groups.length === 0 ? (
         <EmptyState title={t("reports.staff.empty", "No attendance recorded in this period")} />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <Stagger className="grid gap-4 lg:grid-cols-2">
           {groups.map((g) => (
             <Card key={g.key} className="py-0">
               <CardHeader className="pt-4">
@@ -138,7 +139,7 @@ export function StaffDisciplinePage() {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </Stagger>
       )}
     </Page>
   );

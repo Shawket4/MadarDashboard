@@ -32,7 +32,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { keepScope } from "@/data/scope/list-search";
 import { financialReportsSearch } from "@/features/reports/search";
-import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, exportToCsv, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DecisionsTab } from "./decisions-tab";
@@ -270,7 +270,8 @@ export function ProfitabilityPage() {
         sheets: [{ name: title, title, rows: data as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -308,6 +309,7 @@ export function ProfitabilityPage() {
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 

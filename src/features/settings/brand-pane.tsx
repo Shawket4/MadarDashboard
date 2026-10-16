@@ -13,7 +13,7 @@
  * shop cannot pick two colours nobody can read, and the card and the logo can
  * never disagree about what the brand is.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock } from "lucide-react";
@@ -37,6 +37,7 @@ import {
 } from "@/data/api/generated/api";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { usePop, useShake } from "@/lib/motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   SocialLinksFields,
@@ -243,6 +244,13 @@ function SocialLinksCard({ org }: { org: Org }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
+  // Beside the toast, the Save button itself answers: it settles on a save
+  // and shakes on a refusal, once per attempt.
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const [saves, setSaves] = useState(0);
+  const [refused, setRefused] = useState(0);
+  usePop(saveRef, saves);
+  useShake(saveRef, refused);
 
   const schema = useMemo(() => z.object({ social: socialLinksSchema(t) }), [t]);
   type Values = z.infer<typeof schema>;
@@ -265,10 +273,12 @@ function SocialLinksCard({ org }: { org: Org }) {
         social_links: socialLinksPatch(v.social, org.social_links),
       });
       await queryClient.invalidateQueries({ queryKey: ["org-brand", org.id] });
+      setSaves((n) => n + 1);
       toast.success(t("settings.socialSaved", "Links updated"));
     } catch (e) {
       // The server holds the same closed list and the same https rule, and it
       // is the one that decides. Whatever it objects to, the shop hears it.
+      setRefused((n) => n + 1);
       toast.error(getErrorMessage(e));
     } finally {
       setBusy(false);
@@ -282,7 +292,7 @@ function SocialLinksCard({ org }: { org: Org }) {
           <form onSubmit={form.handleSubmit(submit)} className="space-y-4">
             <SocialLinksFields />
             <div className="flex justify-end">
-              <Button type="submit" loading={busy}>
+              <Button ref={saveRef} type="submit" loading={busy}>
                 {t("common.save", "Save")}
               </Button>
             </div>

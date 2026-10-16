@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtMoney, fmtNumber, fmtShare } from "@/lib/format";
+import { Stagger } from "@/lib/motion";
 import type { TillSessionRow } from "@/data/api/generated/models";
 import { fmtBusinessDate, salesStats } from "./lib";
 
@@ -107,41 +108,43 @@ export function SalesTab({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-0">
-          <ul className="divide-y text-sm">
-            {shown.map((r) => (
-              <li key={r.till_id} className="py-2.5">
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0 truncate font-medium">
-                    {r.teller_name}
-                    {/* The day too: one teller opens many tills in a period. */}
-                    <span className="font-normal text-muted-foreground">
-                      {" · "}{r.branch_name}{" · "}{fmtBusinessDate(r.business_date)}
+          <Stagger asChild>
+            <ul className="divide-y text-sm">
+              {shown.map((r) => (
+                <li key={r.till_id} className="py-2.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 truncate font-medium">
+                      {r.teller_name}
+                      {/* The day too: one teller opens many tills in a period. */}
+                      <span className="font-normal text-muted-foreground">
+                        {" · "}{r.branch_name}{" · "}{fmtBusinessDate(r.business_date)}
+                      </span>
                     </span>
-                  </span>
-                  <span className="shrink-0 tabular-nums">{fmtMoney(r.net_sales)}</span>
-                </div>
-                <div className="mt-1.5 flex items-center gap-2">
-                  {/* Against the best session, so the bars compare like with like. */}
-                  <ProgressBar
-                    className="flex-1"
-                    value={r.net_sales}
-                    max={top}
-                    ariaLabel={t("reports.tills.barLabel", {
-                      share: fmtShare(r.net_sales, top),
-                      defaultValue: "{{share}} of the best session",
-                    })}
-                  />
-                  <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-                    {t("reports.tills.ordersShare", {
-                      orders: fmtNumber(r.orders_count),
-                      share: s.sales > 0 ? fmtShare(r.net_sales, s.sales) : "—",
-                      defaultValue: "{{orders}} orders · {{share}}",
-                    })}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
+                    <span className="shrink-0 tabular-nums">{fmtMoney(r.net_sales)}</span>
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    {/* Against the best session, so the bars compare like with like. */}
+                    <ProgressBar
+                      className="flex-1"
+                      value={r.net_sales}
+                      max={top}
+                      ariaLabel={t("reports.tills.barLabel", {
+                        share: fmtShare(r.net_sales, top),
+                        defaultValue: "{{share}} of the best session",
+                      })}
+                    />
+                    <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                      {t("reports.tills.ordersShare", {
+                        orders: fmtNumber(r.orders_count),
+                        share: s.sales > 0 ? fmtShare(r.net_sales, s.sales) : "—",
+                        defaultValue: "{{orders}} orders · {{share}}",
+                      })}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Stagger>
           {ranked.length > TOP ? (
             <Button variant="ghost" size="sm" className="mt-2" onClick={() => setShowAll(!showAll)}>
               {showAll

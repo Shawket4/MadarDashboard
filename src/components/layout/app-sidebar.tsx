@@ -106,7 +106,7 @@ function NavRow({ entry, isActive, visible, pathname, pf, close, keepScope }: Na
             >
               <entry.icon />
               <span>{t(entry.labelKey, entry.fallback)}</span>
-              <ChevronRight className="ms-auto transition-transform duration-200 motion-reduce:transition-none group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180 rtl:group-data-[state=open]/collapsible:-rotate-90" />
+              <ChevronRight className="ms-auto transition-transform duration-base group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180 rtl:group-data-[state=open]/collapsible:-rotate-90" />
             </SidebarMenuButton>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -234,7 +234,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" side={side} className="border-sidebar-border">
-      <SidebarHeader className="group-data-[collapsible=icon]:hidden">
+      <SidebarHeader className="group-data-[collapsible=icon]:invisible">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg" className="px-2 hover:bg-transparent active:bg-transparent">

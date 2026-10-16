@@ -159,8 +159,10 @@ export default defineConfig({
           // TanStack Query + Table
           if (id.includes("@tanstack/")) return "query-vendor";
 
-          // Animation
-          if (id.includes("/motion/") || id.includes("framer-motion")) return "motion-vendor";
+          // Animation: GSAP is only ever imported dynamically (src/lib/motion/gsap.ts),
+          // so these chunks load after the first paint, never with the entry. Flip
+          // is separate: only lists that reorder fetch it.
+          if (id.includes("/gsap/")) return id.includes("Flip") ? "gsap-flip" : "gsap-vendor";
 
           // i18n
           if (id.includes("i18next") || id.includes("react-i18next")) return "i18n-vendor";

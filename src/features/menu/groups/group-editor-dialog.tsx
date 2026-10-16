@@ -331,7 +331,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
 
         {loading ? (
           <div className="grid place-items-center py-10">
-            <Spinner />
+            <Spinner className="text-muted-foreground" />
           </div>
         ) : (
           <Form {...form}>

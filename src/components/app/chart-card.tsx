@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartEntrance } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 /** Axis ticks: quiet, small, tabular — shared by every Recharts axis. */
@@ -26,18 +27,21 @@ interface ChartCardProps {
   contentClassName?: string;
 }
 
+/** A chart's card. It arrives by itself (ChartEntrance), or with the Stagger it sits in. */
 export function ChartCard({ title, description, actions, children, className, contentClassName }: ChartCardProps) {
   return (
-    <Card className={cn("gap-4 py-5 shadow-none", className)}>
-      {(title || description || actions) && (
-        <CardHeader className="px-5">
-          {title ? <CardTitle className="text-base tracking-[-0.005em]">{title}</CardTitle> : null}
-          {description ? <CardDescription>{description}</CardDescription> : null}
-          {actions ? <CardAction>{actions}</CardAction> : null}
-        </CardHeader>
-      )}
-      {/* SVG text anchors break under dir=rtl: plots stay LTR, surrounding copy stays RTL. */}
-      <CardContent className={cn("px-3 sm:px-5 [&_.recharts-wrapper]:[direction:ltr]", contentClassName)}>{children}</CardContent>
-    </Card>
+    <ChartEntrance asChild>
+      <Card className={cn("gap-4 py-5 shadow-none", className)}>
+        {(title || description || actions) && (
+          <CardHeader className="px-5">
+            {title ? <CardTitle className="text-base tracking-[-0.005em]">{title}</CardTitle> : null}
+            {description ? <CardDescription>{description}</CardDescription> : null}
+            {actions ? <CardAction>{actions}</CardAction> : null}
+          </CardHeader>
+        )}
+        {/* SVG text anchors break under dir=rtl: plots stay LTR, surrounding copy stays RTL. */}
+        <CardContent className={cn("px-3 sm:px-5 [&_.recharts-wrapper]:[direction:ltr]", contentClassName)}>{children}</CardContent>
+      </Card>
+    </ChartEntrance>
   );
 }

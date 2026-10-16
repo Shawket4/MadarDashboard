@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ArrowDown, ArrowUp, GripVertical, Tag } from "lucide-react";
@@ -26,6 +26,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { useReorderCategories } from "@/data/api/generated/api";
 import type { Category } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { useFlip } from "@/lib/motion";
 import { getTranslatedName } from "@/lib/translation";
 import { invalidateCatalog } from "./util";
 
@@ -47,6 +48,11 @@ export function CategoryReorderList({ orgId, categories, isLoading }: Props) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const [order, setOrder] = useState<Category[]>(categories);
+  // Arrow-button moves and a failed save's rollback slide the rows; a drag
+  // already put them there, so it does not count.
+  const listRef = useRef<HTMLOListElement>(null);
+  const [slides, setSlides] = useState(0);
+  useFlip(listRef, slides);
 
   // Follow the server list whenever it changes from elsewhere (e.g. a
   // category created/deleted on another tab), but not while we have an
@@ -55,6 +61,7 @@ export function CategoryReorderList({ orgId, categories, isLoading }: Props) {
     mutation: {
       onError: (e) => {
         setOrder(categories);
+        setSlides((n) => n + 1);
         toast.error(getErrorMessage(e));
       },
       onSuccess: () => {
@@ -80,6 +87,7 @@ export function CategoryReorderList({ orgId, categories, isLoading }: Props) {
 
   const move = (from: number, to: number) => {
     if (to < 0 || to >= order.length) return;
+    setSlides((n) => n + 1);
     commit(arrayMove(order, from, to));
   };
 
@@ -104,7 +112,7 @@ export function CategoryReorderList({ orgId, categories, isLoading }: Props) {
       </p>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={order.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-          <ol className="space-y-2">
+          <ol ref={listRef} className="space-y-2">
             {order.map((c, idx) => (
               <SortableCategoryRow
                 key={c.id}

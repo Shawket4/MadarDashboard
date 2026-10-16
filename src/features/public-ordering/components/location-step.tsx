@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { motion } from "motion/react";
-import { ArrowRight, CheckCircle2, ChevronDown, Crosshair, Loader2, MapPin, MapPinOff, Route } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, Crosshair, MapPin, MapPinOff, Route } from "lucide-react";
 
 import { useDeliveryQuote } from "@/data/api/generated/api";
 import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
 import type { GuestSavedLocation } from "@/data/api/generated/models/guestSavedLocation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { fadeInUp } from "@/lib/motion";
+import { DISTANCE, Reveal, recipes } from "@/lib/motion";
 import { fmtMoney } from "@/lib/format";
 
 import type { Channel } from "../types";
 import { DeliveryMap, type LatLng } from "./delivery-map";
+import { Spinner } from "@/components/ui/spinner";
 
 /** Initial map view before a point is set / when geolocation is unavailable.
  * Cairo centre — the customer searches or taps to their real spot. */
@@ -178,7 +178,7 @@ export function LocationStep({
             </div>
           ) : !point ? (
             <p className="mt-2 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
+              <Spinner />
               {t("order.location.locating")}
             </p>
           ) : (
@@ -345,7 +345,7 @@ function QuoteStatus({ quote, loading }: { quote: QuoteResponse | null; loading:
 
   if (loading || !quote) {
     return (
-      <Banner tone="neutral" icon={<Loader2 className="size-4 animate-spin" />}>
+      <Banner tone="neutral" icon={<Spinner />}>
         {t("order.location.checkingRange")}
       </Banner>
     );
@@ -403,10 +403,8 @@ function Banner({
   children: React.ReactNode;
 }) {
   return (
-    <motion.div
-      variants={fadeInUp}
-      initial="hidden"
-      animate="show"
+    <Reveal
+      recipe={recipes.rise("brand", DISTANCE.sm)}
       className={cn(
         "flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm shadow-sm",
         tone === "ok" && "border-success/30 bg-success/10 text-success",
@@ -416,6 +414,6 @@ function Banner({
     >
       <span className="mt-0.5 shrink-0">{icon}</span>
       <div className="min-w-0 flex-1">{children}</div>
-    </motion.div>
+    </Reveal>
   );
 }

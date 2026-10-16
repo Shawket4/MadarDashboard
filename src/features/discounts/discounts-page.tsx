@@ -21,7 +21,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { fmtMoney, piastresToEgp, rateOf } from "@/lib/format";
 import { formatRate, fractionToPercent } from "@/features/orgs/tax-rate";
 import { getTranslatedName } from "@/lib/translation";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
@@ -123,7 +123,8 @@ export function DiscountsPage() {
     try {
       await exportToExcel({ filename: "Madar-Discounts", logoUrl, sheets: [{ name: t("discounts.title", "Discounts"), title: t("discounts.title", "Discounts"), rows: discounts as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
-      onErr(e);
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }

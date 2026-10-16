@@ -39,7 +39,7 @@ export function FlagChip({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="shrink-0 cursor-pointer rounded-full transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+          className="shrink-0 cursor-pointer rounded-full transition-opacity duration-fast hover:opacity-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
           <StatusPill tone={SIGNAL_TONE[signal.kind] ?? "neutral"} size="sm">
             {signalLabel(t, signal.kind)}

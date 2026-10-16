@@ -31,7 +31,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { purchasingSearch } from "./search";
 import { fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { PO_STATUS_TONES, PO_STATUSES, invalidateInventory } from "./lib";
 import { PurchaseOrderDialog, type POPrefillLine } from "./purchase-order-dialog";
 import { ReceiveDialog } from "./receive-dialog";
@@ -151,7 +151,7 @@ export function PurchasingPage() {
       header: t("inventory.purchasing.status", "Status"),
       meta: { label: t("inventory.purchasing.status", "Status") },
       cell: ({ row }) => (
-        <StatusPill tone={PO_STATUS_TONES[row.original.status] ?? "neutral"}>
+        <StatusPill popOn={row.original.status} tone={PO_STATUS_TONES[row.original.status] ?? "neutral"}>
           {t(`inventory.purchasing.statuses.${row.original.status}`, row.original.status)}
         </StatusPill>
       ),
@@ -304,7 +304,8 @@ export function PurchasingPage() {
       try {
         await exportToExcel({ filename: "Madar-PurchaseOrders", logoUrl, sheets: [{ name: t("inventory.purchasing.orders", "Purchase orders"), title: t("inventory.purchasing.orders", "Purchase orders"), rows: (orders.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
       } catch (e) {
-        toast.error(getErrorMessage(e));
+        toastExportError(e);
+        throw e;
       } finally {
         setExporting(false);
       }
@@ -320,7 +321,8 @@ export function PurchasingPage() {
       try {
         await exportToExcel({ filename: "Madar-Suppliers", logoUrl, sheets: [{ name: t("inventory.purchasing.suppliers", "Suppliers"), title: t("inventory.purchasing.suppliers", "Suppliers"), rows: (suppliers.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
       } catch (e) {
-        toast.error(getErrorMessage(e));
+        toastExportError(e);
+        throw e;
       } finally {
         setExporting(false);
       }

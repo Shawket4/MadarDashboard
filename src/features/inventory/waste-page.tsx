@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Trash2 } from "lucide-react";
-import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { ListCard, SummaryLine } from "@/components/app/list-row";
@@ -15,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { StockMovement } from "@/data/api/generated/models";
 import { listWaste, useBranchWasteReport, useListWaste } from "@/data/api/generated/api";
-import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
@@ -23,7 +21,7 @@ import { wasteSearch } from "./search";
 import { useCan } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { WasteDialog } from "./waste-dialog";
 import { wasteReceivedLate, wasteSource, wasteWhen } from "./lib";
@@ -211,7 +209,8 @@ export function WastePage() {
       ];
       await exportToExcel({ filename: "Madar-Waste", logoUrl, sheets: [{ name: t("inventory.waste.title", "Waste log"), title: t("inventory.waste.title", "Waste log"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }

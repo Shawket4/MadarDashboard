@@ -5,7 +5,7 @@
  * manager's limit. Each kind shows only to someone who may decide it; the
  * server checks again.
  */
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeftRight, CalendarPlus, Check, HandCoins, Inbox, ReceiptText, Timer, UserRoundCheck, X,
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ListCard, ListRow } from "@/components/app/list-row";
+import { useFlip, useStagger } from "@/lib/motion";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { useListFilters } from "@/data/scope/use-list-filters";
 import { approvalsSearch } from "./search";
@@ -45,6 +46,7 @@ import { capView, warningsOf } from "./phase-d";
 
 /** An approval the approver backed out of: nothing was sent, nothing to say. */
 const BACKED_OUT = Symbol("backed out");
+const QUEUE_ROWS = ":scope > [data-slot=list-card] > *";
 
 type Section = "all" | "requests" | "money" | "shifts";
 
@@ -312,13 +314,19 @@ export function ApprovalsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestsQ.data, own, advancesQ.data, payLinesQ.data, swapsQ.data, claimsQ.data, coversQ.data, overtimeQ.data, t, mayPassCap]);
 
+  const live = items.filter((i) => !gone.has(i.key));
+  const shown = section === "all" ? live : live.filter((i) => i.section === section);
+  // The queue arrives one after another; a decided item leaving lets the rest
+  // slide up into its place.
+  const listRef = useRef<HTMLDivElement>(null);
+  useStagger(listRef, { selector: QUEUE_ROWS, when: !loading && shown.length > 0 });
+  useFlip(listRef, shown.map((i) => i.key).join(), QUEUE_ROWS);
+
   if (authz.ready && !any) {
     return <Restricted title={t("dawam.approvals", "Approvals")} who={t("dawam.approvalsNoAccess", "Nothing here is yours to decide. The owner can give you access.")} />;
   }
 
   const count = (s: Section) => (s === "all" ? live.length : live.filter((i) => i.section === s).length);
-  const live = items.filter((i) => !gone.has(i.key));
-  const shown = section === "all" ? live : live.filter((i) => i.section === section);
   const batchable = shown.filter((i) => i.bulk && !i.rejectOnly && !i.locked);
   const picked = batchable.filter((i) => selected.has(i.key));
   const toggle = (key: string, on: boolean) =>
@@ -426,7 +434,7 @@ export function ApprovalsPage() {
       ) : shown.length === 0 ? (
         <EmptyState icon={Inbox} title={t("dawam.nothingWaiting", "Nothing is waiting on you")} description={t("dawam.nothingWaitingHint", "New requests, covers, swaps and claims land here.")} />
       ) : (
-        <div className="space-y-2">
+        <div ref={listRef} className="space-y-2">
           {batchable.length > 1 ? (
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card px-4 py-2 sm:px-5">
               <label className="flex items-center gap-3 text-sm">

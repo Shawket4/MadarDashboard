@@ -8,6 +8,7 @@ import { ProgressBar } from "@/components/app/progress-bar";
 import { StatusPill } from "@/components/app/status-pill";
 import { cn } from "@/lib/utils";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtShare } from "@/lib/format";
+import { Stagger } from "@/lib/motion";
 import type { DeliverySalesReport } from "@/data/api/generated/models/deliverySalesReport";
 
 const CHANNEL_META: Record<string, { labelKey: string; fallback: string; icon: typeof Store }> = {
@@ -45,7 +46,7 @@ export function DeliveryKpis({
   return (
     <div className={cn("space-y-3", className)}>
       <LedgerStrip items={totals} />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+      <Stagger when={!loading} className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         {loading
           ? [0, 1].map((i) => (
               <Card key={i} className="gap-3 rounded-2xl p-5 shadow-none">
@@ -99,7 +100,7 @@ export function DeliveryKpis({
                 </Card>
               );
             })}
-      </div>
+      </Stagger>
     </div>
   );
 }

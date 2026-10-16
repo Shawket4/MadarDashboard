@@ -7,7 +7,7 @@ import { Ban, Bike, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket
 
 import { Page, PageHeader } from "@/components/app/page";
 import { SectionHeader } from "@/components/app/section-header";
-import { StatusPill, toneFor } from "@/components/app/status-pill";
+import { StatusPill } from "@/components/app/status-pill";
 import { EmptyState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ExcludeItemsControl, excludeItemsParam, useExcludedItems } from "@/components/app/exclude-items-control";
@@ -31,6 +31,7 @@ import { OrderDetailSheet } from "./order-detail-sheet";
 import { VoidOrderDialog } from "./void-order-dialog";
 import { OrderExportDialog } from "./order-export-dialog";
 import { ServiceModeBadge } from "./service-mode-badge";
+import { OrderStatusBadge } from "./order-status-badge";
 import { serviceModeOf } from "./service-mode";
 import { getGetOrderQueryOptions, getListOrdersQueryOptions, useBranchDeliverySales, useListOrders } from "@/data/api/generated/api";
 import { queryClient } from "@/data/api/query";
@@ -85,11 +86,6 @@ function PriceFlagBadge({ order }: { order: Order }) {
       </TooltipContent>
     </Tooltip>
   );
-}
-
-function OrderStatusBadge({ status }: { status: string }) {
-  const { t } = useTranslation();
-  return <StatusPill tone={toneFor(status, "success")}>{t(`orderStatus.${status}`, status)}</StatusPill>;
 }
 
 export function OrdersPage() {

@@ -309,7 +309,7 @@ export function WorkShiftDialog({
                         aria-pressed={on}
                         onClick={() => applyPreset(p)}
                         className={cn(
-                          "flex h-auto flex-col items-start rounded-md border px-3 py-1.5 text-start transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                          "flex h-auto flex-col items-start rounded-md border px-3 py-1.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
                           on ? "border-primary bg-primary/5" : "hover:bg-accent",
                         )}
                       >
@@ -383,7 +383,7 @@ export function WorkShiftDialog({
                       : t("staff.dayTimesNone", "Same times every day. Open to change a day, e.g. later on Thursday.")}
                   </span>
                 </span>
-                <ChevronDown aria-hidden className={cn("size-4 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none", dayTimesOpen && "rotate-180")} />
+                <ChevronDown aria-hidden className={cn("size-4 shrink-0 text-muted-foreground transition-transform", dayTimesOpen && "rotate-180")} />
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-3 border-t p-3">
                 <p className="text-xs text-muted-foreground">
@@ -434,7 +434,7 @@ export function WorkShiftDialog({
                   <span className="block text-sm font-medium">{t("staff.moreShiftSettings", "Overtime and check-in")}</span>
                   <span className="block text-xs text-muted-foreground">{t("staff.moreShiftSettingsHint", "Most shifts keep these as they are.")}</span>
                 </span>
-                <ChevronDown aria-hidden className={cn("size-4 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none", moreOpen && "rotate-180")} />
+                <ChevronDown aria-hidden className={cn("size-4 shrink-0 text-muted-foreground transition-transform", moreOpen && "rotate-180")} />
               </CollapsibleTrigger>
               <CollapsibleContent className="grid gap-4 border-t p-3 sm:grid-cols-2">
                 {kitNumber("overtime_threshold_minutes", t("staff.otThreshold", "Overtime after (minutes)"), (p) => (

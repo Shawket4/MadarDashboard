@@ -2,7 +2,6 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { AnimatePresence, motion } from "motion/react";
 
 import {
   usePublicBranches,
@@ -16,14 +15,16 @@ import {
 import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
 import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
 import type { DeliveryOrderInput } from "@/data/api/generated/models/deliveryOrderInput";
-import { ArrowRight, Info, Loader2, MapPin, Search, ShoppingBag, Store } from "lucide-react";
+import { ArrowRight, Info, MapPin, Search, ShoppingBag, Store } from "lucide-react";
 import type { GuestSavedLocation } from "@/data/api/generated/models/guestSavedLocation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { fmtMoney } from "@/lib/format";
-import { fadeIn } from "@/lib/motion";
+import { AnimatedNumber, Reveal, recipes, SwapPresence } from "@/lib/motion";
 
 import { isFlatChannel, type CartLine, type Channel, type Step } from "./types";
+import { stepSwap, useStepDirection } from "@/features/public-shell/motion";
+import { fmtMoneyFigure, STEP_ORDER } from "./ordering-motion";
+import { CartCount } from "./components/cart-count";
 import { asChannel, calcDiscount, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
 import { getDeviceToken, setDeviceToken } from "@/features/public-shell/guest";
 import { canonicalPhone, formatPhoneInput, isValidPhone, samePhone } from "@/lib/phone";
@@ -53,6 +54,7 @@ import { OrderHistoryDrawer } from "./components/order-history-drawer";
 import type { LatLng } from "./components/delivery-map";
 import { addressForChannel, identityRefusal, type OrderIdentityFields, type OrderNowSession, type PlaceOutcome } from "./order-now/session";
 import { useOrderIdentity } from "./order-now/use-order-identity";
+import { Spinner } from "@/components/ui/spinner";
 
 interface PublicOrderingPageProps {
   orgId: string;
@@ -96,7 +98,7 @@ export function PublicOrderingPage({
   prefillUnitNumber,
   orderNow,
 }: PublicOrderingPageProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   // Scope the order flow to its own light-by-default theme, then restore the
@@ -356,6 +358,8 @@ export function PublicOrderingPage({
     if (enteredCheckout) return "checkout";
     return "menu";
   })();
+  // Which way the flow moved, so the swap travels forward or back.
+  const stepDir = useStepDirection(step, STEP_ORDER);
 
   // Flat channels (umbrella / pickup) capture no location, so the location step
   // never runs its quote. Fetch the flat per-branch fee directly (coords ignored
@@ -894,22 +898,26 @@ export function PublicOrderingPage({
   // ── Sticky footer (view-cart bar on menu) ─────────────────────────────────
   const footer =
     step === "menu" && itemCount > 0 && !channelClosed && !menuMode ? (
-      <button
-        type="button"
-        onClick={() => setCartOpen(true)}
-        className="flex w-full items-center justify-between rounded-full bg-foreground px-5 py-3.5 text-background shadow-lg transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-      >
-        <span className="inline-flex items-center gap-2.5">
-          <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-brand px-2 py-0.5 text-xs font-bold tabular-nums text-brand-foreground">
-            {itemCount}
+      <Reveal asChild recipe={recipes.pop}>
+        <button
+          type="button"
+          onClick={() => setCartOpen(true)}
+          data-press="brand"
+          className="flex w-full items-center justify-between rounded-full bg-foreground px-5 py-3.5 text-background shadow-lg focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        >
+          <span className="inline-flex items-center gap-2.5">
+            <CartCount
+              count={itemCount}
+              className="inline-flex min-w-6 items-center justify-center rounded-full bg-brand px-2 py-0.5 text-xs font-bold tabular-nums text-brand-foreground"
+            />
+            <span className="text-sm">{t("order.cart.units", { count: itemCount, defaultValue: "items" })}</span>
           </span>
-          <span className="text-sm">{t("order.cart.units", { count: itemCount, defaultValue: "items" })}</span>
-        </span>
-        <span className="inline-flex items-center gap-2 text-sm font-semibold tabular-nums">
-          {fmtMoney(itemsAfterDeals)}
-          <ArrowRight className="size-4 rtl:rotate-180" />
-        </span>
-      </button>
+          <span className="inline-flex items-center gap-2 text-sm font-semibold tabular-nums">
+            <AnimatedNumber value={itemsAfterDeals} format={fmtMoneyFigure} />
+            <ArrowRight className="size-4 rtl:rotate-180" />
+          </span>
+        </button>
+      </Reveal>
     ) : step === "menu" && itemCount === 0 && !menuMode ? (
       // In the same floating slot as the cart bar it turns into, so the page
       // keeps room for it — laid over the page, it sat on the footer's links.
@@ -975,13 +983,12 @@ export function PublicOrderingPage({
             : undefined
         }
       >
-        <AnimatePresence mode="wait">
-          <motion.div key={step} variants={fadeIn} initial="hidden" animate="show" exit="hidden">
+        <SwapPresence swapKey={step} initial={false} recipe={stepSwap(stepDir, i18n.dir() === "rtl")}>
             {/* Branch list still loading for a pre-selected ?branch= id — show a
                 loader rather than the blank channel/phone step. */}
             {branchPending && (
               <div className="flex flex-col items-center gap-3 py-20 text-muted-foreground">
-                <Loader2 className="size-6 animate-spin" />
+                <Spinner className="size-6" />
                 <p className="text-sm">{t("common.loading", "Loading…")}</p>
               </div>
             )}
@@ -1125,8 +1132,7 @@ export function PublicOrderingPage({
               />
             )}
 
-          </motion.div>
-        </AnimatePresence>
+        </SwapPresence>
 
         {/* Empty-cart hint on the menu footer area (mobile / tablet only) */}
       </StepShell>

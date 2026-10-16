@@ -10,6 +10,7 @@ import type { MarginLedgerRow } from "@/data/api/generated/models";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtMoney, fmtPercent } from "@/lib/format";
+import { CountUp, recipes, Reveal } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { signalReason } from "./signals";
 import { TINT } from "./util";
@@ -54,12 +55,14 @@ export function MarginWatchCard() {
       ) : empty ? (
         <EmptyState title={t("insights.watch.empty", "Margins appear here once items sell in this period")} className="border-0 bg-transparent" />
       ) : (
-        <div className="space-y-4">
+        <Reveal className="space-y-4" recipe={recipes.fade()}>
           {/* Headline: gross margin EGP + % with delta vs the previous period. */}
           <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-            <span className="font-mono text-2xl font-semibold leading-none tracking-tight tabular">
-              {fmtMoney(totals?.margin_known ?? 0)}
-            </span>
+            <CountUp
+              value={totals?.margin_known ?? 0}
+              format={fmtMoney}
+              className="font-mono text-2xl font-semibold leading-none tracking-tight"
+            />
             {totals?.margin_pct != null ? (
               <span className="tabular text-sm text-muted-foreground">{fmtPercent(totals.margin_pct / 100)}</span>
             ) : null}
@@ -124,7 +127,7 @@ export function MarginWatchCard() {
               <ArrowRight aria-hidden className="size-3.5 rtl:rotate-180" />
             </Link>
           </div>
-        </div>
+        </Reveal>
       )}
     </ChartCard>
   );

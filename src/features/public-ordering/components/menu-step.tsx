@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AssetImage, assetOf } from "@/components/app/asset-image";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "motion/react";
 import { BadgePercent, ChevronRight, Clock, Plus, Search, UtensilsCrossed } from "lucide-react";
 
 import { usePublicMenu } from "@/data/api/generated/api";
@@ -15,7 +14,9 @@ import { cn } from "@/lib/utils";
 import { fmtMoney, rateOf } from "@/lib/format";
 import { fractionToPercent } from "@/features/orgs/tax-rate";
 import { getTranslatedName, getTranslatedDescription } from "@/lib/translation";
-import { listItem, staggerContainer } from "@/lib/motion";
+import { DISTANCE, recipes, Stagger, usePop } from "@/lib/motion";
+
+import { useGrowSignal } from "@/features/public-shell/motion";
 import i18n from "@/i18n";
 
 import type { Channel, CartLine } from "../types";
@@ -374,7 +375,13 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
           {noResults ? (
             <Empty title={t("order.menu.noResults", { query })} />
           ) : (
-            <div className="space-y-6">
+            <Stagger
+              register="brand"
+              recipe={recipes.rise("brand", DISTANCE.md)}
+              // Headings and cards on screen arrive in reading order.
+              selector=":scope > section > :first-child, :scope > section li"
+              className="space-y-6"
+            >
               {groups.map((group) => (
                 <section
                   key={group.id}
@@ -395,14 +402,11 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
                       })}
                     </span>
                   </div>
-                  <motion.ul
-                    variants={staggerContainer(0.03)}
-                    initial="hidden"
-                    animate="show"
+                  <ul
                     className="grid grid-cols-1 gap-2.5 md:grid-cols-2 2xl:grid-cols-3"
                   >
                     {group.items.map((item) => (
-                      <motion.li key={item.id} variants={listItem} className="h-full">
+                      <li key={item.id} className="h-full">
                         <MenuCard
                           item={item}
                           lang={lang}
@@ -410,12 +414,12 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
                           onOpen={() => openItem(item)}
                           readOnly={readOnly || menuMode}
                         />
-                      </motion.li>
+                      </li>
                     ))}
-                  </motion.ul>
+                  </ul>
                 </section>
               ))}
-            </div>
+            </Stagger>
           )}
         </div>
 
@@ -461,6 +465,9 @@ function MenuCard({
   readOnly?: boolean;
 }) {
   const { t } = useTranslation();
+  const badge = useRef<HTMLSpanElement>(null);
+  // Added to the cart: the bubble pops.
+  usePop(badge, useGrowSignal(count));
   const hasSizes = item.sizes.length > 0;
   const fromPrice = itemBasePrice(item, null);
   const description = getTranslatedDescription(item, lang);
@@ -503,8 +510,9 @@ function MenuCard({
     <button
       type="button"
       onClick={onOpen}
+      data-press="brand"
       className={cn(
-        "group flex h-full w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 text-start shadow-sm transition-all",
+        "group flex h-full w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 text-start shadow-sm transition-[color,background-color,border-color,box-shadow]",
         "hover:border-brand/40 hover:shadow-md",
       )}
     >
@@ -516,7 +524,7 @@ function MenuCard({
           className="size-4 shrink-0 text-muted-foreground rtl:rotate-180"
         />
       ) : (
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm">
+        <span ref={badge} className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm">
           {count > 0 ? (
             <span className="text-xs font-bold tabular-nums">{count}</span>
           ) : (

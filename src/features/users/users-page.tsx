@@ -27,7 +27,7 @@ import { useOrgModules } from "@/hooks/use-org-modules";
 import type { UserPublic, UserRole } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { initials } from "@/lib/format";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePageSearch } from "@/data/scope/use-page-search";
@@ -107,7 +107,8 @@ export function UsersPage() {
     try {
       await exportToExcel({ filename: "Madar-Users", logoUrl, sheets: [{ name: t("users.title", "Users"), title: t("users.title", "Users"), rows: users as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }

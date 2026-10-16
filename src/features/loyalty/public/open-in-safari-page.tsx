@@ -34,13 +34,10 @@
  * the numbered steps under it carry the same instruction as text and are what
  * a screen reader gets (the stage is `aria-hidden`).
  *
- * The whole thing is CSS keyframes on `transform` and `opacity` — no library,
- * no timers — hoisted from this file through React's `<style>` de-duplication
- * so the page's only motion lives beside the markup it moves. The fingertip is
- * anchored to the END corner and its path is multiplied by `--flip`, which
- * `[dir=rtl]` sets to -1: under an Arabic locale iOS puts the `···` in the
- * other corner and the demonstration follows it without a second set of
- * keyframes.
+ * The whole thing is one GSAP timeline on `transform` and `opacity`, paused
+ * off screen. The fingertip is anchored to the END corner and its path's x is
+ * multiplied by a flip that is -1 under RTL: under an Arabic locale iOS puts
+ * the `···` in the other corner and the demonstration follows it.
  *
  * Under `prefers-reduced-motion` every animation is switched off, and the
  * resting state of each element IS the static lesson: the menu already open
@@ -63,7 +60,7 @@
  * demonstration is the same choreography with the glyph and the row swapped;
  * on both platforms the menu sits at the END corner, so the RTL flip holds.
  */
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, Compass, Copy, Globe, Lock } from "lucide-react";
 
@@ -71,6 +68,7 @@ import { Button } from "@/components/ui/button";
 import { useLoyaltyJoinInfo } from "@/data/api/generated/api";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { useHostOrg } from "@/features/public-shell/use-brand";
+import { EASE_NAME, useTimeline } from "@/lib/motion";
 
 import { resolveBrand, type ResolvedBrand } from "../shared/brand";
 import { Panel } from "./page-shell";
@@ -119,64 +117,7 @@ function useLinkBrand(): ResolvedBrand | null {
  * the `···`, like a thumb pad — centred on it, it would hide the very button
  * it is pointing at; clear of it, it would look like a miss.
  */
-const LOOP = "4s";
-const DEMO_CSS = `
-.ios-demo { --flip: 1; }
-[dir="rtl"] .ios-demo { --flip: -1; }
-
-/* Resting state doubles as the reduced-motion lesson: menu open, row lit. */
-.ios-demo__menu { opacity: 1; transform: none; }
-.ios-demo__row--target {
-  border-color: var(--primary);
-  background: color-mix(in oklab, var(--primary) 12%, var(--card));
-}
-.ios-demo__finger, .ios-demo__ripple { opacity: 0; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .ios-demo__finger { animation: ios-demo-finger ${LOOP} cubic-bezier(0.55, 0, 0.15, 1) infinite; }
-  .ios-demo__ripple--dots { animation: ios-demo-ripple ${LOOP} cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
-  .ios-demo__ripple--row {
-    animation: ios-demo-ripple ${LOOP} cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
-    animation-delay: -1.12s; /* the same ripple, fired at 43% instead of 15% */
-  }
-  .ios-demo__dots { animation: ios-demo-press ${LOOP} ease-out infinite; }
-  .ios-demo__menu { animation: ios-demo-menu ${LOOP} cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
-  .ios-demo__row--target { animation: ios-demo-row ${LOOP} ease-out infinite; }
-}
-
-@keyframes ios-demo-finger {
-  0%   { opacity: 0; transform: translate(calc(var(--flip) * -26px), 190px) scale(0.9); }
-  5%   { opacity: 1; }
-  14%  { transform: translate(calc(var(--flip) * -14px), 14px) scale(1); }
-  16%  { transform: translate(calc(var(--flip) * -14px), 14px) scale(0.8); }
-  20%  { transform: translate(calc(var(--flip) * -14px), 14px) scale(1); }
-  28%  { transform: translate(calc(var(--flip) * -14px), 14px) scale(1); }
-  42%  { transform: translate(calc(var(--flip) * -26px), 138px) scale(1); }
-  44%  { transform: translate(calc(var(--flip) * -26px), 138px) scale(0.8); }
-  48%  { transform: translate(calc(var(--flip) * -26px), 138px) scale(1); }
-  70%  { opacity: 1; transform: translate(calc(var(--flip) * -26px), 138px) scale(1); }
-  80%, 100% { opacity: 0; transform: translate(calc(var(--flip) * -26px), 190px) scale(0.9); }
-}
-@keyframes ios-demo-ripple {
-  0%, 15%   { opacity: 0; transform: scale(0.5); }
-  16%       { opacity: 0.55; transform: scale(0.6); }
-  28%, 100% { opacity: 0; transform: scale(2.6); }
-}
-@keyframes ios-demo-press {
-  0%, 15%, 20%, 100% { transform: scale(1); }
-  16%                { transform: scale(0.86); }
-}
-@keyframes ios-demo-menu {
-  0%, 20%   { opacity: 0; transform: translateY(12px) scale(0.96); }
-  28%, 70%  { opacity: 1; transform: none; }
-  80%, 100% { opacity: 0; transform: translateY(12px) scale(0.96); }
-}
-@keyframes ios-demo-row {
-  0%, 43%   { border-color: transparent; background: transparent; }
-  46%, 72%  { border-color: var(--primary); background: color-mix(in oklab, var(--primary) 12%, var(--card)); }
-  80%, 100% { border-color: transparent; background: transparent; }
-}
-`;
+const LOOP = 4;
 
 /**
  * The looping demonstration: the host app's bar, the menu that opens from its
@@ -196,12 +137,55 @@ function GestureDemo({
   const android = platform === "android";
   const RowIcon = android ? Globe : Compass;
   const row = "flex h-8 items-center gap-2.5 rounded-lg border-2 border-transparent px-2.5";
+  const { i18n } = useTranslation();
+  const rtl = i18n.dir() === "rtl";
+  const stage = useRef<HTMLDivElement>(null);
+  useTimeline(
+    stage,
+    (tl) => {
+      const q = (name: string) => stage.current?.querySelector(`.ios-demo__${name}`) ?? null;
+      const [finger, dots, rippleDots, rippleRow, menu, lit] = ["finger", "dots", "ripple--dots", "ripple--row", "menu", "lit"].map(q);
+      const f = rtl ? -1 : 1;
+      const L = LOOP;
+      // The clock above in seconds: a position, or a duration, as a % of the loop.
+      const at = (pct: number) => (pct / 100) * L;
+      const dur = at;
+      const travel = { ease: EASE_NAME.inOut };
+      const out = { ease: EASE_NAME.out };
+      const ripple = (el: Element | null, start: number) =>
+        tl
+          .set(el, { opacity: 0, scale: 0.5 }, 0)
+          .to(el, { opacity: 0.55, scale: 0.6, duration: dur(1), ...out }, at(start))
+          .to(el, { opacity: 0, scale: 2.6, duration: dur(12), ...out }, at(start + 1));
+      // The fingertip: up to the ···, tap, over to the row, tap, hold, away.
+      tl.set(finger, { opacity: 0, x: f * -26, y: 190, scale: 0.9 }, 0)
+        .to(finger, { opacity: 1, duration: dur(5), ...travel }, 0)
+        .to(finger, { x: f * -14, y: 14, scale: 1, duration: dur(14), ...travel }, 0)
+        .to(finger, { scale: 0.8, duration: dur(2), ...travel }, at(14))
+        .to(finger, { scale: 1, duration: dur(4), ...travel }, at(16))
+        .to(finger, { x: f * -26, y: 138, duration: dur(14), ...travel }, at(28))
+        .to(finger, { scale: 0.8, duration: dur(2), ...travel }, at(42))
+        .to(finger, { scale: 1, duration: dur(4), ...travel }, at(44))
+        .to(finger, { opacity: 0, y: 190, scale: 0.9, duration: dur(10), ...travel }, at(70));
+      // The ··· dips under the tap and a ripple leaves it; the same ripple at the row.
+      tl.to(dots, { scale: 0.86, duration: dur(1), ...out }, at(15)).to(dots, { scale: 1, duration: dur(4), ...out }, at(16));
+      ripple(rippleDots, 15);
+      ripple(rippleRow, 43);
+      // The menu rises after the first tap; the row lights after the second.
+      tl.set(menu, { opacity: 0, y: 12, scale: 0.96 }, 0)
+        .to(menu, { opacity: 1, y: 0, scale: 1, duration: dur(8), ...out }, at(20))
+        .to(menu, { opacity: 0, y: 12, scale: 0.96, duration: dur(10), ...out }, at(70))
+        .set(lit, { opacity: 0 }, 0)
+        .to(lit, { opacity: 1, duration: dur(3), ...out }, at(43))
+        .to(lit, { opacity: 0, duration: dur(8), ...out }, at(72))
+        // A short breath, then again.
+        .set(finger, { opacity: 0 }, L);
+    },
+    [rtl],
+    { repeat: -1, pauseOffscreen: true, late: true },
+  );
   return (
-    <div aria-hidden className="ios-demo relative h-[176px] overflow-hidden">
-      <style href="loyalty-ios-demo" precedence="default">
-        {DEMO_CSS}
-      </style>
-
+    <div ref={stage} aria-hidden className="ios-demo relative h-[176px] overflow-hidden">
       {/* The bar the customer is looking at right now, one screen up. */}
       <div className="flex h-10 items-center gap-2 rounded-xl border border-border/70 bg-background px-2.5">
         <span className="text-[11px] font-semibold text-muted-foreground">{app}</span>
@@ -210,7 +194,7 @@ function GestureDemo({
           <span className="h-1.5 w-2/5 rounded-full bg-muted-foreground/30" />
         </span>
         <span className="relative grid size-8 shrink-0 place-items-center">
-          <span className="ios-demo__ripple ios-demo__ripple--dots absolute inset-0 rounded-full bg-primary/40" />
+          <span className="ios-demo__ripple--dots absolute inset-0 rounded-full bg-primary/40 opacity-0" />
           <span className="ios-demo__dots relative grid size-8 place-items-center rounded-full bg-card text-[16px] font-semibold leading-none tracking-[0.02em] text-foreground">
             {android ? "⋮" : "···"}
           </span>
@@ -229,9 +213,11 @@ function GestureDemo({
           <span className="size-4 rounded-full bg-muted-foreground/25" />
           <span className="h-1.5 w-1/2 rounded-full bg-muted-foreground/25" />
         </span>
-        <span className={`ios-demo__row--target ${row} text-[13px] font-medium text-foreground`}>
-          <RowIcon className="size-4 shrink-0 text-primary" />
-          <span className="truncate">{label}</span>
+        <span className={`ios-demo__row--target relative ${row} text-[13px] font-medium text-foreground`}>
+          {/* Lit at rest (the reduced-motion lesson); the loop fades it in on the tap. */}
+          <span className="ios-demo__lit absolute -inset-0.5 rounded-lg border-2 border-primary bg-[color-mix(in_oklab,var(--primary)_12%,var(--card))]" />
+          <RowIcon className="relative size-4 shrink-0 text-primary" />
+          <span className="relative truncate">{label}</span>
         </span>
       </div>
 
@@ -239,8 +225,8 @@ function GestureDemo({
           solid centre, so it reads as a touch and not as a cursor. Both are
           anchored at the END corner and moved by transform only, so RTL is a
           sign flip. */}
-      <span className="ios-demo__ripple ios-demo__ripple--row absolute end-[26px] top-[138px] size-7 rounded-full bg-primary/40" />
-      <span className="ios-demo__finger absolute end-0 top-0 grid size-7 place-items-center rounded-full border-2 border-primary bg-primary/25 shadow-md backdrop-blur-[1px]">
+      <span className="ios-demo__ripple--row absolute end-[26px] top-[138px] size-7 rounded-full bg-primary/40 opacity-0" />
+      <span className="ios-demo__finger absolute end-0 top-0 grid opacity-0 size-7 place-items-center rounded-full border-2 border-primary bg-primary/25 shadow-md backdrop-blur-[1px]">
         <span className="size-2.5 rounded-full bg-primary" />
       </span>
     </div>

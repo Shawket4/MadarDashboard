@@ -30,6 +30,7 @@ import { Page, PageHeader } from "@/components/app/page";
 import { getErrorMessage } from "@/data/api/errors";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtStamp } from "@/lib/format";
+import { Reveal } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useFloorViewport } from "@/features/floor/use-floor-viewport";
 import { ZOOM_STEP } from "@/features/floor/util";
@@ -629,21 +630,25 @@ function BranchBuilder({ branchId }: { branchId: string | null }) {
 
           <aside className="w-full shrink-0 overflow-y-auto border-t xl:w-[340px] xl:border-s xl:border-t-0">
             {!q.isLoading && !q.isError ? (
-              <Inspector
-                branchId={branchId}
-                plan={plan}
-                selection={selection}
-                editable={editable}
-                change={draft.change}
-                onSelect={select}
-                onRemove={remove}
-                problems={problems}
-                categories={view?.categories ?? []}
-                registered={view?.devices ?? []}
-                savedSlots={savedSlots}
-                openItems={openItems}
-                itemOverrides={itemOverrides}
-              />
+              // The pane rises in when what it describes changes: the branch,
+              // one piece, or a group (not on every piece added to a group).
+              <Reveal replayKey={selection.size === 1 ? [...selection][0] : selection.size > 1 ? "many" : "none"}>
+                <Inspector
+                  branchId={branchId}
+                  plan={plan}
+                  selection={selection}
+                  editable={editable}
+                  change={draft.change}
+                  onSelect={select}
+                  onRemove={remove}
+                  problems={problems}
+                  categories={view?.categories ?? []}
+                  registered={view?.devices ?? []}
+                  savedSlots={savedSlots}
+                  openItems={openItems}
+                  itemOverrides={itemOverrides}
+                />
+              </Reveal>
             ) : null}
           </aside>
         </div>

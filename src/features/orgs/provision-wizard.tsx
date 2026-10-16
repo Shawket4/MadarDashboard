@@ -16,6 +16,7 @@ import { ImageUploader } from "@/components/app/image-uploader";
 import { TimezoneSelect } from "@/components/app/timezone-select";
 import { provisionOrg, uploadOrgLogo, useListTemplates } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
+import { Reveal } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { MAX_PERCENT } from "./tax-rate";
 import {
@@ -135,6 +136,8 @@ export function ProvisionWizard({ open, onOpenChange }: Props) {
             }}
             className="space-y-4"
           >
+            {/* Each step arrives in place of the last; Back and Next both read as "the next page". */}
+            <Reveal replayKey={step} className="space-y-4">
             {step === 0 ? (
               <>
                 <div className="space-y-1.5">
@@ -272,6 +275,7 @@ export function ProvisionWizard({ open, onOpenChange }: Props) {
                 </div>
               </>
             ) : null}
+            </Reveal>
 
             <DialogFooter>
               {step === 0 ? (

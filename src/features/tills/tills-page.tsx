@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -13,6 +13,7 @@ import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ListCard, ListRow } from "@/components/app/list-row";
 import { SectionHeader } from "@/components/app/section-header";
 import { StatusPill } from "@/components/app/status-pill";
+import { useFlip } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { businessDate, cairoDateISO, dateParts, fmtDateTime, fmtDuration, fmtMoney, fmtMoneySigned } from "@/lib/format";
 
 import {
@@ -173,7 +174,8 @@ export function TillsPage() {
         sheets: [{ name: t("nav.tills", "Tills"), title: t("nav.tills", "Tills"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -295,6 +297,9 @@ const OPEN_TONE_CLASS = `bg-success/12 ${OPEN_TEXT}`;
 /** Open right now at this branch; kept live by the `tills` realtime topic. */
 function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenBillsNotice; onOpen: (id: string) => void }) {
   const { t } = useTranslation();
+  // Live: a till opening fades in, one closing lets the rest close up.
+  const listRef = useRef<HTMLDivElement>(null);
+  useFlip(listRef, tills.map((s) => s.id).join(), ":scope > [data-slot=list-card] > *");
   return (
     <section className="space-y-3">
       <SectionHeader
@@ -311,6 +316,7 @@ function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenB
           description={t("tills.noOpenHint", "A till opens when a teller starts selling on a POS.")}
         />
       ) : (
+        <div ref={listRef}>
         <ListCard>
           {tills.map((s) => (
             <ListRow
@@ -334,6 +340,7 @@ function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenB
             />
           ))}
         </ListCard>
+        </div>
       )}
     </section>
   );

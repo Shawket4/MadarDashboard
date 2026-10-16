@@ -1,11 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { motion } from "motion/react";
 import { Bike, ChevronRight, Clock, ShoppingBag, Store, Umbrella } from "lucide-react";
 
 import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { listItem, staggerContainer } from "@/lib/motion";
+import { DISTANCE, recipes, Stagger } from "@/lib/motion";
 
 import type { Channel } from "../types";
 
@@ -68,17 +67,19 @@ export function ChannelStep({ branch, onSelect, onBrowse }: ChannelStepProps) {
 
   return (
     <div className="space-y-4">
-    <motion.ul variants={staggerContainer(0.06)} initial="hidden" animate="show" className="space-y-3">
+    <Stagger asChild register="brand" recipe={recipes.rise("brand", DISTANCE.md)}>
+    <ul className="space-y-3">
       {options.map((o) => {
         const Icon = o.icon;
         return (
-          <motion.li key={o.channel} variants={listItem}>
+          <li key={o.channel}>
             <button
               type="button"
               onClick={() => o.open && onSelect(o.channel)}
               disabled={!o.open}
+              data-press="brand"
               className={cn(
-                "group flex w-full items-center gap-4 rounded-2xl border p-5 text-start shadow-sm transition-all",
+                "group flex w-full items-center gap-4 rounded-2xl border p-5 text-start shadow-sm transition-[color,background-color,border-color,box-shadow]",
                 o.open
                   ? "border-border/70 bg-card hover:border-brand/40 hover:shadow-md"
                   : "cursor-not-allowed border-dashed border-border/60 bg-muted/40 opacity-70",
@@ -113,10 +114,11 @@ export function ChannelStep({ branch, onSelect, onBrowse }: ChannelStepProps) {
                 <ChevronRight className="size-5 shrink-0 text-brand rtl:rotate-180" />
               )}
             </button>
-          </motion.li>
+          </li>
         );
       })}
-    </motion.ul>
+    </ul>
+    </Stagger>
 
       {!allClosed && onBrowse && (
         <div className="flex justify-center">

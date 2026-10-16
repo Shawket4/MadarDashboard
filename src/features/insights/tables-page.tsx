@@ -10,7 +10,6 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { useReducedMotion } from "motion/react";
 import { Armchair, CalendarRange, Clock, Coins, RotateCcw, UserRound, Users } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -25,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { listFloorTables, runMetricsQuery } from "@/data/api/generated/api";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtWireTime } from "@/lib/format";
+import { Stagger, useChartMotion } from "@/lib/motion";
 import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
 import { TableHistory } from "@/features/floor/table-history";
 import {
@@ -42,7 +42,7 @@ const ALL = "__all__";
 
 export function TablesInsightsPage() {
   const { t, i18n } = useTranslation();
-  const reduced = useReducedMotion();
+  const chartMotion = useChartMotion();
   const { branchId, from, to, preset } = useScope();
   const locale = i18n.language?.startsWith("ar") ? "ar" : "en";
   const [section, setSection] = useState<string>(ALL);
@@ -155,7 +155,7 @@ export function TablesInsightsPage() {
       <>
       <LedgerStrip items={kpis} />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <Stagger className="grid gap-4 lg:grid-cols-2">
         <ChartCard title={t("tablesInsights.busiestHours", "Busiest hours")} description={t("tablesInsights.busiestHoursHint", "Parties settled at tables, by hour")}>
           {q.isLoading ? <Skeleton className="h-72 w-full" /> : hours.length === 0 ? chartEmpty : (
             <div className="h-72 w-full">
@@ -165,7 +165,7 @@ export function TablesInsightsPage() {
                   <XAxis dataKey="hour" tickFormatter={fmtWireTime} tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} />
                   <YAxis tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} allowDecimals={false} width={32} />
                   <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v, n) => `${n === "covers" ? t("tablesInsights.covers", "Covers") : t("tablesInsights.turns", "Turns")}: ${fmtNumber(Number(v))}`} />} />
-                  <Bar dataKey="turns" fill={chartColor(0)} radius={[4, 4, 0, 0]} isAnimationActive={!reduced} />
+                  <Bar dataKey="turns" fill={chartColor(0)} radius={[4, 4, 0, 0]} {...chartMotion} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -181,13 +181,13 @@ export function TablesInsightsPage() {
                   <XAxis dataKey="table" tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} interval={0} />
                   <YAxis tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoneyCompact(Number(v))} width={64} />
                   <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => fmtMoney(Number(v))} />} />
-                  <Bar dataKey="table_revenue" fill={chartColor(1)} radius={[4, 4, 0, 0]} isAnimationActive={!reduced} />
+                  <Bar dataKey="table_revenue" fill={chartColor(1)} radius={[4, 4, 0, 0]} {...chartMotion} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           )}
         </ChartCard>
-      </div>
+      </Stagger>
 
       <DataTable
         columns={columns}

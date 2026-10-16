@@ -9,6 +9,7 @@
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 
+import { AnimatedFigure } from "@/components/app/animated-figure";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtMoney } from "@/lib/format";
@@ -31,7 +32,7 @@ function Figure({ label, value, hint, tone }: { label: string; value: string; hi
             tone === "success" && "text-[color-mix(in_oklab,var(--color-success)_50%,var(--color-foreground))]",
           )}
         >
-          {value}
+          <AnimatedFigure text={value} />
         </bdi>
         {hint ? <span className="block text-xs text-muted-foreground">{hint}</span> : null}
       </dd>

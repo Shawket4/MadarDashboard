@@ -10,12 +10,14 @@
 // a table that lost money. Both still appear in the list, because the history
 // is what HAPPENED and the figures are what it was worth — and a table that
 // keeps getting voided is exactly the thing a manager should see.
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useTableHistory } from "@/data/api/generated/api";
 import type { TableSitting } from "@/data/api/generated/models";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fmtElapsedMs, fmtMoney, fmtNumber } from "@/lib/format";
+import { CountUp, Reveal, recipes } from "@/lib/motion";
 import { StatusPill } from "@/components/app/status-pill";
 import { CustomerLink, type CustomerLinkControl } from "@/features/customers/customer-link";
 
@@ -31,7 +33,7 @@ export function formatStay(minutes: number): string {
   return m === 0 ? `${h}h` : `${h}h ${String(m).padStart(2, "0")}m`;
 }
 
-function Figure({ label, value }: { label: string; value: string }) {
+function Figure({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-xl border bg-card p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -131,16 +133,17 @@ export function TableHistory({
   // far as a turn rate is ever read.
   const turns = fmtNumber(data.turns_per_day_x100 / 100, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
+  // The figures and bills fade in where the skeleton was.
   return (
-    <div className="space-y-4 p-4">
+    <Reveal className="space-y-4 p-4" recipe={recipes.fade()}>
       <div className="grid grid-cols-2 gap-2">
         <Figure
           label={t("floor.history.takings", "Takings")}
-          value={fmtMoney(data.total_minor)}
+          value={<CountUp value={data.total_minor} format={fmtMoney} />}
         />
         <Figure
           label={t("floor.history.avgBill", "Average bill")}
-          value={fmtMoney(data.average_bill_minor)}
+          value={<CountUp value={data.average_bill_minor} format={fmtMoney} />}
         />
         <Figure
           label={t("floor.history.avgStay", "Average stay")}
@@ -158,6 +161,6 @@ export function TableHistory({
           ))}
         </ul>
       </div>
-    </div>
+    </Reveal>
   );
 }

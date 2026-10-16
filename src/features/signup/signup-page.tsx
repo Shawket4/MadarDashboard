@@ -14,7 +14,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans, useTranslation } from "react-i18next";
-import { AlertCircle, ArrowLeft, Coffee, Eye, EyeOff, Loader2, MessageCircle, Pencil, UtensilsCrossed } from "lucide-react";
+import { AlertCircle, ArrowLeft, Coffee, Eye, EyeOff, MessageCircle, Pencil, UtensilsCrossed } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import { useSignup, useSignupOtp, useSignupVerify } from "@/data/api/generated/a
 import { getErrorMessage } from "@/data/api/errors";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
+import { DISTANCE, recipes, Stagger, SwapPresence, type Recipe } from "@/lib/motion";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +43,7 @@ import {
   useCountdown,
   type SignupProblem,
 } from "./util";
+import { Spinner } from "@/components/ui/spinner";
 
 type Template = "cafe" | "restaurant";
 
@@ -94,12 +96,24 @@ function SignInInstead({ children }: { children: string }) {
   );
 }
 
+/**
+ * A step change slides in the reading direction: forward arrives from the end
+ * edge and leaves toward the start, back the other way (mirrored in Arabic).
+ */
+function stepRecipe(dir: 1 | -1, rtl: boolean): Recipe {
+  const base = recipes.rise("brand");
+  const x = DISTANCE.lg * dir * (rtl ? -1 : 1);
+  return { from: { opacity: 0, x }, to: { ...base.to, x: 0 }, exit: { ...base.exit, y: 0, x: -x / 2 } };
+}
+
 export function SignupPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const signIn = useAuthStore((s) => s.signIn);
 
   const [step, setStep] = useState<SignupStep>("phone");
+  /** Which way the last step change went, for the slide. */
+  const [dir, setDir] = useState<1 | -1>(1);
   /** True once the person has moved between steps: the next step takes focus (the first screen does not, so a phone keyboard doesn't cover it). */
   const [moved, setMoved] = useState(false);
   const [national, setNational] = useState("");
@@ -121,6 +135,7 @@ export function SignupPage() {
   const shown = formatPhoneDisplay(canonical ?? `20${national}`);
 
   const go = (s: SignupStep) => {
+    setDir(SIGNUP_STEPS.indexOf(s) < SIGNUP_STEPS.indexOf(step) ? -1 : 1);
     setStep(s);
     setMoved(true);
     setProblem(null);
@@ -198,6 +213,7 @@ export function SignupPage() {
         // The verified phone timed out: back to the phone step, the shop's details kept in the form.
         setVerified(null);
         setCode("");
+        setDir(-1);
         setStep("phone");
         setMoved(true);
         setProblem(p);
@@ -255,127 +271,134 @@ export function SignupPage() {
 
   return (
     <SignupShell>
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-8">
+      {/* On arrival the progress, the heading and each field come in one after another. */}
+      <Stagger
+        register="brand"
+        selector=":scope > ol, :scope > div > :not(form), :scope > div > form > *"
+        data-own-motion=""
+      >
         <StepIndicator step={step} />
         <p className="sr-only" role="status">
           {t("signup.stepOf", { step: at + 1, total: SIGNUP_STEPS.length, defaultValue: "Step {{step}} of {{total}}" })}: {heading[step].title}
         </p>
 
-        <div className="mb-6 mt-7">
-          <h1 className="text-2xl font-semibold leading-tight tracking-tight text-balance">{heading[step].title}</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground text-pretty">{heading[step].subtitle}</p>
-        </div>
+        <SwapPresence swapKey={step} recipe={stepRecipe(dir, i18n.dir() === "rtl")} initial={false}>
+          <div className="mb-6 mt-7">
+            <h1 className="text-2xl font-semibold leading-tight tracking-tight text-balance">{heading[step].title}</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground text-pretty">{heading[step].subtitle}</p>
+          </div>
 
-        {step === "phone" ? (
-          <form
-            className="space-y-5"
-            noValidate
-            onSubmit={(e) => {
-              e.preventDefault();
-              sendCode();
-            }}
-          >
-            <div className="space-y-2">
-              <label htmlFor="signup-phone" className="text-sm font-medium">
-                {t("signup.phone", "Mobile number")}
-              </label>
-              <PhoneInput
-                id="signup-phone"
-                value={national}
-                autoFocus={moved}
-                invalid={problem === "phone_taken"}
-                aria-describedby="signup-phone-hint"
-                onChange={(v) => { setNational(v); if (problem) { setProblem(null); setMessage(null); } }}
-              />
-              <p id="signup-phone-hint" className="text-xs text-muted-foreground">
-                {t("signup.phoneHint", "We send the code on WhatsApp, and this becomes the owner's contact number.")}
-              </p>
-            </div>
-            {problem === "phone_taken" ? (
-              <SignInInstead>{t("errors.codes.SIGNUP_PHONE_TAKEN", "A shop already uses this phone number.")}</SignInInstead>
-            ) : null}
-            {problem === "limit" ? <Notice>{t("errors.codes.SIGNUP_OTP_LIMIT", "Too many codes for this number. Try again in an hour.")}</Notice> : null}
-            {problem === "token_expired" ? <Notice tone="info">{t("signup.tokenExpired", "Your phone check timed out. Verify your number again to finish.")}</Notice> : null}
-            {(problem === "rate" || problem === "other") && message ? <Notice>{message}</Notice> : null}
-            <Button type="submit" loading={otp.isPending} disabled={!canonical} className="h-12 w-full rounded-xl text-base">
-              {otp.isPending ? null : <MessageCircle className="size-4" aria-hidden />}
-              {t("signup.sendCode", "Send the code")}
-            </Button>
-          </form>
-        ) : null}
-
-        {step === "code" ? (
-          <form
-            className="space-y-5"
-            noValidate
-            onSubmit={(e) => {
-              e.preventDefault();
-              onCodeComplete(code);
-            }}
-          >
-            <OtpField
-              code={code}
-              setCode={(v) => { setCode(v); if (problem === "bad_code") setProblem(null); }}
-              onComplete={onCodeComplete}
-              invalid={problem === "bad_code"}
-              busy={verify.isPending}
-              refocus={refocus}
-              autoFocus={moved}
-              shown={shown}
-              onChange={() => go("phone")}
-            />
-            {problem === "bad_code" ? <Notice>{t("signup.badCode", "That code is not right. Check the digits and try again.")}</Notice> : null}
-            {problem === "code_expired" ? <Notice>{t("signup.codeExpired", "That code has expired or was already used. Send a new one.")}</Notice> : null}
-            {problem === "code_locked" ? <Notice>{t("signup.codeLocked", "Too many wrong tries. Send a new code to try again.")}</Notice> : null}
-            {problem === "cooldown" && message ? <Notice tone="info">{message}</Notice> : null}
-            {problem === "limit" ? <Notice>{t("errors.codes.SIGNUP_OTP_LIMIT", "Too many codes for this number. Try again in an hour.")}</Notice> : null}
-            {(problem === "rate" || problem === "other") && message ? <Notice>{message}</Notice> : null}
-            {problem === "phone_taken" ? <SignInInstead>{t("errors.codes.SIGNUP_PHONE_TAKEN", "A shop already uses this phone number.")}</SignInInstead> : null}
-            {problem === "email_taken" ? <SignInInstead>{t("errors.codes.SIGNUP_EMAIL_TAKEN", "An account with this email already exists.")}</SignInInstead> : null}
-
-            <Button
-              type="submit"
-              loading={verify.isPending}
-              disabled={code.length !== SIGNUP_CODE_LENGTH}
-              className="h-12 w-full rounded-xl text-base"
+          {step === "phone" ? (
+            <form
+              className="space-y-5"
+              noValidate
+              onSubmit={(e) => {
+                e.preventDefault();
+                sendCode();
+              }}
             >
-              {verify.isPending ? t("signup.verifying", "Checking the code…") : t("signup.continue", "Continue")}
-            </Button>
+              <div className="space-y-2">
+                <label htmlFor="signup-phone" className="text-sm font-medium">
+                  {t("signup.phone", "Mobile number")}
+                </label>
+                <PhoneInput
+                  id="signup-phone"
+                  value={national}
+                  autoFocus={moved}
+                  invalid={problem === "phone_taken"}
+                  aria-describedby="signup-phone-hint"
+                  onChange={(v) => { setNational(v); if (problem) { setProblem(null); setMessage(null); } }}
+                />
+                <p id="signup-phone-hint" className="text-xs text-muted-foreground">
+                  {t("signup.phoneHint", "We send the code on WhatsApp, and this becomes the owner's contact number.")}
+                </p>
+              </div>
+              {problem === "phone_taken" ? (
+                <SignInInstead>{t("errors.codes.SIGNUP_PHONE_TAKEN", "A shop already uses this phone number.")}</SignInInstead>
+              ) : null}
+              {problem === "limit" ? <Notice>{t("errors.codes.SIGNUP_OTP_LIMIT", "Too many codes for this number. Try again in an hour.")}</Notice> : null}
+              {problem === "token_expired" ? <Notice tone="info">{t("signup.tokenExpired", "Your phone check timed out. Verify your number again to finish.")}</Notice> : null}
+              {(problem === "rate" || problem === "other") && message ? <Notice>{message}</Notice> : null}
+              <Button type="submit" loading={otp.isPending} disabled={!canonical} className="h-12 w-full rounded-xl text-base">
+                {otp.isPending ? null : <MessageCircle className="size-4" aria-hidden />}
+                {t("signup.sendCode", "Send the code")}
+              </Button>
+            </form>
+          ) : null}
 
-            <div className="flex min-h-11 items-center justify-center text-sm">
-              <button
-                type="button"
-                disabled={resendIn > 0 || otp.isPending}
-                onClick={sendCode}
-                className="inline-flex min-h-11 items-center gap-2 rounded-md px-2 font-medium text-foreground underline underline-offset-4 outline-none hover:no-underline focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:font-normal disabled:text-muted-foreground disabled:no-underline"
+          {step === "code" ? (
+            <form
+              className="space-y-5"
+              noValidate
+              onSubmit={(e) => {
+                e.preventDefault();
+                onCodeComplete(code);
+              }}
+            >
+              <OtpField
+                code={code}
+                setCode={(v) => { setCode(v); if (problem === "bad_code") setProblem(null); }}
+                onComplete={onCodeComplete}
+                invalid={problem === "bad_code"}
+                busy={verify.isPending}
+                refocus={refocus}
+                autoFocus={moved}
+                shown={shown}
+                onChange={() => go("phone")}
+              />
+              {problem === "bad_code" ? <Notice>{t("signup.badCode", "That code is not right. Check the digits and try again.")}</Notice> : null}
+              {problem === "code_expired" ? <Notice>{t("signup.codeExpired", "That code has expired or was already used. Send a new one.")}</Notice> : null}
+              {problem === "code_locked" ? <Notice>{t("signup.codeLocked", "Too many wrong tries. Send a new code to try again.")}</Notice> : null}
+              {problem === "cooldown" && message ? <Notice tone="info">{message}</Notice> : null}
+              {problem === "limit" ? <Notice>{t("errors.codes.SIGNUP_OTP_LIMIT", "Too many codes for this number. Try again in an hour.")}</Notice> : null}
+              {(problem === "rate" || problem === "other") && message ? <Notice>{message}</Notice> : null}
+              {problem === "phone_taken" ? <SignInInstead>{t("errors.codes.SIGNUP_PHONE_TAKEN", "A shop already uses this phone number.")}</SignInInstead> : null}
+              {problem === "email_taken" ? <SignInInstead>{t("errors.codes.SIGNUP_EMAIL_TAKEN", "An account with this email already exists.")}</SignInInstead> : null}
+
+              <Button
+                type="submit"
+                loading={verify.isPending}
+                disabled={code.length !== SIGNUP_CODE_LENGTH}
+                className="h-12 w-full rounded-xl text-base"
               >
-                {otp.isPending ? <Loader2 aria-hidden className="size-4 animate-spin" /> : null}
-                {resendIn > 0
-                  ? t("signup.resendIn", { time: clock(resendIn), defaultValue: "Resend the code in {{time}}" })
-                  : t("signup.resend", "Send the code again")}
-              </button>
-            </div>
-            <p className="text-center text-xs text-muted-foreground text-pretty">
-              {t("signup.codeNote", "Only the code we sent to this number will do. It stays valid for a few minutes.")}
-            </p>
-          </form>
-        ) : null}
+                {verify.isPending ? t("signup.verifying", "Checking the code…") : t("signup.continue", "Continue")}
+              </Button>
 
-        {step === "details" ? (
-          <DetailsForm
-            form={form}
-            showPw={showPw}
-            toggleShowPw={() => setShowPw((s) => !s)}
-            pending={signup.isPending}
-            problem={problem}
-            message={message}
-            focus={moved}
-            onBack={() => go("code")}
-            onEditPhone={() => go("phone")}
-            onSubmit={(v) => createShop(v)}
-          />
-        ) : null}
-      </div>
+              <div className="flex min-h-11 items-center justify-center text-sm">
+                <button
+                  type="button"
+                  disabled={resendIn > 0 || otp.isPending}
+                  onClick={sendCode}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-md px-2 font-medium text-foreground underline underline-offset-4 outline-none hover:no-underline focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:font-normal disabled:text-muted-foreground disabled:no-underline"
+                >
+                  {otp.isPending ? <Spinner /> : null}
+                  {resendIn > 0
+                    ? t("signup.resendIn", { time: clock(resendIn), defaultValue: "Resend the code in {{time}}" })
+                    : t("signup.resend", "Send the code again")}
+                </button>
+              </div>
+              <p className="text-center text-xs text-muted-foreground text-pretty">
+                {t("signup.codeNote", "Only the code we sent to this number will do. It stays valid for a few minutes.")}
+              </p>
+            </form>
+          ) : null}
+
+          {step === "details" ? (
+            <DetailsForm
+              form={form}
+              showPw={showPw}
+              toggleShowPw={() => setShowPw((s) => !s)}
+              pending={signup.isPending}
+              problem={problem}
+              message={message}
+              focus={moved}
+              onBack={() => go("code")}
+              onEditPhone={() => go("phone")}
+              onSubmit={(v) => createShop(v)}
+            />
+          ) : null}
+        </SwapPresence>
+      </Stagger>
     </SignupShell>
   );
 }
@@ -439,7 +462,7 @@ function StrengthMeter({ password }: { password: string }) {
     <div className="space-y-1.5" aria-live="polite">
       <div aria-hidden className="grid grid-cols-4 gap-1.5">
         {[1, 2, 3, 4].map((n) => (
-          <span key={n} className={cn("h-1 rounded-full transition-colors motion-reduce:transition-none", password && level >= n ? tone : "bg-muted")} />
+          <span key={n} className={cn("h-1 rounded-full transition-colors", password && level >= n ? tone : "bg-muted")} />
         ))}
       </div>
       <p className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
@@ -524,7 +547,7 @@ function DetailsForm({
                       aria-checked={on}
                       onClick={() => field.onChange(tpl.id)}
                       className={cn(
-                        "flex min-h-28 flex-col items-start gap-1.5 rounded-xl border p-3.5 text-start outline-none transition-[border-color,background-color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none",
+                        "flex min-h-28 flex-col items-start gap-1.5 rounded-xl border p-3.5 text-start outline-none transition-[border-color,background-color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50",
                         on ? "border-brand bg-brand/5 ring-1 ring-brand" : "border-input bg-card hover:bg-muted/50",
                       )}
                     >
@@ -593,7 +616,7 @@ function DetailsForm({
                   type="button"
                   onClick={toggleShowPw}
                   aria-pressed={showPw}
-                  className="absolute end-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-xl text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+                  className="absolute end-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-xl text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   aria-label={showPw ? t("signup.hidePassword", "Hide password") : t("signup.showPassword", "Show password")}
                 >
                   {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}

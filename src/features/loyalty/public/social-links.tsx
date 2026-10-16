@@ -155,7 +155,7 @@ export function SocialLinks({
                 href={l.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 items-center gap-2 rounded-full border border-border/70 bg-card pe-4 ps-3 text-sm font-medium shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-border/70 bg-card pe-4 ps-3 text-sm font-medium shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
                 <Icon className="size-[18px] shrink-0" style={{ color: accent }} />
                 <span>{label}</span>
