@@ -20,7 +20,7 @@ npm run verify     # every page × EN/AR × 4 widths in Chrome, plus the flows (
 SERVE=1 npm run verify   # only the mimic of the get vhost, for curl (PORT=… to pick one)
 ```
 
-From the repo root, `npm run dev:get` and `npm run build:get` do the same. Node 22.12 or
+From the repo root, `npm run dev:get` and `npm run build:get` do the same. Node 22.18 or
 newer. The dev server never registers the service worker (see "The archive"); the
 preview does, which is why it has a port of its own: a worker installed on a port keeps
 answering there, and would hide `npm run dev` behind the last build if they shared one. `verify` and `og` need Chrome: they use your installed Chrome, or set
@@ -131,9 +131,10 @@ screenshots, the 3D and the cappuccino's animations, online or offline (owner).
 | Structured data (JSON-LD) | `src/lib/schema.ts` |
 | Home page order | `src/pages/[lang]/index.astro` |
 | Screenshots | see below |
-| The scroll story | `src/scripts/story.ts` (GSAP: ScrollTrigger, SplitText, DrawSVG; Lenis on mouse/trackpad) |
+| Motion | `src/scripts/motion.ts`, the one engine (GSAP: ScrollTrigger, SplitText, DrawSVG; Lenis on mouse/trackpad), loaded per page by `src/scripts/load-motion.ts`; the scenes in `src/scripts/story.ts`. The rules: `site/CLAUDE.md` |
+| Pages | `src/lib/pages.ts`, the registry; a new one: `npm run new:page -- <key>` (`site/CLAUDE.md`, "Add a page") |
 | The family (3D) | `src/components/home/FamilyShowcase.astro` and `src/scripts/family.ts`; the 3D itself is the engine shared with the dashboard's sign-in, `../shared/showcase` (plain three.js) |
-| The hero chip's figures, the "one ledger" beams | `src/components/kit/CountUp.astro` (counted by `story.ts`), `src/components/kit/LedgerBeams.astro` + `src/scripts/beams.ts` |
+| The hero chip's figures, the "one ledger" beams | `src/components/kit/CountUp.astro` (counted by the engine, `data-count`), `src/components/kit/LedgerBeams.astro` + `src/scripts/beams.ts` |
 | An area's screens | `media` and `stepMap` on each `AreaSection` in `src/pages/[lang]/index.astro`: the screens play in the order the steps first need them (step 0 is the intro, then one per point). On the features page, `shots` on each `FeatureArea` (`src/pages/[lang]/features.astro`): two or more wide screens make a strip, two or more phones a fan |
 | The cappuccino steps | `src/scripts/barista.ts`, files in `src/assets/lottie/` (Madar's own prep-step animations) |
 | The roadmap | `features.roadmap` in both copy files (`state`: `shipped` or `dev`), drawn by `src/components/features/Roadmap.astro` and `roadmap()` in `story.ts` |
@@ -177,17 +178,17 @@ Motion rules:
   whole list instead. Reduced motion or no JavaScript: the same, with the orbit still.
 - The cappuccino pins on desktop only; on phones its steps play while it is on screen.
 - Entrances that come up while the page moves fast just finish
-  (`flicking` in `story.ts`), so nothing fades in behind a fling.
+  (`flicking` in `motion.ts`), so nothing fades in behind a fling.
 - A click from another page of the site is a **soft** entry: the page transition
   brings the page in and nothing on screen replays its entrance. Arriving from
   outside (or a reload) plays the hero's entrance, or the page intro's (`data-intro`,
   and the heading's words split at build time by `Words.astro`).
 - **The first screen never waits for JavaScript.** That entrance is CSS ("First
   screen" in `styles/motion.css`): it starts with the first paint and runs off the main
-  thread, so the gsap bundle loading, or `story.ts` setting up the pins, can't delay
-  or stall it. Whatever else is on screen when `story.ts` starts stays as it is
+  thread, so the gsap bundle loading, or the engine setting up the pins, can't delay
+  or stall it. Whatever else is on screen when the engine starts stays as it is
   (`settled`); only what scrolls in later reveals.
-- **The story sets itself up after the entrance** (`afterEntrance` in `story.ts`): once
+- **The engine sets itself up after the entrance** (`afterEntrance` in `motion.ts`): once
   the first screen's CSS animations have finished and the page is idle, or at the first
   scroll, touch, wheel or key, whichever comes first, in parts with the main thread
   handed back between them. The 3D's download starts from there too. The build adds a
@@ -204,7 +205,7 @@ Motion rules:
   word's ink would reach outside its mask.
 - **Jumps** (a `#` link on the page, a `#` address from elsewhere) go straight there,
   never a long scroll down the page (owner), and the section they land on plays its
-  entrance: a same-page link through `story.ts` (`jump`, which doesn't count as a
+  entrance: a same-page link through `motion.ts` (`jump`, which doesn't count as a
   flick), a `#` address from another page in CSS (`data-arrive` from the head script and
   `:target` in `styles/motion.css`). Anything a jump carries the page past finishes at once
   (`whenSeen`). A `#` address lands again once the pins have added their length
