@@ -16,7 +16,6 @@ import {
   CupSoda,
   Image as ImageIcon,
   CreditCard,
-  Languages,
   Layers,
   Link2,
   MessageCircle,
@@ -279,5 +278,3 @@ export const visibleSettings = (authz: Authz, modules: readonly string[], plan?:
     }),
   })).filter((g) => g.items.length > 0);
 
-/** Kept for the language pane, which is the one non-route entry. */
-export const LANGUAGE_ICON = Languages;

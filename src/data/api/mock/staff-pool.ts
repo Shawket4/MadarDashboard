@@ -28,7 +28,7 @@ const BRANCH = "br_zamalek";
 const ELIGIBLE = ["mi_latte", "mi_cappuccino", "mi_americano"];
 const ALLOWANCE = 3;
 
-export const MOCK_STAFF_ORDER_ID = "ord_staff_1";
+const MOCK_STAFF_ORDER_ID = "ord_staff_1";
 
 export const MOCK_STAFF_POOL_SETTINGS: StaffPoolSettings = {
   org_id: MOCK_ORG_ID,

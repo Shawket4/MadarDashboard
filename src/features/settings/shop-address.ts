@@ -16,12 +16,12 @@
  */
 
 /** Where a shop's `/order` and `/book` bundles are mounted on its own host. */
-export const ORDER_MOUNT = "/order";
-export const BOOK_MOUNT = "/book";
+const ORDER_MOUNT = "/order";
+const BOOK_MOUNT = "/book";
 /** The read-only menu, inside the ordering mount. */
-export const MENU_PATH = "/order/menu";
+const MENU_PATH = "/order/menu";
 /** The rewards sign-up, in the loyalty bundle (the root is the links page). */
-export const REWARDS_PATH = "/rewards";
+const REWARDS_PATH = "/rewards";
 
 /**
  * The domain shops are given subdomains of.

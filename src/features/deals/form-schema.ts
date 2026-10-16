@@ -39,7 +39,7 @@ const int = (v: string | number) => {
   return String(v).trim() !== "" && Number.isInteger(n) ? n : null;
 };
 
-export const branchStateSchema = z.enum(["inherit", "on", "off"]);
+const branchStateSchema = z.enum(["inherit", "on", "off"]);
 
 export const dealSchema = z
   .object({

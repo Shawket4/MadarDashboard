@@ -195,7 +195,7 @@ export function DevicesTable({
 }
 
 /** Who still talks to the server through pre-rework paths (G-old gate). */
-export function ClientVersionsView({
+function ClientVersionsView({
   branchId,
   days,
   legacyOnly,

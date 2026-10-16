@@ -23,7 +23,6 @@
 
 import type { HandoffFile } from "./handoff-content";
 
-export { handoffFilename } from "./handoff-content";
 
 /** Loaded once, on first use. */
 async function zipCore() {

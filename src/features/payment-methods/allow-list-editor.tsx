@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import type { AllowList } from "@/features/devices/api";
 import { cn } from "@/lib/utils";
 
-export const allowListSchema = z
+const allowListSchema = z
   .object({ restricted: z.boolean(), payment_method_ids: z.array(z.string()) })
   .refine((v) => !v.restricted || v.payment_method_ids.length > 0, { path: ["payment_method_ids"], message: "empty" });
 

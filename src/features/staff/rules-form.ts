@@ -35,7 +35,7 @@ export interface RulesValues {
 export const BUSINESS_ONLY = ["period_start_day", "advance_cap_percent", "gender_mode"] as const;
 
 /** The wire's rule names → the label the page shows for them. */
-export const RULE_LABELS: Record<string, [string, string]> = {
+const RULE_LABELS: Record<string, [string, string]> = {
   late_deduction_tiers: ["staff.lateLadder", "Late arrival penalties"],
   absence_deduction_days: ["staff.absenceDays", "Days docked per absence"],
   default_overtime_multiplier: ["staff.otMultiplierLegacy", "Old overtime multiplier"],

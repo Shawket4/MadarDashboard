@@ -7,7 +7,7 @@ import { buildEncryptedHandoffZip } from "./handoff-zip";
 import { generatePassphrase } from "./passphrase";
 
 export type HandoffMode = "created" | "rotated";
-export type HandoffStatus = "building" | "ready" | "failed";
+type HandoffStatus = "building" | "ready" | "failed";
 
 export interface IssuedCredential {
   credential: CredentialWithSecret;

@@ -40,7 +40,7 @@ const money = z.string().refine((v) => {
 
 const sizeSurcharge = z.object({ size_label: z.string(), surcharge: money });
 
-export const choiceSchema = z.object({
+const choiceSchema = z.object({
   /** Stable client key for React and field arrays. */
   key: z.string(),
   id: z.string().optional(),
@@ -53,7 +53,7 @@ export const choiceSchema = z.object({
   size_surcharges: z.array(sizeSurcharge),
 });
 
-export const slotSchema = z.object({
+const slotSchema = z.object({
   key: z.string(),
   id: z.string().optional(),
   name: z.string().trim().min(1, E.required),

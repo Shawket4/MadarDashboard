@@ -127,7 +127,7 @@ function useNamesByUser(): Map<string, string> {
 }
 
 /** The caller's own request: the server says so (`is_own`); else guessed. */
-export const isMine = (r: StaffRequest, own: Set<string>) => r.is_own ?? own.has(r.employee_id);
+const isMine = (r: StaffRequest, own: Set<string>) => r.is_own ?? own.has(r.employee_id);
 
 /**
  * May the caller approve or reject it? The server decides (`can_decide`: pending,
@@ -604,7 +604,7 @@ export function ApproveWithPayDialog({
  * Cancelling a request. Someone else's, or any approved one, needs a note
  * (AT-7); the server refuses it without one.
  */
-export function CancelRequestDialog({
+function CancelRequestDialog({
   request,
   mine,
   onOpenChange,

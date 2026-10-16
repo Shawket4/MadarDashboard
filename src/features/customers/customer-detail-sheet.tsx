@@ -316,7 +316,7 @@ function Identity({ detail }: { detail: CustomerDetail }) {
   );
 }
 
-export function RecentOrders({ orders, onOpenOrder }: { orders: CustomerOrder[]; onOpenOrder: (id: string) => void }) {
+function RecentOrders({ orders, onOpenOrder }: { orders: CustomerOrder[]; onOpenOrder: (id: string) => void }) {
   const { t } = useTranslation();
   if (orders.length === 0) {
     return <EmptyState icon={Receipt} title={t("customers.noOrders", "No orders yet")} />;

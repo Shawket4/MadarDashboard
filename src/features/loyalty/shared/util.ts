@@ -33,10 +33,6 @@ export const currencyLabel = (mode: string, count?: number): string => {
   });
 };
 
-/** "5 orders" / "100 points" — a reward's price, ready to render. */
-export const costLabel = (amount: number, currency: string): string =>
-  `${amount} ${currencyLabel(currency, amount)}`;
-
 /**
  * A scope's own row, or null when it inherits.
  *

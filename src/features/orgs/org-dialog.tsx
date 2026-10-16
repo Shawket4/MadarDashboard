@@ -411,7 +411,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
  * (`GET /orgs/{id}/plan`). Say so when the dialog is open on one that is past
  * Free's limits, so support knows why a till shows "not active" and what to do.
  */
-export function OverFreeLimitsNote({ orgId }: { orgId: string }) {
+function OverFreeLimitsNote({ orgId }: { orgId: string }) {
   const { t } = useTranslation();
   const q = useGetOrgPlan(orgId);
   const plan = q.data;

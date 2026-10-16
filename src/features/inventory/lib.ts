@@ -40,14 +40,8 @@ export const VARIANCE_REASONS = [
   "transfer_error",
   "other",
 ] as const;
-export type VarianceReason = (typeof VARIANCE_REASONS)[number];
-
 export const WASTE_REASONS = ["expired", "spoiled", "damaged", "overproduction", "theft", "other"] as const;
-export type WasteReason = (typeof WASTE_REASONS)[number];
-
 export const PO_STATUSES = ["draft", "ordered", "partially_received", "received", "cancelled"] as const;
-export type POStatus = (typeof PO_STATUSES)[number];
-
 /** Stock units the catalog supports. */
 export const UNITS = ["g", "kg", "ml", "l", "pcs"] as const;
 
@@ -98,7 +92,7 @@ export const roundQty = (q: number): number => rules.quantity_dec(q);
 /** Fraction digits a unit cost is shown with (EGP), always all of them:
  *  enough for 0.04568 per gram, and a whole-looking figure still reads as
  *  the exact quotient it is (0.050000, not a rounded-looking 0.05). */
-export const UNIT_COST_DIGITS = 6;
+const UNIT_COST_DIGITS = 6;
 
 /** A unit cost in EGP, from piastres per unit, at a fixed [UNIT_COST_DIGITS]. */
 export const formatUnitCost = (piastresPerUnit: number): string =>
@@ -170,7 +164,7 @@ export function needsFirstCount(stocktakes: Pick<Stocktake, "status">[] | undefi
   return !stocktakes.some((s) => s.status === "finalized");
 }
 
-export const COUNT_DUE_DAYS = 14;
+const COUNT_DUE_DAYS = 14;
 
 /** Catalog rows a branch should count: never counted, or older than the window. */
 export function countsDue(rows: Pick<BranchStockRow, "last_counted_at">[], now = Date.now()): number {
@@ -230,7 +224,7 @@ export function wasteWhen(m: { occurred_at?: string | null; created_at: string }
  * receive time as secondary info only when the gap is meaningful: more than
  * {@link RECEIVED_LATE_MS} (5 minutes) either way. Null otherwise.
  */
-export const RECEIVED_LATE_MS = 5 * 60 * 1000;
+const RECEIVED_LATE_MS = 5 * 60 * 1000;
 
 export function wasteReceivedLate(m: {
   occurred_at?: string | null;

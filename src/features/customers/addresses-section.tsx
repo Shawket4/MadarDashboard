@@ -17,7 +17,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate, fmtNumber } from "@/lib/format";
 
 /** One line a driver could follow: place, unit, floor, street, landmark — whatever was given. */
-export function formatAddress(a: CustomerAddress, t: (key: string, opts: Record<string, unknown>) => string): string {
+function formatAddress(a: CustomerAddress, t: (key: string, opts: Record<string, unknown>) => string): string {
   return [
     a.place_name,
     a.unit_number ? t("customers.addresses.unit", { defaultValue: "Unit {{n}}", n: a.unit_number }) : null,

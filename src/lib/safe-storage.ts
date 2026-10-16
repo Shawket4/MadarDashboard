@@ -49,12 +49,6 @@ const real: Storage | null = typeof window === "undefined" ? null : probe();
 const backing: Storage = real ?? memoryStorage();
 
 /**
- * True when values written here will survive a reload. Exposed so a caller can
- * warn before relying on persistence, rather than discovering it silently.
- */
-export const storageIsPersistent = real !== null;
-
-/**
  * Drop-in `Storage` that never throws. Individual operations are guarded too,
  * not just the initial probe, because quota can be exhausted at any point.
  */

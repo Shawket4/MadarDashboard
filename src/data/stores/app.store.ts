@@ -5,6 +5,7 @@ import { apiContext } from "@/data/api/client";
 import { queryClient } from "@/data/api/query";
 import { APP_TZ, LS_KEYS } from "@/data/config/constants";
 import i18n from "@/i18n";
+import { registerActiveTzSource } from "@/lib/format";
 
 type Language = "en" | "ar";
 
@@ -116,3 +117,5 @@ i18n.on("languageChanged", (l) => {
   const lang = asLanguage(l);
   if (useAppStore.getState().language !== lang) useAppStore.setState({ language: lang });
 });
+
+registerActiveTzSource(() => useAppStore.getState().activeTimezone);

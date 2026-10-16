@@ -15,7 +15,7 @@ export const asChannel = (v: string | null | undefined): Channel =>
  * The server's placeholder size for an item without sizes. It is a label for
  * the database, not a word for a customer: never show it.
  */
-export const SYNTHETIC_SIZE = "one_size";
+const SYNTHETIC_SIZE = "one_size";
 
 /** A size label fit to show a customer, or null when there is nothing to say. */
 export const displaySize = (label: string | null | undefined): string | null =>

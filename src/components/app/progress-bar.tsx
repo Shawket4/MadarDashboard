@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export type ProgressAccent = "primary" | "brand" | "success" | "warning" | "info" | "destructive";
+type ProgressAccent = "primary" | "brand" | "success" | "warning" | "info" | "destructive";
 
 const accentFill: Record<ProgressAccent, string> = {
   primary: "bg-primary",

@@ -14,7 +14,7 @@ export interface LabelledLine {
   unit: string;
 }
 
-export const labelKey = (label: string | null | undefined): string => (label ? `L:${label}` : ALL_SIZES);
+const labelKey = (label: string | null | undefined): string => (label ? `L:${label}` : ALL_SIZES);
 
 export const toLabelBlocks = (lines: LabelledLine[], extraLabels: string[], allLabel: string): GridBlock[] => {
   const labels: string[] = [];

@@ -8,8 +8,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { StatusPill } from "@/components/app/status-pill";
 import { SIGNAL_TONE, signalLabel, signalReason } from "./signals";
 
-export type DecisionAction = "acted" | "dismissed" | "snoozed";
-
 /**
  * One advisory flag as a compact chip. Clicking opens a popover with the
  * plain-language reason and three actions: Fix (deep link to the fix surface,

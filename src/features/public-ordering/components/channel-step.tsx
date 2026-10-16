@@ -9,25 +9,6 @@ import { listItem, staggerContainer } from "@/lib/motion";
 
 import type { Channel } from "../types";
 
-/** A tiny coloured dot + label that says whether a channel is open right now. */
-export function ChannelDot({ open, label }: { open: boolean; label: string }) {
-  const { t } = useTranslation();
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span
-        className={cn(
-          "size-1.5 rounded-full",
-          open ? "bg-success" : "bg-muted-foreground/50",
-        )}
-      />
-      <span>{label}</span>
-      <span className={cn("font-medium", open ? "text-success" : "text-muted-foreground")}>
-        · {open ? t("order.channel.open") : t("order.channel.closed")}
-      </span>
-    </span>
-  );
-}
-
 interface ChannelStepProps {
   branch: PublicBranch;
   onSelect: (channel: Channel) => void;

@@ -124,6 +124,14 @@ export function LocationStep({
     return t("order.location.savedUnknown", "Saved location");
   };
 
+  const applyLocation = (loc: GuestSavedLocation) => {
+    if (loc.customer_lat != null && loc.customer_lng != null) {
+      onPointChange({ lat: loc.customer_lat, lng: loc.customer_lng });
+    }
+    onApplySavedAddress?.(loc);
+    setSavedOpen(false);
+  };
+
   // ── In-mall: device GPS only — no map, no draggable pin (a manual pin could be
   // dropped on the mall to fake presence). Missing location blocks ordering;
   // being far is allowed and just shown (registered for the teller). ───────────
@@ -132,57 +140,14 @@ export function LocationStep({
     return (
       <div className="space-y-5">
         {hasSaved && (
-          <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
-            <button
-              type="button"
-              onClick={() => setSavedOpen((o) => !o)}
-              className="flex w-full items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted"
-            >
-              <span className="flex items-center gap-2">
-                <MapPin className="size-4 shrink-0 text-brand" />
-                <span className="truncate text-muted-foreground">
-                  {t("order.location.savedLabel", "Use a saved address")}
-                </span>
-              </span>
-              <ChevronDown
-                className={cn("size-4 shrink-0 text-muted-foreground transition-transform", savedOpen && "rotate-180")}
-              />
-            </button>
-            {savedOpen && (
-              <div className="border-t border-border/70">
-                {branchSavedLocations.length > 0 && (
-                  <>
-                    <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {t("order.location.thisBranch", "This branch")}
-                    </p>
-                    {branchSavedLocations.map((loc, i) => (
-                      <SavedLocationRow
-                        key={i}
-                        label={locationLabel(loc)}
-                        date={loc.last_used_at}
-                        onSelect={() => applyLocation(loc)}
-                      />
-                    ))}
-                  </>
-                )}
-                {otherLocations.length > 0 && (
-                  <>
-                    <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {t("order.location.otherBranches", "Other branches")}
-                    </p>
-                    {otherLocations.map((loc, i) => (
-                      <SavedLocationRow
-                        key={i}
-                        label={locationLabel(loc)}
-                        date={loc.last_used_at}
-                        onSelect={() => applyLocation(loc)}
-                      />
-                    ))}
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+          <SavedAddresses
+            open={savedOpen}
+            onToggle={() => setSavedOpen((o) => !o)}
+            branchLocations={branchSavedLocations}
+            otherLocations={otherLocations}
+            labelOf={locationLabel}
+            onSelect={applyLocation}
+          />
         )}
         <div className="rounded-2xl border border-border/70 bg-card p-6 text-center shadow-sm">
           <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
@@ -241,68 +206,17 @@ export function LocationStep({
   const status = quote?.status;
   const canContinue = !!point && status === "ok" && !isFetching;
 
-  const applyLocation = (loc: GuestSavedLocation) => {
-    if (loc.customer_lat != null && loc.customer_lng != null) {
-      onPointChange({ lat: loc.customer_lat, lng: loc.customer_lng });
-    }
-    onApplySavedAddress?.(loc);
-    setSavedOpen(false);
-  };
-
   return (
     <div className="space-y-5">
       {hasSaved && (
-        <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
-          <button
-            type="button"
-            onClick={() => setSavedOpen((o) => !o)}
-            className="flex w-full items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted"
-          >
-            <span className="flex items-center gap-2">
-              <MapPin className="size-4 shrink-0 text-brand" />
-              <span className="truncate text-muted-foreground">
-                {t("order.location.savedLabel", "Use a saved address")}
-              </span>
-            </span>
-            <ChevronDown
-              className={cn("size-4 shrink-0 text-muted-foreground transition-transform", savedOpen && "rotate-180")}
-            />
-          </button>
-          {savedOpen && (
-            <div className="border-t border-border/70">
-              {branchSavedLocations.length > 0 && (
-                <>
-                  <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t("order.location.thisBranch", "This branch")}
-                  </p>
-                  {branchSavedLocations.map((loc, i) => (
-                    <SavedLocationRow
-                      key={i}
-                      label={locationLabel(loc)}
-                      date={loc.last_used_at}
-                      onSelect={() => applyLocation(loc)}
-                    />
-                  ))}
-                </>
-              )}
-              {otherLocations.length > 0 && (
-                <>
-                  <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t("order.location.otherBranches", "Other branches")}
-                  </p>
-                  {otherLocations.map((loc, i) => (
-                    <SavedLocationRow
-                      key={i}
-                      label={locationLabel(loc)}
-                      date={loc.last_used_at}
-                      onSelect={() => applyLocation(loc)}
-                    />
-                  ))}
-                </>
-              )}
-            </div>
-          )}
-        </div>
+        <SavedAddresses
+          open={savedOpen}
+          onToggle={() => setSavedOpen((o) => !o)}
+          branchLocations={branchSavedLocations}
+          otherLocations={otherLocations}
+          labelOf={locationLabel}
+          onSelect={applyLocation}
+        />
       )}
 
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
@@ -330,6 +244,56 @@ export function LocationStep({
         {t("order.location.continue")}
         <ArrowRight className="size-4" />
       </Button>
+    </div>
+  );
+}
+
+function SavedAddresses({
+  open,
+  onToggle,
+  branchLocations,
+  otherLocations,
+  labelOf,
+  onSelect,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  branchLocations: GuestSavedLocation[];
+  otherLocations: GuestSavedLocation[];
+  labelOf: (loc: GuestSavedLocation) => string;
+  onSelect: (loc: GuestSavedLocation) => void;
+}) {
+  const { t } = useTranslation();
+  const group = (title: string, locs: GuestSavedLocation[]) =>
+    locs.length > 0 && (
+      <>
+        <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
+        {locs.map((loc, i) => (
+          <SavedLocationRow key={i} label={labelOf(loc)} date={loc.last_used_at} onSelect={() => onSelect(loc)} />
+        ))}
+      </>
+    );
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted"
+      >
+        <span className="flex items-center gap-2">
+          <MapPin className="size-4 shrink-0 text-brand" />
+          <span className="truncate text-muted-foreground">{t("order.location.savedLabel", "Use a saved address")}</span>
+        </span>
+        <ChevronDown
+          className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+        />
+      </button>
+      {open && (
+        <div className="border-t border-border/70">
+          {group(t("order.location.thisBranch", "This branch"), branchLocations)}
+          {group(t("order.location.otherBranches", "Other branches"), otherLocations)}
+        </div>
+      )}
     </div>
   );
 }

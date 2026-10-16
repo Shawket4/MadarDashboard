@@ -65,7 +65,7 @@ type Slip = ComputedPayslip | Payslip;
 type Row = Slip & { employee_name: string; paid_method: string | null };
 
 /** Days from `today` to the month's last day, both counted; 0 once it has ended. */
-export const daysStillToCome = (endDate: string, today: string): number =>
+const daysStillToCome = (endDate: string, today: string): number =>
   Math.max(0, Math.round((Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000) + 1);
 
 /** open · approved · paid, from the server's period status. */
@@ -96,7 +96,7 @@ const isUnsettled = (status: string | undefined) => status === "draft" || status
  * The older months not fully paid (H2-P1), oldest first: the server's
  * `unsettled`, or, from a server without it, the same months found in history.
  */
-export const unsettledOf = (cur: CurrentPayroll | undefined): Unsettled[] => {
+const unsettledOf = (cur: CurrentPayroll | undefined): Unsettled[] => {
   if (!cur) return [];
   if (Array.isArray(cur.unsettled)) return cur.unsettled;
   return (cur.history ?? [])

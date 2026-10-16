@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportButton } from "@/components/app/export-button";
-import { DeliveryChannels } from "./delivery-channels";
+import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { CustomerLink } from "@/features/customers/customer-link";
 import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
 import { OrderDetailSheet } from "./order-detail-sheet";
@@ -409,7 +409,7 @@ export function OrdersPage() {
       {(deliverySales.data?.total_orders ?? 0) > 0 ? (
         <section className="space-y-3">
           <SectionHeader title={t("delivery.kpisTitle", "Delivery")} description={t("delivery.byChannel", "By channel")} />
-          <DeliveryChannels data={deliverySales.data} loading={deliverySales.isLoading} />
+          <DeliveryKpis data={deliverySales.data} loading={deliverySales.isLoading} />
         </section>
       ) : null}
 

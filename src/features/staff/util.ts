@@ -21,18 +21,7 @@ export const invalidateStaff = () => invalidatePrefix("/staff");
 
 export const invalidateEmployees = () => invalidatePrefix("/staff/employees");
 export const invalidateDepartments = () => invalidatePrefix("/staff/departments");
-export const invalidateWorkShifts = () => invalidatePrefix("/staff/work-shifts");
-export const invalidateSchedules = () => invalidatePrefix("/staff/schedules");
 export const invalidateAttendance = () => invalidatePrefix("/staff/attendance");
-export const invalidateLeave = () => invalidatePrefix("/staff/leave");
-/** Requests live under `/staff/requests`; leave BALANCES still under `/staff/leave`,
- *  so a decision that spends leave has to touch both. */
-export const invalidateRequests = () => {
-  void invalidatePrefix("/staff/requests");
-  return invalidatePrefix("/staff/leave");
-};
-export const invalidatePayroll = () => invalidatePrefix("/staff/payroll");
-
 /** Attendance status → StatusPill tone. Mirrors the five values the backend's
  *  CHECK constraint allows. */
 export const ATTENDANCE_STATUS_TONE: Record<string, StatusTone> = {
@@ -50,14 +39,6 @@ export const REQUEST_STATUS_TONE: Record<string, StatusTone> = {
   rejected: "danger",
   cancelled: "neutral",
   settled: "neutral",
-};
-
-/** Payroll period status → StatusPill tone. */
-export const PERIOD_STATUS_TONE: Record<string, StatusTone> = {
-  draft: "neutral",
-  generated: "info",
-  paid: "success",
-  closed: "neutral",
 };
 
 export const EMPLOYMENT_STATUS_TONE: Record<string, StatusTone> = {

@@ -8,9 +8,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { staggerContainer } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-/** @deprecated use StatAccent — kept as an alias to avoid churn. */
-export type LedgerAccent = StatAccent;
-
 export interface LedgerItem {
   key: string;
   label: string;

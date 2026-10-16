@@ -27,7 +27,7 @@ import { fmtStamp } from "@/lib/format";
 import { PaneHeader } from "./pane-header";
 
 /** What a till is called: its label when it has one, else its short code. */
-export const tillName = (till: Pick<PlanTill, "code" | "label">): string => till.label?.trim() || till.code;
+const tillName = (till: Pick<PlanTill, "code" | "label">): string => till.label?.trim() || till.code;
 
 export function PlanPane() {
   const { t } = useTranslation();

@@ -1,7 +1,7 @@
 import { defineListSearch, param } from "@/data/scope/list-search";
 
-export const PLAN_FILTERS = ["all", "free", "paid"] as const;
-export const SOURCE_FILTERS = ["all", "self", "admin"] as const;
+const PLAN_FILTERS = ["all", "free", "paid"] as const;
+const SOURCE_FILTERS = ["all", "self", "admin"] as const;
 
 /**
  * Organizations list state, in the URL (see data/scope/list-search.ts): which

@@ -14,7 +14,7 @@ import { queryClient } from "@/data/api/query";
 
 import type { DeviceKind, Plan, PrinterRole, Connection } from "./plan";
 
-export type { BranchPlanView, PlanRegisteredDevice, PrinterBrand };
+export type { BranchPlanView, PlanRegisteredDevice };
 
 export const fromWire = (p: BranchPlan): Plan => ({
   devices: (p.devices ?? []).map((d) => ({
@@ -53,7 +53,7 @@ export const fromWire = (p: BranchPlan): Plan => ({
 });
 
 /** The wire shape is the plan itself; names are trimmed on the way out. */
-export const toWire = (plan: Plan): BranchPlan => ({
+const toWire = (plan: Plan): BranchPlan => ({
   ...plan,
   devices: plan.devices.map((d) => ({ ...d, name: d.name.trim() })),
   printers: plan.printers.map((p) => ({
@@ -111,7 +111,7 @@ export const refusalCode = (err: unknown): string | null => {
 // ── Live state ──────────────────────────────────────────────────────────────
 
 /** A device reports in at most every 5 minutes; twice that is still "online". */
-export const ONLINE_WITHIN_MS = 10 * 60_000;
+const ONLINE_WITHIN_MS = 10 * 60_000;
 
 export type Presence = "online" | "offline" | "unclaimed";
 

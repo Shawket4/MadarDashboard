@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  *
  * Meta is facts joined by " · "; wrap figures in <bdi> (or use lib/format).
  */
-export type ListRowVariant = "nav" | "ledger" | "item" | "pick";
+type ListRowVariant = "nav" | "ledger" | "item" | "pick";
 
 interface ListRowProps {
   variant?: ListRowVariant;

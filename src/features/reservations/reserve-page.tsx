@@ -19,7 +19,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   useBookingBranches, useBookingInfo, useBookingSlots, useCreatePublicBooking,
 } from "@/data/api/generated/api";
-import type { PublicBookingInfo } from "@/data/api/generated/models/publicBookingInfo";
 import type { PublicBookingView } from "@/data/api/generated/models/publicBookingView";
 import { getErrorMessage } from "@/data/api/errors";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
@@ -306,7 +305,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
 }
 
 /** The honest state: no form that goes nowhere. */
-export function NotOpen({ name }: { name?: string }) {
+function NotOpen({ name }: { name?: string }) {
   const { t } = useTranslation();
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-center">
@@ -318,4 +317,3 @@ export function NotOpen({ name }: { name?: string }) {
   );
 }
 
-export type { PublicBookingInfo };

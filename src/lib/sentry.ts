@@ -36,7 +36,7 @@ function release(): string | undefined {
  * CORS-safelisted, so without them on the server the browser strips both at
  * preflight and none of this matters. See `observability::TRACE_HEADERS` there.
  */
-export function tracePropagationTargets(): (string | RegExp)[] {
+function tracePropagationTargets(): (string | RegExp)[] {
   // Same-origin and proxied paths (the web build behind nginx).
   const targets: (string | RegExp)[] = [/^\//];
   try {

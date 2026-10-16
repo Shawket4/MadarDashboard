@@ -126,9 +126,6 @@ const forMadar = (err: unknown, message: string): string => {
   return message;
 };
 
-/** The server's limiter said "not now" (429): ask again later, keep what is shown. */
-export const isRateLimited = (err: unknown): boolean => err instanceof AxiosError && err.response?.status === 429;
-
 export const isStaleRefusal = (err: unknown): boolean => {
   if (!(err instanceof AxiosError)) return false;
   const code = (err.response?.data as { code?: unknown } | undefined)?.code;

@@ -39,14 +39,14 @@ import { deleteBranchChannels, putBranchChannels, saveComboSettings, useComboSet
 import { COMBO_CHANNELS, type ChannelOverride, type ComboChannel, type ComboSettings } from "./types";
 import { invalidateCombos, percentToRate, rateToPercent } from "./util";
 
-export const CHANNEL_META: Record<ComboChannel, { icon: LucideIcon; key: string; label: string; hintKey: string; hint: string }> = {
+const CHANNEL_META: Record<ComboChannel, { icon: LucideIcon; key: string; label: string; hintKey: string; hint: string }> = {
   pos: { icon: Store, key: "combos.channels.pos", label: "POS", hintKey: "combos.channels.posHint", hint: "The till: tellers and waiters." },
   qr: { icon: QrCode, key: "combos.channels.qr", label: "QR table menu", hintKey: "combos.channels.qrHint", hint: "Guests ordering from the code on their table." },
   online: { icon: Globe, key: "combos.channels.online", label: "Online ordering", hintKey: "combos.channels.onlineHint", hint: "Your ordering page: delivery and pickup." },
   delivery: { icon: Truck, key: "combos.channels.delivery", label: "Delivery apps", hintKey: "combos.channels.deliveryHint", hint: "Aggregator menus, when they are connected." },
 };
 
-export const settingsSchema = z.object({
+const settingsSchema = z.object({
   min_margin: z.string().refine((v) => {
     if (v.trim() === "") return true;
     const n = Number(v);
@@ -54,7 +54,7 @@ export const settingsSchema = z.object({
   }, "combos.errors.percent"),
   sell: z.object({ pos: z.boolean(), qr: z.boolean(), online: z.boolean(), delivery: z.boolean() }),
 });
-export type SettingsValues = z.infer<typeof settingsSchema>;
+type SettingsValues = z.infer<typeof settingsSchema>;
 
 /** The org's switches; a channel the server leaves out is on (C3: on by default). */
 const channelsOf = (s: ComboSettings): SettingsValues["sell"] => ({

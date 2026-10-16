@@ -5,8 +5,8 @@ import { TABLE_TONE_STYLE, toneFor, type TableTone } from "./util";
 
 /** The id of the hatch pattern each floor canvas defines once (see `FloorDefs`). */
 export const HATCH_ID = "floorNeedsClearing";
-export const SHEEN_ID = "floorTableSheen";
-export const LIFT_ID = "floorTableLift";
+const SHEEN_ID = "floorTableSheen";
+const LIFT_ID = "floorTableLift";
 
 /**
  * Canvas-level defs every floor SVG renders once. The hatch marks a table that
@@ -35,15 +35,8 @@ export function FloorDefs() {
   );
 }
 
-/**
- * How far chairs reach beyond the table edge. Each canvas pads its viewBox by
- * this much so a table sitting hard against the wall keeps its chairs on
- * screen; `getScreenCTM` absorbs the offset, so pointer math is untouched.
- */
-export const SEAT_ALLOWANCE = 22;
-
 /** Past this many seats the rim turns into a smear — the count carries it. */
-export const SEAT_RENDER_CAP = 12;
+const SEAT_RENDER_CAP = 12;
 
 /*
  * The glyph's shared constants, in canvas units. The POS draws the same table
@@ -51,27 +44,20 @@ export const SEAT_RENDER_CAP = 12;
  * `kTable*`) — change one here and change it there.
  */
 /** Rounded-rect corner radius. */
-export const TABLE_CORNER = 10;
+const TABLE_CORNER = 10;
 /** A free table's hairline, an occupied ring, the ready ring, the selection. */
-export const TABLE_RING_FREE = 1.5;
-export const TABLE_RING = 2;
-export const TABLE_RING_READY = 3;
-export const TABLE_RING_SELECTED = 3;
-/** How far the selection halo sits outside the body. */
-export const TABLE_HALO_GAP = 5;
+const TABLE_RING_FREE = 1.5;
+const TABLE_RING = 2;
+const TABLE_RING_SELECTED = 3;
 /** Body tint over the surface: seated with no bill, with a bill. */
-export const TABLE_FILL_SEATED = 0.1;
-export const TABLE_FILL_BILL = 0.22;
+const TABLE_FILL_SEATED = 0.1;
+const TABLE_FILL_BILL = 0.22;
 /** A reserved table's dashed ring. */
-export const TABLE_DASH = 6;
-export const TABLE_DASH_GAP = 4;
+const TABLE_DASH = 6;
+const TABLE_DASH_GAP = 4;
 /** Type on a table. */
-export const TABLE_LABEL_SIZE = 18;
-export const TABLE_CHIP_SIZE = 12;
-/** A party waiting this long turns the clock amber, then red. */
-export const TABLE_LONG_WAIT_MINUTES = 45;
-export const TABLE_VERY_LONG_WAIT_MINUTES = 90;
-
+const TABLE_LABEL_SIZE = 18;
+const TABLE_CHIP_SIZE = 12;
 /** One chair, in table-local units (origin = the table's top-left). */
 export interface SeatSlot {
   x: number;
@@ -81,7 +67,7 @@ export interface SeatSlot {
 }
 
 /** Chair capsule dimensions for a table of this size, in canvas units. */
-export function seatMetrics(w: number, h: number) {
+function seatMetrics(w: number, h: number) {
   const len = Math.min(Math.max(Math.min(w, h) * 0.26, 10), 28);
   return { len, thick: len * 0.42, gap: 4 };
 }
