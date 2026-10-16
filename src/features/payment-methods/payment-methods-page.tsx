@@ -132,6 +132,7 @@ export function PaymentMethodsPage() {
       await exportToExcel({ filename: "Madar-PaymentMethods", logoUrl, sheets: [{ name: t("settings.paymentMethods", "Payment Methods"), title: t("settings.paymentMethods", "Payment Methods"), rows: methods as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }

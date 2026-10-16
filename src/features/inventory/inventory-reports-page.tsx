@@ -90,6 +90,7 @@ export function InventoryReportsPage() {
       await exportToExcel({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -101,6 +102,7 @@ export function InventoryReportsPage() {
       await exportToCsv({ filename: `Madar-${sheet.title}`, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 

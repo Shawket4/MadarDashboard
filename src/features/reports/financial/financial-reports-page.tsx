@@ -152,6 +152,7 @@ export function FinancialReportsPage() {
       await exportToExcel({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setInvExporting(false);
     }
@@ -162,6 +163,7 @@ export function FinancialReportsPage() {
       await exportToCsv({ filename: `Madar-${sheet.title}`, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 

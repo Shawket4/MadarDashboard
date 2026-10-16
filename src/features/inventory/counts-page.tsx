@@ -167,6 +167,7 @@ export function CountsPage() {
       await exportToExcel({ filename: "Madar-Stocktakes", logoUrl, sheets: [{ name: t("inventory.stocktakes.title", "Stock counts"), title: t("inventory.stocktakes.title", "Stock counts"), rows: history as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }

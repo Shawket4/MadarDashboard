@@ -184,6 +184,7 @@ export function AnalyticsExportButton({
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -194,6 +195,7 @@ export function AnalyticsExportButton({
       await exportToCsv({ filename: `Madar-Analytics-${tab}`, sheets: await getSheets() });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 

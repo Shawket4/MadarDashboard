@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Page, PageHeader } from "@/components/app/page";
 import { SectionHeader } from "@/components/app/section-header";
 import { StatusPill } from "@/components/app/status-pill";
+import { PopOnChange } from "@/components/app/pop-on-change";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
@@ -151,9 +152,11 @@ export function PurchasingPage() {
       header: t("inventory.purchasing.status", "Status"),
       meta: { label: t("inventory.purchasing.status", "Status") },
       cell: ({ row }) => (
-        <StatusPill tone={PO_STATUS_TONES[row.original.status] ?? "neutral"}>
-          {t(`inventory.purchasing.statuses.${row.original.status}`, row.original.status)}
-        </StatusPill>
+        <PopOnChange value={row.original.status}>
+          <StatusPill tone={PO_STATUS_TONES[row.original.status] ?? "neutral"}>
+            {t(`inventory.purchasing.statuses.${row.original.status}`, row.original.status)}
+          </StatusPill>
+        </PopOnChange>
       ),
     },
     {
@@ -305,6 +308,7 @@ export function PurchasingPage() {
         await exportToExcel({ filename: "Madar-PurchaseOrders", logoUrl, sheets: [{ name: t("inventory.purchasing.orders", "Purchase orders"), title: t("inventory.purchasing.orders", "Purchase orders"), rows: (orders.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
       } catch (e) {
         toast.error(getErrorMessage(e));
+        throw e;
       } finally {
         setExporting(false);
       }
@@ -321,6 +325,7 @@ export function PurchasingPage() {
         await exportToExcel({ filename: "Madar-Suppliers", logoUrl, sheets: [{ name: t("inventory.purchasing.suppliers", "Suppliers"), title: t("inventory.purchasing.suppliers", "Suppliers"), rows: (suppliers.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
       } catch (e) {
         toast.error(getErrorMessage(e));
+        throw e;
       } finally {
         setExporting(false);
       }

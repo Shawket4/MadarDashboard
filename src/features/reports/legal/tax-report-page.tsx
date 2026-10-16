@@ -70,6 +70,7 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
       await exportToExcel({ filename: t("reports.legal.tabs.tax", "Tax"), logoUrl, sheets: [buildSheet()] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -81,6 +82,7 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
       await exportToCsv({ filename: t("reports.legal.tabs.tax", "Tax"), sheets: [buildSheet()] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 

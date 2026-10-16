@@ -36,6 +36,7 @@ import {
 import { SectionDialog } from "./section-dialog";
 import type { FloorSection } from "@/data/api/generated/models";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { DISTANCE, Presence, Reveal, recipes, useChangeSignal, usePop, useShake } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useScope } from "@/data/scope/use-scope";
 import { getErrorMessage } from "@/data/api/errors";
@@ -179,6 +180,7 @@ export function FloorPage() {
   // The party at the one selected table: their name opens the customer, when
   // the bill has one and the viewer may see customers.
   const customerSheet = useCustomerSheet();
+  const inspectorKey = selectedTables.length === 1 ? selectedTables[0].id : selectedTables.length > 1 ? "many" : "none";
   const sittingTicket = useMemo(() => {
     if (selectedTables.length !== 1) return null;
     const id = selectedTables[0].id;
@@ -523,7 +525,7 @@ export function FloorPage() {
 
       <div className="flex min-h-[60svh] flex-1 flex-col overflow-hidden rounded-2xl border bg-card">
       {/* ── Edit toolbar ───────────────────────────────────────────────── */}
-      {editable ? (
+      <Presence show={editable} recipe={recipes.fade()}>
         <div className="flex flex-wrap items-center gap-1 border-b bg-secondary/50 px-2 py-1.5">
           <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setAddOpen(true)}>
             <Plus className="size-3.5" />
@@ -578,7 +580,7 @@ export function FloorPage() {
             {t("floor.hint", "Drag to move · ⌥ ignores the grid · ⌘C/⌘V · pinch to zoom")}
           </span>
         </div>
-      ) : null}
+      </Presence>
 
       {/* ── Canvas + inspector ─────────────────────────────────────────── */}
       <div className="flex min-h-0 flex-1 flex-col xl:flex-row">
@@ -639,6 +641,8 @@ export function FloorPage() {
         </div>
 
         <aside className="w-full shrink-0 overflow-y-auto border-t xl:w-[320px] xl:border-s xl:border-t-0">
+          {/* The panel's content arrives with what was picked: another table, or a group. Not the canvas. */}
+          <Reveal replayKey={inspectorKey} recipe={recipes.rise("product", DISTANCE.xs)}>
           <InspectorPanel
             tables={selectedTables}
             sections={sections}
@@ -659,6 +663,7 @@ export function FloorPage() {
               ) : null
             }
           />
+          </Reveal>
           {customerSheet.sheet}
           <div className="border-t p-4">
             <TransferQueue
@@ -755,6 +760,11 @@ function IconButton({
  */
 function SaveIndicator({ state, editable }: { state: SaveState; editable: boolean }) {
   const { t } = useTranslation();
+  // "Saved" settles in; "Not saved" shakes, beside the toast.
+  const ref = useRef<HTMLSpanElement>(null);
+  const changed = useChangeSignal(state);
+  usePop(ref, state === "saved" && changed);
+  useShake(ref, (state === "error" || state === "conflict") && changed);
   if (!editable || state === "idle") return null;
 
   const spinner = <Loader2 className="size-3 animate-spin" />;
@@ -768,7 +778,7 @@ function SaveIndicator({ state, editable }: { state: SaveState; editable: boolea
   const v = map[state];
 
   return (
-    <span className={cn("me-2 flex items-center gap-1 text-xs", v.tone)} role="status">
+    <span ref={ref} className={cn("me-2 flex items-center gap-1 text-xs", v.tone)} role="status">
       {v.icon}
       <span className="hidden sm:inline">{v.text}</span>
     </span>

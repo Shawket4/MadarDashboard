@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { Wallet } from "lucide-react";
@@ -5,6 +6,7 @@ import { Wallet } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fmtDuration } from "@/lib/format";
+import { useFlip } from "@/lib/motion";
 
 import { useOpenTills, type Till } from "./api";
 import { FlagBadge, VerificationBadge } from "./till-badges";
@@ -18,6 +20,9 @@ export function OpenTillsCard({ branchId }: { branchId: string | null | undefine
 
 export function OpenTillsList({ tills }: { tills: Till[] }) {
   const { t } = useTranslation();
+  // Live: a till opening fades in, one closing lets the rest close up.
+  const listRef = useRef<HTMLUListElement>(null);
+  useFlip(listRef, tills.map((s) => s.id).join());
   return (
     <Card className="rounded-2xl py-0 shadow-none">
       <CardContent className="space-y-2 p-4">
@@ -34,7 +39,7 @@ export function OpenTillsList({ tills }: { tills: Till[] }) {
         {tills.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("dashboard.noOpenTill", "No open till")}</p>
         ) : (
-          <ul className="divide-y">
+          <ul ref={listRef} className="divide-y">
             {tills.map((s) => (
               <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm" data-testid="open-till">
                 <span>

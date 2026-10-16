@@ -24,6 +24,7 @@ import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Restricted } from "@/components/app/restricted";
 import { StatCard } from "@/components/app/stat-card";
 import { StatusPill } from "@/components/app/status-pill";
+import { PopOnChange } from "@/components/app/pop-on-change";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -264,6 +265,7 @@ export function PayrollPage() {
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -343,7 +345,7 @@ export function PayrollPage() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <DawamRefreshButton />
-            {period ? <StatusPill tone={PHASE_TONE[phase]}>{t(`dawam.phase_${phase}`, phase)}</StatusPill> : null}
+            {period ? <PopOnChange value={phase}><StatusPill tone={PHASE_TONE[phase]}>{t(`dawam.phase_${phase}`, phase)}</StatusPill></PopOnChange> : null}
             {canRun && phase === "open" && period ? (
               <Button
                 onClick={() => void approve()}
@@ -359,7 +361,7 @@ export function PayrollPage() {
             ) : null}
             {phase !== "open" ? (
               <>
-                <ExportButton onExport={() => void exportLists()} loading={exporting} label={t("dawam.payLists", "Pay lists (bank, wallet, cash)")} />
+                <ExportButton onExport={exportLists} loading={exporting} label={t("dawam.payLists", "Pay lists (bank, wallet, cash)")} />
                 <Button variant="ghost" onClick={() => void exportCsv()}>{t("dawam.csv", "CSV")}</Button>
               </>
             ) : null}
@@ -717,7 +719,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                 trailing={
                   <span className="flex items-center gap-2">
                     <span className="tabular-nums">{value}</span>
-                    <StatusPill tone={ADJ_TONE[a.status] ?? "neutral"}>{t(`dawam.adj_${a.status}`, a.status)}</StatusPill>
+                    <PopOnChange value={a.status}><StatusPill tone={ADJ_TONE[a.status] ?? "neutral"}>{t(`dawam.adj_${a.status}`, a.status)}</StatusPill></PopOnChange>
                     {owner && a.status === "pending" ? (
                       <>
                         <Button size="sm" variant="outline" onClick={() => void act(() => decideAdjustment(a.kind, a.id, { approve: true }), t("staff.decisionSaved", "Decision saved"))}>{t("common.approve", "Approve")}</Button>
@@ -778,7 +780,7 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
                   {a.status === "approved" ? (
                     <span className="text-sm tabular-nums text-muted-foreground">{t("dawam.remaining", { amount: fmtMoney(a.remaining_piastres), defaultValue: `${fmtMoney(a.remaining_piastres)} left` })}</span>
                   ) : null}
-                  <StatusPill tone={REQUEST_STATUS_TONE[a.status] ?? "neutral"}>{t(`staff.req_${a.status}`, a.status)}</StatusPill>
+                  <PopOnChange value={a.status}><StatusPill tone={REQUEST_STATUS_TONE[a.status] ?? "neutral"}>{t(`staff.req_${a.status}`, a.status)}</StatusPill></PopOnChange>
                   {canAdvance && a.status === "pending" ? (
                     <Button size="sm" variant="outline" onClick={() => setReviewing(a)}>{t("dawam.review", "Review")}</Button>
                   ) : null}

@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatusPill } from "@/components/app/status-pill";
+import { PopOnChange } from "@/components/app/pop-on-change";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { useAuthzAt } from "@/data/authz/use-authz";
 import type { Branch, StockTransfer, TransferStamp } from "@/data/api/generated/models";
@@ -102,7 +103,7 @@ export function TransferDrawer({ transfer: tr, onOpenChange, onChanged, branches
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <span className="font-mono">{tr.reference}</span>
-              <StatusPill tone={TRANSFER_TONES[tr.status] ?? "neutral"}>{transferStatusLabel(t, tr.status)}</StatusPill>
+              <PopOnChange value={tr.status}><StatusPill tone={TRANSFER_TONES[tr.status] ?? "neutral"}>{transferStatusLabel(t, tr.status)}</StatusPill></PopOnChange>
             </SheetTitle>
             <SheetDescription className="flex items-center gap-1.5">
               {tr.source_kind === "warehouse" ? <Warehouse className="size-3.5" /> : null}

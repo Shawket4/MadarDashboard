@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { putBranchSettings, useGetBranchSettings, useListDiscounts } from "@/data/api/generated/api";
 import type { BranchSettingsInput } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { Presence, usePop, useShake } from "@/lib/motion";
 import { invalidateBranchSettings } from "./util";
 import { egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
@@ -40,6 +41,12 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
   const orgId = useOrgId();
   const discounts = useListDiscounts({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const [busy, setBusy] = useState(false);
+  // Inline form, no dialog to close: the Save button itself answers "did it save?".
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const [saved, setSaved] = useState(0);
+  const [failed, setFailed] = useState(0);
+  usePop(saveRef, saved);
+  useShake(saveRef, failed);
 
   const schema = useMemo(
     () =>
@@ -171,9 +178,11 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
     try {
       await putBranchSettings(payload);
       toast.success(t("delivery.branchSettingsSaved", "Branch delivery settings saved"));
+      setSaved((n) => n + 1);
       void invalidateBranchSettings();
     } catch (e) {
       toast.error(getErrorMessage(e));
+      setFailed((n) => n + 1);
     } finally {
       setBusy(false);
     }
@@ -254,8 +263,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                   <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                 </FormItem>
               )} />
-              {inMallEnabled ? (
-                <>
+              <Presence show={inMallEnabled} initial={false}>
+                <div className="space-y-4">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <FormField control={form.control} name="in_mall_open_time" render={({ field }) => (
                       <FormItem><FormLabel>{t("delivery.openTime", "Opens")}</FormLabel><FormControl><TimePicker value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
@@ -287,8 +296,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                       <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                     </FormItem>
                   )} />
-                </>
-              ) : null}
+                </div>
+              </Presence>
             </div>
 
             {/* Outside channel */}
@@ -305,8 +314,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                   <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                 </FormItem>
               )} />
-              {outsideEnabled ? (
-                <>
+              <Presence show={outsideEnabled} initial={false}>
+                <div className="space-y-4">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <FormField control={form.control} name="outside_open_time" render={({ field }) => (
                       <FormItem><FormLabel>{t("delivery.openTime", "Opens")}</FormLabel><FormControl><TimePicker value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
@@ -319,8 +328,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                     <FormItem><FormLabel>{t("delivery.maxRoadDistance", "Max road distance (meters)")}</FormLabel><FormControl><Input type="number" step="1" min="0" {...field} value={field.value ?? ""} className="font-mono" /></FormControl><FormMessage /></FormItem>
                   )} />
                   {discountField("outside_discount_id")}
-                </>
-              ) : null}
+                </div>
+              </Presence>
             </div>
 
             {/* Umbrella channel — beach umbrella / sunbed delivery, flat fee, no map */}
@@ -337,8 +346,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                   <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                 </FormItem>
               )} />
-              {umbrellaEnabled ? (
-                <>
+              <Presence show={umbrellaEnabled} initial={false}>
+                <div className="space-y-4">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <FormField control={form.control} name="umbrella_open_time" render={({ field }) => (
                       <FormItem><FormLabel>{t("delivery.openTime", "Opens")}</FormLabel><FormControl><TimePicker value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
@@ -353,8 +362,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                   )} />
                   {discountField("umbrella_discount_id")}
                   </div>
-                </>
-              ) : null}
+                </div>
+              </Presence>
             </div>
 
             {/* Pickup channel — self-collect at the counter, flat fee (default free) */}
@@ -371,8 +380,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                   <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                 </FormItem>
               )} />
-              {pickupEnabled ? (
-                <>
+              <Presence show={pickupEnabled} initial={false}>
+                <div className="space-y-4">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <FormField control={form.control} name="pickup_open_time" render={({ field }) => (
                       <FormItem><FormLabel>{t("delivery.openTime", "Opens")}</FormLabel><FormControl><TimePicker value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
@@ -387,8 +396,8 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
                   )} />
                   {discountField("pickup_discount_id")}
                   </div>
-                </>
-              ) : null}
+                </div>
+              </Presence>
             </div>
 
             {/* Customer verification */}
@@ -422,7 +431,7 @@ function BranchSettingsCard({ branchId }: { branchId: string }) {
             )} />
 
             <div className="flex justify-end pt-1">
-              <Button type="submit" loading={busy} disabled={settings.isLoading}>{t("common.save", "Save")}</Button>
+              <Button ref={saveRef} type="submit" loading={busy} disabled={settings.isLoading}>{t("common.save", "Save")}</Button>
             </div>
           </form>
         </Form>

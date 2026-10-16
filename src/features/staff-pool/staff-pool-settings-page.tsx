@@ -14,7 +14,7 @@
  * Scope comes from the app-wide picker in the header: "All branches" is the
  * organisation's own row, a branch is that branch's override.
  */
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +37,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useOrgId } from "@/hooks/use-org-id";
+import { usePop, useShake } from "@/lib/motion";
 
 import { EligibleItemsControl } from "./eligible-items-control";
 import { fromWire, poolIsOff, staffPoolSchema, toWire, type StaffPoolValues } from "./form-schema";
@@ -73,6 +74,12 @@ export function StaffPoolSettingsPage() {
   const items = form.watch("eligible_item_ids") ?? [];
   const off = poolIsOff({ enabled, eligible_item_ids: items });
   const allowanceError = form.formState.errors.daily_allowance?.message;
+  // A save reads at the button as well as in the toast.
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const [saves, setSaves] = useState(0);
+  const [refused, setRefused] = useState(0);
+  usePop(saveRef, saves);
+  useShake(saveRef, refused);
 
   if (authz.ready && !canRead) {
     return (
@@ -107,9 +114,11 @@ export function StaffPoolSettingsPage() {
     try {
       await save.mutateAsync({ data: toWire(v, scope, settings) });
       toast.success(t("staffPool.saved", "Staff drinks saved"));
+      setSaves((n) => n + 1);
       await query.refetch();
     } catch (e) {
       toast.error(getErrorMessage(e));
+      setRefused((n) => n + 1);
     }
   };
 
@@ -248,7 +257,7 @@ export function StaffPoolSettingsPage() {
 
       {canEdit ? (
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="submit" disabled={save.isPending || (!form.formState.isDirty && !inherited)}>
+          <Button ref={saveRef} type="submit" disabled={save.isPending || (!form.formState.isDirty && !inherited)}>
             {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
             {t("common.save", "Save")}
           </Button>

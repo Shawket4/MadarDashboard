@@ -124,6 +124,7 @@ export function DiscountsPage() {
       await exportToExcel({ filename: "Madar-Discounts", logoUrl, sheets: [{ name: t("discounts.title", "Discounts"), title: t("discounts.title", "Discounts"), rows: discounts as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       onErr(e);
+      throw e;
     } finally {
       setExporting(false);
     }

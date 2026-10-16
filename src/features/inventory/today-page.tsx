@@ -14,6 +14,7 @@ import { OnHand } from "./on-hand";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Stagger } from "@/lib/motion";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import type { LowStockRow } from "@/data/api/generated/models";
 import {
@@ -240,21 +241,23 @@ export function TodayPage() {
           ) : arriving.length === 0 ? (
             <EmptyState className="py-8" title={t("inventory.today.noDeliveries", "No deliveries scheduled today")} />
           ) : (
-            <ListCard>
-              {arriving.slice(0, 8).map((p) => (
-                <ListRow
-                  key={p.id}
-                  icon={Truck}
-                  title={<>{p.reference || <bdi>#{p.id.slice(0, 8)}</bdi>} · {p.supplier_name ?? "—"}</>}
-                  meta={<bdi>{fmtDate(p.expected_at)}</bdi>}
-                  trailing={
-                    <Button variant="outline" size="sm" onClick={() => setReceivePoId(p.id)}>
-                      <PackageCheck className="size-4" /> {t("inventory.today.receive", "Receive")}
-                    </Button>
-                  }
-                />
-              ))}
-            </ListCard>
+            <Stagger selector=":scope > [data-slot=list-card] > *">
+              <ListCard>
+                {arriving.slice(0, 8).map((p) => (
+                  <ListRow
+                    key={p.id}
+                    icon={Truck}
+                    title={<>{p.reference || <bdi>#{p.id.slice(0, 8)}</bdi>} · {p.supplier_name ?? "—"}</>}
+                    meta={<bdi>{fmtDate(p.expected_at)}</bdi>}
+                    trailing={
+                      <Button variant="outline" size="sm" onClick={() => setReceivePoId(p.id)}>
+                        <PackageCheck className="size-4" /> {t("inventory.today.receive", "Receive")}
+                      </Button>
+                    }
+                  />
+                ))}
+              </ListCard>
+            </Stagger>
           )}
         </section>
 
@@ -281,19 +284,21 @@ export function TodayPage() {
           ) : todaysWaste.length === 0 ? (
             <EmptyState className="py-8" title={t("inventory.today.noWasteToday", "No waste logged today")} />
           ) : (
-            <ListCard>
-              {todaysWaste.slice(0, 8).map((m) => (
-                <ListRow
-                  key={m.id}
-                  variant="ledger"
-                  sign="out"
-                  title={m.ingredient_name}
-                  meta={m.reason ? t(`inventory.waste.reasons.${m.reason}`, m.reason) : undefined}
-                  value={`${fmtNumber(Math.abs(m.quantity))} ${fmtUnit(m.unit)}`}
-                  numericValue
-                />
-              ))}
-            </ListCard>
+            <Stagger selector=":scope > [data-slot=list-card] > *">
+              <ListCard>
+                {todaysWaste.slice(0, 8).map((m) => (
+                  <ListRow
+                    key={m.id}
+                    variant="ledger"
+                    sign="out"
+                    title={m.ingredient_name}
+                    meta={m.reason ? t(`inventory.waste.reasons.${m.reason}`, m.reason) : undefined}
+                    value={`${fmtNumber(Math.abs(m.quantity))} ${fmtUnit(m.unit)}`}
+                    numericValue
+                  />
+                ))}
+              </ListCard>
+            </Stagger>
           )}
         </section>
       </div>

@@ -271,6 +271,7 @@ export function ProfitabilityPage() {
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -308,6 +309,7 @@ export function ProfitabilityPage() {
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 

@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ListCard, ListRow } from "@/components/app/list-row";
+import { PopOnChange } from "@/components/app/pop-on-change";
 import { Restricted } from "@/components/app/restricted";
 import { StatCard } from "@/components/app/stat-card";
 import { StatusPill, type StatusTone } from "@/components/app/status-pill";
@@ -187,7 +188,7 @@ export function TeamPage() {
                   const coverer = !out && today ? coveredBy(todayRecords, r.employee_id, today) : null;
                   return (
                     <span className="flex flex-wrap items-center justify-end gap-2">
-                      <StatusPill tone={STATE_TONE[r.state] ?? "neutral"}>{t(`dawam.state_${r.state}`, STATE_LABEL[r.state] ?? r.state)}</StatusPill>
+                      <PopOnChange value={r.state}><StatusPill tone={STATE_TONE[r.state] ?? "neutral"}>{t(`dawam.state_${r.state}`, STATE_LABEL[r.state] ?? r.state)}</StatusPill></PopOnChange>
                       {coverer ? (
                         <span className="text-xs text-muted-foreground">{t("dawam.coveredBy", { name: coverer, defaultValue: `Covered by ${coverer}` })}</span>
                       ) : null}

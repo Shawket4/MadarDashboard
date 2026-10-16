@@ -1,4 +1,4 @@
-import { useEffect, useRef, type DependencyList, type RefObject } from "react";
+import { useEffect, useRef, useState, type DependencyList, type RefObject } from "react";
 
 import { getGsap, loadFlip, loadGsap, type Gsap, type Timeline } from "./gsap";
 import { inViewport, prefersReducedMotion } from "./media";
@@ -397,4 +397,19 @@ export function usePop(ref: RefObject<HTMLElement | null>, signal: unknown) {
     },
     [signal],
   );
+}
+
+/**
+ * A signal for usePop / useShake that changes only when `value` changes in
+ * place (a status flipping on a row already on screen), never on mount or when
+ * the value first arrives or goes away (null/undefined), so a list or sheet
+ * that loads does not pop everything at once.
+ *   usePop(ref, useChangeSignal(order.status))
+ */
+export function useChangeSignal(value: unknown): number {
+  const [seen, setSeen] = useState({ value, n: 0 });
+  if (Object.is(seen.value, value)) return seen.n;
+  const n = seen.value == null || value == null ? seen.n : seen.n + 1;
+  setSeen({ value, n });
+  return n;
 }

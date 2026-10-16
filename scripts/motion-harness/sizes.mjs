@@ -1,0 +1,20 @@
+// Motion verification harness (see MOTION_HANDOFF.md). Bundle sizes of a built dist/: `node scripts/motion-harness/sizes.mjs dist`.
+import { readFileSync, readdirSync } from "node:fs";
+import { gzipSync, brotliCompressSync } from "node:zlib";
+const [dir] = process.argv.slice(2);
+const html = readFileSync(`${dir}/index.html`, "utf8");
+const eager = [...html.matchAll(/assets\/([^"]+\.js)"/g)].map((m) => m[1]);
+const size = (f) => { const b = readFileSync(`${dir}/assets/${f}`); return [b.length, gzipSync(b, { level: 9 }).length, brotliCompressSync(b).length]; };
+const kb = (n) => (n / 1024).toFixed(1);
+const sum = (fs) => fs.map(size).reduce((a, b) => a.map((x, i) => x + b[i]), [0, 0, 0]);
+const all = readdirSync(`${dir}/assets`).filter((f) => f.endsWith(".js"));
+const pick = (re) => all.filter((f) => re.test(f));
+const row = (label, fs) => { const [r, g, b] = sum(fs); console.log(`${label.padEnd(34)} raw ${kb(r).padStart(7)} kB  gzip ${kb(g).padStart(6)} kB  br ${kb(b).padStart(6)} kB   ${fs.join(", ").slice(0, 70)}`); };
+row("entry chunk (index-*)", pick(/^index-.*\.js$/));
+row("eager JS (index.html graph)", eager);
+row("motion lib chunk (eager)", pick(/^motion-[A-Za-z0-9_-]+\.js$/));
+row("motion-vendor (Framer, eager)", pick(/^motion-vendor-/));
+row("gsap-vendor (lazy)", pick(/^gsap-vendor-/));
+row("gsap-flip (lazy)", pick(/^gsap-flip-/));
+row("all JS", all);
+console.log("eager includes gsap:", eager.some((f) => /gsap/.test(f)), " eager includes motion-vendor:", eager.some((f) => /motion-vendor/.test(f)));

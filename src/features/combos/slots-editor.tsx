@@ -6,7 +6,7 @@
  * A bigger size left blank costs the size's usual price difference (C9); the
  * placeholder shows that difference so the owner sees what blank means.
  */
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, FolderTree, Plus, Tag, Trash2 } from "lucide-react";
@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fmtMoney } from "@/lib/format";
+import { useFlip } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 import { emptyChoice, emptySlot, type ChoiceFormValues, type ComboFormInput, type ComboFormValues } from "./form-schema";
@@ -91,6 +92,8 @@ function SlotCard({
     choices?: { message?: string; root?: { message?: string } } & Record<number, Errs>;
   };
   const e = (k: string) => (errs[k] as { message?: string } | undefined)?.message;
+  const choicesRef = useRef<HTMLUListElement>(null);
+  useFlip(choicesRef, choices.fields.map((f) => f._k).join());
 
   // The slot's default can be any item its choices admit.
   const defaultOptions = useMemo(() => {
@@ -163,7 +166,7 @@ function SlotCard({
 
       <div className="space-y-2">
         <p className="text-xs font-medium text-muted-foreground">{t("combos.slots.choices", "Choices")}</p>
-        <ul className="space-y-2">
+        <ul ref={choicesRef} className="space-y-2">
           {choices.fields.map((cf, j) => (
             <li key={cf._k}>
               {/* Not a Controller: one registered over a field-array row gets

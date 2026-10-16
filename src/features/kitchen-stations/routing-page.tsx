@@ -21,6 +21,7 @@ import type { MenuItemWithCosts } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
+import { Stagger, SwapPresence, recipes } from "@/lib/motion";
 import { getTranslatedName } from "@/lib/translation";
 import { useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
 import { kitchenRoutingSearch } from "./search";
@@ -167,6 +168,7 @@ export function RoutingPage() {
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -231,10 +233,14 @@ export function RoutingPage() {
         rowSkeletons
       ) : stations.length === 0 ? (
         <EmptyState icon={Store} title={t("kitchen.noStationsForRouting", "Create a station first")} description={t("kitchen.noStationsForRoutingHint", "Add kitchen stations on the Stations tab, then route categories to them.")} />
-      ) : tab === "categories" ? (
+      ) : (
+      <SwapPresence swapKey={tab} recipe={recipes.fade()} initial={false}>
+      {tab === "categories" ? (
         categoriesQ.isLoading ? rowSkeletons : categories.length === 0 ? (
           <EmptyState title={t("kitchen.noCategories", "No categories to route yet.")} />
         ) : (
+          // The categories arrive row by row once, after the skeleton.
+          <Stagger selector=":scope > [data-slot=list-card] > *">
           <ListCard>
             {categories.map((c) => (
               <ListRow
@@ -244,6 +250,7 @@ export function RoutingPage() {
               />
             ))}
           </ListCard>
+          </Stagger>
         )
       ) : (
         <div className="space-y-3">
@@ -281,6 +288,8 @@ export function RoutingPage() {
             </div>
           ) : null}
         </div>
+      )}
+      </SwapPresence>
       )}
     </Page>
   );

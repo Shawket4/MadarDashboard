@@ -6,6 +6,7 @@
  * Controlled (value + onChange) so the combo editor and the deal dialog, two
  * different forms, share it through a `Controller`.
  */
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { CalendarClock, Plus, Trash2 } from "lucide-react";
 
@@ -14,6 +15,7 @@ import { TimePicker } from "@/components/app/time-picker";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useFlip } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 import { emptyWindow, type WindowFormValues } from "./form-schema";
@@ -45,9 +47,12 @@ export function WindowsEditor({
   const { t } = useTranslation();
   const patch = (i: number, p: Partial<WindowFormValues>) => onChange(value.map((w, j) => (j === i ? { ...w, ...p } : w)));
   const err = (m?: string) => (m ? t(m) : undefined);
+  // Windows added or removed: the rest slide to their new places.
+  const listRef = useRef<HTMLDivElement>(null);
+  useFlip(listRef, value.map((w) => w.key).join());
 
   return (
-    <div className="space-y-3">
+    <div ref={listRef} className="space-y-3">
       {value.length === 0 ? (
         <div className="flex items-center gap-3 rounded-xl border border-dashed p-4 text-sm">
           <CalendarClock aria-hidden className="size-4 shrink-0 text-muted-foreground" />

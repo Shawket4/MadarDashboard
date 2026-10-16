@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
@@ -21,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { getErrorMessage } from "@/data/api/errors";
+import { Reveal, useChangeSignal, usePop } from "@/lib/motion";
 import { queryClient } from "@/data/api/query";
 import {
   getWhatsappStatusQueryKey,
@@ -92,6 +94,10 @@ export function WhatsappPage() {
 
   const loading = statusQuery.isLoading && !status;
   const busy = pair.isPending || logout.isPending;
+  // Which of the connection's states shows; the poll refreshing the QR is not a change.
+  const stateKey = loading || !status
+    ? null
+    : !status.configured ? "unconfigured" : !status.reachable ? "unreachable" : status.logged_in ? "linked" : status.has_qr && status.qr_image ? "qr" : "unlinked";
 
   return (
     <div className="space-y-3">
@@ -129,9 +135,11 @@ export function WhatsappPage() {
                   </p>
                 </div>
               </div>
-              <StatusBadge status={status} loading={loading} t={t} />
+              <StatusBadge status={status} loading={loading} stateKey={stateKey} t={t} />
             </div>
 
+            {/* Scanned, unlinked, gateway down: the panel arrives in its new state. */}
+            <Reveal replayKey={stateKey} when={stateKey !== null}>
             {loading ? (
               <div className="space-y-2 py-2" aria-busy>
                 <Skeleton className="h-12 w-full rounded-xl" />
@@ -210,6 +218,7 @@ export function WhatsappPage() {
                 </Button>
               </div>
             )}
+            </Reveal>
           </CardContent>
         </Card>
 
@@ -252,6 +261,25 @@ export function WhatsappPage() {
 // ── helpers ────────────────────────────────────────────────────
 
 function StatusBadge({
+  stateKey,
+  ...props
+}: {
+  status: WhatsappStatus | undefined;
+  loading: boolean;
+  stateKey: string | null;
+  t: (key: string, fallback: string) => string;
+}) {
+  // The phone scanning the code lands here first: the pill settles into "Connected".
+  const ref = useRef<HTMLSpanElement>(null);
+  usePop(ref, useChangeSignal(stateKey));
+  return (
+    <span ref={ref} className="inline-flex">
+      <StatusPillFor {...props} />
+    </span>
+  );
+}
+
+function StatusPillFor({
   status,
   loading,
   t,

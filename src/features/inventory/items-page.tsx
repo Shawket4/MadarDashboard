@@ -183,6 +183,7 @@ export function ItemsPage() {
       await exportToExcel({ filename: "Madar-Ingredients", logoUrl, sheets: [{ name: t("inventory.catalog.title", "Ingredients"), title: t("inventory.catalog.title", "Ingredients"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }

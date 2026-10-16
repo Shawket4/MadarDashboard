@@ -27,6 +27,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useCan } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtStamp } from "@/lib/format";
+import { Reveal } from "@/lib/motion";
 
 import { useActivationCodes, useIssueActivationCode, useRevokeActivationCode, type ActivationCode, type DeviceKind } from "./api";
 
@@ -182,6 +183,8 @@ function IssueCodeDialog({ branchId, open, onClose }: { branchId: string; open: 
             {t("devices.activation.issueHint", "On the tablet, choose “Activate with a code” and type it. It works once, within 24 hours.")}
           </DialogDescription>
         </DialogHeader>
+        {/* The code arrives in place of the form: no exit, so the form can't be sent twice on its way out. */}
+        <Reveal replayKey={issued?.code} when={!!issued}>
         {issued ? (
           <div className="space-y-4">
             <p dir="ltr" data-testid="issued-code" className="rounded-[10px] border bg-secondary py-5 text-center font-mono text-3xl font-semibold tracking-[0.2em] tabular-nums">
@@ -214,6 +217,7 @@ function IssueCodeDialog({ branchId, open, onClose }: { branchId: string; open: 
             </DialogFooter>
           </form>
         )}
+        </Reveal>
       </DialogContent>
     </Dialog>
   );

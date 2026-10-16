@@ -163,6 +163,7 @@ export function AttendancePage() {
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }

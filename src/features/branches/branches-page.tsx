@@ -104,6 +104,7 @@ export function BranchesPage() {
       await exportToExcel({ filename: "Madar-Branches", logoUrl, sheets: [{ name: t("branches.title", "Branches"), title: t("branches.title", "Branches"), rows: branches as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }

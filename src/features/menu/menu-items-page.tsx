@@ -348,6 +348,7 @@ export function MenuItemsPage() {
       });
     } catch (e) {
       onErr(e);
+      throw e;
     } finally {
       setExporting(false);
     }

@@ -133,6 +133,7 @@ export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: 
       await exportToExcel({ filename: `Madar-${exportTitle}`, logoUrl, sheets: buildSheets() });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -144,6 +145,7 @@ export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: 
       await exportToCsv({ filename: `Madar-${exportTitle}`, sheets: buildSheets() });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 

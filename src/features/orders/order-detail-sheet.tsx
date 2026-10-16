@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SummaryLine } from "@/components/app/list-row";
-import { StatusPill, toneFor } from "@/components/app/status-pill";
+import { StatusPill } from "@/components/app/status-pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetCustomer, useGetDeliveryOrder, useGetOrder, useListCatalog } from "@/data/api/generated/api";
 import type { DeliveryOrder, OrderFull } from "@/data/api/generated/models";
@@ -24,6 +24,7 @@ import { useAuthStore } from "@/data/stores/auth.store";
 import { fmtDateTimeFull, fmtMoney, fmtNumber, fmtPercent, fmtUnit } from "@/lib/format";
 import { rules } from "@/lib/rules";
 import { getTranslatedName } from "@/lib/translation";
+import { Stagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 import { discountAttribution } from "@/features/discounts/discount-attribution";
@@ -35,6 +36,7 @@ import { dealsOf, orderDealsTotal, orderRows } from "@/features/combos/order-lin
 import { ComboHeaderRow, ComboPartNote, DealLineNote } from "@/features/combos/combo-order-lines";
 import { orderRewards } from "./reward-lines";
 import { serviceModeOf } from "./service-mode";
+import { OrderStatusBadge } from "./order-status-badge";
 import { addonNormalTotal, orderStaffComp, staffDrinkLine } from "./staff-drink-lines";
 import { ONE_SIZE } from "@/features/menu/util";
 
@@ -146,11 +148,8 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
           <div className="min-w-0">
             <SheetTitle className="flex flex-wrap items-center gap-2 text-lg">
               <span className={cn(order && "font-mono tabular-nums")}>{order ? (order.order_ref ?? `#${order.display_number ?? order.order_number}`) : t("orders.order", "Order")}</span>
-              {order ? (
-                <StatusPill tone={toneFor(order.status, "success")}>
-                  {t(`orderStatus.${order.status}`, order.status)}
-                </StatusPill>
-              ) : null}
+              {/* Keyed by order: switching orders is a new pill, not a status change. */}
+              {order ? <OrderStatusBadge key={order.id} status={order.status} /> : null}
               {isDelivery ? (
                 <Badge variant="secondary" className="gap-1 text-muted-foreground">
                   {delivery?.channel === "in_mall" ? <Store aria-hidden className="size-3" /> : <Bike aria-hidden className="size-3" />}
@@ -175,7 +174,8 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
           </div>
         </SheetHeader>
 
-        <div className="space-y-4 p-4">
+        {/* The sections arrive once the order lands (and again for another order), not on a refetch. */}
+        <Stagger className="space-y-4 p-4" when={!isLoading && !!order} replayKey={order?.id}>
           {isLoading || !order ? (
             <div className="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -564,7 +564,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
               </Card>
             </>
           )}
-        </div>
+        </Stagger>
         {/* Read-only from here: editing, merging, adjusting and deleting belong to the Customers and Members lists. */}
         {canViewMember ? (
           <CustomerDetailSheet

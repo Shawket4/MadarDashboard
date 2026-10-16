@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useFlip } from "@/lib/motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -58,6 +59,9 @@ export function PackagingRulesPage() {
   const [applying, setApplying] = useState(false);
   const authz = useAuthz();
   const canEdit = authz.can(Cap.menuItemsEdit);
+  // A rule added or deleted: the rest slide to their places.
+  const listRef = useRef<HTMLUListElement>(null);
+  useFlip(listRef, (rulesQ.data ?? []).map((r) => r.id).join());
   const canApply = authz.can(Cap.menuPackagingRulesApply);
   const [result, setResult] = useState<ApplyPackagingRulesResult | null>(null);
 
@@ -162,7 +166,7 @@ export function PackagingRulesPage() {
           description={t("modeling.packaging.emptyHint", "e.g. Iced drinks · Cup → 16oz cup, lid, straw.")}
         />
       ) : (
-        <ul className="divide-y rounded-lg border">
+        <ul ref={listRef} className="divide-y rounded-lg border">
           {rules.map((r) => {
             const match = [
               labelOf(itemOptions, r.match_item_id ?? null),

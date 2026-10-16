@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 
+import { AnimatedFigure } from "@/components/app/animated-figure";
 import { FixCostPopover } from "../studio/fix-cost-popover";
 import { newBlockKey, type RecipeLineDraft, type SizeBlockDraft } from "../studio/util";
 import { ONE_SIZE } from "../util";
@@ -486,8 +487,9 @@ export function RecipeGrid({
                     ) : (
                       <span className="font-mono tabular-nums">
                         {estimated ? "≈ " : null}
-                        {fmtMoney(cost.piastres)}
-                        {margin != null ? ` · ${fmtPercent(margin)}` : null}
+                        {/* Cost and margin recompute as quantities are typed: the figure changes, not the cell. */}
+                        <AnimatedFigure text={fmtMoney(cost.piastres)} />
+                        {margin != null ? <> · <AnimatedFigure text={fmtPercent(margin)} /></> : null}
                         {cost.complete ? null : ` · ${t("menu.studio.recipe.incomplete", "Cost incomplete")}`}
                       </span>
                     )}

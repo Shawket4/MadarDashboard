@@ -1,7 +1,9 @@
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { CircleDot, ShieldQuestion, Wifi } from "lucide-react";
 
 import { StatusPill, type StatusTone } from "@/components/app/status-pill";
+import { useChangeSignal, usePop } from "@/lib/motion";
 
 import type { Till, TillStatus } from "./api";
 
@@ -13,10 +15,15 @@ const STATUS_TONE: Record<TillStatus, StatusTone> = {
 
 export function TillStatusBadge({ status }: { status: TillStatus }) {
   const { t } = useTranslation();
+  // A till closing on a POS lands on a row already on screen: the pill settles into its new state.
+  const ref = useRef<HTMLSpanElement>(null);
+  usePop(ref, useChangeSignal(status));
   return (
-    <StatusPill tone={STATUS_TONE[status] ?? "neutral"} icon={status === "open" ? CircleDot : undefined} size="sm">
-      {t(`tillStatus.${status}`, status.replace("_", " "))}
-    </StatusPill>
+    <span ref={ref} className="inline-flex">
+      <StatusPill tone={STATUS_TONE[status] ?? "neutral"} icon={status === "open" ? CircleDot : undefined} size="sm">
+        {t(`tillStatus.${status}`, status.replace("_", " "))}
+      </StatusPill>
+    </span>
   );
 }
 

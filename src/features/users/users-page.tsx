@@ -108,6 +108,7 @@ export function UsersPage() {
       await exportToExcel({ filename: "Madar-Users", logoUrl, sheets: [{ name: t("users.title", "Users"), title: t("users.title", "Users"), rows: users as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }

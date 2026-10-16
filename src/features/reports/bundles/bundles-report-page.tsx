@@ -159,6 +159,7 @@ export function BundlesReportPage() {
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }

@@ -79,6 +79,7 @@ export function LowStockTab({ orgId, branchId }: { orgId: string; branchId: stri
       await exportToExcel({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -90,6 +91,7 @@ export function LowStockTab({ orgId, branchId }: { orgId: string; branchId: stri
       await exportToCsv({ filename: `Madar-${sheet.title}`, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 

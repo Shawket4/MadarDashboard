@@ -21,6 +21,7 @@ export {
   useIndicator,
   useShake,
   usePop,
+  useChangeSignal,
   playIn,
   type RevealOptions,
   type StaggerOptions,

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -13,6 +13,7 @@ import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ListCard, ListRow } from "@/components/app/list-row";
 import { SectionHeader } from "@/components/app/section-header";
 import { StatusPill } from "@/components/app/status-pill";
+import { useFlip } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
@@ -174,6 +175,7 @@ export function TillsPage() {
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -295,6 +297,9 @@ const OPEN_TONE_CLASS = `bg-success/12 ${OPEN_TEXT}`;
 /** Open right now at this branch; kept live by the `tills` realtime topic. */
 export function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenBillsNotice; onOpen: (id: string) => void }) {
   const { t } = useTranslation();
+  // Live: a till opening fades in, one closing lets the rest close up.
+  const listRef = useRef<HTMLDivElement>(null);
+  useFlip(listRef, tills.map((s) => s.id).join(), ":scope > [data-slot=list-card] > *");
   return (
     <section className="space-y-3">
       <SectionHeader
@@ -311,6 +316,7 @@ export function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?
           description={t("tills.noOpenHint", "A till opens when a teller starts selling on a POS.")}
         />
       ) : (
+        <div ref={listRef}>
         <ListCard>
           {tills.map((s) => (
             <ListRow
@@ -334,6 +340,7 @@ export function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?
             />
           ))}
         </ListCard>
+        </div>
       )}
     </section>
   );

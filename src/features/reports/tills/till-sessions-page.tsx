@@ -115,6 +115,7 @@ export function TillSessionsPage() {
       else await exportToCsv({ filename: `Madar-${title}`, sheets });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }

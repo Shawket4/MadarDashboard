@@ -7,6 +7,7 @@
 import { useTranslation } from "react-i18next";
 import { Check } from "lucide-react";
 
+import { PopOnChange } from "@/components/app/pop-on-change";
 import { cn } from "@/lib/utils";
 
 export type PayPhase = "open" | "approved" | "paid";
@@ -62,17 +63,20 @@ export function PayrollSteps({
           const current = i === at && phase !== "paid";
           return (
             <li key={p} aria-current={current ? "step" : undefined} className="flex min-w-0 items-start gap-2">
-              <span
-                aria-hidden
-                className={cn(
-                  "mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border text-xs font-semibold tabular-nums",
-                  done && "border-transparent bg-[color-mix(in_oklab,var(--color-success)_70%,var(--color-foreground))] text-background",
-                  current && "border-primary bg-primary text-primary-foreground",
-                  !done && !current && "text-muted-foreground",
-                )}
-              >
-                {done ? <Check className="size-3.5" /> : i + 1}
-              </span>
+              {/* A step turning done or current settles into its new state. */}
+              <PopOnChange value={done ? "done" : current ? "current" : "todo"}>
+                <span
+                  aria-hidden
+                  className={cn(
+                    "mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border text-xs font-semibold tabular-nums",
+                    done && "border-transparent bg-[color-mix(in_oklab,var(--color-success)_70%,var(--color-foreground))] text-background",
+                    current && "border-primary bg-primary text-primary-foreground",
+                    !done && !current && "text-muted-foreground",
+                  )}
+                >
+                  {done ? <Check className="size-3.5" /> : i + 1}
+                </span>
+              </PopOnChange>
               <span className="min-w-0">
                 <span className={cn("block text-sm font-semibold", !done && !current && "text-muted-foreground")}>{label[p]}</span>
                 <span className="block text-xs text-muted-foreground">{sub[p]}</span>

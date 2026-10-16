@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
@@ -15,6 +15,7 @@ import { cancelTransfer, fulfillTransfer } from "@/data/api/generated/api";
 import type { FloorSection, FloorTable, TransferView } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDuration } from "@/lib/format";
+import { useFlip } from "@/lib/motion";
 import { invalidateFloor, invalidateOccupants } from "./util";
 
 interface Props {
@@ -44,6 +45,9 @@ export function TransferQueue({ transfers, tables, sections }: Props) {
         .sort((a, b) => a.created_at.localeCompare(b.created_at)),
     [transfers],
   );
+  // A party fulfilled or cancelled leaves; the rest close up rather than jump.
+  const listRef = useRef<HTMLOListElement>(null);
+  useFlip(listRef, waiting.map((tr) => tr.id).join());
 
   const tableLabel = (id: string | null | undefined) =>
     (id && tables.find((tb) => tb.id === id)?.label) || null;
@@ -96,7 +100,7 @@ export function TransferQueue({ transfers, tables, sections }: Props) {
           </p>
         </div>
       ) : (
-        <ol className="space-y-2">
+        <ol ref={listRef} className="space-y-2">
           {waiting.map((tr) => {
             const KindIcon = tr.occupant_kind === "open_ticket" ? ReceiptText : CirclePause;
             const from = tableLabel(tr.from_table_id);

@@ -306,6 +306,7 @@ export function CustomersList({
       });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     } finally {
       setExporting(false);
     }
