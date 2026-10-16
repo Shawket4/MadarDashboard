@@ -234,7 +234,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" side={side} className="border-sidebar-border">
-      <SidebarHeader className="group-data-[collapsible=icon]:hidden">
+      <SidebarHeader className="group-data-[collapsible=icon]:invisible">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg" className="px-2 hover:bg-transparent active:bg-transparent">

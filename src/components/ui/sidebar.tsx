@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
+import { DURATION, EASE_NAME, sec, useGsap } from "@/lib/motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -140,7 +141,7 @@ function SidebarProvider({
             } as React.CSSProperties
           }
           className={cn(
-            "group/sidebar-wrapper flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar",
+            "group/sidebar-wrapper flex min-h-svh w-full overflow-x-clip has-data-[variant=inset]:bg-sidebar",
             className
           )}
           {...props}
@@ -166,6 +167,14 @@ function Sidebar({
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
   const { t } = useTranslation()
+  const gapRef = React.useRef<HTMLDivElement>(null)
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  // What the sidebar's insides show. It trails `state` on a collapse, so the
+  // labels stay laid out while the rail closes over them, and leads it on an
+  // expand (set during render, before the reveal starts).
+  const [shown, setShown] = React.useState(state)
+  if (state === "expanded" && shown === "collapsed") setShown("expanded")
+  useRailSlide(state, side, gapRef, containerRef, setShown)
 
   if (collapsible === "none") {
     return (
@@ -210,28 +219,32 @@ function Sidebar({
   return (
     <div
       className="group peer hidden text-sidebar-foreground md:block"
-      data-state={state}
-      data-collapsible={state === "collapsed" ? collapsible : ""}
+      data-state={shown}
+      data-collapsible={shown === "collapsed" ? collapsible : ""}
       data-variant={variant}
       data-side={side}
       data-slot="sidebar"
     >
-      {/* This is what handles the sidebar gap on desktop */}
+      {/* This is what handles the sidebar gap on desktop. It follows `state`
+          at once (one reflow); useRailSlide makes the move look continuous. */}
       <div
+        ref={gapRef}
         data-slot="sidebar-gap"
+        data-collapsed={state === "collapsed" ? collapsible : undefined}
         className={cn(
-          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-slow ease-drawer",
-          "group-data-[collapsible=offcanvas]:w-0",
+          "relative w-(--sidebar-width) bg-transparent",
+          "data-[collapsed=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
+            ? "data-[collapsed=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
+            : "data-[collapsed=icon]:w-(--sidebar-width-icon)"
         )}
       />
       <div
+        ref={containerRef}
         data-slot="sidebar-container"
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-slow ease-drawer md:flex",
+          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) md:flex",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -252,6 +265,67 @@ function Sidebar({
         </div>
       </div>
     </div>
+  )
+}
+
+/** A CSS length on `el` ("3rem", "16rem", "48px") in px. */
+function cssPx(el: Element, name: string) {
+  const v = getComputedStyle(el).getPropertyValue(name).trim()
+  const n = parseFloat(v)
+  return v.endsWith("rem") ? n * parseFloat(getComputedStyle(document.documentElement).fontSize) : n
+}
+
+/**
+ * The desktop collapse, transforms only. The gap snaps to its new width (one
+ * reflow, not one per frame); the main area then slides from where it was with
+ * translateX, and the rail's clip edge travels with it, so the two meet at the
+ * same moving line. The rail's insides switch to icons when the clip has
+ * closed (collapse) or before it opens (expand, see `shown`).
+ */
+function useRailSlide(
+  state: "expanded" | "collapsed",
+  side: "left" | "right",
+  gapRef: React.RefObject<HTMLDivElement | null>,
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  setShown: (s: "expanded" | "collapsed") => void
+) {
+  const prev = React.useRef(state)
+  // How far an interrupted slide had got, so the reverse starts from there.
+  const progress = React.useRef(1)
+  useGsap(
+    (gsap, { reduced }) => {
+      if (prev.current === state) return
+      prev.current = state
+      const collapsing = state === "collapsed"
+      const gap = gapRef.current
+      const rail = containerRef.current
+      const wrapper = gap?.closest("[data-slot=sidebar-wrapper]")
+      const main = wrapper?.querySelector<HTMLElement>("[data-slot=sidebar-inset]")
+      if (!gap || !rail || !wrapper || !main || reduced) {
+        if (collapsing) setShown("collapsed")
+        return
+      }
+      const travel = cssPx(wrapper, "--sidebar-width") - cssPx(wrapper, "--sidebar-width-icon")
+      const sign = side === "left" ? 1 : -1
+      const open = "inset(0px 0px 0px 0px)"
+      const shut = side === "left" ? `inset(0px ${travel}px 0px 0px)` : `inset(0px 0px 0px ${travel}px)`
+      const tl = gsap.timeline({
+        defaults: { duration: sec(DURATION.slow), ease: EASE_NAME.drawer },
+        onComplete: () => {
+          progress.current = 1
+          gsap.set([rail, main], { clearProps: "clipPath,transform" })
+          if (collapsing) setShown("collapsed")
+        },
+      })
+      tl.fromTo(rail, { clipPath: collapsing ? open : shut }, { clipPath: collapsing ? shut : open }, 0)
+      tl.fromTo(main, { x: (collapsing ? 1 : -1) * sign * travel }, { x: 0 }, 0)
+      // Reversed mid-slide: pick up at the mirror point instead of jumping back.
+      if (progress.current < 1) tl.progress(1 - progress.current)
+      return () => {
+        if (tl.progress() < 1) progress.current = tl.progress()
+      }
+    },
+    [state]
   )
 }
 
@@ -419,8 +493,9 @@ function SidebarGroupLabel({
       data-slot="sidebar-group-label"
       data-sidebar="group-label"
       className={cn(
-        "flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-slow ease-drawer focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
-        "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0",
+        "flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 ring-sidebar-ring outline-hidden transition-opacity duration-fast focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        // Keeps its height on the icon rail, so the items under it never move.
+        "group-data-[collapsible=icon]:opacity-0",
         className
       )}
       {...props}
@@ -488,7 +563,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-start text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] duration-slow ease-drawer group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-semibold data-[active=true]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-start text-sm ring-sidebar-ring outline-hidden transition-colors group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-semibold data-[active=true]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
