@@ -32,6 +32,12 @@ export function loadGsap(): Promise<Gsap> {
     gsap.defaults({ duration: sec(REGISTER.product.duration), ease: EASE_NAME.out });
     // Targets that unmounted mid-tween are expected, not an error.
     gsap.config({ nullTargetWarn: false });
+    // Never let a long frame eat an entrance. Opening a dialog or a page costs
+    // one long task (React's commit, layout); with GSAP's default (only gaps
+    // over 500 ms are smoothed) a 160-220 ms entrance created in that task had
+    // already finished by the first frame anyone saw: it "snapped". Any gap
+    // over 50 ms now counts as one 16 ms frame, so the motion is always seen.
+    gsap.ticker.lagSmoothing(50, 16);
     core = gsap;
     return gsap;
   });

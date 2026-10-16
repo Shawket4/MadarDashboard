@@ -38,8 +38,8 @@ const SCENARIOS = [
   { name: "nav-orders-reports", start: "/orders", act: go("/reports/operations") },
   { name: "nav-home-settings", start: "/", act: go("/settings") },
   { name: "nav-home-floor", start: "/", act: go("/floor") },
-  { name: "dialog-new-booking", start: "/bookings", act: click('button:has-text("New booking")') },
-  { name: "sheet-order", start: "/orders", act: click("table tbody tr, [data-slot=list-card] > *") },
+  { name: "dialog-search", start: "/", act: (page) => page.keyboard.press("Control+k") },
+  { name: "sheet-order", start: "/orders", act: click("[data-row]") },
   { name: "tab-reports", start: "/reports/operations", act: click('[role=tab][data-state=inactive]') },
 ];
 

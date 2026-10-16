@@ -12,12 +12,12 @@ import {
 } from "react";
 
 import { enter, leave } from "./engine";
-import { rise, type Recipe } from "./recipes";
+import { popper, rise, type Recipe } from "./recipes";
 
 import { useIsoLayoutEffect, useLatest } from "./latest";
 
 /** One element in a presence group and the recipe it enters and leaves by. */
-export type PresencePart = [RefObject<HTMLElement | null>, Recipe];
+export type PresencePart = [RefObject<HTMLElement | null>, Recipe | (() => Recipe)];
 
 /**
  * Keep something mounted while it animates out, the job AnimatePresence did.
@@ -42,7 +42,9 @@ export function usePresence(show: boolean, parts: PresencePart[], { initial = tr
 
   useIsoLayoutEffect(() => {
     if (!mounted) return;
-    const live = partsRef.current.filter(([ref]) => ref.current).map(([ref, r]) => [ref.current!, r] as const);
+    const live = partsRef.current
+      .filter(([ref]) => ref.current)
+      .map(([ref, r]) => [ref.current!, typeof r === "function" ? r() : r] as const);
 
     if (show) {
       if (phase.current === "in") return;
@@ -214,12 +216,23 @@ export function useOverlayOpen(): boolean | null {
   return useContext(OverlayOpen);
 }
 
-/** Enter-only motion for content that mounts and unmounts on its own (menus, tooltips). */
+/**
+ * Enter-only motion for content that mounts and unmounts on its own (a sub
+ * menu). Portal-safe: it waits the extra layout pass a portal takes.
+ */
 export function useEnter(ref: RefObject<HTMLElement | null>, recipe: () => Recipe) {
-  const recipeRef = useLatest(recipe);
-  useIsoLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    return enter([el], recipeRef.current());
-  }, [ref, recipeRef]);
+  usePresence(true, [[ref, recipe]]);
+}
+
+/**
+ * A popper's content (menu, popover, select, tooltip): enters from its side
+ * and leaves the same way. The root must hold the open state (useOverlayRoot +
+ * OverlayOpenProvider, as the dialog does); outside one, it only enters.
+ * Pass `forceMount` to the Radix Portal and Content; render nothing when
+ * `mounted` is false.
+ */
+export function usePopperPresence(ref: RefObject<HTMLElement | null>) {
+  const open = useOverlayOpen();
+  const mounted = usePresence(open ?? true, [[ref, () => popper(ref.current?.dataset.side)]]);
+  return { mounted, forceMount: open === null ? undefined : (true as const) };
 }

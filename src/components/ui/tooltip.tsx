@@ -2,7 +2,7 @@ import * as React from "react"
 import { Tooltip as TooltipPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
-import { composeRefs, recipes, useEnter } from "@/lib/motion"
+import { composeRefs, OverlayOpenProvider, useOverlayRoot, usePopperPresence } from "@/lib/motion"
 
 function TooltipProvider({
   delayDuration = 0,
@@ -18,9 +18,18 @@ function TooltipProvider({
 }
 
 function Tooltip({
+  open,
+  defaultOpen,
+  onOpenChange,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
-  return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+  // Held here so TooltipContent can stay mounted through its exit.
+  const [isOpen, setOpen] = useOverlayRoot(open, defaultOpen, onOpenChange)
+  return (
+    <OverlayOpenProvider value={isOpen}>
+      <TooltipPrimitive.Root data-slot="tooltip" open={isOpen} onOpenChange={setOpen} {...props} />
+    </OverlayOpenProvider>
+  )
 }
 
 function TooltipTrigger({
@@ -37,11 +46,13 @@ function TooltipContent({
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Content>) {
   const own = React.useRef<HTMLDivElement>(null)
-  useEnter(own, () => recipes.popper(own.current?.dataset.side))
+  const { mounted, forceMount } = usePopperPresence(own)
+  if (!mounted) return null
   return (
-    <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Portal forceMount={forceMount}>
       <TooltipPrimitive.Content
         ref={composeRefs(own, ref)}
+        forceMount={forceMount}
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
