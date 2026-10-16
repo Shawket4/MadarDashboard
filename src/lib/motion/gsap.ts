@@ -35,9 +35,10 @@ export function loadGsap(): Promise<Gsap> {
     // Never let a long frame eat an entrance. Opening a dialog or a page costs
     // one long task (React's commit, layout); with GSAP's default (only gaps
     // over 500 ms are smoothed) a 160-220 ms entrance created in that task had
-    // already finished by the first frame anyone saw: it "snapped". Any gap
-    // over 50 ms now counts as one 16 ms frame, so the motion is always seen.
-    gsap.ticker.lagSmoothing(50, 16);
+    // already finished by the first frame anyone saw: it "snapped". A gap over
+    // 100 ms now counts as one 33 ms frame, so the motion is always seen, and
+    // a slow device's ordinary frames still run in real time.
+    gsap.ticker.lagSmoothing(100, 33);
     core = gsap;
     return gsap;
   });

@@ -113,6 +113,9 @@ function detector() {
       const before = drawnAt.has(el) ? drawnAt.get(el) : 1;
       touched.add(el);
       if (!(before > 0.6 && after < 0.6) || painted === 0 || !visibleNow(el)) continue;
+      // Content replaced in the same commit (a tab body, a route's page): the
+      // old content was never shown hidden, so this is a replay, not a ghost.
+      if (records.some((x) => x.type === "childList" && x.addedNodes.length && el.contains(x.target))) continue;
       ghostEls.push(el);
       ghosts.push({ at: Math.round(now - t0), what: describe(el) });
     }
@@ -136,7 +139,10 @@ function detector() {
           if (examples.length < 3) examples.push(describe(el));
         }
       }
-      return { animated, content, examples, ghosts: ghosts.filter((_, i) => ghostEls[i].isConnected) };
+      // A ghost comes back into view; something hidden that stays hidden or
+      // goes (an exit still fading, a skeleton leaving) is not one.
+      const back = (el) => el.isConnected && parseFloat(getComputedStyle(el).opacity) >= 0.9;
+      return { animated, content, examples, ghosts: ghosts.filter((_, i) => back(ghostEls[i])) };
     },
   };
 }
