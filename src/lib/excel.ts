@@ -395,7 +395,7 @@ export async function exportToExcel(config: ExcelConfig): Promise<void> {
 }
 
 /** A workbook that failed to build. exportToExcel has already toasted "Export failed". */
-export class ExportFailed extends Error {
+class ExportFailed extends Error {
   constructor(cause: unknown) {
     super("Export failed", { cause });
     this.name = "ExportFailed";

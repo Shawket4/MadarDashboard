@@ -155,7 +155,7 @@ function SectionTabBar({ tabs }: { tabs: SectionTab[] }) {
 
 // ── Header ──────────────────────────────────────────────────────────────────
 
-export type PageBack = { to: string; search?: Record<string, unknown> } | { onClick: () => void };
+type PageBack = { to: string; search?: Record<string, unknown> } | { onClick: () => void };
 
 interface PageHeaderProps {
   title: ReactNode;

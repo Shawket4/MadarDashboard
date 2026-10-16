@@ -5,7 +5,8 @@
     "src/loyalty/main.tsx",
     "src/reservations/main.tsx",
     "scripts/**/*.mjs",
-    "src/data/api/mock/enable*.ts"
+    "src/data/api/mock/enable*.ts",
+    "orval.config.ts"
   ],
   "ignorePatterns": [
     ".github/**",
@@ -41,6 +42,12 @@
     },
     {
       "file": "src/lib/rules/wasm/**",
+      "exports": [
+        "*"
+      ]
+    },
+    {
+      "file": "src/lib/motion/**",
       "exports": [
         "*"
       ]
