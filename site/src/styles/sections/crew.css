@@ -10,8 +10,7 @@
 .crew-badge[data-tone="shariha"] { --tone: var(--color-coral); }
 .crew-lanyard { position: absolute; bottom: calc(100% - .5rem); left: 50%; width: 3.25rem; height: var(--lanyard); translate: -50% 0; border-inline: .5rem solid var(--strap); }
 .crew-clip { position: absolute; z-index: 1; top: -.85rem; left: 50%; width: 4rem; height: 1.35rem; translate: -50% 0; border: 3px solid var(--color-ink); border-radius: .45rem; background: var(--color-muted-ink); }
-.crew-card { position: relative; overflow: hidden; padding-bottom: 1.1rem; border: 3px solid var(--color-ink); border-radius: 1.25rem; background: var(--color-white); color: var(--color-ink); text-align: center; box-shadow: 7px 7px 0 var(--color-ink); }
-[dir="rtl"] .crew-card { box-shadow: -7px 7px 0 var(--color-ink); }
+.crew-card { position: relative; overflow: hidden; padding-bottom: 1.1rem; border: 3px solid var(--color-ink); border-radius: var(--radius-card); background: var(--color-white); color: var(--color-ink); text-align: center; box-shadow: calc(var(--flip) * var(--sticker)) var(--sticker) 0 var(--color-ink); }
 .crew-card-head { display: flex; justify-content: space-between; padding: .85rem .9rem .55rem; border-bottom: 3px solid var(--color-ink); background: var(--tone); font-family: var(--font-mono); font-size: .66rem; font-weight: 500; letter-spacing: .14em; direction: ltr; }
 .crew-avatar { position: relative; width: 62%; aspect-ratio: 1; margin: 1rem auto 0; border: 3px solid var(--color-ink); border-radius: 999px; background: var(--tone); }
 .crew-avatar-figure { position: absolute; left: 50%; bottom: 7%; width: 78%; translate: -46% 0; overflow: visible; }
@@ -30,8 +29,7 @@
   .free-hero-badge-m .crew-role { font-size: .7rem; }
   .free-hero-badge-m .crew-salary { margin-top: .5rem; padding: .15rem .45rem; font-size: .62rem; }
   .free-hero-badge-m .crew-card-head { font-size: .5rem; letter-spacing: .03em; white-space: nowrap; padding: .55rem .6rem .35rem; }
-  .free-hero-badge-m .crew-card { box-shadow: 4px 4px 0 var(--color-ink); }
-  [dir="rtl"] .free-hero-badge-m .crew-card { box-shadow: -4px 4px 0 var(--color-ink); }
+  .free-hero-badge-m .crew-card { --sticker: 4px; }
   .free-hero-badge .crew-badge, .free-hero-badge { display: none; }
   #free-title { padding-inline-end: 6.2rem; }
   .free-hero-sub::before { content: ""; float: inline-end; width: 6.4rem; height: 2.4rem; }
@@ -64,29 +62,29 @@
    free for a greeting). Then each duty's tick pops and its check draws, in turn. */
 .crew-armed svg[data-crew] { transform-origin: 50% 100%; }
 .crew-armed svg[data-crew]:not([data-in]) { opacity: 0; transform: translateY(14%) scale(.9); }
-.crew-armed svg[data-crew][data-in] { animation: crew-enter .7s cubic-bezier(.3, 1.4, .5, 1) both; }
+.crew-armed svg[data-crew][data-in] { animation: crew-enter .7s var(--ease-spring) both; }
 @keyframes crew-enter { 0% { opacity: 0; transform: translateY(14%) scale(.9); } 100% { opacity: 1; transform: none; } }
 .crew-col-items li:nth-child(1) { --d: .5s; }
 .crew-col-items li:nth-child(2) { --d: .75s; }
 .crew-col-items li:nth-child(3) { --d: 1s; }
 .crew-armed .crew-col:not([data-in]) .free-tick { scale: 0; }
-.crew-armed .crew-col[data-in] .free-tick { animation: tick-pop .5s cubic-bezier(.3, 1.6, .5, 1) var(--d) both; }
+.crew-armed .crew-col[data-in] .free-tick { animation: tick-pop var(--dur-pop) var(--ease-pop) var(--d) both; }
 @keyframes tick-pop { 0% { scale: 0; } 100% { scale: 1; } }
 /* Free and paid: each group's ticks pop in turn as its lines rise in (data-reveal). */
 .crew-armed [data-ticks]:not([data-in]) .fc-yes { scale: 0; }
-.crew-armed [data-ticks][data-in] .fc-yes { animation: tick-pop .5s cubic-bezier(.3, 1.6, .5, 1) calc(.3s + var(--i, 0) * .09s) both; }
+.crew-armed [data-ticks][data-in] .fc-yes { animation: tick-pop var(--dur-pop) var(--ease-pop) calc(.3s + var(--i, 0) * .09s) both; }
 
 /* نقطة with the count, beside the receipt it prints: stacked on a phone, side by side from md. */
 .zr-scene { display: grid; justify-items: center; gap: 1.5rem; }
 .zr-nuqta { width: 6.25rem; overflow: visible; cursor: pointer; }
 @media (min-width: 640px) { .zr-scene { grid-template-columns: auto 1fr; align-items: end; justify-items: stretch; } .zr-scene .zr { margin-inline: 0 auto; } .zr-nuqta { width: 8.5rem; } }
-[data-wave] .crew-paper { animation: crew-paper 1.7s ease-in-out; }
+[data-wave] .crew-paper { animation: crew-paper var(--dur-wave) ease-in-out; }
 @keyframes crew-paper { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-1.6deg) translateY(1px); } 65% { transform: rotate(1.3deg); } }
 
 /* Each duty's check draws itself once its tick has popped. */
 .crew-armed .crew-col .free-tick path { stroke-dasharray: 20; }
 .crew-armed .crew-col:not([data-in]) .free-tick path { stroke-dashoffset: 20; }
-.crew-armed .crew-col[data-in] .free-tick path { animation: tick-draw .4s cubic-bezier(.4, 0, .2, 1) calc(var(--d) + .18s) both; }
+.crew-armed .crew-col[data-in] .free-tick path { animation: tick-draw .4s var(--ease-draw) calc(var(--d) + .18s) both; }
 @keyframes tick-draw { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
 
 /* شريحة comes in the way a pie chart draws its slice: the mask in Shariha.astro sweeps her
@@ -120,7 +118,7 @@
 /* A direct call to action between the crew and the limits, for ad traffic. The joyful pair
    stands on its top edge over the button (their feet on the edge: each drawing has a little
    room under the feet, taken back with translate; no shadow on the Ink "floor"). */
-.free-cta-band { position: relative; display: flex; flex-direction: column; gap: 1.5rem; padding: 1.75rem; border-radius: 1.25rem; background: var(--color-ink); color: var(--color-paper); }
+.free-cta-band { position: relative; display: flex; flex-direction: column; gap: 1.5rem; padding: 1.75rem; border-radius: var(--radius-card); background: var(--color-ink); color: var(--color-paper); }
 .free-cta-band .text-muted-ink { color: var(--color-muted-ink); }
 @media (min-width: 768px) { .free-cta-band { flex-direction: row; align-items: center; justify-content: space-between; gap: 2rem; padding: 2rem 2.25rem; } }
 .free-band-crew { position: absolute; bottom: 100%; inset-inline-end: 1.5rem; display: flex; align-items: flex-end; gap: .4rem; }
@@ -154,9 +152,8 @@
 [dir="rtl"] .zr-feed { padding: 0 4px 22px 12px; }
 .zr-paper {
   position: relative; padding: 1.7rem 1.35rem 1.25rem; background: var(--color-white); color: var(--color-ink);
-  filter: drop-shadow(1.5px 0 0 var(--color-ink)) drop-shadow(-1.5px 0 0 var(--color-ink)) drop-shadow(0 1.5px 0 var(--color-ink)) drop-shadow(0 -1.5px 0 var(--color-ink)) drop-shadow(7px 7px 0 var(--color-ink));
+  filter: drop-shadow(1.5px 0 0 var(--color-ink)) drop-shadow(-1.5px 0 0 var(--color-ink)) drop-shadow(0 1.5px 0 var(--color-ink)) drop-shadow(0 -1.5px 0 var(--color-ink)) drop-shadow(calc(var(--flip) * var(--sticker)) var(--sticker) 0 var(--color-ink));
 }
-[dir="rtl"] .zr-paper { filter: drop-shadow(1.5px 0 0 var(--color-ink)) drop-shadow(-1.5px 0 0 var(--color-ink)) drop-shadow(0 1.5px 0 var(--color-ink)) drop-shadow(0 -1.5px 0 var(--color-ink)) drop-shadow(-7px 7px 0 var(--color-ink)); }
 /* The torn edge: a row of teeth, the paper's own white. */
 .zr-paper::after { content: ""; position: absolute; inset-inline: 0; top: 100%; height: 10px; background: conic-gradient(from -45deg at 50% 100%, var(--color-white) 90deg, transparent 0) 0 0 / 20px 10px repeat-x; }
 .zr-top { display: grid; justify-items: center; gap: .5rem; }
@@ -187,14 +184,14 @@ html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; 
 .crew-pupil { transition: transform .28s cubic-bezier(.2, .8, .2, 1); }
 .crew-armed .crew-motion { opacity: 0; transition: opacity .25s; }
 .crew-armed [data-wave] .crew-motion { opacity: 1; }
-[data-wave] .crew-wave { animation: crew-wave 1.7s cubic-bezier(.45, 0, .3, 1); }
+[data-wave] .crew-wave { animation: crew-wave var(--dur-wave) cubic-bezier(.45, 0, .3, 1); }
 @keyframes crew-wave { 0%, 100% { transform: rotate(0deg); } 14% { transform: rotate(-24deg); } 30% { transform: rotate(9deg); } 47% { transform: rotate(-21deg); } 64% { transform: rotate(7deg); } 81% { transform: rotate(-9deg); } }
-[data-wave] .crew-arm-rest { animation: crew-arm-rest 1.7s ease-in-out; }
+[data-wave] .crew-arm-rest { animation: crew-arm-rest var(--dur-wave) ease-in-out; }
 @keyframes crew-arm-rest { 0%, 100% { transform: rotate(0deg); } 35% { transform: rotate(6deg); } 70% { transform: rotate(-3deg); } }
-.crew-mouth { transition: transform .22s cubic-bezier(.3, 1.5, .5, 1); }
+.crew-mouth { transition: transform .22s var(--ease-pop); }
 [data-cheer] .crew-mouth, [data-wave] .crew-mouth { transform: scale(1.22); }
-[data-cheer] .crew-hop { animation: crew-hop .76s cubic-bezier(.3, .7, .4, 1); }
-[data-cheer] .crew-shadow { animation: crew-shadow .76s cubic-bezier(.3, .7, .4, 1); }
+[data-cheer] .crew-hop { animation: crew-hop var(--dur-hop) var(--ease-hop); }
+[data-cheer] .crew-shadow { animation: crew-shadow var(--dur-hop) var(--ease-hop); }
 @keyframes crew-hop {
   0%, 100% { transform: none; }
   14% { transform: scale(1.07, .88); }
@@ -204,7 +201,7 @@ html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; 
 }
 @keyframes crew-shadow { 0%, 100% { transform: none; opacity: 1; } 44% { transform: scale(.6); opacity: .5; } }
 /* The joyful ones' arms fling out as they jump. */
-[data-cheer] .crew-flap { animation: crew-flap .76s cubic-bezier(.3, .7, .4, 1); }
+[data-cheer] .crew-flap { animation: crew-flap var(--dur-hop) var(--ease-hop); }
 [data-cheer] .crew-flap-end { animation-name: crew-flap-end; }
 @keyframes crew-flap { 0%, 100% { transform: none; } 40% { transform: rotate(28deg); } 72% { transform: rotate(-8deg); } }
 @keyframes crew-flap-end { 0%, 100% { transform: none; } 40% { transform: rotate(-28deg); } 72% { transform: rotate(8deg); } }
@@ -223,5 +220,5 @@ html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; 
   100% { transform: translateY(0); }
 }
 .crew-armed .zr:not([data-in]) .zr-stamp { opacity: 0; }
-.crew-armed .zr[data-in] .zr-stamp { animation: zr-stamp .5s cubic-bezier(.3, 1.5, .5, 1) 2.7s both; }
+.crew-armed .zr[data-in] .zr-stamp { animation: zr-stamp var(--dur-pop) var(--ease-pop) 2.7s both; }
 @keyframes zr-stamp { from { opacity: 0; transform: scale(1.9); } to { opacity: .92; transform: none; } }

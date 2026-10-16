@@ -31,6 +31,8 @@ html.lenis, html.lenis body { height: auto; }
 .split-word-mask { --mask-pad: 0.18em; position: relative; display: inline-block; overflow: clip; padding: var(--mask-pad) 0.1em; margin: calc(-1 * var(--mask-pad)) -0.1em; }
 html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; margin-inline: -0.32em; }
 
+/* The rush's stream of orders (RushMarquee.astro, animate-marquee). */
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(calc(-100% - var(--gap))); } }
 [dir="rtl"] .marquee-track { animation-name: marquee-rtl; }
 @keyframes marquee-rtl { from { transform: translateX(0); } to { transform: translateX(calc(100% + var(--gap))); } }
 
@@ -53,13 +55,13 @@ html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; m
    there; story.ts reveals only what scrolls in later. */
 /* Lines fade from 1%, not 0: Chrome counts a paint at opacity 0 as no paint, and with the
    fade on the compositor it would date the page's largest paint (LCP) to the fade's end. */
-@keyframes rise-in { from { opacity: .01; transform: translateY(var(--rise, 22px)); } }
+@keyframes rise-in { from { opacity: .01; transform: translateY(var(--rise, var(--reveal-y))); } }
 @keyframes rise-word { from { transform: translateY(calc(100% + 2 * var(--mask-pad))); } }
 /* The browser card doesn't fade at all: on wide screens it is the largest paint. */
 @keyframes hero-browser { from { transform: perspective(1400px) translateY(70px) rotateX(7deg); } to { transform: perspective(1400px); } }
 @keyframes hero-chip { from { opacity: 0; transform: translateY(24px) scale(.92); } }
-.m [data-intro] { animation: rise-in 1.15s var(--ease-out-expo) calc(300ms + var(--i, 0) * 70ms) backwards; }
-.m .intro-word { animation: rise-word 1.15s var(--ease-out-expo) calc(50ms + var(--w, 0) * 55ms) backwards; }
+.m [data-intro] { animation: rise-in var(--dur-intro) var(--ease-out-expo) calc(300ms + var(--i, 0) * var(--stagger)) backwards; }
+.m .intro-word { animation: rise-word var(--dur-intro) var(--ease-out-expo) calc(50ms + var(--w, 0) * 55ms) backwards; }
 .m [data-hero-browser] { animation: hero-browser 1.5s var(--ease-out-expo) .15s backwards; }
 .m [data-hero-ipad] { --rise: 110px; animation: rise-in 1.5s var(--ease-out-expo) .4s backwards; }
 .m [data-hero-chip] { animation: hero-chip 1s var(--ease-out-expo) .9s backwards; }
@@ -69,6 +71,18 @@ html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; m
    at its start alone, so the section's entrance is CSS as well: its lines rise in
    order, kicker, heading, the rest. Lines below the screen play out of sight and wait
    for story.ts, as everywhere. */
-[data-arrive] :target :is([data-reveal], [data-split]) { animation: rise-in .95s var(--ease-out-expo) .3s backwards; }
+[data-arrive] :target :is([data-reveal], [data-split]) { animation: rise-in var(--dur-reveal) var(--ease-out-expo) .3s backwards; }
 [data-arrive] :target :is(.kicker[data-reveal]) { animation-delay: .1s; }
 [data-arrive] :target [data-split] { animation-delay: .18s; }
+
+/* ---------- The interface's own motion (used where named) ----------
+   Dialogs (components.css), the phone menu (sections/menu.css), the scroll cue under a
+   set of screens (sections/screens.css), the family's orbit (sections/family.css) and
+   the roadmap's pulse (sections/roadmap.css). */
+@keyframes sheet-in { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes menu-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes media-cue { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+@keyframes family-turn { to { rotate: 360deg; } }
+@keyframes rm-pulse { from { transform: scale(1); opacity: .8; } to { transform: scale(2.4); opacity: 0; } }

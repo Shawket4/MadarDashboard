@@ -5,9 +5,9 @@
 .frame-browser { border-radius: 14px; background: var(--color-white); box-shadow: 0 1px 0 rgb(20 24 30 / 0.04), 0 24px 60px -18px rgb(20 24 30 / 0.28); outline: 1px solid rgb(20 24 30 / 0.08); overflow: hidden; }
 .frame-browser-bar { height: 2.1rem; display: flex; align-items: center; gap: 0.4rem; padding-inline: 0.85rem; background: #e6ecee; border-bottom: 1px solid #ced8dc; }
 .frame-browser-bar span { width: 0.6rem; height: 0.6rem; border-radius: 999px; background: #c2ccd1; }
-.frame-ipad { border-radius: clamp(18px, 2.4vw, 30px); padding: clamp(7px, 0.9vw, 13px); background: var(--color-bezel); box-shadow: 0 0 0 1px #303842, 0 30px 70px -20px rgb(11 14 18 / 0.55); }
+.frame-ipad { border-radius: clamp(18px, 2.4vw, 30px); padding: clamp(7px, 0.9vw, 13px); background: var(--color-bezel); box-shadow: var(--shadow-device); }
 .frame-ipad > * { border-radius: clamp(10px, 1.4vw, 16px); overflow: hidden; }
-.frame-iphone { border-radius: clamp(30px, 4vw, 46px); padding: clamp(6px, 0.8vw, 11px); background: var(--color-bezel); box-shadow: 0 0 0 1px #303842, 0 30px 70px -22px rgb(11 14 18 / 0.55); }
+.frame-iphone { border-radius: clamp(30px, 4vw, 46px); padding: clamp(6px, 0.8vw, 11px); background: var(--color-bezel); box-shadow: var(--shadow-device); }
 .frame-iphone > * { border-radius: clamp(24px, 3.3vw, 36px); overflow: hidden; }
 
 /* Accessible skip link */
@@ -18,16 +18,15 @@
 @layer components {
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
-    min-height: 2.9rem; padding: 0.7rem 1.2rem; border-radius: 0.625rem;
+    min-height: 2.9rem; padding: 0.7rem 1.2rem; border-radius: var(--radius-btn);
     font-weight: 500; font-size: 0.98rem; line-height: 1.2; white-space: nowrap; max-width: 100%;
-    transition: background-color .2s var(--ease-out-expo), color .2s, border-color .2s, transform .2s var(--ease-out-expo);
+    transition: background-color var(--dur-quick) var(--ease-out-expo), color var(--dur-quick), border-color var(--dur-quick), transform var(--dur-quick) var(--ease-out-expo);
     -webkit-tap-highlight-color: transparent;
   }
   .btn:active { transform: translateY(1px); }
-  /* The trailing arrow leans the way the line reads. */
-  .btn .icon-arrow { transition: translate .3s var(--ease-out-expo); }
-  .btn:hover .icon-arrow { translate: 3px 0; }
-  [dir="rtl"] .btn:hover .icon-arrow { translate: -3px 0; }
+  /* The trailing arrow leans the way the line reads, on a button, a link or a card. */
+  .icon-arrow { transition: translate .3s var(--ease-out-expo); }
+  :is(.btn, .link-cta, .group):hover .icon-arrow { translate: calc(var(--flip) * 3px) 0; }
   /* Small phones: a long label wraps inside the button instead of pushing out of its card. */
   @media (max-width: 479px) { .btn { white-space: normal; text-align: center; } }
   .btn-sm { min-height: 2.35rem; padding: 0.45rem 0.9rem; font-size: 0.9rem; border-radius: 0.5rem; }
@@ -45,10 +44,10 @@
   .link-cta {
     display: inline-flex; align-items: center; gap: .5rem; min-height: 3rem; padding-inline: .2rem;
     font-weight: 500; text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: .35em;
-    text-decoration-color: color-mix(in oklab, currentColor 40%, transparent); transition: text-decoration-color .2s;
+    text-decoration-color: color-mix(in oklab, currentColor 40%, transparent); transition: text-decoration-color var(--dur-quick);
   }
   .link-cta:hover { text-decoration-color: currentColor; }
-  .link-quiet { text-decoration: none; color: inherit; opacity: .78; transition: opacity .2s; }
+  .link-quiet { text-decoration: none; color: inherit; opacity: .78; transition: opacity var(--dur-quick); }
   .link-quiet:hover { opacity: 1; }
   .chip { display: inline-flex; align-items: center; gap: .45rem; border-radius: 999px; padding: .32rem .8rem; font-size: .8rem; font-weight: 500; }
 
@@ -59,7 +58,7 @@
   .site-header[data-tone="ink"]:not([data-solid="true"]) .nav-link:hover { background: rgb(239 243 244 / .08); }
   .site-header[data-tone="ink"]:not([data-solid="true"]) .btn-ink { background: var(--color-paper); color: var(--color-ink); }
   .site-header[data-tone="ink"]:not([data-solid="true"]) .btn-ink:hover { background: var(--color-white); }
-  .nav-link { border-radius: 999px; padding: .45rem .8rem; font-size: .94rem; font-weight: 500; opacity: .88; transition: background-color .2s, opacity .2s; }
+  .nav-link { border-radius: 999px; padding: .45rem .8rem; font-size: .94rem; font-weight: 500; opacity: .88; transition: background-color var(--dur-quick), opacity var(--dur-quick); }
   .nav-link:hover { background: rgb(20 24 30 / .05); opacity: 1; }
   .nav-link[aria-current="page"] { opacity: 1; box-shadow: inset 0 -2px 0 currentColor; border-radius: 0; }
 
@@ -68,8 +67,6 @@
   dialog.sheet::backdrop { background: rgb(11 14 18 / .55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
   dialog.sheet[open] { animation: sheet-in .38s var(--ease-out-expo) both; }
   dialog.sheet[open]::backdrop { animation: fade-in .3s ease both; }
-  @keyframes sheet-in { from { opacity: 0; transform: translateY(14px) scale(.98); } }
-  @keyframes fade-in { from { opacity: 0; } }
 
   .sticky-wa { transition: transform .45s var(--ease-out-expo), opacity .3s; }
   /* Ink with a light hairline, so it holds its edge over Ink sections too. */
@@ -79,8 +76,8 @@
   [dir="rtl"] .icon-arrow { transform: scaleX(-1); }
 
   .rule-ink { border-color: var(--color-line-ink); }
-  .card { background: var(--color-white); border: 1px solid rgb(20 24 30 / .07); border-radius: 1.25rem; }
-  .card-ink { background: var(--color-ink-2); border: 1px solid var(--color-line-ink); border-radius: 1.25rem; }
+  .card { background: var(--color-white); border: 1px solid var(--color-hairline); border-radius: var(--radius-card); }
+  .card-ink { background: var(--color-ink-2); border: 1px solid var(--color-line-ink); border-radius: var(--radius-card); }
 
   .bullet { position: relative; padding-inline-start: 1.6rem; }
   .bullet::before { content: ""; position: absolute; inset-inline-start: 0; top: .62em; width: .7rem; height: .7rem; border-radius: 999px; border: 2px solid var(--color-teal); }

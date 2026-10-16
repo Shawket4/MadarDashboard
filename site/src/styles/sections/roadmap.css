@@ -27,7 +27,6 @@
 .rm-dot { fill: var(--rm-dev); }
 .rm-halo { position: absolute; inset: 0; border: 2px solid var(--rm-dev); border-radius: 50%; opacity: 0; }
 .motion .rm-halo { animation: rm-pulse 2.4s cubic-bezier(.2, .6, .3, 1) infinite; animation-delay: calc(var(--i, 0) * -0.8s); }
-@keyframes rm-pulse { from { transform: scale(1); opacity: .8; } to { transform: scale(2.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .motion .rm-halo { animation: none; } }
 
 .rm-seg {

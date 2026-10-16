@@ -49,7 +49,6 @@
 .media-cue { display: inline-flex; padding-top: .15rem; opacity: .7; transition: opacity .3s; }
 .motion .media-cue svg { animation: media-cue 1.6s var(--ease-in-out-quart) infinite; }
 [data-last] .media-cue { opacity: 0; }
-@keyframes media-cue { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
 @media (prefers-reduced-motion: reduce) { .motion .media-cue svg { animation: none; } }
 /* Phones: the WhatsApp bar steps aside while a scene holds the page. */
 .scene-on .sticky-wa { transform: translateY(140%); opacity: 0; pointer-events: none; }

@@ -3,7 +3,7 @@
    steps and the two doors. */
 html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; letter-spacing: 0; }
 .free-tick { position: absolute; top: 0; inset-inline-start: 0; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 999px; background: var(--color-tint); color: var(--color-teal); }
-.free-limits { display: flex; flex-direction: column; gap: .5rem; padding: 1.4rem 1.5rem; border-radius: 1.25rem; border: 1px solid var(--color-rule); border-inline-start: 3px solid var(--color-teal); background: var(--color-surface); }
+.free-limits { display: flex; flex-direction: column; gap: .5rem; padding: 1.4rem 1.5rem; border-radius: var(--radius-card); border: 1px solid var(--color-rule); border-inline-start: 3px solid var(--color-teal); background: var(--color-surface); }
 .free-limits .link-cta { margin-top: .25rem; min-height: 2.75rem; }
 @media (min-width: 1024px) {
   .free-limits { display: grid; grid-template-columns: 13rem 1fr auto; align-items: center; column-gap: 2rem; padding: 1.5rem 2rem; }
@@ -28,7 +28,7 @@ html[lang="ar"] .free-cur { font-family: var(--font-arabic); font-size: .7em; le
 html[lang="ar"] .fc-num { font-family: var(--font-mono); }
 .fc-head { display: none; }
 
-.fc-card { position: relative; margin-top: .75rem; padding: 0 1.1rem 1rem; border: 1px solid rgb(20 24 30 / .07); border-radius: 1.25rem; background: var(--color-white); }
+.fc-card { position: relative; margin-top: .75rem; padding: 0 1.1rem 1rem; border: 1px solid var(--color-hairline); border-radius: var(--radius-card); background: var(--color-white); }
 .fc-in { margin-top: 2.5rem; }
 .fc-card-head { position: relative; display: flex; align-items: center; gap: .5rem; padding-block: 1.1rem .9rem; border-bottom: 1px solid var(--color-rule); }
 .fc-card-title { font-size: 1.2rem; font-weight: 600; line-height: 1.3; }
@@ -48,13 +48,13 @@ html[lang="ar"] .fc-num { font-family: var(--font-mono); }
 
 @media (min-width: 768px) {
   .fc-plans { gap: 1.25rem; }
-  .fc-plan { padding: 1.75rem 2rem 1.9rem; border-radius: 1.25rem; }
+  .fc-plan { padding: 1.75rem 2rem 1.9rem; border-radius: var(--radius-card); }
   .fc-plan-name { font-size: .9375rem; }
   .fc-plan-size { margin-top: .5rem; font-size: 1.6rem; line-height: 1.2; letter-spacing: -0.01em; }
   .fc-plan-price { padding-top: 1.5rem; font-size: .9375rem; }
   .fc-plan-free .fc-plan-price { font-size: 2rem; }
 
-  .fc-matrix { position: relative; isolation: isolate; margin-top: 1.25rem; overflow: clip; border: 1px solid rgb(20 24 30 / .07); border-radius: 1.25rem; background: var(--color-white); }
+  .fc-matrix { position: relative; isolation: isolate; margin-top: 1.25rem; overflow: clip; border: 1px solid var(--color-hairline); border-radius: var(--radius-card); background: var(--color-white); }
   .fc-matrix::before { content: ""; position: absolute; z-index: -1; inset-block: 0; inset-inline-end: var(--fc-col); width: var(--fc-col); background: color-mix(in oklab, var(--color-tint) 45%, transparent); }
   /* clip, not hidden, above: a scroll box would stop the head sticking under the site header. */
   .fc-head { position: sticky; top: 4rem; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) var(--fc-col) var(--fc-col); border-bottom: 1px solid var(--color-rule); background: var(--color-white); font-size: .9375rem; font-weight: 600; line-height: 1.3; text-align: center; }
@@ -110,7 +110,7 @@ html[lang="ar"] .fc-num { font-family: var(--font-mono); }
 @media (min-width: 1024px) { .free-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; } }
 
 
-.free-door { display: flex; flex-direction: column; padding: 1.75rem; border-radius: 1.25rem; border: 1px solid var(--color-line-ink); background: color-mix(in oklab, var(--color-paper) 3%, var(--color-ink)); }
+.free-door { display: flex; flex-direction: column; padding: 1.75rem; border-radius: var(--radius-card); border: 1px solid var(--color-line-ink); background: color-mix(in oklab, var(--color-paper) 3%, var(--color-ink)); }
 .free-door-main { background: var(--color-ink-2); border-color: color-mix(in oklab, var(--color-teal-light) 45%, transparent); }
 .free-door-tag { display: flex; align-items: center; gap: .5rem; font-size: .8125rem; font-weight: 500; color: var(--color-teal-light); }
 .free-door-tag::before { content: ""; flex: none; width: .45rem; height: .45rem; border-radius: 999px; background: currentColor; }

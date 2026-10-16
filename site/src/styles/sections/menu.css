@@ -6,8 +6,6 @@ dialog.menu-sheet { position: fixed; inset: 0; width: 100%; max-width: none; hei
 dialog.menu-sheet::backdrop { background: transparent; }
 dialog.menu-sheet[open] { animation: menu-in .24s var(--ease-out-expo) both; }
 dialog.menu-sheet[data-closing] { animation: menu-out .16s var(--ease-in-out-quart) both; }
-@keyframes menu-in { from { opacity: 0; transform: translateY(-8px); } }
-@keyframes menu-out { to { opacity: 0; transform: translateY(-6px); } }
 html:has(dialog[open]) { overflow: hidden; }
 .menu-panel { display: flex; flex-direction: column; min-height: 100dvh; padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
 .menu-close, .menu-more { display: inline-grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; border-radius: 999px; -webkit-tap-highlight-color: transparent; transition: background-color .2s, color .2s; }
