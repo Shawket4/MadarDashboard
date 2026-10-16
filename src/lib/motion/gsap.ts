@@ -53,12 +53,19 @@ export function preloadGsap(): void {
   else setTimeout(go, 200);
 }
 
-let flip: Promise<typeof import("gsap/Flip").Flip> | null = null;
+export type FlipPlugin = typeof import("gsap/Flip").Flip;
+let flip: Promise<FlipPlugin> | null = null;
+let flipCore: FlipPlugin | null = null;
 /** The Flip plugin, on first use (only the lists that reorder need it). */
 export function loadFlip() {
   flip ??= Promise.all([loadGsap(), import("gsap/Flip")]).then(([gsap, f]) => {
     gsap.registerPlugin(f.Flip);
+    flipCore = f.Flip;
     return f.Flip;
   });
   return flip;
+}
+/** Flip if it has loaded, else null. */
+export function getFlip(): FlipPlugin | null {
+  return flipCore;
 }

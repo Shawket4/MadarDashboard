@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type DependencyList, type RefObject } from "react";
 
-import { getGsap, loadFlip, loadGsap, type Gsap, type Timeline } from "./gsap";
+import { getFlip, getGsap, loadFlip, loadGsap, type Gsap, type Timeline } from "./gsap";
 import { inViewport, prefersReducedMotion } from "./media";
 import { reduce, rise, type Recipe } from "./recipes";
 import { DURATION, EASE_NAME, sec, staggerFor, STAGGER, type Register } from "./tokens";
@@ -272,29 +272,52 @@ export function useScrollProgress(ref: RefObject<HTMLElement | null>, onProgress
  * Animate the children of `container` from where they were to where they are
  * now whenever `key` changes (an item removed or reordered), using transforms
  * only. Items that just arrived fade in.
+ *
+ * The DOM is measured only when `key` changes, never on an ordinary
+ * re-render: a keystroke in one of the rows re-renders the list, and must
+ * not touch it. "Where they were" is read during the render that carries the
+ * new key, before React commits it, so the old layout is still on screen.
+ * Hidden items (no box: a closed tab, a collapsed section) are left out, since
+ * measuring them makes GSAP lift them out of the page and put them back,
+ * which drops the focus of any field inside.
  */
 export function useFlip(container: RefObject<HTMLElement | null>, key: unknown, selector = ":scope > *") {
-  const flipRef = useRef<typeof import("gsap/Flip").Flip | null>(null);
-  const state = useRef<Flip.FlipState | null>(null);
-  const lastKey = useRef(key);
+  const snap = useRef<{ key: unknown; state: Flip.FlipState | null }>({ key, state: null });
   useEffect(() => {
-    void loadFlip().then((f) => (flipRef.current = f), () => {});
+    void loadFlip().catch(() => {});
   }, []);
-  useIsoLayoutEffect(() => {
+  // Render phase on purpose: this is the last moment the previous layout is in
+  // the DOM. Reading it is idempotent, so a discarded or doubled render is harmless.
+  // eslint-disable-next-line react-hooks/refs
+  if (snap.current.key !== key) {
     const el = container.current;
-    const Flip = flipRef.current;
-    if (!el || !Flip) return;
-    const targets = el.querySelectorAll<HTMLElement>(selector);
-    if (key !== lastKey.current && state.current && !prefersReducedMotion()) {
-      Flip.from(state.current, {
-        targets,
-        duration: sec(DURATION.base),
-        ease: EASE_NAME.out,
-        onEnter: (els) => getGsap()?.fromTo(els, { opacity: 0 }, { opacity: 1, duration: sec(DURATION.base) }),
-      });
-    }
-    lastKey.current = key;
-    state.current = Flip.getState(targets);
+    const Flip = getFlip();
+    // eslint-disable-next-line react-hooks/refs
+    snap.current = {
+      key,
+      state: el && Flip && !prefersReducedMotion() ? Flip.getState(flipTargets(el, selector)) : null,
+    };
+  }
+  useIsoLayoutEffect(() => {
+    const state = snap.current.state;
+    const el = container.current;
+    const Flip = getFlip();
+    if (!state || !el || !Flip) return;
+    snap.current.state = null;
+    Flip.from(state, {
+      targets: flipTargets(el, selector),
+      duration: sec(DURATION.base),
+      ease: EASE_NAME.out,
+      onEnter: (els) => getGsap()?.fromTo(els, { opacity: 0 }, { opacity: 1, duration: sec(DURATION.base) }),
+    });
+  }, [key]);
+}
+
+/** The items of a flip list that have a box on screen. */
+function flipTargets(el: HTMLElement, selector: string) {
+  return Array.from(el.querySelectorAll<HTMLElement>(selector)).filter((t) => {
+    const r = t.getBoundingClientRect();
+    return r.width > 0 || r.height > 0;
   });
 }
 
