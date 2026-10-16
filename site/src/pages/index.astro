@@ -6,6 +6,11 @@
  * it as get.html, which the get vhost serves for / (deploy/nginx/get.madar-pos.cloud).
  */
 import "@/styles/global.css";
+import plexLatin400 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-400-normal.woff2?url";
+import plexLatin500 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-500-normal.woff2?url";
+import plexLatin600 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-latin-600-normal.woff2?url";
+import plexArabic400 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-400-normal.woff2?url";
+import plexArabic600 from "@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-600-normal.woff2?url";
 import Logo from "@/components/ui/Logo.astro";
 import Icon from "@/components/ui/Icon.astro";
 import { t, dirOf } from "@/i18n";
@@ -42,6 +47,8 @@ const links = ["pricing", "features", "faq", "about", "contact"] as const;
     <meta name="twitter:image" content={ogImage} />
     {[organization(), website(), softwareApplication("en", "home")].map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
     <meta name="theme-color" content="#14181E" />
+    <!-- The faces it sets, so none swaps in after the first paint and moves its lines. -->
+    {[plexLatin600, plexLatin500, plexLatin400, plexArabic600, plexArabic400].map((href) => <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />)}
     <meta name="color-scheme" content="light" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

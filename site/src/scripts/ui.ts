@@ -3,6 +3,10 @@
 // Everything here degrades to plain links without JavaScript.
 
 const contact = document.getElementById("contact-dialog") as HTMLDialogElement | null;
+
+// iOS Safari applies :active (the press feedback, .press / .btn) only where a touch
+// listener is: one on the document does for the whole page.
+document.addEventListener("touchstart", () => {}, { passive: true });
 const menu = document.getElementById("mobile-menu") as HTMLDialogElement | null;
 
 const openSheet = (d: HTMLDialogElement | null) => {

@@ -15,7 +15,7 @@ const tiles = [
     <h2 id="tiles-title" class="kicker text-teal">{c.tiles.title}</h2>
     <div class="mt-6 grid gap-5 md:grid-cols-2" data-reveal-group>
       {tiles.map(({ key, a, icon }) => (
-        <a href={pageHref(lang, "features", key)} class="card group relative overflow-hidden p-7 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lift md:p-9" data-reveal>
+        <a href={pageHref(lang, "features", key)} class="card lift group relative overflow-hidden p-7 md:p-9" data-reveal>
           <span class="grid h-11 w-11 place-items-center rounded-2xl bg-teal/10 text-teal"><Icon name={icon} size={22} /></span>
           <p class="kicker mt-6 text-teal">{a.kicker}</p>
           <h3 class="mt-3 text-2xl font-semibold leading-tight">{a.title}</h3>

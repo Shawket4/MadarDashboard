@@ -3,7 +3,7 @@
  * Pages pass extra blocks to BaseLayout (`jsonLd`); BaseLayout always adds the
  * Organization. Blocks link to each other by `@id`.
  */
-import { t } from "@/i18n";
+import { t, pageLabel } from "@/i18n";
 import {
   type Lang, type PageKey, SITE_URL, absoluteUrl, pageHref,
   EMAIL, PHONE_E164, INSTAGRAM, FACEBOOK, STORE_URLS,
@@ -114,22 +114,12 @@ export function faqPage(lang: Lang, items: readonly { q: string; a: string }[]) 
 
 /** Home → this page, in the page's language. */
 export function breadcrumbs(lang: Lang, page: Exclude<PageKey, "home">) {
-  const c = t(lang);
-  const names: Record<Exclude<PageKey, "home">, string> = {
-    features: c.nav.features,
-    pricing: c.nav.pricing,
-    faq: c.nav.faq,
-    about: c.nav.about,
-    contact: c.nav.contact,
-    developers: c.footer.developers,
-    free: c.nav.free,
-  };
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: c.nav.homeLabel, item: absoluteUrl(pageHref(lang, "home")) },
-      { "@type": "ListItem", position: 2, name: names[page], item: absoluteUrl(pageHref(lang, page)) },
+      { "@type": "ListItem", position: 1, name: pageLabel(lang, "home"), item: absoluteUrl(pageHref(lang, "home")) },
+      { "@type": "ListItem", position: 2, name: pageLabel(lang, page), item: absoluteUrl(pageHref(lang, page)) },
     ],
   };
 }

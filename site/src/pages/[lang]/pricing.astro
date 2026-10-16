@@ -1,12 +1,14 @@
 ---
 import BaseLayout from "@/components/layout/BaseLayout.astro";
 import Section from "@/components/kit/Section.astro";
+import Hero from "@/components/kit/Hero.astro";
+import FeatureGrid from "@/components/kit/FeatureGrid.astro";
+import CrewMoment from "@/components/kit/CrewMoment.astro";
 import PlanTable from "@/components/kit/PlanTable.astro";
 import CtaBand from "@/components/kit/CtaBand.astro";
 import CheckList from "@/components/kit/CheckList.astro";
 import Icon from "@/components/ui/Icon.astro";
 import StoreBadges from "@/components/ui/StoreBadges.astro";
-import NuqtaJoy from "@/components/crew/NuqtaJoy.astro";
 import cashier from "@/assets/apps/cashier.svg?url";
 import { t } from "@/i18n";
 import { type Lang, LANGS, whatsappHref, pageHref, signupHref, downloadsHref } from "@/lib/site";
@@ -48,7 +50,7 @@ const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing
   <!-- The price list: both plans side by side on every screen, every term in sight.
        Each price is an option (one radio group); the page opens on Advanced for 6 months,
        and the package below (with its WhatsApp message) follows the pick. -->
-  <Section intro kicker={p.kicker} title={p.title} lead={p.sub} orbit="-end-[36rem] -top-[30rem] h-[76rem] w-[76rem] opacity-60">
+  <Hero kicker={p.kicker} title={p.title} lead={p.sub} orbit="-end-[36rem] -top-[30rem] h-[76rem] w-[76rem] opacity-60">
     <div class="price-sheet card" data-intro style="--i:2">
       <fieldset class="price-grid" data-price-list>
         <legend class="sr-only">{p.pick}</legend>
@@ -92,7 +94,7 @@ const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing
         </a>
       </div>
     </div>
-  </Section>
+  </Hero>
 
   <!-- What each plan carries: Advanced Operation is Essential Café and more (kit/PlanTable),
        then how the plans are sold, then the other door, Madar Free (owner, 2026-10-14). -->
@@ -105,14 +107,7 @@ const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing
       copy={{ inFirst: p.compare.inFirst, adds: p.compare.adds, tag: p.compare.tag }}
     />
 
-    <div class="mt-16 grid gap-8 md:grid-cols-3" data-reveal-group>
-      {p.notes.map((n) => (
-        <div class="border-t border-ink/15 pt-5" data-reveal>
-          <h3 class="text-lg font-semibold">{n.title}</h3>
-          <p class="mt-2 text-muted">{n.body}</p>
-        </div>
-      ))}
-    </div>
+    <FeatureGrid class="mt-16" items={p.notes} columns={3} />
 
     <!-- نقطة jumping for joy on the band's top edge, as on the Free page. -->
     <CtaBand
@@ -124,7 +119,7 @@ const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing
       cta={{ href: signupHref(lang), label: p.freePlan.cta, event: "free-signup", where: "pricing" }}
       more={{ href: pageHref(lang, "free"), label: p.freePlan.more, event: "free-page", where: "pricing" }}
     >
-      <NuqtaJoy slot="crew" class="cta-band-nuqta" />
+      <CrewMoment slot="crew" pose="joy" class="cta-band-nuqta" />
     </CtaBand>
   </Section>
 
@@ -146,7 +141,3 @@ const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing
     </div>
   </Section>
 </BaseLayout>
-
-<script>
-  import "@/scripts/crew";
-</script>

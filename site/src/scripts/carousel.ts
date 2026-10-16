@@ -8,7 +8,7 @@
 // Places are fractions of a card's own width (xPercent), so they hold at any size. At
 // rest the cards never overlap, so nothing shows through anything; while two phones
 // swap, the incoming one passes in front and is already opaque when they cross.
-import gsap from "gsap";
+import { gsap } from "./motion";
 
 const dir = document.documentElement.dir === "rtl" ? -1 : 1;
 
@@ -83,6 +83,7 @@ export function carousel(media: HTMLElement, order: number[]): Carousel {
     const card = order[k] ?? 0;
     cards.forEach((c, i) => c.toggleAttribute("data-active", i === card));
     dots.forEach((d, i) => d.toggleAttribute("data-on", i === k));
+    dots[0]?.parentElement?.style.setProperty("--k", String(k));
     media.toggleAttribute("data-last", k === n - 1); // the scroll cue bows out on the last screen
     if (count) count.textContent = `${pad(k + 1)} / ${pad(n)}`;
     if (caption) caption.textContent = altOf(card);

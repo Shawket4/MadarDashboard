@@ -45,7 +45,8 @@ const parts = (s: string) =>
       {plans.map((p, i) => (
         <div class:list={["pt-plan", i === 0 ? "pt-plan-ink" : "pt-plan-paper"]} data-reveal>
           <h3 class="pt-plan-name">{p.name}</h3>
-          {p.size && <p class="pt-plan-size">{p.size.split(" · ").map((s, k) => <Fragment>{k > 0 && " · "}<span class="whitespace-nowrap">{s}</span></Fragment>)}</p>}
+          {/* "1 branch · 1 till": each part stays whole; a plain phrase wraps as it likes. */}
+          {p.size && <p class="pt-plan-size">{p.size.includes(" · ") ? p.size.split(" · ").map((s, k) => <Fragment>{k > 0 && " · "}<span class="whitespace-nowrap">{s}</span></Fragment>) : p.size}</p>}
           <p class="pt-plan-price">{parts(p.price).map((x) => ("num" in x ? <span class="pt-num ltr">{x.num}</span> : <Fragment>{x.lead}{x.word && <span class="pt-cur">{x.word}</span>}{x.tail}</Fragment>))}</p>
         </div>
       ))}

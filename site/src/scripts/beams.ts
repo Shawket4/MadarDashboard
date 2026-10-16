@@ -3,14 +3,10 @@
 // (again whenever the layout changes), and a light travelling along each one.
 // The light is a gradient band sliding from the curve's start to its end, so it
 // always flows from input to ledger to output, in either language. It only runs
-// while the beams are on screen, and not at all under reduced motion.
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
+// while the beams are on screen (on the motion engine's GSAP and ticker), and not at all
+// under reduced motion: scripts/load-motion.ts then draws the beams still, without GSAP.
 
 const SVG = "http://www.w3.org/2000/svg";
-const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** [from, to, lane]: the lane spreads the curves apart and staggers their timing. */
 const BEAMS: [string, string, number][] = [
@@ -31,7 +27,7 @@ function el<K extends keyof SVGElementTagNameMap>(name: K, attrs: Record<string,
   return node;
 }
 
-function beams(box: HTMLElement) {
+async function beams(box: HTMLElement, light: boolean) {
   const svg = box.querySelector<SVGSVGElement>("[data-beam-svg]");
   if (!svg) return;
   const nodes = new Map(Array.from(box.querySelectorAll<HTMLElement>("[data-beam-node]")).map((n) => [n.dataset.beamNode, n]));
@@ -75,10 +71,11 @@ function beams(box: HTMLElement) {
   new ResizeObserver(layout).observe(box);
   layout();
 
-  if (reduce) {
+  if (!light) {
     for (const line of lines) line.light.remove();
     return;
   }
+  const { gsap, ScrollTrigger } = await import("./motion");
 
   // The light: a band 30% of the beam long, its head leading, from start to end.
   const runs = lines.map((line, i) => {
@@ -111,4 +108,7 @@ function beams(box: HTMLElement) {
   });
 }
 
-for (const box of document.querySelectorAll<HTMLElement>("[data-beams]")) beams(box);
+/** Every ledger diagram on the page; `light`: with the light running along the beams. */
+export function drawBeams(light: boolean) {
+  for (const box of document.querySelectorAll<HTMLElement>("[data-beams]")) void beams(box, light);
+}

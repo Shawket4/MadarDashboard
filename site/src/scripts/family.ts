@@ -10,8 +10,7 @@
 // picks the object and turns it; GSAP tweens pop objects in and out. Until the
 // 3D is ready the stage shows the 2D orbit; where it can't run (no WebGL, data
 // saving on) nothing pins and the whole list shows beside the orbit.
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger } from "./motion";
 import type { Showcase, Stage } from "@shared/showcase/engine";
 import { EASE } from "@/lib/motion";
 

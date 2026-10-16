@@ -46,42 +46,23 @@ html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; m
   }
 }
 
-/* ---------- The reveal vocabulary: how anything comes in as it scrolls into view ----------
-   Mark it up; never write a page's own keyframes for this (scripts/lint-motion.mjs).
-     data-reveal         a line or a card rises into place (story.ts, GSAP)
-     data-reveal-group   on a list: its data-reveal items rise one after another
-     data-split          a heading's words rise from their masks (story.ts)
-     data-pop            pops in on the spring: a tick, a badge, a dot
-     data-draw           an <svg>'s strokes draw themselves; any other element (a rule)
-                         draws across from the start, or down with data-draw="down"
-   data-pop and data-draw play when scripts/motion.ts marks them data-in, and wait only
-   behind .crew-armed: without JavaScript or with reduced motion all of it is simply there.
-   Timing: --delay (on the element or any parent) waits before it; things that come in
-   together are numbered --n by motion.ts and spaced by --stagger (set either on a
-   parent for a slower beat). A stroke inside a pop draws once the pop has landed. */
-:is([data-pop], [data-draw]) { --in-delay: calc(var(--delay, 0s) + var(--after, 0s) + var(--n, 0) * var(--stagger)); }
-[data-pop] [data-draw] { --after: calc(var(--dur-pop) * .36); }
-.crew-armed [data-pop]:not([data-in]) { scale: 0; }
-.crew-armed [data-pop][data-in=""] { animation: pop var(--dur-pop) var(--ease-pop) var(--in-delay) both; }
-.crew-armed svg[data-draw] :is(path, line, polyline, circle) { stroke-dasharray: 1 1; }
-.crew-armed svg[data-draw]:not([data-in]) :is(path, line, polyline, circle) { stroke-dashoffset: 1; }
-.crew-armed svg[data-draw][data-in=""] :is(path, line, polyline, circle) { animation: draw-stroke var(--dur-pop) var(--ease-draw) var(--in-delay) both; }
-:where([data-draw]:not(svg)) { --draw-from: scaleX(0); transform-origin: 0 0; }
-:where([dir="rtl"] [data-draw]:not(svg)) { transform-origin: 100% 0; }
-:where([data-draw="down"]) { --draw-from: scaleY(0); }
-.crew-armed [data-draw]:not(svg):not([data-in]) { transform: var(--draw-from); }
-.crew-armed [data-draw]:not(svg)[data-in=""] { animation: draw-rule var(--dur-draw) var(--ease-out-expo) var(--in-delay) both; }
-@keyframes pop { from { scale: 0; } }
-@keyframes draw-stroke { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-@keyframes draw-rule { from { transform: var(--draw-from); } }
+/* ---------- The motion vocabulary ----------
+   What comes in as it scrolls is marked up (data-reveal, data-reveal-group, data-split,
+   data-pop, data-draw, data-count, data-parallax, data-sequence) and moved by the one
+   engine, scripts/motion.ts (GSAP), loaded only where a page has something to move and
+   motion is allowed. Never write a page's own keyframes or observers for it
+   (scripts/lint-motion.mjs). The CSS here is what plays before the engine is there: the
+   first screen's entrance and a # address's arrival, and the interface's own motion.
+   Timing hooks the engine reads from the CSS: --delay (on an element or a parent) waits
+   before a pop or a draw, --stagger (on a parent) slows a list's beat. */
 
 /* First screen, arriving fresh (.m: no page transition and motion allowed, set by the
    head script). The hero's or a page intro's entrance is CSS: it starts with the first
-   paint and runs off the main thread, so it never waits for story.ts (gsap) to load and
+   paint and runs off the main thread, so it never waits for the engine (GSAP) to load and
    never stalls while that sets the page up. The heading's words are split at build time
    (Words.astro) and rise from below their masks. Fill "backwards" only: once played,
    each piece is back on its own styles. Anything else on the first screen is simply
-   there; story.ts reveals only what scrolls in later. */
+   there; the engine reveals only what scrolls in later. */
 /* Lines fade from 1%, not 0: Chrome counts a paint at opacity 0 as no paint, and with the
    fade on the compositor it would date the page's largest paint (LCP) to the fade's end. */
 @keyframes rise-in { from { opacity: .01; transform: translateY(var(--rise, var(--reveal-y))); } }
@@ -96,10 +77,10 @@ html[lang="ar"] .split-word-mask { --mask-pad: 0.42em; padding-inline: 0.32em; m
 .m [data-hero-chip] { animation: hero-chip 1s var(--ease-out-expo) .9s backwards; }
 
 /* A # address from another page (the phone menu's areas, a shared link): the browser
-   opens on that section before story.ts is here, and story.ts leaves what is on screen
-   at its start alone, so the section's entrance is CSS as well: its lines rise in
+   opens on that section before the engine is here, and the engine leaves what is on
+   screen at its start alone, so the section's entrance is CSS as well: its lines rise in
    order, kicker, heading, the rest. Lines below the screen play out of sight and wait
-   for story.ts, as everywhere. */
+   for the engine, as everywhere. */
 [data-arrive] :target :is([data-reveal], [data-split]) { animation: rise-in var(--dur-reveal) var(--ease-out-expo) .3s backwards; }
 [data-arrive] :target :is(.kicker[data-reveal]) { animation-delay: .1s; }
 [data-arrive] :target [data-split] { animation-delay: .18s; }

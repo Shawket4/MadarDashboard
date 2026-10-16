@@ -1,16 +1,52 @@
-// The crew (components/crew): the badges drop in and swing, the Z-report prints, and the
-// characters live a little: they pop in once, blink and wave at their own uneven pace,
-// follow the pointer with their eyes (or glance around on a phone), and hop when tapped or
-// pointed at; the joyful ones jump as they arrive. This file is the crew's CHARACTER
-// motion only: when each comes in (data-in) and whether it is on screen is
-// scripts/motion.ts's, as is the .crew-armed switch, and the beats are the tokens'. All
-// of it only with motion allowed, and only while on screen: nothing loops or spends a
-// frame out of sight. Without this file everything is simply there, still
-// (styles/sections/crew.css).
-import { reduce, watch, onScreen } from "./motion";
-import { DUR } from "@/lib/motion";
+// The crew (components/crew, CrewMoment.astro). The motion engine (scripts/motion.ts)
+// loads this where a page shows them, with motion allowed only.
+//  - Their entrances are set pieces on the engine (data-sequence): a figure pops up onto its
+//    line (شريحة sweeps her slice open as she does), the Z-report prints in bursts and its
+//    stamp lands. They play wherever the figure is as the engine starts.
+//  - Their idle life is custom and stays here: they blink and wave at their own uneven
+//    pace, follow the pointer with their eyes (or glance around on a phone), hop when
+//    tapped or pointed at, and the joyful ones jump as they arrive; a badge falls in on its
+//    lanyard and swings like a pendulum. All of it on GSAP's one ticker, timed by the
+//    tokens, and only while on screen: nothing loops or spends a frame out of sight.
+// Without motion everything is simply there, still (styles/sections/crew.css).
+import { gsap, watch, onScreen, defineSequence } from "./motion";
+import { DUR, EASE } from "@/lib/motion";
 
-if (!reduce) {
+/** A figure pops up onto its line: the whole drawing, shadow and all (the <svg>, so the hop inside stays free for a greeting). */
+defineSequence(
+  "figure",
+  (svg, tl) => {
+    tl.fromTo(svg, { autoAlpha: 0, yPercent: 14, scale: 0.9, transformOrigin: "50% 100%" }, { autoAlpha: 1, yPercent: 0, scale: 1, duration: 0.7, ease: EASE.spring });
+    // شريحة comes in the way a pie chart draws its slice: her mask sweeps her wedge open from
+    // its corner, a quarter turn; her arms and legs come once it is mostly drawn.
+    const sweep = svg.querySelector(".crew-sweep");
+    if (sweep) tl.fromTo(sweep, { strokeDashoffset: 32 }, { strokeDashoffset: 0, duration: 0.85, ease: "power3.inOut" }, 0.05);
+    const limbs = svg.querySelectorAll(".crew-limb");
+    if (limbs.length) tl.fromTo(limbs, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, ease: "power1.out" }, 0.55);
+  },
+  { always: true },
+);
+
+/** The Z-report feeds out of the printer in bursts, as a thermal printer does, and the stamp lands last. */
+defineSequence(
+  "receipt",
+  (zr, tl) => {
+    const paper = zr.querySelector(".zr-paper");
+    const stamp = zr.querySelector(".zr-stamp");
+    if (paper) {
+      tl.set(paper, { yPercent: -104 });
+      for (const [to, move, rest] of [[-80, 0.42, 0.21], [-52, 0.52, 0.21], [-22, 0.57, 0.21], [0, 0.47, 0]] as const) {
+        tl.to(paper, { yPercent: to, duration: move, ease: "none" });
+        if (rest) tl.to({}, { duration: rest });
+      }
+    }
+    if (stamp) tl.fromTo(stamp, { autoAlpha: 0, scale: 1.9 }, { autoAlpha: 0.92, scale: 1, duration: DUR.pop, ease: EASE.pop }, "+=0.1");
+  },
+  { always: true },
+);
+
+/** The idle life, once the engine is armed. */
+export function live() {
   const WAVE = DUR.wave * 1000;
   const HOP = DUR.hop * 1000;
   const swings = Array.from(document.querySelectorAll<HTMLElement>("[data-swing]"));
@@ -18,20 +54,14 @@ if (!reduce) {
   const seen = new Set<Element>();
   /** What carries on when it comes back on screen (a swing paused mid-swing). */
   const resume = new Map<Element, () => void>();
-  /** What a joyful character does the first time it comes in: a jump. */
-  const joys = new Map<Element, () => void>();
 
-  // Into view once: the badge drops, a character pops up (a joyful one jumps), the
-  // receipt prints. The endless bits (a sip, the steam) run only while on screen (data-live).
   for (const el of [...swings, ...figures]) {
-    watch(el, { onIn: () => joys.get(el)?.() });
     onScreen(el, (on) => {
       if (!on) return void seen.delete(el);
       seen.add(el);
       resume.get(el)?.();
     });
   }
-  for (const el of document.querySelectorAll(".zr")) watch(el);
 
   const rand = (a: number, b: number) => a + Math.random() * (b - a);
   const live = (f: Element) => seen.has(f) && !document.hidden;
@@ -46,6 +76,7 @@ if (!reduce) {
     window.setTimeout(() => el.removeAttribute(attr), ms);
   };
 
+  let joys = 0;
   for (const [i, f] of figures.entries()) {
     // Blinks: every few seconds, now and then a double.
     const blink = () => {
@@ -77,12 +108,13 @@ if (!reduce) {
     target.addEventListener("click", cheer);
     // A joyful one jumps once it has popped in; a pair jumps one after the other.
     if (f.hasAttribute("data-joy")) {
-      const delay = 650 + 170 * joys.size;
-      joys.set(f, () => window.setTimeout(cheer, delay));
+      const delay = 650 + 170 * joys++;
+      watch(f, () => window.setTimeout(cheer, delay));
     }
   }
 
-  // Eyes: they follow a mouse; on touch screens they glance around now and then.
+  // Eyes: they follow a mouse (on the next tick, at most once a frame); on touch screens
+  // they glance around now and then.
   const pupils = figures.map((f) => ({ f, els: Array.from(f.querySelectorAll<SVGGElement>(".crew-pupil")) }));
   const look = (f: SVGSVGElement, els: SVGGElement[], dx: number, dy: number) => {
     // dx, dy in -1…1; the pupils travel at most 3 units of the artwork inside the eye.
@@ -90,17 +122,15 @@ if (!reduce) {
     f.toggleAttribute("data-looking", dx !== 0 || dy !== 0);
   };
   let pointer: { x: number; y: number } | null = null;
-  let frame = 0;
+  let queued = false;
   const follow = () => {
-    frame = 0;
+    queued = false;
     if (!pointer) return;
     for (const { f, els } of pupils) {
       if (!seen.has(f)) continue;
       const r = f.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height * 0.45;
-      const dx = pointer.x - cx;
-      const dy = pointer.y - cy;
+      const dx = pointer.x - (r.left + r.width / 2);
+      const dy = pointer.y - (r.top + r.height * 0.45);
       const d = Math.hypot(dx, dy) || 1;
       // Full travel from about a character's width away; closer, the eyes ease to centre.
       const k = Math.min(1, d / Math.max(r.width, 80));
@@ -112,7 +142,10 @@ if (!reduce) {
     (e) => {
       if (e.pointerType !== "mouse") return;
       pointer = { x: e.clientX, y: e.clientY };
-      if (!frame) frame = requestAnimationFrame(follow);
+      if (!queued) {
+        queued = true;
+        gsap.ticker.add(follow, true);
+      }
     },
     { passive: true },
   );
@@ -123,8 +156,7 @@ if (!reduce) {
     for (const { f, els } of pupils) look(f, els, 0, 0);
   });
 
-  const hasMouse = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-  if (!hasMouse) {
+  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
     const glance = () => {
       for (const { f, els } of pupils) {
         if (!live(f) || Math.random() < 0.4) continue;
@@ -138,9 +170,9 @@ if (!reduce) {
   }
 
   // A badge hangs on its lanyard like a pendulum, and everything about it is physics (no
-  // keyframes): it falls in from above the screen on a stiff spring, and the instant it lands
-  // it swings (a damped pendulum, in degrees). A breeze, a passing mouse, or a hand that
-  // holds it and lets go keep it swinging. It starts the moment it is on screen.
+  // keyframes): it falls in from above the screen on a stiff spring, and the instant it
+  // lands it swings (a damped pendulum, in degrees). A breeze, a passing mouse, or a hand
+  // that holds it and lets go keep it swinging. It falls the moment it comes in.
   const SWING_HZ = 0.42;
   const K = (2 * Math.PI * SWING_HZ) ** 2;
   const C = 1.1;
@@ -153,15 +185,16 @@ if (!reduce) {
     let vy = 0;
     let falling = false;
     let held = false;
-    let last = 0;
-    let raf = 0;
-    const settled = () => s.hasAttribute("data-settled");
-    const tick = (now: number) => {
-      raf = 0;
+    let running = false;
+    const landed = () => s.hasAttribute("data-settled");
+    const stop = () => {
+      running = false;
+      gsap.ticker.remove(tick);
+    };
+    function tick(_time: number, deltaMs: number) {
       // Off screen the swing waits where it is, spending no frames; it carries on when back.
-      if (!falling && !held && !live(s)) return;
-      const dt = Math.min(0.033, (now - last) / 1000 || 0.016);
-      last = now;
+      if (!falling && !held && !live(s)) return stop();
+      const dt = Math.min(0.033, deltaMs / 1000 || 0.016);
       if (falling) {
         // A stiff, slightly underdamped spring to 0: arrives fast, one small bounce.
         vy += (-170 * y - 13 * vy) * dt;
@@ -178,14 +211,16 @@ if (!reduce) {
         v += (-K * a - C * v) * dt;
         a = Math.max(-40, Math.min(40, a + v * dt));
       }
-      badge.style.transform = `translateY(${y.toFixed(1)}px) rotate(${a.toFixed(3)}deg)`;
-      if (falling || held || Math.abs(a) > 0.02 || Math.abs(v) > 0.05) raf = requestAnimationFrame(tick);
-      else badge.style.transform = "";
-    };
+      badge!.style.transform = `translateY(${y.toFixed(1)}px) rotate(${a.toFixed(3)}deg)`;
+      if (!falling && !held && Math.abs(a) <= 0.02 && Math.abs(v) <= 0.05) {
+        badge!.style.transform = "";
+        stop();
+      }
+    }
     const run = () => {
-      if (raf) return;
-      last = performance.now();
-      raf = requestAnimationFrame(tick);
+      if (running) return;
+      running = true;
+      gsap.ticker.add(tick);
     };
     const kick = (dv: number) => {
       v += dv;
@@ -194,27 +229,26 @@ if (!reduce) {
     resume.set(s, () => {
       if (Math.abs(a) > 0.02 || Math.abs(v) > 0.05) run();
     });
-    // Start: from just above the top of the screen, as soon as it is in view.
-    new MutationObserver((_, mo) => {
-      if (!s.hasAttribute("data-in")) return;
-      mo.disconnect();
-      y = -(badge.getBoundingClientRect().bottom + 60);
+    // Waits above the screen; falls in from just above its top as soon as it comes in.
+    badge.style.transform = "translateY(-130vh)";
+    watch(s, () => {
+      y = -(s.getBoundingClientRect().bottom + 60);
       falling = true;
       badge.style.transform = `translateY(${y.toFixed(1)}px)`;
       run();
-    }).observe(s, { attributes: true, attributeFilter: ["data-in"] });
+    });
     // A breeze, only while it is on screen.
     const breeze = () => {
-      if (settled() && live(s) && !held && Math.abs(a) < 1) kick(rand(14, 26) * (Math.random() < 0.5 ? -1 : 1));
+      if (landed() && live(s) && !held && Math.abs(a) < 1) kick(rand(14, 26) * (Math.random() < 0.5 ? -1 : 1));
       window.setTimeout(breeze, rand(3200, 6000));
     };
     window.setTimeout(breeze, 4500);
     s.addEventListener("pointerenter", (e) => {
-      if (e.pointerType === "mouse" && settled() && !held) kick(rand(30, 40) * (Math.random() < 0.5 ? -1 : 1));
+      if (e.pointerType === "mouse" && landed() && !held) kick(rand(30, 40) * (Math.random() < 0.5 ? -1 : 1));
     });
     // Hold it: the card follows the pointer around the lanyard's top; let go and it swings.
     badge.addEventListener("pointerdown", (e) => {
-      if (!settled()) return;
+      if (!landed()) return;
       held = true;
       s.setAttribute("data-held", "");
       badge.setPointerCapture(e.pointerId);

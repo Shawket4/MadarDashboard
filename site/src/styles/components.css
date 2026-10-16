@@ -20,10 +20,11 @@
     display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
     min-height: 2.9rem; padding: 0.7rem 1.2rem; border-radius: var(--radius-btn);
     font-weight: 500; font-size: 0.98rem; line-height: 1.2; white-space: nowrap; max-width: 100%;
-    transition: background-color var(--dur-quick) var(--ease-out-expo), color var(--dur-quick), border-color var(--dur-quick), transform var(--dur-quick) var(--ease-out-expo);
+    transition: background-color var(--dur-quick) var(--ease-out-expo), color var(--dur-quick), border-color var(--dur-quick), scale var(--dur-pop) var(--ease-pop);
     -webkit-tap-highlight-color: transparent;
   }
-  .btn:active { transform: translateY(1px); }
+  /* Pressed: it dips, and springs back on the pop curve (the press helper, below). */
+  .btn:active { scale: .97; transition-duration: var(--dur-quick), var(--dur-quick), var(--dur-quick), 80ms; }
   /* The trailing arrow leans the way the line reads, on a button, a link or a card. */
   .icon-arrow { transition: translate .3s var(--ease-out-expo); }
   :is(.btn, .link-cta, .group):hover .icon-arrow { translate: calc(var(--flip) * 3px) 0; }
@@ -108,6 +109,17 @@ html:not([lang="ar"]) .lang-switch { font-family: ui-sans-serif, system-ui, -app
 .site-header .logo-on-ink { display: none; }
 .site-header[data-tone="ink"]:not([data-solid="true"]) .logo-on-ink { display: inline-flex; }
 .site-header[data-tone="ink"]:not([data-solid="true"]) .logo-on-paper { display: none; }
+
+/* ---------- Hover and press: the one feedback helper ----------
+   .press: dips when pressed (finger or mouse) and springs back on the pop curve; buttons
+   do it by themselves. .lift: a card or tile lifts on hover, where there is a real pointer
+   (and dips like .press when pressed). Scale and translate only, timed by the tokens. */
+.press { transition: scale var(--dur-pop) var(--ease-pop); -webkit-tap-highlight-color: transparent; }
+.lift { transition: translate var(--dur-quick) var(--ease-out-expo), box-shadow var(--dur-quick) var(--ease-out-expo), border-color var(--dur-quick), scale var(--dur-pop) var(--ease-pop); -webkit-tap-highlight-color: transparent; }
+:is(.press, .lift):active { scale: .98; transition-duration: 80ms; }
+@media (hover: hover) and (pointer: fine) {
+  .lift:hover { translate: 0 -4px; box-shadow: var(--shadow-lift); }
+}
 
 /* A tap target of at least 44 px however small it looks (WCAG 2.5.5): an invisible hit
    area around it, so the footer's links and the jump chips keep their size on screen. */

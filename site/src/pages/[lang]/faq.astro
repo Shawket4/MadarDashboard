@@ -1,9 +1,9 @@
 ---
 import BaseLayout from "@/components/layout/BaseLayout.astro";
-import Section from "@/components/kit/Section.astro";
+import Hero from "@/components/kit/Hero.astro";
+import CrewMoment from "@/components/kit/CrewMoment.astro";
 import FaqList from "@/components/kit/FaqList.astro";
 import Icon from "@/components/ui/Icon.astro";
-import Nuqta from "@/components/crew/Nuqta.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS, whatsappHref } from "@/lib/site";
 import { breadcrumbs, faqPage } from "@/lib/schema";
@@ -17,16 +17,14 @@ const f = c.faq;
 const jsonLd = [faqPage(lang, f.items), breadcrumbs(lang, "faq")];
 ---
 <BaseLayout lang={lang} page="faq" headerTone="paper" jsonLd={jsonLd}>
-  <Section intro split={4} sticky kicker={f.kicker} title={f.title} lead={f.sub}>
-    <a slot="head" class="btn btn-ink btn-lg mt-8" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="faq" data-intro style="--i:2">
-      {c.contact.whatsapp} <Icon name="arrow" size={18} />
-    </a>
-    <!-- نقطة at the counter, waving: ask him anything (wide screens, beside the questions). -->
-    <div slot="head" class="faq-crew" data-crew-host><Nuqta class="faq-nuqta" /></div>
+  <Hero split={4} sticky kicker={f.kicker} title={f.title} lead={f.sub}>
+    <Fragment slot="actions">
+      <a class="btn btn-ink btn-lg" href={whatsappHref(lang)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="faq">
+        {c.contact.whatsapp} <Icon name="arrow" size={18} />
+      </a>
+      <!-- نقطة at the counter, waving: ask him anything (wide screens, beside the questions). -->
+      <CrewMoment pose="wave" class="faq-nuqta" host="faq-crew" />
+    </Fragment>
     <FaqList items={f.items} />
-  </Section>
+  </Hero>
 </BaseLayout>
-
-<script>
-  import "@/scripts/crew";
-</script>

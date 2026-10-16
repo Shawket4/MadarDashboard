@@ -20,7 +20,6 @@ function read(name: string): number {
 export const DUR = {
   pop: read("--dur-pop"),
   reveal: read("--dur-reveal"),
-  intro: read("--dur-intro"),
   draw: read("--dur-draw"),
   wave: read("--dur-wave"),
   hop: read("--dur-hop"),
@@ -30,6 +29,13 @@ export const STAGGER = read("--stagger");
 export const STAGGER_WORD = read("--stagger-word");
 /** How far a reveal rises, px. */
 export const REVEAL_Y = read("--reveal-y");
+
+/** Phones: the calmer variant (the engine's matchMedia picks it below md, 768 px). */
+export const PHONE = "(max-width: 767px)";
+export const REVEAL_Y_PHONE = read("--reveal-y-phone");
+export const STAGGER_PHONE = read("--stagger-phone");
+/** A data-parallax factor is multiplied by this on phones. */
+export const PARALLAX_PHONE = read("--parallax-phone");
 
 /**
  * GSAP's names for the token curves (GSAP can't take a CSS cubic-bezier without a plugin):
@@ -42,4 +48,8 @@ export const EASE = {
   inOut: "power3.inOut",
   /** --ease-pop */
   pop: "back.out(1.7)",
+  /** --ease-spring */
+  spring: "back.out(1.4)",
+  /** --ease-draw */
+  draw: "power2.inOut",
 };

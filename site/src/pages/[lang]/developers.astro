@@ -5,7 +5,7 @@
  * /public/); the MCP server is MadarRust src/mcp.rs. Change them together.
  */
 import BaseLayout from "@/components/layout/BaseLayout.astro";
-import Section from "@/components/kit/Section.astro";
+import Hero from "@/components/kit/Hero.astro";
 import DataTable from "@/components/kit/DataTable.astro";
 import { type Lang, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_E164, absoluteUrl } from "@/lib/site";
 import { breadcrumbs } from "@/lib/schema";
@@ -105,8 +105,7 @@ content-type: application/json
 };
 ---
 <BaseLayout lang={lang} page="developers" headerTone="paper" closing={false} jsonLd={jsonLd}>
-  <Section
-    intro
+  <Hero
     size="h2"
     headClass="max-w-4xl"
     kicker="Developers"
@@ -268,7 +267,7 @@ content-type: application/json
         <a href={EMAIL_HREF}>{EMAIL}</a> or WhatsApp <a href={WHATSAPP} target="_blank" rel="noopener">{PHONE_DISPLAY}</a>.
       </p>
     </article>
-  </Section>
+  </Hero>
 </BaseLayout>
 
 <style>

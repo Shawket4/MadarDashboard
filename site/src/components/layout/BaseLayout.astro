@@ -14,8 +14,9 @@ import ClosingBand from "./ClosingBand.astro";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import bootUrl from "@/scripts/classic/boot.js?url&no-inline";
-import { t, dirOf } from "@/i18n";
-import { type Lang, type PageKey, LANGS, pageHref, absoluteUrl, otherLang, isEnglishOnly } from "@/lib/site";
+import { t, dirOf, pageMeta } from "@/i18n";
+import { type Lang, type PageKey, pageHref, absoluteUrl, otherLang, isEnglishOnly } from "@/lib/site";
+import { langsOf } from "@/lib/pages";
 import { organization } from "@/lib/schema";
 
 interface Props {
@@ -33,7 +34,7 @@ interface Props {
 
 const { lang, page, headerTone = "paper", closing = true, noindex = false, jsonLd = [], sticky, headerCta } = Astro.props;
 const c = t(lang);
-const meta = c.meta[page];
+const meta = pageMeta(lang, page);
 const routable = page !== "notFound";
 const canonical = routable ? absoluteUrl(pageHref(lang, page)) : undefined;
 // Each page's share card (scripts/og.mjs); the home card until a page has its own.
@@ -55,7 +56,7 @@ const ld = [organization(), ...jsonLd];
     <meta name="description" content={meta.description} />
     {noindex && <meta name="robots" content="noindex" />}
     {canonical && <link rel="canonical" href={canonical} />}
-    {routable && (isEnglishOnly(page) ? ["en" as const] : LANGS).map((l) => <link rel="alternate" hreflang={l} href={absoluteUrl(pageHref(l, page as PageKey))} />)}
+    {routable && langsOf(page as PageKey).map((l) => <link rel="alternate" hreflang={l} href={absoluteUrl(pageHref(l, page as PageKey))} />)}
     {routable && <link rel="alternate" hreflang="x-default" href={absoluteUrl(pageHref("en", page as PageKey))} />}
 
     <meta property="og:type" content="website" />
@@ -86,22 +87,19 @@ const ld = [organization(), ...jsonLd];
          on English pages its three weights, on Arabic pages its three Arabic weights (the
          buttons are the medium: without it they re-wrapped, a layout shift on every Arabic
          page), the Latin medium its figures are set in (3,000 جنيه) and the Latin semibold
-         of the heading's full stop (it swapped in after the first paint and moved the words). -->
-    {lang === "ar" ? (
+         of the heading's full stop (it swapped in after the first paint and moved the words),
+         and the Latin regular of the Latin words in its text (WhatsApp, Star, Epson: they
+         swapped in and moved their lines). The 404 is in both languages: all of them. -->
+    {(lang === "ar" || page === "notFound") && (
       <>
         <link rel="preload" as="font" type="font/woff2" href={plexArabic600} crossorigin />
         <link rel="preload" as="font" type="font/woff2" href={plexArabic400} crossorigin />
         <link rel="preload" as="font" type="font/woff2" href={plexArabic500} crossorigin />
-        <link rel="preload" as="font" type="font/woff2" href={plexLatin500} crossorigin />
-        <link rel="preload" as="font" type="font/woff2" href={plexLatin600} crossorigin />
-      </>
-    ) : (
-      <>
-        <link rel="preload" as="font" type="font/woff2" href={plexLatin600} crossorigin />
-        <link rel="preload" as="font" type="font/woff2" href={plexLatin500} crossorigin />
-        <link rel="preload" as="font" type="font/woff2" href={plexLatin400} crossorigin />
       </>
     )}
+    <link rel="preload" as="font" type="font/woff2" href={plexLatin600} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={plexLatin500} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={plexLatin400} crossorigin />
 
     {ld.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
 
@@ -119,10 +117,10 @@ const ld = [organization(), ...jsonLd];
     <ContactSheet lang={lang} />
     <StickyWhatsApp lang={lang} action={sticky} />
     <script>
-      import "@/scripts/motion";
       import "@/scripts/ui";
-      import "@/scripts/story";
       import "@/scripts/offline";
+      // The motion engine (GSAP) comes only where the page has something to move.
+      import "@/scripts/load-motion";
     </script>
   </body>
 </html>

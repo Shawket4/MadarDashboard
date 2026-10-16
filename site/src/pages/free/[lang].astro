@@ -12,13 +12,8 @@ import StoreBadges from "@/components/ui/StoreBadges.astro";
 import cashier from "@/assets/apps/cashier.svg?url";
 import CrewBadge from "@/components/free/CrewBadge.astro";
 import ZReport from "@/components/free/ZReport.astro";
-import Nuqta from "@/components/crew/Nuqta.astro";
-import NuqtaCup from "@/components/crew/NuqtaCup.astro";
-import NuqtaCount from "@/components/crew/NuqtaCount.astro";
-import NuqtaJoy from "@/components/crew/NuqtaJoy.astro";
-import Kanaka from "@/components/crew/Kanaka.astro";
-import Shariha from "@/components/crew/Shariha.astro";
-import SharihaJoy from "@/components/crew/SharihaJoy.astro";
+import CrewMoment from "@/components/kit/CrewMoment.astro";
+import StepList from "@/components/kit/StepList.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS, downloadsHref, pageHref, signupHref, whatsappHref } from "@/lib/site";
 import { breadcrumbs, faqPage, freeApplication } from "@/lib/schema";
@@ -91,7 +86,7 @@ const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(l
       {(["nuqta", "shariha"] as const).map((who, col) => (
         <div class="crew-col" data-reveal>
           <div class="crew-col-head" data-crew-host>
-            {who === "nuqta" ? <Nuqta class="crew-col-figure" /> : <Shariha class="crew-col-figure" />}
+            <CrewMoment pose={who === "nuqta" ? "wave" : "slice"} class="crew-col-figure" />
             <div class="crew-col-who">
               <h3 class="crew-col-name">{f.crew[who].name}</h3>
               <p class="crew-col-role">{f.crew[who].role}</p>
@@ -119,7 +114,7 @@ const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(l
       </div>
       <div class="lg:col-span-6 lg:col-start-7">
         <div class="zr-scene" data-crew-host>
-          <NuqtaCount class="zr-nuqta" />
+          <CrewMoment pose="count" class="zr-nuqta" />
           <ZReport lang={lang} />
         </div>
       </div>
@@ -127,7 +122,7 @@ const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(l
 
     <!-- The crew cheering on the band's top edge (the owner's "Not a penny" poster). -->
     <CtaBand class="mt-24 md:mt-32" title={f.band} body={f.note} cta={{ href: signup, label: f.cta, event: "free-signup", where: "free-mid" }}>
-      <Fragment slot="crew"><SharihaJoy class="cta-band-shariha" /><NuqtaJoy class="cta-band-nuqta" /></Fragment>
+      <Fragment slot="crew"><CrewMoment pose="slice-joy" class="cta-band-shariha" /><CrewMoment pose="joy" class="cta-band-nuqta" /></Fragment>
     </CtaBand>
 
     <div class="free-limits mt-16 md:mt-24" data-reveal>
@@ -149,43 +144,27 @@ const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(l
       copy={{ inFirst: cmp.inFree, adds: cmp.adds, tag: cmp.paidTag }}
       more={{ href: pageHref(lang, "pricing"), label: cmp.more, event: "free-upgrade", where: "free-compare" }}
     >
-      <Shariha slot="peek" class="pt-peek" />
+      <CrewMoment slot="peek" pose="slice" class="pt-peek" />
     </PlanTable>
   </Section>
 
   <!-- Sign-up to first order. The till app sits in its step, with both ways to get it. -->
   <Section titleId="steps-title" kicker={f.steps.kicker} title={f.steps.title}>
-    <!-- Phones: a timeline, each number at the start with a line down to the next. Wider:
-         four columns, each number over a rule. -->
-    <ol class="free-steps" data-reveal-group>
-      {f.steps.items.map((s, i) => (
-        <li class="free-step" data-reveal>
-          <span class="free-step-n" aria-hidden="true" data-split>{String(i + 1).padStart(2, "0")}</span>
-          <span class="free-step-rule" aria-hidden="true" data-draw="down"></span>
-          <div class="free-step-body">
-            <h3 class="text-lg font-semibold leading-snug">{s.t}</h3>
-            <p class="mt-2 text-muted">{s.b}</p>
-            {i === 0 && (
-              <a class="link-cta mt-3" href={signup} data-umami-event="free-signup" data-umami-event-where="free-steps">{f.cta} <Icon name="arrow" size={18} /></a>
-            )}
-            {i === 1 && (
-              <div class="mt-5 grid gap-4">
-                <div class="flex items-center gap-3">
-                  <img class="app-icon size-11" src={cashier} width="44" height="44" alt="" />
-                  <StoreBadges lang={lang} app="cashier" where="free-steps" />
-                </div>
-                <div>
-                  <a class="btn btn-outline" href={downloadsHref(lang, "cashier")} data-umami-event="downloads" data-umami-event-where="free-steps">
-                    <Icon name="arrow-down" size={18} /> {f.steps.apk}
-                  </a>
-                  <p class="mt-2 text-xs text-muted">{f.steps.apkNote}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </li>
-      ))}
-    </ol>
+    <StepList items={f.steps.items.map((s) => ({ title: s.t, body: s.b }))}>
+      <a slot="step-0" class="link-cta mt-3" href={signup} data-umami-event="free-signup" data-umami-event-where="free-steps">{f.cta} <Icon name="arrow" size={18} /></a>
+      <div slot="step-1" class="mt-5 grid gap-4">
+        <div class="flex items-center gap-3">
+          <img class="app-icon size-11" src={cashier} width="44" height="44" alt="" />
+          <StoreBadges lang={lang} app="cashier" where="free-steps" />
+        </div>
+        <div>
+          <a class="btn btn-outline" href={downloadsHref(lang, "cashier")} data-umami-event="downloads" data-umami-event-where="free-steps">
+            <Icon name="arrow-down" size={18} /> {f.steps.apk}
+          </a>
+          <p class="mt-2 text-xs text-muted">{f.steps.apkNote}</p>
+        </div>
+      </div>
+    </StepList>
     <p class="mt-12 flex max-w-2xl items-start gap-2.5 text-muted" data-reveal>
       <span class="mt-0.5 text-teal"><Icon name="check" size={18} /></span>
       <span>{f.steps.need}</span>
@@ -209,7 +188,7 @@ const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(l
   >
     <div class="grid gap-4 md:grid-cols-2 md:gap-5" data-reveal-group>
       <div class="free-door free-door-main" data-reveal>
-        <div class="free-door-roundel" data-crew-host><NuqtaCup class="free-door-cup" /></div>
+        <CrewMoment pose="cup" class="free-door-cup" host="free-door-roundel" />
         <p class="free-door-tag">{f.doors.self.tag}</p>
         <h3 class="text-h3 mt-4">{f.doors.self.title}</h3>
         <p class="mt-3 max-w-md text-muted-ink">{f.doors.self.body}</p>
@@ -221,7 +200,7 @@ const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(l
         </div>
       </div>
       <div class="free-door" data-reveal>
-        <div class="free-door-roundel free-door-roundel-ink" data-crew-host><Kanaka class="free-door-kanaka" /></div>
+        <CrewMoment pose="pot" class="free-door-kanaka" host="free-door-roundel free-door-roundel-ink" />
         <p class="free-door-tag">{f.doors.assisted.tag}</p>
         <h3 class="text-h3 mt-4">{f.doors.assisted.title}</h3>
         <p class="mt-3 max-w-md text-muted-ink">{f.doors.assisted.body}</p>
@@ -235,7 +214,3 @@ const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(l
     </div>
   </Section>
 </BaseLayout>
-
-<script>
-  import "@/scripts/crew";
-</script>

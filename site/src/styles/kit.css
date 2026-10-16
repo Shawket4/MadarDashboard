@@ -151,3 +151,29 @@ html[lang="ar"] .cta-band-cur { font-family: var(--font-arabic); font-size: .7em
 .data-table :is(th, td):first-child { position: sticky; inset-inline-start: 0; padding-inline-start: 0; background: var(--color-paper); white-space: nowrap; }
 .data-table td:nth-child(2) { min-width: 13rem; }
 @media (max-width: 47.99rem) { .data-table :is(th, td):first-child { box-shadow: inset calc(var(--flip) * -1px) 0 var(--color-rule); } }
+
+/* ---------- Steps (kit/StepList.astro) ----------
+   Phones: a timeline, each number at the start with a line down to the next (shorter than
+   a number over a rule, and it reads as one path). From sm: columns, each number over its
+   rule. Each step is a set piece ("step"): its number rises from its mask and its rule
+   draws, the steps of a row one after another. */
+.steps { display: grid; gap: 2rem; }
+.step { position: relative; min-width: 0; display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: .75rem; }
+.step-n { grid-area: 1 / 1; display: block; overflow: clip; font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; color: var(--color-teal); }
+.step-n > span { display: block; }
+.on-ink .step-n { color: var(--color-teal-light); }
+.step-rule { grid-area: 2 / 1; justify-self: center; width: 1px; margin-block: .5rem -1.5rem; background: var(--color-rule); }
+.on-ink .step-rule { background: var(--color-line-ink); }
+.step:last-child .step-rule { display: none; }
+.step-body { grid-area: 1 / 2 / 3 / 3; min-width: 0; }
+@media (min-width: 640px) {
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 2.5rem; }
+  .step { display: block; }
+  .step-n { margin-bottom: 1rem; font-size: 2rem; line-height: 1; }
+  .step-rule, .step:last-child .step-rule { display: block; justify-self: auto; width: auto; height: 1px; margin: 0 0 1.25rem; }
+}
+@media (min-width: 1024px) { .steps-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; } .steps-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem; } }
+
+/* ---------- The header's page progress line (the engine fills it as the page scrolls) ---------- */
+.page-progress { position: absolute; inset-inline: 0; bottom: -1px; height: 2px; background: var(--color-teal-light); transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
+[dir="rtl"] .page-progress { transform-origin: 100% 50%; }

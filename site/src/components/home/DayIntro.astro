@@ -16,7 +16,7 @@ const stages = [
     <ol class="grid gap-4 sm:grid-cols-3" data-reveal-group>
       {stages.map((s) => (
         <li data-reveal>
-          <a href={`#stage-${s.key}`} class="card group flex h-full flex-col p-6 transition-colors hover:border-teal/40">
+          <a href={`#stage-${s.key}`} class="card lift group flex h-full flex-col p-6 hover:border-teal/40">
             <span class="ltr font-mono text-3xl font-medium text-teal">{s.time}</span>
             <span class="mt-3 text-lg font-semibold">{s.name}</span>
             <span class="mt-1.5 text-sm text-muted">{s.line}</span>

@@ -2,7 +2,8 @@
 import Logo from "@/components/ui/Logo.astro";
 import Icon from "@/components/ui/Icon.astro";
 import StoreBadges from "@/components/ui/StoreBadges.astro";
-import { t } from "@/i18n";
+import { t, pageLabel } from "@/i18n";
+import { PAGES, langsOf } from "@/lib/pages";
 import { currentYear } from "@shared/dates";
 import {
   type Lang, type PageKey, pageHref, otherLang, switchHref, whatsappHref, PHONE_HREF, PHONE_DISPLAY,
@@ -17,6 +18,12 @@ const other = otherLang(lang);
 const year = currentYear(lang);
 // The home page (its apps section) and pricing show the till's badges in the page itself.
 const badgesInPage = page === "home" || page === "pricing";
+// The registry's footer pages, in its order (lib/pages.ts); one written in another language
+// only links there, and says so (hreflang).
+const pages = PAGES.filter((p) => "footer" in p && p.footer).map((p) => {
+  const to = langsOf(p.key).includes(lang) ? lang : langsOf(p.key)[0]!;
+  return { href: pageHref(to, p.key), label: pageLabel(lang, p.key), hreflang: to === lang ? undefined : to };
+});
 ---
 <footer class="on-ink border-t border-line-ink bg-ink text-paper">
   <div class="container-site grid gap-12 py-16 md:grid-cols-12 md:py-20">
@@ -33,16 +40,10 @@ const badgesInPage = page === "home" || page === "pricing";
       <div>
         <h3 class="text-sm font-semibold text-muted-ink">{c.footer.product}</h3>
         <ul class="mt-4 space-y-3">
-          <li><a class="link-quiet" href={pageHref(lang, "features")}>{c.nav.features}</a></li>
-          <li><a class="link-quiet" href={pageHref(lang, "pricing")}>{c.nav.pricing}</a></li>
-          <li><a class="link-quiet" href={pageHref(lang, "free")}>{c.nav.free}</a></li>
-          <li><a class="link-quiet" href={pageHref(lang, "faq")}>{c.nav.faq}</a></li>
-          <li><a class="link-quiet" href={pageHref(lang, "about")}>{c.nav.about}</a></li>
-          <li><a class="link-quiet" href={pageHref(lang, "contact")}>{c.nav.contact}</a></li>
+          {pages.map((p) => <li><a class="link-quiet" href={p.href} hreflang={p.hreflang}>{p.label}</a></li>)}
           <li><a class="link-quiet" href={downloadsHref(lang, "cashier")} data-umami-event="downloads" data-umami-event-where="footer">{c.nav.downloads}</a></li>
           <li><a class="link-quiet" href={DASHBOARD_URL} rel="noopener">{c.footer.dashboard}</a></li>
           <li><a class="link-quiet" href={signupHref(lang)} data-umami-event="free-signup" data-umami-event-where="footer">{c.footer.signup}</a></li>
-          <li><a class="link-quiet" href={pageHref("en", "developers")} hreflang="en">{c.footer.developers}</a></li>
         </ul>
       </div>
       <div>

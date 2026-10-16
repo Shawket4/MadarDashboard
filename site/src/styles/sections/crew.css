@@ -1,8 +1,8 @@
 /* ---------- The crew (components/free, scripts/crew.ts) ----------
    نقطة and شريحة from the owner's "New crew" posters: sticker-style badges (Ink outline,
-   a hard Ink shadow) and the characters themselves. The motion lives behind
-   .crew-armed, which crew.ts sets only when motion is allowed: without it every badge
-   hangs still, the receipt is printed and the characters stand. */
+   a hard Ink shadow) and the characters themselves. Their motion (crew.ts) lives behind
+   .crew-armed, which the motion engine sets only when motion is allowed: without it every
+   badge hangs still, the receipt is printed and the characters stand. */
 .crew-badge-wrap { --w: 13rem; --lanyard: 40rem; --strap: var(--color-ink); position: relative; width: var(--w); }
 .crew-badge-wrap[data-strap="teal"] { --strap: var(--color-teal); }
 .crew-badge { position: relative; transform-origin: 50% calc(-1 * var(--lanyard)); }
@@ -57,14 +57,8 @@
 
 @media (max-width: 767px) { .crew-col-items { gap: 1.25rem; margin-top: 1.5rem; } }
 
-/* Entrances (motion.ts sets data-in as they scroll into view), once each. A character pops
-   up onto its line: the whole drawing, shadow and all (the <svg> itself, so the hop inside
-   stays free for a greeting). Then each duty's tick pops and its check draws (data-pop,
-   data-draw: styles/motion.css), on a slower beat than a list's. */
-.crew-armed svg[data-crew] { transform-origin: 50% 100%; }
-.crew-armed svg[data-crew]:not([data-in]) { opacity: 0; transform: translateY(14%) scale(.9); }
-.crew-armed svg[data-crew][data-in] { animation: crew-enter .7s var(--ease-spring) both; }
-@keyframes crew-enter { 0% { opacity: 0; transform: translateY(14%) scale(.9); } 100% { opacity: 1; transform: none; } }
+/* Entrances are set pieces on the motion engine (crew.ts: "figure", "receipt"). Each duty's
+   tick pops and its check draws (data-pop, data-draw) on a slower beat than a list's. */
 .crew-col-items { --delay: .5s; --stagger: .25s; }
 
 /* نقطة with the count, beside the receipt it prints: stacked on a phone, side by side from md. */
@@ -74,16 +68,9 @@
 [data-wave] .crew-paper { animation: crew-paper var(--dur-wave) ease-in-out; }
 @keyframes crew-paper { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-1.6deg) translateY(1px); } 65% { transform: rotate(1.3deg); } }
 
-/* شريحة comes in the way a pie chart draws its slice: the mask in Shariha.astro sweeps her
-   wedge open from its corner, a quarter turn, as she pops up. */
+/* شريحة's slice: the mask in Shariha.astro is one dash a quarter turn long, which her
+   entrance (crew.ts) sweeps open; at rest it covers her whole. */
 .crew-armed svg[data-crew] .crew-sweep { stroke-dasharray: 32 100; }
-.crew-armed svg[data-crew]:not([data-in]) .crew-sweep { stroke-dashoffset: 32; }
-.crew-armed svg[data-crew][data-in] .crew-sweep { animation: crew-sweep .85s cubic-bezier(.5, 0, .2, 1) .05s both; }
-@keyframes crew-sweep { from { stroke-dashoffset: 32; } to { stroke-dashoffset: 0; } }
-/* Her arms and legs come once the wedge is mostly drawn, not floating before it. */
-.crew-armed svg[data-crew]:not([data-in]) .crew-limb { opacity: 0; }
-.crew-armed svg[data-crew][data-in] .crew-limb { animation: crew-limb .4s ease-out .55s both; }
-@keyframes crew-limb { from { opacity: 0; } }
 
 
 /* The self-service door: نقطة with his coffee in a Paper roundel, top corner. */
@@ -96,7 +83,7 @@
 .free-door-kanaka { position: absolute; inset-inline: 0; bottom: 10%; width: 62%; margin-inline: auto; translate: 18% 0; overflow: visible; cursor: pointer; }
 /* The FAQ page: نقطة under the questions' head, waving (wide screens only). */
 .faq-crew { display: none; }
-@media (min-width: 64rem) { .faq-crew { display: block; margin-top: 3rem; } .faq-nuqta { width: 7.5rem; overflow: visible; cursor: pointer; } }
+@media (min-width: 64rem) { .faq-crew { display: block; flex-basis: 100%; margin-top: 2rem; } .faq-nuqta { width: 7.5rem; overflow: visible; cursor: pointer; } }
 /* The 404: the Kanaka, looking about for the page. */
 .nf-kanaka { display: block; width: 6.5rem; margin-bottom: -2rem; overflow: visible; cursor: pointer; }
 /* The endless bits run only while their character is on screen (crew.ts sets data-live). */
@@ -131,9 +118,8 @@ html[lang="ar"] .zr-meta dd:not(.ltr) { font-family: var(--font-arabic); }
 .zr-stamp { position: absolute; inset-inline-start: .9rem; top: 1.3rem; padding: .15rem .65rem; border: 2.5px solid var(--color-teal); border-radius: .4rem; color: var(--color-teal); font-family: var(--font-mono); font-size: .8rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; rotate: -12deg; opacity: .92; }
 html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; font-weight: 600; letter-spacing: 0; }
 
-/* Motion (crew.ts sets .crew-armed). Badges wait above the section, then drop in on
+/* Motion (the engine sets .crew-armed). Badges wait above the section, then drop in on
    their lanyards (crew.ts: a spring fall, then a pendulum swing). */
-.crew-armed [data-swing]:not([data-in]) .crew-badge { transform: translateY(-130vh); }
 /* Its own layer: the card turns as a picture, so its text never re-rasterises (shimmers). */
 .crew-armed [data-swing] .crew-badge { will-change: transform; }
 .crew-armed [data-swing][data-settled] .crew-badge { touch-action: pan-y; cursor: grab; }
@@ -167,20 +153,3 @@ html[lang="ar"] .zr-stamp { font-family: var(--font-arabic); font-size: .95rem; 
 [data-cheer] .crew-flap-end { animation-name: crew-flap-end; }
 @keyframes crew-flap { 0%, 100% { transform: none; } 40% { transform: rotate(28deg); } 72% { transform: rotate(-8deg); } }
 @keyframes crew-flap-end { 0%, 100% { transform: none; } 40% { transform: rotate(-28deg); } 72% { transform: rotate(8deg); } }
-
-/* The receipt feeds out in bursts, as a thermal printer does, and the stamp lands last. */
-.crew-armed .zr:not([data-in]) .zr-paper { transform: translateY(-104%); }
-.crew-armed .zr[data-in] .zr-paper { animation: zr-print 2.6s linear both; will-change: transform; }
-@keyframes zr-print {
-  0% { transform: translateY(-104%); }
-  16% { transform: translateY(-80%); }
-  24% { transform: translateY(-80%); }
-  44% { transform: translateY(-52%); }
-  52% { transform: translateY(-52%); }
-  74% { transform: translateY(-22%); }
-  82% { transform: translateY(-22%); }
-  100% { transform: translateY(0); }
-}
-.crew-armed .zr:not([data-in]) .zr-stamp { opacity: 0; }
-.crew-armed .zr[data-in] .zr-stamp { animation: zr-stamp var(--dur-pop) var(--ease-pop) 2.7s both; }
-@keyframes zr-stamp { from { opacity: 0; transform: scale(1.9); } to { opacity: .92; transform: none; } }

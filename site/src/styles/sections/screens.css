@@ -36,14 +36,21 @@
 .motion [data-media="fan"] .media-track { align-items: end; }
 .motion [data-media="fan"] .media-card { transform-origin: 50% 100%; }
 .motion [data-media] :is(.media-meta, .media-progress) { width: var(--meta); margin-inline: auto; }
+/* Nothing moves as the screens turn (no layout shift): the progress line comes right under
+   the screens, the caption last, holding two lines' room; the dots keep their width and the
+   current one is a pill that slides over them (carousel.ts sets --k). */
+.motion [data-media] { display: flex; flex-direction: column; }
+.motion [data-media] .media-progress { order: 1; }
+.motion [data-media] .media-meta { order: 2; }
+.motion [data-media] .media-meta-caption { min-height: 3em; }
 
 .motion .media-meta { display: flex; align-items: flex-start; gap: .9rem; margin-top: 1.4rem; font-size: .92rem; line-height: 1.5; color: var(--color-muted); }
 .on-ink .media-meta { color: var(--color-muted-ink); }
 .media-meta-caption { flex: 1; min-width: 0; }
-.media-dots { display: inline-flex; gap: .3rem; padding-top: .5rem; }
-.media-dots i { display: block; width: .4rem; height: .4rem; border-radius: 99px; background: currentColor; opacity: .3; transition: width .45s var(--ease-out-expo), opacity .3s, background-color .3s; }
-.media-dots i[data-on] { width: 1.15rem; opacity: 1; background: var(--color-teal); }
-.on-ink .media-dots i[data-on] { background: var(--color-teal-light); }
+.media-dots { position: relative; display: inline-flex; gap: .5rem; padding-top: .5rem; }
+.media-dots i { display: block; width: .4rem; height: .4rem; border-radius: 99px; background: currentColor; opacity: .3; }
+.media-dots::after { content: ""; position: absolute; top: .5rem; inset-inline-start: -.375rem; width: 1.15rem; height: .4rem; border-radius: 99px; background: var(--color-teal); translate: calc(var(--flip) * var(--k, 0) * .9rem) 0; transition: translate .45s var(--ease-out-expo); }
+.on-ink .media-dots::after { background: var(--color-teal-light); }
 .media-progress { display: none; }
 /* A small cue that scrolling moves the screens on; it bows out on the last one. */
 .media-cue { display: inline-flex; padding-top: .15rem; opacity: .7; transition: opacity .3s; }
@@ -52,6 +59,9 @@
 @media (prefers-reduced-motion: reduce) { .motion .media-cue svg { animation: none; } }
 /* Phones: the WhatsApp bar steps aside while a scene holds the page. */
 .scene-on .sticky-wa { transform: translateY(140%); opacity: 0; pointer-events: none; }
+/* A pinned set holds its layout pinned or not: its own formatting context, so the screens'
+   negative margins never escape it in the page and stay inside it once pinned. */
+[data-pin-set] { display: flow-root; }
 .motion :is(.area-scene, [data-pin-set]) .media-progress { display: block; position: relative; height: 2px; margin-top: .85rem; border-radius: 2px; background: color-mix(in oklab, currentColor 16%, transparent); overflow: hidden; }
 .media-progress i { position: absolute; inset: 0; background: var(--color-teal); transform: scaleX(0); transform-origin: 0% 50%; }
 .on-ink .media-progress i { background: var(--color-teal-light); }
