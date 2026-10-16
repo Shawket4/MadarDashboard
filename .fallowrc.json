@@ -1,0 +1,23 @@
+{
+  "entry": [
+    "src/main.tsx",
+    "src/order/main.tsx",
+    "src/loyalty/main.tsx",
+    "src/reservations/main.tsx",
+    "scripts/**/*.mjs",
+    "src/data/api/mock/enable*.ts"
+  ],
+  "ignorePatterns": [
+    ".github/**",
+    "site/**",
+    "downloads/**",
+    "dist/**",
+    "dist-demo/**",
+    "src/data/api/generated/**",
+    "*.cjs"
+  ],
+  "ignoreDependencies": [
+    "@faker-js/faker",
+    "@tanstack/react-query-devtools"
+  ]
+}
