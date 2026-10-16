@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import { useTranslation } from "react-i18next";
+
+import { DISTANCE, recipes, SwapPresence } from "@/lib/motion";
 
 import { createShowcase, type ShowcaseKey } from "@shared/showcase/engine";
 
@@ -75,23 +76,16 @@ function Caption({ showing }: { showing: ShowcaseKey | null }) {
   const { t } = useTranslation();
   return (
     <div className="relative h-16 shrink-0">
-      <AnimatePresence mode="wait">
+      <SwapPresence swapKey={showing ?? ""} recipe={recipes.rise("brand", DISTANCE.sm)} className="absolute inset-x-0 top-0 text-center">
         {showing && (
-          <motion.div
-            key={showing}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-x-0 top-0 text-center"
-          >
+          <>
             <p className="text-sm font-semibold">{t(`auth.showcase.${showing}.title`, CAPTIONS[showing].title)}</p>
             <p className="mx-auto mt-1 max-w-sm text-xs text-sidebar-muted">
               {t(`auth.showcase.${showing}.line`, CAPTIONS[showing].line)}
             </p>
-          </motion.div>
+          </>
         )}
-      </AnimatePresence>
+      </SwapPresence>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   type Column,
   type ColumnDef,
@@ -39,6 +39,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { getErrorMessage } from "@/data/api/errors";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { DISTANCE, recipes, useStagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useSearchInput, type DataTableUrlState } from "@/data/scope/use-list-filters";
 
@@ -240,6 +241,19 @@ export function DataTable<TData, TValue>({
     return () => ro.disconnect();
   }, [isMobile, loading, rows.length, colSpan]);
 
+  // Row arrival: the visible rows rise in when a new set of them lands (the
+  // first load, another page, a filter that swapped the rows), never for a
+  // refetch that only touched some of them, and never under someone typing.
+  const rowIds = rows.map((r) => r.id);
+  const [arrival, setArrival] = useState({ ids: [] as string[], page: -1, n: 0 });
+  if (!loading && (pageIndex !== arrival.page || rowIds.join("\u0000") !== arrival.ids.join("\u0000"))) {
+    const fresh = pageIndex !== arrival.page || !rowIds.some((id) => arrival.ids.includes(id));
+    const typing = !!document.activeElement?.matches("input, textarea");
+    setArrival({ ids: rowIds, page: pageIndex, n: arrival.n + (fresh && !typing ? 1 : 0) });
+  }
+  const rowsRef = useRef<HTMLElement>(null);
+  useStagger(rowsRef, { selector: ":scope > [data-row]", replayKey: arrival.n, recipe: recipes.rise("product", DISTANCE.xs) });
+
   const toggleExpanded = (id: string) => setExpanded((s) => ({ ...s, [id]: !s[id] }));
 
   const cellAlign = (meta: DataTableColumnMeta) =>
@@ -422,7 +436,7 @@ export function DataTable<TData, TValue>({
       ) : emptyNode ? (
         emptyNode
       ) : isMobile ? (
-        <div className="space-y-2" aria-busy={loading || undefined}>
+        <div ref={rowsRef as RefObject<HTMLDivElement>} className="space-y-2" aria-busy={loading || undefined}>
           {loading
             ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)
             : rows.map((row) =>
@@ -433,7 +447,9 @@ export function DataTable<TData, TValue>({
                   // instead, named by the card's title, controls above it.
                   <div
                     key={row.id}
-                    className="relative rounded-2xl transition-transform duration-base has-[>button:active]:scale-[0.99] motion-reduce:transition-none"
+                    data-row
+                    data-press="product"
+                    className="relative rounded-2xl"
                     onMouseEnter={() => onRowPrefetch?.(row.original)}
                   >
                     <button
@@ -449,15 +465,17 @@ export function DataTable<TData, TValue>({
                   <button
                     key={row.id}
                     type="button"
+                    data-row
+                    data-press="product"
                     onClick={() => onRowClick(row.original)}
                     onMouseEnter={() => onRowPrefetch?.(row.original)}
                     onFocus={() => onRowPrefetch?.(row.original)}
-                    className="block w-full rounded-2xl text-start transition-transform duration-base focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100"
+                    className="block w-full rounded-2xl text-start focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
                   >
                     {renderPhoneCard(row)}
                   </button>
                 ) : (
-                  <div key={row.id} onMouseEnter={() => onRowPrefetch?.(row.original)}>
+                  <div key={row.id} data-row onMouseEnter={() => onRowPrefetch?.(row.original)}>
                     {renderPhoneCard(row)}
                   </div>
                 ),
@@ -471,7 +489,7 @@ export function DataTable<TData, TValue>({
         >
           <table className="w-full caption-bottom border-separate border-spacing-0 text-sm">
             {header}
-            <tbody>
+            <tbody ref={rowsRef as RefObject<HTMLTableSectionElement>}>
               {loading
                 ? skeletonRows
                 : rows.map((row) => {
@@ -481,6 +499,7 @@ export function DataTable<TData, TValue>({
                     return (
                       <Fragment key={row.id}>
                         <tr
+                          data-row
                           data-state={selected ? "selected" : undefined}
                           aria-selected={selectedRowId !== undefined ? selected : undefined}
                           onClick={() => onRowClick?.(row.original)}

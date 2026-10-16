@@ -1,8 +1,9 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { AlertTriangle, RotateCw, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { DISTANCE, Stagger, recipes } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
@@ -16,8 +17,13 @@ interface EmptyStateProps {
 
 /** Empty content (POS SPEC §11): badge glyph, 16/600 title, 14 message, optional action. */
 export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
+  // Arrives quietly, glyph then words, unless it appeared under someone
+  // typing (a search that just ran dry): that answer just shows.
+  const [arrive] = useState(() => !document.activeElement?.matches("input, textarea"));
   return (
-    <div
+    <Stagger
+      when={arrive}
+      recipe={recipes.rise("product", DISTANCE.xs)}
       data-slot="empty-state"
       className={cn(
         "flex flex-col items-center justify-center gap-3 rounded-2xl border bg-card px-6 py-12 text-center",
@@ -36,7 +42,7 @@ export function EmptyState({ icon: Icon, title, description, action, className }
         ) : null}
       </div>
       {action ? <div className="mt-1">{action}</div> : null}
-    </div>
+    </Stagger>
   );
 }
 
@@ -62,7 +68,7 @@ export function ErrorState({ title, message, onRetry, retrying, retryLabel, clas
         className,
       )}
     >
-      <span className="grid size-12 place-items-center rounded-full bg-destructive/12 text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]">
+      <span className="grid size-12 place-items-center rounded-full bg-destructive/12 text-[color-mix(in_oklab,var(--color-destructive)_60%,var(--color-foreground))]">
         <AlertTriangle aria-hidden className="size-5" />
       </span>
       <div className="space-y-1">

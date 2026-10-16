@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { latinDigits } from "@/components/inputs/time";
+import { useShake } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export interface OtpInputProps {
@@ -40,6 +41,10 @@ export function OtpInput({
 }: OtpInputProps) {
   const { t } = useTranslation();
   const refs = useRef<(HTMLInputElement | null)[]>([]);
+  // A refused code shakes the whole row once: `refocus` is bumped per refusal,
+  // and typing clears `invalid`, so the boxes never move under a keystroke.
+  const row = useRef<HTMLDivElement>(null);
+  useShake(row, invalid && (refocus || 1));
   const digits = Array.from({ length }, (_, i) => value[i] ?? "");
   // What the code is right now, ahead of the next render: a digit moves focus on
   // before React has re-rendered, and that focus must see the digit.
@@ -87,13 +92,14 @@ export function OtpInput({
 
   return (
     <div
+      ref={row}
       id={id}
       role="group"
       aria-label={t("signup.codeLabel", "Verification code")}
       aria-describedby={describedBy}
       aria-busy={busy || undefined}
       dir="ltr"
-      className={cn("relative flex w-full justify-center gap-1.5 sm:gap-2", busy && "[&>input]:opacity-50", invalid && "motion-safe:animate-[otp-shake_0.32s_ease-in-out]")}
+      className={cn("relative flex w-full justify-center gap-1.5 sm:gap-2", busy && "[&>input]:opacity-50")}
     >
       {digits.map((d, i) => (
         <input

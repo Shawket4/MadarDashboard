@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatusPill, type StatusTone } from "@/components/app/status-pill";
+import { Presence, Reveal, recipes } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export interface SuggestionTag { label: string; className?: string }
@@ -46,16 +47,23 @@ export function SuggestionCard({ title, subtitle, tags = [], content, onAccept, 
             </CardTitle>
             {subtitle ? <CardDescription>{subtitle}</CardDescription> : null}
           </div>
-          {decided ? <StatusPill tone={DECISION_TONE[decision] ?? "neutral"}>{t(`common.decision.${decision}`, decision)}</StatusPill> : null}
+          {decided ? (
+            // The verdict fades in where the buttons were deciding it.
+            <Reveal recipe={recipes.fade()} className="shrink-0">
+              <StatusPill tone={DECISION_TONE[decision] ?? "neutral"}>{t(`common.decision.${decision}`, decision)}</StatusPill>
+            </Reveal>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent>{content}</CardContent>
-      {!decided && (onAccept || onReject || onIgnore) ? (
-        <CardFooter className="justify-end gap-2">
-          {onIgnore ? <Button variant="ghost" size="sm" disabled={pending} onClick={onIgnore}><EyeOff className="size-4" /> {t("common.ignore", "Ignore")}</Button> : null}
-          {onReject ? <Button variant="outline" size="sm" disabled={pending} onClick={onReject} className="text-destructive hover:bg-destructive/10 hover:text-destructive"><X className="size-4" /> {t("common.reject", "Reject")}</Button> : null}
-          {onAccept ? <Button size="sm" loading={pending} onClick={onAccept}><Check className="size-4" /> {t("common.accept", "Accept")}</Button> : null}
-        </CardFooter>
+      {onAccept || onReject || onIgnore ? (
+        <Presence show={!decided} initial={false} recipe={recipes.fade()}>
+          <CardFooter className="justify-end gap-2">
+            {onIgnore ? <Button variant="ghost" size="sm" disabled={pending} onClick={onIgnore}><EyeOff className="size-4" /> {t("common.ignore", "Ignore")}</Button> : null}
+            {onReject ? <Button variant="outline" size="sm" disabled={pending} onClick={onReject} className="text-destructive hover:bg-destructive/10 hover:text-destructive"><X className="size-4" /> {t("common.reject", "Reject")}</Button> : null}
+            {onAccept ? <Button size="sm" loading={pending} onClick={onAccept}><Check className="size-4" /> {t("common.accept", "Accept")}</Button> : null}
+          </CardFooter>
+        </Presence>
       ) : null}
     </Card>
   );

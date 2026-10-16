@@ -61,6 +61,7 @@ import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { PageNotice, PageSkeleton, usePageColor } from "@/features/loyalty/public/page-shell";
 import { SocialLinks } from "@/features/loyalty/public/social-links";
 import { readableOn } from "@/features/loyalty/shared/brand";
+import { DISTANCE, recipes, Stagger } from "@/lib/motion";
 
 type Glyph = ComponentType<{ className?: string; style?: CSSProperties; "aria-hidden"?: boolean }>;
 
@@ -160,6 +161,7 @@ export function LinksPage({ orgId }: { orgId?: string | null }) {
             {page.items.length > 0 ? (
               <nav aria-label={t("links.navLabel", { name: page.brand.name, defaultValue: "{{name}} links" })}>
                 {/* Every button alike — one list, no first-among-equals. */}
+                <Stagger asChild register="brand" recipe={recipes.rise("brand", DISTANCE.md)}>
                 <ul className="grid gap-3 @3xl:grid-cols-2">
                   {items.map((item, i) => {
                     // A last card with no partner spans the row as a row — a
@@ -178,6 +180,7 @@ export function LinksPage({ orgId }: { orgId?: string | null }) {
                     );
                   })}
                 </ul>
+                </Stagger>
               </nav>
             ) : null}
 
@@ -361,6 +364,7 @@ function LinkRow({
     <a
       href={href}
       {...(custom ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      data-press="brand"
       className={`group flex h-full min-h-[72px] items-center gap-3.5 rounded-2xl border border-border/70 bg-card p-3.5 shadow-sm transition-[border-color,box-shadow] hover:border-border hover:shadow-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none ${card ? "@3xl:min-h-[132px] @3xl:flex-col @3xl:items-start @3xl:justify-between @3xl:p-5" : "@3xl:min-h-[80px] @3xl:px-5"}`}
     >
       <span

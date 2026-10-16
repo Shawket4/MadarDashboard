@@ -1,8 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { animate, useInView, useMotionValue, useReducedMotion } from "motion/react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { COUNT_ANIM_MS, easeOutQuart } from "@/lib/motion";
+import { useCountUp } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtNumberCompact, fmtPercent } from "@/lib/format";
 
 export type StatFormat = "money" | "number" | "percent";
@@ -35,13 +35,12 @@ interface StatValueProps {
  * shows the richest representation that fits, shrinking the font within `sizes`
  * to keep the fuller number before it resorts to compacting. If it still has to
  * shorten (e.g. "EGP 1.2M"), the exact value is one click away. Counts up on
- * first reveal; honors prefers-reduced-motion.
+ * first reveal, then shows changes at once; honors prefers-reduced-motion.
  */
 export function StatValue({ value, formatType, label, sizes }: StatValueProps) {
-  const reduced = useReducedMotion();
   const wrapRef = useRef<HTMLDivElement>(null);
+  const valueRef = useRef<HTMLSpanElement>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
-  const inView = useInView(wrapRef, { once: true, margin: "0px 0px -10% 0px" });
 
   const fmts = formattersFor(formatType);
   const exact = fmts[0](value);
@@ -58,28 +57,6 @@ export function StatValue({ value, formatType, label, sizes }: StatValueProps) {
 
   const [repIdx, setRepIdx] = useState(0);
   const [size, setSize] = useState(sizes[0]);
-
-  const mv = useMotionValue(reduced ? value : 0);
-  const [shown, setShown] = useState(reduced ? value : 0);
-  const started = useRef(reduced);
-
-  useEffect(() => mv.on("change", (v) => setShown(v)), [mv]);
-  useEffect(() => {
-    if (reduced) {
-      setShown(value);
-      return;
-    }
-    if (!started.current) {
-      if (inView) {
-        started.current = true;
-        const controls = animate(mv, value, { duration: COUNT_ANIM_MS / 1000, ease: easeOutQuart });
-        return () => controls.stop();
-      }
-    } else {
-      mv.set(value);
-      setShown(value);
-    }
-  }, [inView, value, reduced, mv]);
 
   // Choose the richest representation + largest font that fits the slot.
   useLayoutEffect(() => {
@@ -119,40 +96,47 @@ export function StatValue({ value, formatType, label, sizes }: StatValueProps) {
 
   const rep = reps[Math.min(repIdx, reps.length - 1)];
   const shortened = rep(value) !== exact;
-  // Counts are whole numbers — round mid-tween so the animation ticks up through
+  // Counts are whole numbers — round mid-count so the figure ticks up through
   // integers (1,2,3…) instead of flashing fractions. This also covers the
   // default (no formatType) case used by branch/order counts. Only money and
   // percent keep their formatter's decimals.
   const isDecimalType = formatType === "money" || formatType === "percent";
-  const displayValue = isDecimalType ? shown : Math.round(shown);
-
-  const valueSpan = (
-    <span className="block truncate font-mono leading-none font-semibold tracking-tight tabular" style={{ fontSize: size }}>
-      {rep(displayValue)}
-    </span>
-  );
+  const format = (n: number) => rep(isDecimalType ? n : Math.round(n));
+  useCountUp(valueRef, value, format);
 
   return (
-    <div ref={wrapRef} className="relative min-w-0">
+    <div ref={wrapRef} className="group/stat relative min-w-0">
+      {/* One element for the figure whether or not it is shortened, so a
+          count-up already running is never remounted out from under it. */}
+      <span
+        ref={valueRef}
+        aria-hidden={shortened || undefined}
+        className={cn(
+          "block truncate font-mono leading-none font-semibold tracking-tight tabular",
+          shortened &&
+            "underline decoration-dotted decoration-muted-foreground/40 underline-offset-[5px] transition-colors group-hover/stat:decoration-muted-foreground/70",
+        )}
+        style={{ fontSize: size }}
+      >
+        {format(value)}
+      </span>
       {shortened ? (
         <Popover>
           <PopoverTrigger asChild>
+            {/* Laid over the figure; named by it, so a screen reader hears one figure. */}
             <button
               type="button"
+              aria-label={rep(value)}
               onClick={(e) => e.stopPropagation()}
-              className="block w-full max-w-full text-start underline decoration-dotted decoration-muted-foreground/40 underline-offset-[5px] outline-none transition-colors hover:decoration-muted-foreground/70 focus-visible:rounded-sm focus-visible:ring-[3px] focus-visible:ring-ring"
-            >
-              {valueSpan}
-            </button>
+              className="absolute inset-0 rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
+            />
           </PopoverTrigger>
           <PopoverContent align="start" sideOffset={8} className="w-auto px-3 py-2">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
             <p className="mt-0.5 font-mono text-base font-semibold tabular">{exact}</p>
           </PopoverContent>
         </Popover>
-      ) : (
-        valueSpan
-      )}
+      ) : null}
       {/* Off-screen measurer — same font metrics as the value. */}
       <span
         ref={measureRef}

@@ -27,7 +27,6 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AnimatePresence, motion } from "motion/react";
 import { Check, Clock, ShoppingBag, UtensilsCrossed } from "lucide-react";
 
 import {
@@ -37,10 +36,12 @@ import {
 } from "@/data/api/generated/api";
 import type { PublicTableBill } from "@/data/api/generated/models/publicTableBill";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { cn } from "@/lib/utils";
+import { AnimatedNumber, DISTANCE, Presence, recipes, type Recipe } from "@/lib/motion";
 
 import { CartPanel, CartSheet } from "./components/cart-sheet";
 import { ItemCustomizer } from "./components/item-customizer";
@@ -53,6 +54,15 @@ import { useCart } from "./use-cart";
 import type { CartLine } from "./types";
 import { toCartLineInput } from "./utils";
 import { fmtMoney } from "@/lib/format";
+import { CartCount } from "./components/cart-count";
+import { fmtMoneyFigure } from "./ordering-motion";
+
+/** "Sent to the kitchen" drops in from above with a little overshoot, and lifts away. */
+const SENT_BANNER: Recipe = {
+  from: { ...recipes.pop.from, y: -DISTANCE.lg },
+  to: recipes.pop.to,
+  exit: { ...recipes.pop.exit, y: -DISTANCE.md },
+};
 
 /** Re-read the bill on this beat, so a round somebody else sent turns up. */
 const BILL_POLL_MS = 20_000;
@@ -257,50 +267,33 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
 
       {/* The floating basket button — the only way to the send action on a
           phone, so it carries the count and the running total. */}
-      <AnimatePresence>
-        {cart.itemCount > 0 && !cartOpen ? (
-          <motion.div
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-[480px] px-4 pb-4 xl:hidden"
-          >
-            <Button
-              variant="brand"
-              size="lg"
-              className="w-full justify-between shadow-lg"
-              onClick={() => setCartOpen(true)}
-            >
-              <span className="flex items-center gap-2">
-                <ShoppingBag className="size-4" />
-                {t("table.basket", "Basket")}
-                <span className="rounded-full bg-background/20 px-2 py-0.5 text-xs tabular">
-                  {cart.itemCount}
-                </span>
-              </span>
-              <span className="tabular">{fmtMoney(pricing.afterDeals)}</span>
-            </Button>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
-      {/* Sent. */}
-      <AnimatePresence>
-        {sentAt != null ? (
-          <motion.div
-            initial={{ y: -24, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -24, opacity: 0 }}
-            className="fixed inset-x-0 top-16 z-30 mx-auto w-fit rounded-full bg-success px-4 py-2 text-sm font-medium text-success-foreground shadow-lg"
+      <Presence show={cart.itemCount > 0 && !cartOpen} recipe={recipes.sheet("bottom")}>
+        <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-[480px] px-4 pb-4 xl:hidden">
+          <Button
+            variant="brand"
+            size="lg"
+            className="w-full justify-between shadow-lg"
+            onClick={() => setCartOpen(true)}
           >
             <span className="flex items-center gap-2">
-              <Check className="size-4" />
-              {t("table.sent", "Sent to the kitchen")}
+              <ShoppingBag className="size-4" />
+              {t("table.basket", "Basket")}
+              <CartCount count={cart.itemCount} className="rounded-full bg-background/20 px-2 py-0.5 text-xs tabular" />
             </span>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+            <AnimatedNumber value={pricing.afterDeals} format={fmtMoneyFigure} />
+          </Button>
+        </div>
+      </Presence>
+
+      {/* Sent. */}
+      <Presence show={sentAt != null} recipe={SENT_BANNER}>
+        <div className="fixed inset-x-0 top-16 z-30 mx-auto w-fit rounded-full bg-success px-4 py-2 text-sm font-medium text-success-foreground shadow-lg">
+          <span className="flex items-center gap-2">
+            <Check className="size-4" />
+            {t("table.sent", "Sent to the kitchen")}
+          </span>
+        </div>
+      </Presence>
 
       {/* With the basket open the failure is shown inside it, next to the
           button; closed, it floats above the basket button. Either way the
@@ -426,7 +419,7 @@ function BillSoFar({ bill }: { bill: PublicTableBill }) {
           them. A sum of the lines above would be short by exactly those. */}
       <footer className="mt-3 flex items-baseline justify-between border-t border-border/60 pt-3">
         <span className="text-sm font-semibold">{t("table.total", "Total")}</span>
-        <span className="text-lg font-semibold tabular">{fmtMoney(bill.total)}</span>
+        <AnimatedNumber value={bill.total} format={fmtMoneyFigure} className="text-lg font-semibold" />
       </footer>
       <p className="mt-1 text-xs text-muted-foreground">
         {t("table.payAtTill", "Pay at the counter when you're ready.")}
@@ -459,11 +452,11 @@ function Notice({
 
 function TableSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-[480px] animate-pulse flex-col gap-4 px-4 py-6">
-      <div className="h-7 w-32 rounded-lg bg-muted" />
-      <div className="h-28 rounded-2xl bg-muted" />
-      <div className="h-11 rounded-xl bg-muted" />
-      <div className="h-40 rounded-2xl bg-muted" />
+    <div className="mx-auto flex w-full max-w-[480px] flex-col gap-4 px-4 py-6">
+      <Skeleton className="h-7 w-32 rounded-lg" />
+      <Skeleton className="h-28 rounded-2xl" />
+      <Skeleton className="h-11 rounded-xl" />
+      <Skeleton className="h-40 rounded-2xl" />
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { motion } from "motion/react";
 import type { LucideIcon } from "lucide-react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
@@ -7,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { fmtPercent } from "@/lib/format";
-import { listItem } from "@/lib/motion";
 import { StatValue, type StatFormat } from "@/components/app/stat-value";
 
 export type StatAccent = "neutral" | "brand" | "primary" | "success" | "warning" | "info" | "destructive";
@@ -19,9 +17,9 @@ const accentClasses: Record<StatAccent, string> = {
   brand: "text-muted-foreground",
   primary: "text-muted-foreground",
   info: "text-muted-foreground",
-  success: "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]",
-  warning: "text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]",
-  destructive: "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]",
+  success: "text-[color-mix(in_oklab,var(--color-success)_60%,var(--color-foreground))]",
+  warning: "text-[color-mix(in_oklab,var(--color-warning)_55%,var(--color-foreground))]",
+  destructive: "text-[color-mix(in_oklab,var(--color-destructive)_60%,var(--color-foreground))]",
 };
 
 // Font-size ladders (px) the value fits itself into — largest that fits wins,
@@ -69,7 +67,7 @@ export function StatCard({
     return (
       // h-full down the chain: grid cells stretch, and sibling cards in one
       // strip must share the row height (content-sized cards read as ragged).
-      <motion.div variants={listItem} className="h-full">
+      <div className="h-full">
         <Card className={cn(pad, "h-full rounded-2xl shadow-none")}>
           <div className="flex items-center justify-between gap-3">
             <Skeleton className="h-4 w-20" />
@@ -77,7 +75,7 @@ export function StatCard({
           </div>
           <Skeleton className="h-7 w-24" />
         </Card>
-      </motion.div>
+      </div>
     );
   }
 
@@ -98,7 +96,7 @@ export function StatCard({
   const up = (trend ?? 0) >= 0;
 
   return (
-    <motion.div variants={listItem} className="h-full">
+    <div className="h-full">
       <Card
         onClick={onClick}
         role={onClick ? "button" : undefined}
@@ -136,8 +134,8 @@ export function StatCard({
                 className={cn(
                   "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-medium tabular",
                   up
-                    ? "bg-success/12 text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]"
-                    : "bg-destructive/12 text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]",
+                    ? "bg-success/12 text-[color-mix(in_oklab,var(--color-success)_60%,var(--color-foreground))]"
+                    : "bg-destructive/12 text-[color-mix(in_oklab,var(--color-destructive)_60%,var(--color-foreground))]",
                 )}
               >
                 {up ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
@@ -148,6 +146,6 @@ export function StatCard({
           </div>
         ) : null}
       </Card>
-    </motion.div>
+    </div>
   );
 }

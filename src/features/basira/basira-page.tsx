@@ -29,7 +29,6 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "motion/react";
 import {
   AlertCircle,
   ArrowUp,
@@ -56,6 +55,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { cn } from "@/lib/utils";
+import { prefersReducedMotion, Reveal } from "@/lib/motion";
 import { fmtDateTime } from "@/lib/format";
 import { getErrorMessage } from "@/data/api/errors";
 import { toast } from "sonner";
@@ -119,7 +119,7 @@ export function BasiraPage() {
   useEffect(() => () => abortRef.current?.abort(), []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    bottomRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "end" });
   }, [exchanges]);
 
   const openConversation = useCallback(async (id: string) => {
@@ -507,52 +507,58 @@ function Welcome({ onPick }: { onPick: (q: string) => void }) {
 
 function ExchangeView({ exchange, onRetry }: { exchange: Exchange; onRetry: () => void }) {
   const { t } = useTranslation();
+  // A turn asked just now: its answer, charts or failure each arrive as they
+  // land. A turn read back from history arrives whole, with its article.
+  const live = !exchange.fromHistory;
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.18 }}
-      className="scroll-mt-6"
-    >
-      {/* The question reads as a heading rather than a chat bubble. Scrolling
-          back through a long conversation then works like scanning a report,
-          which is what someone is actually doing when they return to one. */}
-      <h2 className="text-pretty text-[15px] font-semibold leading-snug text-foreground sm:text-base">
-        {exchange.question}
-      </h2>
+    <Reveal asChild>
+      <article className="scroll-mt-6">
+        {/* The question reads as a heading rather than a chat bubble. Scrolling
+            back through a long conversation then works like scanning a report,
+            which is what someone is actually doing when they return to one. */}
+        <h2 className="text-pretty text-[15px] font-semibold leading-snug text-foreground sm:text-base">
+          {exchange.question}
+        </h2>
 
-      <div className="mt-3 space-y-3">
-        {exchange.pending && !exchange.answer ? (
-          <Working step={exchange.step} querying={exchange.querying} />
-        ) : null}
+        <div className="mt-3 space-y-3">
+          {exchange.pending && !exchange.answer ? (
+            <Working step={exchange.step} querying={exchange.querying} />
+          ) : null}
 
-        {exchange.answer ? (
-          <p
-            className={cn(
-              "text-[15px] leading-relaxed text-foreground sm:text-sm",
-              exchange.kind === "clarify" && "text-muted-foreground",
-            )}
-          >
-            {exchange.answer}
-          </p>
-        ) : null}
+          {exchange.answer ? (
+            <Reveal asChild when={live}>
+              <p
+                className={cn(
+                  "text-[15px] leading-relaxed text-foreground sm:text-sm",
+                  exchange.kind === "clarify" && "text-muted-foreground",
+                )}
+              >
+                {exchange.answer}
+              </p>
+            </Reveal>
+          ) : null}
 
-        {exchange.capturedAt && exchange.results.length > 0 ? (
-          <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <Clock3 className="size-3 shrink-0" />
-            {t("basira.asAt", "Figures as at {{when}}", {
-              when: fmtDateTime(exchange.capturedAt),
-            })}
-          </p>
-        ) : null}
+          {exchange.capturedAt && exchange.results.length > 0 ? (
+            <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <Clock3 className="size-3 shrink-0" />
+              {t("basira.asAt", "Figures as at {{when}}", {
+                when: fmtDateTime(exchange.capturedAt),
+              })}
+            </p>
+          ) : null}
 
-        {exchange.results.map((block, i) => (
-          <BlockCard key={i} block={block} stale={Boolean(exchange.capturedAt)} />
-        ))}
+          {exchange.results.map((block, i) => (
+            <BlockCard key={i} block={block} stale={Boolean(exchange.capturedAt)} live={live} />
+          ))}
 
-        {exchange.error ? <Failure message={exchange.error} onRetry={onRetry} /> : null}
-      </div>
-    </motion.article>
+          {exchange.error ? (
+            <Reveal when={live}>
+              <Failure message={exchange.error} onRetry={onRetry} />
+            </Reveal>
+          ) : null}
+        </div>
+      </article>
+    </Reveal>
   );
 }
 
@@ -593,40 +599,42 @@ function Working({ step, querying }: { step?: number; querying?: string }) {
   );
 }
 
-function BlockCard({ block, stale }: { block: ResultBlock; stale?: boolean }) {
+function BlockCard({ block, stale, live }: { block: ResultBlock; stale?: boolean; live?: boolean }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="overflow-hidden rounded-2xl border bg-card">
-      <div className="flex flex-wrap items-center gap-2 px-3 pt-3 sm:px-4 sm:pt-4">
-        {block.title ? (
-          <h3 className="text-[13px] font-medium text-foreground">{block.title}</h3>
-        ) : null}
-        <ScopeBadge block={block} />
-      </div>
+    <Reveal asChild when={live}>
+      <div className="overflow-hidden rounded-2xl border bg-card">
+        <div className="flex flex-wrap items-center gap-2 px-3 pt-3 sm:px-4 sm:pt-4">
+          {block.title ? (
+            <h3 className="text-[13px] font-medium text-foreground">{block.title}</h3>
+          ) : null}
+          <ScopeBadge block={block} />
+        </div>
 
-      {/* The renderer can produce a wide table; it must scroll inside its own
-          box rather than making the whole workspace scroll sideways. */}
-      <div className="min-w-0 overflow-x-auto px-3 py-3 sm:px-4">
-        <ResultView block={block} />
-      </div>
+        {/* The renderer can produce a wide table; it must scroll inside its own
+            box rather than making the whole workspace scroll sideways. */}
+        <div className="min-w-0 overflow-x-auto px-3 py-3 sm:px-4">
+          <ResultView block={block} />
+        </div>
 
-      {/* Provenance: the RESOLVED query — dataset, real dates, filters that
-          actually ran — never the model's raw arguments. It is what makes a
-          number checkable instead of something to take on faith. */}
-      <div className="border-t border-border/70 px-3 py-2 sm:px-4">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ChevronDown aria-hidden className={cn("size-3 transition-transform duration-base motion-reduce:transition-none", open && "rotate-180")} />
-          {t("basira.provenance", "What was queried")}
-        </button>
-        {open ? <Provenance block={block} stale={stale} /> : null}
+        {/* Provenance: the RESOLVED query — dataset, real dates, filters that
+            actually ran — never the model's raw arguments. It is what makes a
+            number checkable instead of something to take on faith. */}
+        <div className="border-t border-border/70 px-3 py-2 sm:px-4">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ChevronDown aria-hidden className={cn("size-3 transition-transform duration-base motion-reduce:transition-none", open && "rotate-180")} />
+            {t("basira.provenance", "What was queried")}
+          </button>
+          {open ? <Provenance block={block} stale={stale} /> : null}
+        </div>
       </div>
-    </div>
+    </Reveal>
   );
 }
 

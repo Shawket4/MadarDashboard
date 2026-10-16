@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { motion } from "motion/react";
 import { CheckCircle2, Info, Wallet } from "lucide-react";
 
 import type { DeliveryOrder } from "@/data/api/generated/models/deliveryOrder";
 import { Button } from "@/components/ui/button";
 import { fmtMoney } from "@/lib/format";
-import { spring } from "@/lib/motion";
+import { DISTANCE, Reveal, recipes } from "@/lib/motion";
+
+import { successBadge } from "@/features/public-shell/motion";
 
 import { Totals } from "./cart-sheet";
 
@@ -26,14 +27,11 @@ export function ConfirmationStep({ order, estimatedTotal, onNewOrder }: Confirma
 
   return (
     <div className="flex flex-col items-center text-center">
-      <motion.span
-        initial={{ scale: 0, rotate: -20 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={spring}
-        className="mb-4 flex size-20 items-center justify-center rounded-full bg-success/15 text-success"
-      >
-        <CheckCircle2 className="size-10" />
-      </motion.span>
+      <Reveal asChild recipe={successBadge}>
+        <span className="mb-4 flex size-20 items-center justify-center rounded-full bg-success/15 text-success">
+          <CheckCircle2 className="size-10" />
+        </span>
+      </Reveal>
 
       <h2 className="text-2xl font-bold">{t("order.done.heading")}</h2>
       <p className="mt-1 max-w-sm text-sm text-muted-foreground">
@@ -61,9 +59,9 @@ export function ConfirmationStep({ order, estimatedTotal, onNewOrder }: Confirma
       </div>
 
       {priceChanged && estimatedTotal != null && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
+        <Reveal
+          recipe={recipes.rise("brand", DISTANCE.sm)}
+          delay={0.2}
           className="mt-3 flex w-full items-start gap-2.5 rounded-xl border border-warning/30 bg-warning/10 px-3.5 py-2.5 text-start text-sm text-warning-foreground"
         >
           <Info className="mt-0.5 size-4 shrink-0" />
@@ -76,7 +74,7 @@ export function ConfirmationStep({ order, estimatedTotal, onNewOrder }: Confirma
               })}
             </p>
           </div>
-        </motion.div>
+        </Reveal>
       )}
 
       <div className="mt-4 flex w-full items-center gap-2.5 rounded-xl bg-muted/50 px-3.5 py-2.5 text-start text-sm text-muted-foreground">

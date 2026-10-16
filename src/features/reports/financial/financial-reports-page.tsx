@@ -4,6 +4,7 @@ import { CalendarRange } from "lucide-react";
 import { toast } from "sonner";
 
 import { EmbeddedPages, Page, PageHeader } from "@/components/app/page";
+import { recipes, Reveal } from "@/lib/motion";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { ExportButton } from "@/components/app/export-button";
 import { SegmentedControl } from "@/components/app/segmented-control";
@@ -209,12 +210,15 @@ export function FinancialReportsPage() {
       />
 
       <EmbeddedPages>
-        {tab === "profitability" ? <ProfitabilityPage />
-          : tab === "revenue" ? <RevenueTab branchId={scopeBranchId} range={range} gran={gran} setGran={setGran} />
-          : tab === "channel" ? <ChannelTab branchId={scopeBranchId} range={range} />
-          : tab === "valuation" ? <ValuationTab valuation={valuation} catalogLoading={catalog.isLoading} byCategory={byCategory} />
-          : tab === "supplierSpend" ? <SupplierSpendTab supplierSpend={supplierSpend} noData={noData} />
-          : <MaterialCostTrendTab trend={materialCostTrend} noData={noData} />}
+        {/* A new tab's body fades in, so the switch reads; its groups bring themselves in. */}
+        <Reveal replayKey={tab} recipe={recipes.fade()}>
+          {tab === "profitability" ? <ProfitabilityPage />
+            : tab === "revenue" ? <RevenueTab branchId={scopeBranchId} range={range} gran={gran} setGran={setGran} />
+            : tab === "channel" ? <ChannelTab branchId={scopeBranchId} range={range} />
+            : tab === "valuation" ? <ValuationTab valuation={valuation} catalogLoading={catalog.isLoading} byCategory={byCategory} />
+            : tab === "supplierSpend" ? <SupplierSpendTab supplierSpend={supplierSpend} noData={noData} />
+            : <MaterialCostTrendTab trend={materialCostTrend} noData={noData} />}
+        </Reveal>
       </EmbeddedPages>
     </Page>
   );

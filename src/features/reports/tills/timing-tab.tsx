@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useReducedMotion } from "motion/react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Clock, DoorClosed, DoorOpen, Hourglass } from "lucide-react";
 
@@ -11,6 +10,7 @@ import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDuration, fmtElapsedMs, fmtHour, fmtNumber } from "@/lib/format";
+import { useChartMotion } from "@/lib/motion";
 import { byHour, fmtBusinessDate, fmtMinutesOfDay, timingStats } from "./lib";
 import type { TillTabProps } from "./sales-tab";
 
@@ -22,7 +22,7 @@ import type { TillTabProps } from "./sales-tab";
  */
 export function TimingTab({ rows, loading, error, onRetry }: TillTabProps) {
   const { t } = useTranslation();
-  const reduced = useReducedMotion();
+  const chartMotion = useChartMotion();
   const s = useMemo(() => timingStats(rows), [rows]);
   const hours = useMemo(() => byHour(rows), [rows]);
 
@@ -118,7 +118,7 @@ export function TimingTab({ rows, loading, error, onRetry }: TillTabProps) {
                 name={t("reports.tills.opened", "Opened")}
                 fill={chartColor(0)}
                 radius={[4, 4, 0, 0]}
-                isAnimationActive={!reduced}
+                {...chartMotion}
               />
               <Bar
                 dataKey="closed"
@@ -128,7 +128,7 @@ export function TimingTab({ rows, loading, error, onRetry }: TillTabProps) {
                 // lead hue separates on lightness alone.
                 fill="var(--muted-foreground)"
                 radius={[4, 4, 0, 0]}
-                isAnimationActive={!reduced}
+                {...chartMotion}
               />
             </BarChart>
           </ResponsiveContainer>

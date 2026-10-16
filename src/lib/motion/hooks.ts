@@ -174,7 +174,7 @@ export function useCountUp(
     if (!s.revealed) {
       if (!s.started && !inViewport(el)) return settle();
       from = s.started ? s.current : 0;
-    } else if (onChange === "tween" && s.current !== value) {
+    } else if (onChange === "tween" && s.current !== value && inViewport(el)) {
       from = s.current;
     } else return settle();
     s.started = true;
@@ -307,11 +307,14 @@ const INDICATOR_BASE = 100;
  * only, measured in physical px (offsetLeft), so RTL needs nothing special.
  * The indicator must be `absolute left-0` at INDICATOR_BASE px wide with
  * `origin-left`, inside the same positioned parent as the items.
+ * `axis: "y"` is the vertical form (a side nav): `absolute top-0`,
+ * INDICATOR_BASE px tall, `origin-top`; it glides by offsetTop and height.
  */
 export function useIndicator(
   list: RefObject<HTMLElement | null>,
   indicator: RefObject<HTMLElement | null>,
   active = '[data-state="active"]',
+  axis: "x" | "y" = "x",
 ) {
   useEffect(() => {
     const l = list.current;
@@ -323,10 +326,16 @@ export function useIndicator(
         ind.style.setProperty("opacity", "0");
         return;
       }
-      const vars = { x: a.offsetLeft, scaleX: a.offsetWidth / INDICATOR_BASE, opacity: 1 };
+      const vars =
+        axis === "y"
+          ? { y: a.offsetTop, scaleY: a.offsetHeight / INDICATOR_BASE, opacity: 1 }
+          : { x: a.offsetLeft, scaleX: a.offsetWidth / INDICATOR_BASE, opacity: 1 };
       const gsap = getGsap();
       if (!gsap) {
-        ind.style.setProperty("transform", `translateX(${vars.x}px) scaleX(${vars.scaleX})`);
+        ind.style.setProperty(
+          "transform",
+          "y" in vars ? `translateY(${vars.y}px) scaleY(${vars.scaleY})` : `translateX(${vars.x}px) scaleX(${vars.scaleX})`,
+        );
         ind.style.setProperty("opacity", "1");
       } else if (animate && !prefersReducedMotion()) {
         gsap.to(ind, { ...vars, duration: sec(DURATION.base), ease: EASE_NAME.out, overwrite: true });
@@ -335,13 +344,21 @@ export function useIndicator(
     place(false);
     const mo = new MutationObserver(() => place(true));
     mo.observe(l, { subtree: true, attributes: true, attributeFilter: ["data-state", "aria-current", "data-active", "aria-checked", "aria-selected"] });
-    const ro = new ResizeObserver(() => place(false));
+    // Re-place without a slide when the list's size changes; observe() reports
+    // once on mount, which must not cut short a slide already under way.
+    let size = `${l.clientWidth}x${l.clientHeight}`;
+    const ro = new ResizeObserver(() => {
+      const next = `${l.clientWidth}x${l.clientHeight}`;
+      if (next === size) return;
+      size = next;
+      place(false);
+    });
     ro.observe(l);
     return () => {
       mo.disconnect();
       ro.disconnect();
     };
-  }, [list, indicator, active]);
+  }, [list, indicator, active, axis]);
 }
 
 /**
@@ -359,7 +376,8 @@ export function useShake(ref: RefObject<HTMLElement | null>, signal: unknown) {
         keyframes: { x: [0, -6, 5, -3, 2, 0] },
         duration: sec(DURATION.slow),
         ease: "none",
-        clearProps: "transform",
+        // clearProps does not reach through `keyframes`; clear at the end instead.
+        onComplete: () => void gsap.set(el, { clearProps: "transform" }),
       });
     },
     [signal],

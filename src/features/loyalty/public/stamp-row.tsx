@@ -24,9 +24,14 @@
  * matches the Wallet pass's (`wallet::google::MAX_STEPS`), so the card in the
  * phone and the card on the page never disagree.
  */
-import type { CSSProperties } from "react";
+import { useRef, type CSSProperties } from "react";
 
+import { useGrowSignal } from "@/features/public-shell/motion";
+import { playIn, recipes, useGsap, type Recipe } from "@/lib/motion";
 import { rules } from "@/lib/rules";
+
+/** A stamp landing on the card: it springs into its circle. */
+const STAMP_IN: Recipe = { ...recipes.pop, from: { opacity: 0, scale: 0.5 } };
 
 /** Breathing room between steps, and the width the sizing has to account for. */
 const GAP = "0.25rem";
@@ -56,6 +61,16 @@ export function StampRow({
   // exceed the target; neither should render a broken row.
   const filled = rules.loyalty_stamps(earned, target) ?? 0;
 
+  // A new stamp (never the ones already there on load) lands with a pop.
+  const landed = useRef<HTMLLIElement>(null);
+  const stamped = useGrowSignal(filled);
+  useGsap(
+    (gsap) => {
+      if (stamped && landed.current) playIn(gsap, landed.current, STAMP_IN);
+    },
+    [stamped],
+  );
+
   // The steps run END TO END: first against the left edge, last against the
   // right. `justify-content: space-between` does that, and it means a step's
   // centre is half a step in from each end — a distance we therefore have to
@@ -81,10 +96,8 @@ export function StampRow({
   // reading order, so in Arabic step 1 is on the right — and a completed run
   // pinned to the left edge grew from the LAST step towards the first, which
   // told an Arabic reader with two stamps that they had the final two.
-  const done =
-    filled > 1 && target > 1
-      ? `calc((100% - var(--step)) * ${(filled - 1) / (target - 1)})`
-      : "0px";
+  // Drawn as the whole track scaled from its start, so it grows by transform.
+  const done = filled > 1 && target > 1 ? (filled - 1) / (target - 1) : 0;
 
   const numerals = target <= NUMERALS_UP_TO;
 
@@ -108,8 +121,8 @@ export function StampRow({
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full transition-[width] duration-brand motion-reduce:transition-none"
-        style={{ insetInlineStart: half, width: done, backgroundColor: accent }}
+        className="pointer-events-none absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full transition-transform duration-brand ease-expo ltr:origin-left rtl:origin-right"
+        style={{ insetInlineStart: half, insetInlineEnd: half, transform: `scaleX(${done})`, backgroundColor: accent }}
       />
 
       {Array.from({ length: target }, (_, i) => {
@@ -118,6 +131,7 @@ export function StampRow({
         return (
           <li
             key={i}
+            ref={i === filled - 1 ? landed : undefined}
             aria-hidden
             className="relative grid shrink-0 place-items-center rounded-full text-[13px] font-semibold leading-none transition-colors duration-slow motion-reduce:transition-none"
             style={{

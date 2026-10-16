@@ -1,8 +1,13 @@
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ChefHat, Gift, LayoutDashboard, Receipt, ShoppingBag, type LucideIcon } from "lucide-react";
 
 import { DawamMark, MadarMark } from "@/components/brand/marks";
+import { useTimeline } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+
+/** One full turn of the rings, in seconds: slow enough to read as stillness. */
+const TURN_S = 160;
 
 /** Where each part of the family rides: ring radius (% of the stage) and angle (degrees, 0 = east). */
 type Body = { key: string; fallback: string; r: number; deg: number; icon?: LucideIcon };
@@ -26,11 +31,20 @@ const BODIES: Body[] = [
  */
 export function Orbit2D({ className }: { className?: string }) {
   const { t } = useTranslation();
-  const turn = "animate-[spin_160s_linear_infinite] motion-reduce:animate-none";
-  const counter = "animate-[spin_160s_linear_infinite_reverse] motion-reduce:animate-none";
+  const stage = useRef<HTMLDivElement>(null);
+  // Ambient: paused off screen, still under reduced motion (useTimeline skips it).
+  useTimeline(
+    stage,
+    (tl) => {
+      tl.to("[data-orbit-turn]", { rotation: 360, duration: TURN_S, ease: "none" }, 0);
+      tl.to("[data-orbit-label]", { rotation: -360, duration: TURN_S, ease: "none" }, 0);
+    },
+    [],
+    { repeat: -1, pauseOffscreen: true, late: true },
+  );
   return (
-    <div aria-hidden="true" className={cn("relative mx-auto aspect-square w-[min(100%,28rem,50svh)]", className)}>
-      <div className={cn("absolute inset-0", turn)}>
+    <div ref={stage} aria-hidden="true" className={cn("relative mx-auto aspect-square w-[min(100%,28rem,50svh)]", className)}>
+      <div data-orbit-turn className="absolute inset-0">
         <svg viewBox="0 0 200 200" className="absolute inset-0 size-full text-sidebar-foreground/10">
           <g fill="none" stroke="currentColor" strokeWidth="0.5">
             <circle cx="100" cy="100" r="50" />
@@ -48,10 +62,8 @@ export function Orbit2D({ className }: { className?: string }) {
               style={{ left: `${50 + r * Math.cos(a)}%`, top: `${50 + r * Math.sin(a)}%` }}
             >
               <span
-                className={cn(
-                  "flex items-center gap-1.5 whitespace-nowrap rounded-full border border-sidebar-border bg-sidebar-accent py-1.5 ps-2 pe-3 text-xs font-medium",
-                  counter,
-                )}
+                data-orbit-label
+                className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-sidebar-border bg-sidebar-accent py-1.5 ps-2 pe-3 text-xs font-medium"
               >
                 {Icon ? <Icon className="size-3.5 text-sidebar-muted" /> : <DawamMark className="h-3.5 w-auto" />}
                 {t(`auth.orbit.${key}`, fallback)}

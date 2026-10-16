@@ -12,9 +12,15 @@ import { BrandShowcase } from "./brand-showcase";
  * the 3D chunk is never requested in those cases.
  */
 
-function mockMedia(matching: string[]) {
+// `@/lib/motion` keeps each MediaQueryList it asks for, so `matches` reads the
+// current test's list live rather than the one that was stubbed first.
+let matching: string[] = [];
+function mockMedia(next: string[]) {
+  matching = next;
   vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: matching.includes(query),
+    get matches() {
+      return matching.includes(query);
+    },
     media: query,
     onchange: null,
     addEventListener: () => {},

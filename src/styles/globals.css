@@ -378,7 +378,6 @@
   position: relative;
   z-index: 1;
   display: block;
-  animation: po-pin-drop 0.32s cubic-bezier(0.22, 1, 0.36, 1);
   transform-origin: 50% 100%;
 }
 .po-pin__pulse {
@@ -390,62 +389,5 @@
   transform: translateX(-50%);
   border-radius: 9999px;
   background: color-mix(in oklab, var(--primary) 45%, transparent);
-  animation: po-pin-pulse 1.8s ease-in-out infinite;
 }
-@keyframes po-pin-drop {
-  0% {
-    transform: translateY(-10px) scale(0.85);
-    opacity: 0;
-  }
-  60% {
-    transform: translateY(2px) scale(1.05);
-  }
-  100% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-}
-@keyframes po-pin-pulse {
-  0%,
-  100% {
-    transform: translateX(-50%) scale(0.9);
-    opacity: 0.55;
-  }
-  50% {
-    transform: translateX(-50%) scale(1.35);
-    opacity: 0.15;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .po-pin svg {
-    animation: none;
-  }
-  .po-pin__pulse {
-    animation: none;
-  }
-}
-
-/* Onboarding celebration confetti — a little fun on "open my café". Purely
- * decorative; the surrounding container is hidden under prefers-reduced-motion. */
-@keyframes onb-confetti {
-  0% {
-    transform: translateY(-12%) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(110vh) rotate(680deg);
-    opacity: 0.85;
-  }
-}
-.onb-confetti-piece {
-  animation: onb-confetti 2.4s cubic-bezier(0.3, 0.6, 0.4, 1) forwards;
-}
-
-/* A wrong one-time code: the row shakes once (sign-up's code step). */
-@keyframes otp-shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(5px); }
-  60% { transform: translateX(-3px); }
-  80% { transform: translateX(2px); }
-}
+/* The pin drops in and pulses through src/lib/motion (delivery-map.tsx). */

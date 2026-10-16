@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { motion } from "motion/react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { StatCard, type StatAccent } from "@/components/app/stat-card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { staggerContainer } from "@/lib/motion";
+import { Stagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 /** @deprecated use StatAccent — kept as an alias to avoid churn. */
@@ -55,12 +54,8 @@ export function LedgerStrip({
   const cols = gridCols[items.length] ?? "sm:grid-cols-2 lg:grid-cols-4";
   const isDense = dense ?? items.length >= 5;
   return (
-    <motion.div
-      initial="hidden"
-      animate="show"
-      variants={staggerContainer(0.05)}
-      className={cn("grid grid-cols-2 gap-3 sm:gap-4", cols, className)}
-    >
+    // The figures arrive once, when they land: skeleton cards stay still.
+    <Stagger when={!items.some((i) => i.loading)} className={cn("grid grid-cols-2 gap-3 sm:gap-4", cols, className)}>
       {items.map((item) => (
         <StatCard
           key={item.key}
@@ -76,7 +71,7 @@ export function LedgerStrip({
           action={item.action}
         />
       ))}
-    </motion.div>
+    </Stagger>
   );
 }
 

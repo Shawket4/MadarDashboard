@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useReducedMotion } from "motion/react";
 import {
   CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart,
   Tooltip as ReTooltip, XAxis, YAxis,
@@ -8,6 +7,7 @@ import {
 
 import { CHART_AXIS_TICK, ChartCard } from "@/components/app/chart-card";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
+import { ChartEntrance, useChartMotion } from "@/lib/motion";
 import type { MarginLedgerRow } from "@/data/api/generated/models";
 import { QUADRANT_CLASSES, quadrantModel, type QuadrantClass, type QuadrantDot } from "./quadrant";
 
@@ -67,7 +67,7 @@ function DotTooltip({ active, payload }: { active?: boolean; payload?: Array<{ p
  */
 export function QuadrantView({ rows }: { rows: MarginLedgerRow[] }) {
   const { t } = useTranslation();
-  const reduced = useReducedMotion();
+  const chartMotion = useChartMotion();
   const model = useMemo(() => quadrantModel(rows), [rows]);
 
   const className = (c: QuadrantClass) => t(`insights.class.${c}`, CLASS_MARK[c].fallback);
@@ -84,55 +84,57 @@ export function QuadrantView({ rows }: { rows: MarginLedgerRow[] }) {
   });
 
   return (
-    <ChartCard
-      title={t("insights.quadrant.title", "Popularity against margin per unit")}
-      description={t("insights.quadrant.description", {
-        popularity: fmtPercent(model.popularityThresholdPct / 100),
-        margin: fmtMoney(Math.round(model.unitMarginThreshold)),
-        defaultValue:
-          "Dashed lines split high from low: {{popularity}} of units sold, and the average margin per unit of {{margin}}.",
-      })}
-    >
-      {/* The plot is LTR in both languages (ChartCard), so the corner captions
-          are pinned LTR with it — low popularity is always the left half. */}
-      <div dir="ltr" className="mb-2 flex justify-between gap-4 ps-16 pe-5 text-xs text-muted-foreground">
-        <span>{t("insights.quadrant.challengesDogs", "Challenges / Dogs")}</span>
-        <span className="text-end">{t("insights.quadrant.starsWorkhorses", "Stars / Workhorses")}</span>
-      </div>
-      <div role="img" aria-label={summary} className="h-[420px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis
-              type="number" dataKey="x" domain={[0, "auto"]}
-              name={t("insights.profitability.popularity", "Popularity")}
-              tickFormatter={(v: number) => fmtPercent(v / 100)}
-              tick={CHART_AXIS_TICK} tickLine={false}
-            />
-            <YAxis
-              type="number" dataKey="y" width={64}
-              name={t("insights.quadrant.unitMargin", "Margin per unit")}
-              tickFormatter={(v: number) => fmtMoney(v, { maxFractionDigits: 0, currency: false })}
-              tick={CHART_AXIS_TICK} tickLine={false}
-            />
-            <ReferenceLine x={model.popularityThresholdPct} stroke="var(--muted-foreground)" strokeDasharray="4 4" />
-            <ReferenceLine y={model.unitMarginThreshold} stroke="var(--muted-foreground)" strokeDasharray="4 4" />
-            <ReTooltip content={<DotTooltip />} cursor={{ strokeDasharray: "3 3" }} />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            {QUADRANT_CLASSES.map((c) => (
-              <Scatter
-                key={c}
-                name={className(c)}
-                data={model.dots[c]}
-                fill={CLASS_MARK[c].color}
-                shape={CLASS_MARK[c].shape}
-                legendType={CLASS_MARK[c].shape}
-                isAnimationActive={!reduced}
+    <ChartEntrance>
+      <ChartCard
+        title={t("insights.quadrant.title", "Popularity against margin per unit")}
+        description={t("insights.quadrant.description", {
+          popularity: fmtPercent(model.popularityThresholdPct / 100),
+          margin: fmtMoney(Math.round(model.unitMarginThreshold)),
+          defaultValue:
+            "Dashed lines split high from low: {{popularity}} of units sold, and the average margin per unit of {{margin}}.",
+        })}
+      >
+        {/* The plot is LTR in both languages (ChartCard), so the corner captions
+            are pinned LTR with it — low popularity is always the left half. */}
+        <div dir="ltr" className="mb-2 flex justify-between gap-4 ps-16 pe-5 text-xs text-muted-foreground">
+          <span>{t("insights.quadrant.challengesDogs", "Challenges / Dogs")}</span>
+          <span className="text-end">{t("insights.quadrant.starsWorkhorses", "Stars / Workhorses")}</span>
+        </div>
+        <div role="img" aria-label={summary} className="h-[420px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                type="number" dataKey="x" domain={[0, "auto"]}
+                name={t("insights.profitability.popularity", "Popularity")}
+                tickFormatter={(v: number) => fmtPercent(v / 100)}
+                tick={CHART_AXIS_TICK} tickLine={false}
               />
-            ))}
-          </ScatterChart>
-        </ResponsiveContainer>
-      </div>
-    </ChartCard>
+              <YAxis
+                type="number" dataKey="y" width={64}
+                name={t("insights.quadrant.unitMargin", "Margin per unit")}
+                tickFormatter={(v: number) => fmtMoney(v, { maxFractionDigits: 0, currency: false })}
+                tick={CHART_AXIS_TICK} tickLine={false}
+              />
+              <ReferenceLine x={model.popularityThresholdPct} stroke="var(--muted-foreground)" strokeDasharray="4 4" />
+              <ReferenceLine y={model.unitMarginThreshold} stroke="var(--muted-foreground)" strokeDasharray="4 4" />
+              <ReTooltip content={<DotTooltip />} cursor={{ strokeDasharray: "3 3" }} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              {QUADRANT_CLASSES.map((c) => (
+                <Scatter
+                  key={c}
+                  name={className(c)}
+                  data={model.dots[c]}
+                  fill={CLASS_MARK[c].color}
+                  shape={CLASS_MARK[c].shape}
+                  legendType={CLASS_MARK[c].shape}
+                  {...chartMotion}
+                />
+              ))}
+            </ScatterChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
+    </ChartEntrance>
   );
 }

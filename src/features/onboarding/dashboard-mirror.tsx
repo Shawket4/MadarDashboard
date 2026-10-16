@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useReducedMotion } from "motion/react";
 import {
   Building2,
   Coffee,
@@ -17,7 +16,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { COUNT_ANIM_MS } from "@/lib/motion";
+import { AnimatedNumber, DURATION, EASE_NAME, recipes, Reveal, sec, useGsap } from "@/lib/motion";
 import { stepApplies } from "./config";
 import type { OnboardingStep } from "@/data/api/generated/models";
 import type { StatAccent } from "@/components/app/stat-card";
@@ -58,58 +57,6 @@ const ACCENT_CHIP: Record<StatAccent, string> = {
   destructive: "bg-destructive/10 text-destructive",
 };
 
-/** Counts from its previous value to `value` over ~1s; instant under reduced motion. */
-function AnimatedCount({ value }: { value: number }) {
-  const reduce = useReducedMotion();
-  const [display, setDisplay] = useState(value);
-  const fromRef = useRef(value);
-
-  useEffect(() => {
-    if (reduce || value === fromRef.current) {
-      setDisplay(value);
-      fromRef.current = value;
-      return;
-    }
-    const from = fromRef.current;
-    const start = performance.now();
-    let raf = 0;
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - start) / COUNT_ANIM_MS);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setDisplay(Math.round(from + (value - from) * eased));
-      if (p < 1) raf = requestAnimationFrame(tick);
-      else fromRef.current = value;
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [value, reduce]);
-
-  return <span className="tabular">{display}</span>;
-}
-
-/** Mount-flag + CSS transition reveal. The resting (post-mount) class is the
- *  visible one, so if transitions are ever suppressed the tile simply snaps in —
- *  it can never get stuck hidden the way a paused keyframe animation would. */
-function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    const id = setTimeout(() => setShown(true), 20 + delay);
-    return () => clearTimeout(id);
-  }, [delay]);
-  return (
-    <div
-      className={cn(
-        // Springy overshoot so a tile "pops" as it lights up. Pure CSS transition
-        // (robust everywhere); resting state is visible so it can't get stuck.
-        "transition-all duration-brand [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none",
-        shown ? "translate-y-0 scale-100 opacity-100" : "translate-y-2 scale-90 opacity-0",
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
 function MirrorTile({ spec }: { spec: { tile: TileSpec; step?: OnboardingStep } }) {
   const { t } = useTranslation();
   const { tile, step } = spec;
@@ -128,14 +75,14 @@ function MirrorTile({ spec }: { spec: { tile: TileSpec; step?: OnboardingStep } 
   }
 
   return (
-    <Reveal>
+    <Reveal recipe={recipes.pop}>
       <Card className="gap-2 p-4 shadow-sm ring-1 ring-brand/10">
         <span className={cn("grid size-8 place-items-center rounded-lg", ACCENT_CHIP[tile.accent])}>
           <Icon className="size-4" aria-hidden="true" />
         </span>
         <span className="text-xs font-medium text-muted-foreground">{t(tile.labelKey, tile.labelFallback)}</span>
         <span className="text-2xl font-semibold">
-          <AnimatedCount value={count} />
+          <AnimatedNumber value={count} format={String} duration={DURATION.count} />
         </span>
       </Card>
     </Reveal>
@@ -145,7 +92,9 @@ function MirrorTile({ spec }: { spec: { tile: TileSpec; step?: OnboardingStep } 
 /** Recipe cost-coverage ring (0..1) — animates its fill toward the live ratio. */
 function CoverageRing({ ratio }: { ratio: number }) {
   const { t } = useTranslation();
-  const reduce = useReducedMotion();
+  const ring = useRef<SVGCircleElement>(null);
+  /** Where the fill was drawn to last, so a change fills on from there. */
+  const drawn = useRef<number | null>(null);
   const size = 76;
   const stroke = 8;
   const r = (size - stroke) / 2;
@@ -154,11 +103,28 @@ function CoverageRing({ ratio }: { ratio: number }) {
   const offset = c * (1 - clamped);
   const pct = Math.round(clamped * 100);
 
+  // React renders the true fill; GSAP draws it on from empty (or from the last
+  // fill) over the count duration, beside the tiles' count-ups.
+  useGsap(
+    (gsap, { reduced }) => {
+      const el = ring.current;
+      const from = drawn.current ?? c;
+      drawn.current = offset;
+      if (!el || reduced || from === offset) return;
+      gsap.fromTo(el, { strokeDashoffset: from }, { strokeDashoffset: offset, duration: sec(DURATION.count), ease: EASE_NAME.out, clearProps: "strokeDashoffset" });
+      return () => {
+        drawn.current = parseFloat(String(gsap.getProperty(el, "strokeDashoffset")));
+      };
+    },
+    [offset],
+  );
+
   return (
     <Card className="flex-row items-center gap-4 p-4 shadow-sm">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0 -rotate-90 rtl:rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={stroke} className="text-muted" />
         <circle
+          ref={ring}
           cx={size / 2}
           cy={size / 2}
           r={r}
@@ -168,7 +134,7 @@ function CoverageRing({ ratio }: { ratio: number }) {
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={offset}
-          className={cn("text-brand", !reduce && "transition-[stroke-dashoffset] duration-brand ease-out motion-reduce:transition-none")}
+          className="text-brand"
         />
       </svg>
       <div className="min-w-0">
@@ -198,7 +164,7 @@ function SalesTile({ done }: { done: boolean }) {
   }
 
   return (
-    <Reveal>
+    <Reveal recipe={recipes.pop}>
       <Card className="gap-3 p-4 shadow-sm">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-muted-foreground">{t("onboarding.mirror.sales", "Today's sales")}</span>

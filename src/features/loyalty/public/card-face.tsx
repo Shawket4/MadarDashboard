@@ -22,6 +22,7 @@
 import { useTranslation } from "react-i18next";
 
 import { AssetImage } from "@/components/app/asset-image";
+import { AnimatedNumber } from "@/lib/motion";
 
 import type { ResolvedBrand } from "../shared/brand";
 import { StampRow, stampable } from "./stamp-row";
@@ -34,6 +35,9 @@ import { StampRow, stampable } from "./stamp-row";
  * reads instantly.
  */
 const MAX_COMPLETE_SHOWN = 3;
+
+/** The balance as the card prints it; whole while it counts. */
+const wholeNumber = (n: number) => String(Number.isInteger(n) ? n : Math.round(n));
 
 export function CardFace({
   brand,
@@ -158,9 +162,11 @@ export function CardFace({
             aligned so the unit sits on the numeral's foot rather than floating
             beside it. */}
         <p className="flex items-baseline gap-2">
-          <span className="font-mono text-[56px] font-semibold leading-none tabular-nums">
-            {isSteps ? onCard : balance}
-          </span>
+          <AnimatedNumber
+            value={isSteps ? onCard : balance}
+            format={wholeNumber}
+            className="font-mono text-[56px] font-semibold leading-none tabular-nums"
+          />
           <span
             className="min-w-0 truncate text-sm"
             style={{ color: brand.muted }}
@@ -228,8 +234,8 @@ export function CardFace({
             style={{ backgroundColor: brand.muted, opacity: 0.35 }}
           >
             <div
-              className="h-full rounded-full transition-[width] duration-brand motion-reduce:transition-none"
-              style={{ width: `${pct}%`, backgroundColor: brand.accent }}
+              className="h-full rounded-full transition-transform duration-brand ease-expo ltr:origin-left rtl:origin-right"
+              style={{ transform: `scaleX(${pct / 100})`, backgroundColor: brand.accent }}
             />
           </div>
         )}

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { CalendarRange } from "lucide-react";
 
 import { EmbeddedPages, Page, PageHeader } from "@/components/app/page";
+import { recipes, Reveal } from "@/lib/motion";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs } from "@/components/ui/tabs";
 import { Restricted } from "@/components/app/restricted";
@@ -94,12 +95,15 @@ export function OperationsReportsPage() {
       />
 
       <EmbeddedPages>
-        {tab === "tables" ? <TablesInsightsPage />
-          : tab === "overview" ? <OverviewTab branchId={scopeBranchId} range={range} />
-          : tab === "items" ? <ItemsTab branchId={scopeBranchId} range={range} />
-          : tab === "tellers" ? <TellersTab branchId={scopeBranchId} range={range} />
-          : tab === "waiters" ? <WaitersTab branchId={scopeBranchId} range={range} />
-          : <BranchesTab orgId={orgId ?? ""} range={range} />}
+        {/* A new tab's body fades in, so the switch reads; its groups bring themselves in. */}
+        <Reveal replayKey={tab} recipe={recipes.fade()}>
+          {tab === "tables" ? <TablesInsightsPage />
+            : tab === "overview" ? <OverviewTab branchId={scopeBranchId} range={range} />
+            : tab === "items" ? <ItemsTab branchId={scopeBranchId} range={range} />
+            : tab === "tellers" ? <TellersTab branchId={scopeBranchId} range={range} />
+            : tab === "waiters" ? <WaitersTab branchId={scopeBranchId} range={range} />
+            : <BranchesTab orgId={orgId ?? ""} range={range} />}
+        </Reveal>
       </EmbeddedPages>
     </Page>
   );

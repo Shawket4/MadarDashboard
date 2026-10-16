@@ -1,11 +1,10 @@
-import { createContext, useContext, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
-import { fadeIn } from "@/lib/motion";
+import { Reveal, recipes, useIndicator } from "@/lib/motion";
 
 /**
  * Page geometry — the dashboard half of the POS spec (madar/docs/design/SPEC.md §2–3).
@@ -62,15 +61,13 @@ export function Page({
   }
   return (
     <PageWidthContext.Provider value={width}>
-      <motion.div
-        initial="hidden"
-        animate="show"
-        variants={fadeIn}
+      <Reveal
+        recipe={recipes.fade()}
         data-page-width={width}
         className={cn("w-full space-y-6 px-4 pt-3 pb-8 sm:px-6 lg:px-8 lg:pt-4", PAGE_WIDTH_CLASS[width], className)}
       >
         {children}
-      </motion.div>
+      </Reveal>
     </PageWidthContext.Provider>
   );
 }
@@ -96,30 +93,62 @@ const keepScope = (prev: Record<string, unknown>) => ({
   to: prev.to,
 });
 
+// The section tab last shown. Every section page mounts its own bar, so the
+// underline starts under the tab the person came from and glides to theirs.
+let lastSectionTab: string | null = null;
+
 export function SectionTabBar({ tabs }: { tabs: SectionTab[] }) {
   const { pathname } = useLocation();
+  const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
+  const activeTo = tabs.find((tab) => isActive(tab.to))?.to ?? null;
+  const [underlined, setUnderlined] = useState(() =>
+    tabs.some((tab) => tab.to === lastSectionTab) ? lastSectionTab : activeTo,
+  );
+  const listRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLSpanElement>(null);
+  useIndicator(listRef, barRef, "[data-active]");
+  // After the indicator has been placed under the old tab, move it, a frame
+  // later so the slide starts from a painted position. Only a bar's first
+  // placement is remembered: the leaving page's bar sees the new location too,
+  // and must not claim the tab before the new one mounts.
+  const claimed = useRef(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      if (!claimed.current) lastSectionTab = activeTo;
+      claimed.current = true;
+      setUnderlined(activeTo);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [activeTo]);
   return (
-    <nav className="-mb-px flex w-full overflow-x-auto border-b no-scrollbar">
-      {tabs.map((tab) => {
-        const active = pathname === tab.to || pathname.startsWith(`${tab.to}/`);
-        return (
-          <Link
-            key={tab.to}
-            to={tab.to}
-            search={keepScope}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "-mb-px inline-flex h-10 shrink-0 items-center border-b-2 px-3 text-sm font-medium whitespace-nowrap transition-colors duration-base first:ps-0 motion-reduce:transition-none",
-              "focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-              active
-                ? "border-foreground text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {tab.label}
-          </Link>
-        );
-      })}
+    <nav className="-mb-px w-full overflow-x-auto no-scrollbar">
+      <div ref={listRef} className="relative flex min-w-full border-b">
+        {tabs.map((tab) => {
+          const active = isActive(tab.to);
+          return (
+            <Link
+              key={tab.to}
+              to={tab.to}
+              search={keepScope}
+              aria-current={active ? "page" : undefined}
+              data-active={tab.to === underlined || undefined}
+              className={cn(
+                "inline-flex h-10 shrink-0 items-center px-3 text-sm font-medium whitespace-nowrap transition-colors duration-base first:ps-0 motion-reduce:transition-none",
+                "focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+                active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {tab.label}
+            </Link>
+          );
+        })}
+        {/* The active underline, gliding between sections (useIndicator). */}
+        <span
+          ref={barRef}
+          aria-hidden
+          className="pointer-events-none absolute -bottom-px left-0 h-0.5 w-[100px] origin-left bg-foreground opacity-0"
+        />
+      </div>
     </nav>
   );
 }

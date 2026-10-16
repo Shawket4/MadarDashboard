@@ -26,7 +26,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
 import { AlertCircle, ArrowRight, Loader2, UserRound } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +35,7 @@ import type { JoinInfo, JoinResult } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { PhoneVerify } from "@/features/public-shell/phone-verify";
 import { useErrorToast } from "@/features/public-shell/public-toaster";
-import { DURATION, easeOutExpo } from "@/lib/motion";
+import { Reveal, recipes } from "@/lib/motion";
 import { rules } from "@/lib/rules";
 
 import { resolveBrand, type ResolvedBrand } from "../shared/brand";
@@ -314,7 +313,6 @@ function Joined({
 }) {
   const { t } = useTranslation();
   const accent = usePageAccent(brand);
-  const reduced = useReducedMotion();
   const target = joined.next_reward_cost;
   // The server's card rule (madar-loyalty `card::card`), as the card page and the passes show it.
   const card = rules.loyalty_card(joined.balance, target);
@@ -347,11 +345,7 @@ function Joined({
           that earns a little motion, and none for a reader who asked for
           none. */}
       <PressStage phase={pass.phase}>
-        <motion.div
-          initial={reduced ? false : { opacity: 0, y: 16 }}
-          animate={reduced ? undefined : { opacity: 1, y: 0 }}
-          transition={{ duration: DURATION.brand, ease: easeOutExpo }}
-        >
+        <Reveal recipe={recipes.pop}>
           <PressedCard brand={brand}>
             <CardFace
               brand={brand}
@@ -366,7 +360,7 @@ function Joined({
               qrUrl={`/api/public/loyalty/card/${encodeURIComponent(memberToken)}/qr.png`}
             />
           </PressedCard>
-        </motion.div>
+        </Reveal>
 
         {passes?.any ? (
           <Section

@@ -198,7 +198,8 @@ describe("PayrollPage history: never frozen when it wasn't (H2)", () => {
     await user.click(await screen.findByText("26 Jul – 25 Aug 2026"));
     expect(screen.queryByText("Frozen when payroll was approved.")).not.toBeInTheDocument();
     await user.click(await screen.findByRole("tab", { name: /Payslips/ }));
-    expect(await screen.findByText("7,000.00", { exact: false })).toBeInTheDocument();
+    // The slip row and the net-pay KPI above it both read the figure.
+    expect(await screen.findAllByText("7,000.00", { exact: false })).not.toHaveLength(0);
     await user.click(screen.getByRole("button", { name: /Approve payroll/ }));
     await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Approve payroll" }));
     await waitFor(() => expect(calls.generatePeriod).toHaveBeenCalledWith("p1"));

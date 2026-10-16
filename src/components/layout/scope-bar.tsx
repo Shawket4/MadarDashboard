@@ -101,7 +101,7 @@ function ScopeControls({ className }: { className?: string }) {
           className="flex h-8 w-auto min-w-32 items-center gap-2 rounded-md border bg-card px-3 text-sm text-muted-foreground"
           aria-busy="true"
         >
-          <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+          <Loader2 className="size-4 animate-spin" />
           <span>{t("common.loading", "Loading…")}</span>
         </div>
       ) : canPickBranch ? (

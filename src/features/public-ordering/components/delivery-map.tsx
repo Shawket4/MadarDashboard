@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
@@ -6,6 +6,7 @@ import { Loader2, LocateFixed, MapPin, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DURATION, EASE_NAME, playIn, recipes, sec, useGsap, useTimeline, type Recipe } from "@/lib/motion";
 
 import "leaflet/dist/leaflet.css";
 import markerIconUrl from "leaflet/dist/images/marker-icon.png";
@@ -24,13 +25,40 @@ export interface LatLng {
   lng: number;
 }
 
-/** A brand-tinted teardrop pin (themed via .po-pin in globals.css), with a pulse. */
+/** A brand-tinted teardrop pin (themed via .po-pin in globals.css), with a pulse.
+ * Leaflet builds its DOM, so the motion below finds it by class. */
 const pinIcon = L.divIcon({
   className: "po-pin-wrapper",
   html: `<div class="po-pin"><span class="po-pin__pulse"></span><svg width="30" height="40" viewBox="0 0 30 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 0C6.716 0 0 6.716 0 15c0 9.5 13.2 23.6 13.77 24.2a1.7 1.7 0 0 0 2.46 0C16.8 38.6 30 24.5 30 15 30 6.716 23.284 0 15 0Z" fill="currentColor"/><circle cx="15" cy="15" r="5.5" fill="white"/></svg></div>`,
   iconSize: [30, 40],
   iconAnchor: [15, 40],
 });
+
+/** The pin lands where it was put: from a little above, settling with an overshoot. */
+const PIN_DROP: Recipe = {
+  from: { opacity: 0, y: -10, scale: 0.85, transformOrigin: "50% 100%" },
+  to: { opacity: 1, y: 0, scale: 1, duration: sec(DURATION.slow), ease: EASE_NAME.overshoot },
+  exit: recipes.fade().exit,
+};
+
+/** The soft pulse under the pin, breathing while the map is on screen. */
+function PinPulse({ scope }: { scope: RefObject<HTMLElement | null> }) {
+  useTimeline(
+    scope,
+    (tl) => {
+      const pulse = scope.current?.querySelector(".po-pin__pulse") ?? null;
+      tl.fromTo(pulse, { scale: 0.9, opacity: 0.55 }, { scale: 1.35, opacity: 0.15, duration: 0.9, ease: EASE_NAME.inOut }).to(pulse, {
+        scale: 0.9,
+        opacity: 0.55,
+        duration: 0.9,
+        ease: EASE_NAME.inOut,
+      });
+    },
+    [],
+    { repeat: -1, pauseOffscreen: true, late: true },
+  );
+  return null;
+}
 
 /** Keeps the Leaflet view in sync when the picked point changes externally. */
 function Recenter({ point }: { point: LatLng }) {
@@ -207,9 +235,21 @@ export function DeliveryMap({ point, fallbackCenter, onChange, onLocate, locatin
   const center = useMemo<[number, number]>(() => [view.lat, view.lng], [view.lat, view.lng]);
   const markerRef = useRef<L.Marker | null>(null);
   const { t } = useTranslation();
+  const mapRef = useRef<HTMLDivElement>(null);
+  // Bumped each time Leaflet puts the pin's DOM on the map.
+  const [pinAdded, setPinAdded] = useState(0);
+  const pointKey = point ? `${point.lat},${point.lng}` : "";
+  useGsap(
+    (gsap, { reduced }) => {
+      const svg = mapRef.current?.querySelector(".po-pin svg");
+      if (svg && pointKey && !reduced) playIn(gsap, svg, PIN_DROP);
+    },
+    [pointKey, pinAdded],
+    { scope: mapRef },
+  );
 
   return (
-    <div className="po-map relative h-64 w-full overflow-hidden rounded-2xl border border-border/70 shadow-sm">
+    <div ref={mapRef} className="po-map relative h-64 w-full overflow-hidden rounded-2xl border border-border/70 shadow-sm">
       <MapContainer
         center={center}
         zoom={point ? 16 : 12}
@@ -233,6 +273,9 @@ export function DeliveryMap({ point, fallbackCenter, onChange, onLocate, locatin
             icon={pinIcon}
             draggable
             eventHandlers={{
+              add() {
+                setPinAdded((n) => n + 1);
+              },
               dragend() {
                 const m = markerRef.current;
                 if (!m) return;
@@ -243,6 +286,7 @@ export function DeliveryMap({ point, fallbackCenter, onChange, onLocate, locatin
           />
         )}
       </MapContainer>
+      {point && pinAdded > 0 && <PinPulse key={pinAdded} scope={mapRef} />}
       <MapSearch onPick={onChange} />
       <LocateControl onLocate={onLocate} busy={locating} />
     </div>

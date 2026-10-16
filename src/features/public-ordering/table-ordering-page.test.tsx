@@ -3,7 +3,7 @@
  * question the code on the table already answered.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { AxiosError, AxiosHeaders } from "axios";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -366,9 +366,12 @@ describe("TableOrderingPage — combos", () => {
       undefined,
       expect.anything(),
     );
-    // The total the customer sees is the one after the deal.
-    const panelTotal = screen.getAllByText("Total").map((el) => el.parentElement?.textContent ?? "");
-    expect(panelTotal.some((txt) => /250\.00/.test(txt))).toBe(true);
+    // The total the customer sees is the one after the deal (once it has
+    // counted there: a changed total tweens from the old figure).
+    await waitFor(() => {
+      const panelTotal = screen.getAllByText("Total").map((el) => el.parentElement?.textContent ?? "");
+      expect(panelTotal.some((txt) => /250\.00/.test(txt))).toBe(true);
+    });
     expect(screen.getAllByText(/−.*70\.00/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Deals come off your bill/).length).toBeGreaterThan(0);
   });

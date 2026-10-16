@@ -27,6 +27,8 @@ import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { getGuestPhone, setGuestPhone } from "@/features/public-shell/guest";
+import { stepSwap, successBadge, useStepDirection } from "@/features/public-shell/motion";
+import { DISTANCE, Reveal, recipes, Stagger, SwapPresence } from "@/lib/motion";
 import { formatPhoneInput } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +36,7 @@ import { PhoneVerify } from "./phone-verify";
 import { fmtDay, fmtSlot, fmtWhen, pickableDates } from "./util";
 
 type Step = "branch" | "when" | "you" | "done";
+const STEPS: Step[] = ["branch", "when", "you", "done"];
 
 interface Props {
   orgId: string;
@@ -62,6 +65,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
   const [done, setDone] = useState<PublicBookingView | null>(null);
+  const stepDir = useStepDirection(step, STEPS);
   const [error, setError] = useState<string | null>(null);
   // Also as a toast: the inline copy sits where the customer may have scrolled from.
   useErrorToast(error);
@@ -133,6 +137,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
           </button>
         ) : null}
 
+        <SwapPresence swapKey={step} initial={false} recipe={stepSwap(stepDir, i18n.dir() === "rtl")}>
         {step === "branch" ? (
           <section className="space-y-4">
             <header>
@@ -144,12 +149,14 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
             ) : (branchesQ.data ?? []).length === 0 ? (
               <NotOpen />
             ) : (
+              <Stagger asChild register="brand" recipe={recipes.rise("brand", DISTANCE.md)}>
               <ul className="space-y-3">
                 {(branchesQ.data ?? []).map((b) => (
                   <li key={b.id}>
                     <button
                       type="button"
                       onClick={() => { setBranchId(b.id); setStep("when"); void navigate({ to: "/$orgId/$branchId", params: { orgId, branchId: b.id }, replace: true }); }}
+                      data-press="brand"
                       className="flex w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-4 text-start shadow-sm transition-colors hover:bg-muted/40"
                     >
                       <span className="flex size-11 items-center justify-center rounded-xl bg-brand/10 text-brand"><Store className="size-5" /></span>
@@ -159,6 +166,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
                   </li>
                 ))}
               </ul>
+              </Stagger>
             )}
           </section>
         ) : null}
@@ -290,7 +298,9 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
 
         {step === "done" && done ? (
           <section className="space-y-5 pt-6 text-center">
-            <span className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-success/10 text-success"><CalendarCheck className="size-8" /></span>
+            <Reveal asChild recipe={successBadge}>
+              <span className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-success/10 text-success"><CalendarCheck className="size-8" /></span>
+            </Reveal>
             <h1 className="font-serif text-2xl font-semibold text-balance">{t("reservations.doneTitle", "You’re booked, {{name}}!", { name: done.guest_name })}</h1>
             <p className="text-sm text-muted-foreground">
               {t("reservations.doneBody", "{{name}} · {{when}} · party of {{count}}. We’ve sent the details to your WhatsApp.", { name: done.branch_name, when: fmtWhen(done.starts_at, done.timezone, lang), count: done.party_size })}
@@ -300,6 +310,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
             </Button>
           </section>
         ) : null}
+        </SwapPresence>
       </div>
     </StorefrontShell>
   );

@@ -1,6 +1,5 @@
 import { Component, lazy, Suspense, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
-import { motion } from "motion/react";
-
+import { DURATION, prefersReducedMotion, recipes, Reveal, useReducedMotion } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { Orbit2D } from "./orbit-2d";
 
@@ -22,7 +21,6 @@ const Showcase3D = lazy(() => import("./showcase-3d"));
 const PATIENCE_MS = 4000;
 
 const DESKTOP = "(min-width: 1024px)";
-const REDUCED = "(prefers-reduced-motion: reduce)";
 
 function useMedia(query: string): boolean {
   return useSyncExternalStore(
@@ -52,7 +50,7 @@ function webglAvailable(): boolean {
 
 function wants3D(): boolean {
   if (typeof window === "undefined") return false;
-  if (typeof window.matchMedia === "function" && window.matchMedia(REDUCED).matches) return false;
+  if (prefersReducedMotion()) return false;
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
   if (connection?.saveData) return false;
   return webglAvailable();
@@ -79,7 +77,7 @@ type Mode = "loading" | "3d" | "2d";
 
 export function BrandShowcase({ className }: { className?: string }) {
   const desktop = useMedia(DESKTOP);
-  const reduced = useMedia(REDUCED);
+  const reduced = useReducedMotion();
   const [mode, setMode] = useState<Mode>(() => (wants3D() ? "loading" : "2d"));
 
   // Not there in time: the 2D orbit for this visit.
@@ -94,9 +92,9 @@ export function BrandShowcase({ className }: { className?: string }) {
 
   if (mode === "2d" || reduced) {
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className={className}>
+      <Reveal recipe={recipes.fade(DURATION.brand)} className={className}>
         <Orbit2D />
-      </motion.div>
+      </Reveal>
     );
   }
 
