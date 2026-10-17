@@ -16,7 +16,6 @@ import {
   CupSoda,
   Image as ImageIcon,
   CreditCard,
-  Languages,
   Layers,
   Link2,
   MessageCircle,
@@ -97,10 +96,11 @@ export const SETTINGS_NAV: SettingsGroup[] = [
       },
       {
         // The page the shop's own address opens on. Same rule as Brand: the
-        // shop's own face, edited by its manager.
+        // shop's own face, edited by its manager. Every plan opens it: its
+        // "Menu (no prices)" section is on Free too, and the links page's own
+        // sections lock themselves there (the paid `branding` feature).
         to: "/settings/links",
         module: "pos",
-        feature: "branding",
         labelKey: "settings.linksPage",
         fallback: "Links page",
         descKey: "settings.linksPageDesc",
@@ -279,5 +279,3 @@ export const visibleSettings = (authz: Authz, modules: readonly string[], plan?:
     }),
   })).filter((g) => g.items.length > 0);
 
-/** Kept for the language pane, which is the one non-route entry. */
-export const LANGUAGE_ICON = Languages;

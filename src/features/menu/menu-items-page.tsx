@@ -66,7 +66,7 @@ import { menuItemsListParams, prefetchMenuStudio } from "./queries";
 import { prefetchComboEditor } from "@/features/combos/queries";
 import { keepWhilePaging } from "@/data/api/keep-while-paging";
 import { useHasFeature } from "@/hooks/use-plan";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -347,7 +347,8 @@ export function MenuItemsPage() {
         ],
       });
     } catch (e) {
-      onErr(e);
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }

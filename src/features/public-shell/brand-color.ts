@@ -83,7 +83,7 @@ export const readableOn = (color: string, ground: string): string => {
 export const PAGE_GROUND = { light: "#EFF3F4", dark: "#14181E" } as const;
 
 /** Madar's own mark colour — `branding::MADAR_TEAL`, what a shop off the tier is handed. */
-export const MADAR_TEAL = "#0D6273";
+const MADAR_TEAL = "#0D6273";
 
 /** Label on a filled control: whichever of white and ink reads better on it. */
 const labelOn = (fill: string): string =>

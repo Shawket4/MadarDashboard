@@ -2,7 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { MotionConfig } from "motion/react";
 import * as Sentry from "@sentry/react";
 
 // Self-hosted fonts (work offline in Tauri).
@@ -34,6 +33,7 @@ import "@fontsource/ibm-plex-mono/latin-500.css";
 import "@fontsource/ibm-plex-mono/latin-600.css";
 
 import "@/styles/globals.css";
+import { bootMotion } from "@/lib/motion";
 
 // Side-effect modules: i18n + RTL, theme class, and the stores that wire
 // themselves into the axios ambient context.
@@ -55,6 +55,8 @@ import { listScrollKey } from "@/data/scope/list-search";
 import { routeTree } from "./routeTree.gen";
 
 initDeviceTheme();
+// GSAP fetched now, in parallel with the app + the delegated press feedback (src/lib/motion).
+bootMotion();
 
 const router = createRouter({
   routeTree,
@@ -63,10 +65,6 @@ const router = createRouter({
   // Filtered lists restore scroll by URL, so "Back" to the same view lands
   // where the reader left it (data/scope/list-search.ts).
   getScrollRestorationKey: listScrollKey,
-  // Native View Transitions on navigation — a quiet cross-fade between routes.
-  // No-ops where unsupported; the reduced-motion guard in globals.css disables
-  // the animation (but keeps the snapshot swap) for users who opt out.
-  defaultViewTransition: true,
   defaultNotFoundComponent: NotFound,
 });
 
@@ -127,14 +125,12 @@ function render() {
     <StrictMode>
       <AppErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <MotionConfig reducedMotion="user">
             <TooltipProvider delayDuration={200}>
               <ConfirmProvider>
                 <RouterProvider router={router} />
               </ConfirmProvider>
             </TooltipProvider>
             <DevTools which="query" />
-          </MotionConfig>
         </QueryClientProvider>
       </AppErrorBoundary>
     </StrictMode>,

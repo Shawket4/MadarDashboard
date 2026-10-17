@@ -36,7 +36,7 @@ import {
  * go and looking away feels saved. Every further edit restarts the clock, so a
  * flurry of nudges still collapses into a single write.
  */
-export const AUTOSAVE_DEBOUNCE_MS = 600;
+const AUTOSAVE_DEBOUNCE_MS = 600;
 
 export type SaveState = "idle" | "pending" | "saving" | "saved" | "conflict" | "error";
 

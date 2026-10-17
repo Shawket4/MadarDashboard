@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { renderCell } from "./render-cell";
 import { ArrowLeft, ArrowRight, Copy, Lock, MoreHorizontal, Plus, Scaling, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 
+import { AnimatedFigure } from "@/components/app/animated-figure";
 import { FixCostPopover } from "../studio/fix-cost-popover";
 import { newBlockKey, type RecipeLineDraft, type SizeBlockDraft } from "../studio/util";
 import { ONE_SIZE } from "../util";
@@ -419,7 +421,7 @@ export function RecipeGrid({
               <tr key={row.id} className={cn("border-b last:border-b-0", row.original.source !== "own" && "bg-muted/25")}>
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-2 py-1.5 align-middle first:px-3">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {renderCell(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
               </tr>
@@ -486,8 +488,9 @@ export function RecipeGrid({
                     ) : (
                       <span className="font-mono tabular-nums">
                         {estimated ? "≈ " : null}
-                        {fmtMoney(cost.piastres)}
-                        {margin != null ? ` · ${fmtPercent(margin)}` : null}
+                        {/* Cost and margin recompute as quantities are typed: the figure changes, not the cell. */}
+                        <AnimatedFigure text={fmtMoney(cost.piastres)} />
+                        {margin != null ? <> · <AnimatedFigure text={fmtPercent(margin)} /></> : null}
                         {cost.complete ? null : ` · ${t("menu.studio.recipe.incomplete", "Cost incomplete")}`}
                       </span>
                     )}

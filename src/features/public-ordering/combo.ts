@@ -9,13 +9,16 @@
  */
 import type { TFunction } from "i18next";
 
-import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
-import type { PublicCombo } from "@/data/api/generated/models/publicCombo";
 import type { PublicComboChoice } from "@/data/api/generated/models/publicComboChoice";
-import type { PublicComboSlot } from "@/data/api/generated/models/publicComboSlot";
 import { rules } from "@/lib/rules";
 
-import type { ComboPick } from "./types";
+import type {
+  CatalogCombo as PublicCombo,
+  CatalogComboChoice,
+  CatalogComboSlot as PublicComboSlot,
+  CatalogItem,
+  ComboPick,
+} from "./types";
 import { displaySize } from "./utils";
 
 /** A slot's picks: menu_item_id → how many (per combo) and at which size. */
@@ -24,7 +27,7 @@ export type SlotSelection = Record<string, { qty: number; size: string }>;
 export type ComboSelection = Record<string, SlotSelection>;
 
 /** Is this menu item a combo the picker can fill? */
-export const isCombo = (item: DeliveryMenuItem | null | undefined): boolean =>
+export const isCombo = (item: CatalogItem | null | undefined): boolean =>
   !!item && item.kind === "combo" && !!item.combo;
 
 /**
@@ -33,7 +36,7 @@ export const isCombo = (item: DeliveryMenuItem | null | undefined): boolean =>
  * picked, never the default, and never sent. A server from before the flag
  * sends only what it sells.
  */
-export const isAvailable = (choice: PublicComboChoice): boolean => choice.available !== false;
+export const isAvailable = (choice: CatalogComboChoice): boolean => choice.available !== false;
 
 /** The slots in the order the owner arranged them. */
 export const sortedSlots = (combo: PublicCombo): PublicComboSlot[] =>
@@ -51,19 +54,19 @@ export const slotCount = (sel: SlotSelection | undefined): number =>
   Object.values(sel ?? {}).reduce((n, p) => n + p.qty, 0);
 
 /** The size a choice starts at: the one the combo includes. */
-const includedSize = (choice: PublicComboChoice): string =>
+const includedSize = (choice: CatalogComboChoice): string =>
   choice.included_size_label || choice.sizes[0]?.label || "";
 
 /** A size the choice actually offers, or its included size. */
-const validSize = (choice: PublicComboChoice, label: string | null | undefined): string =>
+const validSize = (choice: CatalogComboChoice, label: string | null | undefined): string =>
   label && choice.sizes.some((s) => s.label === label) ? label : includedSize(choice);
 
 /**
  * What one unit of this choice at this size adds to the combo's price: its
  * surcharge plus the size's extra (madar-catalog `combo::choice_extra`, WebAssembly).
  */
-export const choiceExtra = (choice: PublicComboChoice, size: string | null): number =>
-  rules.combo_choice_extra(choice, size);
+export const choiceExtra = (choice: CatalogComboChoice, size: string | null): number =>
+  rules.combo_choice_extra(choice as PublicComboChoice, size);
 
 /**
  * Where the picker opens: the line's own picks when editing; otherwise each
@@ -116,8 +119,12 @@ export const firstUnmetSlot = (
     return n < s.min || n > s.max;
   }) ?? null;
 
-/** The selection as cart picks: slot order, then the owner's choice order. */
-export function buildPicks(combo: PublicCombo, sel: ComboSelection): ComboPick[] {
+/**
+ * The selection as cart picks: slot order, then the owner's choice order.
+ * `priced: false` (the menu without prices, whose choices carry no figure):
+ * the picks carry no `extra` either.
+ */
+export function buildPicks(combo: PublicCombo, sel: ComboSelection, priced = true): ComboPick[] {
   const picks: ComboPick[] = [];
   for (const slot of sortedSlots(combo)) {
     const slotSel = sel[slot.id] ?? {};
@@ -134,7 +141,7 @@ export function buildPicks(combo: PublicCombo, sel: ComboSelection): ComboPick[]
         name_translations: choice.name_translations,
         slot_name: slot.name,
         slot_name_translations: slot.name_translations,
-        extra: choiceExtra(choice, p.size),
+        ...(priced ? { extra: choiceExtra(choice, p.size) } : {}),
       });
     }
   }

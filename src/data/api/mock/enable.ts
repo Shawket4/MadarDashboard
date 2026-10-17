@@ -19,6 +19,9 @@ export async function enableMocks(): Promise<void> {
   });
 
   useAuthStore.getState().signIn(MOCK_TOKEN, MOCK_USER);
+  // `?mock_plan=free` previews the dashboard as a Free shop sees it.
+  const plan = new URLSearchParams(window.location.search).get("mock_plan");
+  if (plan) useAuthStore.getState().setPlan(plan);
   if (MOCK_USER.org_id) useAppStore.getState().setSelectedOrg(MOCK_USER.org_id);
   useAppStore.getState().setActiveTimezone(APP_TZ);
 

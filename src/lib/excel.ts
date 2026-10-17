@@ -10,6 +10,7 @@ import type * as ExcelJSNS from "exceljs";
 import { rules } from "@/lib/rules";
 import { toast } from "sonner";
 import i18n from "@/i18n";
+import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";
 import { fmtDateTimeFull, getActiveTz } from "@/lib/format";
 
@@ -388,5 +389,23 @@ export async function exportToExcel(config: ExcelConfig): Promise<void> {
   } catch (err) {
     console.error("Excel export failed", err);
     toast.error(t("excel.failed", "Export failed"), { id: toastId });
+    // Rethrown so the Export button shakes; the toast above is the only one.
+    throw new ExportFailed(err);
   }
+}
+
+/** A workbook that failed to build. exportToExcel has already toasted "Export failed". */
+class ExportFailed extends Error {
+  constructor(cause: unknown) {
+    super("Export failed", { cause });
+    this.name = "ExportFailed";
+  }
+}
+
+/**
+ * The one toast for a failed export, in every export handler's catch: a fetch
+ * that failed gets its message; a workbook that failed was already toasted.
+ */
+export function toastExportError(e: unknown) {
+  if (!(e instanceof ExportFailed)) toast.error(getErrorMessage(e));
 }

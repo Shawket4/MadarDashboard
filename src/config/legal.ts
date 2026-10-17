@@ -5,7 +5,7 @@
  *
  * Single source of truth: if the documents ever move, change it here only.
  */
-export const LEGAL_BASE = "https://legal.madar-pos.cloud";
+const LEGAL_BASE = "https://legal.madar-pos.cloud";
 
 export const LEGAL_URLS = {
   index: LEGAL_BASE,

@@ -14,6 +14,7 @@ import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { ListCard, ListRow } from "@/components/app/list-row";
+import { useFlip, useStagger } from "@/lib/motion";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import { useListFilters } from "@/data/scope/use-list-filters";
@@ -62,6 +63,7 @@ const KINDS: { value: string; icon: LucideIcon; labelKey: string; fallback: stri
   { value: "correction", icon: ShieldCheck, labelKey: "dawam.kindCorrection", fallback: "Correction", fileable: false },
 ];
 const FILEABLE = KINDS.filter((k) => k.fileable);
+const LIST_ROWS = ":scope > [data-slot=list-card] > *";
 
 export const kindMeta = (kind: string) => KINDS.find((k) => k.value === kind) ?? KINDS[0];
 
@@ -128,7 +130,7 @@ function useNamesByUser(): Map<string, string> {
 }
 
 /** The caller's own request: the server says so (`is_own`); else guessed. */
-export const isMine = (r: StaffRequest, own: Set<string>) => r.is_own ?? own.has(r.employee_id);
+const isMine = (r: StaffRequest, own: Set<string>) => r.is_own ?? own.has(r.employee_id);
 
 /**
  * May the caller approve or reject it? The server decides (`can_decide`: pending,
@@ -175,6 +177,11 @@ export function RequestsInboxPage() {
   // One builder for the page AND the sidebar prefetch (./queries.ts).
   const requestsQ = useListRequests(requestsListParams(f), { query: dawamQuery() });
   const rows = useMemo(() => requestsQ.data ?? [], [requestsQ.data]);
+  // Requests arrive one after another; a decided one leaving the list lets the
+  // rest slide up into its place.
+  const listRef = useRef<HTMLDivElement>(null);
+  useStagger(listRef, { selector: LIST_ROWS, when: rows.length > 0 });
+  useFlip(listRef, rows.map((r) => r.id).join(), LIST_ROWS);
 
   const confirm = useConfirm();
   const quickDecide = async (r: StaffRequest, next: "approved" | "rejected") => {
@@ -292,70 +299,72 @@ export function RequestsInboxPage() {
           />
         )
       ) : (
-        <ListCard>
-          {rows.map((r) => {
-            const meta = kindMeta(r.kind);
-            const mine = isMine(r, own);
-            // An approved correction already rewrote the punch: the server
-            // refuses to cancel it (409), so it isn't offered.
-            // Approved time in a closed month can't be cancelled either (month_closed).
-            const live = r.status === "pending" || (r.status === "approved" && r.kind !== "correction" && !r.month_closed);
-            return (
-              <ListRow
-                key={r.id}
-                icon={meta.icon}
-                title={
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="truncate">{r.employee_name}</span>
-                    <Badge variant="secondary">{t(meta.labelKey, meta.fallback)}</Badge>
-                    <RequestBadges r={r} mine={mine} />
-                  </span>
-                }
-                // Who decided and who cancelled must stay readable on a phone.
-                wrapMeta
-                meta={<>{[
-                  // A mission's title says what it is (M43).
-                  describeWindow(r, t), r.title, r.reason,
-                  // Who decided, with their note; a cancel keeps both and names its own author (AT-10, B-TEAM-3, RQ-F6).
-                  r.decided_by_name && r.status !== "pending"
-                    ? t("staff.decidedBy", { name: r.decided_by_name, defaultValue: "Decided by {{name}}" })
-                    : null,
-                  r.decision_note,
-                  cancelWords(r),
-                ].filter(Boolean).join(" · ")}
-                {mayDecide(r, own) && !r.month_closed ? (
-                  <span className="mt-0.5 block text-xs text-foreground/80">{approveMeans(r, t)}</span>
-                ) : null}
-                </>}
-                trailing={
-                  <>
-                    <StatusPill tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
-                      {t(`staff.req_${r.status}`, r.status)}
-                    </StatusPill>
-                    {mayDecide(r, own) ? (
-                      <>
-                        {r.month_closed ? null : (
-                          <Button size="sm" variant="outline" className="ms-2" disabled={busy === r.id} onClick={() => void quickDecide(r, "approved")}>
-                            <Check className="size-4" />
-                            {t("common.approve", "Approve")}
-                          </Button>
-                        )}
-                        <RowAction destructive disabled={busy === r.id} label={t("common.reject", "Reject")} onClick={() => void quickDecide(r, "rejected")}>
-                          <X className="size-4" />
+        <div ref={listRef}>
+          <ListCard>
+            {rows.map((r) => {
+              const meta = kindMeta(r.kind);
+              const mine = isMine(r, own);
+              // An approved correction already rewrote the punch: the server
+              // refuses to cancel it (409), so it isn't offered.
+              // Approved time in a closed month can't be cancelled either (month_closed).
+              const live = r.status === "pending" || (r.status === "approved" && r.kind !== "correction" && !r.month_closed);
+              return (
+                <ListRow
+                  key={r.id}
+                  icon={meta.icon}
+                  title={
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="truncate">{r.employee_name}</span>
+                      <Badge variant="secondary">{t(meta.labelKey, meta.fallback)}</Badge>
+                      <RequestBadges r={r} mine={mine} />
+                    </span>
+                  }
+                  // Who decided and who cancelled must stay readable on a phone.
+                  wrapMeta
+                  meta={<>{[
+                    // A mission's title says what it is (M43).
+                    describeWindow(r, t), r.title, r.reason,
+                    // Who decided, with their note; a cancel keeps both and names its own author (AT-10, B-TEAM-3, RQ-F6).
+                    r.decided_by_name && r.status !== "pending"
+                      ? t("staff.decidedBy", { name: r.decided_by_name, defaultValue: "Decided by {{name}}" })
+                      : null,
+                    r.decision_note,
+                    cancelWords(r),
+                  ].filter(Boolean).join(" · ")}
+                  {mayDecide(r, own) && !r.month_closed ? (
+                    <span className="mt-0.5 block text-xs text-foreground/80">{approveMeans(r, t)}</span>
+                  ) : null}
+                  </>}
+                  trailing={
+                    <>
+                      <StatusPill popOn={r.status} tone={REQUEST_STATUS_TONE[r.status] ?? "neutral"}>
+                        {t(`staff.req_${r.status}`, r.status)}
+                      </StatusPill>
+                      {mayDecide(r, own) ? (
+                        <>
+                          {r.month_closed ? null : (
+                            <Button size="sm" variant="outline" className="ms-2" disabled={busy === r.id} onClick={() => void quickDecide(r, "approved")}>
+                              <Check className="size-4" />
+                              {t("common.approve", "Approve")}
+                            </Button>
+                          )}
+                          <RowAction destructive disabled={busy === r.id} label={t("common.reject", "Reject")} onClick={() => void quickDecide(r, "rejected")}>
+                            <X className="size-4" />
+                          </RowAction>
+                        </>
+                      ) : null}
+                      {live ? (
+                        <RowAction label={t("staff.cancelRequest", "Cancel request")} onClick={() => setCancelling(r)}>
+                          <Ban className="size-4" />
                         </RowAction>
-                      </>
-                    ) : null}
-                    {live ? (
-                      <RowAction label={t("staff.cancelRequest", "Cancel request")} onClick={() => setCancelling(r)}>
-                        <Ban className="size-4" />
-                      </RowAction>
-                    ) : null}
-                  </>
-                }
-              />
-            );
-          })}
-        </ListCard>
+                      ) : null}
+                    </>
+                  }
+                />
+              );
+            })}
+          </ListCard>
+        </div>
       )}
 
       <NewRequestDialog open={addOpen} onOpenChange={setAddOpen} />
@@ -600,7 +609,7 @@ export function ApproveWithPayDialog({
  * Cancelling a request. Someone else's, or any approved one, needs a note
  * (AT-7); the server refuses it without one.
  */
-export function CancelRequestDialog({
+function CancelRequestDialog({
   request,
   mine,
   onOpenChange,

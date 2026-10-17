@@ -27,55 +27,38 @@ import {
   useListSpotViews,
 } from "@/data/api/generated/api";
 import type {
-  CloseTillMethod,
   CloseTillPreview,
-  CloseTillRequest,
-  CloseTillResponse as GenCloseTillResponse,
   DeductionLogRow,
   LastTillWarning,
   ListTillsParams as GenListTillsParams,
   OpenBillsNotice,
-  PaginatedTills,
   ReconciliationInput as GenReconciliationInput,
-  ShiftSummary,
   Till,
-  TillBrief,
-  TillPreFill,
   TillReconciliationLine as GenTillReconciliationLine,
   TillReportResponse as GenTillReportResponse,
   TillStatus,
   TillSpotView,
-  TillVerification,
 } from "@/data/api/generated/models";
 import { queryClient } from "@/data/api/query";
 
-export type ReconciliationStatus = "clean" | "disagreed" | "unreviewed";
 export type ReconciliationLineStatus = "checked" | "disagreed" | "unreviewed";
 
 export type TillReconciliationLine = Omit<GenTillReconciliationLine, "status"> & { status: ReconciliationLineStatus };
 export type TillReport = Omit<GenTillReportResponse, "reconciliation"> & { reconciliation: TillReconciliationLine[] };
-export type CloseTillResponse = Omit<GenCloseTillResponse, "reconciliation"> & { reconciliation: TillReconciliationLine[] };
 export type ReconciliationInput = Omit<GenReconciliationInput, "status"> & { status: "checked" | "disagreed" };
 export type ListTillsParams = Omit<GenListTillsParams, "status"> & { status?: TillStatus };
-export type TillSummary = ShiftSummary;
 export type {
-  CloseTillMethod,
   CloseTillPreview,
-  CloseTillRequest,
   DeductionLogRow,
   LastTillWarning,
   OpenBillsNotice,
-  PaginatedTills,
   Till,
-  TillBrief,
-  TillPreFill,
   TillSpotView,
   TillStatus,
-  TillVerification,
 };
 
 /** Every tills/reports query key starts with its URL (orval convention). */
-export const invalidateTills = () =>
+const invalidateTills = () =>
   queryClient.invalidateQueries({
     predicate: (q) =>
       typeof q.queryKey[0] === "string" &&

@@ -15,9 +15,10 @@ import { useListCustomerAddresses } from "@/data/api/generated/api";
 import type { CustomerAddress } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtDate, fmtNumber } from "@/lib/format";
+import { Stagger } from "@/lib/motion";
 
 /** One line a driver could follow: place, unit, floor, street, landmark — whatever was given. */
-export function formatAddress(a: CustomerAddress, t: (key: string, opts: Record<string, unknown>) => string): string {
+function formatAddress(a: CustomerAddress, t: (key: string, opts: Record<string, unknown>) => string): string {
   return [
     a.place_name,
     a.unit_number ? t("customers.addresses.unit", { defaultValue: "Unit {{n}}", n: a.unit_number }) : null,
@@ -53,6 +54,7 @@ export function AddressesSection({ customerId }: { customerId: string }) {
           {t("customers.addresses.empty", "No saved addresses. One is kept the first time they order for delivery.")}
         </p>
       ) : (
+        <Stagger asChild>
         <ul className="divide-y rounded-lg border text-sm">
           {(q.data ?? []).map((a) => {
             const line = formatAddress(a, t);
@@ -89,6 +91,7 @@ export function AddressesSection({ customerId }: { customerId: string }) {
             );
           })}
         </ul>
+        </Stagger>
       )}
     </section>
   );

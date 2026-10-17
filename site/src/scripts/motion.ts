@@ -5,7 +5,7 @@
 // GSAP and show every page complete and still.
 //
 // One gsap.matchMedia() arms it: .crew-armed on <html> (the crew's CSS may wait behind it)
-// and the vocabulary, with a calmer variant on phones (the *-phone tokens). If the visitor
+// and the vocabulary, with a phone-scaled variant (the *-phone tokens). If the visitor
 // turns reduced motion on, all of it reverts to the still page.
 //
 // The vocabulary. Mark it up; never write a page's own reveal keyframes or observers:
@@ -16,9 +16,10 @@
 //   data-draw           an <svg>'s strokes draw (DrawSVG); any other element (a rule)
 //                       draws along its longer side from the start
 //   data-count          a figure counts up to the value in the HTML
-//   data-parallax="f"   drifts f of its height as its section scrolls (calmer on phones)
+//   data-parallax="f"   drifts f of its height as its section scrolls (a little less on phones)
 //   data-sequence="x"   a set piece: the timeline defineSequence("x") builds, played as
 //                       it comes in, paused off screen, resumed when back
+//   data-light          hero art, a big card: its soft shadow and glow move with the scroll
 //   data-progress       the header's page progress line
 // The scenes (pins, the screens, the family, the cappuccino, the roadmap, the rail) are
 // story.ts's, set up first so every trigger after them measures the page at its length.
@@ -36,7 +37,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import Lenis from "lenis";
-import { DUR, EASE, PARALLAX_PHONE, PHONE, REVEAL_Y, REVEAL_Y_PHONE, STAGGER, STAGGER_PHONE, STAGGER_WORD } from "@/lib/motion";
+import { WAITS } from "./waits";
+import { DUR, EASE, PARALLAX_PHONE, PHONE, REVEAL_Y, REVEAL_Y_PHONE, SCRUB, STAGGER, STAGGER_PHONE, STAGGER_WORD } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin);
 // Whatever arrives eases out on the tokens' curve unless a tween says otherwise.
@@ -59,7 +61,14 @@ export const passed = (el: Element) => el.getBoundingClientRect().bottom <= 0;
  * above it (a # address, a reload half-way down). It has been on show since the first
  * paint; hiding it now to play an entrance would make it blink.
  */
-export const settled = (el: Element) => el.getBoundingClientRect().top < window.innerHeight;
+export const settled = (el: Element) => {
+  // Hidden from the first paint, waiting for the engine (scripts/waits.ts): it plays,
+  // wherever it is, unless the late fallback has already shown it or it is a # address's
+  // section (which entered in CSS).
+  // (Not one this width doesn't show, display: none: it is left as it is, as before.)
+  if (root.classList.contains("reveal-wait") && el.getClientRects().length && el.closest(WAITS) && !el.closest("[data-shown], :target")) return false;
+  return el.getBoundingClientRect().top < window.innerHeight;
+};
 
 /**
  * A flick: the page is moving fast (a thumb's fling, a trackpad throw). Entrances that
@@ -92,7 +101,8 @@ export function whenSeen(el: Element, start: string, anim: gsap.core.Animation) 
     trigger: el,
     start,
     once: true,
-    onEnter: () => void (passed(el) || flicking() ? anim.progress(1) : anim.play()),
+    // Mid-flick it still plays, twice as fast: nothing that was waiting just appears.
+    onEnter: () => void (passed(el) ? anim.progress(1) : (flicking() && anim.timeScale(2), anim.play())),
   });
 }
 
@@ -115,14 +125,26 @@ export function onScreen(el: Element, onChange?: (on: boolean) => void) {
 }
 
 /** A set piece's timeline, built when its element is set up (data-sequence="name"). */
-type Sequence = { build: (el: HTMLElement, tl: gsap.core.Timeline) => void; always: boolean };
+type Sequence = {
+  build: (el: HTMLElement, tl: gsap.core.Timeline, feel: Feel) => void;
+  always: boolean;
+  scrub: false | { start: string; end: string };
+};
 const sequences = new Map<string, Sequence>();
 /**
  * Names a set piece. `always`: it plays even when it is on screen as the engine starts (a
- * character's entrance); otherwise a settled one is left as it is.
+ * character's entrance); otherwise a settled one is left as it is. `scrub`: the scroll
+ * drives it instead (from `start` to `end`, ScrollTrigger's terms; by default while the
+ * element scrolls out from the top), so it is built wherever it is, at its start state
+ * (which must be the page as rendered: nothing jumps when it is set up).
  */
-export function defineSequence(name: string, build: Sequence["build"], { always = false } = {}) {
-  sequences.set(name, { build, always });
+export function defineSequence(
+  name: string,
+  build: Sequence["build"],
+  { always = false, scrub = false as boolean | { start?: string; end?: string } } = {},
+) {
+  const range = scrub ? { start: "top top", end: "bottom top", ...(scrub === true ? {} : scrub) } : false;
+  sequences.set(name, { build, always: always || !!range, scrub: range });
 }
 
 /** A custom property on `el` (inherited, so a parent can set it), in seconds. */
@@ -148,8 +170,11 @@ let lenis: Lenis | null = null;
 
 // ---------- The vocabulary ----------
 
-/** How it moves: the rise, the beat between items and between words, the parallax share (calmer on phones). */
-type Feel = { y: number; step: number; word: number; parallax: number };
+/** How it moves: the rise, the beat between items and between words, the parallax share (phone-scaled below 768 px). */
+type Feel = { y: number; step: number; word: number; parallax: number; phone: boolean };
+/** Phones keep every moment the wide screen has, at a phone's scale (the *-phone tokens). */
+const PHONE_FEEL: Feel = { y: REVEAL_Y_PHONE, step: STAGGER_PHONE, word: STAGGER_WORD, parallax: PARALLAX_PHONE, phone: true };
+const WIDE_FEEL: Feel = { y: REVEAL_Y, step: STAGGER, word: STAGGER_WORD, parallax: 1, phone: false };
 
 /**
  * Lines and cards rise into place (data-reveal). What comes in together rises one after
@@ -166,8 +191,8 @@ function reveals(feel: Feel) {
       // A jump or a flick can pass a whole page of these at once: what it passed (or all
       // of them, mid-flick) shows at once, and only what is on screen plays.
       const fast = flicking();
-      const gone = batch.filter((el) => fast || passed(el));
-      const here = batch.filter((el) => !fast && !passed(el));
+      const gone = batch.filter((el) => passed(el));
+      const here = batch.filter((el) => !passed(el));
       if (gone.length) gsap.set(gone, { autoAlpha: 1, y: 0, overwrite: true });
       if (!here.length) return;
       const group = (el: Element) => el.closest("[data-reveal-group]");
@@ -180,7 +205,8 @@ function reveals(feel: Feel) {
         count.set(g, k + 1);
         return k * Math.min(feel.step, 0.35 / (size.get(g) ?? 1));
       });
-      gsap.to(here, { autoAlpha: 1, y: 0, duration: DUR.reveal, delay: (i: number) => delay[i] ?? 0, overwrite: true });
+      // Mid-flick they still rise, quicker and together.
+      gsap.to(here, { autoAlpha: 1, y: 0, duration: fast ? DUR.reveal * 0.5 : DUR.reveal, delay: (i: number) => (fast ? 0 : (delay[i] ?? 0)), overwrite: true });
     },
   });
 }
@@ -229,18 +255,17 @@ function popsAndDraws(feel: Feel) {
     start: "top 92%",
     once: true,
     onEnter: (batch) => {
-      const fast = flicking();
       const n = { pop: 0, draw: 0 };
       for (const el of batch) {
         const pop = el.hasAttribute("data-pop");
         const svg = !pop && el instanceof SVGSVGElement;
         const targets = svg ? strokes(el) : el;
         const done = svg ? { drawSVG: "100%" } : { scale: 1, scaleX: 1, scaleY: 1 };
-        if (fast || passed(el)) {
+        if (passed(el)) {
           gsap.set(targets, done);
           continue;
         }
-        // A list may slow its beat (--stagger on a parent); otherwise the feel's (calmer on phones).
+        // A list may slow its beat (--stagger on a parent); otherwise the feel's (phone-scaled).
         const own = seconds(el, "--stagger", STAGGER);
         const step = own === STAGGER ? feel.step : own;
         const after = !pop && el.parentElement?.closest("[data-pop]") ? DUR.pop * 0.36 : 0;
@@ -295,19 +320,34 @@ function heroCount() {
   }
 }
 
-/** Set pieces (data-sequence): built paused, played as they come in, paused off screen. */
-function playSequences() {
+/** Set pieces (data-sequence): built paused, played as they come in, paused off screen. `only`: the `always` ones alone (the crew's, built early). */
+const built = new WeakSet<Element>();
+function playSequences(feel: Feel, only?: "always") {
   for (const el of gsap.utils.toArray<HTMLElement>("[data-sequence]")) {
+    if (built.has(el)) continue;
     const name = el.dataset.sequence ?? "";
     const seq = sequences.get(name);
     if (!seq) {
-      console.error(`data-sequence="${name}" has no defineSequence("${name}")`);
+      if (!only) console.error(`data-sequence="${name}" has no defineSequence("${name}")`);
       continue;
     }
+    if (only && !seq.always) continue;
     if (!seq.always && settled(el)) continue;
+    if (only && seq.scrub) continue;
+    built.add(el);
+    if (seq.scrub) {
+      const tl = gsap.timeline({ defaults: { ease: "none" } });
+      seq.build(el, tl, feel);
+      ScrollTrigger.create({ trigger: el, ...seq.scrub, scrub: SCRUB, animation: tl });
+      continue;
+    }
     const tl = gsap.timeline({ paused: true });
-    seq.build(el, tl);
-    ScrollTrigger.create({ trigger: el, start: "top 92%", end: "bottom top", toggleActions: "play pause resume pause", animation: tl });
+    seq.build(el, tl, feel);
+    // A figure on a hanging badge is measured by the badge's place on the page, never by
+    // the badge itself: that waits above the screen to fall in, and a trigger measured
+    // there thought the figure long gone and paused its entrance half way.
+    const trigger = el.closest("[data-swing]") ?? el;
+    ScrollTrigger.create({ trigger, start: "top 92%", end: "bottom top", toggleActions: "play pause resume pause", animation: tl });
   }
 }
 
@@ -318,7 +358,24 @@ function parallax(feel: Feel) {
     gsap.to(el, {
       yPercent: -f * 100,
       ease: "none",
-      scrollTrigger: { trigger: el.closest("section") ?? el, start: "top top", end: "bottom top", scrub: true },
+      scrollTrigger: { trigger: el.closest("section") ?? el, start: "top top", end: "bottom top", scrub: SCRUB },
+    });
+  }
+}
+
+/**
+ * The light on hero art and the big cards (data-light): a pre-rendered soft shadow under
+ * it and a glow behind it (pseudo-elements, styles/components.css) that the scroll moves
+ * through --light, 0 to 1, as it passes. Only their opacity and transform follow: no
+ * shadow or filter is ever re-rendered. What is on screen at the start starts from where
+ * it is (its range begins when its top reaches the top), so nothing jumps.
+ */
+function lights() {
+  for (const el of gsap.utils.toArray<HTMLElement>("[data-light]")) {
+    gsap.fromTo(el, { "--light": 0 }, {
+      "--light": 1,
+      ease: "none",
+      scrollTrigger: { trigger: el, start: settled(el) ? "top top" : "top bottom", end: "bottom top", scrub: SCRUB },
     });
   }
 }
@@ -353,6 +410,49 @@ function progress() {
   gsap.fromTo(bar, { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: 0.3 } });
 }
 
+/**
+ * A real pointer only: cards that lift (.lift) also tip toward it, a few degrees, and the
+ * big buttons (.btn-lg, a band's button) lean toward it as it nears, a magnet. Both settle
+ * back on the arrival curve when it leaves. Touch keeps .press's dip. Returns the undo.
+ */
+function hovers() {
+  const off: (() => void)[] = [];
+  const on = (el: Element, type: string, fn: (e: PointerEvent) => void) => {
+    el.addEventListener(type, fn as EventListener);
+    off.push(() => el.removeEventListener(type, fn as EventListener));
+  };
+  for (const card of gsap.utils.toArray<HTMLElement>(".lift")) {
+    gsap.set(card, { transformPerspective: 900 });
+    const rx = gsap.quickTo(card, "rotationX", { duration: DUR.reveal * 0.6 });
+    const ry = gsap.quickTo(card, "rotationY", { duration: DUR.reveal * 0.6 });
+    on(card, "pointermove", (e) => {
+      if (e.pointerType !== "mouse") return;
+      const r = card.getBoundingClientRect();
+      rx(-((e.clientY - r.top) / r.height - 0.5) * 6);
+      ry(((e.clientX - r.left) / r.width - 0.5) * 6);
+    });
+    on(card, "pointerleave", () => {
+      rx(0);
+      ry(0);
+    });
+  }
+  for (const btn of gsap.utils.toArray<HTMLElement>(".btn-lg, .cta-band .btn")) {
+    const x = gsap.quickTo(btn, "x", { duration: DUR.reveal * 0.5 });
+    const y = gsap.quickTo(btn, "y", { duration: DUR.reveal * 0.5 });
+    on(btn, "pointermove", (e) => {
+      if (e.pointerType !== "mouse") return;
+      const r = btn.getBoundingClientRect();
+      x(gsap.utils.clamp(-8, 8, (e.clientX - (r.left + r.width / 2)) * 0.22));
+      y(gsap.utils.clamp(-6, 6, (e.clientY - (r.top + r.height / 2)) * 0.3));
+    });
+    on(btn, "pointerleave", () => {
+      x(0);
+      y(0);
+    });
+  }
+  return () => off.forEach((f) => f());
+}
+
 // ---------- Built-in set pieces ----------
 
 /** A step of a StepList: its number rises from its mask and its rule draws; a row's steps one after another. */
@@ -371,31 +471,35 @@ defineSequence("band", (band, tl) => {
   tl.fromTo(band.querySelectorAll(":scope > :not(.cta-band-crew)"), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.7, stagger: STAGGER * 1.5 }, 0.15);
 });
 
+/**
+ * A page's first screen, scrolled away (scrubbed, data-sequence="hero"): three depths. The
+ * backdrop (the orbit) turns and sinks slowest, the words lift away and dim, the hero's
+ * pictures ([data-hero-media]) tip back into the page and the light on them goes with
+ * them. Transform and opacity only; at the top of the page it is the page as rendered.
+ */
+defineSequence(
+  "hero",
+  (hero, tl, feel) => {
+    const orbit = hero.querySelector(":scope > [data-orbit]");
+    const copy = hero.querySelector("[data-hero-copy]");
+    const media = hero.querySelector("[data-hero-media]");
+    if (orbit) tl.to(orbit, { rotation: 14 * (rtl ? -1 : 1), yPercent: 8, transformOrigin: "50% 50%" }, 0);
+    // A long first section (a page whose list sits beside its heading) only drifts its
+    // words a little and never dims them: they are still being read as it scrolls.
+    const tall = hero.offsetHeight > window.innerHeight * 1.5;
+    if (copy) {
+      tl.to(copy, { y: () => -0.18 * Math.min(hero.offsetHeight, window.innerHeight) * (feel.phone ? 0.7 : 1) }, 0);
+      if (!tall) tl.to(copy, { autoAlpha: 0.35, duration: 0.5 }, 0.5);
+    }
+    if (media) {
+      tl.to(media, { rotationX: feel.phone ? 8 : 12, scale: 0.92, yPercent: -6, transformPerspective: 1400, transformOrigin: "50% 100%" }, 0);
+    }
+  },
+  { scrub: true },
+);
+
 // ---------- Setting it up ----------
 
-/**
- * Sets the engine up once the first screen's entrance (CSS) has played and the page is
- * idle, or as soon as the visitor scrolls or touches it, whichever comes first. The setup
- * is the page's one long piece of work (about 220 ms on a mid phone) and it also starts
- * the 3D's download (family.ts), so it never lands mid-entrance. Nothing below the first
- * screen needs it before the page moves: until then that content is simply there.
- */
-function afterEntrance(start: () => void) {
-  let started = false;
-  const events = ["scroll", "touchstart", "wheel", "keydown"] as const;
-  const go = () => {
-    if (started) return;
-    started = true;
-    for (const type of events) window.removeEventListener(type, go);
-    start();
-  };
-  for (const type of events) window.addEventListener(type, go, { passive: true });
-  // The entrance: every finite animation running now (the CSS ones, a page transition).
-  const entrance = document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity);
-  const idle = () => ("requestIdleCallback" in window ? requestIdleCallback(go, { timeout: 300 }) : setTimeout(go, 50));
-  Promise.all(entrance.map((a) => a.finished.catch(() => {}))).then(idle);
-  setTimeout(go, 4000); // whatever an animation does, the engine is set up by then
-}
 
 /** Smooth scroll on mouse and trackpad only (touch keeps its native momentum), on GSAP's ticker. */
 function smoothScroll() {
@@ -501,14 +605,30 @@ function refreshWhenNeeded() {
   );
 }
 
-const PHONE_FEEL: Feel = { y: REVEAL_Y_PHONE, step: STAGGER_PHONE, word: STAGGER_WORD * 0.7, parallax: PARALLAX_PHONE };
-const WIDE_FEEL: Feel = { y: REVEAL_Y, step: STAGGER, word: STAGGER_WORD, parallax: 1 };
+
+/**
+ * The crew, at once (not after the first screen's entrance): their figures, badges and the
+ * receipt wait hidden from the first paint (.crew-wait, styles/sections/crew.css) and play
+ * their entrances as soon as the engine is here. It is a small setup; the rest waits.
+ */
+const crewReady = has("[data-crew], [data-swing], .zr")
+  ? import("./crew").then((crew) => {
+      gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
+        root.classList.add("crew-armed");
+        playSequences(window.matchMedia(PHONE).matches ? PHONE_FEEL : WIDE_FEEL, "always");
+        return () => root.classList.remove("crew-armed");
+      });
+      crew.live();
+      root.classList.remove("crew-wait");
+      return crew;
+    })
+  : null;
 
 async function start() {
   // The modules a page needs, before anything is measured.
-  const [story, crew] = await Promise.all([
+  const [story] = await Promise.all([
     has("[data-family], [data-order], [data-barista], [data-pin-set], [data-roadmap], [data-basira], [data-stage-time], [data-rail]") ? import("./story") : null,
-    has("[data-crew], [data-swing], .zr") ? import("./crew") : null,
+    crewReady,
   ]);
   if (has("[data-beams]")) void import("./beams").then((m) => m.drawBeams(true));
   smoothScroll();
@@ -525,24 +645,31 @@ async function start() {
   await breathe();
   story?.extras();
 
-  // The vocabulary, armed by one matchMedia: the calmer feel on phones, nothing at all
+  // The vocabulary, armed by one matchMedia: the phone-scaled feel below 768 px, nothing at all
   // (and every piece reverted to the still page) with reduced motion.
-  gsap.matchMedia().add({ motion: "(prefers-reduced-motion: no-preference)", phone: PHONE }, (context) => {
-    const { motion, phone } = context.conditions ?? {};
-    if (!motion) return;
+  gsap.matchMedia().add({ motion: "(prefers-reduced-motion: no-preference)", phone: PHONE, fine: "(hover: hover) and (pointer: fine)" }, (context) => {
+    const { motion, phone, fine } = context.conditions ?? {};
+    if (!motion) return void root.classList.remove("reveal-wait", "reveal-late", "crew-wait");
     root.classList.add("crew-armed");
     const feel = phone ? PHONE_FEEL : WIDE_FEEL;
     splits(feel);
     reveals(feel);
     popsAndDraws(feel);
     counts();
-    playSequences();
+    playSequences(feel);
     parallax(feel);
+    lights();
     orbits();
     progress();
-    return () => root.classList.remove("crew-armed");
+    // Every entrance is set up: what waited hidden from the first paint is the engine's now.
+    root.classList.remove("reveal-wait", "reveal-late");
+    document.dispatchEvent(new Event("motion:armed"));
+    const unhover = fine && !phone ? hovers() : null;
+    return () => {
+      unhover?.();
+      root.classList.remove("crew-armed");
+    };
   });
-  crew?.live();
   await breathe();
 
   ScrollTrigger.sort();
@@ -551,4 +678,7 @@ async function start() {
 }
 
 if (!soft) heroCount();
-afterEntrance(() => void start());
+// At once, not after the first screen's entrance or an idle moment: what waits for the
+// engine is hidden until it arms, so every moment it holds back plays as soon as it can.
+// The first screen's entrance is CSS on the compositor and carries on through the setup.
+void start();

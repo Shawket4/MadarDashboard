@@ -24,7 +24,7 @@ import { deleteOrg, getGetOrgPlanQueryOptions, useListOrgs } from "@/data/api/ge
 import { queryClient } from "@/data/api/query";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { usePageSearch } from "@/data/scope/use-page-search";
 import { useListFilters } from "@/data/scope/use-list-filters";
@@ -135,7 +135,8 @@ function OrgsContent() {
     try {
       await exportToExcel({ filename: "Madar-Organizations", logoUrl, sheets: [{ name: t("orgs.title", "Organizations"), title: t("orgs.title", "Organizations"), rows: orgs as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }

@@ -7,7 +7,7 @@
 import type { TFunction } from "i18next";
 
 import { queryClient } from "@/data/api/query";
-import { egpToPiastres, fmtMoney, fmtPercent, piastresToEgp } from "@/lib/format";
+import { egpToPiastres, fmtPercent, piastresToEgp } from "@/lib/format";
 
 import type { ComboWarning, SaleWindow } from "./types";
 
@@ -22,7 +22,7 @@ export const hasDay = (mask: number, day: number): boolean => (mask & (1 << day)
 export const toggleDay = (mask: number, day: number): number => mask ^ (1 << day);
 
 /** "Every day", "Weekdays", or the chosen short names in week order. */
-export function weekdaysLabel(t: TFunction, mask: number): string {
+function weekdaysLabel(t: TFunction, mask: number): string {
   if (mask === ALL_WEEKDAYS) return t("combos.windows.everyDay", "Every day");
   const days = WEEKDAY_BITS.filter((d) => hasDay(mask, d)).map((d) =>
     t(`combos.windows.day.${WEEKDAY_KEYS[d]}`, WEEKDAY_KEYS[d]),
@@ -150,12 +150,6 @@ export function warningText(t: TFunction, w: ComboWarning, names: WarningNames =
       return t("combos.warnings.unknown", { defaultValue: "Check this combo ({{code}}).", code: w.code });
   }
 }
-
-/** The saving a price gives against a list value, for a label ("saves EGP 60.00"). */
-export const savingLabel = (t: TFunction, saving: number): string =>
-  saving > 0
-    ? t("combos.savesAmount", { defaultValue: "Saves {{amount}}", amount: fmtMoney(saving) })
-    : t("combos.noSaving", "No saving");
 
 // ── Cache ────────────────────────────────────────────────────────────────────
 

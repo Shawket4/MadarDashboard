@@ -6,7 +6,7 @@
 export const shellClass = (opts: { invalid?: boolean; disabled?: boolean } = {}) =>
   [
     "group/field flex h-9 w-full min-w-0 items-center gap-1.5 rounded-md border bg-transparent px-2.5 shadow-xs",
-    "transition-[color,box-shadow,border-color] motion-reduce:transition-none dark:bg-input/30",
+    "transition-[color,box-shadow,border-color] dark:bg-input/30",
     "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
     opts.invalid
       ? "border-destructive ring-destructive/20 focus-within:border-destructive focus-within:ring-destructive/20 dark:ring-destructive/40"

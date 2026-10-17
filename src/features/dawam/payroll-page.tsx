@@ -28,6 +28,7 @@ import { StatusPill } from "@/components/app/status-pill";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Stagger } from "@/lib/motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -46,7 +47,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useCurrentOrg } from "@/hooks/use-org-modules";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtDate, fmtMoney, fmtMoneySigned, fmtPeriod } from "@/lib/format";
 import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "@/features/staff/util";
 
@@ -67,7 +68,7 @@ type Slip = ComputedPayslip | Payslip;
 type Row = Slip & { employee_name: string; paid_method: string | null };
 
 /** Days from `today` to the month's last day, both counted; 0 once it has ended. */
-export const daysStillToCome = (endDate: string, today: string): number =>
+const daysStillToCome = (endDate: string, today: string): number =>
   Math.max(0, Math.round((Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000) + 1);
 
 /** open · approved · paid, from the server's period status. */
@@ -98,7 +99,7 @@ const isUnsettled = (status: string | undefined) => status === "draft" || status
  * The older months not fully paid (H2-P1), oldest first: the server's
  * `unsettled`, or, from a server without it, the same months found in history.
  */
-export const unsettledOf = (cur: CurrentPayroll | undefined): Unsettled[] => {
+const unsettledOf = (cur: CurrentPayroll | undefined): Unsettled[] => {
   if (!cur) return [];
   if (Array.isArray(cur.unsettled)) return cur.unsettled;
   return (cur.history ?? [])
@@ -265,7 +266,8 @@ export function PayrollPage() {
         ],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -345,7 +347,7 @@ export function PayrollPage() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <DawamRefreshButton />
-            {period ? <StatusPill tone={PHASE_TONE[phase]}>{t(`dawam.phase_${phase}`, phase)}</StatusPill> : null}
+            {period ? <StatusPill popOn={phase} tone={PHASE_TONE[phase]}>{t(`dawam.phase_${phase}`, phase)}</StatusPill> : null}
             {canRun && phase === "open" && period ? (
               <Button
                 onClick={() => void approve()}
@@ -361,7 +363,7 @@ export function PayrollPage() {
             ) : null}
             {phase !== "open" ? (
               <>
-                <ExportButton onExport={() => void exportLists()} loading={exporting} label={t("dawam.payLists", "Pay lists (bank, wallet, cash)")} />
+                <ExportButton onExport={exportLists} loading={exporting} label={t("dawam.payLists", "Pay lists (bank, wallet, cash)")} />
                 <Button variant="ghost" onClick={() => void exportCsv()}>{t("dawam.csv", "CSV")}</Button>
               </>
             ) : null}
@@ -719,7 +721,7 @@ function PayLinesTab({ canAdjust, owner, onAdd }: { canAdjust: boolean; owner: b
                 trailing={
                   <span className="flex items-center gap-2">
                     <span className="tabular-nums">{value}</span>
-                    <StatusPill tone={ADJ_TONE[a.status] ?? "neutral"}>{t(`dawam.adj_${a.status}`, a.status)}</StatusPill>
+                    <StatusPill popOn={a.status} tone={ADJ_TONE[a.status] ?? "neutral"}>{t(`dawam.adj_${a.status}`, a.status)}</StatusPill>
                     {owner && a.status === "pending" ? (
                       <>
                         <Button size="sm" variant="outline" onClick={() => void act(() => decideAdjustment(a.kind, a.id, { approve: true }), t("staff.decisionSaved", "Decision saved"))}>{t("common.approve", "Approve")}</Button>
@@ -780,7 +782,7 @@ function AdvancesTab({ canAdvance, onRecord }: { canAdvance: boolean; onRecord: 
                   {a.status === "approved" ? (
                     <span className="text-sm tabular-nums text-muted-foreground">{t("dawam.remaining", { amount: fmtMoney(a.remaining_piastres), defaultValue: `${fmtMoney(a.remaining_piastres)} left` })}</span>
                   ) : null}
-                  <StatusPill tone={REQUEST_STATUS_TONE[a.status] ?? "neutral"}>{t(`staff.req_${a.status}`, a.status)}</StatusPill>
+                  <StatusPill popOn={a.status} tone={REQUEST_STATUS_TONE[a.status] ?? "neutral"}>{t(`staff.req_${a.status}`, a.status)}</StatusPill>
                   {canAdvance && a.status === "pending" ? (
                     <Button size="sm" variant="outline" onClick={() => setReviewing(a)}>{t("dawam.review", "Review")}</Button>
                   ) : null}
@@ -855,6 +857,7 @@ function HistoryTab({
   }
   return (
     <>
+      <Stagger selector=":scope > [data-slot=list-card] > *">
       <ListCard>
         {periods.map((p) => (
           <ListRow
@@ -874,6 +877,7 @@ function HistoryTab({
           />
         ))}
       </ListCard>
+      </Stagger>
       <Sheet open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
         <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
           <SheetHeader>

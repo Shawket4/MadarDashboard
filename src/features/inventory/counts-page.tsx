@@ -23,7 +23,7 @@ import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtDateTime } from "@/lib/format";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { Combobox } from "@/components/app/combobox";
 import { CountEditor } from "./count-editor";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
@@ -167,7 +167,8 @@ export function CountsPage() {
     try {
       await exportToExcel({ filename: "Madar-Stocktakes", logoUrl, sheets: [{ name: t("inventory.stocktakes.title", "Stock counts"), title: t("inventory.stocktakes.title", "Stock counts"), rows: history as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }

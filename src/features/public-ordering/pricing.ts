@@ -9,12 +9,11 @@
  * menu does not send that view, so `storefrontView` builds it from what the
  * menu does send.
  */
-import type { DeliveryAddonOption } from "@/data/api/generated/models/deliveryAddonOption";
-import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
 import type { DeliveryOptionPricing } from "@/data/api/generated/models/deliveryOptionPricing";
+import type { CatalogAddon, CatalogItem } from "./types";
 import { rules, type CatalogView, type ItemView, type OptionView, type PricedOptions, type PriceError, type Selection } from "@/lib/rules";
 
-export type { CatalogView, ItemView, OptionView, PricedOptions, PriceError, Selection };
+export type { CatalogView, ItemView, PricedOptions, PriceError, Selection };
 
 /**
  * One unit of the item at `size`, before any option; with no size, the "from"
@@ -41,10 +40,10 @@ export const optionCharge = (view: CatalogView, size: string | null, optionId: s
  * already branch-priced and active, and its price is the branch's item price
  * (else the lowest active size's — the server keeps `base_price` so).
  */
-export const storefrontItem = (item: DeliveryMenuItem): ItemView => ({
+export const storefrontItem = (item: CatalogItem): ItemView => ({
   id: item.id,
-  branch_price: item.price,
-  sizes: item.sizes.map((s) => ({ label: s.label, price: s.price, is_active: true })),
+  branch_price: item.price ?? 0,
+  sizes: item.sizes.map((s) => ({ label: s.label, price: s.price ?? 0, is_active: true })),
 });
 
 /**
@@ -56,8 +55,8 @@ export const storefrontItem = (item: DeliveryMenuItem): ItemView => ({
  * option stands for an ingredient of its own (a coffee charged in full).
  */
 export function storefrontView(
-  item: DeliveryMenuItem,
-  addons: DeliveryAddonOption[],
+  item: CatalogItem,
+  addons: CatalogAddon[],
   size: string | null,
   optionPricing?: DeliveryOptionPricing[] | null,
 ): CatalogView {
@@ -70,15 +69,15 @@ export function storefrontView(
       ...storefrontItem(item),
       recipe: milk ? [{ size_label: size ?? "one_size", category: "milk", ingredient_id: milk.addon_item_id }] : [],
       bases: milk
-        ? [{ ingredient_id: milk.addon_item_id, candidates: [{ option_id: milk.addon_item_id, name: milk.name, kind: milk.type, price: milk.price }] }]
+        ? [{ ingredient_id: milk.addon_item_id, candidates: [{ option_id: milk.addon_item_id, name: milk.name, kind: milk.type, price: milk.price ?? 0 }] }]
         : [],
-      optionals: item.optionals,
+      optionals: item.optionals.map((o) => ({ ...o, price: o.price ?? 0 })) as ItemView["optionals"],
     },
     options: addons.map((a) => ({
       id: a.addon_item_id,
       name: a.name,
       kind: a.type,
-      price: a.price,
+      price: a.price ?? 0,
       // The menu names no unit; the price rule never reads it.
       ingredients: [{ id: a.addon_item_id, name: a.name, unit: "" }],
     })),

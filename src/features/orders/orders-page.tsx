@@ -6,7 +6,7 @@ import { Ban, Bike, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket
 
 import { Page, PageHeader } from "@/components/app/page";
 import { SectionHeader } from "@/components/app/section-header";
-import { StatusPill, toneFor } from "@/components/app/status-pill";
+import { StatusPill } from "@/components/app/status-pill";
 import { EmptyState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ExcludeItemsControl, useExcludedItems } from "@/components/app/exclude-items-control";
@@ -23,13 +23,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExportButton } from "@/components/app/export-button";
-import { DeliveryChannels } from "./delivery-channels";
+import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { CustomerLink } from "@/features/customers/customer-link";
 import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
 import { OrderDetailSheet } from "./order-detail-sheet";
 import { VoidOrderDialog } from "./void-order-dialog";
 import { OrderExportDialog } from "./order-export-dialog";
 import { ServiceModeBadge } from "./service-mode-badge";
+import { OrderStatusBadge } from "./order-status-badge";
 import { serviceModeOf } from "./service-mode";
 import { getGetOrderQueryOptions, getListOrdersQueryKey, getListOrdersQueryOptions, useBranchDeliverySales, useListOrders } from "@/data/api/generated/api";
 import { keepWhilePaging } from "@/data/api/keep-while-paging";
@@ -86,11 +87,6 @@ function PriceFlagBadge({ order }: { order: Order }) {
       </TooltipContent>
     </Tooltip>
   );
-}
-
-function OrderStatusBadge({ status }: { status: string }) {
-  const { t } = useTranslation();
-  return <StatusPill tone={toneFor(status, "success")}>{t(`orderStatus.${status}`, status)}</StatusPill>;
 }
 
 export function OrdersPage() {
@@ -393,7 +389,7 @@ export function OrdersPage() {
       {(deliverySales.data?.total_orders ?? 0) > 0 ? (
         <section className="space-y-3">
           <SectionHeader title={t("delivery.kpisTitle", "Delivery")} description={t("delivery.byChannel", "By channel")} />
-          <DeliveryChannels data={deliverySales.data} loading={deliverySales.isLoading} />
+          <DeliveryKpis data={deliverySales.data} loading={deliverySales.isLoading} />
         </section>
       ) : null}
 

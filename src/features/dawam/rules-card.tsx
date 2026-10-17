@@ -320,7 +320,7 @@ function CoverPayChoice({
             disabled={disabled}
             onClick={() => onChange(o.value)}
             className={cn(
-              "rounded-lg border p-3 text-start transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-60",
+              "rounded-lg border p-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-60",
               value === o.value ? "border-primary bg-primary/5" : "hover:bg-accent",
             )}
           >

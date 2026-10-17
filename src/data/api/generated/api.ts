@@ -30,7 +30,6 @@ import type {
   AddonCost,
   AddonIngredient,
   AddonItem,
-  AddonOverride,
   AddonSalesRow,
   AddonSlot,
   AdjustRequest,
@@ -403,6 +402,8 @@ import type {
   MemberDetail,
   MemberView,
   MembersPage,
+  MenuDisplayInput,
+  MenuDisplaySettings,
   MenuItem,
   MenuItemFull,
   MenuMarginLedgerParams,
@@ -518,6 +519,8 @@ import type {
   PublicBrand,
   PublicCartQuoteRequest,
   PublicLinksPage,
+  PublicMenuDisplay,
+  PublicMenuDisplayParams,
   PublicMenuParams,
   PublicOrgBrandParams,
   PublicOrgFaviconParams,
@@ -580,6 +583,8 @@ import type {
   ReorderSuggestion,
   ReplaceIdentityRequest,
   ReplaceIdentityResponse,
+  ReplayBatchRequest,
+  ReplayBatchResponse,
   ReplayFlag,
   ReplenishmentParams,
   ReplenishmentRow,
@@ -1068,7 +1073,7 @@ export const createAddonItem = (
 ) => {
 
 
-      return customInstance<AddonItem>(
+      return customInstance<unknown>(
       {url: `/addon-items`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createAddonItemRequest, signal
@@ -1215,7 +1220,7 @@ export const deleteAddonItem = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/addon-items/${id}`, method: 'DELETE', signal
     },
       options);
@@ -1273,7 +1278,7 @@ export const updateAddonItem = (
 ) => {
 
 
-      return customInstance<AddonItem>(
+      return customInstance<unknown>(
       {url: `/addon-items/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateAddonItemRequest, signal
@@ -4584,7 +4589,7 @@ export const upsertBranchAddonOverride = (
 ) => {
 
 
-      return customInstance<BranchAddonOverride>(
+      return customInstance<unknown>(
       {url: `/branch-addon-overrides`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: branchAddonOverrideInput, signal
@@ -4643,7 +4648,7 @@ export const deleteBranchAddonOverride = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/branch-addon-overrides`, method: 'DELETE',
         params, signal
     },
@@ -4789,7 +4794,7 @@ export const upsertBranchMenuOverride = (
 ) => {
 
 
-      return customInstance<BranchMenuOverride>(
+      return customInstance<unknown>(
       {url: `/branch-menu-overrides`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: branchMenuOverrideInput, signal
@@ -4848,7 +4853,7 @@ export const deleteBranchMenuOverride = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/branch-menu-overrides`, method: 'DELETE',
         params, signal
     },
@@ -8841,7 +8846,7 @@ export const upsertChannelAddonOverride = (
 ) => {
 
 
-      return customInstance<ChannelAddonOverride>(
+      return customInstance<unknown>(
       {url: `/delivery/channel-addon-overrides`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: channelAddonOverrideInput, signal
@@ -8900,7 +8905,7 @@ export const deleteChannelAddonOverride = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/delivery/channel-addon-overrides`, method: 'DELETE',
         params, signal
     },
@@ -9046,7 +9051,7 @@ export const upsertChannelOverride = (
 ) => {
 
 
-      return customInstance<ChannelMenuOverride>(
+      return customInstance<unknown>(
       {url: `/delivery/channel-overrides`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: channelOverrideInput, signal
@@ -9105,7 +9110,7 @@ export const deleteChannelOverride = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/delivery/channel-overrides`, method: 'DELETE',
         params, signal
     },
@@ -17440,7 +17445,7 @@ export const getListMenuItemsQueryKey = (params?: ListMenuItemsParams,) => {
     }
 
 
-export const getListMenuItemsQueryOptions = <TData = Awaited<ReturnType<typeof listMenuItems>>, TError = ErrorBody>(params: ListMenuItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getListMenuItemsQueryOptions = <TData = Awaited<ReturnType<typeof listMenuItems>>, TError = void | ErrorBody>(params: ListMenuItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -17459,10 +17464,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListMenuItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listMenuItems>>>
-export type ListMenuItemsQueryError = ErrorBody
+export type ListMenuItemsQueryError = void | ErrorBody
 
 
-export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = ErrorBody>(
+export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = void | ErrorBody>(
  params: ListMenuItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listMenuItems>>,
@@ -17472,7 +17477,7 @@ export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = ErrorBody>(
+export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = void | ErrorBody>(
  params: ListMenuItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listMenuItems>>,
@@ -17482,12 +17487,12 @@ export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = ErrorBody>(
+export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = void | ErrorBody>(
  params: ListMenuItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = ErrorBody>(
+export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = void | ErrorBody>(
  params: ListMenuItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -17862,7 +17867,7 @@ export const createAddonSlot = (
 ) => {
 
 
-      return customInstance<AddonSlot>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/addon-slots`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createAddonSlotRequest, signal
@@ -17922,7 +17927,7 @@ export const deleteAddonSlot = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/addon-slots/${slotId}`, method: 'DELETE', signal
     },
       options);
@@ -17981,7 +17986,7 @@ export const updateAddonSlot = (
 ) => {
 
 
-      return customInstance<AddonSlot>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/addon-slots/${slotId}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateAddonSlotRequest, signal
@@ -18041,7 +18046,7 @@ export const putAllowedAddons = (
 ) => {
 
 
-      return customInstance<string[]>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/allowed-addons`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: putAllowedAddonsRequest, signal
@@ -18452,7 +18457,7 @@ export const createOptionalField = (
 ) => {
 
 
-      return customInstance<OptionalField>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/optionals`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createOptionalFieldRequest, signal
@@ -18512,7 +18517,7 @@ export const deleteOptionalField = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/optionals/${fieldId}`, method: 'DELETE', signal
     },
       options);
@@ -18571,7 +18576,7 @@ export const updateOptionalField = (
 ) => {
 
 
-      return customInstance<OptionalField>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/optionals/${fieldId}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateOptionalFieldRequest, signal
@@ -18690,7 +18695,7 @@ export const listAddonOverrides = (
 ) => {
 
 
-      return customInstance<AddonOverride[]>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/overrides`, method: 'GET', signal
     },
       options);
@@ -18778,7 +18783,7 @@ export const upsertAddonOverride = (
 ) => {
 
 
-      return customInstance<AddonOverride>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/overrides`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: upsertAddonOverrideRequest, signal
@@ -18838,7 +18843,7 @@ export const deleteAddonOverride = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/overrides/${overrideId}`, method: 'DELETE', signal
     },
       options);
@@ -22323,8 +22328,172 @@ export const usePutLinksPage = <TError = ErrorBody,
     }
 
 /**
+ * Every plan: no `branding` or `online` check, so a Free shop can reach it.
+ * The organisation settings capabilities, as the links page.
+ * @summary The menu-without-prices settings.
+ */
+export const getMenuDisplay = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MenuDisplaySettings>(
+      {url: `/orgs/${id}/links-page/menu-display`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetMenuDisplayQueryKey = (id: string,) => {
+    return [
+    `/orgs/${id}/links-page/menu-display`
+    ] as const;
+    }
+
+
+export const getGetMenuDisplayQueryOptions = <TData = Awaited<ReturnType<typeof getMenuDisplay>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMenuDisplayQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMenuDisplay>>> = ({ signal }) => getMenuDisplay(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMenuDisplayQueryResult = NonNullable<Awaited<ReturnType<typeof getMenuDisplay>>>
+export type GetMenuDisplayQueryError = ErrorBody
+
+
+export function useGetMenuDisplay<TData = Awaited<ReturnType<typeof getMenuDisplay>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMenuDisplay>>,
+          TError,
+          Awaited<ReturnType<typeof getMenuDisplay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMenuDisplay<TData = Awaited<ReturnType<typeof getMenuDisplay>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMenuDisplay>>,
+          TError,
+          Awaited<ReturnType<typeof getMenuDisplay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMenuDisplay<TData = Awaited<ReturnType<typeof getMenuDisplay>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The menu-without-prices settings.
+ */
+
+export function useGetMenuDisplay<TData = Awaited<ReturnType<typeof getMenuDisplay>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMenuDisplayQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary Save the menu-without-prices settings. Writes ONLY its own columns: a
+shop's links page (and a Free shop's lack of one) is left exactly as it was.
+ */
+export const putMenuDisplay = (
+    id: string,
+    menuDisplayInput: MenuDisplayInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MenuDisplaySettings>(
+      {url: `/orgs/${id}/links-page/menu-display`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: menuDisplayInput, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutMenuDisplayMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putMenuDisplay>>, TError,{id: string;data: MenuDisplayInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putMenuDisplay>>, TError,{id: string;data: MenuDisplayInput}, TContext> => {
+
+const mutationKey = ['putMenuDisplay'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putMenuDisplay>>, {id: string;data: MenuDisplayInput}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  putMenuDisplay(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutMenuDisplayMutationResult = NonNullable<Awaited<ReturnType<typeof putMenuDisplay>>>
+    export type PutMenuDisplayMutationBody = MenuDisplayInput
+    export type PutMenuDisplayMutationError = ErrorBody
+
+    /**
+ * @summary Save the menu-without-prices settings. Writes ONLY its own columns: a
+shop's links page (and a Free shop's lack of one) is left exactly as it was.
+ */
+export const usePutMenuDisplay = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putMenuDisplay>>, TError,{id: string;data: MenuDisplayInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putMenuDisplay>>,
+        TError,
+        {id: string;data: MenuDisplayInput},
+        TContext
+      > => {
+      return useMutation(getPutMenuDisplayMutationOptions(options), queryClient);
+    }
+
+/**
  * @summary The code for the shop's links page — the one address that leads to
-everything else (menu, ordering, rewards, bookings, socials).
+everything else (menu, ordering, rewards, bookings, socials) — or, with
+`target=menu_display`, for the menu without prices on the same editor.
  */
 export const orgLinksQr = (
     id: string,
@@ -22403,7 +22572,8 @@ export function useOrgLinksQr<TData = Awaited<ReturnType<typeof orgLinksQr>>, TE
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary The code for the shop's links page — the one address that leads to
-everything else (menu, ordering, rewards, bookings, socials).
+everything else (menu, ordering, rewards, bookings, socials) — or, with
+`target=menu_display`, for the menu without prices on the same editor.
  */
 
 export function useOrgLinksQr<TData = Awaited<ReturnType<typeof orgLinksQr>>, TError = ErrorBody>(
@@ -26533,6 +26703,103 @@ export function useLoyaltyApplePass<TData = Awaited<ReturnType<typeof loyaltyApp
 
 
 /**
+ * `org_id` or `slug` names the shop. Every plan, Free included. A shop that
+ * has not switched the page on answers 404, exactly like a shop that does not
+ * exist. The answer carries no price, cost, surcharge, discount or deal field.
+ * @summary The shop's menu without prices.
+ */
+export const publicMenuDisplay = (
+    params?: PublicMenuDisplayParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PublicMenuDisplay>(
+      {url: `/public/menu-display`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicMenuDisplayQueryKey = (params?: PublicMenuDisplayParams,) => {
+    return [
+    `/public/menu-display`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPublicMenuDisplayQueryOptions = <TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicMenuDisplayQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicMenuDisplay>>> = ({ signal }) => publicMenuDisplay(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicMenuDisplayQueryResult = NonNullable<Awaited<ReturnType<typeof publicMenuDisplay>>>
+export type PublicMenuDisplayQueryError = ErrorBody
+
+
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+ params: undefined |  PublicMenuDisplayParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicMenuDisplay>>,
+          TError,
+          Awaited<ReturnType<typeof publicMenuDisplay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+ params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicMenuDisplay>>,
+          TError,
+          Awaited<ReturnType<typeof publicMenuDisplay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+ params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The shop's menu without prices.
+ */
+
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+ params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicMenuDisplayQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
  * The card's token alone shows only a first name and a masked phone. With a `device_token` for the member's current phone it gives the full prefill and saved addresses.
  * @summary "Order now" from a wallet card: the member's last branch and channel, to prefill an order.
  */
@@ -29837,7 +30104,7 @@ export const upsertAddonIngredient = (
 ) => {
 
 
-      return customInstance<AddonIngredient>(
+      return customInstance<unknown>(
       {url: `/recipes/addons/${addonItemId}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: upsertAddonIngredientRequest, signal
@@ -29897,7 +30164,7 @@ export const deleteAddonIngredient = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/recipes/addons/${addonItemId}`, method: 'DELETE',
         params, signal
     },
@@ -30043,7 +30310,7 @@ export const upsertDrinkRecipe = (
 ) => {
 
 
-      return customInstance<DrinkRecipe>(
+      return customInstance<unknown>(
       {url: `/recipes/drinks/${menuItemId}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: upsertDrinkRecipeRequest, signal
@@ -30104,7 +30371,7 @@ export const deleteDrinkRecipe = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/recipes/drinks/${menuItemId}/${size}`, method: 'DELETE',
         params, signal
     },
@@ -46636,7 +46903,7 @@ export const pull = (
 
 
 
-export const getPullMutationOptions = <TError = ErrorBody,
+export const getPullMutationOptions = <TError = void | ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pull>>, TError,{data: PullRequest;params?: PullParams}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof pull>>, TError,{data: PullRequest;params?: PullParams}, TContext> => {
 
@@ -46665,9 +46932,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PullMutationResult = NonNullable<Awaited<ReturnType<typeof pull>>>
     export type PullMutationBody = PullRequest
-    export type PullMutationError = ErrorBody
+    export type PullMutationError = void | ErrorBody
 
-    export const usePull = <TError = ErrorBody,
+    export const usePull = <TError = void | ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pull>>, TError,{data: PullRequest;params?: PullParams}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof pull>>,
@@ -46676,6 +46943,71 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getPullMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary POST /sync/replay/batch
+ */
+export const replayBatch = (
+    replayBatchRequest: ReplayBatchRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ReplayBatchResponse>(
+      {url: `/sync/replay/batch`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: replayBatchRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getReplayBatchMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof replayBatch>>, TError,{data: ReplayBatchRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof replayBatch>>, TError,{data: ReplayBatchRequest}, TContext> => {
+
+const mutationKey = ['replayBatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof replayBatch>>, {data: ReplayBatchRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  replayBatch(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReplayBatchMutationResult = NonNullable<Awaited<ReturnType<typeof replayBatch>>>
+    export type ReplayBatchMutationBody = ReplayBatchRequest
+    export type ReplayBatchMutationError = ErrorBody
+
+    /**
+ * @summary POST /sync/replay/batch
+ */
+export const useReplayBatch = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof replayBatch>>, TError,{data: ReplayBatchRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof replayBatch>>,
+        TError,
+        {data: ReplayBatchRequest},
+        TContext
+      > => {
+      return useMutation(getReplayBatchMutationOptions(options), queryClient);
     }
 
 /**

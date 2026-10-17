@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { useForm } from "react-hook-form";
@@ -25,6 +25,7 @@ import {
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtMoney, fmtWireTime } from "@/lib/format";
+import { usePop, useShake } from "@/lib/motion";
 import { invalidateAttendance } from "./util";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
@@ -129,6 +130,12 @@ export function AttendanceRulesPage() {
 
   const branchName = branchesQ.data?.find((b) => b.branch_id === branchId)?.branch_name ?? "";
   const dirty = form.formState.isDirty || inherit.length > 0;
+  // A save reads at the button as well as in the toast.
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const [saves, setSaves] = useState(0);
+  const [refused, setRefused] = useState(0);
+  usePop(saveRef, saves);
+  useShake(saveRef, refused);
   const setTiers = (next: Tier[]) => form.setValue("tiers", next, { shouldDirty: true, shouldValidate: true });
   const addTier = () => {
     const last = tiers[tiers.length - 1];
@@ -181,9 +188,11 @@ export function AttendanceRulesPage() {
       try {
         await putAttendanceSettings(body);
         toast.success(t("staff.rulesSaved", "Rules saved"));
+        setSaves((n) => n + 1);
         void invalidateAttendance();
       } catch (e) {
         toast.error(getErrorMessage(e, { fieldLabel: (f) => ruleLabel(f, t) }));
+        setRefused((n) => n + 1);
       } finally {
         setBusy(false);
       }
@@ -191,6 +200,7 @@ export function AttendanceRulesPage() {
     (errs) => {
       const first = Object.values(errs)[0] as { message?: string; root?: { message?: string } } | undefined;
       toast.error(first?.message ?? first?.root?.message ?? t("staff.rulesInvalid", "Check the highlighted rules"));
+      setRefused((n) => n + 1);
     },
   );
 
@@ -568,7 +578,7 @@ export function AttendanceRulesPage() {
                 {t("staff.rulesDiscard", "Discard changes")}
               </Button>
             ) : null}
-            <Button onClick={() => void save()} loading={busy} disabled={!!tierError}>
+            <Button ref={saveRef} onClick={() => void save()} loading={busy} disabled={!!tierError}>
               <Save className="size-4" />
               {t("common.save", "Save")}
             </Button>

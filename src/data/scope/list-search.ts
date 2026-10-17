@@ -36,7 +36,7 @@ import { useAuthStore } from "@/data/stores/auth.store";
 
 // ── Params ────────────────────────────────────────────────────────────────────
 
-export interface Param<T> {
+interface Param<T> {
   /** Parse a raw search value; `undefined` = absent or invalid (→ default). */
   parse: (raw: unknown) => T | undefined;
   default: T;

@@ -1,19 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { motion } from "motion/react";
-import { ArrowRight, CheckCircle2, ChevronDown, Crosshair, Loader2, MapPin, MapPinOff, Route } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, Crosshair, MapPin, MapPinOff, Route } from "lucide-react";
 
 import { useDeliveryQuote } from "@/data/api/generated/api";
 import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
 import type { GuestSavedLocation } from "@/data/api/generated/models/guestSavedLocation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { fadeInUp } from "@/lib/motion";
+import { DISTANCE, Reveal, recipes } from "@/lib/motion";
 import { fmtMoney } from "@/lib/format";
 
 import type { Channel } from "../types";
+import { savedPointFor } from "../location-rules";
 import { DeliveryMap, type LatLng } from "./delivery-map";
+import { Spinner } from "@/components/ui/spinner";
 
 /** Initial map view before a point is set / when geolocation is unavailable.
  * Cairo centre — the customer searches or taps to their real spot. */
@@ -60,13 +61,13 @@ export function LocationStep({
   const hasSaved = channelLocations.length > 0;
 
   // Auto-select the most recent location for a returning branch (same branch+channel).
-  // Only fires on mount if we don't already have a point.
+  // Only fires on mount if we don't already have a point. In-mall takes the
+  // address fields only: the point there is the device's own location.
   useEffect(() => {
     if (point || branchSavedLocations.length === 0) return;
     const best = branchSavedLocations[0];
-    if (best.customer_lat != null && best.customer_lng != null) {
-      onPointChange({ lat: best.customer_lat, lng: best.customer_lng });
-    }
+    const saved = savedPointFor(channel, best);
+    if (saved) onPointChange(saved);
     onApplySavedAddress?.(best);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -124,6 +125,13 @@ export function LocationStep({
     return t("order.location.savedUnknown", "Saved location");
   };
 
+  const applyLocation = (loc: GuestSavedLocation) => {
+    const saved = savedPointFor(channel, loc);
+    if (saved) onPointChange(saved);
+    onApplySavedAddress?.(loc);
+    setSavedOpen(false);
+  };
+
   // ── In-mall: device GPS only — no map, no draggable pin (a manual pin could be
   // dropped on the mall to fake presence). Missing location blocks ordering;
   // being far is allowed and just shown (registered for the teller). ───────────
@@ -132,57 +140,14 @@ export function LocationStep({
     return (
       <div className="space-y-5">
         {hasSaved && (
-          <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
-            <button
-              type="button"
-              onClick={() => setSavedOpen((o) => !o)}
-              className="flex w-full items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted"
-            >
-              <span className="flex items-center gap-2">
-                <MapPin className="size-4 shrink-0 text-brand" />
-                <span className="truncate text-muted-foreground">
-                  {t("order.location.savedLabel", "Use a saved address")}
-                </span>
-              </span>
-              <ChevronDown
-                className={cn("size-4 shrink-0 text-muted-foreground transition-transform", savedOpen && "rotate-180")}
-              />
-            </button>
-            {savedOpen && (
-              <div className="border-t border-border/70">
-                {branchSavedLocations.length > 0 && (
-                  <>
-                    <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {t("order.location.thisBranch", "This branch")}
-                    </p>
-                    {branchSavedLocations.map((loc, i) => (
-                      <SavedLocationRow
-                        key={i}
-                        label={locationLabel(loc)}
-                        date={loc.last_used_at}
-                        onSelect={() => applyLocation(loc)}
-                      />
-                    ))}
-                  </>
-                )}
-                {otherLocations.length > 0 && (
-                  <>
-                    <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {t("order.location.otherBranches", "Other branches")}
-                    </p>
-                    {otherLocations.map((loc, i) => (
-                      <SavedLocationRow
-                        key={i}
-                        label={locationLabel(loc)}
-                        date={loc.last_used_at}
-                        onSelect={() => applyLocation(loc)}
-                      />
-                    ))}
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+          <SavedAddresses
+            open={savedOpen}
+            onToggle={() => setSavedOpen((o) => !o)}
+            branchLocations={branchSavedLocations}
+            otherLocations={otherLocations}
+            labelOf={locationLabel}
+            onSelect={applyLocation}
+          />
         )}
         <div className="rounded-2xl border border-border/70 bg-card p-6 text-center shadow-sm">
           <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
@@ -213,7 +178,7 @@ export function LocationStep({
             </div>
           ) : !point ? (
             <p className="mt-2 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
+              <Spinner />
               {t("order.location.locating")}
             </p>
           ) : (
@@ -241,68 +206,17 @@ export function LocationStep({
   const status = quote?.status;
   const canContinue = !!point && status === "ok" && !isFetching;
 
-  const applyLocation = (loc: GuestSavedLocation) => {
-    if (loc.customer_lat != null && loc.customer_lng != null) {
-      onPointChange({ lat: loc.customer_lat, lng: loc.customer_lng });
-    }
-    onApplySavedAddress?.(loc);
-    setSavedOpen(false);
-  };
-
   return (
     <div className="space-y-5">
       {hasSaved && (
-        <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
-          <button
-            type="button"
-            onClick={() => setSavedOpen((o) => !o)}
-            className="flex w-full items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted"
-          >
-            <span className="flex items-center gap-2">
-              <MapPin className="size-4 shrink-0 text-brand" />
-              <span className="truncate text-muted-foreground">
-                {t("order.location.savedLabel", "Use a saved address")}
-              </span>
-            </span>
-            <ChevronDown
-              className={cn("size-4 shrink-0 text-muted-foreground transition-transform", savedOpen && "rotate-180")}
-            />
-          </button>
-          {savedOpen && (
-            <div className="border-t border-border/70">
-              {branchSavedLocations.length > 0 && (
-                <>
-                  <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t("order.location.thisBranch", "This branch")}
-                  </p>
-                  {branchSavedLocations.map((loc, i) => (
-                    <SavedLocationRow
-                      key={i}
-                      label={locationLabel(loc)}
-                      date={loc.last_used_at}
-                      onSelect={() => applyLocation(loc)}
-                    />
-                  ))}
-                </>
-              )}
-              {otherLocations.length > 0 && (
-                <>
-                  <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t("order.location.otherBranches", "Other branches")}
-                  </p>
-                  {otherLocations.map((loc, i) => (
-                    <SavedLocationRow
-                      key={i}
-                      label={locationLabel(loc)}
-                      date={loc.last_used_at}
-                      onSelect={() => applyLocation(loc)}
-                    />
-                  ))}
-                </>
-              )}
-            </div>
-          )}
-        </div>
+        <SavedAddresses
+          open={savedOpen}
+          onToggle={() => setSavedOpen((o) => !o)}
+          branchLocations={branchSavedLocations}
+          otherLocations={otherLocations}
+          labelOf={locationLabel}
+          onSelect={applyLocation}
+        />
       )}
 
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
@@ -330,6 +244,56 @@ export function LocationStep({
         {t("order.location.continue")}
         <ArrowRight className="size-4" />
       </Button>
+    </div>
+  );
+}
+
+function SavedAddresses({
+  open,
+  onToggle,
+  branchLocations,
+  otherLocations,
+  labelOf,
+  onSelect,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  branchLocations: GuestSavedLocation[];
+  otherLocations: GuestSavedLocation[];
+  labelOf: (loc: GuestSavedLocation) => string;
+  onSelect: (loc: GuestSavedLocation) => void;
+}) {
+  const { t } = useTranslation();
+  const group = (title: string, locs: GuestSavedLocation[]) =>
+    locs.length > 0 && (
+      <>
+        <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
+        {locs.map((loc, i) => (
+          <SavedLocationRow key={i} label={labelOf(loc)} date={loc.last_used_at} onSelect={() => onSelect(loc)} />
+        ))}
+      </>
+    );
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted"
+      >
+        <span className="flex items-center gap-2">
+          <MapPin className="size-4 shrink-0 text-brand" />
+          <span className="truncate text-muted-foreground">{t("order.location.savedLabel", "Use a saved address")}</span>
+        </span>
+        <ChevronDown
+          className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+        />
+      </button>
+      {open && (
+        <div className="border-t border-border/70">
+          {group(t("order.location.thisBranch", "This branch"), branchLocations)}
+          {group(t("order.location.otherBranches", "Other branches"), otherLocations)}
+        </div>
+      )}
     </div>
   );
 }
@@ -381,7 +345,7 @@ function QuoteStatus({ quote, loading }: { quote: QuoteResponse | null; loading:
 
   if (loading || !quote) {
     return (
-      <Banner tone="neutral" icon={<Loader2 className="size-4 animate-spin" />}>
+      <Banner tone="neutral" icon={<Spinner />}>
         {t("order.location.checkingRange")}
       </Banner>
     );
@@ -439,10 +403,8 @@ function Banner({
   children: React.ReactNode;
 }) {
   return (
-    <motion.div
-      variants={fadeInUp}
-      initial="hidden"
-      animate="show"
+    <Reveal
+      recipe={recipes.rise("brand", DISTANCE.sm)}
       className={cn(
         "flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm shadow-sm",
         tone === "ok" && "border-success/30 bg-success/10 text-success",
@@ -452,6 +414,6 @@ function Banner({
     >
       <span className="mt-0.5 shrink-0">{icon}</span>
       <div className="min-w-0 flex-1">{children}</div>
-    </motion.div>
+    </Reveal>
   );
 }

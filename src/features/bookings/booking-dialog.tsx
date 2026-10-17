@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -37,6 +37,7 @@ import {
   type BookingGuestValues,
 } from "./util";
 import { availabilityParams } from "./queries";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Props {
   branchId: string;
@@ -203,7 +204,7 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label>{t("bookings.time", "Time")}</Label>
-            {availQ.isFetching ? <Loader2 className="size-3.5 animate-spin text-muted-foreground" /> : null}
+            {availQ.isFetching ? <Spinner className="size-3.5 text-muted-foreground" /> : null}
           </div>
           {slots.length === 0 && !availQ.isLoading ? (
             <p className="text-xs text-muted-foreground">{t("bookings.noSlots", "No booking hours on this day — set a custom time below to force one.")}</p>

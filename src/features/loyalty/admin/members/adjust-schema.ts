@@ -13,8 +13,8 @@
  */
 import { z } from "zod";
 
-export const ADJUST_LIMIT = 1_000_000;
-export const REASON_MIN = 3;
+const ADJUST_LIMIT = 1_000_000;
+const REASON_MIN = 3;
 export const REASON_MAX = 500;
 
 export const adjustSchema = (balance: number) =>

@@ -1,7 +1,7 @@
 import { hostSlug } from "./use-brand";
 
 /** Where the signature leads: Madar POS's own site. */
-export const MADAR_SITE_URL = "https://get.madar-pos.cloud/";
+const MADAR_SITE_URL = "https://get.madar-pos.cloud/";
 
 /**
  * The signature's address: the site in the page's language (straight to

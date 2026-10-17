@@ -14,6 +14,7 @@ import { OnHand } from "./on-hand";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Stagger } from "@/lib/motion";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import type { LowStockRow } from "@/data/api/generated/models";
 import {
@@ -29,19 +30,19 @@ import {
   useOrgInventoryValuation,
   useOrgLowStock,
 } from "@/data/api/generated/api";
-import { queryClient } from "@/data/api/query";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { todaySearch } from "./search";
 import { useAppStore } from "@/data/stores/app.store";
 import { fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
+import { queryClient } from "@/data/api/query";
+import { todayBounds } from "./queries";
 import { cn } from "@/lib/utils";
 import { PurchaseOrderDialog } from "./purchase-order-dialog";
 import { ReceiveDialog } from "./receive-dialog";
 import { WasteDialog } from "./waste-dialog";
 import { countsDue, needsFirstCount } from "./lib";
-import { todayBounds } from "./queries";
 
 export function TodayPage() {
   const { t } = useTranslation();
@@ -57,11 +58,10 @@ export function TodayPage() {
 
   const tz = useAppStore((st) => st.activeTimezone);
   // Shared with the sidebar prefetch (./queries.ts), so the deliveries key matches.
-  const { start: todayStartISO, end: todayEndISO } = useMemo(
-    () => todayBounds(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- todayBounds reads the active tz
-    [tz],
-  );
+  const { start: todayStartISO, end: todayEndISO } = useMemo(() => {
+    return todayBounds();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cairo* helpers read the active tz
+  }, [tz]);
 
   // Branch-specific when a branch is selected; org-wide roll-up otherwise.
   const branchVal = useBranchInventoryValuation(branchId ?? "", { query: { enabled: !!branchId } });
@@ -83,11 +83,10 @@ export function TodayPage() {
     () => (pos.data ?? []).filter((p) => p.status === "ordered" || p.status === "partially_received"),
     [pos.data],
   );
+  const prefetchPo = (id: string) => void queryClient.prefetchQuery(getGetPurchaseOrderQueryOptions(id));
   const todaysWaste = useMemo(() => (waste.data ?? []).filter((m) => m.created_at >= todayStartISO), [waste.data, todayStartISO]);
   const due = useMemo(() => (branchId ? countsDue(branchStock.data ?? []) : null), [branchStock.data, branchId]);
   const firstRun = !!branchId && !stocktakes.isLoading && needsFirstCount(stocktakes.data);
-
-  const prefetchPo = (id: string) => void queryClient.prefetchQuery(getGetPurchaseOrderQueryOptions(id));
 
   const openReorderPo = (row: LowStockRow) => {
     setPoBranchId(row.branch_id);
@@ -246,27 +245,29 @@ export function TodayPage() {
           ) : arriving.length === 0 ? (
             <EmptyState className="py-8" title={t("inventory.today.noDeliveries", "No deliveries scheduled today")} />
           ) : (
-            <ListCard>
-              {arriving.slice(0, 8).map((p) => (
-                <ListRow
-                  key={p.id}
-                  icon={Truck}
-                  title={<>{p.reference || <bdi>#{p.id.slice(0, 8)}</bdi>} · {p.supplier_name ?? "—"}</>}
-                  meta={<bdi>{fmtDate(p.expected_at)}</bdi>}
-                  trailing={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setReceivePoId(p.id)}
-                      onMouseEnter={() => prefetchPo(p.id)}
-                      onFocus={() => prefetchPo(p.id)}
-                    >
-                      <PackageCheck className="size-4" /> {t("inventory.today.receive", "Receive")}
-                    </Button>
-                  }
-                />
-              ))}
-            </ListCard>
+            <Stagger selector=":scope > [data-slot=list-card] > *">
+              <ListCard>
+                {arriving.slice(0, 8).map((p) => (
+                  <ListRow
+                    key={p.id}
+                    icon={Truck}
+                    title={<>{p.reference || <bdi>#{p.id.slice(0, 8)}</bdi>} · {p.supplier_name ?? "—"}</>}
+                    meta={<bdi>{fmtDate(p.expected_at)}</bdi>}
+                    trailing={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setReceivePoId(p.id)}
+                        onMouseEnter={() => prefetchPo(p.id)}
+                        onFocus={() => prefetchPo(p.id)}
+                      >
+                        <PackageCheck className="size-4" /> {t("inventory.today.receive", "Receive")}
+                      </Button>
+                    }
+                  />
+                ))}
+              </ListCard>
+            </Stagger>
           )}
         </section>
 
@@ -293,19 +294,21 @@ export function TodayPage() {
           ) : todaysWaste.length === 0 ? (
             <EmptyState className="py-8" title={t("inventory.today.noWasteToday", "No waste logged today")} />
           ) : (
-            <ListCard>
-              {todaysWaste.slice(0, 8).map((m) => (
-                <ListRow
-                  key={m.id}
-                  variant="ledger"
-                  sign="out"
-                  title={m.ingredient_name}
-                  meta={m.reason ? t(`inventory.waste.reasons.${m.reason}`, m.reason) : undefined}
-                  value={`${fmtNumber(Math.abs(m.quantity))} ${fmtUnit(m.unit)}`}
-                  numericValue
-                />
-              ))}
-            </ListCard>
+            <Stagger selector=":scope > [data-slot=list-card] > *">
+              <ListCard>
+                {todaysWaste.slice(0, 8).map((m) => (
+                  <ListRow
+                    key={m.id}
+                    variant="ledger"
+                    sign="out"
+                    title={m.ingredient_name}
+                    meta={m.reason ? t(`inventory.waste.reasons.${m.reason}`, m.reason) : undefined}
+                    value={`${fmtNumber(Math.abs(m.quantity))} ${fmtUnit(m.unit)}`}
+                    numericValue
+                  />
+                ))}
+              </ListCard>
+            </Stagger>
           )}
         </section>
       </div>

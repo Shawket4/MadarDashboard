@@ -32,6 +32,3 @@ export const fmtWhen = (iso: string, tz: string, lang = "en"): string =>
     weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: true, timeZone: tz,
   }).format(new Date(iso));
 
-/** Weekday name for a `dow` (0 = Sunday). */
-export const dowName = (dow: number, lang = "en"): string =>
-  new Intl.DateTimeFormat(locale(lang), { weekday: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2024, 0, 7 + dow)));

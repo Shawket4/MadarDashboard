@@ -24,6 +24,8 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useDropUnknown, useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
 import { countsSearch } from "./search";
 import { fmtMoney, fmtNumber, fmtTime, fmtUnit } from "@/lib/format";
+import { useShake } from "@/lib/motion";
+import { AnimatedFigure } from "@/components/app/animated-figure";
 import { rules } from "@/lib/rules";
 import { cn } from "@/lib/utils";
 import {
@@ -80,6 +82,10 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
   const setFilter = (v: Filter) => set({ cfilter: v });
   const [saving, setSaving] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
+  // A refused finalize shakes its button as well as toasting.
+  const finalizeRef = useRef<HTMLButtonElement>(null);
+  const [refused, setRefused] = useState(0);
+  useShake(finalizeRef, refused);
 
   const hydrated = useRef(false);
   const inFlight = useRef<Promise<boolean> | null>(null);
@@ -233,12 +239,16 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
     try {
       dirty.current = true;
       const ok = await flush();
-      if (!ok) return;
+      if (!ok) {
+        setRefused((n) => n + 1);
+        return;
+      }
       await finalizeStocktake(stocktakeId);
       await invalidateInventory();
       onFinalized(stocktakeId);
     } catch (e) {
       toast.error(getErrorMessage(e));
+      setRefused((n) => n + 1);
     } finally {
       setFinalizing(false);
     }
@@ -430,14 +440,14 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
         <div className="sticky bottom-0 -mx-6 -mb-6 flex flex-wrap items-center justify-between gap-3 border-t bg-card px-6 py-3">
           <div className="text-sm">
             <span className="font-medium">{t("inventory.stocktakes.netDifference", "Net difference")}</span>{" "}
-            <bdi className={cn("font-mono font-semibold tabular", stats.net < 0 ? DANGER_TEXT : stats.net > 0 ? SUCCESS_TEXT : "")}>{fmtMoney(stats.net, { signed: true })}</bdi>
+            <bdi className={cn("font-mono font-semibold tabular", stats.net < 0 ? DANGER_TEXT : stats.net > 0 ? SUCCESS_TEXT : "")}><AnimatedFigure text={fmtMoney(stats.net, { signed: true })} /></bdi>
             {missing.length > 0 ? (
               <span className={cn("ms-3", WARNING_TEXT)}>{t("inventory.stocktakes.needReason", { count: missing.length, defaultValue: `${missing.length} need a reason` })}</span>
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => void cancel()}>{t("inventory.stocktakes.cancel", "Cancel stocktake")}</Button>
-            <Button loading={finalizing} disabled={missing.length > 0 || rows.length === 0} onClick={() => void finalize()}>
+            <Button ref={finalizeRef} loading={finalizing} disabled={missing.length > 0 || rows.length === 0} onClick={() => void finalize()}>
               {t("inventory.stocktakes.reviewFinalize", "Review & finalize")}
             </Button>
           </div>

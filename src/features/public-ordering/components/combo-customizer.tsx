@@ -11,9 +11,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, Lock, Minus, Plus, UtensilsCrossed, X } from "lucide-react";
 
-import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
-import type { PublicComboChoice } from "@/data/api/generated/models/publicComboChoice";
-import type { PublicComboSlot } from "@/data/api/generated/models/publicComboSlot";
 import { AssetImage, assetOf } from "@/components/app/asset-image";
 import {
   Drawer,
@@ -28,7 +25,13 @@ import { fmtMoney } from "@/lib/format";
 import { getTranslatedDescription, getTranslatedName } from "@/lib/translation";
 import i18n from "@/i18n";
 
-import type { CartLine } from "../types";
+import type {
+  CartLine,
+  CatalogComboChoice as PublicComboChoice,
+  CatalogComboSlot as PublicComboSlot,
+  CatalogItem,
+} from "../types";
+import { useShowPrices } from "../price-mode";
 import { displaySize, lineUnitPrice, newUid } from "../utils";
 import { FIELD_LIMITS } from "../limits";
 import {
@@ -45,7 +48,7 @@ import {
 
 interface ComboCustomizerProps {
   /** A menu item of kind "combo" (null = closed). */
-  item: DeliveryMenuItem | null;
+  item: CatalogItem | null;
   /** When editing an existing combo line, its picks and quantity. */
   editing?: CartLine | null;
   open: boolean;
@@ -65,6 +68,8 @@ export function ComboCustomizer({
 }: ComboCustomizerProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  // Off on the menu without prices: the same picker, no figure anywhere.
+  const showPrices = useShowPrices();
   const combo = item?.combo ?? null;
 
   const [sel, setSel] = useState<ComboSelection>({});
@@ -85,19 +90,19 @@ export function ComboCustomizer({
       uid: editing?.uid ?? newUid(),
       item,
       size_label: null,
-      base_price: item.price,
+      ...(showPrices ? { base_price: item.price } : {}),
       quantity: qty,
       addons: [],
       optionals: [],
       notes: editing?.notes ?? null,
-      combo: { picks: buildPicks(combo, sel) },
+      combo: { picks: buildPicks(combo, sel, showPrices) },
     };
-  }, [item, combo, sel, qty, editing]);
+  }, [item, combo, sel, qty, editing, showPrices]);
 
   if (!item || !combo) return null;
 
   const unmet = firstUnmetSlot(combo, sel);
-  const unitPrice = draft ? lineUnitPrice(draft) : item.price;
+  const unitPrice = !showPrices ? 0 : draft ? lineUnitPrice(draft) : (item.price ?? 0);
   const totalPrice = unitPrice * qty;
   const description = getTranslatedDescription(item, lang);
 
@@ -171,9 +176,11 @@ export function ComboCustomizer({
             <div className="text-start">
               <div className="flex items-baseline justify-between gap-3">
                 <DrawerTitle className="font-serif text-xl leading-tight">{getTranslatedName(item, lang)}</DrawerTitle>
-                <span className="shrink-0 text-sm font-medium text-muted-foreground tabular-nums">
-                  {fmtMoney(item.price)}
-                </span>
+                {showPrices ? (
+                  <span className="shrink-0 text-sm font-medium text-muted-foreground tabular-nums">
+                    {fmtMoney(item.price ?? 0)}
+                  </span>
+                ) : null}
               </div>
               {description ? (
                 <DrawerDescription className="mt-1 leading-relaxed">{description}</DrawerDescription>
@@ -226,7 +233,9 @@ export function ComboCustomizer({
               <Plus className="size-4" />
             </Button>
           </div>
-          {viewOnly ? (
+          {viewOnly && !showPrices ? (
+            <span className="flex-1" />
+          ) : viewOnly ? (
             // Nothing to add to: the price of what was picked, where the add
             // button stands when the shop is taking the order.
             <p
@@ -247,9 +256,13 @@ export function ComboCustomizer({
             >
               {unmet
                 ? t("order.combo.chooseSlot", { defaultValue: "Choose your {{slot}}", slot: unmetName })
-                : editing
-                  ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
-                  : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
+                : !showPrices
+                  ? editing
+                    ? t("order.customize.update", "Update")
+                    : t("order.customize.addToCart", "Add to cart")
+                  : editing
+                    ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
+                    : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
             </Button>
           )}
         </div>
@@ -278,6 +291,7 @@ function SlotSection({
   onSetSize: (c: PublicComboChoice, size: string) => void;
 }) {
   const { t } = useTranslation();
+  const showPrices = useShowPrices();
   const slotSel = sel[slot.id] ?? {};
   const count = slotCount(slotSel);
   const title = getTranslatedName({ name: slot.name, name_translations: slot.name_translations }, lang);
@@ -356,8 +370,8 @@ function SlotSection({
                       <span className="block text-xs font-medium text-muted-foreground">
                         {t("order.combo.unavailable", "Unavailable")}
                       </span>
-                    ) : choice.surcharge > 0 ? (
-                      <span className="block text-xs text-muted-foreground tabular-nums">+{fmtMoney(choice.surcharge)}</span>
+                    ) : showPrices && (choice.surcharge ?? 0) > 0 ? (
+                      <span className="block text-xs text-muted-foreground tabular-nums">+{fmtMoney(choice.surcharge ?? 0)}</span>
                     ) : null}
                   </span>
                   {locked ? (
@@ -411,7 +425,8 @@ function SlotSection({
                   className="flex flex-wrap gap-2 border-t border-border/60 px-3 py-2.5"
                 >
                   {/* Smallest first, so the included size leads and upgrades follow. */}
-                  {[...choice.sizes].sort((x, y) => x.price - y.price).map((s) => {
+                  {/* (The menu without prices sends them in this order already.) */}
+                  {[...choice.sizes].sort((x, y) => (x.price ?? 0) - (y.price ?? 0)).map((s) => {
                     const on = pick.size === s.label;
                     const included = s.label === choice.included_size_label;
                     return (
@@ -422,20 +437,22 @@ function SlotSection({
                         aria-checked={on}
                         onClick={() => onSetSize(choice, s.label)}
                         className={cn(
-                          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-[color,background-color,border-color,box-shadow]",
                           on
                             ? "border-brand bg-brand text-brand-foreground shadow-sm"
                             : "border-border/70 bg-card hover:border-brand/40",
                         )}
                       >
                         <span>{displaySize(s.label) ?? t("order.combo.regular", "Regular")}</span>
-                        <span className="opacity-80 tabular-nums">
-                          {included
-                            ? t("order.combo.included", "Included")
-                            : s.extra > 0
-                              ? `+${fmtMoney(s.extra)}`
-                              : t("order.customize.noCharge")}
-                        </span>
+                        {showPrices ? (
+                          <span className="opacity-80 tabular-nums">
+                            {included
+                              ? t("order.combo.included", "Included")
+                              : (s.extra ?? 0) > 0
+                                ? `+${fmtMoney(s.extra ?? 0)}`
+                                : t("order.customize.noCharge")}
+                          </span>
+                        ) : null}
                       </button>
                     );
                   })}

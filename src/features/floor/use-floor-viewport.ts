@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { distanceBetween, midpointOf, pinchFactor, wheelIntent } from "./gestures";
 import {
-  EMPTY_VIEW, ZOOM_STEP, boundsOf, clampZoom, fitView, viewRect,
+  EMPTY_VIEW, boundsOf, clampZoom, fitView, viewRect,
   type GeoItem, type Rect, type Viewport,
 } from "./util";
 
@@ -201,4 +201,3 @@ export function useFloorViewport(): FloorViewport {
   };
 }
 
-export { ZOOM_STEP };

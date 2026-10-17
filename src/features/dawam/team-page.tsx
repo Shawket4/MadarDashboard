@@ -58,7 +58,7 @@ const STATE_TONE: Record<string, StatusTone> = {
   in: "success", late: "warning", absent: "danger", on_leave: "info", off: "neutral", done: "neutral",
 };
 
-export const FLAG_META: Record<string, { icon: LucideIcon; labelKey: string; fallback: string }> = {
+const FLAG_META: Record<string, { icon: LucideIcon; labelKey: string; fallback: string }> = {
   left_mid_shift: { icon: MapPinOff, labelKey: "dawam.flag_left_mid_shift", fallback: "Left mid-shift" },
   suspicious: { icon: ShieldAlert, labelKey: "dawam.flag_suspicious", fallback: "Location looks spoofed" },
   tracking_off: { icon: TimerOff, labelKey: "dawam.flag_tracking_off", fallback: "Tracking off" },
@@ -190,7 +190,7 @@ export function TeamPage() {
                   const coverer = !out && today ? coveredBy(todayRecords, r.employee_id, today) : null;
                   return (
                     <span className="flex flex-wrap items-center justify-end gap-2">
-                      <StatusPill tone={STATE_TONE[r.state] ?? "neutral"}>{t(`dawam.state_${r.state}`, STATE_LABEL[r.state] ?? r.state)}</StatusPill>
+                      <StatusPill popOn={r.state} tone={STATE_TONE[r.state] ?? "neutral"}>{t(`dawam.state_${r.state}`, STATE_LABEL[r.state] ?? r.state)}</StatusPill>
                       {coverer ? (
                         <span className="text-xs text-muted-foreground">{t("dawam.coveredBy", { name: coverer, defaultValue: `Covered by ${coverer}` })}</span>
                       ) : null}
@@ -418,7 +418,7 @@ function PunchDialog({ person, onOpenChange }: { person: PresenceRow | null; onO
                         key={r}
                         type="button"
                         onClick={() => form.setValue("reason", r, { shouldValidate: true })}
-                        className="h-7 rounded-full border px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+                        className="h-7 rounded-full border px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                       >
                         {r}
                       </button>

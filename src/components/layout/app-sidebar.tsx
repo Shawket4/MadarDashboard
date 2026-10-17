@@ -32,6 +32,7 @@ import { useSetupProgress } from "@/features/dawam/setup";
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
+import { Presence } from "@/lib/motion";
 
 // Every leaf destination in the nav, so active-matching can pick the MOST
 // SPECIFIC one: a parent-ish link like `/settings` must not light up when a
@@ -106,7 +107,7 @@ function NavRow({ entry, isActive, visible, pathname, pf, close, keepScope }: Na
             >
               <entry.icon />
               <span>{t(entry.labelKey, entry.fallback)}</span>
-              <ChevronRight className="ms-auto transition-transform duration-200 motion-reduce:transition-none group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180 rtl:group-data-[state=open]/collapsible:-rotate-90" />
+              <ChevronRight className="ms-auto transition-transform duration-base group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180 rtl:group-data-[state=open]/collapsible:-rotate-90" />
             </SidebarMenuButton>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -169,15 +170,24 @@ function NavGroupSection({ group, entries, pathname, ...rowProps }: NavGroupSect
     entryPaths(e).some((p) => pathname === p || pathname.startsWith(`${p}/`)),
   );
   const expanded = !overflow || manuallyExpanded || hasActiveHidden;
-  const shown = expanded ? entries : entries.slice(0, GROUP_COLLAPSE_THRESHOLD);
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="text-sidebar-muted">{t(group.labelKey, group.fallback)}</SidebarGroupLabel>
       <SidebarMenu>
-        {shown.map((entry) => (
+        {(overflow ? entries.slice(0, GROUP_COLLAPSE_THRESHOLD) : entries).map((entry) => (
           <NavRow key={isParent(entry) ? entry.labelKey : entry.to} entry={entry} pathname={pathname} {...rowProps} />
         ))}
+        {/* "N more": the rest rise in when shown and leave when hidden. */}
+        <Presence show={overflow && expanded} initial={false}>
+          <li className="list-none">
+            <SidebarMenu>
+              {hidden.map((entry) => (
+                <NavRow key={isParent(entry) ? entry.labelKey : entry.to} entry={entry} pathname={pathname} {...rowProps} />
+              ))}
+            </SidebarMenu>
+          </li>
+        </Presence>
         {overflow ? (
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -234,7 +244,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" side={side} className="border-sidebar-border">
-      <SidebarHeader className="group-data-[collapsible=icon]:hidden">
+      <SidebarHeader className="group-data-[collapsible=icon]:invisible">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg" className="px-2 hover:bg-transparent active:bg-transparent">

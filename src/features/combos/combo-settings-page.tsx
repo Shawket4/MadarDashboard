@@ -9,7 +9,7 @@
  * The minimum margin (C11) is one org-wide number; blank means no warning.
  * It only ever warns in the combo editor; it never blocks a save.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -34,19 +34,20 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { getTranslatedName } from "@/lib/translation";
 import { PaneHeader } from "@/features/settings/pane-header";
 import { isSelling } from "@/lib/selling";
+import { usePop, useShake } from "@/lib/motion";
 
 import { deleteBranchChannels, putBranchChannels, saveComboSettings, useComboSettings } from "./api";
 import { COMBO_CHANNELS, type ChannelOverride, type ComboChannel, type ComboSettings } from "./types";
 import { invalidateCombos, percentToRate, rateToPercent } from "./util";
 
-export const CHANNEL_META: Record<ComboChannel, { icon: LucideIcon; key: string; label: string; hintKey: string; hint: string }> = {
+const CHANNEL_META: Record<ComboChannel, { icon: LucideIcon; key: string; label: string; hintKey: string; hint: string }> = {
   pos: { icon: Store, key: "combos.channels.pos", label: "POS", hintKey: "combos.channels.posHint", hint: "The till: tellers and waiters." },
   qr: { icon: QrCode, key: "combos.channels.qr", label: "QR table menu", hintKey: "combos.channels.qrHint", hint: "Guests ordering from the code on their table." },
   online: { icon: Globe, key: "combos.channels.online", label: "Online ordering", hintKey: "combos.channels.onlineHint", hint: "Your ordering page: delivery and pickup." },
   delivery: { icon: Truck, key: "combos.channels.delivery", label: "Delivery apps", hintKey: "combos.channels.deliveryHint", hint: "Aggregator menus, when they are connected." },
 };
 
-export const settingsSchema = z.object({
+const settingsSchema = z.object({
   min_margin: z.string().refine((v) => {
     if (v.trim() === "") return true;
     const n = Number(v);
@@ -54,7 +55,7 @@ export const settingsSchema = z.object({
   }, "combos.errors.percent"),
   sell: z.object({ pos: z.boolean(), qr: z.boolean(), online: z.boolean(), delivery: z.boolean() }),
 });
-export type SettingsValues = z.infer<typeof settingsSchema>;
+type SettingsValues = z.infer<typeof settingsSchema>;
 
 /** The org's switches; a channel the server leaves out is on (C3: on by default). */
 const channelsOf = (s: ComboSettings): SettingsValues["sell"] => ({
@@ -89,6 +90,12 @@ export function ComboSettingsPage() {
   }, [q.data, form]);
   const sell = form.watch("sell");
   const [savingBranch, setSavingBranch] = useState<string | null>(null);
+  // A save reads at the button as well as in the toast.
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const [saves, setSaves] = useState(0);
+  const [refused, setRefused] = useState(0);
+  usePop(saveRef, saves);
+  useShake(saveRef, refused);
 
   const title = t("combos.settings.title", "Combos and deals");
   if (authz.ready && !canRead) {
@@ -118,10 +125,12 @@ export function ComboSettingsPage() {
     try {
       await saveComboSettings({ min_margin: percentToRate(v.min_margin), channels: v.sell });
       toast.success(t("combos.settings.saved", "Combo settings saved"));
+      setSaves((n) => n + 1);
       void invalidateCombos();
       await q.refetch();
     } catch (e) {
       toast.error(getErrorMessage(e));
+      setRefused((n) => n + 1);
     }
   };
 
@@ -234,7 +243,7 @@ export function ComboSettingsPage() {
 
       {canEdit ? (
         <div className="flex items-center gap-2">
-          <Button type="submit" loading={form.formState.isSubmitting} disabled={!form.formState.isDirty || form.formState.isSubmitting}>
+          <Button ref={saveRef} type="submit" loading={form.formState.isSubmitting} disabled={!form.formState.isDirty || form.formState.isSubmitting}>
             {t("common.save", "Save")}
           </Button>
         </div>

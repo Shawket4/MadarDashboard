@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { Check, Layers, Pencil, Plus, Trash2 } from "lucide-react";
@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { useListGroups } from "@/data/api/generated/api";
 import type { GroupOut } from "@/data/api/generated/models";
 import { fmtMoney, fmtUnit } from "@/lib/format";
+import { useFlip } from "@/lib/motion";
 import { Cap } from "@/generated/capabilities";
 import { useCan } from "@/data/authz/use-authz";
 
@@ -48,6 +49,9 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
   const canEditGroups = useCan(Cap.menuItemsEdit);
 
   const attachedIds = useMemo(() => new Set(attached.map((a) => a.group_id)), [attached]);
+  // Groups attached or detached: the rest of the section slides to its place.
+  const listRef = useRef<HTMLDivElement>(null);
+  useFlip(listRef, attached.map((a) => a.group_id).join());
   // Another item's own "Options" set is not a reusable group: the server
   // refuses to attach it, so it is never offered.
   const pickable = useMemo(
@@ -104,7 +108,7 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
   };
 
   return (
-    <div className="space-y-3">
+    <div ref={listRef} className="space-y-3">
       {attached.length === 0 ? (
         <EmptyState icon={Layers} title={t("menu.studio.modifiers.empty", "No modifier groups attached")} />
       ) : (

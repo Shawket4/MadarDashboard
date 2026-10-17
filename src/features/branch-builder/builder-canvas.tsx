@@ -82,7 +82,7 @@ const centre = (b: PieceBox) => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
  * printer under its till is joined bottom-to-top and a screen beside its
  * section side-to-side, never a line looping round a card.
  */
-export const routeBetween = (a: PieceBox, b: PieceBox) => {
+const routeBetween = (a: PieceBox, b: PieceBox) => {
   const ca = centre(a);
   const cb = centre(b);
   const dx = cb.x - ca.x;
@@ -376,7 +376,7 @@ export function BuilderCanvas({
             <foreignObject x={box.x} y={box.y} width={box.w} height={box.h} overflow="visible">
               <div
                 className={cn(
-                  "relative flex h-full flex-col justify-center gap-0.5 rounded-xl border bg-card px-3 shadow-sm transition-shadow duration-150 motion-reduce:transition-none",
+                  "relative flex h-full flex-col justify-center gap-0.5 rounded-xl border bg-card px-3 shadow-sm transition-shadow duration-fast",
                   piece.placeholder && "border-dashed",
                   isSelected && "border-primary ring-2 ring-primary/40",
                   takes && hoverKey === piece.key && "ring-[3px] ring-primary",

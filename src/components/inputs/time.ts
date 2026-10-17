@@ -14,7 +14,7 @@ export type HourCycle = "h12" | "h23";
 export type Lang = "en" | "ar";
 
 /** Minutes in a day. */
-export const DAY_MIN = 24 * 60;
+const DAY_MIN = 24 * 60;
 
 /**
  * The clock face every time field shows unless told otherwise. The whole
@@ -126,7 +126,7 @@ export function parseTime(raw: string): string | null {
 }
 
 /** The meridiem word in the app language. */
-export const meridiemOf = (hour: number, lang: Lang): string =>
+const meridiemOf = (hour: number, lang: Lang): string =>
   lang === "ar" ? (hour < 12 ? "ص" : "م") : hour < 12 ? "AM" : "PM";
 
 /**

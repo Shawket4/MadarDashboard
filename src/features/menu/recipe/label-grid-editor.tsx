@@ -1,6 +1,7 @@
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { renderCell } from "./render-cell";
 import { Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -155,7 +156,7 @@ export function LabelGridEditor({
               <tr key={row.id} className="border-b last:border-b-0">
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-2 py-1.5 first:px-3">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {renderCell(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
               </tr>

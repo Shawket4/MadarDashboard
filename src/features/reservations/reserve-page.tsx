@@ -10,7 +10,7 @@ import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { AxiosError } from "axios";
-import { ArrowLeft, CalendarCheck, ChevronRight, Loader2, Minus, Plus, Store, Users } from "lucide-react";
+import { ArrowLeft, CalendarCheck, ChevronRight, Minus, Plus, Store, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   useBookingBranches, useBookingInfo, useBookingSlots, useCreatePublicBooking,
 } from "@/data/api/generated/api";
-import type { PublicBookingInfo } from "@/data/api/generated/models/publicBookingInfo";
 import type { PublicBookingView } from "@/data/api/generated/models/publicBookingView";
 import { getErrorMessage } from "@/data/api/errors";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
@@ -27,13 +26,17 @@ import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { getGuestPhone, setGuestPhone } from "@/features/public-shell/guest";
+import { stepSwap, successBadge, useStepDirection } from "@/features/public-shell/motion";
+import { DISTANCE, Reveal, recipes, Stagger, SwapPresence } from "@/lib/motion";
 import { formatPhoneInput } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
 import { PhoneVerify } from "./phone-verify";
 import { fmtDay, fmtSlot, fmtWhen, pickableDates } from "./util";
+import { Spinner } from "@/components/ui/spinner";
 
 type Step = "branch" | "when" | "you" | "done";
+const STEPS: Step[] = ["branch", "when", "you", "done"];
 
 interface Props {
   orgId: string;
@@ -62,6 +65,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
   const [done, setDone] = useState<PublicBookingView | null>(null);
+  const stepDir = useStepDirection(step, STEPS);
   const [error, setError] = useState<string | null>(null);
   // Also as a toast: the inline copy sits where the customer may have scrolled from.
   useErrorToast(error);
@@ -133,6 +137,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
           </button>
         ) : null}
 
+        <SwapPresence swapKey={step} initial={false} recipe={stepSwap(stepDir, i18n.dir() === "rtl")}>
         {step === "branch" ? (
           <section className="space-y-4">
             <header>
@@ -144,12 +149,14 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
             ) : (branchesQ.data ?? []).length === 0 ? (
               <NotOpen />
             ) : (
+              <Stagger asChild register="brand" recipe={recipes.rise("brand", DISTANCE.md)}>
               <ul className="space-y-3">
                 {(branchesQ.data ?? []).map((b) => (
                   <li key={b.id}>
                     <button
                       type="button"
                       onClick={() => { setBranchId(b.id); setStep("when"); void navigate({ to: "/$orgId/$branchId", params: { orgId, branchId: b.id }, replace: true }); }}
+                      data-press="brand"
                       className="flex w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-4 text-start shadow-sm transition-colors hover:bg-muted/40"
                     >
                       <span className="flex size-11 items-center justify-center rounded-xl bg-brand/10 text-brand"><Store className="size-5" /></span>
@@ -159,6 +166,7 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
                   </li>
                 ))}
               </ul>
+              </Stagger>
             )}
           </section>
         ) : null}
@@ -284,13 +292,15 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
               <p className="text-center text-sm text-muted-foreground">{t("reservations.nameFirst", "Add your name to continue.")}</p>
             )}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            {create.isPending ? <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" />{t("reservations.booking", "Holding your table…")}</p> : null}
+            {create.isPending ? <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground"><Spinner />{t("reservations.booking", "Holding your table…")}</p> : null}
           </section>
         ) : null}
 
         {step === "done" && done ? (
           <section className="space-y-5 pt-6 text-center">
-            <span className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-success/10 text-success"><CalendarCheck className="size-8" /></span>
+            <Reveal asChild recipe={successBadge}>
+              <span className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-success/10 text-success"><CalendarCheck className="size-8" /></span>
+            </Reveal>
             <h1 className="font-serif text-2xl font-semibold text-balance">{t("reservations.doneTitle", "You’re booked, {{name}}!", { name: done.guest_name })}</h1>
             <p className="text-sm text-muted-foreground">
               {t("reservations.doneBody", "{{name}} · {{when}} · party of {{count}}. We’ve sent the details to your WhatsApp.", { name: done.branch_name, when: fmtWhen(done.starts_at, done.timezone, lang), count: done.party_size })}
@@ -300,13 +310,14 @@ export function ReservePage({ orgId, branchId: initialBranch }: Props) {
             </Button>
           </section>
         ) : null}
+        </SwapPresence>
       </div>
     </StorefrontShell>
   );
 }
 
 /** The honest state: no form that goes nowhere. */
-export function NotOpen({ name }: { name?: string }) {
+function NotOpen({ name }: { name?: string }) {
   const { t } = useTranslation();
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-center">
@@ -318,4 +329,3 @@ export function NotOpen({ name }: { name?: string }) {
   );
 }
 
-export type { PublicBookingInfo };

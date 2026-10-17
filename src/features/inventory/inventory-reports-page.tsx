@@ -22,11 +22,11 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters } from "@/data/scope/use-list-filters";
 import { inventoryReportsSearch } from "./search";
-import { periodParams } from "./queries";
-import { exportToExcel, exportToCsv } from "@/lib/excel";
+import { exportToExcel, exportToCsv, toastExportError } from "@/lib/excel";
 import {
   buildInventoryExportSheet, ConsumptionTab, PoLeadTimeTab, ShrinkageTab, WasteTab,
 } from "@/features/inventory/reports-page";
+import { periodParams } from "./queries";
 import { LowStockTab } from "@/features/inventory/low-stock-tab";
 
 type ReportScope = "branch" | "org";
@@ -90,7 +90,8 @@ export function InventoryReportsPage() {
     try {
       await exportToExcel({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -102,6 +103,7 @@ export function InventoryReportsPage() {
       await exportToCsv({ filename: `Madar-${sheet.title}`, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 

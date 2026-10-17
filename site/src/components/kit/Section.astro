@@ -59,6 +59,7 @@ const body = Astro.slots.has("default") ? (await Astro.slots.render("default")).
   class:list={[TONE[tone], orbit && "relative isolate overflow-hidden", cls]}
   aria-labelledby={title ? titleId : undefined}
   aria-label={title ? undefined : label}
+  data-sequence={intro && !sticky ? "hero" : undefined}
 >
   {orbit && <Orbit tone={tone === "ink" ? "ink" : "paper"} class={`absolute -z-10 ${orbit}`} />}
   <div class="container-site">

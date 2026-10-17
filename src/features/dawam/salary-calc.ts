@@ -19,7 +19,6 @@ export interface PayBasis {
 /** 26 working days of 8 hours, unless the rules say otherwise. */
 export const DEFAULT_BASIS: PayBasis = { workingDays: 26, dayMinutes: 480 };
 
-export type { SalaryRates as Rates } from "@/lib/rules";
 
 /** The three rates from whichever one was typed (piastres): madar-dawam `salary::rates`. */
 export const rates = (from: TypedRate, basis: PayBasis): SalaryRates => rules.rates(from, basis.workingDays, basis.dayMinutes);

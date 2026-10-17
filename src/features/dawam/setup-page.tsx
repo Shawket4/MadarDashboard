@@ -6,7 +6,7 @@
  * someone ticks), any step can be opened at any time, and every step does its
  * job right here with the same calls its full page makes.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check, PartyPopper } from "lucide-react";
@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { cn } from "@/lib/utils";
+import { Presence, Reveal, useChangeSignal, usePop } from "@/lib/motion";
 import type { AttendanceSettings, Employee, WorkShift } from "@/data/api/generated/models";
 import { WorkShiftDialog } from "@/features/staff/work-shift-dialog";
 import { AddEmployeeDialog, ImportPeopleDialog } from "./add-employees";
@@ -117,20 +118,12 @@ export function SetupPage() {
                       aria-current={current ? "step" : undefined}
                       onClick={() => setStep(s)}
                       className={cn(
-                        "flex h-full w-full flex-col items-start gap-1 rounded-lg border px-2.5 py-2 text-start transition-colors motion-reduce:transition-none sm:flex-row sm:items-center sm:gap-2 sm:px-3",
+                        "flex h-full w-full flex-col items-start gap-1 rounded-lg border px-2.5 py-2 text-start transition-colors sm:flex-row sm:items-center sm:gap-2 sm:px-3",
                         "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
                         current ? "border-primary bg-card shadow-sm" : "bg-transparent hover:bg-accent",
                       )}
                     >
-                      <span
-                        aria-hidden
-                        className={cn(
-                          "grid size-6 shrink-0 place-items-center rounded-full text-xs font-semibold tabular-nums",
-                          done ? "bg-success text-success-foreground" : current ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
-                        )}
-                      >
-                        {done ? <Check className="size-3.5" /> : n + 1}
-                      </span>
+                      <StepMark n={n + 1} done={done} current={current} />
                       <span className="min-w-0">
                         <span className={cn("block truncate text-sm", current ? "font-semibold" : "font-medium")}>{meta[s].short}</span>
                         <span className="block text-xs text-muted-foreground">
@@ -144,7 +137,7 @@ export function SetupPage() {
             </ol>
           </nav>
 
-          {p.complete ? (
+          <Presence show={p.complete} initial={false}>
             <div role="status" className="flex items-start gap-3 rounded-2xl border border-success/40 bg-success/10 p-4">
               <PartyPopper aria-hidden className="mt-0.5 size-5 shrink-0 text-[color-mix(in_oklab,var(--color-success)_60%,var(--color-foreground))]" />
               <div className="space-y-2">
@@ -155,56 +148,59 @@ export function SetupPage() {
                 </div>
               </div>
             </div>
-          ) : null}
+          </Presence>
 
-          <section aria-labelledby="setup-step-title" className="rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
-            <header className="mb-5 space-y-1">
-              <p className="text-xs font-medium text-muted-foreground tabular-nums">
-                {t("dawam.setupStepOf", { n: i + 1, total: SETUP_STEPS.length, defaultValue: `Step ${i + 1} of ${SETUP_STEPS.length}` })}
-              </p>
-              <h2 id="setup-step-title" className="text-lg font-semibold text-balance">{meta[step].title}</h2>
-              <p className="max-w-prose text-sm text-muted-foreground">{meta[step].hint}</p>
-            </header>
+          {/* Each step rises in as it opens. */}
+          <Reveal asChild replayKey={step}>
+            <section aria-labelledby="setup-step-title" className="rounded-2xl border bg-card p-4 shadow-sm sm:p-6">
+              <header className="mb-5 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground tabular-nums">
+                  {t("dawam.setupStepOf", { n: i + 1, total: SETUP_STEPS.length, defaultValue: `Step ${i + 1} of ${SETUP_STEPS.length}` })}
+                </p>
+                <h2 id="setup-step-title" className="text-lg font-semibold text-balance">{meta[step].title}</h2>
+                <p className="max-w-prose text-sm text-muted-foreground">{meta[step].hint}</p>
+              </header>
 
-            {step === "branches" ? (
-              <BranchesStep branches={branches} canEdit={authz.can(Cap.branchesEdit)} />
-            ) : step === "employees" ? (
-              <EmployeesStep
-                employees={(data.employees ?? []) as Pick<Employee, "id" | "name" | "employment_status" | "salary_set">[]}
-                canCreate={authz.can(Cap.hrStaffCreate)}
-                onAdd={setAdding}
-              />
-            ) : step === "shifts" ? (
-              <ShiftsStep
-                shifts={(data.shifts ?? []) as WorkShift[]}
-                branchName={branchName}
-                canCreate={authz.can(Cap.hrScheduleCreate)}
-                onNew={() => setNewShift(true)}
-              />
-            ) : (
-              <RulesStep settings={data.settings as AttendanceSettings} canGender={authz.can(Cap.hrRosterSettings)} />
-            )}
+              {step === "branches" ? (
+                <BranchesStep branches={branches} canEdit={authz.can(Cap.branchesEdit)} />
+              ) : step === "employees" ? (
+                <EmployeesStep
+                  employees={(data.employees ?? []) as Pick<Employee, "id" | "name" | "employment_status" | "salary_set">[]}
+                  canCreate={authz.can(Cap.hrStaffCreate)}
+                  onAdd={setAdding}
+                />
+              ) : step === "shifts" ? (
+                <ShiftsStep
+                  shifts={(data.shifts ?? []) as WorkShift[]}
+                  branchName={branchName}
+                  canCreate={authz.can(Cap.hrScheduleCreate)}
+                  onNew={() => setNewShift(true)}
+                />
+              ) : (
+                <RulesStep settings={data.settings as AttendanceSettings} canGender={authz.can(Cap.hrRosterSettings)} />
+              )}
 
-            <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-              {prev ? (
-                <Button variant="ghost" onClick={() => setStep(prev)}>
-                  <ArrowLeft className="size-4 rtl:rotate-180" />
-                  {meta[prev].short}
-                </Button>
-              ) : <span />}
-              {next ? (
-                <div className="flex flex-wrap items-center justify-end gap-3">
-                  {!p.done[step] ? (
-                    <span className="text-xs text-muted-foreground">{t("dawam.setupComeBack", "You can come back to this.")}</span>
-                  ) : null}
-                  <Button variant={p.done[step] ? "default" : "outline"} onClick={() => setStep(next)}>
-                    {t("dawam.setupNext", { step: meta[next].short, defaultValue: `Next: ${meta[next].short}` })}
-                    <ArrowRight className="size-4 rtl:rotate-180" />
+              <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+                {prev ? (
+                  <Button variant="ghost" onClick={() => setStep(prev)}>
+                    <ArrowLeft className="size-4 rtl:rotate-180" />
+                    {meta[prev].short}
                   </Button>
-                </div>
-              ) : null}
-            </footer>
-          </section>
+                ) : <span />}
+                {next ? (
+                  <div className="flex flex-wrap items-center justify-end gap-3">
+                    {!p.done[step] ? (
+                      <span className="text-xs text-muted-foreground">{t("dawam.setupComeBack", "You can come back to this.")}</span>
+                    ) : null}
+                    <Button variant={p.done[step] ? "default" : "outline"} onClick={() => setStep(next)}>
+                      {t("dawam.setupNext", { step: meta[next].short, defaultValue: `Next: ${meta[next].short}` })}
+                      <ArrowRight className="size-4 rtl:rotate-180" />
+                    </Button>
+                  </div>
+                ) : null}
+              </footer>
+            </section>
+          </Reveal>
         </div>
       )}
       {adding === "one" ? <AddEmployeeDialog onOpenChange={(o) => !o && setAdding(null)} /> : null}
@@ -217,5 +213,23 @@ export function SetupPage() {
         wholeBusiness={authz.canEverywhere(Cap.hrScheduleCreate)}
       />
     </Page>
+  );
+}
+
+/** A step's number, or its tick once done. A step turning done settles its tick into place. */
+function StepMark({ n, done, current }: { n: number; done: boolean; current: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  usePop(ref, useChangeSignal(done));
+  return (
+    <span
+      ref={ref}
+      aria-hidden
+      className={cn(
+        "grid size-6 shrink-0 place-items-center rounded-full text-xs font-semibold tabular-nums",
+        done ? "bg-success text-success-foreground" : current ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
+      )}
+    >
+      {done ? <Check className="size-3.5" /> : n}
+    </span>
   );
 }

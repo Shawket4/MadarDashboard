@@ -19,10 +19,10 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { exportOrders, useGetBranch } from "@/data/api/generated/api";
 import type { ExportOrdersParams } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel } from "@/lib/excel";
+import { exportToExcel, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
+import { Presence } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 import { PRESETS } from "./export/presets";
@@ -127,7 +127,7 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
       });
       onOpenChange(false);
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
     } finally {
       setBusy(false);
     }
@@ -164,7 +164,7 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
                     type="button"
                     onClick={() => handlePreset(p.id)}
                     className={cn(
-                      "flex items-start gap-3 rounded-xl border p-3 text-start transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                      "flex items-start gap-3 rounded-xl border p-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                       selected ? "border-primary bg-primary/5 ring-1 ring-ring" : "hover:bg-accent/50",
                     )}
                   >
@@ -196,7 +196,7 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
               {t("ordersExport.customizeBtn", "Customize export sheets")}
               {customizeExpanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
             </button>
-            {customizeExpanded ? (
+            <Presence show={customizeExpanded}>
               <Card className="border-dashed bg-muted/20 py-0">
                 <CardContent className="space-y-3 p-4">
                   <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -225,7 +225,7 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
                   ) : null}
                 </CardContent>
               </Card>
-            ) : null}
+            </Presence>
           </section>
 
           {/* Filters summary */}

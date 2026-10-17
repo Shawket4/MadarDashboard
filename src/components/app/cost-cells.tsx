@@ -10,7 +10,7 @@ import type { AddonCost, SkuCost } from "@/data/api/generated/models";
 const BAND_ICON = { good: CheckCircle2, fair: AlertTriangle, poor: AlertCircle };
 
 /** A complete cost's food-cost share of its price, coloured by its band (green < 30 %, amber ≤ 40 %, red above). */
-export function FoodCostChip({ cost, price }: { cost: number; price: number }) {
+function FoodCostChip({ cost, price }: { cost: number; price: number }) {
   const band = foodCostBand(cost, price);
   const margin = rules.margin(price, cost);
   if (!band || margin == null) return null;
@@ -24,7 +24,7 @@ export function FoodCostChip({ cost, price }: { cost: number; price: number }) {
 }
 
 /** Warning icon for cost_missing rows, deep-linking to that item/add-on in recipes. */
-export function CostMissingLink({ itemId, addonId }: { itemId?: string; addonId?: string }) {
+function CostMissingLink({ itemId, addonId }: { itemId?: string; addonId?: string }) {
   const { t } = useTranslation();
   const search = itemId ? { item: itemId } : addonId ? { addon: addonId } : undefined;
   return (

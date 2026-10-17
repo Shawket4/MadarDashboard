@@ -84,13 +84,22 @@ export function AvailabilityTab() {
   );
   const liveDevices = (devices.data ?? []).filter((d) => !d.retired_at);
 
+  // Resolves or rejects so the editor's Save button can answer too.
   const save = (scope: AvailabilityScope, id: string) => (data: AllowList) =>
-    put.mutate(
-      { scope, id, data },
-      {
-        onSuccess: () => toast.success(t("common.saved", "Saved")),
-        onError: (e) => toast.error(getErrorMessage(e)),
-      },
+    new Promise<void>((resolve, reject) =>
+      put.mutate(
+        { scope, id, data },
+        {
+          onSuccess: () => {
+            toast.success(t("common.saved", "Saved"));
+            resolve();
+          },
+          onError: (e) => {
+            toast.error(getErrorMessage(e));
+            reject(e);
+          },
+        },
+      ),
     );
 
   return (

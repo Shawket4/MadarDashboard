@@ -16,9 +16,9 @@ import { z } from "zod";
 
 import type { MenuItem, RewardItem } from "@/data/api/generated/models";
 
-export const MAX_COST = 1_000_000;
+const MAX_COST = 1_000_000;
 
-export const rewardRowSchema = z.object({
+const rewardRowSchema = z.object({
   menu_item_id: z.string().min(1),
   name: z.string(),
   cost_amount: z

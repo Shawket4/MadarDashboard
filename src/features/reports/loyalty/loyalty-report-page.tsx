@@ -25,6 +25,7 @@ import {
   useGetLoyaltyBehavior, useGetLoyaltyCampaignEffectiveness, useGetLoyaltyLiabilityTrend,
 } from "@/data/api/generated/api";
 import { fmtDate, fmtNumber, fmtPercent } from "@/lib/format";
+import { Stagger, useChartMotion } from "@/lib/motion";
 import { currencyLabel } from "@/features/loyalty/shared/util";
 
 const AXIS = CHART_AXIS_TICK;
@@ -180,7 +181,7 @@ function CampaignsTab({ branchId, from, to }: { branchId: string | null; from: s
     return <EmptyState title={t("reports.loyalty.noCampaigns", "No outreach sent for this scope and period.")} />;
   }
   return (
-    <div className="space-y-4 rounded-2xl border bg-card p-5">
+    <Stagger className="space-y-4 rounded-2xl border bg-card p-5">
       {rows.map((r) => (
         <div key={r.campaign} className="space-y-1.5">
           <div className="flex items-center justify-between gap-4 text-sm">
@@ -196,7 +197,7 @@ function CampaignsTab({ branchId, from, to }: { branchId: string | null; from: s
           </p>
         </div>
       ))}
-    </div>
+    </Stagger>
   );
 }
 
@@ -204,6 +205,7 @@ function LiabilityTab({ branchId, from, to }: { branchId: string | null; from: s
   const { t } = useTranslation();
   const q = useGetLoyaltyLiabilityTrend(loyaltyReportRange({ branchId, from, to }));
   const currency = q.data?.currency ?? "points";
+  const chartMotion = useChartMotion();
   const chart = useMemo(
     () => (q.data?.points ?? []).map((p) => ({ week: p.week, outstanding: p.outstanding })),
     [q.data],
@@ -224,7 +226,7 @@ function LiabilityTab({ branchId, from, to }: { branchId: string | null; from: s
                 <XAxis dataKey="week" tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(w: string) => fmtDate(w)} />
                 <YAxis tick={AXIS} tickLine={false} axisLine={false} width={48} />
                 <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent formatter={(v) => `${fmtNumber(Number(v))} ${currencyLabel(currency, Number(v))}`} />} />
-                <Bar dataKey="outstanding" fill={chartColor(0)} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar dataKey="outstanding" fill={chartColor(0)} radius={[4, 4, 0, 0]} maxBarSize={40} {...chartMotion} />
               </BarChart>
             </ResponsiveContainer>
           </div>

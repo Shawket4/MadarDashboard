@@ -23,6 +23,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { usePageSearch } from "@/data/scope/use-page-search";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtStamp } from "@/lib/format";
+import { SwapPresence, recipes } from "@/lib/motion";
 
 import { ActivationCodesSection } from "./activation-codes";
 import { DEVICE_CODE_RE, useClientVersions, useDevices, usePatchDevice, type ClientSeen, type Device } from "./api";
@@ -68,6 +69,7 @@ export function DevicesPage() {
           />
         }
       />
+      <SwapPresence swapKey={view} recipe={recipes.fade()} initial={false}>
       {view === "clients" ? (
         <ClientVersionsView
           branchId={branchId}
@@ -83,6 +85,7 @@ export function DevicesPage() {
           <ActivationCodesSection branchId={branchId} />
         </div>
       )}
+      </SwapPresence>
       <DeviceDialog device={editing} onClose={() => setEditing(null)} />
     </Page>
   );
@@ -195,7 +198,7 @@ export function DevicesTable({
 }
 
 /** Who still talks to the server through pre-rework paths (G-old gate). */
-export function ClientVersionsView({
+function ClientVersionsView({
   branchId,
   days,
   legacyOnly,

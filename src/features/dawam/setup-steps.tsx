@@ -31,10 +31,11 @@ import { fullBody, valuesFrom, type Tier } from "@/features/staff/rules-form";
 import { tierPiastres } from "@/features/staff/rules-preview";
 import { fmtLatLng, inEgypt, mapsLink, parsePin, round6, type LatLng } from "./geo";
 import { branchPinned } from "./setup";
+import { Presence } from "@/lib/motion";
 
 type PinBranch = Pick<Branch, "id" | "name" | "latitude" | "longitude" | "geo_radius_meters">;
 
-export const DEFAULT_RADIUS = 200;
+const DEFAULT_RADIUS = 200;
 
 // ── Step 1: branches ─────────────────────────────────────────────────────────
 
@@ -173,7 +174,7 @@ function BranchPin({
         <span className="text-sm text-muted-foreground">{open ? t("common.close", "Close") : pinned ? t("common.edit", "Edit") : t("dawam.pinIt", "Pin it")}</span>
       </button>
 
-      {open ? (
+      <Presence show={open} initial={false}>
         <div className="space-y-4 border-t p-3">
           <div className="grid gap-3 md:grid-cols-[auto_minmax(0,1fr)] md:items-start">
             <div className="space-y-1.5">
@@ -250,7 +251,7 @@ function BranchPin({
             </Button>
           </div>
         </div>
-      ) : null}
+      </Presence>
     </div>
   );
 }

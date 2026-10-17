@@ -61,14 +61,16 @@
   --dur-reveal: 0.95s; /* a line rising into place as it scrolls in */
   --dur-intro: 1.15s;  /* the first screen's entrance */
   --dur-draw: 1.2s;    /* a rule drawing across */
+  --scrub: 0.7s;       /* how far a scroll-driven piece trails the scroll: it eases to where the page is, both ways, never jumps when the scroll stops */
   --stagger: 70ms;     /* between the items of a reveal group, the ticks of a list */
   --stagger-word: 50ms; /* between a heading's words as they rise */
   --reveal-y: 26px;    /* how far a reveal rises */
-  /* Phones get a calmer variant (scripts/motion.ts): shorter rises, a quicker beat, half
-     the parallax. */
-  --reveal-y-phone: 16px;
-  --stagger-phone: 45ms;
-  --parallax-phone: 0.4;
+  /* Phones (most of the site's visitors, from ads) keep every moment the wide screens
+     have, scaled to a phone: a rise in proportion to the smaller type, the same beat, most
+     of the parallax (scripts/motion.ts). Transform and opacity only, so it stays cheap. */
+  --reveal-y-phone: 22px;
+  --stagger-phone: 60ms;
+  --parallax-phone: 0.8;
   /* The crew's beats (crew.ts times its flags by these). */
   --dur-wave: 1.7s;
   --dur-hop: 0.76s;

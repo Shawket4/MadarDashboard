@@ -37,7 +37,7 @@ const REASON_TONE: Record<string, StatusTone> = {
   pin_wrong_branch: "warning",
 };
 
-export function reasonKey(reason: string) {
+function reasonKey(reason: string) {
   return `access.review.reasons.${reason}`;
 }
 

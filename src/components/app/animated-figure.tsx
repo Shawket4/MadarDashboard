@@ -1,6 +1,6 @@
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-import { DURATION } from "@/lib/motion";
+import { DURATION, playIn, recipes, useGsap } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 interface AnimatedFigureProps {
@@ -17,22 +17,40 @@ interface AnimatedFigureProps {
  * only the change is animated. Reduced motion swaps it in place.
  */
 export function AnimatedFigure({ text, className }: AnimatedFigureProps) {
-  const reduced = useReducedMotion();
-  const transition = { duration: reduced ? 0 : DURATION.base, ease: [0, 0, 0.58, 1] as const };
+  // The figure on screen, and the one it replaced while that fades out.
+  const [shown, setShown] = useState<{ text: string; old: string | null }>({ text, old: null });
+  if (shown.text !== text) setShown({ text, old: shown.text });
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useGsap(
+    (gsap, { reduced }) => {
+      const [now, old] = Array.from(ref.current?.children ?? []) as HTMLElement[];
+      if (!now || !old || reduced) return;
+      playIn(gsap, now, recipes.rise("product", now.offsetHeight / 4));
+      gsap.fromTo(old, { opacity: 1 }, recipes.fade().exit);
+    },
+    [shown],
+    { scope: ref },
+  );
+
+  // The old figure is invisible at rest (no GSAP, reduced motion); drop it
+  // once its fade, and the new figure's rise, are over.
+  useEffect(() => {
+    if (shown.old === null) return;
+    const id = setTimeout(() => setShown((s) => ({ ...s, old: null })), DURATION.slow);
+    return () => clearTimeout(id);
+  }, [shown]);
+
   return (
-    <span className={cn("relative inline-grid overflow-hidden tabular", className)}>
-      <AnimatePresence initial={false} mode="popLayout">
-        <motion.span
-          key={text}
-          className="col-start-1 row-start-1"
-          initial={reduced ? false : { opacity: 0, y: "25%" }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          transition={transition}
-        >
-          {text}
-        </motion.span>
-      </AnimatePresence>
+    <span ref={ref} className={cn("relative inline-grid overflow-hidden tabular", className)}>
+      <span key={shown.text} className="col-start-1 row-start-1">
+        {shown.text}
+      </span>
+      {shown.old !== null ? (
+        <span key={shown.old} aria-hidden className="absolute start-0 top-0 whitespace-nowrap opacity-0">
+          {shown.old}
+        </span>
+      ) : null}
     </span>
   );
 }

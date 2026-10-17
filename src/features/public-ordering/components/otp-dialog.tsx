@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { OTP_CODE_LEN, OtpCodeInput } from "@/features/public-shell/otp-code-input";
 import { formatPhoneDisplay, ltrIsolate } from "@/lib/phone";
+import { Spinner } from "@/components/ui/spinner";
 
 interface OtpDialogProps {
   open: boolean;
@@ -85,7 +86,7 @@ export function OtpDialog({
             onClick={onResend}
             className="h-auto p-0 text-brand"
           >
-            {sending && <Loader2 className="size-3 animate-spin" />}
+            {sending && <Spinner className="size-3" />}
             {t("order.otp.resend")}
           </Button>
           <span className="text-muted-foreground/60">·</span>

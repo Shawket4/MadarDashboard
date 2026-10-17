@@ -16,7 +16,7 @@ import {
 } from "../recipe/label-model";
 
 /** An option recipe line as the group editor holds it, plus the per-size label. */
-export interface OptionSizeLine {
+interface OptionSizeLine {
   ingredient_id: string;
   quantity: string | number;
   unit: string;

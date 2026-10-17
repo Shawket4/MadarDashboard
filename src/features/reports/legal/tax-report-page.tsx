@@ -13,7 +13,7 @@ import { Cap } from "@/generated/capabilities";
 import { useOrgTaxReport } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, exportToCsv, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtPercent } from "@/lib/format";
 
 interface TaxRow {
@@ -69,7 +69,8 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
     try {
       await exportToExcel({ filename: t("reports.legal.tabs.tax", "Tax"), logoUrl, sheets: [buildSheet()] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -81,6 +82,7 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
       await exportToCsv({ filename: t("reports.legal.tabs.tax", "Tax"), sheets: [buildSheet()] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 

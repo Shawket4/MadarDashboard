@@ -1,6 +1,8 @@
+import { useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, Lock } from "lucide-react";
 
+import { usePop } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { OnboardingStep } from "@/data/api/generated/models";
 import { STAGES, type StepDef, type StepKey } from "./config";
@@ -51,7 +53,8 @@ export function StepNavigator({ steps: allSteps, byKey, activeKey, onSelect, can
                         locked && "cursor-not-allowed opacity-50 hover:bg-transparent",
                       )}
                     >
-                      <span
+                      <StepDot
+                        done={done}
                         className={cn(
                           "grid size-7 shrink-0 place-items-center rounded-full text-xs transition-colors",
                           done
@@ -64,7 +67,7 @@ export function StepNavigator({ steps: allSteps, byKey, activeKey, onSelect, can
                         )}
                       >
                         {done ? <Check className="size-4" /> : locked ? <Lock className="size-3.5" /> : <Icon className="size-3.5" />}
-                      </span>
+                      </StepDot>
                       <span className="min-w-0 flex-1">
                         <span className={cn("flex items-center gap-2 text-sm", active || done ? "font-medium text-foreground" : "text-muted-foreground")}>
                           <span className="truncate">{copy(step.key, "title", step.key)}</span>
@@ -87,5 +90,17 @@ export function StepNavigator({ steps: allSteps, byKey, activeKey, onSelect, can
         );
       })}
     </nav>
+  );
+}
+
+/** A step's dot. The moment a step is completed here, its tick pops in; steps done before the page opened just show. */
+function StepDot({ done, className, children }: { done: boolean; className: string; children: ReactNode }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [doneAtOpen] = useState(done);
+  usePop(ref, done && !doneAtOpen);
+  return (
+    <span ref={ref} className={className}>
+      {children}
+    </span>
   );
 }

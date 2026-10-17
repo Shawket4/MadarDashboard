@@ -1,9 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { LucideIcon } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Building2,
   CalendarCheck,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { Reveal, usePop } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { downloadUrl } from "@/lib/download";
 import { Page, PageHeader } from "@/components/app/page";
@@ -116,6 +118,8 @@ function RenderOptions({ opts, onChange }: { opts: RenderOpts; onChange: (o: Ren
 function CopyLinkButton({ url }: { url: string }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
+  const ref = useRef<HTMLButtonElement>(null);
+  usePop(ref, copied);
   const copy = () => {
     void navigator.clipboard
       .writeText(url)
@@ -126,7 +130,7 @@ function CopyLinkButton({ url }: { url: string }) {
       .catch(() => toast.error(t("qr.copyFailed", "Could not copy the link")));
   };
   return (
-    <Button variant="outline" size="sm" onClick={copy} aria-label={t("common.copy", "Copy")}>
+    <Button ref={ref} variant="outline" size="sm" onClick={copy} aria-label={t("common.copy", "Copy")}>
       {copied ? <Check className="size-4 text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]" /> : <Copy className="size-4" />}
       {copied ? t("qr.copied", "Copied") : t("qr.copyLink", "Copy link")}
     </Button>
@@ -384,7 +388,7 @@ export function QrPage() {
         className="self-start"
       >
         {busy ? (
-          <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
+          <Spinner icon={RefreshCw} />
         ) : (
           <QrCode className="size-4" />
         )}
@@ -454,7 +458,7 @@ export function QrPage() {
                   </div>
                   <Button type="submit" disabled={!available || busy} className="self-start">
                     {busy ? (
-                      <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
+                      <Spinner icon={RefreshCw} />
                     ) : (
                       <QrCode className="size-4" />
                     )}
@@ -467,20 +471,23 @@ export function QrPage() {
             )}
 
             {error && (
-              <p role="status" className="text-sm text-destructive">
-                {error}
-              </p>
+              <Reveal asChild>
+                <p role="status" className="text-sm text-destructive">
+                  {error}
+                </p>
+              </Reveal>
             )}
           </div>
 
+          {/* The code arrives beside the button that made it. */}
           {result && (
-            <div className="w-full lg:w-64">
+            <Reveal className="w-full lg:w-64">
               <QrResult
                 qr={result}
                 title={kind.title}
                 onPreview={() => setPreview({ qr: result, title: kind.title })}
               />
-            </div>
+            </Reveal>
           )}
         </CardContent>
       </Card>

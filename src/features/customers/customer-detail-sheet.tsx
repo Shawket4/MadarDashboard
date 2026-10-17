@@ -31,6 +31,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { MemberSection } from "@/features/loyalty/admin/members/member-section";
 import { fmtDate, fmtDateTime, fmtMoney, fmtNumber } from "@/lib/format";
+import { CountUp, Stagger } from "@/lib/motion";
 import { formatPhoneDisplay } from "@/lib/phone";
 
 import { peopleAccess } from "./access";
@@ -132,7 +133,8 @@ export function CustomerDetailSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-6 px-4 pb-6">
+        {/* The sections arrive once the person lands (and again for another person), not on a refetch. */}
+        <Stagger className="space-y-6 px-4 pb-6" when={!primary.isLoading && !!primary.data} replayKey={personId}>
           {primary.isLoading ? (
             <Skeleton className="h-64 w-full" />
           ) : primary.isError || !primary.data ? (
@@ -238,7 +240,7 @@ export function CustomerDetailSheet({
               ) : null}
             </>
           )}
-        </div>
+        </Stagger>
       </SheetContent>
     </Sheet>
   );
@@ -255,7 +257,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 function CustomerStats({ customer: c }: { customer: Customer }) {
   const { t } = useTranslation();
-  const stat = (label: string, value: string) => (
+  const stat = (label: string, value: ReactNode) => (
     <div className="rounded-lg border p-3">
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="font-mono text-lg font-semibold tabular">{value}</dd>
@@ -263,8 +265,8 @@ function CustomerStats({ customer: c }: { customer: Customer }) {
   );
   return (
     <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-      {stat(t("customers.orders", "Orders"), fmtNumber(c.orders_count))}
-      {stat(t("customers.totalSpent", "Total spent"), fmtMoney(c.total_spent))}
+      {stat(t("customers.orders", "Orders"), <CountUp value={c.orders_count} format={(n) => fmtNumber(Math.round(n))} />)}
+      {stat(t("customers.totalSpent", "Total spent"), <CountUp value={c.total_spent} format={fmtMoney} />)}
       {stat(t("customers.lastVisit", "Last visit"), c.last_order_at ? fmtDate(c.last_order_at) : "—")}
       {stat(t("customers.since", "Customer since"), fmtDate(c.created_at))}
     </dl>
@@ -316,7 +318,7 @@ function Identity({ detail }: { detail: CustomerDetail }) {
   );
 }
 
-export function RecentOrders({ orders, onOpenOrder }: { orders: CustomerOrder[]; onOpenOrder: (id: string) => void }) {
+function RecentOrders({ orders, onOpenOrder }: { orders: CustomerOrder[]; onOpenOrder: (id: string) => void }) {
   const { t } = useTranslation();
   if (orders.length === 0) {
     return <EmptyState icon={Receipt} title={t("customers.noOrders", "No orders yet")} />;

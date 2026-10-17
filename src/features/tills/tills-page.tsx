@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -13,6 +13,7 @@ import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ListCard, ListRow } from "@/components/app/list-row";
 import { SectionHeader } from "@/components/app/section-header";
 import { StatusPill } from "@/components/app/status-pill";
+import { useFlip, useStagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtDateTime, fmtDuration, fmtMoney, fmtMoneySigned } from "@/lib/format";
 
 import {
@@ -158,7 +159,8 @@ export function TillsPage() {
         sheets: [{ name: t("nav.tills", "Tills"), title: t("nav.tills", "Tills"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -278,7 +280,7 @@ const OPEN_TEXT = "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color
 const OPEN_TONE_CLASS = `bg-success/12 ${OPEN_TEXT}`;
 
 /** Open right now at this branch; kept live by the `tills` realtime topic. */
-export function OpenNowStrip({
+function OpenNowStrip({
   tills,
   loading = false,
   notice,
@@ -290,6 +292,11 @@ export function OpenNowStrip({
   onOpen: (id: string) => void;
 }) {
   const { t } = useTranslation();
+  // Live: a till opening fades in, one closing lets the rest close up.
+  const listRef = useRef<HTMLDivElement>(null);
+  useFlip(listRef, tills.map((s) => s.id).join(), ":scope > [data-slot=list-card] > *");
+  // Data landing after the skeleton: the rows arrive.
+  useStagger(listRef, { selector: ":scope > [data-slot=list-card] > *", when: !loading });
   return (
     <section className="space-y-3">
       <SectionHeader
@@ -308,6 +315,7 @@ export function OpenNowStrip({
           description={t("tills.noOpenHint", "A till opens when a teller starts selling on a POS.")}
         />
       ) : (
+        <div ref={listRef}>
         <ListCard>
           {tills.map((s) => (
             // The row opens the till's report sheet: warm it on hover/focus.
@@ -333,6 +341,7 @@ export function OpenNowStrip({
             </div>
           ))}
         </ListCard>
+        </div>
       )}
     </section>
   );

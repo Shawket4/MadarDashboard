@@ -22,6 +22,7 @@ import { ReconciliationTable } from "./reconciliation-table";
 import { TillDeductions } from "./till-deductions";
 import { TillSpotViews } from "./till-spot-views";
 import { fmtDateTime, fmtMoney, fmtMoneySigned } from "@/lib/format";
+import { AnimatedNumber, Stagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -53,7 +54,8 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
           </SheetClose>
         </SheetHeader>
 
-        <div className="space-y-4 p-4">
+        {/* The sections arrive once the report lands (and again for another till), not on a refetch. */}
+        <Stagger className="space-y-4 p-4" when={!!report && !!shift} replayKey={tillId}>
           {isError ? (
             <ErrorState title={t("tills.report.loadError", "Could not load the till report. Please try again.")} onRetry={() => void refetch()} />
           ) : isLoading || !report || !shift ? (
@@ -132,7 +134,8 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
                   )}
                   <div className="mt-1 flex items-center justify-between gap-2 border-t pt-2 font-semibold">
                     <span>{t("tills.netPayments", "Net payments")}</span>
-                    <span className="tabular">{fmtMoney(report.net_payments)}</span>
+                    {/* Live while the till is open: a sale lands as a change in the figure. */}
+                    <AnimatedNumber value={report.net_payments} format={fmtMoney} />
                   </div>
                   {/* Tips sit OUTSIDE the method buckets and outside net payments —
                       they are not revenue, and folding them into a bucket is what
@@ -236,7 +239,7 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
               ) : null}
             </>
           )}
-        </div>
+        </Stagger>
       </SheetContent>
     </Sheet>
   );

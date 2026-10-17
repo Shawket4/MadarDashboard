@@ -9,11 +9,12 @@
  * Arabic too.
  */
 import { useEffect, useRef } from "react";
-import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { latinDigits } from "@/components/inputs/time";
+import { useShake } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 export interface OtpInputProps {
   value: string;
@@ -40,6 +41,10 @@ export function OtpInput({
 }: OtpInputProps) {
   const { t } = useTranslation();
   const refs = useRef<(HTMLInputElement | null)[]>([]);
+  // A refused code shakes the whole row once: `refocus` is bumped per refusal,
+  // and typing clears `invalid`, so the boxes never move under a keystroke.
+  const row = useRef<HTMLDivElement>(null);
+  useShake(row, invalid && (refocus || 1));
   const digits = Array.from({ length }, (_, i) => value[i] ?? "");
   // What the code is right now, ahead of the next render: a digit moves focus on
   // before React has re-rendered, and that focus must see the digit.
@@ -87,13 +92,14 @@ export function OtpInput({
 
   return (
     <div
+      ref={row}
       id={id}
       role="group"
       aria-label={t("signup.codeLabel", "Verification code")}
       aria-describedby={describedBy}
       aria-busy={busy || undefined}
       dir="ltr"
-      className={cn("relative flex w-full justify-center gap-1.5 sm:gap-2", busy && "[&>input]:opacity-50", invalid && "motion-safe:animate-[otp-shake_0.32s_ease-in-out]")}
+      className={cn("relative flex w-full justify-center gap-1.5 sm:gap-2", busy && "[&>input]:opacity-50")}
     >
       {digits.map((d, i) => (
         <input
@@ -152,7 +158,7 @@ export function OtpInput({
           }}
           className={cn(
             "h-14 min-w-0 max-w-14 flex-1 rounded-xl border bg-card text-center text-2xl font-semibold tabular-nums shadow-xs outline-none caret-transparent",
-            "transition-[border-color,box-shadow,background-color] motion-reduce:transition-none",
+            "transition-[border-color,box-shadow,background-color]",
             "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
             "disabled:cursor-not-allowed disabled:opacity-60",
             invalid
@@ -163,7 +169,7 @@ export function OtpInput({
       ))}
       {busy ? (
         <span role="status" className="absolute inset-0 grid place-items-center">
-          <Loader2 aria-hidden className="size-6 animate-spin text-foreground" />
+          <Spinner className="size-6 text-foreground" />
           <span className="sr-only">{t("signup.verifying", "Checking the code…")}</span>
         </span>
       ) : null}

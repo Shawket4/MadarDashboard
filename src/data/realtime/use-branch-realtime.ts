@@ -33,14 +33,6 @@ const TOPICS = "floor,tickets,bookings,delivery,tills,kitchen";
 type Listener = (event: string, data: string) => void;
 const listeners = new Set<Listener>();
 
-/** Subscribe a page to raw events (rarely needed — prefer query invalidation). */
-export function onRealtimeEvent(fn: Listener): () => void {
-  listeners.add(fn);
-  return () => {
-    listeners.delete(fn);
-  };
-}
-
 const invalidatePrefix = (...prefixes: string[]) =>
   queryClient.invalidateQueries({
     predicate: (q) =>
@@ -81,7 +73,7 @@ export const POLL_PREFIXES = [
 export const plansStream = (plan: string | null | undefined): boolean => entitlements(plan).realtime;
 
 /** Refresh, once per interval while the tab is visible, what the stream would nudge. */
-export function usePollInvalidation(enabled: boolean, intervalMs: number = POLL_INTERVAL_MS) {
+function usePollInvalidation(enabled: boolean, intervalMs: number = POLL_INTERVAL_MS) {
   useEffect(() => {
     if (!enabled) return;
     const tick = () => {

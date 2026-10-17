@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  *
  * Meta is facts joined by " · "; wrap figures in <bdi> (or use lib/format).
  */
-export type ListRowVariant = "nav" | "ledger" | "item" | "pick";
+type ListRowVariant = "nav" | "ledger" | "item" | "pick";
 
 interface ListRowProps {
   variant?: ListRowVariant;
@@ -117,7 +117,7 @@ export function ListRow({
   const cls = cn(
     "relative flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-start sm:px-5",
     interactive &&
-      "cursor-pointer transition-colors duration-150 hover:bg-accent/50 focus-visible:bg-accent/60 focus-visible:outline-none motion-reduce:transition-none",
+      "cursor-pointer transition-colors duration-fast hover:bg-accent/50 focus-visible:bg-accent/60 focus-visible:outline-none",
     selected && "bg-accent hover:bg-accent",
     disabled && "text-disabled-foreground",
     className,

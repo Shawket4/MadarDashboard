@@ -1,5 +1,5 @@
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AnimatePresence, motion } from "motion/react";
 import { AlertCircle, Minus, Pencil, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 
 import {
@@ -11,15 +11,20 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import type { CartQuote } from "@/data/api/generated/models/cartQuote";
+import type { OnlineTaxPolicy } from "@/data/api/generated/models/onlineTaxPolicy";
 import type { QuotedDeal } from "@/data/api/generated/models/quotedDeal";
 import { cn } from "@/lib/utils";
 import { fmtMoney } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
-import { easeOut } from "@/lib/motion";
+import { AnimatedNumber, recipes, useFlip, usePresence } from "@/lib/motion";
 import i18n from "@/i18n";
+import { formatRate } from "@/features/orgs/tax-rate";
 
 import type { CartLine } from "../types";
-import { cartSubtotal, lineTotal } from "../utils";
+import { useShowPrices } from "../price-mode";
+import { basketBill, taxOf, type TaxLine } from "../bill";
+import { lineTotal } from "../utils";
+import { fmtMoneyFigure } from "../ordering-motion";
 import { ComboPickList, DealRows, summarizeLine } from "./cart-lines";
 
 interface CartSheetProps {
@@ -33,6 +38,11 @@ interface CartSheetProps {
   deliveryFee?: number | null;
   /** estimated channel discount on the subtotal (piastres); 0/undefined = none. */
   discountAmount?: number;
+  /**
+   * The branch's online tax policy (the delivery quote's, else the branch
+   * list's). Absent for a table's basket: its tax is on the table's bill.
+   */
+  taxPolicy?: OnlineTaxPolicy | null;
   onEdit: (line: CartLine) => void;
   onRemove: (uid: string) => void;
   onSetQty: (uid: string, qty: number) => void;
@@ -55,14 +65,13 @@ interface CartSheetProps {
   dealHint?: string;
   /** Why the last checkout/send failed, shown next to the button. */
   error?: string | null;
+  /**
+   * The line under the title when prices are off (the menu without prices,
+   * whose basket has no estimate to explain).
+   */
+  description?: string;
 }
 
-/** Subtotal, deals and total as the customer should see them. */
-const priced = (lines: CartLine[], quote: CartQuote | null | undefined, discount: number, fee: number | null | undefined) => {
-  const subtotal = quote ? quote.items_total : cartSubtotal(lines);
-  const afterDeals = quote ? quote.total_after_deals : subtotal;
-  return { subtotal, deals: quote?.deals ?? [], total: afterDeals - discount + (fee ?? 0) };
-};
 
 /** The failure, where the customer is looking: right above the button. */
 function CheckoutError({ error }: { error?: string | null }) {
@@ -86,6 +95,7 @@ export function CartSheet({
   lines,
   deliveryFee,
   discountAmount = 0,
+  taxPolicy,
   onEdit,
   onRemove,
   onSetQty,
@@ -96,9 +106,11 @@ export function CartSheet({
   quote,
   dealHint,
   error,
+  description,
 }: CartSheetProps) {
   const { t } = useTranslation();
-  const { subtotal, deals, total } = priced(lines, quote, discountAmount, deliveryFee);
+  const showPrices = useShowPrices();
+  const bill = basketBill(lines, quote, discountAmount, deliveryFee, taxPolicy);
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -106,7 +118,9 @@ export function CartSheet({
         <div className="flex items-start justify-between gap-2 border-b border-border/60 px-4 pb-3 pt-1 text-start">
           <div>
             <DrawerTitle className="font-serif text-xl">{t("order.cart.title")}</DrawerTitle>
-            <DrawerDescription className="mt-0.5">{t("order.cart.estimate")}</DrawerDescription>
+            <DrawerDescription className="mt-0.5">
+              {showPrices ? t("order.cart.estimate") : (description ?? t("order.cart.title"))}
+            </DrawerDescription>
           </div>
           <DrawerClose
             aria-label={t("common.close", "Close")}
@@ -137,18 +151,21 @@ export function CartSheet({
 
         {lines.length > 0 && (
           <div className="border-t border-border/60 bg-background px-4 py-3">
-            <Totals
-              subtotal={subtotal}
-              deals={deals}
-              dealHint={dealHint}
-              deliveryFee={deliveryFee}
-              total={total}
-              discount={discountAmount}
-            />
+            {showPrices ? (
+              <Totals
+                subtotal={bill.subtotal}
+                deals={bill.deals}
+                dealHint={dealHint}
+                deliveryFee={deliveryFee}
+                tax={taxOf(bill)}
+                total={bill.total}
+                discount={bill.discount}
+              />
+            ) : null}
             <CheckoutError error={error} />
             <Button
               variant="brand"
-              className="mt-3 w-full"
+              className={cn("w-full", showPrices && "mt-3")}
               size="lg"
               onClick={onCheckout}
               disabled={checkoutDisabled}
@@ -170,6 +187,7 @@ export function CartPanel({
   lines,
   deliveryFee,
   discountAmount = 0,
+  taxPolicy,
   onEdit,
   onRemove,
   onSetQty,
@@ -179,15 +197,21 @@ export function CartPanel({
   quote,
   dealHint,
   error,
+  description,
 }: CartPanelProps) {
   const { t } = useTranslation();
-  const { subtotal, deals, total } = priced(lines, quote, discountAmount, deliveryFee);
+  const showPrices = useShowPrices();
+  const bill = basketBill(lines, quote, discountAmount, deliveryFee, taxPolicy);
 
   return (
     <div className="flex max-h-[calc(100dvh-6rem)] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
       <div className="border-b border-border/60 px-4 py-3">
         <h2 className="font-serif text-lg leading-tight">{t("order.cart.title")}</h2>
-        <p className="mt-0.5 text-xs text-muted-foreground">{t("order.cart.estimate")}</p>
+        {showPrices ? (
+          <p className="mt-0.5 text-xs text-muted-foreground">{t("order.cart.estimate")}</p>
+        ) : description ? (
+          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+        ) : null}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
@@ -200,18 +224,21 @@ export function CartPanel({
 
       {lines.length > 0 && (
         <div className="border-t border-border/60 px-4 py-3">
-          <Totals
-            subtotal={subtotal}
-            deals={deals}
-            dealHint={dealHint}
-            deliveryFee={deliveryFee}
-            total={total}
-            discount={discountAmount}
-          />
+          {showPrices ? (
+            <Totals
+              subtotal={bill.subtotal}
+              deals={bill.deals}
+              dealHint={dealHint}
+              deliveryFee={deliveryFee}
+              tax={taxOf(bill)}
+              total={bill.total}
+              discount={bill.discount}
+            />
+          ) : null}
           <CheckoutError error={error} />
           <Button
             variant="brand"
-            className="mt-3 w-full"
+            className={cn("w-full", showPrices && "mt-3")}
             size="lg"
             onClick={onCheckout}
             disabled={checkoutDisabled}
@@ -253,28 +280,35 @@ function CartList({
   footerSlot?: React.ReactNode;
 }) {
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  const ref = useRef<HTMLUListElement>(null);
+  // A removed line leaves first, then the rest close the gap.
+  useFlip(ref, lines.map((l) => l.uid).join());
   return (
-    <ul className="space-y-2.5">
-      <AnimatePresence initial={false}>
-        {lines.map((line) => {
-          const summary = summarizeLine(line, lang);
-          return (
-            <motion.li
-              key={line.uid}
-              layout
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={easeOut}
-              className="overflow-hidden"
-            >
-              <CartLineCard line={line} summary={summary} onEdit={onEdit} onRemove={onRemove} onSetQty={onSetQty} />
-            </motion.li>
-          );
-        })}
-      </AnimatePresence>
+    <ul ref={ref} className="space-y-2.5">
+      {lines.map((line) => (
+        <CartLineItem key={line.uid} line={line} summary={summarizeLine(line, lang)} onEdit={onEdit} onRemove={onRemove} onSetQty={onSetQty} />
+      ))}
       {footerSlot && <li>{footerSlot}</li>}
     </ul>
+  );
+}
+
+/** One line, kept on screen through its exit; the cart drops it once that has played. */
+function CartLineItem({
+  onRemove,
+  ...props
+}: Omit<Parameters<typeof CartLineCard>[0], "onRemove"> & { onRemove: (uid: string) => void }) {
+  const [leaving, setLeaving] = useState(false);
+  const ref = useRef<HTMLLIElement>(null);
+  const mounted = usePresence(!leaving, [[ref, recipes.pop]], { initial: false });
+  const uid = props.line.uid;
+  useEffect(() => {
+    if (!mounted) onRemove(uid);
+  }, [mounted, onRemove, uid]);
+  return (
+    <li ref={ref}>
+      <CartLineCard {...props} onRemove={() => setLeaving(true)} />
+    </li>
   );
 }
 
@@ -288,11 +322,12 @@ function CartLineCard({
   line: CartLine;
   summary: string;
   onEdit: (line: CartLine) => void;
-  onRemove: (uid: string) => void;
+  onRemove: () => void;
   onSetQty: (uid: string, qty: number) => void;
 }) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  const showPrices = useShowPrices();
   return (
     <div className="rounded-2xl border border-border/70 bg-card p-3">
       <div className="flex items-start gap-2">
@@ -306,9 +341,13 @@ function CartLineCard({
             <p className="mt-0.5 text-xs italic text-muted-foreground">“{line.notes}”</p>
           )}
         </div>
-        <span className="shrink-0 text-sm font-semibold tabular-nums text-brand">
-          {fmtMoney(lineTotal(line))}
-        </span>
+        {showPrices ? (
+          <AnimatedNumber
+            value={lineTotal(line)}
+            format={fmtMoneyFigure}
+            className="shrink-0 text-sm font-semibold tabular-nums text-brand"
+          />
+        ) : null}
       </div>
 
       <div className="mt-2.5 flex items-center justify-between">
@@ -318,7 +357,7 @@ function CartLineCard({
             size="icon-xs"
             className="rounded-full"
             onClick={() =>
-              line.quantity <= 1 ? onRemove(line.uid) : onSetQty(line.uid, line.quantity - 1)
+              line.quantity <= 1 ? onRemove() : onSetQty(line.uid, line.quantity - 1)
             }
             aria-label={t("order.menu.decrease")}
           >
@@ -345,7 +384,7 @@ function CartLineCard({
             variant="ghost"
             size="xs"
             className="text-destructive hover:text-destructive"
-            onClick={() => onRemove(line.uid)}
+            onClick={() => onRemove()}
           >
             <Trash2 className="size-3" />
             {t("order.cart.remove")}
@@ -361,6 +400,7 @@ export function Totals({
   deals = [],
   dealHint,
   deliveryFee,
+  tax,
   total,
   discount,
   emphasizeTotal = true,
@@ -372,6 +412,8 @@ export function Totals({
   dealHint?: string;
   /** null = not known yet ("—"); undefined = no delivery at all (no row). */
   deliveryFee?: number | null;
+  /** The order's tax: a row before the total (exclusive), a note under it (inclusive); none when zero. */
+  tax?: TaxLine | null;
   total: number;
   /** Discount amount in piastres applied to the subtotal; omitted/0 = none. */
   discount?: number | null;
@@ -401,14 +443,26 @@ export function Totals({
           }
         />
       )}
+      {tax && tax.amount > 0 && !tax.inclusive && (
+        <Row label={t("order.cart.tax", { rate: formatRate(tax.rate), defaultValue: "Tax ({{rate}})" })} value={fmtMoney(tax.amount)} />
+      )}
       <div className={cn("flex items-center justify-between pt-1.5", emphasizeTotal && "border-t border-border/60")}>
         <dt className={cn(emphasizeTotal ? "font-bold" : "text-muted-foreground")}>
           {t("order.cart.total")}
         </dt>
         <dd className={cn("tabular-nums", emphasizeTotal ? "text-base font-bold" : "font-semibold")}>
-          {fmtMoney(total)}
+          <AnimatedNumber value={total} format={fmtMoneyFigure} />
         </dd>
       </div>
+      {tax && tax.amount > 0 && tax.inclusive && (
+        <p className="text-end text-xs text-muted-foreground">
+          {t("order.cart.taxIncluded", {
+            amount: fmtMoney(tax.amount),
+            rate: formatRate(tax.rate),
+            defaultValue: "Includes {{amount}} tax ({{rate}})",
+          })}
+        </p>
+      )}
     </dl>
   );
 }

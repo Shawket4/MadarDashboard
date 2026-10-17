@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Loader2, RefreshCw } from "lucide-react";
-import { motion } from "motion/react";
+import { ArrowRight, RefreshCw } from "lucide-react";
 
-import { fadeInUp } from "@/lib/motion";
 import { formatPhoneDisplay, formatPhoneInput, ltrIsolate } from "@/lib/phone";
 import { getDeviceToken, getGuestPhone, setGuestPhone } from "@/features/public-shell/guest";
 import { PhoneVerifyView } from "@/features/public-shell/phone-verify";
 import { usePhoneOtp } from "@/features/public-shell/use-phone-otp";
+import { Spinner } from "@/components/ui/spinner";
 
 interface PhoneStepProps {
   orgId: string;
@@ -56,20 +55,15 @@ export function PhoneStep({ orgId, otpRequired, onContinue }: PhoneStepProps) {
   // While auto-skipping: show a clean loading splash (no form flicker)
   if (autoSkip) {
     return (
-      <motion.div
-        variants={fadeInUp}
-        initial="hidden"
-        animate="show"
-        className="flex flex-col items-center gap-4 py-16 text-center text-muted-foreground"
-      >
-        <Loader2 className="size-8 animate-spin text-brand" />
+      <div className="flex flex-col items-center gap-4 py-16 text-center text-muted-foreground">
+        <Spinner className="size-8 text-brand" />
         <p className="text-sm">{t("common.loading", "Loading…")}</p>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div variants={fadeInUp} initial="hidden" animate="show">
+    <div>
       <PhoneVerifyView
         otp={otp}
         busy={resolved}
@@ -105,6 +99,6 @@ export function PhoneStep({ orgId, otpRequired, onContinue }: PhoneStepProps) {
           ) : null
         }
       />
-    </motion.div>
+    </div>
   );
 }

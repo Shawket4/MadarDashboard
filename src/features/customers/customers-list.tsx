@@ -12,7 +12,6 @@ import { useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Star, Users, Wallet } from "lucide-react";
-import { toast } from "sonner";
 
 import { EmptyState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
@@ -31,7 +30,6 @@ import {
   useListCustomers,
   useListLoyaltyMembers,
 } from "@/data/api/generated/api";
-import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { queryClient } from "@/data/api/query";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -43,7 +41,7 @@ import { useSearchInput, type ListFilters } from "@/data/scope/use-list-filters"
 import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import type { customersSearch } from "./search";
 import { useLoadMore } from "@/hooks/use-load-more";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { fmtDate, fmtMoney, fmtNumber } from "@/lib/format";
 import { formatPhoneDisplay } from "@/lib/phone";
@@ -313,7 +311,8 @@ export function CustomersList({
         ],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }

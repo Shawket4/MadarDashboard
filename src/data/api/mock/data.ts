@@ -243,8 +243,6 @@ export const MOCK_BRANCH_SALES: BranchSalesReport = {
   to: "2026-06-16",
 };
 
-export const MOCK_PERMISSIONS = { permissions: [] as Array<{ resource: string; action: string; granted: boolean }> };
-
 const deliveryChannel = (channel: string, orders: number, revenue: number, fees: number, cancelled: number) => ({
   channel,
   orders,
@@ -408,7 +406,7 @@ export const MOCK_PUBLIC_MENU = {
 
 // ── Orders ───────────────────────────────────────────────────────────────────
 
-export const MOCK_ORDER_SUMMARY: OrderSummary = {
+const MOCK_ORDER_SUMMARY: OrderSummary = {
   revenue: 16_600_000,
   completed: 2215,
   voided: 46,
@@ -450,7 +448,7 @@ const ORDER_SEEDS: OrderSeed[] = [
 
 const BASE_MS = Date.UTC(2026, 5, 16, 9, 24, 0);
 
-export const MOCK_ORDERS = ORDER_SEEDS.map((o) => {
+const MOCK_ORDERS = ORDER_SEEDS.map((o) => {
   const subtotal = Math.round(o.total / 1.14);
   const tax = o.total - subtotal;
   const created = new Date(BASE_MS - o.minsAgo * 60_000).toISOString();
@@ -723,6 +721,18 @@ export const MOCK_TELLER_STATS = [
   { teller_id: "tel_hossam", teller_name: "Hossam Ali", orders: 98, revenue: 740_900, avg_order_value: 7_560, voided: 5, shifts: 12 },
 ];
 
+/** Reports ▸ Operations ▸ Waiters: dine-in orders carry a waiter; teller-direct and delivery ones don't. */
+export const MOCK_WAITER_STATS = {
+  total_orders: 612,
+  attributed_orders: 388,
+  waiters: [
+    { waiter_id: "wtr_ahmed", waiter_name: "Ahmed Fathy", orders: 132, revenue: 1_188_000, avg_order_value: 9_000, line_items: 356, avg_items_per_order: 2.7, voided: 2 },
+    { waiter_id: "wtr_salma", waiter_name: "Salma Hany", orders: 118, revenue: 1_003_000, avg_order_value: 8_500, line_items: 307, avg_items_per_order: 2.6, voided: 1 },
+    { waiter_id: "wtr_omar", waiter_name: "Omar Tarek", orders: 84, revenue: 655_200, avg_order_value: 7_800, line_items: 193, avg_items_per_order: 2.3, voided: 3 },
+    { waiter_id: "wtr_laila", waiter_name: "Laila Mostafa", orders: 54, revenue: 437_400, avg_order_value: 8_100, line_items: 130, avg_items_per_order: 2.4, voided: 0 },
+  ],
+};
+
 // ── Branch overrides ────────────────────────────────────────────────────────────
 
 /** Addon catalog page (PaginatedAddonItems) — mirrors MOCK_ADDON_ITEMS. */
@@ -766,7 +776,7 @@ const SHIFT_SEEDS: ShiftSeed[] = [
   { id: "shift_zam_0614", branch_id: "br_zamalek", branch_name: "Zamalek", teller_id: "tel_nour", teller: "Nour El-Sayed", status: "force_closed", opening: 120_000, declared: null, system: 1_390_000, openedAt: "2026-06-14T06:00:00Z", closedAt: "2026-06-14T22:40:00Z", tillId: "till_1", tillName: "Front drawer", editedOpen: true, origOpen: 100_000, editReason: "Added float from safe" },
 ];
 
-export const MOCK_SHIFTS = SHIFT_SEEDS.map((s) => ({
+const MOCK_SHIFTS = SHIFT_SEEDS.map((s) => ({
   id: s.id, branch_id: s.branch_id, branch_name: s.branch_name, teller_id: s.teller_id, teller_name: s.teller,
   status: s.status, opened_at: s.openedAt, closed_at: s.closedAt, closed_by: s.closedAt ? s.teller_id : null,
   opening_cash: s.opening, opening_cash_original: s.editedOpen ? (s.origOpen ?? null) : null,

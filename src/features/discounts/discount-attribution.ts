@@ -1,8 +1,5 @@
 import type { TFunction } from "i18next";
 
-/** The discount act a sale carried (`orders.discount_kind`). */
-export type DiscountKind = "preset" | "manual_amount" | "manual_percent";
-
 /** A label for a discount kind; `null`/unknown reads as "Not recorded". */
 export function discountKindLabel(t: TFunction, kind: string | null | undefined): string {
   switch (kind) {

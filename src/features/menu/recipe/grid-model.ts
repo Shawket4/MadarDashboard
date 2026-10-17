@@ -31,7 +31,7 @@ export interface GridBlock {
 export const normalizeSource = (s: string | null | undefined): LineSource =>
   s === "base" || s === "rule" || s === "linked" ? s : "own";
 
-export const isOwn = (l: GridLine): boolean => normalizeSource(l.source) === "own";
+const isOwn = (l: GridLine): boolean => normalizeSource(l.source) === "own";
 
 /** Lines that would actually be written: own, with an ingredient and a finite quantity. */
 export const ownPayload = (lines: GridLine[]): { ingredient_id: string; quantity: number; unit: string }[] =>
@@ -155,7 +155,7 @@ export const scaleColumn = <B extends GridBlock>(blocks: B[], key: string, facto
 // ── Swappable families ───────────────────────────────────────────────────────
 
 /** Ingredient category slugs whose line a choice group can swap. */
-export const SWAPPABLE_SLUGS = new Set(["milk", "coffee_bean"]);
+const SWAPPABLE_SLUGS = new Set(["milk", "coffee_bean"]);
 
 export interface SwapGroupInfo {
   name: string;

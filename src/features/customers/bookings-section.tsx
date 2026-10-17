@@ -22,6 +22,7 @@ import { serviceDateOf } from "@/features/bookings/util";
 import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { fmtDateTime, fmtNumber } from "@/lib/format";
+import { Stagger } from "@/lib/motion";
 
 import { CUSTOMER_BOOKINGS_PAGE } from "./queries";
 import { keepWhilePaging } from "@/data/api/keep-while-paging";
@@ -69,6 +70,7 @@ export function BookingsSection({ customerId }: { customerId: string }) {
         </p>
       ) : (
         <>
+          <Stagger asChild>
           <ul className="divide-y rounded-lg border text-sm">
             {rows.map((b) => (
               <li key={b.id} data-testid="customer-booking" className="flex items-start gap-3 p-3">
@@ -91,6 +93,7 @@ export function BookingsSection({ customerId }: { customerId: string }) {
               </li>
             ))}
           </ul>
+          </Stagger>
           {rows.length >= limit ? (
             <Button variant="outline" size="sm" loading={q.isFetching} onClick={() => setLimit((n) => n + PAGE)}>
               {t("customers.bookings.more", "Show more")}

@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AlarmClock, CalendarCheck, CalendarClock, CalendarX, Info, MapPin, PencilLine, Plus, Timer } from "lucide-react";
-import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";
@@ -24,13 +23,12 @@ import {
   listAttendance, useAttendanceSummary, useListAttendance, useListBranches, useListEmployees,
 } from "@/data/api/generated/api";
 import type { AttendanceRecord } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { fmtDate, fmtDateTime, fmtNumber, fmtTime } from "@/lib/format";
 import { usePeriodStartDay } from "@/features/dawam/period";
@@ -158,7 +156,8 @@ export function AttendancePage() {
         }],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }

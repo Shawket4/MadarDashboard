@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { CalendarRange } from "lucide-react";
 
-import { EmbeddedPages, Page, PageHeader } from "@/components/app/page";
+import { Page, PageHeader } from "@/components/app/page";
+import { recipes, Reveal } from "@/lib/motion";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs } from "@/components/ui/tabs";
 import { Restricted } from "@/components/app/restricted";
@@ -11,11 +12,11 @@ import { useScope } from "@/data/scope/use-scope";
 import { useListFilters } from "@/data/scope/use-list-filters";
 import { operationsReportsSearch } from "../search";
 import { useOrgId } from "@/hooks/use-org-id";
-import { TablesInsightsPage } from "@/features/insights/tables-page";
-import {
-  BranchesTab, ItemsTab, OverviewTab, TellersTab, WaitersTab, type Range,
-} from "@/features/analytics/analytics-page";
+import type { Range } from "@/features/analytics/lib";
 import { AnalyticsExportButton } from "@/features/analytics/analytics-export-button";
+import { OverviewTab } from "./overview-tab";
+import { TablesTab } from "./tables-tab";
+import { BranchesTab, ItemsTab, TellersTab, WaitersTab } from "./volume-tabs";
 
 const PRESET_FALLBACK: Record<string, string> = {
   today: "Today",
@@ -31,14 +32,16 @@ type TabKey = "tables" | "overview" | "items" | "tellers" | "waiters" | "branche
 const TABS: TabKey[] = ["tables", "overview", "items", "tellers", "waiters", "branches"];
 
 /**
- * Operations reports — running the floor day to day: table analytics (its
- * own full page, nested via `EmbeddedPages` so its inner Page/PageHeader
- * collapses into a sub-heading instead of a second page chrome), and the
+ * Operations reports — running the floor day to day: table analytics and the
  * Analytics tabs that read volume rather than money (orders, items sold,
  * staff performance, branch comparison). The money-focused tabs — menu
  * profitability, revenue, channel mix, stock valuation, supplier spend, and
  * the material cost trend report — live in Reports ▸ Financial; the
  * inventory-loss tabs live in Reports ▸ Inventory.
+ *
+ * One page header (title, period, export) and one tab row for every tab; each
+ * tab body is built from the Overview's parts (./report-kit), so none brings
+ * a header, filter row or card style of its own.
  */
 export function OperationsReportsPage() {
   const { t } = useTranslation();
@@ -93,14 +96,15 @@ export function OperationsReportsPage() {
         }
       />
 
-      <EmbeddedPages>
-        {tab === "tables" ? <TablesInsightsPage />
+      {/* A new tab's body fades in, so the switch reads; its groups bring themselves in. */}
+      <Reveal replayKey={tab} recipe={recipes.fade()}>
+        {tab === "tables" ? <TablesTab />
           : tab === "overview" ? <OverviewTab branchId={scopeBranchId} range={range} />
           : tab === "items" ? <ItemsTab branchId={scopeBranchId} range={range} />
           : tab === "tellers" ? <TellersTab branchId={scopeBranchId} range={range} />
           : tab === "waiters" ? <WaitersTab branchId={scopeBranchId} range={range} />
           : <BranchesTab orgId={orgId ?? ""} range={range} />}
-      </EmbeddedPages>
+      </Reveal>
     </Page>
   );
 }

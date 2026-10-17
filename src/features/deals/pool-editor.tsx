@@ -3,7 +3,7 @@
  * one size ("any size" by default). Controlled, so the pool and the reward
  * pool share it.
  */
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { FolderTree, Tag, Trash2 } from "lucide-react";
 
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { sizeLabelText, type MenuOptions } from "@/features/combos/use-menu-options";
 import { fmtMoney } from "@/lib/format";
+import { useFlip } from "@/lib/motion";
 
 import { emptyEntry, type PoolEntryForm } from "./form-schema";
 
@@ -39,10 +40,13 @@ export function PoolEditor({
     () => menu.items.map((it) => ({ value: it.id, label: it.name, hint: fmtMoney(it.sizes[0]?.price), keywords: menu.categoryName(it.category_id) ?? "" })),
     [menu],
   );
+  // Entries added or removed: the rest slide to their new places.
+  const listRef = useRef<HTMLUListElement>(null);
+  useFlip(listRef, value.map((e) => e.key).join());
 
   return (
     <div className="space-y-2">
-      <ul aria-label={label} className="space-y-2">
+      <ul ref={listRef} aria-label={label} className="space-y-2">
         {value.map((e, i) => {
           const sizes = e.target === "item" ? (menu.item(e.menu_item_id)?.sizes.map((s) => s.label) ?? []) : e.category_id ? menu.categorySizeLabels(e.category_id) : [];
           return (

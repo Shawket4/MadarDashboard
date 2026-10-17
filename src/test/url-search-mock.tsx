@@ -30,7 +30,7 @@ const subscribe = (l: () => void) => {
   return () => listeners.delete(l);
 };
 
-export function useSearch(): Record<string, unknown> {
+function useSearch(): Record<string, unknown> {
   return useSyncExternalStore(subscribe, () => current);
 }
 
@@ -40,7 +40,7 @@ const navigate = (opts: NavOpts) => {
   return Promise.resolve();
 };
 
-export function useNavigate() {
+function useNavigate() {
   return navigate;
 }
 

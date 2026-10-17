@@ -83,7 +83,7 @@ vi.mock("@/data/api/generated/api", () => ({
 }));
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
 vi.mock("@/features/insights/profitability-page", () => ({ ProfitabilityPage: () => null }));
-vi.mock("@/features/insights/tables-page", () => ({ TablesInsightsPage: () => null }));
+vi.mock("@/features/reports/operations/tables-tab", () => ({ TablesTab: () => null }));
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");

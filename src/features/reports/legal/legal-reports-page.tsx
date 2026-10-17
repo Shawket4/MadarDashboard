@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { CalendarRange } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
+import { recipes, Reveal } from "@/lib/motion";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs } from "@/components/ui/tabs";
 import { Restricted } from "@/components/app/restricted";
@@ -112,17 +113,20 @@ export function LegalReportsPage() {
         }
       />
 
-      {!tab ? null
-        : tab === "tax" ? <TaxTab range={range} />
-        : tab === "refunds" ? <AuditTab query={refunds} reasonLabel={byReason} exportTitle={TAB_LABEL.refunds} />
-        : tab === "voids" ? <AuditTab query={voids} reasonLabel={byReason} exportTitle={TAB_LABEL.voids} />
-        : tab === "discounts" ? <AuditTab query={discounts} reasonLabel={byDiscount} exportTitle={TAB_LABEL.discounts} />
-        : tab === "waivers" ? <AuditTab query={waivers} reasonLabel={byBranch} exportTitle={TAB_LABEL.waivers} />
-        : tab === "price_overrides" ? <AuditTab query={overrides} reasonLabel={byBranch} exportTitle={TAB_LABEL.price_overrides} />
-        : tab === "manual_deductions" ? <AuditTab query={manualDeductions} reasonLabel={byReason} exportTitle={TAB_LABEL.manual_deductions} />
-        : tab === "deduction_overrides" ? <AuditTab query={deductionOverrides} reasonLabel={byType} exportTitle={TAB_LABEL.deduction_overrides} />
-        : tab === "loyalty_adjustments" ? <AuditTab query={loyaltyAdjustments} reasonLabel={byBranch} exportTitle={TAB_LABEL.loyalty_adjustments} amount="points" />
-        : <AuditTab query={attendanceCorrections} reasonLabel={byReason} exportTitle={TAB_LABEL.attendance_corrections} amount="none" />}
+      {/* A new tab's body fades in, so the switch reads; its groups bring themselves in. */}
+      <Reveal replayKey={tab} recipe={recipes.fade()}>
+        {!tab ? null
+          : tab === "tax" ? <TaxTab range={range} />
+          : tab === "refunds" ? <AuditTab query={refunds} reasonLabel={byReason} exportTitle={TAB_LABEL.refunds} />
+          : tab === "voids" ? <AuditTab query={voids} reasonLabel={byReason} exportTitle={TAB_LABEL.voids} />
+          : tab === "discounts" ? <AuditTab query={discounts} reasonLabel={byDiscount} exportTitle={TAB_LABEL.discounts} />
+          : tab === "waivers" ? <AuditTab query={waivers} reasonLabel={byBranch} exportTitle={TAB_LABEL.waivers} />
+          : tab === "price_overrides" ? <AuditTab query={overrides} reasonLabel={byBranch} exportTitle={TAB_LABEL.price_overrides} />
+          : tab === "manual_deductions" ? <AuditTab query={manualDeductions} reasonLabel={byReason} exportTitle={TAB_LABEL.manual_deductions} />
+          : tab === "deduction_overrides" ? <AuditTab query={deductionOverrides} reasonLabel={byType} exportTitle={TAB_LABEL.deduction_overrides} />
+          : tab === "loyalty_adjustments" ? <AuditTab query={loyaltyAdjustments} reasonLabel={byBranch} exportTitle={TAB_LABEL.loyalty_adjustments} amount="points" />
+          : <AuditTab query={attendanceCorrections} reasonLabel={byReason} exportTitle={TAB_LABEL.attendance_corrections} amount="none" />}
+      </Reveal>
     </Page>
   );
 }

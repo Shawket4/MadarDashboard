@@ -5,11 +5,17 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 import { Select as SelectPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import { composeRefs, OverlayOpenProvider, useOverlayRoot, usePopperPresence } from "@/lib/motion"
 
 function Select({
   onValueChange,
+  open,
+  defaultOpen,
+  onOpenChange,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
+  // Held here so SelectContent can stay mounted through its exit.
+  const [isOpen, setOpen] = useOverlayRoot(open, defaultOpen, onOpenChange)
   // Radix keeps a hidden native <select> for forms. When `value` changes after
   // mount (a form.reset from loaded data) to an option the closed list hasn't
   // registered, the native select reads "" and Radix reports that as a pick,
@@ -21,7 +27,11 @@ function Select({
     },
     [onValueChange],
   )
-  return <SelectPrimitive.Root data-slot="select" onValueChange={onChange} {...props} />
+  return (
+    <OverlayOpenProvider value={isOpen}>
+      <SelectPrimitive.Root data-slot="select" onValueChange={onChange} open={isOpen} onOpenChange={setOpen} {...props} />
+    </OverlayOpenProvider>
+  )
 }
 
 function SelectGroup({
@@ -67,14 +77,22 @@ function SelectContent({
   children,
   position = "item-aligned",
   align = "center",
+  ref,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  const own = React.useRef<HTMLDivElement>(null)
+  const presence = usePopperPresence(own)
+  // Closed and gone, Radix still renders the list off-DOM so the trigger can
+  // show the chosen item's text: let it (no forceMount), never return null.
+  const forceMount = presence.mounted ? presence.forceMount : undefined
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal forceMount={forceMount}>
       <SelectPrimitive.Content
+        ref={composeRefs(own, ref)}
+        forceMount={forceMount}
         data-slot="select-content"
         className={cn(
-          "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+          "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className
@@ -139,19 +157,6 @@ function SelectItem({
   )
 }
 
-function SelectSeparator({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Separator>) {
-  return (
-    <SelectPrimitive.Separator
-      data-slot="select-separator"
-      className={cn("pointer-events-none -mx-1 my-1 h-px bg-border", className)}
-      {...props}
-    />
-  )
-}
-
 function SelectScrollUpButton({
   className,
   ...props
@@ -194,9 +199,6 @@ export {
   SelectGroup,
   SelectItem,
   SelectLabel,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 }

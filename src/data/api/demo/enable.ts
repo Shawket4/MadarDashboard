@@ -20,10 +20,10 @@ export interface DemoSession {
   variant: string;
 }
 
-export type DemoVariant = "full" | "empty";
+type DemoVariant = "full" | "empty";
 
 /** Variant from `?variant=`; default `full` (an instantly-populated dashboard). */
-export function requestedVariant(): DemoVariant {
+function requestedVariant(): DemoVariant {
   return new URLSearchParams(window.location.search).get("variant") === "empty" ? "empty" : "full";
 }
 

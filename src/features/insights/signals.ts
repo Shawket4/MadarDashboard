@@ -4,15 +4,6 @@ import type { StatusTone } from "@/components/app/status-pill";
 import type { Signal } from "@/data/api/generated/models";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 
-/** The six advisory signal kinds the ledger emits. */
-export type SignalKind =
-  | "below_cost"
-  | "below_target"
-  | "cost_spike"
-  | "price_candidate"
-  | "removal_candidate"
-  | "recipe_incomplete";
-
 /** Quiet chip washes — soft tint per severity, no saturated fills. */
 export const SIGNAL_TONE: Record<string, StatusTone> = {
   below_cost: "danger",

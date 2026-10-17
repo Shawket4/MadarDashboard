@@ -3427,7 +3427,8 @@
         "coffee_type": "Coffee",
         "extra": "Extras"
       },
-      "back": "Back"
+      "back": "Back",
+      "update": "Update"
     },
     "cart": {
       "title": "Your cart",
@@ -3447,6 +3448,8 @@
       "qty": "× {{count}}",
       "estimate": "Final total is confirmed at checkout.",
       "discount": "Discount",
+      "tax": "Tax ({{rate}})",
+      "taxIncluded": "Includes {{amount}} tax ({{rate}})",
       "units_one": "item",
       "units_other": "items"
     },
@@ -5363,7 +5366,11 @@
     "historyTitle": "Table {{label}}",
     "pickBranch": "Choose a branch in the scope bar to open a table's history.",
     "tableGone": "This table is no longer on the floor plan.",
-    "loadFailed": "Couldn't load table insights"
+    "loadFailed": "Couldn't load table insights",
+    "dwellMinutes": "{{m}}m",
+    "dwellHours": "{{h}}h",
+    "dwellHoursMinutes": "{{h}}h {{m}}m",
+    "byTable": "Table details"
   },
   "tillStatus": {
     "open": "Open",
@@ -7479,7 +7486,10 @@
       "address": "Your address",
       "addressHint": "Put it in your bio, on a counter card, or on a receipt.",
       "about": "Under your name",
-      "aboutHint": "One line about your shop, in each language. Leave empty for none."
+      "aboutHint": "One line about your shop, in each language. Leave empty for none.",
+      "lockedTitle": "Your links page",
+      "socials": "Social links",
+      "socialsHint": "Instagram, WhatsApp, your website."
     },
     "copied": "Link copied"
   },
@@ -7656,5 +7666,37 @@
     "codeLocked": "Too many wrong tries. Send a new code to try again.",
     "tokenExpired": "Your phone check timed out. Verify your number again to finish.",
     "verifying": "Checking the code…"
+  },
+  "menuDisplay": {
+    "title": "Menu",
+    "unavailable": "This menu isn't available",
+    "unavailableHint": "Check the address, or ask a member of staff.",
+    "showToStaff": "Show to staff",
+    "listHint": "Build your order, then show it to a member of staff.",
+    "staff": {
+      "title": "My order",
+      "hint": "Show this to a member of staff.",
+      "clear": "Start a new list",
+      "back": "Back to the menu",
+      "count_one": "{{count}} item",
+      "count_other": "{{count}} items"
+    },
+    "editor": {
+      "title": "Menu (no prices)",
+      "hint": "Your menu at its own address with no prices anywhere: for a screen, a table card or your bio. Customers can build a list to show your staff; nothing is ordered from it.",
+      "saved": "Menu settings saved",
+      "enabled": "Show the menu without prices",
+      "enabledHint": "Off, its address shows nothing.",
+      "titleEn": "Title (English, optional)",
+      "titleAr": "Title (Arabic, optional)",
+      "branch": "Which branch's menu",
+      "branchDefault": "Your first branch",
+      "branchDefaultNamed": "Your first branch ({{name}})",
+      "branchHint": "Items switched off at that branch are left out.",
+      "address": "Its address",
+      "offNote": "Switch it on and save, and the address opens your menu.",
+      "noAddress": "This server has no public address set up yet.",
+      "qrTitle": "Menu (no prices) code"
+    }
   }
 }

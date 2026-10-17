@@ -11,6 +11,7 @@ import { fmtMoney } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 
 import type { CartLine } from "../types";
+import { useShowPrices } from "../price-mode";
 import { displaySize, lineTotal } from "../utils";
 
 /** A short, human summary of a plain line's selections (size, add-ons, extras). */
@@ -30,6 +31,7 @@ export const summarizeLine = (line: CartLine, lang: string): string => {
 
 /** A combo line's picks, one per row under it: "Coffee: Latte", "Dessert: Soft Serve · large +EGP 10". */
 export function ComboPickList({ line, lang }: { line: CartLine; lang: string }) {
+  const showPrices = useShowPrices();
   if (!line.combo || line.combo.picks.length === 0) return null;
   return (
     <ul className="mt-1 space-y-0.5 border-s-2 border-border/70 ps-2.5 text-xs leading-relaxed text-muted-foreground">
@@ -42,7 +44,7 @@ export function ComboPickList({ line, lang }: { line: CartLine; lang: string }) 
             <span className="font-medium text-foreground/80">{slot}:</span>{" "}
             {p.quantity > 1 ? `${name} ×${p.quantity}` : name}
             {size ? ` · ${size}` : ""}
-            {p.extra > 0 ? <span className="whitespace-nowrap tabular-nums"> +{fmtMoney(p.extra * p.quantity)}</span> : null}
+            {showPrices && (p.extra ?? 0) > 0 ? <span className="whitespace-nowrap tabular-nums"> +{fmtMoney((p.extra ?? 0) * p.quantity)}</span> : null}
           </li>
         );
       })}

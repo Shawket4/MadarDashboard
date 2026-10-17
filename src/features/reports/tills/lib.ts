@@ -13,7 +13,7 @@ export const minutesOfDay = (iso: string): number => {
 };
 
 /** Local hour (0–23) in the active timezone (madar-time `local_parts`). */
-export const hourOf = (iso: string): number => rules.local_parts(getActiveTz(), new Date(iso).getTime()).hour;
+const hourOf = (iso: string): number => rules.local_parts(getActiveTz(), new Date(iso).getTime()).hour;
 
 /**
  * The average time of day of a set of clock times.
@@ -112,7 +112,7 @@ export interface TimingStats {
   openNow: number;
 }
 
-export const durationMs = (r: TillSessionRow): number | null =>
+const durationMs = (r: TillSessionRow): number | null =>
   r.closed_at ? new Date(r.closed_at).getTime() - new Date(r.opened_at).getTime() : null;
 
 export const timingStats = (rows: TillSessionRow[]): TimingStats => {

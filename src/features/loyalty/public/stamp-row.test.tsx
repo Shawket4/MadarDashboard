@@ -57,9 +57,11 @@ describe("StampRow", () => {
     expect(track.style.insetInlineStart).toContain("var(--step)");
     expect(track.style.left).toBe("");
     expect(done.style.insetInlineStart).toBe(track.style.insetInlineStart);
+    expect(done.style.insetInlineEnd).toBe(track.style.insetInlineEnd);
     // The completed run reaches the centre of the last DONE step: two gaps of
-    // the four between five centres.
-    expect(done.style.width).toContain("0.5");
+    // the four between five centres. It grows by transform, from the start.
+    expect(done.style.transform).toBe("scaleX(0.5)");
+    expect(done.className).toContain("rtl:origin-right");
   });
 
   it("clamps rather than drawing a broken row", () => {

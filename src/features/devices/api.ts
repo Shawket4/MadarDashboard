@@ -4,7 +4,6 @@
  */
 import {
   useGetAvailability,
-  useGetEffective,
   useCreateCode,
   useListClientVersions,
   useListCodes,
@@ -22,11 +21,9 @@ import type {
   Device,
   DeviceKind,
   PaymentMethodAvailability,
-  UpdateDeviceRequest,
 } from "@/data/api/generated/models";
 import { queryClient } from "@/data/api/query";
 
-export type PatchDeviceRequest = UpdateDeviceRequest;
 export type { ActivationCode, AllowList, ClientSeen, Device, DeviceKind, PaymentMethodAvailability };
 
 export type AvailabilityScope = "branches" | "users" | "devices";
@@ -66,14 +63,6 @@ export function usePatchDevice() {
 
 export function useAvailability(branchId: string | null | undefined) {
   return useGetAvailability({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } });
-}
-
-/** The methods a charge would offer for this branch/teller/device. */
-export function useEffectiveMethods(branchId: string | null | undefined, userId?: string, deviceId?: string) {
-  return useGetEffective(
-    { branch_id: branchId ?? "", user_id: userId, device_id: deviceId },
-    { query: { enabled: !!branchId } },
-  );
 }
 
 /** One mutation over the three owner-scoped PUTs. */

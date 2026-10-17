@@ -7,8 +7,10 @@ import {
   mockStaffPoolToday,
 } from "./staff-pool";
 import { defaultsFor } from "@/data/authz/use-authz";
+import { useAuthStore } from "@/data/stores/auth.store";
 import { rules } from "@/lib/rules";
 import { comboHandlers } from "./combos";
+import { metricsHandlers } from "./metrics";
 
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import {
@@ -48,6 +50,7 @@ import {
   MOCK_STOCKTAKES,
   MOCK_SUPPLIERS,
   MOCK_TELLER_STATS,
+  MOCK_WAITER_STATS,
   MOCK_USERS,
   MOCK_VARIANCE_REPORT,
   MOCK_WASTE,
@@ -379,12 +382,9 @@ export const handlers = [
   http.post("*/branches", echoCreated),
   http.post("*/payment-methods", echoCreated),
   http.post("*/categories", echoCreated),
-  http.post("*/addon-items", echoCreated),
   http.post("*/inventory/orgs/*/catalog", echoCreated),
   http.post("*/users", echoCreated),
   http.post("*/menu-items/*/sizes", echoCreated),
-  http.post("*/recipes/drinks/*", echoCreated),
-  http.put("*/menu-items/*/allowed-addons", () => HttpResponse.json({})),
   http.post("*/uploads/menu-items/*", () => HttpResponse.json({ id: "img", image_url: "" })),
   http.post("*/menu-items", echoCreated),
   http.patch("*/orgs/*", echoCreated),
@@ -395,6 +395,7 @@ export const handlers = [
 
   // ── Combos, deals, Bundles report (stateful; before the generic menu/orders reads) ──
   ...comboHandlers,
+  ...metricsHandlers,
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   http.post("*/auth/login", () =>
@@ -466,6 +467,7 @@ export const handlers = [
   http.get("*/reports/branches/*/items-combined", () => HttpResponse.json(MOCK_COMBINED_ITEM_SALES)),
   http.get("*/reports/branches/*/addons", () => HttpResponse.json(MOCK_ADDON_SALES)),
   http.get("*/reports/branches/*/tellers", () => HttpResponse.json(MOCK_TELLER_STATS)),
+  http.get("*/reports/branches/*/waiters", () => HttpResponse.json(MOCK_WAITER_STATS)),
 
   // ── Insights (menu profitability) ─────────────────────────────────────────
   http.get("*/insights/branches/*/margin-watch", () => HttpResponse.json(mockMarginWatch())),
@@ -484,12 +486,25 @@ export const handlers = [
   // ── Links page (the shop's own address) ──────────────────────────────────
   // In-memory, like the floor: a reload re-seeds it. The public read is built
   // from the same settings, so the editor's preview follows its saves.
+  // The menu without prices: its own settings beside the links page, every plan.
+  http.get("*/orgs/:id/links-page/menu-display", () => HttpResponse.json(mockMenuDisplaySettings())),
+  http.put("*/orgs/:id/links-page/menu-display", async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json(mockSaveMenuDisplay(body));
+  }),
+  http.get("*/public/menu-display", () =>
+    mockMenuDisplay.enabled ? HttpResponse.json(mockPublicMenuDisplay()) : HttpResponse.json({ error: "No menu at that address" }, { status: 404 }),
+  ),
   http.get("*/orgs/:id/links-page", () => HttpResponse.json(mockLinksSettings())),
   http.put("*/orgs/:id/links-page", async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
     return HttpResponse.json(mockSaveLinks(body));
   }),
-  http.get("*/orgs/:id/links-qr", () => HttpResponse.json(MOCK_QR("org_links", "madar-coffee", "madar"))),
+  http.get("*/orgs/:id/links-qr", ({ request }) =>
+    new URL(request.url).searchParams.get("target") === "menu_display"
+      ? HttpResponse.json({ ...MOCK_QR("org_menu_display", "madar-coffee", "madar-menu"), long_url: mockMenuDisplayUrl() })
+      : HttpResponse.json(MOCK_QR("org_links", "madar-coffee", "madar")),
+  ),
   http.get("*/public/orgs/links", () => HttpResponse.json(mockPublicLinks())),
 
   // ── Org ───────────────────────────────────────────────────────────────────
@@ -772,6 +787,99 @@ function mockSaveLinks(body: Record<string, unknown>) {
     else delete mockLinks.social_links[k];
   }
   return mockLinksSettings();
+}
+
+// ── The menu without prices ───────────────────────────────────────────────────
+const mockMenuDisplay = {
+  enabled: true,
+  title_en: "Our menu" as string | null,
+  title_ar: "قائمتنا" as string | null,
+  branch_id: null as string | null,
+};
+
+/** A shop on Free has no own host: the generic one, the shop in the path. */
+function mockMenuDisplayUrl() {
+  return useAuthStore.getState().plan === "free"
+    ? `https://loyalty.madar-pos.cloud/menu/${MOCK_ORG.id}`
+    : `${MOCK_SHOP}/menu`;
+}
+
+function mockMenuDisplaySettings() {
+  return {
+    ...mockMenuDisplay,
+    effective_branch_id: mockMenuDisplay.branch_id ?? MOCK_BRANCHES[0]?.id ?? null,
+    branches: MOCK_BRANCHES.map((b) => ({ id: b.id, name: b.name })),
+    public_url: mockMenuDisplayUrl(),
+  };
+}
+
+function mockSaveMenuDisplay(body: Record<string, unknown>) {
+  const clean = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  mockMenuDisplay.enabled = !!body.enabled;
+  mockMenuDisplay.title_en = clean(body.title_en);
+  mockMenuDisplay.title_ar = clean(body.title_ar);
+  mockMenuDisplay.branch_id = (body.branch_id as string | null) ?? null;
+  return mockMenuDisplaySettings();
+}
+
+/** Mock "photos": a warm gradient per item, so the cards show what a photo looks like. */
+const mockPhoto = (a: string, b: string) =>
+  `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><defs><radialGradient id="g" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></radialGradient></defs><rect width="160" height="160" fill="url(#g)"/><circle cx="80" cy="84" r="44" fill="#fff" fill-opacity=".85"/><circle cx="80" cy="84" r="33" fill="${b}" fill-opacity=".9"/></svg>`,
+  )}`;
+const PHOTOS = [mockPhoto("#e9c79a", "#7a4a2a"), mockPhoto("#f3e1c2", "#b07a4a"), mockPhoto("#d9e7d2", "#5b7f52"), mockPhoto("#f6d2c4", "#b4553e")];
+
+/** What the server sends: the priced mock menu with every figure dropped (as `strip_prices`). */
+function mockPublicMenuDisplay() {
+  const branch = MOCK_BRANCHES.find((b) => b.id === mockMenuDisplay.branch_id) ?? MOCK_BRANCHES[0];
+  return {
+    brand: {
+      org_id: MOCK_ORG.id,
+      name: MOCK_ORG.name,
+      slug: MOCK_ORG.slug,
+      custom_branding: true,
+      logo_url: MOCK_ORG.logo_url,
+      logo_is_mark: false,
+      card_image_url: null,
+      background_color: "#0D6273",
+      foreground_color: "#EFF3F4",
+      accent_color: "#2E94A6",
+    },
+    title_en: mockMenuDisplay.title_en,
+    title_ar: mockMenuDisplay.title_ar,
+    branch: { id: branch.id, name: branch.name },
+    menu: {
+      categories: MOCK_PUBLIC_MENU.categories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        name_translations: c.name_translations,
+        image_url: null,
+        display_order: 0,
+      })),
+      items: MOCK_PUBLIC_MENU.items.map((i, n) => ({
+        id: i.id,
+        category_id: i.category_id,
+        name: i.name,
+        name_translations: i.name_translations,
+        description: i.description,
+        image_url: PHOTOS[n % PHOTOS.length],
+        sizes: i.sizes.map((z) => ({ label: z.label })),
+        optionals: [],
+        default_milk_addon_id: i.default_milk_addon_id,
+        allowed_addon_ids: i.allowed_addon_ids,
+        modifier_groups: [],
+        kind: "item",
+        combo: null,
+      })),
+      addons: MOCK_PUBLIC_MENU.addons.map((a) => ({
+        addon_item_id: a.addon_item_id,
+        name: a.name,
+        name_translations: a.name_translations,
+        type: a.type,
+        is_available: a.is_available,
+      })),
+    },
+  };
 }
 
 function mockPublicLinks() {

@@ -10,6 +10,8 @@ describe("AnimatedFigure", () => {
 
     rerender(<AnimatedFigure text="0.045680" />);
     expect(await screen.findByText("0.045680")).toBeInTheDocument();
+    // While it fades, the old figure is hidden from screen readers: one figure reads.
+    expect(screen.queryByText("0.050000")?.getAttribute("aria-hidden")).toBe("true");
     // The old figure fades out and leaves; it never lingers beside the new one.
     await waitFor(() => expect(screen.queryByText("0.050000")).not.toBeInTheDocument());
   });

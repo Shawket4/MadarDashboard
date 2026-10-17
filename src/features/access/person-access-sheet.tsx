@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { HelpCircle, Lock } from "lucide-react";
@@ -25,6 +25,7 @@ import type { CapabilityAccess, Explanation, LimitsView, UserAccess, UserPublic 
 import { getErrorMessage } from "@/data/api/errors";
 import { queryClient } from "@/data/api/query";
 import { useAuthz } from "@/data/authz/use-authz";
+import { SwapPresence, useShake } from "@/lib/motion";
 import type { CapabilityMeta } from "@/generated/capabilities";
 
 import { AlwaysOn, CapabilityGroups } from "./capability-groups";
@@ -194,6 +195,9 @@ function AssignmentsEditor({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Record<string, { all: boolean; branches: string[] }>>({});
   const [saving, setSaving] = useState(false);
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const [refused, setRefused] = useState(0);
+  useShake(saveRef, refused);
 
   const start = () => {
     setDraft(Object.fromEntries(access.assignments.map((a) => [a.role_id, { all: a.all_branches, branches: a.branch_ids }])));
@@ -209,6 +213,7 @@ function AssignmentsEditor({
       onSaved();
     } catch (e) {
       toast.error(getErrorMessage(e));
+      setRefused((n) => n + 1);
     } finally {
       setSaving(false);
     }
@@ -220,74 +225,77 @@ function AssignmentsEditor({
         <h3 className="text-sm font-semibold">{t("access.roles", "Roles")}</h3>
         {!disabled && !editing ? <Button size="sm" variant="outline" onClick={start}>{t("common.edit", "Edit")}</Button> : null}
       </div>
-      {!editing ? (
-        <ul className="divide-y">
-          {access.assignments.length === 0 ? (
-            <li className="px-4 py-3 text-sm text-muted-foreground">{t("access.noRolesHeld", "No roles")}</li>
-          ) : (
-            access.assignments.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
-                <span className="font-medium">{bilingual(a.role_name_en, a.role_name_ar, lang)}</span>
-                <span className="text-muted-foreground">
-                  {a.all_branches ? t("access.allBranches", "All branches") : a.branch_ids.map(branchName).join("، ")}
-                </span>
-              </li>
-            ))
-          )}
-        </ul>
-      ) : (
-        <div className="space-y-3 p-4">
-          {(rolesQ.data ?? []).filter((r) => r.kind !== "org_admin").map((r) => {
-            const d = draft[r.id];
-            return (
-              <div key={r.id} className="space-y-2 rounded-lg border p-3">
-                <label className="flex items-center gap-2 text-sm font-medium">
-                  <Checkbox
-                    checked={!!d}
-                    onCheckedChange={(v) =>
-                      setDraft((prev) => {
-                        const next = { ...prev };
-                        if (v) next[r.id] = { all: false, branches: [] };
-                        else delete next[r.id];
-                        return next;
-                      })
-                    }
-                  />
-                  {bilingual(r.name_en, r.name_ar, lang)}
-                </label>
-                {d ? (
-                  <div className="flex flex-wrap gap-3 ps-6 text-sm">
-                    <label className="flex items-center gap-2">
-                      <Checkbox checked={d.all} onCheckedChange={(v) => setDraft((p) => ({ ...p, [r.id]: { ...d, all: !!v } }))} />
-                      {t("access.allBranches", "All branches")}
-                    </label>
-                    {!d.all
-                      ? branches.map((b) => (
-                          <label key={b.id} className="flex items-center gap-2">
-                            <Checkbox
-                              checked={d.branches.includes(b.id)}
-                              onCheckedChange={(v) =>
-                                setDraft((p) => ({
-                                  ...p,
-                                  [r.id]: { ...d, branches: v ? [...d.branches, b.id] : d.branches.filter((x) => x !== b.id) },
-                                }))
-                              }
-                            />
-                            {b.name}
-                          </label>
-                        ))
-                      : null}
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setEditing(false)}>{t("common.cancel", "Cancel")}</Button>
-            <Button size="sm" disabled={saving} onClick={() => void save()}>{t("common.save", "Save")}</Button>
+      {/* Viewing and editing swap in place. */}
+      <SwapPresence swapKey={editing ? "edit" : "view"} initial={false}>
+        {!editing ? (
+          <ul className="divide-y">
+            {access.assignments.length === 0 ? (
+              <li className="px-4 py-3 text-sm text-muted-foreground">{t("access.noRolesHeld", "No roles")}</li>
+            ) : (
+              access.assignments.map((a) => (
+                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
+                  <span className="font-medium">{bilingual(a.role_name_en, a.role_name_ar, lang)}</span>
+                  <span className="text-muted-foreground">
+                    {a.all_branches ? t("access.allBranches", "All branches") : a.branch_ids.map(branchName).join("، ")}
+                  </span>
+                </li>
+              ))
+            )}
+          </ul>
+        ) : (
+          <div className="space-y-3 p-4">
+            {(rolesQ.data ?? []).filter((r) => r.kind !== "org_admin").map((r) => {
+              const d = draft[r.id];
+              return (
+                <div key={r.id} className="space-y-2 rounded-lg border p-3">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <Checkbox
+                      checked={!!d}
+                      onCheckedChange={(v) =>
+                        setDraft((prev) => {
+                          const next = { ...prev };
+                          if (v) next[r.id] = { all: false, branches: [] };
+                          else delete next[r.id];
+                          return next;
+                        })
+                      }
+                    />
+                    {bilingual(r.name_en, r.name_ar, lang)}
+                  </label>
+                  {d ? (
+                    <div className="flex flex-wrap gap-3 ps-6 text-sm">
+                      <label className="flex items-center gap-2">
+                        <Checkbox checked={d.all} onCheckedChange={(v) => setDraft((p) => ({ ...p, [r.id]: { ...d, all: !!v } }))} />
+                        {t("access.allBranches", "All branches")}
+                      </label>
+                      {!d.all
+                        ? branches.map((b) => (
+                            <label key={b.id} className="flex items-center gap-2">
+                              <Checkbox
+                                checked={d.branches.includes(b.id)}
+                                onCheckedChange={(v) =>
+                                  setDraft((p) => ({
+                                    ...p,
+                                    [r.id]: { ...d, branches: v ? [...d.branches, b.id] : d.branches.filter((x) => x !== b.id) },
+                                  }))
+                                }
+                              />
+                              {b.name}
+                            </label>
+                          ))
+                        : null}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => setEditing(false)}>{t("common.cancel", "Cancel")}</Button>
+              <Button ref={saveRef} size="sm" disabled={saving} onClick={() => void save()}>{t("common.save", "Save")}</Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </SwapPresence>
     </section>
   );
 }

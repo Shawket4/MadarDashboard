@@ -16,6 +16,7 @@ import type { OnboardingStep } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { queryClient } from "@/data/api/query";
 import { useOrgId } from "@/hooks/use-org-id";
+import { Reveal } from "@/lib/motion";
 
 import { Celebration } from "./celebration";
 import { DashboardMirror } from "./dashboard-mirror";
@@ -125,9 +126,10 @@ export function OnboardingPage() {
             <span className="text-brand">{cheer}</span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-muted" aria-hidden="true">
+            {/* Scaled, not resized: transform only, growing from the reading start. */}
             <div
-              className="h-full rounded-full bg-brand transition-[width] duration-700 ease-out motion-reduce:transition-none"
-              style={{ width: `${pct}%` }}
+              className="h-full w-full rounded-full bg-brand transition-transform duration-brand ease-out ltr:origin-left rtl:origin-right"
+              style={{ transform: `scaleX(${progress})` }}
             />
           </div>
         </div>
@@ -151,18 +153,21 @@ export function OnboardingPage() {
             </aside>
 
             <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <StepPanel
-                orgId={orgId}
-                activeKey={activeKey}
-                byKey={byKey}
-                canComplete={canComplete}
-                refresh={refresh}
-                onPrev={() => goTo(activeIndex - 1)}
-                onNext={() => goTo(activeIndex + 1)}
-                isFirst={activeIndex <= 0}
-                onFinish={finish}
-                finishing={finishing}
-              />
+              {/* A new step (picked, or next after one is done) rises into the card. */}
+              <Reveal register="brand" replayKey={activeKey}>
+                <StepPanel
+                  orgId={orgId}
+                  activeKey={activeKey}
+                  byKey={byKey}
+                  canComplete={canComplete}
+                  refresh={refresh}
+                  onPrev={() => goTo(activeIndex - 1)}
+                  onNext={() => goTo(activeIndex + 1)}
+                  isFirst={activeIndex <= 0}
+                  onFinish={finish}
+                  finishing={finishing}
+                />
+              </Reveal>
             </section>
 
             <section>

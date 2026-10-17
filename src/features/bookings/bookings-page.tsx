@@ -44,9 +44,10 @@ import { queryClient } from "@/data/api/query";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { EXPORT_REQUEST } from "@/lib/export-all";
-import { exportToExcel, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtTime } from "@/lib/format";
 import { formatPhoneDisplay } from "@/lib/phone";
+import { Presence, Reveal, Stagger, SwapPresence, recipes } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useListFilters } from "@/data/scope/use-list-filters";
 
@@ -218,7 +219,8 @@ export function BookingsPage() {
         }],
       });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setExporting(false);
     }
@@ -351,7 +353,7 @@ export function BookingsPage() {
         }
       />
 
-      {settingsQ.data && !settingsQ.data.enabled ? (
+      <Presence show={!!settingsQ.data && !settingsQ.data.enabled}>
         <Alert>
           <CalendarClock className="size-4" />
           <AlertTitle>{t("bookings.onlineOffTitle", "Online booking is off for this branch")}</AlertTitle>
@@ -359,16 +361,17 @@ export function BookingsPage() {
             {t("bookings.onlineOffBody", "Guests can't book from the website yet. You can still take bookings here. Turn it on in Settings.")}
           </AlertDescription>
         </Alert>
-      ) : null}
+      </Presence>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <Stagger when={!listQ.isLoading} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard dense label={t("bookings.statBookings", "Bookings")} value={totals.total} formatType="number" icon={CalendarDays} loading={listQ.isLoading} />
         <StatCard dense label={t("bookings.statCovers", "Covers seated")} value={totals.covers} formatType="number" icon={Users} loading={listQ.isLoading} />
         <StatCard dense label={t("bookings.statSeated", "Seated now")} value={totals.seated} formatType="number" icon={Armchair} loading={listQ.isLoading} />
         <StatCard dense label={t("bookings.statNoShow", "No-shows")} value={totals.noShow} formatType="number" icon={UserX} accent={totals.noShow > 0 ? "destructive" : "neutral"} loading={listQ.isLoading} />
-      </div>
+      </Stagger>
 
-      {needsTable.length > 0 ? (
+      {/* Arrives when a booking loses its table, leaves when the last one gets one. */}
+      <Presence show={needsTable.length > 0}>
         <Alert className="border-warning/50">
           <AlertTriangle className="size-4 text-[color-mix(in_oklch,var(--color-warning)_55%,var(--color-foreground))]" />
           <AlertTitle>{t("bookings.needsTableTitle", "{{count}} booking(s) have no table", { count: needsTable.length })}</AlertTitle>
@@ -382,8 +385,9 @@ export function BookingsPage() {
             </div>
           </AlertDescription>
         </Alert>
-      ) : null}
+      </Presence>
 
+      <SwapPresence swapKey={view} recipe={recipes.fade()} initial={false}>
       {view === "list" ? (
         <div className="space-y-3">
           <SegmentedControl
@@ -459,6 +463,7 @@ export function BookingsPage() {
           onPrefetch={(b) => prefetchBookingDialog(queryClient, branchId, b)}
         />
       )}
+      </SwapPresence>
 
       <BookingDialog
         branchId={branchId}
@@ -501,6 +506,7 @@ function Timeline({
     return <EmptyState icon={Armchair} title={t("bookings.noTables", "This branch has no tables yet")} description={t("bookings.noTablesHint", "Draw the floor first; bookings claim its tables.")} />;
   }
   return (
+    <Reveal asChild>
     <div className="overflow-x-auto rounded-2xl border bg-card">
       <div className="min-w-[720px]">
         <div className="flex border-b bg-muted/40 text-xs text-muted-foreground">
@@ -529,7 +535,7 @@ function Timeline({
                     onMouseEnter={() => onPrefetch(b)}
                     onFocus={() => onPrefetch(b)}
                     title={`${b.guest_name} · ${b.party_size} · ${fmtTime(b.starts_at)}–${fmtTime(b.ends_at)}`}
-                    className={cn("absolute top-1.5 h-8 truncate rounded-md border px-2 text-start text-xs font-medium transition-colors duration-150 hover:brightness-95 motion-reduce:transition-none", tone)}
+                    className={cn("absolute top-1.5 h-8 truncate rounded-md border px-2 text-start text-xs font-medium transition-colors duration-fast hover:brightness-95", tone)}
                     style={{ insetInlineStart: `${span.left}%`, width: `${span.width}%` }}
                   >
                     {b.status === "seated" ? <Armchair aria-hidden className="me-1 inline size-3" /> : isHeld(b, now) ? <CalendarClock aria-hidden className="me-1 inline size-3" /> : null}
@@ -542,5 +548,6 @@ function Timeline({
         ))}
       </div>
     </div>
+    </Reveal>
   );
 }

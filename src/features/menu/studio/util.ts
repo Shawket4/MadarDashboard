@@ -44,7 +44,7 @@ export const invalidateIngredientCosts = (orgId: string | null, itemId: string) 
 };
 
 /** Read the Arabic translation off a generated `*_translations` object. */
-export const arOf = (translations: unknown): string => {
+const arOf = (translations: unknown): string => {
   const tr = translations as Record<string, unknown> | null | undefined;
   return tr && typeof tr.ar === "string" ? tr.ar : "";
 };
@@ -173,7 +173,7 @@ export const toSizeBlocks = (s: StudioAggregate): SizeBlockDraft[] =>
       };
     });
 
-export const toAttachDraft = (g: ModifierGroupOut): AttachDraft => {
+const toAttachDraft = (g: ModifierGroupOut): AttachDraft => {
   const allOptions: AttachOptionDraft[] = g.options.map((o) => ({
     id: o.id,
     name: o.name,

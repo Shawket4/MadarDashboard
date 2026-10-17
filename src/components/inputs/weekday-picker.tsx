@@ -6,7 +6,7 @@ import { WEEK_ORDER } from "@/lib/week";
 import { useLang } from "./use-lang";
 
 /** A weekday's name in the app language; `dow` is 0 = Sunday … 6 = Saturday. */
-export function weekdayName(dow: number, lang: "en" | "ar", width: "short" | "long" = "short"): string {
+function weekdayName(dow: number, lang: "en" | "ar", width: "short" | "long" = "short"): string {
   // 7 Jan 2024 was a Sunday.
   return new Intl.DateTimeFormat(lang === "ar" ? "ar-EG" : "en-GB", { weekday: width, timeZone: "UTC" }).format(
     new Date(Date.UTC(2024, 0, 7 + dow)),
@@ -106,7 +106,7 @@ export function WeekdayPicker({
               onKeyDown={(e) => onKeyDown(e, i)}
               onClick={() => toggle(dow)}
               className={cn(
-                "h-9 min-w-11 rounded-md border px-2.5 text-sm font-medium transition-colors motion-reduce:transition-none",
+                "h-9 min-w-11 rounded-md border px-2.5 text-sm font-medium transition-colors",
                 "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
                 on ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
               )}

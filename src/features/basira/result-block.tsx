@@ -34,6 +34,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { fmtMoney, fmtMoneyCompact, fmtNumber } from "@/lib/format";
+import { ChartEntrance, CountUp, useChartMotion } from "@/lib/motion";
 import type { Column, ColumnKind, ResultBlock } from "./types";
 
 /** The chart palette, in the order series are assigned. */
@@ -47,7 +48,7 @@ const SERIES = CHART_COLORS;
  * showing 0 there would read as "this item costs nothing", which is a different
  * and much worse claim than "we do not know".
  */
-export function formatCell(value: unknown, kind: ColumnKind, compact = false): string {
+function formatCell(value: unknown, kind: ColumnKind, compact = false): string {
   if (value === null || value === undefined) return "—";
   switch (kind) {
     case "money":
@@ -121,6 +122,7 @@ export function ResultView({ block, className }: { block: ResultBlock; className
   const { t } = useTranslation();
   const dims = useMemo(() => dimensionsOf(block.columns), [block.columns]);
   const measures = useMemo(() => measuresOf(block.columns), [block.columns]);
+  const chartMotion = useChartMotion();
 
   // An empty result is NOT a zero. The backend distinguishes them and so must
   // the UI — "no orders were voided" and "voided orders totalled 0" are
@@ -178,6 +180,7 @@ export function ResultView({ block, className }: { block: ResultBlock; className
                   // trend line through a hole that never existed.
                   connectNulls={false}
                   dot={false}
+                  {...chartMotion}
                 />
               ))}
             </AreaChart>
@@ -206,7 +209,7 @@ export function ResultView({ block, className }: { block: ResultBlock; className
               )}
               <Tooltip content={<ChartTip measures={measures} />} cursor={{ fill: "var(--muted)", opacity: 0.4 }} />
               {measures.slice(0, 2).map((m, i) => (
-                <Bar key={m.key} dataKey={m.key} name={m.label} fill={SERIES[i % SERIES.length]} radius={block.viz === "row" ? [0, 4, 4, 0] : [4, 4, 0, 0]} maxBarSize={48} />
+                <Bar key={m.key} dataKey={m.key} name={m.label} fill={SERIES[i % SERIES.length]} radius={block.viz === "row" ? [0, 4, 4, 0] : [4, 4, 0, 0]} maxBarSize={48} {...chartMotion} />
               ))}
             </BarChart>
           </ChartFrame>
@@ -225,6 +228,7 @@ export function ResultView({ block, className }: { block: ResultBlock; className
                 innerRadius={block.viz === "donut" ? "55%" : 0}
                 outerRadius="80%"
                 paddingAngle={1}
+                {...chartMotion}
               >
                 {chartData.map((_, i) => (
                   <Cell key={i} fill={SERIES[i % SERIES.length]} />
@@ -261,11 +265,13 @@ export function ResultView({ block, className }: { block: ResultBlock; className
 /** Recharts needs an explicit height; a percentage inside an auto-height parent collapses. */
 function ChartFrame({ children }: { children: React.ReactElement }) {
   return (
-    <div dir="ltr" className="h-60 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        {children}
-      </ResponsiveContainer>
-    </div>
+    <ChartEntrance className="h-60 w-full">
+      <div dir="ltr" className="size-full">
+        <ResponsiveContainer width="100%" height="100%">
+          {children}
+        </ResponsiveContainer>
+      </div>
+    </ChartEntrance>
   );
 }
 
@@ -277,7 +283,11 @@ function KpiView({ block, measures }: { block: ResultBlock; measures: Column[] }
         <div key={m.key}>
           <p className="text-[13px] font-medium text-muted-foreground">{m.label}</p>
           <p className="mt-1 font-mono text-2xl leading-none font-semibold tracking-tight tabular-nums text-foreground">
-            {formatCell(row[m.key], m.kind)}
+            {typeof row[m.key] === "number" ? (
+              <CountUp value={row[m.key] as number} format={(n) => formatCell(n, m.kind)} />
+            ) : (
+              formatCell(row[m.key], m.kind)
+            )}
           </p>
         </div>
       ))}

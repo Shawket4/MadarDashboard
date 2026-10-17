@@ -8,6 +8,7 @@ import { constants as zlibConstants } from "node:zlib";
 import { readFileSync, readdirSync } from "node:fs";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
+import { preloadMotion } from "./vite/preload-motion";
 import { zodJitless } from "./vite/zod-jitless";
 import { isDemo, pageHead } from "./vite/page-head";
 
@@ -52,6 +53,8 @@ export default defineConfig({
   plugins: [
     // `public/` is copied verbatim, so a README beside an asset ships with it.
     noDocsInTheBundle(),
+    // GSAP downloads with the HTML (still a lazy chunk): motion is ready at once.
+    preloadMotion(),
     zodJitless(),
     // index.html's title, description and canonical: the dashboard's, or the
     // demo's when VITE_DEMO=1 builds the same file for demo.madar-pos.cloud.
@@ -159,8 +162,10 @@ export default defineConfig({
           // TanStack Query + Table
           if (id.includes("@tanstack/")) return "query-vendor";
 
-          // Animation
-          if (id.includes("/motion/") || id.includes("framer-motion")) return "motion-vendor";
+          // Animation: GSAP is only ever imported dynamically (src/lib/motion/gsap.ts),
+          // so these chunks load after the first paint, never with the entry. Flip
+          // is separate: only lists that reorder fetch it.
+          if (id.includes("/gsap/")) return id.includes("Flip") ? "gsap-flip" : "gsap-vendor";
 
           // i18n
           if (id.includes("i18next") || id.includes("react-i18next")) return "i18n-vendor";

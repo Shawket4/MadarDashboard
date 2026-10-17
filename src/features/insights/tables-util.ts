@@ -2,7 +2,7 @@
 // for, and the pure shaping of what comes back.
 import type { QuerySpec, WidgetOutcome } from "@/data/api/generated/models";
 
-export const TABLE_MEASURES = [
+const TABLE_MEASURES = [
   "turns",
   "turns_per_day",
   "covers",
@@ -69,7 +69,7 @@ const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v)
 const str = (v: unknown): string => (typeof v === "string" ? v : "");
 
 /** The rows of a widget that succeeded; an empty list for one that failed. */
-export function rowsOf(outcome: WidgetOutcome | undefined): Row[] {
+function rowsOf(outcome: WidgetOutcome | undefined): Row[] {
   if (!outcome || outcome.status !== "ok") return [];
   return outcome.rows as Row[];
 }
@@ -127,12 +127,25 @@ export function sectionsOf(rows: TableRow[]): string[] {
   return [...new Set(rows.map((r) => r.section))].sort((a, b) => a.localeCompare(b));
 }
 
+/** How a stay's length is spelled; the page passes the reader's language. */
+export interface DwellUnits {
+  minutes: (m: string) => string;
+  hours: (h: string) => string;
+  hoursMinutes: (h: string, m: string) => string;
+}
+
+const DWELL_EN: DwellUnits = {
+  minutes: (m) => `${m}m`,
+  hours: (h) => `${h}h`,
+  hoursMinutes: (h, m) => `${h}h ${m}m`,
+};
+
 /** "1h 05m" from fractional minutes. */
-export function fmtDwell(minutes: number): string {
+export function fmtDwell(minutes: number, units: DwellUnits = DWELL_EN): string {
   const m = Math.round(minutes);
   if (m < 1) return "—";
-  if (m < 60) return `${m}m`;
+  if (m < 60) return units.minutes(String(m));
   const h = Math.floor(m / 60);
   const r = m % 60;
-  return r === 0 ? `${h}h` : `${h}h ${String(r).padStart(2, "0")}m`;
+  return r === 0 ? units.hours(String(h)) : units.hoursMinutes(String(h), String(r).padStart(2, "0"));
 }

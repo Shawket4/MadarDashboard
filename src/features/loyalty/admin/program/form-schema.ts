@@ -23,7 +23,7 @@ import { egpToPiastres, piastresToEgp } from "@/lib/format";
  * — the last two used to be sent as `null` without a word, quietly turning a
  * typo into "unlimited".
  */
-export const optionalPositiveInt = (message: string) =>
+const optionalPositiveInt = (message: string) =>
   z
     .string()
     .trim()

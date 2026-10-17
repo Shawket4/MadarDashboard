@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
+import { Stagger } from "@/lib/motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -165,6 +166,7 @@ export function PreferencesDialog({
           ) : (logQ.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("dawam.prefsLogEmpty", "No changes yet.")}</p>
           ) : (
+            <Stagger asChild>
             <ul className="space-y-1 text-sm" aria-label={t("dawam.prefsLog", "Changes")}>
               {(logQ.data ?? []).map((c, i) => (
                 <li key={i} className="rounded-md border px-2.5 py-1.5">
@@ -182,6 +184,7 @@ export function PreferencesDialog({
                 </li>
               ))}
             </ul>
+            </Stagger>
           )}
         </section>
 

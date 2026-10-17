@@ -12,7 +12,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, UserMinus } from "lucide-react";
+import { UserMinus } from "lucide-react";
 
 import {
   AlertDialog,
@@ -30,6 +30,7 @@ import type { MemberView } from "@/data/api/generated/models";
 import { isPersonQuery } from "@/features/customers/util";
 
 import { loyaltyServerError } from "../../shared/server-errors";
+import { Spinner } from "@/components/ui/spinner";
 
 export function LeaveProgrammeButton({
   member,
@@ -94,7 +95,7 @@ export function LeaveProgrammeButton({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={leave.isPending}>{t("common.cancel", "Cancel")}</AlertDialogCancel>
             <Button disabled={leave.isPending} onClick={() => void confirm()}>
-              {leave.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+              {leave.isPending ? <Spinner /> : null}
               {t("loyalty.leave.confirm", "Remove from programme")}
             </Button>
           </AlertDialogFooter>

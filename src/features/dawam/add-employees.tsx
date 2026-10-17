@@ -46,7 +46,7 @@ function useBranches() {
   return useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } }).data ?? [];
 }
 
-export type EmployeeKind = "app" | "manual" | "linked";
+type EmployeeKind = "app" | "manual" | "linked";
 
 /**
  * One person, typed in (DSH-7). Three kinds (Phase A):

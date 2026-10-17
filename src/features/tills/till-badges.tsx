@@ -13,8 +13,9 @@ const STATUS_TONE: Record<TillStatus, StatusTone> = {
 
 export function TillStatusBadge({ status }: { status: TillStatus }) {
   const { t } = useTranslation();
+  // A till closing on a POS lands on a row already on screen: the pill settles into its new state.
   return (
-    <StatusPill tone={STATUS_TONE[status] ?? "neutral"} icon={status === "open" ? CircleDot : undefined} size="sm">
+    <StatusPill popOn={status} tone={STATUS_TONE[status] ?? "neutral"} icon={status === "open" ? CircleDot : undefined} size="sm">
       {t(`tillStatus.${status}`, status.replace("_", " "))}
     </StatusPill>
   );

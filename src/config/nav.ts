@@ -334,7 +334,8 @@ const EXTRA_FEATURE_ROUTES: Array<[string, Feature]> = [
   ["/kitchen", "kitchen"],
   ["/settings/bookings", "bookings"],
   ["/settings/brand", "branding"],
-  ["/settings/links", "branding"],
+  // NOT "/settings/links": every plan opens it, for its "Menu (no prices)"
+  // section; the links page's own sections lock themselves on Free.
   ["/settings/delivery", "online"],
   ["/settings/delivery-zones", "online"],
   ["/settings/integrations", "online"],

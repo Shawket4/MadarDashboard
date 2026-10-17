@@ -66,7 +66,16 @@ export function StepPanel(props: Props) {
       </header>
 
       <div className="flex-1">
-        <StepBody {...props} />
+        <StepBody
+          orgId={props.orgId}
+          activeKey={activeKey}
+          byKey={props.byKey}
+          canComplete={props.canComplete}
+          refresh={props.refresh}
+          onNext={onNext}
+          onFinish={props.onFinish}
+          finishing={props.finishing}
+        />
       </div>
 
       {!isFinale ? (
@@ -83,7 +92,8 @@ export function StepPanel(props: Props) {
   );
 }
 
-function StepBody(props: Props) {
+/** What the step bodies need: the panel's props without its Back-button ones. */
+function StepBody(props: Omit<Props, "onPrev" | "isFirst">) {
   const { orgId, activeKey, byKey, refresh } = props;
   const count = (key: string) => byKey.get(key)?.count ?? 0;
 

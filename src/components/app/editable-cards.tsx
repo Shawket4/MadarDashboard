@@ -272,7 +272,7 @@ export interface EditableCardGridProps<T> {
   toolbar?: React.ReactNode;
   onAdd?: () => void;
   addLabel?: string;
-  onExport?: () => void;
+  onExport?: () => void | Promise<void>;
   bulkActions?: (selected: T[], clear: () => void) => React.ReactNode;
   onPasteRows?: (rows: Record<string, string>[]) => Promise<void> | void;
   pasteValidate?: (row: Record<string, string>) => string | null;

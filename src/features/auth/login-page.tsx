@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,6 +21,7 @@ import { useLogin } from "@/data/api/generated/api";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { AuthShell } from "./auth-shell";
 import { getErrorMessage } from "@/data/api/errors";
+import { useShake } from "@/lib/motion";
 import { isAxiosError } from "axios";
 
 type LoginValues = { email: string; password: string };
@@ -31,6 +32,10 @@ export function LoginPage() {
   const search = useSearch({ strict: false }) as { redirect?: string };
   const signIn = useAuthStore((s) => s.signIn);
   const [showPw, setShowPw] = useState(false);
+  // Each refused sign-in shakes the form once, beside the toast that says why.
+  const formRef = useRef<HTMLFormElement>(null);
+  const [refused, setRefused] = useState(0);
+  useShake(formRef, refused);
 
   const schema = useMemo(
     () =>
@@ -56,8 +61,10 @@ export function LoginPage() {
       },
       // A refused sign-in is wrong credentials (not an expired session), in
       // the reader's language: the server's sentence is English.
-      onError: (e) =>
-        toast.error(isAxiosError(e) && e.response?.status === 401 ? t("auth.errors.invalid") : getErrorMessage(e)),
+      onError: (e) => {
+        setRefused((n) => n + 1);
+        toast.error(isAxiosError(e) && e.response?.status === 401 ? t("auth.errors.invalid") : getErrorMessage(e));
+      },
     },
   });
 
@@ -65,9 +72,17 @@ export function LoginPage() {
     <AuthShell
       title={t("auth.welcome", "Welcome back")}
       subtitle={t("auth.signInSubtitle", "Sign in to your account to continue")}
+      crossLink={
+        <>
+          {t("signup.noAccount", "No account?")}{" "}
+          <Link to="/signup" className="font-medium text-foreground underline underline-offset-4">
+            {t("signup.signUpFree", "Sign up free")}
+          </Link>
+        </>
+      }
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit((v) => mutate({ data: v }))} className="space-y-4">
+        <form ref={formRef} onSubmit={form.handleSubmit((v) => mutate({ data: v }))} className="space-y-4">
           <FormField
             control={form.control}
             name="email"
@@ -99,7 +114,7 @@ export function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPw((s) => !s)}
-                      className="absolute end-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+                      className="absolute end-1 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                       aria-label={showPw ? t("auth.hidePassword", "Hide password") : t("auth.showPassword", "Show password")}
                     >
                       {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -117,12 +132,6 @@ export function LoginPage() {
         </form>
       </Form>
 
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        {t("signup.noAccount", "No account?")}{" "}
-        <Link to="/signup" className="font-medium text-foreground underline underline-offset-4">
-          {t("signup.signUpFree", "Sign up free")}
-        </Link>
-      </p>
     </AuthShell>
   );
 }

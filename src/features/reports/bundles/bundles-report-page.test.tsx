@@ -32,12 +32,8 @@ const mixCalls: { comboId: string; params: unknown }[] = [];
 const exportToExcel = vi.fn();
 const toastError = vi.fn();
 
-// The KPI figures count up from 0 on first reveal; under reduced motion they
-// show the final figure at once, which is what a test can read.
-vi.mock("motion/react", async () => {
-  const real = await vi.importActual<typeof import("motion/react")>("motion/react");
-  return { ...real, useReducedMotion: () => true };
-});
+// The KPI figures count up only once GSAP has loaded (bootMotion, which no
+// test calls), so the final figure is on screen at once and a test can read it.
 vi.mock("sonner", () => ({ toast: { error: (...a: unknown[]) => toastError(...a), success: vi.fn() } }));
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");

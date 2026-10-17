@@ -31,10 +31,11 @@
  * the words — "Making your card…", then "Opening Wallet…" as the browser is
  * sent to the now-warm URL, or a way to try again when it will not come.
  */
-import type { MouseEvent } from "react";
+import { useRef, type MouseEvent, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { EASE_NAME, useTimeline } from "@/lib/motion";
 
 import { chromeEscapeUrl, detectInAppBrowser } from "./detect-inapp";
 import { detectWallet, type WalletKind } from "./detect-wallet";
@@ -125,12 +126,7 @@ function ApplePassBadge({
       aria-live="polite"
       className={`inline-flex items-center gap-3 rounded-full border border-border/70 bg-card pe-5 ps-4 shadow-sm ${className}`}
     >
-      <span
-        aria-hidden
-        className={`size-2.5 shrink-0 rounded-full bg-primary ${
-          phase === "making" ? "motion-safe:animate-pulse" : ""
-        }`}
-      />
+      <StatusDot breathing={phase === "making"} />
       <span className="text-[15px] font-medium leading-none">
         {phase === "making"
           ? t("loyalty.passMaking", "Making your card…")
@@ -138,6 +134,35 @@ function ApplePassBadge({
       </span>
     </div>
   );
+}
+
+/** The status light: it breathes while the card is being made, and holds once it is. */
+function StatusDot({ breathing }: { breathing: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  // The loop mounts after the dot, so the dot's ref is attached when it starts.
+  return (
+    <>
+      <span ref={ref} aria-hidden className="size-2.5 shrink-0 rounded-full bg-primary" />
+      {breathing && <Breathe target={ref} />}
+    </>
+  );
+}
+
+/** A slow opacity breath, looping while mounted; still under reduced motion. */
+function Breathe({ target }: { target: RefObject<HTMLElement | null> }) {
+  useTimeline(
+    target,
+    (tl) => {
+      tl.to(target.current, { opacity: 0.5, duration: 1, ease: EASE_NAME.inOut }).to(target.current, {
+        opacity: 1,
+        duration: 1,
+        ease: EASE_NAME.inOut,
+      });
+    },
+    [],
+    { repeat: -1, pauseOffscreen: true, late: true },
+  );
+  return null;
 }
 
 /** The demoted Apple link — the same download, so the same weather, in a line. */

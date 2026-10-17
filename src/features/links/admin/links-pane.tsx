@@ -12,7 +12,7 @@
  * The preview beside the form is the public page itself (`LinksPage`), reading
  * what is saved: the same component a customer gets, so it cannot drift.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -24,7 +24,6 @@ import {
   Copy,
   ExternalLink,
   Link2,
-  Loader2,
   Plus,
   QrCode,
   Trash2,
@@ -51,6 +50,7 @@ import type {
   QrResponse,
 } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { Presence, useFlip, usePop, useShake } from "@/lib/motion";
 import { useOrgId } from "@/hooks/use-org-id";
 import {
   SocialLinksFields,
@@ -62,6 +62,10 @@ import {
 import { PaneHeader } from "@/features/settings/pane-header";
 import { QrPreviewDialog } from "@/features/qr/qr-preview-dialog";
 import { LinksPage } from "@/features/links/public/links-page";
+import { Spinner } from "@/components/ui/spinner";
+import { PaidFeatureLock } from "@/components/app/paid-feature-lock";
+import { useHasFeature } from "@/hooks/use-plan";
+import { MenuDisplaySection } from "./menu-display-section";
 
 const MAX_TAGLINE = 160;
 const MAX_TITLE = 60;
@@ -85,9 +89,69 @@ interface BranchDraft extends LinksPageBranchInput {
 const newId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined;
 
+/**
+ * Every plan opens this pane. A paid shop gets the links page editor and, under
+ * it, the menu without prices. A Free shop has no links page (the paid
+ * `branding` feature) but has the menu without prices: it gets that section,
+ * usable, and the links page's sections shown locked — nothing behind them is
+ * fetched, and the server refuses the links page's own reads and writes.
+ */
 export function LinksPane() {
-  const { t } = useTranslation();
   const orgId = useOrgId() ?? "";
+  const hasBranding = useHasFeature("branding");
+  if (!hasBranding) return <FreeLinksPane orgId={orgId} />;
+  return (
+    <div className="space-y-6">
+      <PaidLinksPane orgId={orgId} />
+      <MenuDisplaySection orgId={orgId} />
+    </div>
+  );
+}
+
+function FreeLinksPane({ orgId }: { orgId: string }) {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-6">
+      <PaneHeader
+        title={t("links.editor.title", "Links page")}
+        description={t(
+          "links.editor.desc",
+          "The page your address opens on — for your Instagram bio, a QR on the counter, or a receipt.",
+        )}
+      />
+      <MenuDisplaySection orgId={orgId} />
+      <PaidFeatureLock
+        feature="branding"
+        title={t("links.editor.lockedTitle", "Your links page")}
+        preview={<LockedSections />}
+      />
+    </div>
+  );
+}
+
+/** What the links page's editor holds, as a Free shop sees it: headings, no inputs. */
+function LockedSections() {
+  const { t } = useTranslation();
+  const sections: [string, string][] = [
+    [t("links.editor.address", "Your address"), t("links.editor.addressHint", "Put it in your bio, on a counter card, or on a receipt.")],
+    [t("links.editor.about", "Under your name"), t("links.editor.aboutHint", "One line about your shop, in each language. Leave empty for none.")],
+    [t("links.editor.buttons", "Buttons"), t("links.editor.buttonsHint", "In the order they show. The first one that's on is the big button.")],
+    [t("links.editor.socials", "Social links"), t("links.editor.socialsHint", "Instagram, WhatsApp, your website.")],
+    [t("links.editor.visit", "Show “Visit us”"), t("links.editor.visitHint", "Your branches, with directions and a call button.")],
+  ];
+  return (
+    <div className="grid gap-2" data-testid="links-locked-sections">
+      {sections.map(([title, hint]) => (
+        <div key={title} className="rounded-lg border bg-card p-3">
+          <CardHeading title={title} hint={hint} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PaidLinksPane({ orgId }: { orgId: string }) {
+  const { t } = useTranslation();
   const q = useGetLinksPage(orgId, { query: { enabled: !!orgId } });
 
   if (q.isPending || !q.data) {
@@ -148,6 +212,15 @@ function LinksEditor({
   );
 
   const put = usePutLinksPage();
+  // Inline editor, no dialog to close: Save answers "did it save?" itself.
+  const saveRef = useRef<HTMLButtonElement>(null);
+  const [savedN, setSavedN] = useState(0);
+  const [failed, setFailed] = useState(0);
+  usePop(saveRef, savedN);
+  useShake(saveRef, failed);
+  // Moved, added, removed: the buttons slide to their new places.
+  const itemsRef = useRef<HTMLUListElement>(null);
+  useFlip(itemsRef, items.map((it) => it.id ?? it.kind).join());
 
   const move = (i: number, by: -1 | 1) =>
     setItems((list) => {
@@ -179,6 +252,7 @@ function LinksEditor({
   const save = form.handleSubmit(async (values) => {
     if (customProblem || mapsProblem) {
       toast.error(t("links.editor.fixLinks", "Every link needs a title and a full https:// address."));
+      setFailed((n) => n + 1);
       return;
     }
     try {
@@ -213,8 +287,10 @@ function LinksEditor({
       ]);
       setPreviewKey((k) => k + 1);
       toast.success(t("links.editor.saved", "Links page saved"));
+      setSavedN((n) => n + 1);
     } catch (e) {
       toast.error(getErrorMessage(e));
+      setFailed((n) => n + 1);
     }
   });
 
@@ -243,8 +319,8 @@ function LinksEditor({
           "The page your address opens on — for your Instagram bio, a QR on the counter, or a receipt.",
         )}
         actions={
-          <Button onClick={() => void save()} disabled={put.isPending}>
-            {put.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+          <Button ref={saveRef} onClick={() => void save()} disabled={put.isPending}>
+            {put.isPending ? <Spinner /> : null}
             {t("common.save", "Save")}
           </Button>
         }
@@ -282,7 +358,7 @@ function LinksEditor({
                         {t("links.editor.copy", "Copy")}
                       </Button>
                       <Button type="button" variant="outline" onClick={() => void showQr()} disabled={qrBusy}>
-                        {qrBusy ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
+                        {qrBusy ? <Spinner /> : <QrCode className="size-4" />}
                         {t("links.editor.qr", "QR code")}
                       </Button>
                       <Button type="button" variant="outline" asChild>
@@ -369,7 +445,7 @@ function LinksEditor({
                     "In the order they show. The first one that's on is the big button.",
                   )}
                 />
-                <ul className="divide-y rounded-lg border">
+                <ul ref={itemsRef} className="divide-y rounded-lg border">
                   {items.map((it, i) => {
                     const status = it.kind === "custom" ? null : modules.get(it.kind);
                     const unavailable = status ? !status.available : false;
@@ -497,7 +573,7 @@ function LinksEditor({
                     </FormItem>
                   )}
                 />
-                {form.watch("show_branches") && branches.length > 0 ? (
+                <Presence show={form.watch("show_branches") && branches.length > 0} initial={false}>
                   <ul className="divide-y rounded-lg border">
                     {branches.map((b, i) => (
                       <li key={b.branch_id} className="flex flex-col gap-2.5 p-3">
@@ -533,7 +609,7 @@ function LinksEditor({
                       </li>
                     ))}
                   </ul>
-                ) : null}
+                </Presence>
               </CardContent>
             </Card>
           </form>

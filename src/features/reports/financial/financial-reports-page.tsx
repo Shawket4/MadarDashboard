@@ -4,6 +4,7 @@ import { CalendarRange } from "lucide-react";
 import { toast } from "sonner";
 
 import { EmbeddedPages, Page, PageHeader } from "@/components/app/page";
+import { recipes, Reveal } from "@/lib/motion";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { ExportButton } from "@/components/app/export-button";
 import { SegmentedControl } from "@/components/app/segmented-control";
@@ -21,7 +22,7 @@ import {
   useBranchInventoryValuation, useBranchMaterialCostTrend, useBranchSupplierSpend, useListCatalog,
   useOrgInventoryValuation, useOrgMaterialCostTrend, useOrgSupplierSpend,
 } from "@/data/api/generated/api";
-import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
+import { exportToExcel, exportToCsv, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { ProfitabilityPage } from "@/features/insights/profitability-page";
 import { ChannelTab, RevenueTab, type Range } from "@/features/analytics/analytics-page";
 import { AnalyticsExportButton } from "@/features/analytics/analytics-export-button";
@@ -137,7 +138,8 @@ export function FinancialReportsPage() {
     try {
       await exportToExcel({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      toastExportError(e);
+      throw e;
     } finally {
       setInvExporting(false);
     }
@@ -148,6 +150,7 @@ export function FinancialReportsPage() {
       await exportToCsv({ filename: `Madar-${sheet.title}`, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toast.error(getErrorMessage(e));
+      throw e;
     }
   };
 
@@ -196,12 +199,15 @@ export function FinancialReportsPage() {
       />
 
       <EmbeddedPages>
-        {tab === "profitability" ? <ProfitabilityPage />
-          : tab === "revenue" ? <RevenueTab branchId={scopeBranchId} range={range} gran={gran} setGran={setGran} />
-          : tab === "channel" ? <ChannelTab branchId={scopeBranchId} range={range} />
-          : tab === "valuation" ? <ValuationTab valuation={valuation} catalogLoading={catalog.isLoading} byCategory={byCategory} />
-          : tab === "supplierSpend" ? <SupplierSpendTab supplierSpend={supplierSpend} noData={noData} />
-          : <MaterialCostTrendTab trend={materialCostTrend} noData={noData} />}
+        {/* A new tab's body fades in, so the switch reads; its groups bring themselves in. */}
+        <Reveal replayKey={tab} recipe={recipes.fade()}>
+          {tab === "profitability" ? <ProfitabilityPage />
+            : tab === "revenue" ? <RevenueTab branchId={scopeBranchId} range={range} gran={gran} setGran={setGran} />
+            : tab === "channel" ? <ChannelTab branchId={scopeBranchId} range={range} />
+            : tab === "valuation" ? <ValuationTab valuation={valuation} catalogLoading={catalog.isLoading} byCategory={byCategory} />
+            : tab === "supplierSpend" ? <SupplierSpendTab supplierSpend={supplierSpend} noData={noData} />
+            : <MaterialCostTrendTab trend={materialCostTrend} noData={noData} />}
+        </Reveal>
       </EmbeddedPages>
     </Page>
   );

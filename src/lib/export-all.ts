@@ -27,7 +27,7 @@ import i18n from "@/i18n";
  * The most rows one file may carry. Roughly a 5–10 MB workbook and under a
  * minute of work in the tab; past it, neither of those stays true.
  */
-export const EXPORT_ROW_CEILING = 50_000;
+const EXPORT_ROW_CEILING = 50_000;
 
 /**
  * How many rows to ask for per request while walking.
@@ -47,7 +47,7 @@ const PAGE = 500;
 export const EXPORT_REQUEST = { headers: { "X-Madar-Export": "1" } } as const;
 
 /** Raised when a dataset is too large to build in a browser tab. */
-export class ExportTooLargeError extends Error {
+class ExportTooLargeError extends Error {
   constructor(public readonly rows: number) {
     super(
       i18n.t("export.tooLarge", {

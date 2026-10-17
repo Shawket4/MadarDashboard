@@ -32,4 +32,9 @@ svg?: boolean;
  * @minimum 0
  */
 module_px?: number;
+/**
+ * Omitted: the links page itself (the paid `branding` feature).
+ * `menu_display`: the menu without prices, which every plan has.
+ */
+target?: string;
 };

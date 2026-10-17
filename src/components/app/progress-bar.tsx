@@ -1,6 +1,8 @@
+import type { CSSProperties } from "react";
+
 import { cn } from "@/lib/utils";
 
-export type ProgressAccent = "primary" | "brand" | "success" | "warning" | "info" | "destructive";
+type ProgressAccent = "primary" | "brand" | "success" | "warning" | "info" | "destructive";
 
 const accentFill: Record<ProgressAccent, string> = {
   primary: "bg-primary",
@@ -36,9 +38,14 @@ export function ProgressBar({ value, max = 100, ariaLabel, accent = "primary", c
       aria-label={ariaLabel}
       className={cn("h-1.5 overflow-hidden rounded-full bg-muted", className)}
     >
+      {/* A full-width fill slid back by the unfilled share (transform only;
+          the track clips it), so its leading cap stays round at any value. */}
       <div
-        className={cn("h-full rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none", accentFill[accent])}
-        style={{ width: `${pct}%` }}
+        className={cn(
+          "h-full rounded-full transition-transform duration-slow ease-out ltr:-translate-x-(--unfilled) rtl:translate-x-(--unfilled)",
+          accentFill[accent],
+        )}
+        style={{ "--unfilled": `${100 - pct}%` } as CSSProperties}
       />
     </div>
   );

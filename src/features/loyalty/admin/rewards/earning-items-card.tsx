@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,6 +41,7 @@ import {
   rowsToWire,
   type EarningRow,
 } from "./earning-schema";
+import { Spinner } from "@/components/ui/spinner";
 
 export function EarningItemsCard({
   scope,
@@ -191,7 +192,7 @@ export function EarningItemsCard({
                 onClick={() => void submit()}
                 disabled={save.isPending || (!dirty && !inherited)}
               >
-                {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+                {save.isPending ? <Spinner /> : null}
                 {t("common.save", "Save")}
               </Button>
               {dirty ? (
