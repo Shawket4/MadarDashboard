@@ -13,12 +13,13 @@ import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { ListCard, ListRow } from "@/components/app/list-row";
 import { SectionHeader } from "@/components/app/section-header";
 import { StatusPill } from "@/components/app/status-pill";
-import { useFlip } from "@/lib/motion";
+import { useFlip, useStagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { queryClient } from "@/data/api/query";
@@ -28,10 +29,9 @@ import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
-import { businessDate, cairoDateISO, dateParts, fmtDateTime, fmtDuration, fmtMoney, fmtMoneySigned } from "@/lib/format";
+import { fmtDateTime, fmtDuration, fmtMoney, fmtMoneySigned } from "@/lib/format";
 
 import {
-  tillReportQueryOptions,
   useDeleteTill,
   useForceCloseTill,
   useListTills,
@@ -47,14 +47,10 @@ import { CloseTillDialog } from "./close-till-dialog";
 import { OpenTillDialog } from "./open-till-dialog";
 import { DisagreementBadge, FlagBadge, TillStatusBadge, VerificationBadge } from "./till-badges";
 import { TillReportSheet } from "./till-report-sheet";
+import { prefetchTillReport, tillsListParams, type TillsFilters } from "./queries";
 
-export interface TillsSearch {
+export interface TillsSearch extends TillsFilters {
   report?: string;
-  status?: TillStatus;
-  teller?: string;
-  device?: string;
-  flagged?: boolean;
-  today?: boolean;
 }
 
 const STATUSES: TillStatus[] = ["open", "closed", "force_closed"];
@@ -71,12 +67,6 @@ export function validateTillsSearch(s: Record<string, unknown>): TillsSearch {
     flagged: bool(s.flagged),
     today: bool(s.today),
   };
-}
-
-/** The start of the branch's business day (madar-time `day_bounds`), not the device's midnight. */
-function startOfToday(): string {
-  const { y, m, d } = dateParts(businessDate());
-  return cairoDateISO(y, m, d);
 }
 
 export function TillsPage() {
@@ -101,13 +91,8 @@ export function TillsPage() {
   const current = useTillPreFill(branchId);
   const openNow = useOpenTills(branchId);
   const billsNotice = useOpenBillsNotice(branchId);
-  const tills = useListTills(scopeBranchId, {
-    status: search.status,
-    teller_id: search.teller,
-    device_id: search.device,
-    flagged: search.flagged,
-    from: search.today ? startOfToday() : undefined,
-  });
+  // One builder for the page AND the sidebar prefetch (queries.ts).
+  const tills = useListTills(scopeBranchId, tillsListParams(search));
 
   const forceClose = useForceCloseTill();
   const removeTill = useDeleteTill();
@@ -261,7 +246,7 @@ export function TillsPage() {
 
       {branchId ? <LedgerStrip items={kpis} /> : null}
 
-      {branchId ? <OpenNowStrip tills={openNow.data ?? []} notice={notice} onOpen={setReportId} /> : null}
+      {branchId ? <OpenNowStrip tills={openNow.data ?? []} loading={openNow.isLoading} notice={notice} onOpen={setReportId} /> : null}
 
       <section className="space-y-3">
         <SectionHeader title={t("tills.history", "All tills")} count={tills.data?.total ?? rows.length} />
@@ -295,11 +280,23 @@ const OPEN_TEXT = "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color
 const OPEN_TONE_CLASS = `bg-success/12 ${OPEN_TEXT}`;
 
 /** Open right now at this branch; kept live by the `tills` realtime topic. */
-function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenBillsNotice; onOpen: (id: string) => void }) {
+function OpenNowStrip({
+  tills,
+  loading = false,
+  notice,
+  onOpen,
+}: {
+  tills: Till[];
+  loading?: boolean;
+  notice?: OpenBillsNotice;
+  onOpen: (id: string) => void;
+}) {
   const { t } = useTranslation();
   // Live: a till opening fades in, one closing lets the rest close up.
   const listRef = useRef<HTMLDivElement>(null);
   useFlip(listRef, tills.map((s) => s.id).join(), ":scope > [data-slot=list-card] > *");
+  // Data landing after the skeleton: the rows arrive.
+  useStagger(listRef, { selector: ":scope > [data-slot=list-card] > *", when: !loading });
   return (
     <section className="space-y-3">
       <SectionHeader
@@ -308,7 +305,9 @@ function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenB
         countClassName={tills.length > 0 ? OPEN_TONE_CLASS : undefined}
         description={notice && notice.open_bills_count > 0 ? <OpenBillsLine notice={notice} /> : undefined}
       />
-      {tills.length === 0 ? (
+      {loading ? (
+        <Skeleton className="h-28 w-full rounded-2xl" />
+      ) : tills.length === 0 ? (
         <EmptyState
           icon={Wallet}
           className="py-8"
@@ -319,25 +318,27 @@ function OpenNowStrip({ tills, notice, onOpen }: { tills: Till[]; notice?: OpenB
         <div ref={listRef}>
         <ListCard>
           {tills.map((s) => (
-            <ListRow
-              key={s.id}
-              leading={
-                <span aria-hidden className={cn("grid size-9 shrink-0 place-items-center rounded-[10px]", OPEN_TONE_CLASS)}>
-                  <Wallet className="size-4" />
-                </span>
-              }
-              onClick={() => onOpen(s.id)}
-              title={s.teller_name}
-              meta={[s.device_code, s.device_label, fmtDuration(s.opened_at)].filter(Boolean).join(" · ")}
-              trailing={
-                <span className="hidden flex-wrap items-center justify-end gap-1.5 sm:flex">
-                  <VerificationBadge verification={s.verification} />
-                  <FlagBadge till={s} />
-                </span>
-              }
-              value={fmtMoney(s.opening_cash)}
-              numericValue
-            />
+            // The row opens the till's report sheet: warm it on hover/focus.
+            <div key={s.id} onMouseEnter={() => prefetchTillReport(queryClient, s.id)} onFocus={() => prefetchTillReport(queryClient, s.id)}>
+              <ListRow
+                leading={
+                  <span aria-hidden className={cn("grid size-9 shrink-0 place-items-center rounded-[10px]", OPEN_TONE_CLASS)}>
+                    <Wallet className="size-4" />
+                  </span>
+                }
+                onClick={() => onOpen(s.id)}
+                title={s.teller_name}
+                meta={[s.device_code, s.device_label, fmtDuration(s.opened_at)].filter(Boolean).join(" · ")}
+                trailing={
+                  <span className="hidden flex-wrap items-center justify-end gap-1.5 sm:flex">
+                    <VerificationBadge verification={s.verification} />
+                    <FlagBadge till={s} />
+                  </span>
+                }
+                value={fmtMoney(s.opening_cash)}
+                numericValue
+              />
+            </div>
           ))}
         </ListCard>
         </div>
@@ -520,7 +521,7 @@ export function TillsTable({
       error={error}
       onRetry={onRetry}
       onRowClick={(s) => onOpenReport(s.id)}
-      onRowPrefetch={(s) => void queryClient.prefetchQuery(tillReportQueryOptions(s.id))}
+      onRowPrefetch={(s) => prefetchTillReport(queryClient, s.id)}
       getRowId={(s) => s.id}
       rowActions={renderActions}
       hideViewOptions

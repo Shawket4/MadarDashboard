@@ -3,7 +3,7 @@
  * wrappers over the Orval client (`src/data/api/generated`), under the names
  * the screens and their tests use. Nothing here builds a request by hand.
  */
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery, type UseQueryOptions, type UseQueryResult } from "@tanstack/react-query";
 
 import {
   bundlesReport as fetchBundlesReport,
@@ -56,11 +56,15 @@ type Opts = { enabled?: boolean };
 
 // ── Combos ───────────────────────────────────────────────────────────────────
 
-export const useCombos = (params: ListCombosParams, opts: Opts = {}): UseQueryResult<ComboPage> =>
+export const useCombos = (
+  params: ListCombosParams,
+  opts: Opts & Pick<UseQueryOptions<ComboPage>, "placeholderData"> = {},
+): UseQueryResult<ComboPage> =>
   useQuery({
     queryKey: getListCombosQueryKey(params),
     queryFn: ({ signal }) => listCombos(params, undefined, signal),
     enabled: opts.enabled ?? true,
+    placeholderData: opts.placeholderData,
   });
 
 export const useCombo = (id: string, params: { branch_id?: string } = {}, opts: Opts = {}): UseQueryResult<Combo> =>

@@ -14,6 +14,7 @@
 import { useGetLoyaltySettings } from "@/data/api/generated/api";
 
 import { isOwnOverride } from "../shared/util";
+import { programParams } from "./queries";
 
 export interface ProgramScope {
   orgId: string;
@@ -22,8 +23,7 @@ export interface ProgramScope {
 }
 
 export function useProgram(scope: ProgramScope) {
-  const params = scope.branchId ? { branch_id: scope.branchId } : {};
-  const query = useGetLoyaltySettings(params);
+  const query = useGetLoyaltySettings(programParams(scope.branchId));
   return {
     query,
     settings: query.data,

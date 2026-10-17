@@ -18,6 +18,7 @@ import { Stagger } from "@/lib/motion";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import type { LowStockRow } from "@/data/api/generated/models";
 import {
+  getGetPurchaseOrderQueryOptions,
   useListBranchStock,
   useListCatalog,
   useListOrgPurchaseOrders,
@@ -34,7 +35,9 @@ import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { todaySearch } from "./search";
 import { useAppStore } from "@/data/stores/app.store";
-import { cairoDateISO, cairoParts, fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
+import { fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
+import { queryClient } from "@/data/api/query";
+import { todayBounds } from "./queries";
 import { cn } from "@/lib/utils";
 import { PurchaseOrderDialog } from "./purchase-order-dialog";
 import { ReceiveDialog } from "./receive-dialog";
@@ -54,9 +57,9 @@ export function TodayPage() {
   const filters = useListFilters(todaySearch);
 
   const tz = useAppStore((st) => st.activeTimezone);
-  const { todayStartISO, todayEndISO } = useMemo(() => {
-    const { y, m, d } = cairoParts(Date.now());
-    return { todayStartISO: cairoDateISO(y, m, d, false), todayEndISO: cairoDateISO(y, m, d, true) };
+  // Shared with the sidebar prefetch (./queries.ts), so the deliveries key matches.
+  const { start: todayStartISO, end: todayEndISO } = useMemo(() => {
+    return todayBounds();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- cairo* helpers read the active tz
   }, [tz]);
 
@@ -80,6 +83,7 @@ export function TodayPage() {
     () => (pos.data ?? []).filter((p) => p.status === "ordered" || p.status === "partially_received"),
     [pos.data],
   );
+  const prefetchPo = (id: string) => void queryClient.prefetchQuery(getGetPurchaseOrderQueryOptions(id));
   const todaysWaste = useMemo(() => (waste.data ?? []).filter((m) => m.created_at >= todayStartISO), [waste.data, todayStartISO]);
   const due = useMemo(() => (branchId ? countsDue(branchStock.data ?? []) : null), [branchStock.data, branchId]);
   const firstRun = !!branchId && !stocktakes.isLoading && needsFirstCount(stocktakes.data);
@@ -250,7 +254,13 @@ export function TodayPage() {
                     title={<>{p.reference || <bdi>#{p.id.slice(0, 8)}</bdi>} · {p.supplier_name ?? "—"}</>}
                     meta={<bdi>{fmtDate(p.expected_at)}</bdi>}
                     trailing={
-                      <Button variant="outline" size="sm" onClick={() => setReceivePoId(p.id)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setReceivePoId(p.id)}
+                        onMouseEnter={() => prefetchPo(p.id)}
+                        onFocus={() => prefetchPo(p.id)}
+                      >
                         <PackageCheck className="size-4" /> {t("inventory.today.receive", "Receive")}
                       </Button>
                     }

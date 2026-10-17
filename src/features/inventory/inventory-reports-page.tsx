@@ -26,6 +26,7 @@ import { exportToExcel, exportToCsv, toastExportError } from "@/lib/excel";
 import {
   buildInventoryExportSheet, ConsumptionTab, PoLeadTimeTab, ShrinkageTab, WasteTab,
 } from "@/features/inventory/reports-page";
+import { periodParams } from "./queries";
 import { LowStockTab } from "@/features/inventory/low-stock-tab";
 
 type ReportScope = "branch" | "org";
@@ -53,7 +54,7 @@ export function InventoryReportsPage() {
 
   const isBranch = scope === "branch";
   const scopeId = isBranch ? branchId : orgId;
-  const range = { from: from ?? undefined, to: to ?? undefined };
+  const range = periodParams({ from, to });
   // inventory.read for the page; PO lead time is purchasing (purchasing.orders.read).
   const authz = useAuthz();
   const canLead = authz.can(Cap.purchasingOrdersRead);

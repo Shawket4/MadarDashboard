@@ -19,15 +19,14 @@ import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { listFloorTables, runMetricsQuery } from "@/data/api/generated/api";
+import { useListFloorTables } from "@/data/api/generated/api";
+import { queryClient } from "@/data/api/query";
 import { useScope } from "@/data/scope/use-scope";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtWireTime } from "@/lib/format";
 import { useChartMotion } from "@/lib/motion";
 import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
-import { TableHistory } from "@/features/floor/table-history";
+import { TableHistory, tableHistoryQueryOptions } from "@/features/floor/table-history";
 import {
-  SPECS,
-  byTableSpec,
   fmtDwell,
   sectionsOf,
   toHourSeries,
@@ -36,6 +35,7 @@ import {
   type DwellUnits,
   type TableRow,
 } from "@/features/insights/tables-util";
+import { tablesMetricsQueryOptions } from "@/features/insights/queries";
 import { CHART_GRID, ChartBody, ChartFrame, ChartGrid, MAX_BAR_SIZE, ReportStack, TableCard } from "./report-kit";
 
 const ALL = "__all__";
@@ -44,37 +44,17 @@ export function TablesTab() {
   const { t, i18n } = useTranslation();
   const chartMotion = useChartMotion();
   const { branchId, from, to } = useScope();
-  const locale = i18n.language?.startsWith("ar") ? "ar" : "en";
   const [section, setSection] = useState<string>(ALL);
   const [open, setOpen] = useState<TableRow | null>(null);
   // A name in a table's history opens the customer.
   const customerSheet = useCustomerSheet();
 
-  const q = useQuery({
-    queryKey: ["metrics", "tables", branchId, from, to, locale],
-    queryFn: ({ signal }) =>
-      runMetricsQuery(
-        {
-          locale,
-          period: from || to ? { from, to } : { preset: "last_30_days" },
-          widgets: [
-            { key: "summary", spec: SPECS.summary },
-            { key: "byTable", spec: byTableSpec(!!branchId) },
-            { key: "byHour", spec: SPECS.byHour },
-          ],
-        },
-        undefined,
-        signal,
-      ),
-  });
+  const q = useQuery(tablesMetricsQueryOptions({ branchId, from, to }, i18n.language));
 
   // A table's history is addressed by id; the metrics rows carry labels. Only
   // a single branch has unambiguous labels, so the lookup waits for one.
-  const floor = useQuery({
-    queryKey: ["floor-tables", branchId],
-    queryFn: ({ signal }) => listFloorTables({ branch_id: branchId! }, undefined, signal),
-    enabled: !!branchId,
-  });
+  const floor = useListFloorTables({ branch_id: branchId ?? "" }, { query: { enabled: !!branchId } });
+  const tableIdOf = (r: TableRow) => floor.data?.find((ft) => ft.label === r.table)?.id ?? null;
 
   const summary = toSummary(q.data?.results.summary);
   const allRows = useMemo(() => toTableRows(q.data?.results.byTable), [q.data]);
@@ -89,10 +69,7 @@ export function TablesTab() {
     [rows],
   );
 
-  const openTableId = useMemo(() => {
-    if (!open || !floor.data) return null;
-    return floor.data.find((ft) => ft.label === open.table)?.id ?? null;
-  }, [open, floor.data]);
+  const openTableId = open ? tableIdOf(open) : null;
 
   const dwellUnits = useMemo<DwellUnits>(() => ({
     minutes: (m) => t("tablesInsights.dwellMinutes", "{{m}}m", { m }),
@@ -201,6 +178,10 @@ export function TablesTab() {
           </Select>
         ) : undefined}
         onRowClick={(r) => setOpen(r)}
+        onRowPrefetch={(r) => {
+          const id = tableIdOf(r);
+          if (id) void queryClient.prefetchQuery(tableHistoryQueryOptions(id, from, to));
+        }}
       />
 
       <Sheet open={!!open} onOpenChange={(v) => { if (!v) setOpen(null); }}>

@@ -47,6 +47,7 @@ import { loyaltyServerError } from "../../shared/server-errors";
 import { currencyLabel, modeOf } from "../../shared/util";
 import { EarningItemsCard } from "./earning-items-card";
 import type { ProgramScope } from "../use-program";
+import { programParams } from "../queries";
 import {
   catalogueChanged,
   catalogueSchema,
@@ -65,7 +66,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function RewardsPane({ scope }: { scope: ProgramScope }) {
   const { orgId, branchId } = scope;
   const { t } = useTranslation();
-  const params = branchId ? { branch_id: branchId } : {};
+  const params = programParams(branchId);
   const catalogue = useGetLoyaltyRewardItems(params);
   const settings = useGetLoyaltySettings(params);
   const menu = useListMenuItems({ org_id: orgId }, { query: { enabled: !!orgId } });

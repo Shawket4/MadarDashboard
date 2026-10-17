@@ -15,6 +15,7 @@ import {
   useOrgBranchComparison,
 } from "@/data/api/generated/api";
 import { type Range, tName } from "@/features/analytics/lib";
+import { addonSalesParams, itemSalesParams, tellerStatsParams } from "@/features/analytics/queries";
 import {
   CHART_GRID, CHART_GRID_VERTICAL, ChartBody, ChartFrame, ChartGrid, MAX_BAR_SIZE, ReportStack, TableCard,
   type ChartState,
@@ -45,8 +46,8 @@ function RevenueByNameCard({ title, rows, state }: { title: ReactNode; rows: { n
 // ── Items ────────────────────────────────────────────────────────────────────
 export function ItemsTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t, i18n } = useTranslation();
-  const items = useBranchCombinedItemSales(branchId, { ...range, limit: 50 }, { query: { enabled: !!branchId } });
-  const addons = useBranchAddonSales(branchId, { ...range, limit: 20 }, { query: { enabled: !!branchId } });
+  const items = useBranchCombinedItemSales(branchId, itemSalesParams(range), { query: { enabled: !!branchId } });
+  const addons = useBranchAddonSales(branchId, addonSalesParams(range), { query: { enabled: !!branchId } });
   const rows = useMemo(() => items.data ?? [], [items.data]);
   const itemCols = useMemo<ColumnDef<NonNullable<typeof items.data>[number]>[]>(() => [
     { id: "name", header: t("common.name", "Name"), meta: { label: t("common.name", "Name"), phone: "title" }, cell: ({ row: { original: r } }) => <span className="font-medium">{tName(r.item_name, r.item_name_translations, i18n.language)}</span> },
@@ -79,7 +80,7 @@ export function ItemsTab({ branchId, range }: { branchId: string; range: Range }
 // ── Tellers ──────────────────────────────────────────────────────────────────
 export function TellersTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t } = useTranslation();
-  const q = useBranchTellerStats(branchId, { ...range, limit: 50 }, { query: { enabled: !!branchId } });
+  const q = useBranchTellerStats(branchId, tellerStatsParams(range), { query: { enabled: !!branchId } });
   const rows = useMemo(() => q.data ?? [], [q.data]);
   const tellerCols = useMemo<ColumnDef<(typeof rows)[number]>[]>(() => [
     { id: "name", header: t("orders.teller", "Teller"), meta: { label: t("orders.teller", "Teller"), phone: "title" }, cell: ({ row: { original: r } }) => <span className="font-medium">{r.teller_name}</span> },

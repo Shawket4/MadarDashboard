@@ -35,6 +35,7 @@ import { usePeriodStartDay } from "@/features/dawam/period";
 import { dawamQuery, failedEmpty } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { CorrectRecordDialog, ManualRecordDialog } from "./attendance-dialogs";
+import { attendanceParams } from "./queries";
 import { attendanceSearch } from "./search";
 import {
   ATTENDANCE_STATUS_TONE, coveredBy, fmtHours, fmtMinutes, isoDaysFromToday, todayIso,
@@ -74,13 +75,8 @@ export function AttendancePage() {
   const canAdd = authz.can(Cap.hrAttendanceCreate);
   const canCorrect = authz.can(Cap.hrAttendanceEdit);
 
-  const params = {
-    from,
-    to,
-    branch_id: branchId ?? undefined,
-    status: status === ALL ? undefined : status,
-    employee_id: person === ALL ? undefined : person,
-  };
+  // One builder for the page AND the sidebar prefetch (./queries.ts).
+  const params = attendanceParams(branchId, f);
   const recordsQ = useListAttendance(params, { query: dawamQuery() });
   const summaryQ = useAttendanceSummary(params, { query: dawamQuery() });
   const records = useMemo(() => recordsQ.data ?? [], [recordsQ.data]);

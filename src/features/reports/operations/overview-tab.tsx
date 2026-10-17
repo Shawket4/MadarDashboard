@@ -6,7 +6,7 @@ import { Ban, Coins, Percent, Receipt, ShoppingBasket, TrendingUp } from "lucide
 import { CHART_AXIS_TICK, ChartCard, chartColor } from "@/components/app/chart-card";
 import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
-import { ExcludeItemsControl, excludeItemsParam, useExcludedItems } from "@/components/app/exclude-items-control";
+import { ExcludeItemsControl, useExcludedItems } from "@/components/app/exclude-items-control";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Stagger, useChartMotion } from "@/lib/motion";
 import { averageTicket } from "@/lib/average-ticket";
@@ -15,6 +15,7 @@ import { PAYMENT_COLORS, type PaymentMethod } from "@/data/config/constants";
 import { useBranchSales } from "@/data/api/generated/api";
 import { ServiceModeSplit } from "@/features/analytics/service-mode-split";
 import { type MethodMap, type Range, tName } from "@/features/analytics/lib";
+import { overviewParams } from "@/features/analytics/queries";
 import { CHART_GRID, ChartBody, ChartFrame, ChartGrid, MAX_BAR_SIZE, ReportStack } from "./report-kit";
 
 export function OverviewTab({ branchId, range }: { branchId: string; range: Range }) {
@@ -22,11 +23,8 @@ export function OverviewTab({ branchId, range }: { branchId: string; range: Rang
   const chartMotion = useChartMotion();
   // Excluded from the Items Sold KPI only (server ignores it everywhere else).
   const [excludedItems, setExcludedItems] = useExcludedItems();
-  const q = useBranchSales(
-    branchId,
-    { ...range, exclude_items: excludeItemsParam(excludedItems) },
-    { query: { enabled: !!branchId } },
-  );
+  // Same builder as the sidebar prefetch (analytics/queries.ts).
+  const q = useBranchSales(branchId, overviewParams(range, excludedItems), { query: { enabled: !!branchId } });
   const d = q.data;
   const aov = d ? averageTicket(d.total_revenue, d.total_orders) : 0;
 

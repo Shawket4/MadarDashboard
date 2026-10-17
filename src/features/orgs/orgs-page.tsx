@@ -20,7 +20,8 @@ import { RowAction } from "@/features/users/row-action";
 import { OrgDialog } from "./org-dialog";
 import { ProvisionWizard } from "./provision-wizard";
 import { invalidateOrgs } from "./util";
-import { deleteOrg, useListOrgs } from "@/data/api/generated/api";
+import { deleteOrg, getGetOrgPlanQueryOptions, useListOrgs } from "@/data/api/generated/api";
+import { queryClient } from "@/data/api/query";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
@@ -30,6 +31,7 @@ import { useListFilters } from "@/data/scope/use-list-filters";
 import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { orgsSearch } from "./search";
+import { orgsListParams } from "./queries";
 
 import { formatRate, fractionToPercent } from "./tax-rate";
 /** Platform admins only: the nav hides this, but a typed URL must not render a page whose every request 403s. */
@@ -48,10 +50,7 @@ function OrgsContent() {
   // caller can see and the export has nothing extra to fetch.
   const filters = useListFilters(orgsSearch);
   const { plan: planFilter, source: sourceFilter } = filters.values;
-  const list = useListOrgs({
-    plan: planFilter === "all" ? undefined : planFilter,
-    signup_source: sourceFilter === "all" ? undefined : sourceFilter,
-  });
+  const list = useListOrgs(orgsListParams(filters.values));
   const orgs = useMemo(() => list.data ?? [], [list.data]);
 
   const logoUrl = useExportLogo();
@@ -176,6 +175,8 @@ function OrgsContent() {
           )}
           getRowId={(o) => o.id}
           onRowClick={(o) => update({ edit: o.id })}
+          // The editor reads the plan only for a Free org (OverFreeLimitsNote).
+          onRowPrefetch={(o) => { if (o.plan === "free") void queryClient.prefetchQuery(getGetOrgPlanQueryOptions(o.id)); }}
           searchPlaceholder={t("common.search", "Search…")}
           toolbar={
             <>

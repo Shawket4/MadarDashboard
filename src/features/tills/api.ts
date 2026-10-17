@@ -66,7 +66,7 @@ const invalidateTills = () =>
   });
 
 /** Drop undefined/empty filters so the query key is stable. */
-function cleanParams(p: ListTillsParams): ListTillsParams | undefined {
+export function cleanParams(p: ListTillsParams): ListTillsParams | undefined {
   const out = Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined && v !== "" && v !== false));
   return Object.keys(out).length ? (out as ListTillsParams) : undefined;
 }

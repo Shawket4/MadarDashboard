@@ -31,6 +31,7 @@ import { ALL_SIZES, addLabelColumn, fromLabelBlocks, removeLabelColumn, toLabelB
 import {
   createBase,
   deleteBase,
+  getGetBaseUsageQueryOptions,
   getListBasesQueryKey,
   patchBase,
   putBaseLines,
@@ -108,7 +109,13 @@ export function RecipeBasesPage() {
       ) : (
         <ul ref={listRef} className="divide-y rounded-lg border">
           {(basesQ.data ?? []).map((b) => (
-            <li key={b.id} className="flex items-center justify-between gap-3 py-2 pe-2 ps-4">
+            <li
+              key={b.id}
+              className="flex items-center justify-between gap-3 py-2 pe-2 ps-4"
+              // Row intent: warm the usage read the editor fires on open.
+              onMouseEnter={() => void qc.prefetchQuery(getGetBaseUsageQueryOptions(b.id))}
+              onFocus={() => void qc.prefetchQuery(getGetBaseUsageQueryOptions(b.id))}
+            >
               <div className="min-w-0">
                 <p className="flex items-center gap-2 truncate text-sm font-medium">
                   {b.name}

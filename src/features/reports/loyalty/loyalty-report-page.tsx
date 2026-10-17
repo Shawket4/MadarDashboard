@@ -20,6 +20,7 @@ import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters } from "@/data/scope/use-list-filters";
 import { loyaltyReportSearch } from "../search";
+import { loyaltyReportRange } from "./queries";
 import {
   useGetLoyaltyBehavior, useGetLoyaltyCampaignEffectiveness, useGetLoyaltyLiabilityTrend,
 } from "@/data/api/generated/api";
@@ -45,7 +46,7 @@ const PRESET_FALLBACK: Record<string, string> = {
 export function LoyaltyReportPage() {
   const { t } = useTranslation();
   const { branchId, from, to, preset } = useScope();
-  const range = { branch_id: branchId ?? undefined, from: from ?? undefined, to: to ?? undefined };
+  const range = loyaltyReportRange({ branchId, from, to });
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
   // loyalty.members.list; the server counts only the branches the person works at.
@@ -165,7 +166,7 @@ const CAMPAIGN_LABELS: Record<string, string> = { winback: "Win-back", birthday:
 
 function CampaignsTab({ branchId, from, to }: { branchId: string | null; from: string | null; to: string | null }) {
   const { t } = useTranslation();
-  const q = useGetLoyaltyCampaignEffectiveness({ branch_id: branchId ?? undefined, from: from ?? undefined, to: to ?? undefined });
+  const q = useGetLoyaltyCampaignEffectiveness(loyaltyReportRange({ branchId, from, to }));
   const rows = q.data?.campaigns ?? [];
 
   if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
@@ -202,7 +203,7 @@ function CampaignsTab({ branchId, from, to }: { branchId: string | null; from: s
 
 function LiabilityTab({ branchId, from, to }: { branchId: string | null; from: string | null; to: string | null }) {
   const { t } = useTranslation();
-  const q = useGetLoyaltyLiabilityTrend({ branch_id: branchId ?? undefined, from: from ?? undefined, to: to ?? undefined });
+  const q = useGetLoyaltyLiabilityTrend(loyaltyReportRange({ branchId, from, to }));
   const currency = q.data?.currency ?? "points";
   const chartMotion = useChartMotion();
   const chart = useMemo(

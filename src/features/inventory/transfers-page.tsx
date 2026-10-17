@@ -19,6 +19,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { transfersSearch } from "./search";
+import { periodParams, transfersListParams } from "./queries";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
@@ -65,15 +66,15 @@ export function TransfersPage() {
   const selling = useMemo(() => (locations.data ?? []).filter((b) => b.kind === "branch"), [locations.data]);
   const canCreateHere = useAuthzAt(here?.id).can(Cap.inventoryTransfersCreate);
 
-  const status = tab === "all" || tab === "differences" ? undefined : tab;
+  // Same params as the sidebar prefetch (./queries.ts).
   const transfers = useListTransfers(
     scopeBranchId,
-    { direction: dir === "all" ? undefined : dir, status },
+    transfersListParams(filters.values),
     { query: { enabled: !!scopeBranchId && tab !== "differences" } },
   );
   const diffs = useTransferDifferences(
     orgId ?? "",
-    { from: from ?? undefined, to: to ?? undefined },
+    periodParams({ from, to }),
     { query: { enabled: !!orgId && tab === "differences" } },
   );
   const opened = (transfers.data ?? []).find((x) => x.id === openId) ?? null;

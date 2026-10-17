@@ -24,9 +24,12 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { bundlesReportSearch } from "../search";
+import { bundlesReportParams } from "../queries";
+import { getComboMixQueryOptions } from "@/data/api/generated/api";
+import { queryClient } from "@/data/api/query";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
-import { cairoParts, fmtDate, fmtMoney, fmtNumber } from "@/lib/format";
+import { fmtDate, fmtMoney, fmtNumber } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { useBundlesReport } from "@/features/combos/api";
 import type { BundleKind, BundlesReportRow } from "@/features/combos/types";
@@ -35,12 +38,6 @@ import { fmtRate, rateOf } from "@/features/combos/util";
 import { Cap } from "@/generated/capabilities";
 
 import { MixDialog } from "./mix-dialog";
-
-/** ISO instant → the branch-local "YYYY-MM-DD" the report's date params take. */
-function localDate(iso: string): string {
-  const { y, m, d } = cairoParts(iso);
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
 
 export function BundlesReportPage() {
   const { t, i18n } = useTranslation();
@@ -56,11 +53,10 @@ export function BundlesReportPage() {
   const [exporting, setExporting] = useState(false);
   const logoUrl = useExportLogo();
 
-  const params = useMemo(
-    () => ({ from: localDate(from), to: localDate(to), branch_id: branchId ?? undefined, kind }),
-    [from, to, branchId, kind],
-  );
+  const params = useMemo(() => bundlesReportParams({ branchId, from, to }, kind), [from, to, branchId, kind]);
   const q = useBundlesReport(params, { enabled: canSee });
+  // The combo mix dialog's request: the report's period and branch, without the kind.
+  const mixParams = { from: params.from, to: params.to, branch_id: params.branch_id };
   const rows = useMemo(() => q.data?.rows ?? [], [q.data]);
   const totals = q.data?.totals;
   const name = (r: BundlesReportRow) => getTranslatedName(r, lang);
@@ -213,6 +209,7 @@ export function BundlesReportPage() {
         onRetry={() => void q.refetch()}
         getRowId={(r) => `${r.kind}:${r.id}`}
         onRowClick={kind === "combo" ? (r) => setMixFor(r) : undefined}
+        onRowPrefetch={kind === "combo" ? (r) => void queryClient.prefetchQuery(getComboMixQueryOptions(r.id, mixParams)) : undefined}
         urlState={tableStateFrom(filters)}
         emptyState={
           <EmptyState
@@ -226,7 +223,7 @@ export function BundlesReportPage() {
         <MixDialog
           comboId={mixFor.id}
           name={name(mixFor)}
-          params={{ from: params.from, to: params.to, branch_id: params.branch_id }}
+          params={mixParams}
           onClose={() => setMixFor(null)}
         />
       ) : null}

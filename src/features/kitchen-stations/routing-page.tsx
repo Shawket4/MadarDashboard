@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Search, Store } from "lucide-react";
-import { keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -15,8 +14,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   deleteCategoryRoute, deleteItemRoute, listMenuCatalog, putCategoryRoute, putItemRoute,
-  useListCategories, useListMenuCatalog, useListRoutes, useListStations,
+  getListMenuCatalogQueryKey, getListMenuCatalogQueryOptions, useListCategories, useListMenuCatalog, useListRoutes, useListStations,
 } from "@/data/api/generated/api";
+import { keepWhilePaging } from "@/data/api/keep-while-paging";
+import { queryClient } from "@/data/api/query";
 import type { MenuItemWithCosts } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
@@ -74,11 +75,19 @@ export function RoutingPage() {
     () => ({ org_id: orgId ?? "", search: itemsSearchQ || undefined, page: itemsPage + 1, per_page: PER_PAGE }),
     [orgId, itemsSearchQ, itemsPage],
   );
+  // Paging keeps the page count while the rows show skeletons; a new search shows skeletons alone.
   const catalog = useListMenuCatalog(catalogParams, {
-    query: { enabled: enabled && !!orgId && tab === "items", placeholderData: keepPreviousData },
+    query: { enabled: enabled && !!orgId && tab === "items", placeholderData: keepWhilePaging(getListMenuCatalogQueryKey(catalogParams)) },
   });
   const items = catalog.data?.data ?? [];
   const pageCount = catalog.data?.total_pages ?? 0;
+  // The next page, so Next lands on rows already in cache.
+  useEffect(() => {
+    if (catalog.data && itemsPage + 1 < pageCount) {
+      void queryClient.prefetchQuery(getListMenuCatalogQueryOptions({ ...catalogParams, page: itemsPage + 2 }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalog.data, itemsPage]);
 
   const setCategoryRoute = async (categoryId: string, value: string) => {
     if (!branchId) return;
@@ -257,7 +266,7 @@ export function RoutingPage() {
           <p className="text-sm text-muted-foreground">{t("kitchen.byItemHint", "Override a single item's station. Left on “Inherit”, it follows its category.")}</p>
           {catalog.error ? (
             <ErrorState title={t("kitchen.itemsLoadFailed", "Couldn't load menu items")} message={getErrorMessage(catalog.error)} onRetry={() => void catalog.refetch()} />
-          ) : catalog.isLoading ? rowSkeletons : items.length === 0 ? (
+          ) : catalog.isLoading || catalog.isPlaceholderData ? rowSkeletons : items.length === 0 ? (
             <EmptyState icon={Search} title={t("kitchen.noItems", "No items match")} />
           ) : (
             <ListCard>

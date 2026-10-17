@@ -34,6 +34,7 @@ import { downloadBlob } from "@/lib/download";
 import { fmtDate, fmtMoney } from "@/lib/format";
 import { DateRangeField, quickRange, type DateRange } from "@/components/inputs";
 import { useListFilters } from "@/data/scope/use-list-filters";
+import { staffReportsParams, staffReportsTabs } from "./queries";
 import { staffReportsSearch } from "./search";
 import { fmtHours } from "@/features/staff/util";
 import { dawamQuery, failedEmpty } from "./live";
@@ -112,30 +113,24 @@ export function StaffReportsPage() {
   /** Picked by hand; until then, this pay period. */
   // Range and tab live in the URL (./search.ts); absent = this pay period.
   const { values: f, set } = useListFilters(staffReportsSearch);
-  const range: DateRange | null = f.from && f.to ? { from: f.from, to: f.to } : null;
   const setRange = (r: DateRange) => {
     const def = quickRange("this_period", { periodStartDay });
     set(r.from === def.from && r.to === def.to ? { from: "", to: "" } : { from: r.from, to: r.to });
   };
-  const shownRange = range ?? quickRange("this_period", { periodStartDay });
-  const canAttendance = authz.can(Cap.hrAttendanceRead);
-  const canPay = authz.can(Cap.hrPayrollRead);
-  const hasPos = modules.includes("pos");
-  const tabs = [
-    canAttendance && "attendance",
-    canPay && hasPos && "labour",
-    canPay && "payroll",
-    canPay && "advances",
-  ].filter(Boolean) as string[];
-  const picked = f.tab || null;
+  // One builder for the page AND the sidebar prefetch (./queries.ts).
+  const params = staffReportsParams(branchId, f, periodStartDay);
+  const shownRange = { from: params.from, to: params.to };
+  const { tabs, tab } = staffReportsTabs(f.tab, {
+    attendance: authz.can(Cap.hrAttendanceRead),
+    pay: authz.can(Cap.hrPayrollRead),
+    pos: modules.includes("pos"),
+  });
   const setPicked = (v: string) => set({ tab: (v === tabs[0] ? "" : v) as typeof f.tab });
-  const tab = picked && tabs.includes(picked) ? picked : tabs[0];
 
   if (authz.ready && tabs.length === 0) {
     return <Restricted title={t("dawam.reports", "Reports")} who={t("dawam.reportsNoAccess", "Reports need attendance or payroll rights. The owner can give you access.")} />;
   }
   const backwards = shownRange.to < shownRange.from;
-  const params = { from: shownRange.from, to: shownRange.to, branch_id: branchId ?? undefined };
 
   return (
     <Page>

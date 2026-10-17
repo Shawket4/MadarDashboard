@@ -20,10 +20,11 @@ import { fmtMoney, fmtNumber } from "@/lib/format";
 
 import { currencyLabel } from "../../shared/util";
 import type { ProgramScope } from "../use-program";
+import { programParams } from "../queries";
 
 export function OverviewPane({ scope }: { scope: ProgramScope }) {
   const { t } = useTranslation();
-  const params = scope.branchId ? { branch_id: scope.branchId } : {};
+  const params = programParams(scope.branchId);
   const analytics = useGetLoyaltyAnalytics(params, { query: { staleTime: 60_000 } });
   const members = useListLoyaltyMembers({ ...params, limit: 1 }, { query: { staleTime: 60_000 } });
 

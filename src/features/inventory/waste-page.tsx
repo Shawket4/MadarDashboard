@@ -18,6 +18,7 @@ import { useExportLogo } from "@/hooks/use-export-logo";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { wasteSearch } from "./search";
+import { periodParams } from "./queries";
 import { useCan } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
@@ -41,11 +42,7 @@ export function WastePage() {
   const waste = useListWaste(scopeBranchId, undefined, { query: { enabled: !!scopeBranchId } });
   // The "by reason" report also rolls up org-wide for All branches (the
   // waste-report endpoint accepts the all-branches sentinel).
-  const report = useBranchWasteReport(
-    scopeBranchId,
-    { from: from ?? undefined, to: to ?? undefined },
-    { query: { enabled: !!scopeBranchId } },
-  );
+  const report = useBranchWasteReport(scopeBranchId, periodParams({ from, to }), { query: { enabled: !!scopeBranchId } });
 
   const byReason = useMemo(() => {
     const map = new Map<string, { value: number; hasValue: boolean }>();

@@ -37,6 +37,7 @@ import { fmtDate, fmtMoney } from "@/lib/format";
 import { dawamQuery } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { EmployeeDialog } from "./employee-dialog";
+import { employeesListParams } from "./queries";
 import { employeesSearch } from "./search";
 import { EMPLOYMENT_STATUS_TONE, invalidateDepartments, invalidateEmployees } from "./util";
 
@@ -71,13 +72,8 @@ export function EmployeesPage() {
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const branchName = useMemo(() => new Map((branchesQ.data ?? []).map((b) => [b.id, b.name])), [branchesQ.data]);
 
-  const employeesQ = useListEmployees(
-    {
-      employment_status: status === ALL ? undefined : status,
-      department_id: department === ALL ? undefined : department,
-    },
-    { query: dawamQuery() },
-  );
+  // One builder for the page AND the sidebar prefetch (./queries.ts).
+  const employeesQ = useListEmployees(employeesListParams(f), { query: dawamQuery() });
   const departmentsQ = useListDepartments({ query: dawamQuery() });
   // A remembered department that was deleted meanwhile falls back to "All".
   useDropUnknown(f.dept, departmentsQ.data?.map((d) => d.id), () => set({ dept: "" }));

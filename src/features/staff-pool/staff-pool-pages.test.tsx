@@ -85,6 +85,8 @@ vi.mock("@/data/scope/use-scope", () => ({
   }),
 }));
 vi.mock("@/data/api/generated/api", () => ({
+  // Row hover warms the linked sale; a pending query is enough here.
+  getGetOrderQueryOptions: (...k: unknown[]) => ({ queryKey: k, queryFn: () => new Promise(() => {}) }),
   useGetStaffPoolSettings: hook("settings", () => settings),
   useGetStaffPoolToday: hook("today", () => today),
   useListStaffDrinks: hook("drinks", () => drinks),

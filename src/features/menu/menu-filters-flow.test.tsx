@@ -67,6 +67,7 @@ vi.mock("@/data/api/generated/api", () => ({
   getListAddonItemsQueryOptions: () => ({ queryKey: ["z"], queryFn: () => [] }),
   getListAddonCostsQueryOptions: () => ({ queryKey: ["w"], queryFn: () => [] }),
   getListMenuCatalogQueryOptions: () => ({ queryKey: ["v"], queryFn: () => null }),
+  getListMenuCatalogQueryKey: (p: unknown) => ["v", p],
   listMenuCatalog: vi.fn(),
   createMenuItem: vi.fn(),
   duplicateItem: vi.fn(),
@@ -76,6 +77,9 @@ vi.mock("@/data/api/generated/api", () => ({
 }));
 
 
+// Row hover warms the studio / combo editor; their reads are not under test here.
+vi.mock("./queries", async (importOriginal) => ({ ...(await importOriginal<typeof import("./queries")>()), prefetchMenuStudio: vi.fn() }));
+vi.mock("@/features/combos/queries", () => ({ prefetchComboEditor: vi.fn() }));
 vi.mock("./menu-item-dialog", () => ({ MenuItemDialog: () => null }));
 vi.mock("./addon-dialog", () => ({ AddonDialog: () => null }));
 vi.mock("./addon-recipe-dialog", () => ({ AddonRecipeDialog: () => null }));

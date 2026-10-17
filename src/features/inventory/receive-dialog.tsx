@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ import { listPoReceipts, receivePurchaseOrder, useGetPurchaseOrder } from "@/dat
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtDateTime, fmtMoney, fmtNumber, piastresToEgp } from "@/lib/format";
 import type { GoodsReceipt } from "@/data/api/generated/models";
+import { useStagger } from "@/lib/motion";
 import { deliveryCost, formatUnitCost, invalidateInventory } from "./lib";
 
 interface Props {
@@ -30,6 +31,9 @@ interface Props {
 export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
   const { t } = useTranslation();
   const po = useGetPurchaseOrder(poId ?? "", { query: { enabled: open && !!poId } });
+  // Data landing after the skeleton rows: the lines arrive (before anyone types in them).
+  const linesRef = useRef<HTMLTableSectionElement>(null);
+  useStagger(linesRef, { selector: ":scope > tr", when: !po.isLoading });
   const [receiving, setReceiving] = useState<Record<string, string>>({});
   // The ACTUAL invoice total (EGP) for what arrived, per line; blank = the
   // ordered total, pro rata (the server does the same sum).
@@ -117,7 +121,12 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                     <TableHead className="text-end">{t("inventory.purchasing.invoiceTotal", "Invoice total (EGP)")}</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody ref={linesRef}>
+                  {po.isLoading ? Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={6}><Skeleton className="h-8 w-full" /></TableCell>
+                    </TableRow>
+                  )) : null}
                   {(po.data?.lines ?? []).map((l) => {
                     const remaining = l.quantity_ordered - l.quantity_received;
                     const arriving = parseFloat(receiving[l.id] ?? "");

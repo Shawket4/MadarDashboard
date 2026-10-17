@@ -33,6 +33,8 @@ vi.mock("@/data/api/generated/api", () => ({
   useListBranchAddonOverrides: () => ({ data: [], isLoading: false, isError: false }),
   useListChannelAddonOverrides: () => ({ data: [] }),
   useGetStudio: () => ({ data: studio, isLoading: false, isError: false }),
+  getListMenuCatalogQueryKey: (p: unknown) => ["catalog", p],
+  getListAddonCatalogQueryKey: (p: unknown) => ["addons", p],
   putPriceOverride: vi.fn(),
   deletePriceOverride: vi.fn(),
 }));

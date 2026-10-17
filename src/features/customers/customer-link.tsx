@@ -16,6 +16,8 @@ export interface CustomerLinkControl {
   /** The viewer may open a customer at all (`customers.view`). */
   canOpen: boolean;
   open: (customerId: string) => void;
+  /** Warm what opening the customer will read (hover/focus on the name). */
+  prefetch?: (customerId: string) => void;
 }
 
 export function CustomerLink({
@@ -41,6 +43,8 @@ export function CustomerLink({
       variant="link"
       size="sm"
       className={cn("h-auto min-w-0 max-w-full p-0 text-start", className)}
+      onMouseEnter={() => control.prefetch?.(customerId)}
+      onFocus={() => control.prefetch?.(customerId)}
       onClick={(e) => {
         // Rows are often clickable themselves; the name opens the person, not the row.
         e.stopPropagation();

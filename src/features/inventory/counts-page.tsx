@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { OrgIngredient, Stocktake } from "@/data/api/generated/models";
-import { createStocktake, useListCatalog, useListIngredientCategories, useListStocktakes } from "@/data/api/generated/api";
+import { createStocktake, getVarianceReportQueryOptions, useListCatalog, useListIngredientCategories, useListStocktakes } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
+import { queryClient } from "@/data/api/query";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
@@ -236,6 +237,7 @@ export function CountsPage() {
           ) : null
         }
         onRowClick={(s) => s.status === "finalized" && setReportId(s.id)}
+        onRowPrefetch={(s) => { if (s.status === "finalized") void queryClient.prefetchQuery(getVarianceReportQueryOptions(s.id)); }}
         urlState={tableStateFrom(filters)}
         emptyState={<EmptyState icon={ClipboardList} title={t("inventory.stocktakes.noStocktakes", "No counts yet")} description={t("inventory.stocktakes.startHint", "Start a count to bring this branch's stock to life.")} />}
       />

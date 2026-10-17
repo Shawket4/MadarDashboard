@@ -19,6 +19,7 @@ import { ListCard, ListRow } from "@/components/app/list-row";
 import { useFlip, useStagger } from "@/lib/motion";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { useListFilters } from "@/data/scope/use-list-filters";
+import { approvalsCan, approvalsParams } from "./queries";
 import { approvalsSearch } from "./search";
 import { Restricted } from "@/components/app/restricted";
 import { useConfirm } from "@/components/app/confirm-dialog";
@@ -38,7 +39,7 @@ import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
 import {
   ApproveWithPayDialog, approveMeans, ASKS_PAY, confirmMissionOverPunches, describeWindow, kindMeta, mayDecide, RequestBadges, useOwnEmployeeIds,
 } from "@/features/staff/requests-inbox";
-import { fmtHours, fmtMinutes, invalidateStaff, isoDaysFromToday } from "@/features/staff/util";
+import { fmtHours, fmtMinutes, invalidateStaff } from "@/features/staff/util";
 import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { AdvanceCapNote, RejectDialog, ReviewAdvanceDialog } from "./money-dialogs";
@@ -94,31 +95,22 @@ export function ApprovalsPage() {
   const [gone, setGone] = useState<Set<string>>(() => new Set());
   const markGone = (keys: string[]) => setGone((prev) => new Set([...prev, ...keys]));
 
-  const can = {
-    requests: authz.canAny(Cap.hrLeaveEdit, Cap.hrAttendanceEdit),
-    advances: authz.can(Cap.hrAdvancesDecide),
-    roster: authz.can(Cap.hrScheduleEdit),
-    covers: authz.can(Cap.hrShiftCoverConfirm),
-    overtime: authz.can(Cap.hrOvertimeApprove),
-    payLines: authz.can(Cap.hrPayrollRun),
-  };
+  const can = approvalsCan(authz);
   // The owner (payroll run everywhere) may pass the advance cap; a manager can't (D7).
   const mayPassCap = authz.canEverywhere(Cap.hrPayrollRun);
   const any = Object.values(can).some(Boolean);
 
-  const requestsQ = useListRequests({ status: "pending" }, { query: dawamQuery({ enabled: can.requests }) });
+  // One builder for the page AND the sidebar prefetch (./queries.ts).
+  const params = approvalsParams();
+  const requestsQ = useListRequests(params.requests, { query: dawamQuery({ enabled: can.requests }) });
   // A manager's own requests are decided above them (RQ-5): not in their queue.
   const own = useOwnEmployeeIds(can.requests);
-  const advancesQ = useListAdvances({}, { query: dawamQuery({ enabled: can.advances }) });
-  const swapsQ = useListSwaps({ status: "pending" }, { query: dawamQuery({ enabled: can.roster }) });
-  // A claim can sit on any published week, however far ahead (O-8), and one
-  // left undecided past its day stays in the queue too (a -35-day window lost it).
-  const claimsQ = useListOpenShifts({ from: isoDaysFromToday(-366), to: isoDaysFromToday(366) }, { query: dawamQuery({ enabled: can.roster }) });
-  // Every pending cover and overtime, however old (H2-B5): a 35-day window
-  // dropped older ones out of every queue.
-  const coversQ = useListAttendance({ cover_status: "pending" }, { query: dawamQuery({ enabled: can.covers }) });
-  const overtimeQ = useListAttendance({ overtime_status: "pending" }, { query: dawamQuery({ enabled: can.overtime }) });
-  const payLinesQ = useListAdjustments({ status: "pending" }, { query: dawamQuery({ enabled: can.payLines }) });
+  const advancesQ = useListAdvances(params.advances, { query: dawamQuery({ enabled: can.advances }) });
+  const swapsQ = useListSwaps(params.swaps, { query: dawamQuery({ enabled: can.roster }) });
+  const claimsQ = useListOpenShifts(params.claims, { query: dawamQuery({ enabled: can.roster }) });
+  const coversQ = useListAttendance(params.covers, { query: dawamQuery({ enabled: can.covers }) });
+  const overtimeQ = useListAttendance(params.overtime, { query: dawamQuery({ enabled: can.overtime }) });
+  const payLinesQ = useListAdjustments(params.payLines, { query: dawamQuery({ enabled: can.payLines }) });
   // Each list stands on its own (DSH-1, PAGE-Approvals): one that fails —
   // a 403 on advances for a branch manager, say — is reported in its place,
   // and everything else still shows and can be decided.

@@ -7,10 +7,11 @@ import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs } from "@/components/ui/tabs";
 import { Restricted } from "@/components/app/restricted";
 import { useAuthz } from "@/data/authz/use-authz";
-import { Cap, type Capability } from "@/generated/capabilities";
+import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters } from "@/data/scope/use-list-filters";
 import { legalReportsSearch } from "../search";
+import { legalTabs, openTab, type LegalTab } from "../queries";
 import {
   useAttendanceCorrectionsAudit, useDeductionOverridesAudit, useDiscountsAudit,
   useLoyaltyAdjustmentsAudit, useManualDeductionsAudit, usePriceOverrides,
@@ -30,42 +31,7 @@ const PRESET_FALLBACK: Record<string, string> = {
   custom: "Custom range",
 };
 
-type TabKey =
-  | "tax" | "refunds" | "voids" | "discounts" | "waivers" | "price_overrides"
-  | "manual_deductions" | "deduction_overrides" | "loyalty_adjustments" | "attendance_corrections";
-
-const TABS: TabKey[] = [
-  "tax", "refunds", "voids", "discounts", "waivers", "price_overrides",
-  "manual_deductions", "deduction_overrides", "loyalty_adjustments", "attendance_corrections",
-];
-
-/** Every tab is reports.legal; these also show pay or attendance, which the
- *  server checks separately (payroll is owner-only by default). */
-const EXTRA_CAP: Partial<Record<TabKey, Capability>> = {
-  manual_deductions: Cap.hrPayrollRead,
-  deduction_overrides: Cap.hrPayrollRead,
-  attendance_corrections: Cap.hrAttendanceRead,
-};
-
-/** The module each tab reports on (PS-3): a Dawam-only business sees only
- *  the pay and attendance corrections, a POS-only one only the till's. */
-const TAB_MODULE: Record<TabKey, "pos" | "dawam"> = {
-  tax: "pos",
-  refunds: "pos",
-  voids: "pos",
-  discounts: "pos",
-  waivers: "pos",
-  price_overrides: "pos",
-  manual_deductions: "dawam",
-  deduction_overrides: "dawam",
-  loyalty_adjustments: "pos",
-  attendance_corrections: "dawam",
-};
-
-/** The tabs this person sees, in order. Pure, so it is tested directly. */
-function legalTabs(can: (c: Capability) => boolean, modules: readonly string[]): TabKey[] {
-  return TABS.filter((k) => modules.includes(TAB_MODULE[k]) && (!EXTRA_CAP[k] || can(EXTRA_CAP[k])));
-}
+type TabKey = LegalTab;
 
 /** Legal / compliance reports: the VAT summary plus an audit trail of every
  * kind of money or record a human corrected after the fact — refunds,
@@ -90,7 +56,7 @@ export function LegalReportsPage() {
   const modules = useOrgModules();
   const canSee = authz.can(Cap.reportsLegal);
   const visible = legalTabs(authz.can, modules);
-  const tab: TabKey | undefined = visible.includes(picked) ? picked : visible[0];
+  const tab: TabKey | undefined = openTab(picked, visible);
   const enabled = !!orgId && canSee;
   const on = (k: TabKey) => enabled && tab === k && visible.includes(k);
 

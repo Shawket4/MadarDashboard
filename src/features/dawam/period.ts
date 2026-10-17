@@ -7,7 +7,8 @@ import { useGetAttendanceSettings } from "@/data/api/generated/api";
 
 export function usePeriodStartDay(enabled = true): number {
   const q = useGetAttendanceSettings({}, { query: { enabled, staleTime: 60_000 } });
-  const day = q.data?.period_start_day;
-  // madar_dawam::pay::period_window (quickRange's wasm call) clamps it to 1–28; it takes a whole number.
-  return typeof day === "number" ? Math.trunc(day) : 1;
+  return periodStartDayOf(q.data?.period_start_day);
 }
+
+/** madar_dawam::pay::period_window (quickRange's wasm call) clamps it to 1–28; it takes a whole number. */
+export const periodStartDayOf = (day: number | null | undefined): number => (typeof day === "number" ? Math.trunc(day) : 1);

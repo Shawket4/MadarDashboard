@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { keepPreviousData, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { ChefHat, Copy, CupSoda, Pencil, Store, Tag, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,10 +28,9 @@ import { useAddonCostMap } from "./costing";
 import {
   createMenuItem,
   duplicateItem,
-  getGetMenuItemQueryOptions,
-  getGetStudioQueryOptions,
   getListAddonCostsQueryOptions,
   getListAddonItemsQueryOptions,
+  getListMenuCatalogQueryKey,
   getListMenuCatalogQueryOptions,
   listMenuCatalog,
   patchOption,
@@ -63,6 +62,10 @@ import { runBulk } from "@/lib/bulk-runner";
 import { useDropUnknown, useListFilters, useSearchInput, tableStateFrom } from "@/data/scope/use-list-filters";
 import { keepScope } from "@/data/scope/list-search";
 import { menuItemsSearch } from "./search";
+import { menuItemsListParams, prefetchMenuStudio } from "./queries";
+import { prefetchComboEditor } from "@/features/combos/queries";
+import { keepWhilePaging } from "@/data/api/keep-while-paging";
+import { useHasFeature } from "@/hooks/use-plan";
 import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { useExportLogo } from "@/hooks/use-export-logo";
@@ -75,7 +78,6 @@ import { PriceTaxHint } from "./price-tax-hint";
 
 
 const ALL = "__all__";
-const ITEMS_PER_PAGE = 24;
 
 export function MenuItemsPage() {
   const { t, i18n } = useTranslation();
@@ -106,7 +108,6 @@ export function MenuItemsPage() {
   const itemsPage = f.page - 1;
   const setItemsPage = (p: number) => set({ page: p + 1 });
   const [itemsSearch, setItemsSearch] = useSearchInput(f.q, (q) => set({ q }), 300);
-  const itemsSearchQ = f.q;
 
   const [itemOpen, setItemOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -123,23 +124,17 @@ export function MenuItemsPage() {
   const queryClient = useQueryClient();
   const addonsActive = tab === "addons";
 
-  const itemsParams = useMemo(
-    () => ({
-      org_id: orgId ?? "",
-      category_id: categoryFilter === ALL ? undefined : categoryFilter,
-      search: itemsSearchQ || undefined,
-      has_recipe: !canFilterRecipes || recipeFilter === "all" ? undefined : recipeFilter === "has",
-      page: itemsPage + 1,
-      per_page: ITEMS_PER_PAGE,
-    }),
-    [orgId, categoryFilter, recipeFilter, canFilterRecipes, itemsSearchQ, itemsPage],
-  );
+  // One builder for the page AND the sidebar prefetch (queries.ts), so both ask for the same key.
+  const itemsParams = useMemo(() => menuItemsListParams(orgId, f, canFilterRecipes), [orgId, f, canFilterRecipes]);
 
   const categories = useListCategories({ org_id: orgId ?? "" }, { query: { enabled } });
   // Add-on list loads on mount (cheap — powers the tab count badge); the heavier
   // add-on cost rollup is deferred to the Add-ons tab (prefetched on hover).
   const addons = useListAddonItems({ org_id: orgId ?? "" }, { query: { enabled } });
-  const items = useListMenuCatalog(itemsParams, { query: { enabled, placeholderData: keepPreviousData } });
+  // Paging keeps the count badge while the grid shows skeleton cards; a filter change shows skeletons.
+  const items = useListMenuCatalog(itemsParams, {
+    query: { enabled, placeholderData: keepWhilePaging(getListMenuCatalogQueryKey(itemsParams)) },
+  });
   const addonCostMap = useAddonCostMap(orgId, addonsActive);
 
   // Branch availability overrides (only when a single branch is scoped). These
@@ -159,10 +154,10 @@ export function MenuItemsPage() {
   }, [addonOverrides.data]);
 
   // Predictive prefetch: warm a query before the user commits to the action.
-  const prefetchItem = (id: string) => {
-    void queryClient.prefetchQuery(getGetMenuItemQueryOptions(id));
-    void queryClient.prefetchQuery(getGetStudioQueryOptions(id));
-  };
+  const hasRecipes = useHasFeature("inventory");
+  // A combo opens the combo editor (see openStudio), anything else the studio.
+  const prefetchItem = (m: Pick<MenuItem, "id" | "kind">) =>
+    m.kind === "combo" ? prefetchComboEditor(queryClient, orgId, m.id) : prefetchMenuStudio(queryClient, orgId, m.id, hasRecipes);
   // A combo is a menu item of kind "combo": its slots live in the combo editor, not the studio.
   const openStudio = (id: string, kind?: string) =>
     void (kind === "combo"
@@ -170,7 +165,7 @@ export function MenuItemsPage() {
       : navigate({ to: "/menu/items/$itemId", params: { itemId: id }, search: keepScope as never }));
   const prefetchNextItemsPage = () => {
     if (itemsPage + 1 >= itemsPageCount) return;
-    void queryClient.prefetchQuery(getListMenuCatalogQueryOptions({ ...itemsParams, page: itemsPage + 2 }));
+    void queryClient.prefetchQuery(getListMenuCatalogQueryOptions({ ...itemsParams, page: f.page + 1 }));
   };
   const prefetchAddons = () => {
     if (!orgId) return;
@@ -182,6 +177,11 @@ export function MenuItemsPage() {
   const itemList: MenuItemWithCosts[] = items.data?.data ?? [];
   const itemsTotal = items.data?.total ?? 0;
   const itemsPageCount = items.data?.total_pages ?? 0;
+  // Predictive prefetch: the next page loads before the user clicks Next.
+  useEffect(() => {
+    if (items.data) prefetchNextItemsPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.data, itemsPage]);
   const addonList = useMemo(() => addons.data ?? [], [addons.data]);
   const tname = (n: { name: string; name_translations?: unknown }) => getTranslatedName(n, lang);
   const catName = (id?: string | null) => {
@@ -420,7 +420,7 @@ export function MenuItemsPage() {
               </div>
             )}
             onCommitRow={commitItem}
-            onRowPrefetch={(m) => prefetchItem(m.id)}
+            onRowPrefetch={prefetchItem}
             onPrefetchNext={prefetchNextItemsPage}
             searchValue={itemsSearch}
             onSearchChange={setItemsSearch}
@@ -428,7 +428,7 @@ export function MenuItemsPage() {
             page={itemsPage}
             pageCount={itemsPageCount}
             onPageChange={setItemsPage}
-            isLoading={items.isLoading || (items.isFetching && !items.data)}
+            isLoading={items.isLoading || items.isPlaceholderData}
             onAdd={() => { setEditingItem(null); setItemOpen(true); }}
             addLabel={t("menu.newItem", "New item")}
             emptyState={<EmptyState icon={UtensilsCrossed} title={t("menu.noItems", "No items yet")} />}
@@ -481,7 +481,7 @@ export function MenuItemsPage() {
                   </DropdownMenuItem>
                 ) : (
                   <>
-                    <DropdownMenuItem onClick={() => openStudio(m.id)} onMouseEnter={() => prefetchItem(m.id)}>
+                    <DropdownMenuItem onClick={() => openStudio(m.id)} onMouseEnter={() => prefetchItem(m)}>
                       <Pencil className="size-4" /> {t("menu.grid.fullEditor", "Full editor")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => void duplicate(m)}>

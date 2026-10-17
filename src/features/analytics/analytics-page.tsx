@@ -20,6 +20,7 @@ import { WEEKDAYS } from "@/features/staff/util";
 import {
   CHART_GRID, ChartEmpty, ChartError, ChartFrame, ChartSkeleton,
 } from "@/features/reports/operations/report-kit";
+import { timeseriesParams } from "./queries";
 import { GRANULARITIES, type Granularity, type MethodMap, type Range } from "./lib";
 
 export type { Range };
@@ -127,7 +128,7 @@ export function RevenueTab({ branchId, range, gran, setGran }: { branchId: strin
   const chartMotion = useChartMotion();
   const isPeak = gran === "peak_hours" || gran === "peak_days";
 
-  const tsQ = useBranchSalesTimeseries(branchId, { ...range, granularity: gran }, { query: { enabled: !!branchId && !isPeak } });
+  const tsQ = useBranchSalesTimeseries(branchId, timeseriesParams(range, gran), { query: { enabled: !!branchId && !isPeak } });
   const tsData = useMemo(() => (tsQ.data ?? []).map((p) => ({ ...p, label: fmtPeriod(p.period, gran) })), [tsQ.data, gran]);
 
   const phQ = useBranchSalesPeakHours(branchId, range, { query: { enabled: !!branchId && gran === "peak_hours" } });

@@ -295,6 +295,12 @@ export interface ListSearchDef<S extends ListSpec> {
   validateSearch: (raw: Record<string, unknown>) => ListSearch<S>;
   /** For the route: `beforeLoad: def.beforeLoad` — restores the remembered state. */
   beforeLoad: (ctx: { search: Record<string, unknown>; preload?: boolean; cause?: string }) => void;
+  /**
+   * What the list shows when entered from a plain link (the sidebar): the
+   * remembered state, else the defaults. Prefetch from these so the warmed
+   * query key is the one the page reads on mount.
+   */
+  entryValues: (branchId: string | null) => ListValues<S>;
 }
 
 export function defineListSearch<S extends ListSpec>(path: string, spec: S): ListSearchDef<S> {
@@ -309,6 +315,7 @@ export function defineListSearch<S extends ListSpec>(path: string, spec: S): Lis
       if (!restored) return;
       throw redirect({ to: path as never, search: { ...search, ...restored } as never, replace: true });
     },
+    entryValues: (branchId) => withDefaults(spec, restoreFor(spec, path, { branchId }) ?? {}),
   };
 }
 

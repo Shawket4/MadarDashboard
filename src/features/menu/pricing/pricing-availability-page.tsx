@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { keepPreviousData } from "@tanstack/react-query";
 import {
   ChevronDown,
   ChevronLeft,
@@ -28,6 +27,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   deletePriceOverride,
+  getGetStudioQueryOptions,
+  getListAddonCatalogQueryKey,
+  getListAddonCatalogQueryOptions,
+  getListMenuCatalogQueryKey,
+  getListMenuCatalogQueryOptions,
   putPriceOverride,
   useGetStudio,
   useListAddonCatalog,
@@ -46,11 +50,14 @@ import type {
   SizeOverrideOut,
 } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { keepWhilePaging } from "@/data/api/keep-while-paging";
+import { queryClient } from "@/data/api/query";
 import { currencyLabel as fmtCurrencyLabel, egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { cn } from "@/lib/utils";
 import { useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
 import { pricingSearch } from "./search";
+import { PRICING_CHANNELS, pricingAddonParams, pricingCatalogParams } from "../queries";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
@@ -59,11 +66,10 @@ import { invalidatePricingOverrides } from "./util";
 
 // ── Scope columns ─────────────────────────────────────────────────────────────
 
-const PER_PAGE = 24;
 
 /** The four delivery channels expressible as `branch_channel` overrides. */
-type Channel = "in_mall" | "outside" | "umbrella" | "pickup";
-const CHANNELS: Channel[] = ["in_mall", "outside", "umbrella", "pickup"];
+type Channel = (typeof PRICING_CHANNELS)[number];
+const CHANNELS: Channel[] = [...PRICING_CHANNELS];
 
 /**
  * The editable scope columns, left→right. `catalog` is a read-only reference
@@ -574,6 +580,9 @@ function collectPending(
   return out;
 }
 
+/** Row intent: warm the studio read an item's expand fires. */
+const prefetchStudio = (itemId: string) => void queryClient.prefetchQuery(getGetStudioQueryOptions(itemId));
+
 /**
  * Per-item studio fetch → this branch's size targets (branch + per-channel
  * overrides), plus keeping the page-level Save registry in sync. Shared by the
@@ -674,6 +683,8 @@ function ItemRow({
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
+            onMouseEnter={() => prefetchStudio(item.id)}
+            onFocus={() => prefetchStudio(item.id)}
             aria-expanded={open}
             className="flex w-full items-center gap-2.5 px-3 py-2.5 text-start transition-colors hover:bg-muted/40"
           >
@@ -956,6 +967,8 @@ function ItemCard({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        onMouseEnter={() => prefetchStudio(item.id)}
+        onFocus={() => prefetchStudio(item.id)}
         aria-expanded={open}
         className="flex w-full items-center gap-2.5 px-3 py-2.5 text-start transition-colors hover:bg-muted/40"
       >
@@ -1041,11 +1054,9 @@ export function PricingAvailabilityPage() {
   const itemsPage = f.page - 1;
   const setItemsPage = (p: number) => set({ page: p + 1 });
   const [itemsSearch, setItemsSearch] = useSearchInput(f.q, (q) => set({ q }), 300);
-  const itemsSearchQ = f.q;
   const addonsPage = f.apage - 1;
   const setAddonsPage = (p: number) => set({ apage: p + 1 });
   const [addonsSearch, setAddonsSearch] = useSearchInput(f.aq, (aq) => set({ aq, apage: undefined }), 300);
-  const addonsSearchQ = f.aq;
 
   const branchesQ = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const branch = useMemo(
@@ -1090,17 +1101,17 @@ export function PricingAvailabilityPage() {
   }, []);
 
   // ── Catalog + add-on override reads ─────────────────────────────────────────
-  const catalogParams = useMemo(
-    () => ({ org_id: orgId ?? "", search: itemsSearchQ || undefined, page: itemsPage + 1, per_page: PER_PAGE }),
-    [orgId, itemsSearchQ, itemsPage],
-  );
-  const addonParams = useMemo(
-    () => ({ org_id: orgId ?? "", search: addonsSearchQ || undefined, page: addonsPage + 1, per_page: PER_PAGE }),
-    [orgId, addonsSearchQ, addonsPage],
-  );
+  // One builder each for the page AND the sidebar prefetch (../queries.ts), so both ask for the same key.
+  const catalogParams = useMemo(() => pricingCatalogParams(orgId, f), [orgId, f]);
+  const addonParams = useMemo(() => pricingAddonParams(orgId, f), [orgId, f]);
 
-  const catalog = useListMenuCatalog(catalogParams, { query: { enabled: on, placeholderData: keepPreviousData } });
-  const addons = useListAddonCatalog(addonParams, { query: { enabled: on, placeholderData: keepPreviousData } });
+  // Paging keeps the pager while the list shows its skeleton; a search change shows it too.
+  const catalog = useListMenuCatalog(catalogParams, {
+    query: { enabled: on, placeholderData: keepWhilePaging(getListMenuCatalogQueryKey(catalogParams)) },
+  });
+  const addons = useListAddonCatalog(addonParams, {
+    query: { enabled: on, placeholderData: keepWhilePaging(getListAddonCatalogQueryKey(addonParams)) },
+  });
 
   // Add-on branch-scope overrides (one query) + per-channel overrides (four
   // queries, one per delivery channel). Fixed hook order → safe to call in a row.
@@ -1135,6 +1146,19 @@ export function PricingAvailabilityPage() {
   const itemsPageCount = catalog.data?.total_pages ?? 0;
   const addonList: AddonItem[] = useMemo(() => addons.data?.data ?? [], [addons.data]);
   const addonsPageCount = addons.data?.total_pages ?? 0;
+
+  // Predictive prefetch: the visible tab's next page loads before the user clicks Next.
+  const prefetchNextItems = () => {
+    if (catalog.data && f.page < itemsPageCount) void queryClient.prefetchQuery(getListMenuCatalogQueryOptions({ ...catalogParams, page: f.page + 1 }));
+  };
+  const prefetchNextAddons = () => {
+    if (addons.data && f.apage < addonsPageCount) void queryClient.prefetchQuery(getListAddonCatalogQueryOptions({ ...addonParams, page: f.apage + 1 }));
+  };
+  useEffect(() => {
+    if (tab === "items") prefetchNextItems();
+    else prefetchNextAddons();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, catalog.data, addons.data, f.page, f.apage]);
 
   // Add-on lookups keyed by addon id → per-scope RawOverride.
   const branchAddonById = useMemo(() => {
@@ -1264,7 +1288,7 @@ export function PricingAvailabilityPage() {
     </div>
   );
 
-  const pager = (page: number, pageCount: number, setPage: (p: number) => void) =>
+  const pager = (page: number, pageCount: number, setPage: (p: number) => void, prefetchNext: () => void) =>
     pageCount > 1 ? (
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground tabular-nums">
@@ -1285,6 +1309,8 @@ export function PricingAvailabilityPage() {
             size="icon-sm"
             disabled={page >= pageCount - 1}
             onClick={() => setPage(page + 1)}
+            onMouseEnter={prefetchNext}
+            onFocus={prefetchNext}
             aria-label={t("common.next", "Next")}
           >
             <ChevronRight className="size-4 rtl:rotate-180" />
@@ -1357,7 +1383,7 @@ export function PricingAvailabilityPage() {
         <TooltipProvider delayDuration={200}>
           {tab === "items" ? (
             <div className="space-y-4">
-              {catalog.isLoading ? (
+              {catalog.isLoading || catalog.isPlaceholderData ? (
                 <Skeleton className="h-64 w-full rounded-2xl" />
               ) : catalog.isError ? (
                 <ErrorState
@@ -1401,11 +1427,11 @@ export function PricingAvailabilityPage() {
                 )
               )}
 
-              {pager(itemsPage, itemsPageCount, setItemsPage)}
+              {pager(itemsPage, itemsPageCount, setItemsPage, prefetchNextItems)}
             </div>
           ) : (
             <div className="space-y-4">
-              {addons.isLoading || branchAddonOvr.isLoading ? (
+              {addons.isLoading || addons.isPlaceholderData || branchAddonOvr.isLoading ? (
                 <Skeleton className="h-64 w-full rounded-xl" />
               ) : addons.isError || branchAddonOvr.isError ? (
                 <ErrorState
@@ -1451,7 +1477,7 @@ export function PricingAvailabilityPage() {
                 )
               )}
 
-              {pager(addonsPage, addonsPageCount, setAddonsPage)}
+              {pager(addonsPage, addonsPageCount, setAddonsPage, prefetchNextAddons)}
             </div>
           )}
         </TooltipProvider>

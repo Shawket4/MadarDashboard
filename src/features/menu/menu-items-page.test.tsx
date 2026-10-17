@@ -85,6 +85,7 @@ vi.mock("@/data/api/generated/api", () => ({
   getGetMenuItemQueryOptions: () => ({ queryKey: ["get-item"], queryFn: () => Promise.resolve(null) }),
   getGetStudioQueryOptions: () => ({ queryKey: ["get-studio"], queryFn: () => Promise.resolve(null) }),
   getListMenuCatalogQueryOptions: () => ({ queryKey: ["list-catalog"], queryFn: () => Promise.resolve(null) }),
+  getListMenuCatalogQueryKey: (p: unknown) => ["list-catalog", p],
   getListAddonItemsQueryOptions: () => ({ queryKey: ["list-addons"], queryFn: () => Promise.resolve(null) }),
   getListAddonCostsQueryOptions: () => ({ queryKey: ["list-addon-costs"], queryFn: () => Promise.resolve(null) }),
   listMenuCatalog: vi.fn(),
@@ -97,6 +98,9 @@ vi.mock("@/data/api/generated/api", () => ({
 
 // The item dialog and its siblings pull in a much larger hook surface
 // (recipes, modifier groups, catalog…) irrelevant to the grid itself.
+// Row hover warms the studio / combo editor; their reads are not under test here.
+vi.mock("./queries", async (importOriginal) => ({ ...(await importOriginal<typeof import("./queries")>()), prefetchMenuStudio: vi.fn() }));
+vi.mock("@/features/combos/queries", () => ({ prefetchComboEditor: vi.fn() }));
 vi.mock("./menu-item-dialog", () => ({ MenuItemDialog: () => null }));
 vi.mock("./addon-dialog", () => ({ AddonDialog: () => null }));
 vi.mock("./addon-recipe-dialog", () => ({ AddonRecipeDialog: () => null }));

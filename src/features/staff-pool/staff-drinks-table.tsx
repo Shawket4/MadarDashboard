@@ -33,7 +33,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/app/empty-state";
 import { StatusPill } from "@/components/app/status-pill";
+import { getGetOrderQueryOptions } from "@/data/api/generated/api";
 import type { StaffDrink } from "@/data/api/generated/models";
+import { queryClient } from "@/data/api/query";
 import { fmtDate, fmtMoney, fmtTime } from "@/lib/format";
 
 import { staffDrinkMoney } from "./util";
@@ -228,6 +230,8 @@ export function StaffDrinksTable({
         error={error}
         onRetry={onRetry}
         getRowId={(d) => d.id}
+        // A drink rung on a sale opens that sale: warm it while the row is pointed at.
+        onRowPrefetch={onOpenOrder ? (d) => { if (d.order_id) void queryClient.prefetchQuery(getGetOrderQueryOptions(d.order_id)); } : undefined}
         emptyState={
           <EmptyState
             title={t("staffPool.drinksEmpty", "No staff drinks in this period")}

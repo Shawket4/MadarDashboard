@@ -58,8 +58,11 @@ import { prefersReducedMotion, Reveal } from "@/lib/motion";
 import { fmtDateTime } from "@/lib/format";
 import { getErrorMessage } from "@/data/api/errors";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/data/api/query";
 
 import * as api from "./api";
+import { CONVERSATIONS_KEY, conversationQueryOptions, conversationsQueryOptions } from "./queries";
 import { PageHeader } from "@/components/app/page";
 import { ResultView, ScopeBadge } from "./result-block";
 import { ConversationList } from "./conversation-list";
@@ -79,6 +82,8 @@ const STARTERS = [
   { key: "waste", fallback: "What am I wasting the most money on?" },
 ] as const;
 
+const NO_CONVERSATIONS: ConversationSummary[] = [];
+
 let localId = 0;
 const nextId = () => `x${++localId}`;
 
@@ -87,12 +92,14 @@ export function BasiraPage() {
   const confirm = useConfirm();
   const isRtl = i18n.dir() === "rtl";
 
-  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  // The rail and each thread go through React Query (queries.ts), so the
+  // sidebar hover and a rail hover can warm them.
+  const list = useQuery(conversationsQueryOptions());
+  const conversations = list.data ?? NO_CONVERSATIONS;
   const [activeId, setActiveId] = useState<string | undefined>();
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
-  const [loadingList, setLoadingList] = useState(true);
   const [loadingThread, setLoadingThread] = useState(false);
   const [railOpen, setRailOpen] = useState(false);
   const [renaming, setRenaming] = useState<ConversationSummary | null>(null);
@@ -100,19 +107,11 @@ export function BasiraPage() {
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const refreshList = useCallback(async () => {
-    try {
-      setConversations(await api.listConversations());
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setLoadingList(false);
-    }
-  }, []);
-
   useEffect(() => {
-    void refreshList();
-  }, [refreshList]);
+    if (list.error) toast.error(getErrorMessage(list.error));
+  }, [list.error]);
+
+  const refreshList = useCallback(() => queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY }), []);
 
   // Abort an in-flight turn on unmount, so a half-read stream does not keep a
   // connection open behind a navigation.
@@ -128,7 +127,7 @@ export function BasiraPage() {
     setRailOpen(false);
     setLoadingThread(true);
     try {
-      const detail = await api.getConversation(id);
+      const detail = await queryClient.fetchQuery(conversationQueryOptions(id));
       setExchanges(
         detail.turns.map((turn) => ({
           id: turn.id,
@@ -286,8 +285,9 @@ export function BasiraPage() {
   const listProps = {
     conversations,
     activeId,
-    loading: loadingList,
+    loading: list.isLoading,
     onOpen: (id: string) => void openConversation(id),
+    onPrefetch: (id: string) => void queryClient.prefetchQuery(conversationQueryOptions(id)),
     onNew: startNew,
     onRename: (c: ConversationSummary) => setRenaming(c),
     onDelete: (c: ConversationSummary) => void remove(c),

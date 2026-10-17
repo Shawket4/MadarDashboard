@@ -20,6 +20,7 @@ import { DataTable } from "@/components/app/data-table";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { ExportButton } from "@/components/app/export-button";
 import { ListCard, ListRow } from "@/components/app/list-row";
+import { queryClient } from "@/data/api/query";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Restricted } from "@/components/app/restricted";
 import { StatCard } from "@/components/app/stat-card";
@@ -27,13 +28,14 @@ import { StatusPill } from "@/components/app/status-pill";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Stagger } from "@/lib/motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   decideAdjustment, deleteBonus, deleteDeduction, exportPeriodCsv, generatePeriod,
   useCurrent, useListAdjustments, useListAdvances, useListEmployees,
-  useListExpenseAdvances, useListPayslips, usePreviewPeriod,
+  getListPayslipsQueryOptions, useListExpenseAdvances, useListPayslips, usePreviewPeriod,
 } from "@/data/api/generated/api";
 import type {
   Adjustment, ComputedPayslip, CurrentPayroll, Employee, ExpenseAdvance, PayrollPeriod, Payslip, SalaryAdvance, UnsettledPeriod,
@@ -54,6 +56,7 @@ import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { printPayslip } from "./payslip-print";
 import { PayrollSteps } from "./payroll-steps";
+import { expenseAdvancesParams } from "./queries";
 import { payrollSearch } from "./search";
 import { useDropUnknown, useListFilters } from "@/data/scope/use-list-filters";
 import {
@@ -457,7 +460,7 @@ export function PayrollPage() {
           <ExpensesTab canLog={canExpense} onLog={() => setLogging(true)} />
         </TabsContent>
         <TabsContent value="history">
-          <HistoryTab periods={cur?.history ?? []} people={people} onOpenMonth={openMonth} />
+          <HistoryTab loading={currentQ.isLoading} periods={cur?.history ?? []} people={people} onOpenMonth={openMonth} />
         </TabsContent>
       </Tabs>
 
@@ -801,7 +804,7 @@ function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) 
   const [correcting, setCorrecting] = useState<ExpenseAdvance | null>(null);
   // The scope bar's branch (the expense's own branch, AV-9); every branch when none is picked.
   const { branchId } = useScope();
-  const q = useListExpenseAdvances(branchId ? { branch_id: branchId } : {}, { query: dawamQuery() });
+  const q = useListExpenseAdvances(expenseAdvancesParams(branchId), { query: dawamQuery() });
   const rows = q.data ?? [];
   return (
     <div className="space-y-3">
@@ -836,8 +839,10 @@ function ExpensesTab({ canLog, onLog }: { canLog: boolean; onLog: () => void }) 
 }
 
 function HistoryTab({
-  periods, people, onOpenMonth,
+  loading, periods, people, onOpenMonth,
 }: {
+  /** The months come with the current run: a skeleton until it answers, never "no earlier months". */
+  loading: boolean;
   periods: PayrollPeriod[];
   people: Map<string, Employee>;
   /** A month still to settle opens in the page with its actions (H2-P1). */
@@ -846,11 +851,13 @@ function HistoryTab({
   const { t } = useTranslation();
   const [open, setOpen] = useState<PayrollPeriod | null>(null);
   const slipsQ = useListPayslips(open?.id ?? "", { query: dawamQuery({ enabled: !!open }) });
+  if (loading) return <Skeleton className="h-40 w-full rounded-2xl" />;
   if (periods.length === 0) {
     return <EmptyState icon={History} title={t("dawam.noHistory", "No earlier months yet")} description={t("dawam.noHistoryHint", "Approved months stay here with their frozen payslips.")} />;
   }
   return (
     <>
+      <Stagger selector=":scope > [data-slot=list-card] > *">
       <ListCard>
         {periods.map((p) => (
           <ListRow
@@ -859,6 +866,8 @@ function HistoryTab({
             title={p.name}
             meta={`${fmtDate(p.start_date)} → ${fmtDate(p.end_date)}${isUnsettled(p.status) ? ` · ${t("dawam.notFullyPaid", "Not fully paid yet")}` : ""}`}
             onClick={() => (isUnsettled(p.status) ? onOpenMonth(p.id) : setOpen(p))}
+            // Both ways in read the month's payslips, except a draft opened in the page (its live preview).
+            onPrefetch={isUnsettled(p.status) && p.status === "draft" ? undefined : () => void queryClient.prefetchQuery(getListPayslipsQueryOptions(p.id))}
             trailing={
               <span className="flex items-center gap-2">
                 <span className="tabular-nums">{fmtMoney(p.total_net_piastres)}</span>
@@ -868,6 +877,7 @@ function HistoryTab({
           />
         ))}
       </ListCard>
+      </Stagger>
       <Sheet open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
         <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
           <SheetHeader>

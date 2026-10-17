@@ -67,6 +67,8 @@ vi.mock("@/features/staff/util", async () => {
 });
 vi.mock("./rules-banner", () => ({ RulesFirstBanner: () => null }));
 vi.mock("@/data/api/generated/api", () => ({
+  // Hover/focus prefetch of what a detail opens on.
+  getListEmployeesQueryOptions: () => ({ queryKey: ["/staff/employees"], queryFn: () => [] }),
   useTeamPresence: hook("presence", () => ({
     business_date: "2026-09-22", present: 1, late: 1, absent: 1, on_leave: 0, planned_minutes: 0, worked_minutes: 0,
     rows: onlyRows ?? [

@@ -88,6 +88,8 @@ vi.mock("@/features/staff/util", async () => {
 });
 vi.mock("./rules-banner", () => ({ RulesFirstBanner: () => null }));
 vi.mock("@/data/api/generated/api", () => ({
+  // Hover/focus prefetch of what a detail opens on.
+  getPreferenceLogQueryOptions: (id: string) => ({ queryKey: ["/staff/preference-log", id], queryFn: () => [] }),
   useListBranches: failing(() => branchesList, () => branchesError),
   useRoster: (p: { to: string }) => hook(() => ({
     branch_id: "b1", from: week, to: addDays(week, 6), published_weeks: publishedWeeks,
