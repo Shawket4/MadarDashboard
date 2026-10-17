@@ -9,6 +9,7 @@ import {
 import { defaultsFor } from "@/data/authz/use-authz";
 import { rules } from "@/lib/rules";
 import { comboHandlers } from "./combos";
+import { metricsHandlers } from "./metrics";
 
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import {
@@ -48,6 +49,7 @@ import {
   MOCK_STOCKTAKES,
   MOCK_SUPPLIERS,
   MOCK_TELLER_STATS,
+  MOCK_WAITER_STATS,
   MOCK_USERS,
   MOCK_VARIANCE_REPORT,
   MOCK_WASTE,
@@ -395,6 +397,7 @@ export const handlers = [
 
   // ── Combos, deals, Bundles report (stateful; before the generic menu/orders reads) ──
   ...comboHandlers,
+  ...metricsHandlers,
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   http.post("*/auth/login", () =>
@@ -466,6 +469,7 @@ export const handlers = [
   http.get("*/reports/branches/*/items-combined", () => HttpResponse.json(MOCK_COMBINED_ITEM_SALES)),
   http.get("*/reports/branches/*/addons", () => HttpResponse.json(MOCK_ADDON_SALES)),
   http.get("*/reports/branches/*/tellers", () => HttpResponse.json(MOCK_TELLER_STATS)),
+  http.get("*/reports/branches/*/waiters", () => HttpResponse.json(MOCK_WAITER_STATS)),
 
   // ── Insights (menu profitability) ─────────────────────────────────────────
   http.get("*/insights/branches/*/margin-watch", () => HttpResponse.json(mockMarginWatch())),

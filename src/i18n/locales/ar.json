@@ -5439,7 +5439,11 @@
     "historyTitle": "طاولة {{label}}",
     "pickBranch": "اختر فرعًا من شريط النطاق لفتح سجل الطاولة.",
     "tableGone": "هذه الطاولة لم تعد في مخطط الصالة.",
-    "loadFailed": "تعذّر تحميل تحليلات الطاولات"
+    "loadFailed": "تعذّر تحميل تحليلات الطاولات",
+    "dwellMinutes": "{{m}} د",
+    "dwellHours": "{{h}} س",
+    "dwellHoursMinutes": "{{h}} س {{m}} د",
+    "byTable": "تفاصيل الطاولات"
   },
   "tillStatus": {
     "open": "مفتوحة",
