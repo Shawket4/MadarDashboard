@@ -18,6 +18,13 @@ export interface PullRequest {
      * @nullable
      */
   limit?: number | null;
+  /**
+     * The sync protocol the till speaks (`sync::protocol`). Absent = v1, and
+     * the response is exactly what v1 always got.
+     * @minimum 0
+     * @nullable
+     */
+  protocol?: number | null;
   snapshot_cursor?: null | SnapshotCursor;
   /**
      * Full-fetch ONLY these types (checksum self-heal). Invalid with `since`.
