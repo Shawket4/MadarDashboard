@@ -69,7 +69,7 @@ export interface DataTableColumnMeta {
 const metaOf = <T,>(column: Column<T, unknown>) =>
   (column.columnDef.meta as DataTableColumnMeta | undefined) ?? {};
 
-interface DataTableProps<TData, TValue> {
+export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   loading?: boolean;
@@ -108,6 +108,8 @@ interface DataTableProps<TData, TValue> {
   /** Inside another card: no frame of its own. */
   framed?: boolean;
   className?: string;
+  /** The search/filters row, e.g. its gutter when the table runs edge to edge in a card. */
+  toolbarClassName?: string;
   /**
    * Put the search box, sort and (client-side) page in the URL, so they
    * survive navigation: `urlState={tableStateFrom(filters)}` from
@@ -144,6 +146,7 @@ export function DataTable<TData, TValue>({
   hideViewOptions,
   framed = true,
   className,
+  toolbarClassName,
   urlState,
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
@@ -384,7 +387,7 @@ export function DataTable<TData, TValue>({
     <div data-slot="data-table" className={cn("space-y-3", className)}>
       {/* Toolbar */}
       {(searchPlaceholder || toolbar || (hideableColumns.length > 0 && !hideViewOptions)) && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={cn("flex flex-wrap items-center gap-2", toolbarClassName)}>
           {searchPlaceholder ? (
             <div className="relative w-full sm:w-72">
               <Search

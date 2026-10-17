@@ -42,5 +42,14 @@ describe("tables-util", () => {
     expect(fmtDwell(0.2)).toBe("—");
     expect(fmtDwell(45)).toBe("45m");
     expect(fmtDwell(65)).toBe("1h 05m");
+    expect(fmtDwell(120)).toBe("2h");
+  });
+
+  it("spells a stay in the units it is given", () => {
+    const ar = { minutes: (m: string) => `${m} د`, hours: (h: string) => `${h} س`, hoursMinutes: (h: string, m: string) => `${h} س ${m} د` };
+    expect(fmtDwell(45, ar)).toBe("45 د");
+    expect(fmtDwell(65, ar)).toBe("1 س 05 د");
+    expect(fmtDwell(180, ar)).toBe("3 س");
+    expect(fmtDwell(0, ar)).toBe("—");
   });
 });

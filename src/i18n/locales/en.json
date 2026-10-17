@@ -5365,7 +5365,11 @@
     "historyTitle": "Table {{label}}",
     "pickBranch": "Choose a branch in the scope bar to open a table's history.",
     "tableGone": "This table is no longer on the floor plan.",
-    "loadFailed": "Couldn't load table insights"
+    "loadFailed": "Couldn't load table insights",
+    "dwellMinutes": "{{m}}m",
+    "dwellHours": "{{h}}h",
+    "dwellHoursMinutes": "{{h}}h {{m}}m",
+    "byTable": "Table details"
   },
   "tillStatus": {
     "open": "Open",

@@ -721,6 +721,18 @@ export const MOCK_TELLER_STATS = [
   { teller_id: "tel_hossam", teller_name: "Hossam Ali", orders: 98, revenue: 740_900, avg_order_value: 7_560, voided: 5, shifts: 12 },
 ];
 
+/** Reports ▸ Operations ▸ Waiters: dine-in orders carry a waiter; teller-direct and delivery ones don't. */
+export const MOCK_WAITER_STATS = {
+  total_orders: 612,
+  attributed_orders: 388,
+  waiters: [
+    { waiter_id: "wtr_ahmed", waiter_name: "Ahmed Fathy", orders: 132, revenue: 1_188_000, avg_order_value: 9_000, line_items: 356, avg_items_per_order: 2.7, voided: 2 },
+    { waiter_id: "wtr_salma", waiter_name: "Salma Hany", orders: 118, revenue: 1_003_000, avg_order_value: 8_500, line_items: 307, avg_items_per_order: 2.6, voided: 1 },
+    { waiter_id: "wtr_omar", waiter_name: "Omar Tarek", orders: 84, revenue: 655_200, avg_order_value: 7_800, line_items: 193, avg_items_per_order: 2.3, voided: 3 },
+    { waiter_id: "wtr_laila", waiter_name: "Laila Mostafa", orders: 54, revenue: 437_400, avg_order_value: 8_100, line_items: 130, avg_items_per_order: 2.4, voided: 0 },
+  ],
+};
+
 // ── Branch overrides ────────────────────────────────────────────────────────────
 
 /** Addon catalog page (PaginatedAddonItems) — mirrors MOCK_ADDON_ITEMS. */
