@@ -33,7 +33,8 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { punchFor, resolveFlag, useListAttendance, useListAttendanceFlags, useTeamPresence } from "@/data/api/generated/api";
+import { getListEmployeesQueryOptions, punchFor, resolveFlag, useListAttendance, useListAttendanceFlags, useTeamPresence } from "@/data/api/generated/api";
+import { queryClient } from "@/data/api/query";
 import type { AttendanceFlag, PresenceRow } from "@/data/api/generated/models";
 import { getErrorMessage, isStaleRefusal } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
@@ -99,6 +100,7 @@ export function TeamPage() {
   // Today is in an approved or paid month: nothing is written into it (BC-3 decision a), so no punch is offered.
   const monthClosed = todayRecords.some((r) => r.month_closed);
   const flags = useMemo(() => (flagsQ.data ?? []).filter((f) => !f.resolution), [flagsQ.data]);
+  const warmFlag = () => void queryClient.prefetchQuery(getListEmployeesQueryOptions({}));
 
   if (authz.ready && !canRead) {
     return <Restricted title={t("dawam.team", "Team")} who={t("dawam.teamNoAccess", "The team board needs attendance rights. The owner can give you access.")} />;
@@ -129,7 +131,8 @@ export function TeamPage() {
         <StatCard label={t("dawam.openFlags", "Open flags")} value={failedEmpty(flagsQ) ? "—" : flags.length} formatType="number" icon={ShieldAlert} loading={flagsQ.isLoading} />
       </div>
 
-      <section className="space-y-3">
+      {/* A flag opens on the employee list (who is the caller): warm it when the pointer reaches the flags. */}
+      <section className="space-y-3" onMouseEnter={canResolve ? warmFlag : undefined} onFocus={canResolve ? warmFlag : undefined}>
         <h2 className="text-sm font-semibold text-muted-foreground">{t("dawam.flags", "Flags")}</h2>
         {failedEmpty(flagsQ) ? (
           <ErrorState title={t("dawam.flagsLoadError", "Couldn't load the flags")} message={getErrorMessage(flagsQ.error)} onRetry={() => void flagsQ.refetch()} />

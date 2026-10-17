@@ -30,6 +30,7 @@ import { useConfirm } from "@/components/app/confirm-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -39,6 +40,7 @@ import {
 } from "@/data/api/generated/api";
 import type { BookingView } from "@/data/api/generated/models/bookingView";
 import { getErrorMessage } from "@/data/api/errors";
+import { queryClient } from "@/data/api/query";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { EXPORT_REQUEST } from "@/lib/export-all";
@@ -53,6 +55,7 @@ import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
 
 import { BookingDialog } from "./booking-dialog";
 import { bookingsSearch } from "./search";
+import { bookingsListParams, prefetchBookingDialog } from "./queries";
 import { BookingStatusBadge } from "./status-badge";
 import { BookingSettingsDialog } from "./settings-dialog";
 import {
@@ -75,7 +78,9 @@ export function BookingsPage() {
   const navigate = useNavigate();
   const filters = useListFilters(bookingsSearch);
   const { values: f, set } = filters;
-  const date = f.date || serviceToday();
+  // One builder for the page AND the sidebar prefetch (queries.ts): no `date` = today.
+  const listParams = bookingsListParams(branchId ?? "", f);
+  const date = listParams.date;
   const setDate = (d: string) => set({ date: d === serviceToday() ? "" : d });
   const view: View = f.view;
   const setView = (v: View) => set({ view: v });
@@ -101,7 +106,7 @@ export function BookingsPage() {
   const settingsQ = useGetBookingSettings({ branch_id: branchId ?? "" }, enabled);
   const tablesQ = useListFloorTables({ branch_id: branchId ?? "" }, enabled);
   const listQ = useListBookings(
-    { branch_id: branchId ?? "", date },
+    listParams,
     { query: { enabled: !!branchId, refetchInterval: 30_000, refetchOnWindowFocus: true } },
   );
 
@@ -397,6 +402,7 @@ export function BookingsPage() {
             onRetry={() => void listQ.refetch()}
             getRowId={(b) => b.id}
             onRowClick={(b) => (isActive(b) ? openEdit(b) : undefined)}
+            onRowPrefetch={(b) => (isActive(b) ? prefetchBookingDialog(queryClient, branchId, b) : undefined)}
             pageSize={50}
             hideViewOptions
             emptyState={
@@ -448,7 +454,9 @@ export function BookingsPage() {
           tables={tables.map((x) => ({ id: x.id, label: x.label, seats: x.seats }))}
           window={dayWindow(settingsQ.data, date)}
           now={now}
+          loading={listQ.isLoading || tablesQ.isLoading}
           onOpen={openEdit}
+          onPrefetch={(b) => prefetchBookingDialog(queryClient, branchId, b)}
         />
       )}
 
@@ -469,14 +477,16 @@ export function BookingsPage() {
 
 /** Rows per table, columns across the day's booking window. */
 function Timeline({
-  date, bookings, tables, window, now, onOpen,
+  date, bookings, tables, window, now, loading, onOpen, onPrefetch,
 }: {
   date: string;
   bookings: BookingView[];
   tables: { id: string; label: string; seats: number }[];
   window: { open: number; close: number };
   now: Date;
+  loading: boolean;
   onOpen: (b: BookingView) => void;
+  onPrefetch: (b: BookingView) => void;
 }) {
   const { t } = useTranslation();
   const ticks = hourTicks(window);
@@ -486,6 +496,7 @@ function Timeline({
     ...tables.map((tb) => ({ key: tb.id, label: `${tb.label} · ${tb.seats}`, items: byTable(tb.id) })),
     ...(unassigned.length ? [{ key: "__none", label: t("bookings.needsTable", "Needs a table"), items: unassigned }] : []),
   ];
+  if (loading) return <Skeleton className="h-64 w-full rounded-2xl" />;
   if (tables.length === 0) {
     return <EmptyState icon={Armchair} title={t("bookings.noTables", "This branch has no tables yet")} description={t("bookings.noTablesHint", "Draw the floor first; bookings claim its tables.")} />;
   }
@@ -515,6 +526,8 @@ function Timeline({
                     key={b.id}
                     type="button"
                     onClick={() => onOpen(b)}
+                    onMouseEnter={() => onPrefetch(b)}
+                    onFocus={() => onPrefetch(b)}
                     title={`${b.guest_name} · ${b.party_size} · ${fmtTime(b.starts_at)}–${fmtTime(b.ends_at)}`}
                     className={cn("absolute top-1.5 h-8 truncate rounded-md border px-2 text-start text-xs font-medium transition-colors duration-150 hover:brightness-95 motion-reduce:transition-none", tone)}
                     style={{ insetInlineStart: `${span.left}%`, width: `${span.width}%` }}

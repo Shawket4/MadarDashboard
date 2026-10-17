@@ -35,6 +35,8 @@ interface ListRowProps {
   trailing?: ReactNode;
   selected?: boolean;
   onClick?: () => void;
+  /** Warm what `onClick` opens, on hover/focus (predictive loading, like DataTable's `onRowPrefetch`). */
+  onPrefetch?: () => void;
   href?: string;
   disabled?: boolean;
   className?: string;
@@ -53,6 +55,7 @@ export function ListRow({
   trailing,
   selected,
   onClick,
+  onPrefetch,
   disabled,
   className,
 }: ListRowProps) {
@@ -121,7 +124,15 @@ export function ListRow({
   );
 
   return interactive ? (
-    <button type="button" data-slot="list-row" onClick={onClick} aria-current={selected || undefined} className={cls}>
+    <button
+      type="button"
+      data-slot="list-row"
+      onClick={onClick}
+      onMouseEnter={onPrefetch}
+      onFocus={onPrefetch}
+      aria-current={selected || undefined}
+      className={cls}
+    >
       {body}
     </button>
   ) : (

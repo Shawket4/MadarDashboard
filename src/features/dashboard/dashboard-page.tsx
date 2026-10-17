@@ -42,6 +42,7 @@ import {
   useBranchSalesTimeseries,
   useOrgBranchComparison,
 } from "@/data/api/generated/api";
+import { dashboardParams } from "./queries";
 
 type MethodMap = Record<string, number>;
 
@@ -74,9 +75,8 @@ export function DashboardPage() {
   const orgId = role === "super_admin" ? selectedOrgId : (userOrgId ?? null);
 
   const { branchId, scopeBranchId, from, to, preset } = useScope();
-  const granularity = preset === "today" || preset === "yesterday" ? "hourly" : "daily";
-
-  const range = { from: from ?? undefined, to: to ?? undefined };
+  // One builder for the page AND the sidebar prefetch (queries.ts), so both ask for the same keys.
+  const { range, granularity } = dashboardParams({ from, to, preset });
 
   const branchSales = useBranchSales(branchId ?? "", { ...range }, { query: { enabled: !!branchId } });
   // Org-wide trend when "all branches": the timeseries endpoint takes the

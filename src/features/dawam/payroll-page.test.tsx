@@ -107,6 +107,8 @@ vi.mock("@/hooks/use-org-modules", () => ({ useCurrentOrg: () => ({ name: "Madar
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
 vi.mock("@/data/scope/use-scope", () => ({ useScope: () => ({ branchId: scopeBranch }) }));
 vi.mock("@/data/api/generated/api", () => ({
+  // History rows warm a month's payslips on hover; a pending query is enough here.
+  getListPayslipsQueryOptions: (...k: unknown[]) => ({ queryKey: k, queryFn: () => new Promise(() => {}) }),
   useCurrent: hook("current", () => current),
   useListEmployees: hook("employees", () => [
     { id: "e1", name: "Sara Ahmed", pay_method: "bank", pay_account: "EG38 0019" },

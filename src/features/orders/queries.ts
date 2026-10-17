@@ -1,9 +1,10 @@
 import type { QueryClient } from "@tanstack/react-query";
 
 import { excludeItemsParam, readExcludedItems } from "@/components/app/exclude-items-control";
-import { getListOrdersQueryOptions } from "@/data/api/generated/api";
+import { getBranchDeliverySalesQueryOptions, getListOrdersQueryOptions } from "@/data/api/generated/api";
 import type { ListOrdersParams } from "@/data/api/generated/models";
 import type { ListValues } from "@/data/scope/list-search";
+import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import type { PrefetchCtx } from "@/lib/route-prefetch";
 import { ordersSearch } from "./search";
 
@@ -38,9 +39,14 @@ export function ordersListParams(
   };
 }
 
-/** Sidebar/palette intent: warm the list exactly as the page will open it. */
+/** The delivery KPIs' request: the same delivery_orders aggregate the dashboard reads. */
+export const ordersDeliveryArgs = (scopeBranchId: string, from: string | null, to: string | null) =>
+  [scopeBranchId, { from: from ?? undefined, to: to ?? undefined }] as const;
+
+/** Sidebar/palette intent: warm the list and the delivery KPIs exactly as the page will open them. */
 export function prefetchOrders(qc: QueryClient, { orgId, branchId, from, to }: PrefetchCtx): void {
   if (!branchId && !orgId) return;
   const f = ordersSearch.entryValues(branchId);
   void qc.prefetchQuery(getListOrdersQueryOptions(ordersListParams({ branchId, from, to }, f, readExcludedItems(orgId))));
+  void qc.prefetchQuery(getBranchDeliverySalesQueryOptions(...ordersDeliveryArgs(branchId ?? ALL_BRANCHES_ID, from, to)));
 }

@@ -21,6 +21,7 @@ import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { StatusPill } from "@/components/app/status-pill";
 import { invalidateInventory, isBelowZero } from "./lib";
+import { itemMovementsParams } from "./queries";
 import { belowZeroClass } from "./on-hand";
 
 interface Props {
@@ -51,9 +52,10 @@ export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdi
     }
   }, [open, stockRow]);
 
+  // Same params as the ingredients table's row-hover prefetch (./queries.ts).
   const movements = useListMovements(
     branchId ?? "",
-    { org_ingredient_id: item?.id, per_page: 50 },
+    itemMovementsParams(item?.id),
     { query: { enabled: open && !!branchId && !!item } },
   );
 

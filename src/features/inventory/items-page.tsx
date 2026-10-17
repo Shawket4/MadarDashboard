@@ -14,7 +14,7 @@ import { StatusPill } from "@/components/app/status-pill";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { BranchStockRow, OrgIngredient } from "@/data/api/generated/models";
-import { createStocktake, useListBranchStock, useListBranches, useListCatalog, useListStocktakes } from "@/data/api/generated/api";
+import { createStocktake, getListMovementsQueryOptions, useListBranchStock, useListBranches, useListCatalog, useListStocktakes } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -23,6 +23,8 @@ import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { keepScope } from "@/data/scope/list-search";
 import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import { ingredientsSearch } from "./search";
+import { itemMovementsParams } from "./queries";
+import { queryClient } from "@/data/api/query";
 import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { ItemDialog } from "./item-dialog";
@@ -234,6 +236,7 @@ export function ItemsPage() {
         onRetry={() => void catalog.refetch()}
         getRowId={(it) => it.id}
         onRowClick={(it) => setDrawerItem(it)}
+        onRowPrefetch={(it) => { if (branchId) void queryClient.prefetchQuery(getListMovementsQueryOptions(branchId, itemMovementsParams(it.id))); }}
         searchPlaceholder={t("inventory.catalog.search", "Search ingredients")}
         urlState={tableStateFrom(filters)}
         toolbar={<ClearFiltersButton filters={filters} />}

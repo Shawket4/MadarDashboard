@@ -25,6 +25,7 @@ const navigate = vi.fn();
 vi.mock("@/data/api/generated/api", () => ({
   useListCustomerBookings: (...a: unknown[]) => useListCustomerBookings(...a),
   useListBranches: () => ({ data: [{ id: "b-1", name: "Downtown" }, { id: "b-2", name: "Marina" }] }),
+  getListCustomerBookingsQueryKey: (id: string, p: unknown) => [`/customers/${id}/bookings`, p],
 }));
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => navigate }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));

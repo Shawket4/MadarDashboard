@@ -43,7 +43,7 @@ import { fmtDateTime, fmtMoney } from "@/lib/format";
 import { paginationFrom, useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
 import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import { ordersSearch } from "./search";
-import { ORDERS_PAGE_SIZE, ordersListParams } from "./queries";
+import { ORDERS_PAGE_SIZE, ordersDeliveryArgs, ordersListParams } from "./queries";
 
 const ALL = "__all__";
 
@@ -173,11 +173,7 @@ export function OrdersPage() {
   const summary = data?.summary;
   // Delivery + per-channel KPIs come from the SAME source the dashboard uses
   // (the delivery_orders aggregate), so the counts always agree across screens.
-  const deliverySales = useBranchDeliverySales(
-    scopeBranchId,
-    { from: from ?? undefined, to: to ?? undefined },
-    { query: { enabled } },
-  );
+  const deliverySales = useBranchDeliverySales(...ordersDeliveryArgs(scopeBranchId, from, to), { query: { enabled } });
 
   const primaryKpis: LedgerItem[] = [
     { key: "revenue", label: t("dashboard.revenue", "Revenue"), value: summary?.revenue ?? 0, formatType: "money", icon: Coins, loading: isLoading },

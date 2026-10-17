@@ -13,7 +13,8 @@ import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useDisciplineReport } from "@/data/api/generated/api";
 import type { DisciplineRow } from "@/data/api/generated/models";
-import { cairoParts, fmtNumber } from "@/lib/format";
+import { fmtNumber } from "@/lib/format";
+import { disciplineParams } from "./queries";
 import { dawamQuery } from "@/features/dawam/live";
 import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 
@@ -25,15 +26,6 @@ const PRESET_FALLBACK: Record<string, string> = {
   mtd: "Month to date",
   custom: "Custom range",
 };
-
-/** ISO instant → the local "YYYY-MM-DD" the backend's NaiveDate params want,
- * in the active branch/org timezone (not a raw slice of the UTC string,
- * which would land on the wrong calendar day whenever the zone offset from
- * UTC isn't a whole day boundary). */
-function localDate(iso: string): string {
-  const { y, m, d } = cairoParts(iso);
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
 
 const UNASSIGNED_KEY = "__unassigned__";
 
@@ -64,7 +56,7 @@ export function StaffDisciplinePage() {
   const authz = useAuthz();
   const canSee = authz.can(Cap.hrAttendanceRead);
   const q = useDisciplineReport(
-    { from: localDate(from), to: localDate(to), branch_id: branchId ?? undefined },
+    disciplineParams({ branchId, from, to }),
     { query: dawamQuery({ enabled: canSee }) },
   );
 

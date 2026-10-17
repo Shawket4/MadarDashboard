@@ -17,6 +17,7 @@ import { ListCard, ListRow } from "@/components/app/list-row";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import { useListFilters } from "@/data/scope/use-list-filters";
+import { requestsListParams } from "./queries";
 import { requestsSearch } from "./search";
 import { StatusPill } from "@/components/app/status-pill";
 import { RowAction } from "@/features/users/row-action";
@@ -171,13 +172,8 @@ export function RequestsInboxPage() {
     return [head, r.cancel_note].filter(Boolean).join(": ") || null;
   };
 
-  const requestsQ = useListRequests(
-    {
-      status: status === ALL ? undefined : status,
-      kind: kind === ALL ? undefined : kind,
-    },
-    { query: dawamQuery() },
-  );
+  // One builder for the page AND the sidebar prefetch (./queries.ts).
+  const requestsQ = useListRequests(requestsListParams(f), { query: dawamQuery() });
   const rows = useMemo(() => requestsQ.data ?? [], [requestsQ.data]);
 
   const confirm = useConfirm();

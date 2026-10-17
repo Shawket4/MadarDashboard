@@ -85,7 +85,9 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
   };
 
   if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
-  if (!orgId || q.isLoading) return <Skeleton className="h-28 w-full" />;
+  if (!orgId) return <Skeleton className="h-28 w-full" />;
+  // The figures' own skeletons while the report loads (the VAT check needs it).
+  if (q.isLoading) return <LedgerStrip items={kpis} />;
   if (!isVatRegistered) {
     return (
       <EmptyState

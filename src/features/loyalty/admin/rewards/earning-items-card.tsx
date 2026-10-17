@@ -33,6 +33,7 @@ import { fmtMoney } from "@/lib/format";
 import { loyaltyAccess } from "../../shared/access";
 import { loyaltyServerError } from "../../shared/server-errors";
 import type { ProgramScope } from "../use-program";
+import { programParams } from "../queries";
 import {
   isPickable,
   listChanged,
@@ -51,7 +52,7 @@ export function EarningItemsCard({
 }) {
   const { orgId, branchId } = scope;
   const { t } = useTranslation();
-  const params = branchId ? { branch_id: branchId } : {};
+  const params = programParams(branchId);
   const list = useGetLoyaltyEarningItems(params);
   const menu = useListMenuItems({ org_id: orgId }, { query: { enabled: !!orgId } });
   const save = usePutLoyaltyEarningItems();

@@ -29,8 +29,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  cancelOpenShift, decideHoliday, decideSuggestion, postOpenShift, publish, useListBranches, useRoster, useSuggestions,
+  cancelOpenShift, decideHoliday, decideSuggestion, getPreferenceLogQueryOptions, postOpenShift, publish, useListBranches, useRoster, useSuggestions,
 } from "@/data/api/generated/api";
+import { queryClient } from "@/data/api/query";
 import type { ElsewhereShift, LabourWarning, OpenShift, RosterPerson, RosterShift, Suggestion } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { RulesFirstBanner } from "./rules-banner";
@@ -47,7 +48,8 @@ import { FairnessCard } from "./fairness-card";
 import { dawamQuery, failedEmpty } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { PreferencesDialog } from "./preferences-dialog";
-import { weekDays, weekdayOf, weekStartOf, addDays } from "./week";
+import { weekDays, weekdayOf, weekStartOf } from "./week";
+import { scheduleParams, scheduleWeek } from "./queries";
 import { scheduleSearch } from "./search";
 import { useDropUnknown, useListFilters } from "@/data/scope/use-list-filters";
 import { WeekBar } from "./schedule-week-bar";
@@ -73,7 +75,7 @@ export function SchedulePage() {
   const showCoverage = f.coverage;
   const setShowCoverage = (u: (v: boolean) => boolean) => set({ coverage: u(f.coverage) });
   const thisWeek = weekStartOf(todayIso());
-  const week = f.week ? weekStartOf(f.week) : thisWeek;
+  const week = scheduleWeek(f);
   const setWeek = (w: string) => set({ week: w === thisWeek ? "" : w });
   const picked = f.branch || null;
   const setPicked = (id: string) => set({ branch: id });
@@ -85,12 +87,11 @@ export function SchedulePage() {
   useDropUnknown(f.branch, branchesQ.data?.map((b) => b.id), () => set({ branch: "" }));
   const branchId = scope.branchId ?? picked ?? branchesQ.data?.[0]?.id ?? "";
   const days = weekDays(week);
-  const rosterQ = useRoster({ branch_id: branchId, from: week, to: days[6] }, { query: dawamQuery({ enabled: canRead && !!branchId }) });
-  const suggestionsQ = useSuggestions({ branch_id: branchId, week_start: week }, { query: dawamQuery({ enabled: canEdit && !!branchId }) });
-  const upcoming = useRoster(
-    { branch_id: branchId, from: todayIso(), to: addDays(todayIso(), 45) },
-    { query: dawamQuery({ enabled: canRead && !!branchId }) },
-  );
+  // One builder for the page AND the sidebar prefetch (./queries.ts).
+  const params = scheduleParams(branchId, week);
+  const rosterQ = useRoster(params.roster, { query: dawamQuery({ enabled: canRead && !!branchId }) });
+  const suggestionsQ = useSuggestions(params.suggestions, { query: dawamQuery({ enabled: canEdit && !!branchId }) });
+  const upcoming = useRoster(params.upcoming, { query: dawamQuery({ enabled: canRead && !!branchId }) });
 
   const view = rosterQ.data;
   const published = view?.published_weeks.includes(week) ?? false;
@@ -322,6 +323,9 @@ export function SchedulePage() {
                         className="size-8 shrink-0 sm:size-6"
                         aria-label={t("dawam.prefsOf", { name: p.name, defaultValue: `${p.name}'s preferences` })}
                         onClick={() => setPrefsOf(p)}
+                        // The dialog reads their change log on open: warm it on intent.
+                        onMouseEnter={() => void queryClient.prefetchQuery(getPreferenceLogQueryOptions(p.employee_id))}
+                        onFocus={() => void queryClient.prefetchQuery(getPreferenceLogQueryOptions(p.employee_id))}
                       >
                         <SlidersHorizontal className="size-3.5" />
                       </Button>
@@ -495,7 +499,7 @@ export function SchedulePage() {
           </ListCard>
         </section>
       ) : null}
-      {canSettings ? <FairnessCard month={`${week.slice(0, 8)}01`} /> : null}
+      {canSettings ? <FairnessCard month={params.fairness.month} /> : null}
 
       {dayOpen && view ? (
         <DayEditor

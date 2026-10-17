@@ -7,7 +7,7 @@
  * Channels are not per combo (§11.1): one org-wide switch per channel, with
  * branch overrides, under Settings. The header links there.
  */
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -25,7 +25,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useListCategories } from "@/data/api/generated/api";
+import { getListCombosQueryKey, getListCombosQueryOptions, useListCategories } from "@/data/api/generated/api";
+import { keepWhilePaging } from "@/data/api/keep-while-paging";
+import { queryClient } from "@/data/api/query";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
@@ -35,6 +37,7 @@ import { getTranslatedName } from "@/lib/translation";
 import { keepScope } from "@/data/scope/list-search";
 import { paginationFrom, useDropUnknown, useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
 import { combosSearch } from "./search";
+import { COMBOS_PAGE_SIZE, combosListParams, prefetchComboEditor } from "./queries";
 
 import { deleteCombo, useCombos } from "./api";
 import { arOf } from "./types";
@@ -42,7 +45,6 @@ import type { ComboSummary } from "./types";
 import { fmtRate, invalidateCombos } from "./util";
 
 const ALL = "__all__";
-const PER_PAGE = 25;
 
 export function CombosPage() {
   const { t, i18n } = useTranslation();
@@ -65,19 +67,11 @@ export function CombosPage() {
   const setCategory = (v: string) => set({ cat: v === ALL ? "" : v });
   const active = f.status === "all" ? ALL : f.status;
   const setActive = (v: string) => set({ status: v === ALL ? "all" : (v as typeof f.status) });
-  const pageIndex = f.page - 1;
 
-  const params = useMemo(
-    () => ({
-      q: q || undefined,
-      category_id: category === ALL ? undefined : category,
-      is_active: active === ALL ? undefined : active === "active",
-      page: pageIndex + 1,
-      per_page: PER_PAGE,
-    }),
-    [q, category, active, pageIndex],
-  );
-  const list = useCombos(params, { enabled: canRead && !!orgId });
+  // One builder for the page AND the sidebar prefetch (queries.ts), so both ask for the same key.
+  const params = useMemo(() => combosListParams(f), [f]);
+  // Paging keeps the page count while the table shows skeleton rows; a filter change shows skeletons.
+  const list = useCombos(params, { enabled: canRead && !!orgId, placeholderData: keepWhilePaging(getListCombosQueryKey(params)) });
   const categories = useListCategories({ org_id: orgId ?? "" }, { query: { enabled: canRead && !!orgId } });
   const categoryName = useMemo(() => {
     const m = new Map((categories.data ?? []).map((c) => [c.id, getTranslatedName(c, lang)]));
@@ -197,12 +191,21 @@ export function CombosPage() {
     [t, categoryName],
   );
 
+  const data = list.data?.data ?? [];
+  const pageCount = list.data?.total_pages ?? 0;
+  // Predictive prefetch: the next page loads before the user clicks Next.
+  const prefetchNext = () => {
+    if (list.data && f.page < pageCount) void queryClient.prefetchQuery(getListCombosQueryOptions({ ...params, page: f.page + 1 }));
+  };
+  useEffect(() => {
+    prefetchNext();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list.data, f.page]);
+
   if (authz.ready && !canRead) {
     return <Restricted title={t("combos.title", "Combos")} who={t("combos.noAccess", "Your account can't see the menu. The owner can give you access.")} />;
   }
 
-  const data = list.data?.data ?? [];
-  const pageCount = list.data?.total_pages ?? 0;
   const filtered = !!(q || category !== ALL || active !== ALL);
 
   return (
@@ -272,11 +275,13 @@ export function CombosPage() {
       <DataTable
         columns={columns}
         data={data}
-        loading={list.isLoading}
+        loading={list.isLoading || list.isPlaceholderData}
         error={list.error}
         onRetry={() => void list.refetch()}
         getRowId={(c) => c.id}
         onRowClick={(c) => open(c.id)}
+        onRowPrefetch={(c) => prefetchComboEditor(queryClient, orgId, c.id)}
+        onPrefetchNext={prefetchNext}
         rowActions={(c) =>
           canEdit ? (
             <>
@@ -297,7 +302,7 @@ export function CombosPage() {
         }
         manualPagination
         pageCount={pageCount}
-        {...paginationFrom(filters, PER_PAGE)}
+        {...paginationFrom(filters, COMBOS_PAGE_SIZE)}
         emptyState={
           <EmptyState
             icon={UtensilsCrossed}

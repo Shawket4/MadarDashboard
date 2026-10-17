@@ -33,6 +33,7 @@ import { DawamRefreshButton } from "@/features/dawam/refresh-button";
 import { DawamRulesCard, type CoverChoice } from "@/features/dawam/rules-card";
 import { MoneyField, NumberField } from "@/components/inputs";
 import { RulesPreview } from "./rules-preview-card";
+import { rulesSettingsParams } from "./queries";
 import { rulesSearch } from "./search";
 import { useDropUnknown, useListFilters } from "@/data/scope/use-list-filters";
 import { changedRules, dayPiastres, tierPiastres, type PayExample, type RuleChange } from "./rules-preview";
@@ -78,7 +79,7 @@ export function AttendanceRulesPage() {
   // refetches on focus only for someone who can't edit: a background refetch
   // must never throw away rules half typed (live.ts).
   const query = useGetAttendanceSettings(
-    branchId ? { branch_id: branchId } : {},
+    rulesSettingsParams(f),
     { query: dawamQuery({ enabled: canView, refetchOnWindowFocus: readOnly }) },
   );
   const [busy, setBusy] = useState(false);

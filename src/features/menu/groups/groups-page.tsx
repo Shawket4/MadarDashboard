@@ -23,15 +23,27 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState } from "@/components/app/empty-state";
 import { useConfirm } from "@/components/app/confirm-dialog";
-import { deleteGroup, patchGroup, useListGroups } from "@/data/api/generated/api";
+import {
+  deleteGroup,
+  getGetGroupUsageQueryOptions,
+  getGetMenuItemQueryOptions,
+  getListCatalogQueryOptions,
+  getListGroupsQueryOptions,
+  getListIngredientCategoriesQueryOptions,
+  patchGroup,
+  useListGroups,
+} from "@/data/api/generated/api";
+import { queryClient } from "@/data/api/query";
 import type { GroupOut } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useOrgId } from "@/hooks/use-org-id";
 import { Cap } from "@/generated/capabilities";
 import { useCan } from "@/data/authz/use-authz";
+import { useHasFeature } from "@/hooks/use-plan";
 
 import { cn } from "@/lib/utils";
 import { arOf, invalidateCatalog } from "../util";
@@ -74,6 +86,19 @@ export function GroupsPage() {
   }, [groups]);
 
   const [managing, setManaging] = useState<GroupOut | null>(null);
+
+  // Row intent: warm what the group editor reads on open (./group-editor-dialog).
+  const stock = useHasFeature("inventory");
+  const prefetchEditor = (g: GroupOut) => {
+    if (!orgId) return;
+    void queryClient.prefetchQuery(getListGroupsQueryOptions({ org_id: orgId }));
+    void queryClient.prefetchQuery(getGetGroupUsageQueryOptions(g.id));
+    for (const u of usage.byGroup.get(g.id) ?? []) void queryClient.prefetchQuery(getGetMenuItemQueryOptions(u.item_id));
+    if (stock) {
+      void queryClient.prefetchQuery(getListCatalogQueryOptions(orgId));
+      void queryClient.prefetchQuery(getListIngredientCategoriesQueryOptions(orgId));
+    }
+  };
 
   const setEdit = (edit: string | undefined) =>
     void navigate({ to: ".", replace: true, search: (prev: Record<string, unknown>) => ({ ...prev, edit }) });
@@ -157,7 +182,13 @@ export function GroupsPage() {
         }
       />
 
-      {groupsQ.isLoading ? null : order.length === 0 ? (
+      {groupsQ.isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <Skeleton key={i} className="h-14 w-full rounded-lg" />
+          ))}
+        </div>
+      ) : order.length === 0 ? (
         <EmptyState icon={Layers} title={t("menu.groups.empty", "No choice groups yet")} />
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -175,6 +206,7 @@ export function GroupsPage() {
                   onMoveUp={() => move(idx, idx - 1)}
                   onMoveDown={() => move(idx, idx + 1)}
                   onEdit={() => setEdit(g.id)}
+                  onPrefetch={() => prefetchEditor(g)}
                   onManage={() => setManaging(g)}
                   onDelete={() => void remove(g)}
                 />
@@ -224,6 +256,7 @@ function GroupRow({
   onMoveUp,
   onMoveDown,
   onEdit,
+  onPrefetch,
   onManage,
   onDelete,
 }: {
@@ -236,6 +269,7 @@ function GroupRow({
   onMoveUp: () => void;
   onMoveDown: () => void;
   onEdit: () => void;
+  onPrefetch: () => void;
   onManage: () => void;
   onDelete: () => void;
 }) {
@@ -266,6 +300,8 @@ function GroupRow({
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
+      onMouseEnter={onPrefetch}
+      onFocus={onPrefetch}
       className={cn("flex flex-wrap items-center gap-3 rounded-lg border bg-card p-2.5", isDragging && "z-10 opacity-70 shadow-lg")}
     >
       {canEdit ? (

@@ -13,7 +13,7 @@ import { CalendarClock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useListBranches, useListCustomerBookings } from "@/data/api/generated/api";
+import { getListCustomerBookingsQueryKey, useListBranches, useListCustomerBookings } from "@/data/api/generated/api";
 import type { BookingView } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
@@ -23,7 +23,10 @@ import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { fmtDateTime, fmtNumber } from "@/lib/format";
 
-const PAGE = 10;
+import { CUSTOMER_BOOKINGS_PAGE } from "./queries";
+import { keepWhilePaging } from "@/data/api/keep-while-paging";
+
+const PAGE = CUSTOMER_BOOKINGS_PAGE;
 
 export function BookingsSection({ customerId }: { customerId: string }) {
   const { t } = useTranslation();
@@ -31,7 +34,11 @@ export function BookingsSection({ customerId }: { customerId: string }) {
   const canOpenBooking = useAuthz().can(Cap.bookingsRead);
   const orgId = useOrgId();
   const [limit, setLimit] = useState(PAGE);
-  const q = useListCustomerBookings(customerId, { limit, offset: 0 }, { query: { placeholderData: (prev) => prev } });
+  // "More" keeps the rows on screen; another person shows the skeleton, never the last one's bookings.
+  const params = { limit, offset: 0 };
+  const q = useListCustomerBookings(customerId, params, {
+    query: { placeholderData: keepWhilePaging(getListCustomerBookingsQueryKey(customerId, params), "limit") },
+  });
   const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
   const branchName = (id: string) => branches.data?.find((b) => b.id === id)?.name ?? "—";
   const rows = q.data ?? [];

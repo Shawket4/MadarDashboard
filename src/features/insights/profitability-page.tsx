@@ -36,6 +36,7 @@ import { exportToExcel, exportToCsv, type ExcelColumn } from "@/lib/excel";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DecisionsTab } from "./decisions-tab";
+import { ledgerParams } from "./queries";
 import { RepricingTab } from "./repricing-tab";
 import { FlagChip } from "./flag-chip";
 import { TargetEditor } from "./target-editor";
@@ -114,15 +115,7 @@ export function ProfitabilityPage() {
   const flaggedOnly = f.flagged;
   const setFlaggedOnly = (v: boolean) => filters.set({ flagged: v });
 
-  const ledger = useMenuMarginLedger(
-    scopeBranchId,
-    {
-      from: from ?? undefined,
-      to: to ?? undefined,
-      ...(basis === "current" ? { cost_basis: "current" } : {}),
-    },
-    { query: { enabled: !!orgId } },
-  );
+  const ledger = useMenuMarginLedger(scopeBranchId, ledgerParams({ branchId, from, to }, basis), { query: { enabled: !!orgId } });
   const createDecision = useCreateDecision();
 
   const logoUrl = useExportLogo();

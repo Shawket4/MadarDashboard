@@ -30,6 +30,7 @@ export function ConversationList({
   activeId,
   loading,
   onOpen,
+  onPrefetch,
   onNew,
   onRename,
   onDelete,
@@ -39,6 +40,8 @@ export function ConversationList({
   activeId?: string;
   loading: boolean;
   onOpen: (id: string) => void;
+  /** Hover/focus: warm the thread `onOpen` will read. */
+  onPrefetch: (id: string) => void;
   onNew: () => void;
   onRename: (c: ConversationSummary) => void;
   onDelete: (c: ConversationSummary) => void;
@@ -77,6 +80,8 @@ export function ConversationList({
                   <button
                     type="button"
                     onClick={() => onOpen(c.id)}
+                    onMouseEnter={() => onPrefetch(c.id)}
+                    onFocus={() => onPrefetch(c.id)}
                     className={cn(
                       // Padded on the trailing side to leave room for the menu,
                       // so a long title is truncated by the box rather than

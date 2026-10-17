@@ -21,15 +21,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { PurchaseOrder, ReorderSuggestion, Supplier } from "@/data/api/generated/models";
 import {
-  cancelPurchaseOrder, deleteSupplier, submitPurchaseOrder,
+  cancelPurchaseOrder, deleteSupplier, getGetPurchaseOrderQueryOptions, submitPurchaseOrder,
   useListCatalog, useListPurchaseOrders, useListSuppliers, useReorderSuggestions,
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
+import { queryClient } from "@/data/api/query";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { purchasingSearch } from "./search";
+import { purchaseOrdersParams, purchasingTab } from "./queries";
 import { fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn } from "@/lib/excel";
 import { PO_STATUS_TONES, PO_STATUSES, invalidateInventory } from "./lib";
@@ -47,7 +49,7 @@ export function PurchasingPage() {
   // Tab, status filter, sort/page and supplier search live in the URL (./search.ts).
   const filters = useListFilters(purchasingSearch);
   // Reorder needs one branch; a remembered Reorder tab under "All branches" shows orders.
-  const tab = filters.values.tab === "reorder" && !branchId ? "orders" : filters.values.tab;
+  const tab = purchasingTab(filters.values, branchId);
   const setTab = (v: string) => filters.set({ tab: v as typeof filters.values.tab });
 
   // Orders state
@@ -64,11 +66,8 @@ export function PurchasingPage() {
 
   const suppliers = useListSuppliers(orgId ?? "", { query: { enabled: !!orgId } });
   const catalog = useListCatalog(orgId ?? "", { query: { enabled: !!orgId } });
-  const orders = useListPurchaseOrders(
-    scopeBranchId,
-    { status: statusFilter === "all" ? undefined : statusFilter },
-    { query: { enabled: !!scopeBranchId } },
-  );
+  // Same params as the sidebar prefetch (./queries.ts).
+  const orders = useListPurchaseOrders(scopeBranchId, purchaseOrdersParams(filters.values), { query: { enabled: !!scopeBranchId } });
   const reorder = useReorderSuggestions(branchId ?? "", { query: { enabled: tab === "reorder" && !!branchId } });
 
   const logoUrl = useExportLogo();
@@ -375,6 +374,7 @@ export function PurchasingPage() {
             onRetry={() => void orders.refetch()}
             getRowId={(po) => po.id}
             onRowClick={(po) => setReceivePoId(po.id)}
+            onRowPrefetch={(po) => void queryClient.prefetchQuery(getGetPurchaseOrderQueryOptions(po.id))}
             urlState={tableStateFrom(filters)}
             toolbar={
               <Select value={statusFilter} onValueChange={setStatusFilter}>

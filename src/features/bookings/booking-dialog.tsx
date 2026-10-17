@@ -36,6 +36,7 @@ import {
   bookingGuestSchema, guestPhoneToWire, guestValuesOf, invalidateBookings, localHHMM, localInstant, serviceToday,
   type BookingGuestValues,
 } from "./util";
+import { availabilityParams } from "./queries";
 
 interface Props {
   branchId: string;
@@ -110,7 +111,7 @@ export function BookingDialog({ branchId, date, booking, open, onOpenChange, set
 
   const sectionsQ = useListSections({ branch_id: branchId }, { query: { enabled: open } });
   const availQ = useBookingAvailability(
-    { branch_id: branchId, date: day, party_size: Math.max(1, party || 1), section_id: sectionId ?? undefined, exclude_booking_id: booking?.id ?? undefined },
+    availabilityParams(branchId, { day, party, sectionId, bookingId: booking?.id }),
     { query: { enabled: open && !!day && (party || 0) > 0 } },
   );
   const slots = useMemo(() => availQ.data?.slots ?? [], [availQ.data]);

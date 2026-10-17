@@ -22,6 +22,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters } from "@/data/scope/use-list-filters";
 import { inventoryReportsSearch } from "./search";
+import { periodParams } from "./queries";
 import { exportToExcel, exportToCsv } from "@/lib/excel";
 import {
   buildInventoryExportSheet, ConsumptionTab, PoLeadTimeTab, ShrinkageTab, WasteTab,
@@ -53,7 +54,7 @@ export function InventoryReportsPage() {
 
   const isBranch = scope === "branch";
   const scopeId = isBranch ? branchId : orgId;
-  const range = { from: from ?? undefined, to: to ?? undefined };
+  const range = periodParams({ from, to });
   // inventory.read for the page; PO lead time is purchasing (purchasing.orders.read).
   const authz = useAuthz();
   const canLead = authz.can(Cap.purchasingOrdersRead);

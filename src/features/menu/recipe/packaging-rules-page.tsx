@@ -39,6 +39,7 @@ import { invalidateCatalog } from "../util";
 import { ownPayload, type GridBlock } from "./grid-model";
 import { LabelGridEditor } from "./label-grid-editor";
 import { useIngredientPicker } from "./use-ingredient-picker";
+import { packagingItemsParams } from "../queries";
 import type { ApplyPackagingRulesResult, PackagingRuleOut } from "@/data/api/generated/models";
 
 const ANY = "";
@@ -62,7 +63,7 @@ export function PackagingRulesPage() {
   const [result, setResult] = useState<ApplyPackagingRulesResult | null>(null);
 
   const categoriesQ = useListCategories({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
-  const itemsQ = useListMenuCatalog({ org_id: orgId ?? "", per_page: 500 }, { query: { enabled: !!orgId } });
+  const itemsQ = useListMenuCatalog(packagingItemsParams(orgId), { query: { enabled: !!orgId } });
   const categoryOptions = useMemo(
     () =>
       (categoriesQ.data ?? []).map((c) => ({

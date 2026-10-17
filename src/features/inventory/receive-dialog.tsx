@@ -118,6 +118,11 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {po.isLoading ? Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={6}><Skeleton className="h-8 w-full" /></TableCell>
+                    </TableRow>
+                  )) : null}
                   {(po.data?.lines ?? []).map((l) => {
                     const remaining = l.quantity_ordered - l.quantity_received;
                     const arriving = parseFloat(receiving[l.id] ?? "");

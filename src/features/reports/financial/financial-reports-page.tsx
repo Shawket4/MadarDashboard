@@ -10,10 +10,10 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { Tabs } from "@/components/ui/tabs";
 import { Restricted } from "@/components/app/restricted";
 import { useAuthz } from "@/data/authz/use-authz";
-import { Cap, type Capability } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters } from "@/data/scope/use-list-filters";
 import { financialReportsSearch } from "../search";
+import { financialTabs, openTab, type FinancialTab } from "../queries";
 import { useOrgId } from "@/hooks/use-org-id";
 import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
@@ -38,20 +38,7 @@ const PRESET_FALLBACK: Record<string, string> = {
   custom: "Custom range",
 };
 
-type TabKey = "profitability" | "revenue" | "channel" | "valuation" | "supplierSpend" | "materialCostTrend";
-
-const TABS: TabKey[] = ["profitability", "revenue", "channel", "valuation", "supplierSpend", "materialCostTrend"];
-
-/** What each tab reads: sales (orders.read), stock value (inventory.read), or
- *  what the business pays its suppliers (purchasing.orders.read). */
-const TAB_CAP: Record<TabKey, Capability> = {
-  profitability: Cap.ordersRead,
-  revenue: Cap.ordersRead,
-  channel: Cap.ordersRead,
-  valuation: Cap.inventoryRead,
-  supplierSpend: Cap.purchasingOrdersRead,
-  materialCostTrend: Cap.purchasingOrdersRead,
-};
+type TabKey = FinancialTab;
 
 const INVENTORY_TABS = new Set<TabKey>(["valuation", "supplierSpend", "materialCostTrend"]);
 
@@ -72,12 +59,12 @@ export function FinancialReportsPage() {
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
   const authz = useAuthz();
-  const visible = TABS.filter((k) => authz.can(TAB_CAP[k]));
+  const visible = financialTabs(authz.can);
   // Tab, granularity and inventory scope live in the URL (reports/search.ts).
   const filters = useListFilters(financialReportsSearch);
   const picked: TabKey = filters.values.tab;
   const setTab = (v: TabKey) => filters.set({ tab: v });
-  const tab: TabKey = visible.includes(picked) ? picked : (visible[0] ?? "profitability");
+  const tab: TabKey = openTab(picked, visible) ?? "profitability";
   const gran: Granularity = filters.values.gran;
   const setGran = (v: Granularity) => filters.set({ gran: v });
   // "This branch" needs a branch: under "All branches" it is the whole organization.

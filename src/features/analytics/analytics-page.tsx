@@ -15,7 +15,7 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { cn } from "@/lib/utils";
 import type { ColumnDef } from "@tanstack/react-table";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
-import { ExcludeItemsControl, excludeItemsParam, useExcludedItems } from "@/components/app/exclude-items-control";
+import { ExcludeItemsControl, useExcludedItems } from "@/components/app/exclude-items-control";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fadeInUp, staggerContainer } from "@/lib/motion";
 import { averageTicket } from "@/lib/average-ticket";
@@ -30,6 +30,7 @@ import type { PeakDayPoint, PeakHourPoint, TimeseriesPoint } from "@/data/api/ge
 import { WEEKDAYS } from "@/features/staff/util";
 import { ServiceModeSplit } from "./service-mode-split";
 import { GRANULARITIES, type Granularity, type MethodMap, tName } from "./lib";
+import { addonSalesParams, itemSalesParams, overviewParams, tellerStatsParams, timeseriesParams } from "./queries";
 
 export type Range = { from?: string; to?: string };
 
@@ -62,11 +63,7 @@ export function OverviewTab({ branchId, range }: { branchId: string; range: Rang
   const reduced = useReducedMotion();
   // Excluded from the Items Sold KPI only (server ignores it everywhere else).
   const [excludedItems, setExcludedItems] = useExcludedItems();
-  const q = useBranchSales(
-    branchId,
-    { ...range, exclude_items: excludeItemsParam(excludedItems) },
-    { query: { enabled: !!branchId } },
-  );
+  const q = useBranchSales(branchId, overviewParams(range, excludedItems), { query: { enabled: !!branchId } });
   const d = q.data;
   const aov = d ? averageTicket(d.total_revenue, d.total_orders) : 0;
 
@@ -297,7 +294,7 @@ export function RevenueTab({ branchId, range, gran, setGran }: { branchId: strin
   const reduced = useReducedMotion();
   const isPeak = gran === "peak_hours" || gran === "peak_days";
 
-  const tsQ = useBranchSalesTimeseries(branchId, { ...range, granularity: gran }, { query: { enabled: !!branchId && !isPeak } });
+  const tsQ = useBranchSalesTimeseries(branchId, timeseriesParams(range, gran), { query: { enabled: !!branchId && !isPeak } });
   const tsData = useMemo(() => (tsQ.data ?? []).map((p) => ({ ...p, label: fmtPeriod(p.period, gran) })), [tsQ.data, gran]);
 
   const phQ = useBranchSalesPeakHours(branchId, range, { query: { enabled: !!branchId && gran === "peak_hours" } });
@@ -449,8 +446,8 @@ export function RevenueTab({ branchId, range, gran, setGran }: { branchId: strin
 // ── Items ────────────────────────────────────────────────────────────────────
 export function ItemsTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t, i18n } = useTranslation();
-  const items = useBranchCombinedItemSales(branchId, { ...range, limit: 50 }, { query: { enabled: !!branchId } });
-  const addons = useBranchAddonSales(branchId, { ...range, limit: 20 }, { query: { enabled: !!branchId } });
+  const items = useBranchCombinedItemSales(branchId, itemSalesParams(range), { query: { enabled: !!branchId } });
+  const addons = useBranchAddonSales(branchId, addonSalesParams(range), { query: { enabled: !!branchId } });
   const rows = useMemo(() => items.data ?? [], [items.data]);
   const itemCols = useMemo<ColumnDef<NonNullable<typeof items.data>[number]>[]>(() => [
     { id: "name", header: t("common.name", "Name"), meta: { label: t("common.name", "Name"), phone: "title" }, cell: ({ row: { original: r } }) => <span className="font-medium">{tName(r.item_name, r.item_name_translations, i18n.language)}</span> },
@@ -480,7 +477,7 @@ export function TellersTab({ branchId, range }: { branchId: string; range: Range
   const { t } = useTranslation();
   const reduced = useReducedMotion();
 
-  const q = useBranchTellerStats(branchId, { ...range, limit: 50 }, { query: { enabled: !!branchId } });
+  const q = useBranchTellerStats(branchId, tellerStatsParams(range), { query: { enabled: !!branchId } });
   const rows = useMemo(() => q.data ?? [], [q.data]);
   const tellerCols = useMemo<ColumnDef<(typeof rows)[number]>[]>(() => [
     { id: "name", header: t("users.role", "Teller"), meta: { label: t("users.role", "Teller"), phone: "title" }, cell: ({ row: { original: r } }) => <span className="font-medium">{r.teller_name}</span> },

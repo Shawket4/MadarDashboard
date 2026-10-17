@@ -15,6 +15,8 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import type { FloorTable } from "@/data/api/generated/models";
+import { queryClient } from "@/data/api/query";
+import { tableHistoryQueryOptions } from "./table-history";
 import { FloorDefs, TableGlyph } from "./table-glyph";
 import type { FloorViewport } from "./use-floor-viewport";
 import {
@@ -273,7 +275,12 @@ export function FloorCanvas({
         const reservation = reservations?.get(tb.id) ?? null;
         const isSelected = selection.has(tb.id);
         return (
-          <g key={tb.id} onPointerDown={(e) => onPointerDownTable(e, tb)}>
+          <g
+            key={tb.id}
+            onPointerDown={(e) => onPointerDownTable(e, tb)}
+            // Selecting a table opens its history in the inspector: warm it on hover.
+            onPointerEnter={() => void queryClient.prefetchQuery(tableHistoryQueryOptions(tb.id))}
+          >
             <title>
               {`${tb.label} · ${tb.seats} ${t("floor.seatsShort", "seats")}${occupant ? ` · ${occupant}` : reservation ? ` · ${reservation.label}` : ""}`}
             </title>

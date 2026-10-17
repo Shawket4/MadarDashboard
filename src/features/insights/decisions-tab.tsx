@@ -12,6 +12,7 @@ import { fmtDateTime, fmtNumber, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { SIGNAL_TONE, signalLabel } from "./signals";
 import { TINT } from "./util";
+import { decisionsParams } from "./queries";
 
 /** Read a numeric field out of the baseline/impact JSON aggregates. */
 const num = (o: unknown, key: string): number | null => {
@@ -27,10 +28,7 @@ const num = (o: unknown, key: string): number | null => {
 export function DecisionsTab({ orgId, branchId }: { orgId: string; branchId: string | null }) {
   const { t } = useTranslation();
 
-  const decisions = useListDecisions(
-    { org_id: orgId, ...(branchId ? { branch_id: branchId } : {}) },
-    { query: { enabled: !!orgId } },
-  );
+  const decisions = useListDecisions(decisionsParams(orgId, branchId), { query: { enabled: !!orgId } });
   // Resolve created_by (a user id) to a display name.
   const users = useListUsers({ org_id: orgId }, { query: { enabled: !!orgId } });
   const nameOf = (id: string | null | undefined): string | null =>

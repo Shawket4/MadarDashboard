@@ -101,7 +101,7 @@ describe("the combos list", () => {
 
     expect(screen.queryByRole("button", { name: /New combo/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
-    expect(useCombos).toHaveBeenCalledWith(expect.anything(), { enabled: true });
+    expect(useCombos).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ enabled: true }));
   });
 
   it("with menu.combos.edit as well: offers New combo", () => {
@@ -117,11 +117,11 @@ describe("the combos list", () => {
     mount();
     fireEvent.change(screen.getByRole("textbox", { name: "Search combos" }), { target: { value: "   " } });
     await new Promise((r) => setTimeout(r, 350));
-    expect(useCombos).toHaveBeenLastCalledWith(expect.objectContaining({ q: undefined }), { enabled: true });
+    expect(useCombos).toHaveBeenLastCalledWith(expect.objectContaining({ q: undefined }), expect.objectContaining({ enabled: true }));
     expect(screen.getByText("No combos yet")).toBeInTheDocument();
     expect(screen.queryByText("No combo matches these filters")).not.toBeInTheDocument();
     fireEvent.change(screen.getByRole("textbox", { name: "Search combos" }), { target: { value: " lunch " } });
-    await waitFor(() => expect(useCombos).toHaveBeenLastCalledWith(expect.objectContaining({ q: "lunch" }), { enabled: true }));
+    await waitFor(() => expect(useCombos).toHaveBeenLastCalledWith(expect.objectContaining({ q: "lunch" }), expect.objectContaining({ enabled: true })));
   });
 
   it("without menu.items.read: shows the restricted state and fetches nothing", () => {
@@ -131,6 +131,6 @@ describe("the combos list", () => {
     expect(screen.getByText("Your account can't see the menu. The owner can give you access.")).toBeInTheDocument();
     expect(screen.queryByText("Lunch deal")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /New combo/ })).not.toBeInTheDocument();
-    expect(useCombos).toHaveBeenCalledWith(expect.anything(), { enabled: false });
+    expect(useCombos).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ enabled: false }));
   });
 });

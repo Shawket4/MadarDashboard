@@ -32,22 +32,11 @@ import {
   useSummarizeStaffDrinks,
 } from "@/data/api/generated/api";
 import { OrderDetailSheet } from "@/features/orders/order-detail-sheet";
-import { cairoParts, fmtDate } from "@/lib/format";
+import { fmtDate } from "@/lib/format";
 
 import { StaffDrinksSummaryStrip } from "./staff-drinks-summary";
 import { StaffDrinksTable } from "./staff-drinks-table";
-
-/**
- * ISO instant → the local "YYYY-MM-DD" the backend's business-date param wants,
- * in the active branch/org timezone. Slicing the UTC string instead lands on
- * the wrong calendar day for every evening in a zone ahead of UTC — which for
- * a pool that resets at local midnight is the difference between yesterday's
- * overspend and today's.
- */
-function localDate(iso: string): string {
-  const { y, m, d } = cairoParts(iso);
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
+import { staffPoolReportParams } from "./queries";
 
 export function StaffPoolReportPage() {
   const { t } = useTranslation();
@@ -64,19 +53,18 @@ export function StaffPoolReportPage() {
   // 30-day allowance — and it reports the last day of the period. The list
   // below it covers the whole period, which is how you find last Tuesday's
   // overspend without moving the date picker twice.
-  const fromDate = from ? localDate(from) : "";
-  const businessDate = to ? localDate(to) : "";
+  const { fromDate, businessDate, today: todayParams, period } = staffPoolReportParams(branchId, from, to);
   const oneDay = fromDate === businessDate;
 
   const q = useGetStaffPoolToday(
-    { branch_id: branchId ?? "", business_date: businessDate || undefined },
+    todayParams,
     // A branch is required: the pool belongs to one shop's day, and there is no
     // honest way to roll "All branches" into a single allowance.
     { query: { enabled: canSee && !!branchId && !!businessDate } },
   );
 
   const drinks = useListStaffDrinks(
-    { branch_id: branchId ?? "", from: fromDate || undefined, to: businessDate || undefined },
+    period,
     // Same gate as the summary, for the same reason: a person without the
     // capability must not send a request that can only come back 403.
     { query: { enabled: canSee && !!branchId && !!fromDate && !!businessDate } },
@@ -86,7 +74,7 @@ export function StaffPoolReportPage() {
   // charged, what it cost to make. Same query as the list, so the strip and
   // the rows under it always describe the same drinks.
   const summary = useSummarizeStaffDrinks(
-    { branch_id: branchId ?? "", from: fromDate || undefined, to: businessDate || undefined },
+    period,
     { query: { enabled: canSee && !!branchId && !!fromDate && !!businessDate } },
   );
 

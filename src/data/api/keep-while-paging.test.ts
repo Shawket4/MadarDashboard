@@ -21,6 +21,12 @@ describe("keepWhilePaging", () => {
     expect(keep(prev, undefined)).toBeUndefined();
   });
 
+  it("pages a load-more list by its window", () => {
+    const key = (p: object) => ["/customers", p];
+    expect(keepWhilePaging(key({ q: "a", limit: 100 }), "limit")(prev, { queryKey: key({ q: "a", limit: 50 }) })).toBe(prev);
+    expect(keepWhilePaging(key({ q: "b", limit: 50 }), "limit")(prev, { queryKey: key({ q: "a", limit: 50 }) })).toBeUndefined();
+  });
+
   it("treats an absent filter and an undefined one as the same list", () => {
     const keep = keepWhilePaging(["/orders", { branch_id: "b", status: undefined, page: 3 }]);
     expect(keep(prev, q({ branch_id: "b", page: 2 }))).toBe(prev);

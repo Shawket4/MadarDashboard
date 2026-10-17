@@ -11,7 +11,6 @@
 import { useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { keepPreviousData } from "@tanstack/react-query";
 import { Star, Users, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,6 +24,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import {
   listCustomers,
+  getListCustomersQueryKey,
+  getListLoyaltyMembersQueryKey,
   listLoyaltyMembers,
   useGetLoyaltySettings,
   useListCustomers,
@@ -32,6 +33,8 @@ import {
 } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
+import { queryClient } from "@/data/api/query";
+import { useOrgId } from "@/hooks/use-org-id";
 import { GoogleObjectDialog } from "@/features/loyalty/admin/members/google-object-dialog";
 import { currencyLabel, modeOf } from "@/features/loyalty/shared/util";
 import { OrderDetailSheet } from "@/features/orders/order-detail-sheet";
@@ -47,6 +50,8 @@ import { formatPhoneDisplay } from "@/lib/phone";
 
 import { peopleAccess, peopleSource } from "./access";
 import { CustomerDetailSheet } from "./customer-detail-sheet";
+import { customersListParams, prefetchCustomer } from "./queries";
+import { keepWhilePaging } from "@/data/api/keep-while-paging";
 import { LIMIT_MAX, MEMBERS_LIMIT_MAX, PAGE_SIZE, SOURCES, isSource, rowOfCustomer, rowOfMember, type CustomerSource, type PersonRow } from "./util";
 
 const ALL = "all";
@@ -70,6 +75,7 @@ export function CustomersList({
 }) {
   const { t } = useTranslation();
   const access = peopleAccess(useAuthz());
+  const orgId = useOrgId();
   const source = peopleSource(access, membersOnly);
   const fromCustomers = source === "customers";
 
@@ -98,7 +104,6 @@ export function CustomersList({
   const showBalance = fromCustomers && mode !== null && (membersOnly || program.data?.enabled === true);
 
   const member = membersOnly || onlyMembers ? true : undefined;
-  const customerFilters = { q: q || undefined, member, source: from ?? undefined };
   const memberFilters = { ...(branchId ? { branch_id: branchId } : {}), ...(q ? { q } : {}) };
 
   // "Load more" widens the window from the top; a new search or filter starts over.
@@ -107,14 +112,17 @@ export function CustomersList({
     pageSize: PAGE_SIZE,
     max: fromCustomers ? LIMIT_MAX : MEMBERS_LIMIT_MAX,
   });
-  const customers = useListCustomers(
-    { ...customerFilters, limit: more.limit, offset: 0 },
-    { query: { enabled: fromCustomers, placeholderData: keepPreviousData } },
-  );
-  const members = useListLoyaltyMembers(
-    { ...memberFilters, limit: more.limit },
-    { query: { enabled: source === "members", placeholderData: keepPreviousData } },
-  );
+  // One builder for the list AND the sidebar prefetch (queries.ts). "Load more"
+  // keeps the rows on screen; a new search or filter shows the skeletons.
+  const customerParams = customersListParams({ q, member, from }, more.limit);
+  const { limit: _limit, offset: _offset, ...customerFilters } = customerParams;
+  const memberParams = { ...memberFilters, limit: more.limit };
+  const customers = useListCustomers(customerParams, {
+    query: { enabled: fromCustomers, placeholderData: keepWhilePaging(getListCustomersQueryKey(customerParams), "limit") },
+  });
+  const members = useListLoyaltyMembers(memberParams, {
+    query: { enabled: source === "members", placeholderData: keepWhilePaging(getListLoyaltyMembersQueryKey(memberParams), "limit") },
+  });
   const list = fromCustomers ? customers : members;
 
   const rows = useMemo<PersonRow[]>(
@@ -379,6 +387,7 @@ export function CustomersList({
         onRetry={() => void list.refetch()}
         getRowId={(r) => r.id}
         onRowClick={(r) => onOpenIdChange(r.id)}
+        onRowPrefetch={(r) => prefetchCustomer(queryClient, r.id, { access, orgId, branchId, isMember: r.isMember })}
         selectedRowId={openId}
         hideViewOptions
         loadMore={more.props(rows.length, list.isFetching)}

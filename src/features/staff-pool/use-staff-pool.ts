@@ -12,6 +12,7 @@
  * worked: an inherited row comes back labelled with the branch.)
  */
 import { useGetStaffPoolSettings } from "@/data/api/generated/api";
+import { staffPoolSettingsParams } from "./queries";
 
 export interface StaffPoolScope {
   orgId: string;
@@ -20,8 +21,7 @@ export interface StaffPoolScope {
 }
 
 export function useStaffPoolSettings(scope: StaffPoolScope, enabled = true) {
-  const params = scope.branchId ? { branch_id: scope.branchId } : {};
-  const query = useGetStaffPoolSettings(params, { query: { enabled } });
+  const query = useGetStaffPoolSettings(staffPoolSettingsParams(scope.branchId), { query: { enabled } });
   return {
     query,
     settings: query.data,

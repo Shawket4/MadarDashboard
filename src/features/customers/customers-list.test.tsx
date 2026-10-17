@@ -27,11 +27,18 @@ const useListLoyaltyMembers = vi.fn();
 const useGetLoyaltySettings = vi.fn();
 
 vi.mock("@/data/api/generated/api", () => ({
+  // Row hover warms the sheet (prefetchCustomer); a pending query is enough here.
+  getGetCustomerQueryOptions: (...k: unknown[]) => ({ queryKey: k, queryFn: () => new Promise(() => {}) }),
+  getGetLoyaltyMemberQueryOptions: (...k: unknown[]) => ({ queryKey: k, queryFn: () => new Promise(() => {}) }),
+  getListCustomerAddressesQueryOptions: (...k: unknown[]) => ({ queryKey: k, queryFn: () => new Promise(() => {}) }),
+  getListCustomerBookingsQueryOptions: (...k: unknown[]) => ({ queryKey: k, queryFn: () => new Promise(() => {}) }),
   useListCustomers: (...a: unknown[]) => useListCustomers(...a),
   useListLoyaltyMembers: (...a: unknown[]) => useListLoyaltyMembers(...a),
   useGetLoyaltySettings: (...a: unknown[]) => useGetLoyaltySettings(...a),
   listCustomers: vi.fn(),
   listLoyaltyMembers: vi.fn(),
+  getListCustomersQueryKey: (p: unknown) => ["/customers", p],
+  getListLoyaltyMembersQueryKey: (p: unknown) => ["/loyalty/members", p],
 }));
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");

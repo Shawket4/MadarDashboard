@@ -5,12 +5,15 @@
  */
 import { useState, type ReactNode } from "react";
 
+import { queryClient } from "@/data/api/query";
 import { useAuthz } from "@/data/authz/use-authz";
+import { useOrgId } from "@/hooks/use-org-id";
 import { OrderDetailSheet } from "@/features/orders/order-detail-sheet";
 
 import { peopleAccess } from "./access";
 import { CustomerDetailSheet } from "./customer-detail-sheet";
 import type { CustomerLinkControl } from "./customer-link";
+import { prefetchCustomer } from "./queries";
 
 export interface CustomerSheetControl extends CustomerLinkControl {
   /** Mount once, anywhere in the surface. */
@@ -22,13 +25,16 @@ export interface CustomerSheetControl extends CustomerLinkControl {
  * without it, one of the customer's orders opens in a sheet of its own.
  */
 export function useCustomerSheet(opts?: { onOpenOrder?: (orderId: string) => void }): CustomerSheetControl {
-  const canOpen = peopleAccess(useAuthz()).canViewCustomers;
+  const access = peopleAccess(useAuthz());
+  const canOpen = access.canViewCustomers;
+  const orgId = useOrgId();
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const openOrder = opts?.onOpenOrder ?? setOrderId;
   return {
     canOpen,
     open: setCustomerId,
+    prefetch: (id) => prefetchCustomer(queryClient, id, { access, orgId }),
     sheet: canOpen ? (
       <>
         <CustomerDetailSheet

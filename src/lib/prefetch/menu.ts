@@ -1,47 +1,46 @@
+import { prefetchCombos, prefetchMenuOptions } from "@/features/combos/queries";
+import { packagingItemsParams, prefetchMenuItems, prefetchPricing } from "@/features/menu/queries";
 import {
-  getListAddonCatalogQueryOptions,
-  getListAddonItemsQueryOptions,
-  getListBranchAddonOverridesQueryOptions,
-  getListBranchMenuOverridesQueryOptions,
+  getListBasesQueryOptions,
   getListCatalogQueryOptions,
   getListCategoriesQueryOptions,
+  getListDealsQueryOptions,
   getListDiscountsQueryOptions,
+  getListGroupsQueryOptions,
   getListMenuCatalogQueryOptions,
-  getListMenuItemsQueryOptions,
+  getListRulesQueryOptions,
 } from "@/data/api/generated/api";
 import type { RoutePrefetchMap } from "@/lib/route-prefetch";
 
-const MENU_PER_PAGE = 24; // ITEMS_PER_PAGE in menu-items-page
-
 /** Sidebar/palette intent prefetch for the menu area: route → its mount-time queries. */
 export const routes: RoutePrefetchMap = {
-  "/menu": (qc, { orgId }) => {
-    if (orgId) {
-      void qc.prefetchQuery(getListMenuCatalogQueryOptions({ org_id: orgId, page: 1, per_page: MENU_PER_PAGE }));
-      void qc.prefetchQuery(getListCategoriesQueryOptions({ org_id: orgId }));
-      void qc.prefetchQuery(getListAddonItemsQueryOptions({ org_id: orgId }));
-    }
+  // The sidebar parent redirects to Items.
+  "/menu": (qc, ctx) => routes["/menu/items"](qc, ctx),
+  "/menu/items": prefetchMenuItems,
+  "/menu/groups": (qc, { orgId }) => {
+    // Each group's usage count is one query per group id, known only once the list resolves.
+    if (orgId) void qc.prefetchQuery(getListGroupsQueryOptions({ org_id: orgId, include_inactive: true }));
   },
-  "/menu/items": (qc, ctx) => routes["/menu"](qc, ctx),
-  "/menu/overrides": (qc, { orgId, branchId }) => {
-    // Mirror the page's initial server params (branch-scoped, overridden-first
-    // sort, page 1). The override lists feed the footers + the count badges.
-    if (branchId) {
-      void qc.prefetchQuery(getListBranchMenuOverridesQueryOptions({ branch_id: branchId }));
-      void qc.prefetchQuery(getListBranchAddonOverridesQueryOptions({ branch_id: branchId }));
-      if (orgId) {
-        void qc.prefetchQuery(getListMenuCatalogQueryOptions({ org_id: orgId, branch_id: branchId, sort: "overridden", page: 1, per_page: MENU_PER_PAGE }));
-        void qc.prefetchQuery(getListAddonCatalogQueryOptions({ org_id: orgId, branch_id: branchId, sort: "overridden", page: 1, per_page: MENU_PER_PAGE }));
-        void qc.prefetchQuery(getListCategoriesQueryOptions({ org_id: orgId }));
-      }
-    }
+  "/menu/combos": prefetchCombos,
+  "/menu/deals": (qc, { orgId }) => {
+    if (!orgId) return;
+    void qc.prefetchQuery(getListDealsQueryOptions({}));
+    prefetchMenuOptions(qc, orgId);
   },
-  "/menu/recipes": (qc, { orgId }) => {
-    if (orgId) {
-      void qc.prefetchQuery(getListMenuItemsQueryOptions({ org_id: orgId }));
-      void qc.prefetchQuery(getListAddonItemsQueryOptions({ org_id: orgId }));
-      void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
-    }
+  "/menu/pricing": prefetchPricing,
+  "/menu/bases": (qc, { orgId }) => {
+    if (!orgId) return;
+    void qc.prefetchQuery(getListBasesQueryOptions());
+    // The (closed) editor dialog's ingredient picker reads the catalog on mount.
+    void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
+  },
+  "/menu/packaging": (qc, { orgId }) => {
+    if (!orgId) return;
+    void qc.prefetchQuery(getListRulesQueryOptions());
+    void qc.prefetchQuery(getListCategoriesQueryOptions({ org_id: orgId }));
+    void qc.prefetchQuery(getListMenuCatalogQueryOptions(packagingItemsParams(orgId)));
+    // The (closed) rule dialog's ingredient picker reads the catalog on mount.
+    void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
   },
   "/discounts": (qc, { orgId }) => {
     if (orgId) void qc.prefetchQuery(getListDiscountsQueryOptions({ org_id: orgId }));

@@ -12,7 +12,7 @@
 // keeps getting voided is exactly the thing a manager should see.
 import { useTranslation } from "react-i18next";
 
-import { useTableHistory } from "@/data/api/generated/api";
+import { getTableHistoryQueryOptions, useTableHistory } from "@/data/api/generated/api";
 import type { TableSitting } from "@/data/api/generated/models";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fmtElapsedMs, fmtMoney, fmtNumber } from "@/lib/format";
@@ -84,6 +84,12 @@ function SittingRow({ s, customers }: { s: TableSitting; customers?: CustomerLin
 
 /** A table's figures, then what happened — the last 30 days unless a window
  *  is given (the Tables insights page passes the scope's). */
+/** The history read's params: the sheet and every hover that warms it build them here. */
+export const tableHistoryParams = (from?: string, to?: string) => (from || to ? { from, to } : undefined);
+
+export const tableHistoryQueryOptions = (tableId: string, from?: string, to?: string) =>
+  getTableHistoryQueryOptions(tableId, tableHistoryParams(from, to));
+
 export function TableHistory({
   tableId,
   from,
@@ -97,10 +103,7 @@ export function TableHistory({
   customers?: CustomerLinkControl;
 }) {
   const { t } = useTranslation();
-  const { data, isLoading, isError } = useTableHistory(
-    tableId,
-    from || to ? { from, to } : undefined,
-  );
+  const { data, isLoading, isError } = useTableHistory(tableId, tableHistoryParams(from, to));
 
   if (isLoading) {
     return (

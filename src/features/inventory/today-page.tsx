@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import type { LowStockRow } from "@/data/api/generated/models";
 import {
+  getGetPurchaseOrderQueryOptions,
   useListBranchStock,
   useListCatalog,
   useListOrgPurchaseOrders,
@@ -28,17 +29,19 @@ import {
   useOrgInventoryValuation,
   useOrgLowStock,
 } from "@/data/api/generated/api";
+import { queryClient } from "@/data/api/query";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { todaySearch } from "./search";
 import { useAppStore } from "@/data/stores/app.store";
-import { cairoDateISO, cairoParts, fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
+import { fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PurchaseOrderDialog } from "./purchase-order-dialog";
 import { ReceiveDialog } from "./receive-dialog";
 import { WasteDialog } from "./waste-dialog";
 import { countsDue, needsFirstCount } from "./lib";
+import { todayBounds } from "./queries";
 
 export function TodayPage() {
   const { t } = useTranslation();
@@ -53,11 +56,12 @@ export function TodayPage() {
   const filters = useListFilters(todaySearch);
 
   const tz = useAppStore((st) => st.activeTimezone);
-  const { todayStartISO, todayEndISO } = useMemo(() => {
-    const { y, m, d } = cairoParts(Date.now());
-    return { todayStartISO: cairoDateISO(y, m, d, false), todayEndISO: cairoDateISO(y, m, d, true) };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- cairo* helpers read the active tz
-  }, [tz]);
+  // Shared with the sidebar prefetch (./queries.ts), so the deliveries key matches.
+  const { start: todayStartISO, end: todayEndISO } = useMemo(
+    () => todayBounds(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- todayBounds reads the active tz
+    [tz],
+  );
 
   // Branch-specific when a branch is selected; org-wide roll-up otherwise.
   const branchVal = useBranchInventoryValuation(branchId ?? "", { query: { enabled: !!branchId } });
@@ -82,6 +86,8 @@ export function TodayPage() {
   const todaysWaste = useMemo(() => (waste.data ?? []).filter((m) => m.created_at >= todayStartISO), [waste.data, todayStartISO]);
   const due = useMemo(() => (branchId ? countsDue(branchStock.data ?? []) : null), [branchStock.data, branchId]);
   const firstRun = !!branchId && !stocktakes.isLoading && needsFirstCount(stocktakes.data);
+
+  const prefetchPo = (id: string) => void queryClient.prefetchQuery(getGetPurchaseOrderQueryOptions(id));
 
   const openReorderPo = (row: LowStockRow) => {
     setPoBranchId(row.branch_id);
@@ -248,7 +254,13 @@ export function TodayPage() {
                   title={<>{p.reference || <bdi>#{p.id.slice(0, 8)}</bdi>} · {p.supplier_name ?? "—"}</>}
                   meta={<bdi>{fmtDate(p.expected_at)}</bdi>}
                   trailing={
-                    <Button variant="outline" size="sm" onClick={() => setReceivePoId(p.id)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setReceivePoId(p.id)}
+                      onMouseEnter={() => prefetchPo(p.id)}
+                      onFocus={() => prefetchPo(p.id)}
+                    >
                       <PackageCheck className="size-4" /> {t("inventory.today.receive", "Receive")}
                     </Button>
                   }
