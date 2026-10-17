@@ -44,7 +44,12 @@ export function OverviewTab({ branchId, range }: { branchId: string; range: Rang
   );
   const topItems = d?.top_items ?? [];
 
-  const kpis: LedgerItem[] = [
+  // A failed KPI reads "—", never 0 (as on the Tables tab). Loading keeps its skeleton.
+  const failed = q.isError;
+  const kpi = (item: LedgerItem): LedgerItem =>
+    failed ? { ...item, value: "—", formatType: undefined, hint: undefined } : item;
+
+  const kpis: LedgerItem[] = ([
     { key: "revenue", label: t("dashboard.revenue", "Revenue"), icon: Coins, accent: "neutral", value: d?.total_revenue ?? 0, formatType: "money", loading: q.isLoading },
     { key: "tax", label: t("orders.tax", "Tax"), icon: Percent, accent: "info", value: d?.total_tax ?? 0, formatType: "money", loading: q.isLoading },
     { key: "orders", label: t("dashboard.orders", "Orders"), icon: Receipt, accent: "primary", value: d?.total_orders ?? 0, formatType: "number", loading: q.isLoading },
@@ -61,7 +66,7 @@ export function OverviewTab({ branchId, range }: { branchId: string; range: Rang
     },
     { key: "aov", label: t("analytics.avgOrder", "Avg Order"), icon: TrendingUp, accent: "info", value: aov, formatType: "money", loading: q.isLoading },
     { key: "voided", label: t("orders.voided", "Voided"), icon: Ban, accent: "warning", value: d?.voided_orders ?? 0, formatType: "number", loading: q.isLoading },
-  ];
+  ] satisfies LedgerItem[]).map(kpi);
 
   const state = (empty: boolean) => ({ loading: q.isLoading, error: q.isError, empty, onRetry: () => void q.refetch() });
 
@@ -118,7 +123,7 @@ export function OverviewTab({ branchId, range }: { branchId: string; range: Rang
         </ChartCard>
       </ChartGrid>
 
-      <ServiceModeSplit rows={d?.by_service_mode} loading={q.isLoading} />
+      <ServiceModeSplit rows={d?.by_service_mode} loading={q.isLoading} error={q.isError} onRetry={() => void q.refetch()} />
 
       <ChartCard title={t("analytics.topItemsQty", "Top Items by Quantity Sold")}>
         <ChartBody

@@ -7,6 +7,7 @@ import { SERVICE_MODE_ICON, serviceModeRows } from "@/features/orders/service-mo
 import type { ServiceModeSales } from "@/data/api/generated/models";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { Stagger } from "@/lib/motion";
+import { ChartError } from "@/features/reports/operations/report-kit";
 
 /**
  * Sales split by how the customer takes the order (Pickup / Dine in), from the
@@ -16,9 +17,14 @@ import { Stagger } from "@/lib/motion";
 export function ServiceModeSplit({
   rows,
   loading,
+  error,
+  onRetry,
 }: {
   rows: ReadonlyArray<ServiceModeSales> | undefined;
   loading?: boolean;
+  /** A failed load shows the shared card error, never a zero split. */
+  error?: boolean;
+  onRetry?: () => void;
 }) {
   const { t } = useTranslation();
   const split = serviceModeRows(rows);
@@ -29,6 +35,8 @@ export function ServiceModeSplit({
           <Skeleton className="h-14" />
           <Skeleton className="h-14" />
         </div>
+      ) : error ? (
+        <ChartError onRetry={onRetry ?? (() => {})} />
       ) : (
         <Stagger asChild>
           <ul className="grid gap-4 sm:grid-cols-2">
