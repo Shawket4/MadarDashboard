@@ -2,7 +2,8 @@
  * Read-only users see the recipe grid and packaging rules without edit controls.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 let held: string[] = [];
@@ -90,5 +91,38 @@ describe("recipe grid authz", () => {
     expect(screen.getByLabelText("Milk in Cup")).toBeInTheDocument();
     expect(screen.getByLabelText("Price of Cup")).not.toBeDisabled();
     expect(screen.getByRole("button", { name: "Size actions" })).toBeInTheDocument();
+  });
+
+  // Every keystroke rebuilds the columns; the cell input must survive it. It used
+  // to remount, so focus left after one character and "18" could not be typed.
+  it("keeps the same focused input while typing several characters", () => {
+    held = [EDIT];
+    function Harness() {
+      const [b, setB] = useState(blocks);
+      return (
+        <RecipeGrid
+          blocks={b}
+          setBlocks={setB as never}
+          recipeDirtyKeys={new Set()}
+          catalogById={catalogById}
+          ingredientOptions={[]}
+          orgId="org-1"
+          onCostFixed={vi.fn()}
+          swapGroups={[]}
+          baseNames={new Map()}
+          followsName={null}
+        />
+      );
+    }
+    wrap(<Harness />);
+    const input = screen.getByLabelText("Milk in Cup") as HTMLInputElement;
+    input.focus();
+    fireEvent.change(input, { target: { value: "1" } });
+    expect(screen.getByLabelText("Milk in Cup")).toBe(input);
+    expect(document.activeElement).toBe(input);
+    fireEvent.change(input, { target: { value: "18" } });
+    expect(screen.getByLabelText("Milk in Cup")).toBe(input);
+    expect(document.activeElement).toBe(input);
+    expect(input.value).toBe("18");
   });
 });

@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { renderCell } from "./render-cell";
 import { ArrowLeft, ArrowRight, Copy, Lock, MoreHorizontal, Plus, Scaling, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -420,7 +421,7 @@ export function RecipeGrid({
               <tr key={row.id} className={cn("border-b last:border-b-0", row.original.source !== "own" && "bg-muted/25")}>
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="px-2 py-1.5 align-middle first:px-3">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {renderCell(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
               </tr>
