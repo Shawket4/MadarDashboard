@@ -19,6 +19,16 @@ import { useOrgId } from "@/hooks/use-org-id";
 
 const storageKey = (orgId: string) => `madar.excluded-line-items.${orgId}`;
 
+/** The stored exclusions, outside React (prefetch reads the same value the page will). */
+export function readExcludedItems(orgId: string | null): string[] {
+  if (!orgId) return [];
+  try {
+    return JSON.parse(localStorage.getItem(storageKey(orgId)) ?? "[]") as string[];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Menu item ids excluded from the "Items Sold" KPIs, persisted
  * per-org so the preference survives sessions. Server-side the exclusion
@@ -26,23 +36,11 @@ const storageKey = (orgId: string) => `madar.excluded-line-items.${orgId}`;
  */
 export function useExcludedItems(): [string[], (ids: string[]) => void] {
   const orgId = useOrgId();
-  const [ids, setIds] = React.useState<string[]>(() => {
-    if (!orgId) return [];
-    try {
-      return JSON.parse(localStorage.getItem(storageKey(orgId)) ?? "[]") as string[];
-    } catch {
-      return [];
-    }
-  });
+  const [ids, setIds] = React.useState<string[]>(() => readExcludedItems(orgId));
 
   // Re-read when the org changes (org switcher).
   React.useEffect(() => {
-    if (!orgId) return;
-    try {
-      setIds(JSON.parse(localStorage.getItem(storageKey(orgId)) ?? "[]") as string[]);
-    } catch {
-      setIds([]);
-    }
+    if (orgId) setIds(readExcludedItems(orgId));
   }, [orgId]);
 
   const update = React.useCallback(

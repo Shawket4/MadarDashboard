@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { Ban, Bike, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, Store, TriangleAlert, Ban as VoidIcon } from "lucide-react";
@@ -10,7 +9,7 @@ import { SectionHeader } from "@/components/app/section-header";
 import { StatusPill, toneFor } from "@/components/app/status-pill";
 import { EmptyState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
-import { ExcludeItemsControl, excludeItemsParam, useExcludedItems } from "@/components/app/exclude-items-control";
+import { ExcludeItemsControl, useExcludedItems } from "@/components/app/exclude-items-control";
 import { DataTable } from "@/components/app/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -32,7 +31,8 @@ import { VoidOrderDialog } from "./void-order-dialog";
 import { OrderExportDialog } from "./order-export-dialog";
 import { ServiceModeBadge } from "./service-mode-badge";
 import { serviceModeOf } from "./service-mode";
-import { getGetOrderQueryOptions, getListOrdersQueryOptions, useBranchDeliverySales, useListOrders } from "@/data/api/generated/api";
+import { getGetOrderQueryOptions, getListOrdersQueryKey, getListOrdersQueryOptions, useBranchDeliverySales, useListOrders } from "@/data/api/generated/api";
+import { keepWhilePaging } from "@/data/api/keep-while-paging";
 import { queryClient } from "@/data/api/query";
 import type { Order } from "@/data/api/generated/models";
 import { ORDER_STATUSES, PAYMENT_METHODS } from "@/data/config/constants";
@@ -43,6 +43,7 @@ import { fmtDateTime, fmtMoney } from "@/lib/format";
 import { paginationFrom, useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
 import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import { ordersSearch } from "./search";
+import { ORDERS_PAGE_SIZE, ordersListParams } from "./queries";
 
 const ALL = "__all__";
 
@@ -112,15 +113,12 @@ export function OrdersPage() {
   const orderType = f.type === "all" ? ALL : f.type;
   const channel = f.channel === "all" ? ALL : f.channel;
   const [tellerInput, setTellerInput] = useSearchInput(f.teller, (teller) => set({ teller }), 350);
-  const teller = f.teller;
   const [waiterInput, setWaiterInput] = useSearchInput(f.waiter, (waiter) => set({ waiter }), 350);
-  const waiter = f.waiter;
-  const { pagination, onPaginationChange: setPagination } = paginationFrom(filters, 20);
+  const { pagination, onPaginationChange: setPagination } = paginationFrom(filters, ORDERS_PAGE_SIZE);
   // Opened order lives in the URL (?order=<id>) so it's shareable / deep-linkable.
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { order?: string };
   const detailId = search.order ?? null;
-  const tillId = f.till || undefined;
   // Opening the sheet is a history entry, so browser Back closes it (and keeps
   // the filters). Switching orders inside the sheet replaces that entry; closing
   // one we pushed steps back instead of piling up a second list entry.
@@ -161,26 +159,16 @@ export function OrdersPage() {
   // Excluded from the Items Sold KPI only (server ignores it everywhere else).
   const [excludedItems, setExcludedItems] = useExcludedItems();
 
-  const baseParams = {
-    branch_id: branchId ?? undefined,
-    from: from ?? undefined,
-    to: to ?? undefined,
-    status: status === ALL ? undefined : status,
-    payment_method: payment === ALL ? undefined : payment,
-    teller_name: teller || undefined,
-    waiter_name: waiter || undefined,
-    order_type: orderType === ALL ? undefined : orderType,
-    // Channel only narrows delivery orders; ignored unless Delivery is picked.
-    channel: orderType === "delivery" && channel !== ALL ? channel : undefined,
-    exclude_items: excludeItemsParam(excludedItems),
-    till_id: tillId,
-  };
+  // One builder for the page AND the sidebar prefetch (queries.ts), so both ask for the same key.
+  const listParams = ordersListParams({ branchId, from, to }, f, excludedItems);
+  const { page: _page, per_page: _perPage, ...exportFilters } = listParams;
 
   const enabled = Boolean(branchId || orgId);
-  const { data, isLoading, isFetching, error, refetch } = useListOrders(
-    { ...baseParams, page: pagination.pageIndex + 1, per_page: pagination.pageSize },
-    { query: { enabled, placeholderData: keepPreviousData } },
-  );
+  // Paging keeps the KPIs (they cover every page) while the table shows skeleton
+  // rows; a filter or period change shows skeletons everywhere.
+  const { data, isLoading, isPlaceholderData, error, refetch } = useListOrders(listParams, {
+    query: { enabled, placeholderData: keepWhilePaging(getListOrdersQueryKey(listParams)) },
+  });
 
   const summary = data?.summary;
   // Delivery + per-channel KPIs come from the SAME source the dashboard uses
@@ -212,7 +200,7 @@ export function OrdersPage() {
   const prefetchNext = () => {
     if (data && pagination.pageIndex + 1 < (data.total_pages ?? 0)) {
       void queryClient.prefetchQuery(
-        getListOrdersQueryOptions({ ...baseParams, page: pagination.pageIndex + 2, per_page: pagination.pageSize }),
+        getListOrdersQueryOptions({ ...listParams, page: f.page + 1 }),
       );
     }
   };
@@ -416,7 +404,7 @@ export function OrdersPage() {
       <DataTable
         columns={columns}
         data={data?.data ?? []}
-        loading={isLoading || (isFetching && !data)}
+        loading={isLoading || isPlaceholderData}
         error={error}
         onRetry={() => void refetch()}
         selectedRowId={detailId}
@@ -474,7 +462,7 @@ export function OrdersPage() {
       <OrderExportDialog
         open={exportOpen}
         onOpenChange={setExportOpen}
-        filters={baseParams}
+        filters={exportFilters}
         totalApprox={data?.total ?? 0}
       />
     </Page>

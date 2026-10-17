@@ -1,44 +1,13 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { openTillsQueryOptions } from "@/features/tills/api";
-import {
-  getBranchConsumptionQueryOptions,
-  getBranchInventoryValuationQueryOptions,
-  getBranchLowStockQueryOptions,
-  getBranchSalesQueryOptions,
-  getBranchSalesTimeseriesQueryOptions,
-  getBranchWasteReportQueryOptions,
-  getGetInventorySettingsQueryOptions,
-  getListAddonItemsQueryOptions,
-  getListAddonCatalogQueryOptions,
-  getListBranchAddonOverridesQueryOptions,
-  getListBranchMenuOverridesQueryOptions,
-  getListBranchStockQueryOptions,
-  getListBranchesQueryOptions,
-  getListCatalogQueryOptions,
-  getListCategoriesQueryOptions,
-  getListDiscountsQueryOptions,
-  getListMenuCatalogQueryOptions,
-  getListMenuItemsQueryOptions,
-  getMenuMarginLedgerQueryOptions,
-  getListOrdersQueryOptions,
-  getListOrgsQueryOptions,
-  getListPaymentMethodsQueryOptions,
-  getListPurchaseOrdersQueryOptions,
-  getListStocktakesQueryOptions,
-  getListSuppliersQueryOptions,
-  getListTransfersQueryOptions,
-  getListUsersQueryOptions,
-  getListWasteQueryOptions,
-  getOrgBranchComparisonQueryOptions,
-  getOrgConsumptionQueryOptions,
-  getOrgInventoryValuationQueryOptions,
-  getOrgLowStockQueryOptions,
-} from "@/data/api/generated/api";
-import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import type { ScopePreset } from "@/data/scope/presets";
+import { routes as admin } from "@/lib/prefetch/admin";
+import { routes as inventory } from "@/lib/prefetch/inventory";
+import { routes as menu } from "@/lib/prefetch/menu";
+import { routes as reports } from "@/lib/prefetch/reports";
+import { routes as sales } from "@/lib/prefetch/sales";
+import { routes as staff } from "@/lib/prefetch/staff";
 
-interface Ctx {
-  queryClient: QueryClient;
+export interface PrefetchCtx {
   orgId: string | null;
   branchId: string | null;
   from: string | null;
@@ -47,181 +16,20 @@ interface Ctx {
   preset: ScopePreset;
 }
 
-// Mirror the page-level query params EXACTLY so the warmed cache key is the one
-// the page reads on mount (otherwise it refetches against a different key).
-const MENU_PER_PAGE = 24; // ITEMS_PER_PAGE in menu-items-page
-const ORDERS_PER_PAGE = 20; // pageSize in orders-page
+/** Warms one route's mount-time queries. */
+export type RoutePrefetch = (qc: QueryClient, ctx: PrefetchCtx) => void;
+export type RoutePrefetchMap = Record<string, RoutePrefetch>;
 
 /**
- * Warm every query a route fires on mount, when its sidebar entry is
- * hovered/focused — complements the router's code-chunk preload. With the
- * global 30s staleTime, the page then renders from cache without refetching.
+ * Every nav route → the queries its page fires on mount, one file per area
+ * (`lib/prefetch/*`). Each entry builds its params with the SAME function the
+ * page uses (a feature's `queries.ts`), so the warmed key is the page's key and,
+ * with the global 30 s staleTime, the page renders from cache without a request.
+ * `route-prefetch.test.ts` fails when a nav route has no entry.
  */
-export function prefetchRoute(route: string, { queryClient: qc, orgId, branchId, from, to, preset }: Ctx): void {
-  const period = { from: from ?? undefined, to: to ?? undefined };
-  switch (route) {
-    case "/": {
-      // Dashboard: branch sales (when a branch is picked) + the org timeseries
-      // and branch comparison (when an org resolves). Mirror each hook's exact
-      // params — incl. the all-branches sentinel + granularity the page derives.
-      const scopeBranchId = branchId ?? ALL_BRANCHES_ID;
-      const granularity = preset === "today" || preset === "yesterday" ? "hourly" : "daily";
-      if (branchId) void qc.prefetchQuery(getBranchSalesQueryOptions(branchId, period));
-      if (orgId) {
-        void qc.prefetchQuery(getBranchSalesTimeseriesQueryOptions(scopeBranchId, { ...period, granularity }));
-        void qc.prefetchQuery(getOrgBranchComparisonQueryOptions(orgId, period));
-      }
-      break;
-    }
-    case "/orders":
-      if (branchId || orgId) {
-        // Must match orders-page `baseParams` shape exactly (incl. the filter
-        // keys it leaves undefined) so the cache key is identical.
-        void qc.prefetchQuery(getListOrdersQueryOptions({
-          branch_id: branchId ?? undefined,
-          from: from ?? undefined,
-          to: to ?? undefined,
-          status: undefined,
-          payment_method: undefined,
-          teller_name: undefined,
-          waiter_name: undefined,
-          page: 1,
-          per_page: ORDERS_PER_PAGE,
-        }));
-      }
-      break;
-    case "/tills":
-      if (branchId) {
-        void qc.prefetchQuery(openTillsQueryOptions(branchId));
-      }
-      break;
-    case "/menu":
-    case "/menu/items":
-      if (orgId) {
-        void qc.prefetchQuery(getListMenuCatalogQueryOptions({ org_id: orgId, page: 1, per_page: MENU_PER_PAGE }));
-        void qc.prefetchQuery(getListCategoriesQueryOptions({ org_id: orgId }));
-        void qc.prefetchQuery(getListAddonItemsQueryOptions({ org_id: orgId }));
-      }
-      break;
-    case "/menu/overrides":
-      // Mirror the page's initial server params (branch-scoped, overridden-first
-      // sort, page 1). The override lists feed the footers + the count badges.
-      if (branchId) {
-        void qc.prefetchQuery(getListBranchMenuOverridesQueryOptions({ branch_id: branchId }));
-        void qc.prefetchQuery(getListBranchAddonOverridesQueryOptions({ branch_id: branchId }));
-        if (orgId) {
-          void qc.prefetchQuery(getListMenuCatalogQueryOptions({ org_id: orgId, branch_id: branchId, sort: "overridden", page: 1, per_page: MENU_PER_PAGE }));
-          void qc.prefetchQuery(getListAddonCatalogQueryOptions({ org_id: orgId, branch_id: branchId, sort: "overridden", page: 1, per_page: MENU_PER_PAGE }));
-          void qc.prefetchQuery(getListCategoriesQueryOptions({ org_id: orgId }));
-        }
-      }
-      break;
-    case "/menu/recipes":
-      if (orgId) {
-        void qc.prefetchQuery(getListMenuItemsQueryOptions({ org_id: orgId }));
-        void qc.prefetchQuery(getListAddonItemsQueryOptions({ org_id: orgId }));
-        void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
-      }
-      break;
-    case "/discounts":
-      if (orgId) void qc.prefetchQuery(getListDiscountsQueryOptions({ org_id: orgId }));
-      break;
-    case "/branches":
-      if (orgId) void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
-      break;
-    case "/orgs":
-      void qc.prefetchQuery(getListOrgsQueryOptions());
-      break;
-    case "/users":
-    case "/permissions":
-    case "/access":
-    case "/access/users":
-    case "/access/roles":
-      if (orgId) void qc.prefetchQuery(getListUsersQueryOptions({ org_id: orgId }));
-      break;
-    case "/settings/payment-methods":
-      if (orgId) void qc.prefetchQuery(getListPaymentMethodsQueryOptions());
-      break;
-    case "/analytics":
-    case "/insights/sales":
-    case "/reports/sales":
-      // Legacy paths — all now redirect into Reports ▸ Operations.
-      if (branchId) void qc.prefetchQuery(getBranchSalesQueryOptions(branchId, period));
-      break;
-    case "/reports/operations":
-      // Default tab is Tables; also warm Overview since it's one click away.
-      if (branchId) void qc.prefetchQuery(getBranchSalesQueryOptions(branchId, period));
-      break;
-    case "/reports/financial":
-      // Default tab is Menu Profitability.
-      if (orgId) void qc.prefetchQuery(getMenuMarginLedgerQueryOptions(branchId ?? ALL_BRANCHES_ID, period));
-      break;
-    case "/reports/inventory":
-      // Default tab is Consumption.
-      if (branchId) void qc.prefetchQuery(getBranchConsumptionQueryOptions(branchId, period));
-      else if (orgId) void qc.prefetchQuery(getOrgConsumptionQueryOptions(orgId, period));
-      break;
-    case "/inventory": // sidebar parent + redirect target
-    case "/inventory/today":
-      // Branch-scoped vs org roll-up, mirroring the page's branch/org split. The
-      // org purchase-order list is keyed by a wall-clock cutoff, so it's left to
-      // fetch on mount rather than risk a mismatched key.
-      if (branchId) {
-        void qc.prefetchQuery(getBranchInventoryValuationQueryOptions(branchId));
-        void qc.prefetchQuery(getBranchLowStockQueryOptions(branchId));
-        void qc.prefetchQuery(getListBranchStockQueryOptions(branchId));
-        void qc.prefetchQuery(getListWasteQueryOptions(branchId));
-      } else if (orgId) {
-        void qc.prefetchQuery(getOrgInventoryValuationQueryOptions(orgId));
-        void qc.prefetchQuery(getOrgLowStockQueryOptions(orgId));
-      }
-      if (orgId) {
-        void qc.prefetchQuery(getListSuppliersQueryOptions(orgId));
-        void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
-      }
-      break;
-    case "/inventory/items":
-    case "/inventory/ingredients":
-      if (orgId) {
-        void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
-        void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
-      }
-      if (branchId) void qc.prefetchQuery(getListBranchStockQueryOptions(branchId));
-      break;
-    case "/inventory/purchasing":
-      if (orgId) {
-        void qc.prefetchQuery(getListSuppliersQueryOptions(orgId));
-        void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
-      }
-      // Default status filter is "all" → undefined (matches the page's initial key).
-      if (branchId) void qc.prefetchQuery(getListPurchaseOrdersQueryOptions(branchId, { status: undefined }));
-      break;
-    case "/inventory/counts":
-      if (branchId) void qc.prefetchQuery(getListStocktakesQueryOptions(branchId));
-      break;
-    case "/inventory/waste":
-      if (branchId) {
-        void qc.prefetchQuery(getListWasteQueryOptions(branchId));
-        void qc.prefetchQuery(getBranchWasteReportQueryOptions(branchId, period));
-      }
-      break;
-    case "/inventory/transfers":
-      if (orgId) void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
-      // Default direction filter is "all" → undefined.
-      if (branchId) void qc.prefetchQuery(getListTransfersQueryOptions(branchId, { direction: undefined }));
-      break;
-    case "/inventory/reports":
-    case "/insights/inventory-reports":
-      // Legacy paths — both now redirect into Reports ▸ Inventory.
-      if (branchId) void qc.prefetchQuery(getBranchConsumptionQueryOptions(branchId, period));
-      else if (orgId) void qc.prefetchQuery(getOrgConsumptionQueryOptions(orgId, period));
-      break;
-    case "/inventory/settings":
-      if (orgId) void qc.prefetchQuery(getGetInventorySettingsQueryOptions(orgId));
-      break;
-    // NOTE: every new data-backed module should add its mount-time query here
-    // (matching the page's exact params) so sidebar hover warms it.
-    default:
-      break;
-  }
+export const ROUTE_PREFETCH: RoutePrefetchMap = { ...sales, ...menu, ...reports, ...inventory, ...staff, ...admin };
+
+/** Sidebar/palette hover or focus: warm `route`'s mount-time queries (no-op for unknown routes). */
+export function prefetchRoute(route: string, { queryClient, ...ctx }: PrefetchCtx & { queryClient: QueryClient }): void {
+  ROUTE_PREFETCH[route]?.(queryClient, ctx);
 }
