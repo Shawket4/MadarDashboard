@@ -30,7 +30,6 @@ import type {
   AddonCost,
   AddonIngredient,
   AddonItem,
-  AddonOverride,
   AddonSalesRow,
   AddonSlot,
   AdjustRequest,
@@ -580,6 +579,8 @@ import type {
   ReorderSuggestion,
   ReplaceIdentityRequest,
   ReplaceIdentityResponse,
+  ReplayBatchRequest,
+  ReplayBatchResponse,
   ReplayFlag,
   ReplenishmentParams,
   ReplenishmentRow,
@@ -1068,7 +1069,7 @@ export const createAddonItem = (
 ) => {
 
 
-      return customInstance<AddonItem>(
+      return customInstance<unknown>(
       {url: `/addon-items`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createAddonItemRequest, signal
@@ -1215,7 +1216,7 @@ export const deleteAddonItem = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/addon-items/${id}`, method: 'DELETE', signal
     },
       options);
@@ -1273,7 +1274,7 @@ export const updateAddonItem = (
 ) => {
 
 
-      return customInstance<AddonItem>(
+      return customInstance<unknown>(
       {url: `/addon-items/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateAddonItemRequest, signal
@@ -4584,7 +4585,7 @@ export const upsertBranchAddonOverride = (
 ) => {
 
 
-      return customInstance<BranchAddonOverride>(
+      return customInstance<unknown>(
       {url: `/branch-addon-overrides`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: branchAddonOverrideInput, signal
@@ -4643,7 +4644,7 @@ export const deleteBranchAddonOverride = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/branch-addon-overrides`, method: 'DELETE',
         params, signal
     },
@@ -4789,7 +4790,7 @@ export const upsertBranchMenuOverride = (
 ) => {
 
 
-      return customInstance<BranchMenuOverride>(
+      return customInstance<unknown>(
       {url: `/branch-menu-overrides`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: branchMenuOverrideInput, signal
@@ -4848,7 +4849,7 @@ export const deleteBranchMenuOverride = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/branch-menu-overrides`, method: 'DELETE',
         params, signal
     },
@@ -8841,7 +8842,7 @@ export const upsertChannelAddonOverride = (
 ) => {
 
 
-      return customInstance<ChannelAddonOverride>(
+      return customInstance<unknown>(
       {url: `/delivery/channel-addon-overrides`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: channelAddonOverrideInput, signal
@@ -8900,7 +8901,7 @@ export const deleteChannelAddonOverride = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/delivery/channel-addon-overrides`, method: 'DELETE',
         params, signal
     },
@@ -9046,7 +9047,7 @@ export const upsertChannelOverride = (
 ) => {
 
 
-      return customInstance<ChannelMenuOverride>(
+      return customInstance<unknown>(
       {url: `/delivery/channel-overrides`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: channelOverrideInput, signal
@@ -9105,7 +9106,7 @@ export const deleteChannelOverride = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/delivery/channel-overrides`, method: 'DELETE',
         params, signal
     },
@@ -17440,7 +17441,7 @@ export const getListMenuItemsQueryKey = (params?: ListMenuItemsParams,) => {
     }
 
 
-export const getListMenuItemsQueryOptions = <TData = Awaited<ReturnType<typeof listMenuItems>>, TError = ErrorBody>(params: ListMenuItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getListMenuItemsQueryOptions = <TData = Awaited<ReturnType<typeof listMenuItems>>, TError = void | ErrorBody>(params: ListMenuItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -17459,10 +17460,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListMenuItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listMenuItems>>>
-export type ListMenuItemsQueryError = ErrorBody
+export type ListMenuItemsQueryError = void | ErrorBody
 
 
-export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = ErrorBody>(
+export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = void | ErrorBody>(
  params: ListMenuItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listMenuItems>>,
@@ -17472,7 +17473,7 @@ export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = ErrorBody>(
+export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = void | ErrorBody>(
  params: ListMenuItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listMenuItems>>,
@@ -17482,12 +17483,12 @@ export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = ErrorBody>(
+export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = void | ErrorBody>(
  params: ListMenuItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = ErrorBody>(
+export function useListMenuItems<TData = Awaited<ReturnType<typeof listMenuItems>>, TError = void | ErrorBody>(
  params: ListMenuItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMenuItems>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -17862,7 +17863,7 @@ export const createAddonSlot = (
 ) => {
 
 
-      return customInstance<AddonSlot>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/addon-slots`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createAddonSlotRequest, signal
@@ -17922,7 +17923,7 @@ export const deleteAddonSlot = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/addon-slots/${slotId}`, method: 'DELETE', signal
     },
       options);
@@ -17981,7 +17982,7 @@ export const updateAddonSlot = (
 ) => {
 
 
-      return customInstance<AddonSlot>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/addon-slots/${slotId}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateAddonSlotRequest, signal
@@ -18041,7 +18042,7 @@ export const putAllowedAddons = (
 ) => {
 
 
-      return customInstance<string[]>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/allowed-addons`, method: 'PUT',
       headers: {'Content-Type': 'application/json', },
       data: putAllowedAddonsRequest, signal
@@ -18452,7 +18453,7 @@ export const createOptionalField = (
 ) => {
 
 
-      return customInstance<OptionalField>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/optionals`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createOptionalFieldRequest, signal
@@ -18512,7 +18513,7 @@ export const deleteOptionalField = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/optionals/${fieldId}`, method: 'DELETE', signal
     },
       options);
@@ -18571,7 +18572,7 @@ export const updateOptionalField = (
 ) => {
 
 
-      return customInstance<OptionalField>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/optionals/${fieldId}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateOptionalFieldRequest, signal
@@ -18690,7 +18691,7 @@ export const listAddonOverrides = (
 ) => {
 
 
-      return customInstance<AddonOverride[]>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/overrides`, method: 'GET', signal
     },
       options);
@@ -18778,7 +18779,7 @@ export const upsertAddonOverride = (
 ) => {
 
 
-      return customInstance<AddonOverride>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/overrides`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: upsertAddonOverrideRequest, signal
@@ -18838,7 +18839,7 @@ export const deleteAddonOverride = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/menu-items/${id}/overrides/${overrideId}`, method: 'DELETE', signal
     },
       options);
@@ -29837,7 +29838,7 @@ export const upsertAddonIngredient = (
 ) => {
 
 
-      return customInstance<AddonIngredient>(
+      return customInstance<unknown>(
       {url: `/recipes/addons/${addonItemId}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: upsertAddonIngredientRequest, signal
@@ -29897,7 +29898,7 @@ export const deleteAddonIngredient = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/recipes/addons/${addonItemId}`, method: 'DELETE',
         params, signal
     },
@@ -30043,7 +30044,7 @@ export const upsertDrinkRecipe = (
 ) => {
 
 
-      return customInstance<DrinkRecipe>(
+      return customInstance<unknown>(
       {url: `/recipes/drinks/${menuItemId}`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: upsertDrinkRecipeRequest, signal
@@ -30104,7 +30105,7 @@ export const deleteDrinkRecipe = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<unknown>(
       {url: `/recipes/drinks/${menuItemId}/${size}`, method: 'DELETE',
         params, signal
     },
@@ -46636,7 +46637,7 @@ export const pull = (
 
 
 
-export const getPullMutationOptions = <TError = ErrorBody,
+export const getPullMutationOptions = <TError = void | ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pull>>, TError,{data: PullRequest;params?: PullParams}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof pull>>, TError,{data: PullRequest;params?: PullParams}, TContext> => {
 
@@ -46665,9 +46666,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PullMutationResult = NonNullable<Awaited<ReturnType<typeof pull>>>
     export type PullMutationBody = PullRequest
-    export type PullMutationError = ErrorBody
+    export type PullMutationError = void | ErrorBody
 
-    export const usePull = <TError = ErrorBody,
+    export const usePull = <TError = void | ErrorBody,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pull>>, TError,{data: PullRequest;params?: PullParams}, TContext>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof pull>>,
@@ -46676,6 +46677,71 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getPullMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary POST /sync/replay/batch
+ */
+export const replayBatch = (
+    replayBatchRequest: ReplayBatchRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<ReplayBatchResponse>(
+      {url: `/sync/replay/batch`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: replayBatchRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getReplayBatchMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof replayBatch>>, TError,{data: ReplayBatchRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof replayBatch>>, TError,{data: ReplayBatchRequest}, TContext> => {
+
+const mutationKey = ['replayBatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof replayBatch>>, {data: ReplayBatchRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  replayBatch(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReplayBatchMutationResult = NonNullable<Awaited<ReturnType<typeof replayBatch>>>
+    export type ReplayBatchMutationBody = ReplayBatchRequest
+    export type ReplayBatchMutationError = ErrorBody
+
+    /**
+ * @summary POST /sync/replay/batch
+ */
+export const useReplayBatch = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof replayBatch>>, TError,{data: ReplayBatchRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof replayBatch>>,
+        TError,
+        {data: ReplayBatchRequest},
+        TContext
+      > => {
+      return useMutation(getReplayBatchMutationOptions(options), queryClient);
     }
 
 /**
