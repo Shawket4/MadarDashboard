@@ -65,14 +65,25 @@ describe("visibleSettings", () => {
 describe("visibleSettings on the Free plan", () => {
   const free = (modules: string[]) => visibleSettings(owner, modules, "free").flatMap((g) => g.items.map((i) => i.to));
 
-  it("drops brand, links, delivery, bookings, loyalty, QR, kitchen and integrations", () => {
+  it("drops brand, delivery, bookings, loyalty, QR, kitchen and integrations", () => {
     const shown = free(["pos"]);
     for (const p of [
-      "/settings/brand", "/settings/links", "/settings/delivery", "/settings/bookings", "/settings/loyalty",
+      "/settings/brand", "/settings/delivery", "/settings/bookings", "/settings/loyalty",
       "/settings/qr", "/settings/kitchen-stations", "/settings/kitchen-routing", "/settings/integrations",
     ]) {
       expect(shown, p).not.toContain(p);
     }
+  });
+
+  it("keeps the Links page: its menu without prices is on every plan", () => {
+    expect(free(["pos"])).toContain("/settings/links");
+    expect(featureOfPath("/settings/links")).toBeUndefined();
+  });
+
+  it("opens no other branding page to Free", () => {
+    expect(featureOfPath("/settings/brand")).toBe("branding");
+    const shown = free(["pos"]);
+    expect(shown).not.toContain("/settings/brand");
   });
 
   it("keeps what a till needs, and shows the Plan pane", () => {

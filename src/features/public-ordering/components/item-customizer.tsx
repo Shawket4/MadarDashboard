@@ -3,11 +3,7 @@ import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { useTranslation } from "react-i18next";
 import { Check, Minus, Plus, Search, UtensilsCrossed, X } from "lucide-react";
 
-import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
-import type { DeliveryAddonOption } from "@/data/api/generated/models/deliveryAddonOption";
 import type { DeliveryOptionPricing } from "@/data/api/generated/models/deliveryOptionPricing";
-import type { DeliveryOptionalField } from "@/data/api/generated/models/deliveryOptionalField";
-import type { DeliveryModifierGroup } from "@/data/api/generated/models/deliveryModifierGroup";
 import {
   Drawer,
   DrawerClose,
@@ -23,13 +19,22 @@ import { fmtMoney } from "@/lib/format";
 import { getTranslatedName, getTranslatedDescription } from "@/lib/translation";
 import i18n from "@/i18n";
 
-import type { CartLine, SelectedAddon, SelectedOptional } from "../types";
+import type {
+  CartLine,
+  CatalogAddon as DeliveryAddonOption,
+  CatalogItem,
+  CatalogModifierGroup,
+  CatalogOptional,
+  SelectedAddon,
+  SelectedOptional,
+} from "../types";
+import { useShowPrices } from "../price-mode";
 import { itemBasePrice, lineUnitPrice, newUid } from "../utils";
 import { channelPrices, optionCharge, priceOptions, storefrontView } from "../pricing";
 import { FIELD_LIMITS } from "../limits";
 
 interface ItemCustomizerProps {
-  item: DeliveryMenuItem | null;
+  item: CatalogItem | null;
   /** Org-wide global addon catalog (same options on EVERY item, POS model). */
   addons: DeliveryAddonOption[];
   /** The menu's pricing views for its options (`option_pricing`), when sent. */
@@ -70,6 +75,9 @@ export function ItemCustomizer({
 }: ItemCustomizerProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  // Off on the menu without prices: its menu has no figure to price with, so
+  // nothing below prices anything, and nothing shows a price.
+  const showPrices = useShowPrices();
 
   const [size, setSize] = useState<string | null>(null);
   const [selections, setSelections] = useState<AddonSelections>({});
@@ -115,7 +123,7 @@ export function ItemCustomizer({
   // addon_item_id) so selection/pricing/submission stay unchanged. "Show all"
   // still flips to the flat full-catalog view.
   const serverGroups = useMemo(() => {
-    const raw: DeliveryModifierGroup[] = item?.modifier_groups ?? [];
+    const raw: CatalogModifierGroup[] = item?.modifier_groups ?? [];
     const byId = new Map(addons.map((a) => [a.addon_item_id, a]));
     return raw
       .map((g) => ({
@@ -186,12 +194,12 @@ export function ItemCustomizer({
   // floored at 0. ESTIMATE ONLY — the backend prices the line at intake.
   // A channel's own price for an option replaces the rule's charge, as at intake.
   const view = useMemo(
-    () => (item ? storefrontView(item, addons, size, optionPricing) : null),
-    [item, addons, size, optionPricing],
+    () => (item && showPrices ? storefrontView(item, addons, size, optionPricing) : null),
+    [item, addons, size, optionPricing, showPrices],
   );
   const channelPrice = useMemo(() => channelPrices(optionPricing), [optionPricing]);
   const swapAdjustedPrice = useCallback(
-    (a: DeliveryAddonOption): number =>
+    (a: DeliveryAddonOption): number | undefined =>
       channelPrice.get(a.addon_item_id) ?? (view && optionCharge(view, size, a.addon_item_id)) ?? a.price,
     [view, size, channelPrice],
   );
@@ -232,7 +240,7 @@ export function ItemCustomizer({
   }, [open, item, editing, addons]);
 
   // Optionals visible for the current size (size_label null = always; else match).
-  const visibleOptionals = useMemo<DeliveryOptionalField[]>(
+  const visibleOptionals = useMemo<CatalogOptional[]>(
     () => (item ? item.optionals.filter((o) => !o.size_label || o.size_label === size) : []),
     [item, size],
   );
@@ -276,17 +284,18 @@ export function ItemCustomizer({
   // shown is an ESTIMATE; the backend computes the true price (incl. the milk /
   // coffee swap delta) and the confirmation shows authoritative totals.
   const draft = useMemo<CartLine | null>(() => {
-    if (!item || !view) return null;
+    // Without prices there is no view to price with; the line is the picks.
+    if (!item || (showPrices && !view)) return null;
     const optionById = new Map(addons.map((a) => [a.addon_item_id, a]));
     const picks = Object.entries(selections)
       .filter(([addonId, n]) => n > 0 && optionById.has(addonId))
       .map(([id, quantity]) => ({ id, quantity }));
     // The line as the server will make and charge it: one of each swap family
     // (the last pick, once), each priced over the recipe's own choice.
-    const priced = priceOptions(view, { size_label: size, options: picks });
+    const priced = view ? priceOptions(view, { size_label: size, options: picks }) : null;
     // If the rule can't price a pick, send what was chosen at list price rather
     // than drop it: the server prices the line at intake either way.
-    const lines = "error" in priced
+    const lines = !priced || "error" in priced
       ? picks.map((p) => ({ id: p.id, quantity: p.quantity, unit_price: optionById.get(p.id)!.price }))
       : priced.options;
     const selected: SelectedAddon[] = lines.map((o) => {
@@ -308,17 +317,17 @@ export function ItemCustomizer({
       uid: editing?.uid ?? newUid(),
       item,
       size_label: size,
-      base_price: itemBasePrice(item, size),
+      ...(showPrices ? { base_price: itemBasePrice(item, size) } : {}),
       quantity: qty,
       addons: selected,
       optionals: opts,
       notes: notes.trim() || null,
     };
-  }, [item, view, channelPrice, addons, selections, visibleOptionals, optionals, size, qty, notes, editing]);
+  }, [item, view, showPrices, channelPrice, addons, selections, visibleOptionals, optionals, size, qty, notes, editing]);
 
   if (!item) return null;
 
-  const unitPrice = draft ? lineUnitPrice(draft) : 0;
+  const unitPrice = draft && showPrices ? lineUnitPrice(draft) : 0;
   const totalPrice = unitPrice * qty;
   const description = getTranslatedDescription(item, lang);
   const hasSizes = item.sizes.length > 0;
@@ -363,11 +372,13 @@ export function ItemCustomizer({
                 <DrawerTitle className="font-serif text-xl leading-tight">
                   {getTranslatedName(item, lang)}
                 </DrawerTitle>
-                <span className="shrink-0 text-sm font-medium text-muted-foreground">
-                  {hasSizes
-                    ? t("order.menu.from", { price: fmtMoney(fromPrice) })
-                    : fmtMoney(fromPrice)}
-                </span>
+                {showPrices ? (
+                  <span className="shrink-0 text-sm font-medium text-muted-foreground">
+                    {hasSizes
+                      ? t("order.menu.from", { price: fmtMoney(fromPrice) })
+                      : fmtMoney(fromPrice)}
+                  </span>
+                ) : null}
               </div>
               {description ? (
                 <DrawerDescription className="mt-1 leading-relaxed">{description}</DrawerDescription>
@@ -385,7 +396,7 @@ export function ItemCustomizer({
                   {item.sizes.map((s) => (
                     <Chip key={s.label} active={size === s.label} onClick={() => setSize(s.label)}>
                       <span>{s.label}</span>
-                      <span className="text-xs opacity-80">{fmtMoney(s.price)}</span>
+                      {showPrices ? <span className="text-xs opacity-80">{fmtMoney(s.price ?? 0)}</span> : null}
                     </Chip>
                   ))}
                 </div>
@@ -545,7 +556,9 @@ export function ItemCustomizer({
               <Plus className="size-4" />
             </Button>
           </div>
-          {viewOnly ? (
+          {viewOnly && !showPrices ? (
+            <span className="flex-1" />
+          ) : viewOnly ? (
             // Nothing to add to: the price of what was picked, where the add
             // button stands when the shop is taking the order.
             <p
@@ -566,9 +579,13 @@ export function ItemCustomizer({
             >
               {groupViolations.length > 0
                 ? `${groupViolations[0].title}: ${t("order.customize.required", "Required")}`
-                : editing
-                  ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
-                  : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
+                : !showPrices
+                  ? editing
+                    ? t("order.customize.update", "Update")
+                    : t("order.customize.addToCart", "Add to cart")
+                  : editing
+                    ? t("order.customize.updateCart", { price: fmtMoney(totalPrice) })
+                    : t("order.customize.addToCartPrice", { price: fmtMoney(totalPrice) })}
             </Button>
           )}
         </div>
@@ -595,7 +612,7 @@ function AddonGroupSection({
   options: DeliveryAddonOption[];
   lang: string;
   selections: AddonSelections;
-  priceOf: (opt: DeliveryAddonOption) => number;
+  priceOf: (opt: DeliveryAddonOption) => number | undefined;
   onPickSingle: (addonId: string) => void;
   onSetQty: (addonId: string, n: number) => void;
   /** Server-group overrides (unified model): authored name + constraints. */
@@ -604,6 +621,7 @@ function AddonGroupSection({
   rule?: string;
 }) {
   const { t } = useTranslation();
+  const showPrices = useShowPrices();
   const single = singleOverride ?? SINGLE_SELECT_TYPES.has(type);
   const title =
     titleOverride ?? t(`order.customize.addonType.${type}`, addonTypeFallback(type));
@@ -617,7 +635,7 @@ function AddonGroupSection({
         {options.map((opt) => {
           const qn = selections[opt.addon_item_id] ?? 0;
           const active = qn > 0;
-          const price = priceOf(opt);
+          const price = priceOf(opt) ?? 0;
           if (single) {
             return (
               <Chip
@@ -626,7 +644,7 @@ function AddonGroupSection({
                 onClick={() => onPickSingle(opt.addon_item_id)}
               >
                 <span>{getTranslatedName(opt, lang)}</span>
-                {price > 0 && <span className="text-xs opacity-80">+{fmtMoney(price)}</span>}
+                {showPrices && price > 0 && <span className="text-xs opacity-80">+{fmtMoney(price)}</span>}
               </Chip>
             );
           }
@@ -666,6 +684,7 @@ function AddonQtyRow({
   onToggle: () => void;
 }) {
   const { t } = useTranslation();
+  const showPrices = useShowPrices();
   const active = qty > 0;
   return (
     <div
@@ -691,9 +710,11 @@ function AddonQtyRow({
           <span className="block truncate text-sm font-medium">{getTranslatedName(option, lang)}</span>
         </span>
       </button>
-      <span className="shrink-0 text-xs font-medium text-muted-foreground">
-        {price > 0 ? `+${fmtMoney(price)}` : t("order.customize.noCharge")}
-      </span>
+      {showPrices ? (
+        <span className="shrink-0 text-xs font-medium text-muted-foreground">
+          {price > 0 ? `+${fmtMoney(price)}` : t("order.customize.noCharge")}
+        </span>
+      ) : null}
       {active && (
         <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-border/70">
           <Button
@@ -729,10 +750,11 @@ function OptionRow({
 }: {
   active: boolean;
   label: string;
-  price: number;
+  price?: number;
   onClick: () => void;
 }) {
   const { t } = useTranslation();
+  const showPrices = useShowPrices();
   return (
     <button
       type="button"
@@ -751,9 +773,11 @@ function OptionRow({
         {active && <Check className="size-3.5" />}
       </span>
       <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
-      <span className="shrink-0 text-xs font-medium text-muted-foreground">
-        {price > 0 ? `+${fmtMoney(price)}` : t("order.customize.noCharge")}
-      </span>
+      {showPrices ? (
+        <span className="shrink-0 text-xs font-medium text-muted-foreground">
+          {(price ?? 0) > 0 ? `+${fmtMoney(price ?? 0)}` : t("order.customize.noCharge")}
+        </span>
+      ) : null}
     </button>
   );
 }

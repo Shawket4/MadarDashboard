@@ -13,6 +13,11 @@
 //                         "scan the code on the counter"
 //   /rewards            — on a shop's hostname, its sign-up page (what `/`
 //                         was before the links page)
+//   /menu               — on a shop's hostname, its menu WITHOUT prices
+//                         (when the shop switched it on); never linked from
+//                         the links page, ordering, bookings or rewards
+//   /menu/<orgId>       — the same page on our generic host, for a shop with
+//                         no hostname of its own (every plan has it)
 //
 // Membership belongs to the SHOP either way; a branch code only records where
 // someone joined.
@@ -71,7 +76,8 @@ import { initRules } from "@/lib/rules";
 import * as rulesWasm from "@/lib/rules/wasm/public/madar_web.js";
 import { JoinPage } from "@/features/loyalty/public/join-page";
 import { CardPage } from "@/features/loyalty/public/card-page";
-import { useHostOrg } from "@/features/public-shell/use-brand";
+import { hostSlug, useHostOrg } from "@/features/public-shell/use-brand";
+import { MenuDisplayPage } from "@/features/menu-display/menu-display-page";
 import { ScanToJoin } from "@/features/loyalty/public/scan-to-join";
 import { LinksPage } from "@/features/links/public/links-page";
 import {
@@ -139,11 +145,13 @@ const rootRoute = createRootRoute({
 });
 
 /**
- * `/` on a shop's own hostname: its links page. The one path that is not
- * behind the in-app-browser gate above.
+ * `/` on a shop's own hostname: its links page — and its menu without prices
+ * (`/menu`, `/menu/<org>`). The paths that are not behind the in-app-browser
+ * gate above: both are opened from an Instagram bio or a table card, and
+ * nothing on either needs a wallet.
  */
 function isLinksPath(pathname: string): boolean {
-  return pathname === "/" || pathname === "";
+  return pathname === "/" || pathname === "" || pathname === "/menu" || pathname.startsWith("/menu/");
 }
 
 const indexRoute = createRoute({
@@ -171,6 +179,29 @@ const rewardsRoute = createRoute({
     const { orgId, resolving } = useHostOrg();
     if (resolving) return null;
     return orgId ? <JoinPage orgId={orgId} /> : <ScanToJoin />;
+  },
+});
+
+/**
+ * The shop's menu without prices. On its own hostname the host names the shop
+ * (asked by slug directly — the page's own endpoint answers on every plan);
+ * on ours, the path does.
+ */
+const menuDisplayRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/menu",
+  component: function MenuDisplay() {
+    const slug = hostSlug(typeof window === "undefined" ? "" : window.location.hostname);
+    return <MenuDisplayPage slug={slug} />;
+  },
+});
+
+const menuDisplayOrgRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/menu/$orgId",
+  component: function MenuDisplayOrg() {
+    const { orgId } = menuDisplayOrgRoute.useParams();
+    return <MenuDisplayPage key={orgId} orgId={orgId} />;
   },
 });
 
@@ -212,7 +243,15 @@ const cardRoute = createRoute({
 const router = createRouter({
   // `join/org/$orgId` before `join/$branchId`: the literal segment has to be
   // matched first, or "org" is read as a branch id.
-  routeTree: rootRoute.addChildren([indexRoute, rewardsRoute, joinOrgRoute, joinRoute, cardRoute]),
+  routeTree: rootRoute.addChildren([
+    indexRoute,
+    rewardsRoute,
+    menuDisplayRoute,
+    menuDisplayOrgRoute,
+    joinOrgRoute,
+    joinRoute,
+    cardRoute,
+  ]),
   defaultPreload: "intent",
 });
 
@@ -222,8 +261,7 @@ const router = createRouter({
 // in the admin app would stop compiling. The ordering and reservations apps omit
 // it for the same reason.
 
-// The madar-shared rules (WebAssembly, the public package) load before the first render.
-void initRules(rulesWasm).then(() =>
+function render() {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
@@ -231,5 +269,19 @@ void initRules(rulesWasm).then(() =>
           <PublicToaster />
       </QueryClientProvider>
     </StrictMode>,
-  ),
-);
+  );
+}
+
+// Dev-only mock harness (VITE_MOCK=1), as the ordering app has: curated public
+// data so these pages can be previewed without a backend. Tree-shaken from prod.
+const mockFlag = (import.meta.env as Record<string, string | undefined>).VITE_MOCK;
+// The madar-shared rules (WebAssembly, the public package) load before the first render.
+void initRules(rulesWasm).then(() => {
+  if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
+    void import("@/data/api/mock/enable-public").then(({ enablePublicMocks }) =>
+      enablePublicMocks().then(render),
+    );
+  } else {
+    render();
+  }
+});

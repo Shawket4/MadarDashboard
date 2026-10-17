@@ -21,6 +21,7 @@ import i18n from "@/i18n";
 import { formatRate } from "@/features/orgs/tax-rate";
 
 import type { CartLine } from "../types";
+import { useShowPrices } from "../price-mode";
 import { basketBill, taxOf, type TaxLine } from "../bill";
 import { lineTotal } from "../utils";
 import { fmtMoneyFigure } from "../ordering-motion";
@@ -64,6 +65,11 @@ interface CartSheetProps {
   dealHint?: string;
   /** Why the last checkout/send failed, shown next to the button. */
   error?: string | null;
+  /**
+   * The line under the title when prices are off (the menu without prices,
+   * whose basket has no estimate to explain).
+   */
+  description?: string;
 }
 
 
@@ -100,8 +106,10 @@ export function CartSheet({
   quote,
   dealHint,
   error,
+  description,
 }: CartSheetProps) {
   const { t } = useTranslation();
+  const showPrices = useShowPrices();
   const bill = basketBill(lines, quote, discountAmount, deliveryFee, taxPolicy);
 
   return (
@@ -110,7 +118,9 @@ export function CartSheet({
         <div className="flex items-start justify-between gap-2 border-b border-border/60 px-4 pb-3 pt-1 text-start">
           <div>
             <DrawerTitle className="font-serif text-xl">{t("order.cart.title")}</DrawerTitle>
-            <DrawerDescription className="mt-0.5">{t("order.cart.estimate")}</DrawerDescription>
+            <DrawerDescription className="mt-0.5">
+              {showPrices ? t("order.cart.estimate") : (description ?? t("order.cart.title"))}
+            </DrawerDescription>
           </div>
           <DrawerClose
             aria-label={t("common.close", "Close")}
@@ -141,19 +151,21 @@ export function CartSheet({
 
         {lines.length > 0 && (
           <div className="border-t border-border/60 bg-background px-4 py-3">
-            <Totals
-              subtotal={bill.subtotal}
-              deals={bill.deals}
-              dealHint={dealHint}
-              deliveryFee={deliveryFee}
-              tax={taxOf(bill)}
-              total={bill.total}
-              discount={bill.discount}
-            />
+            {showPrices ? (
+              <Totals
+                subtotal={bill.subtotal}
+                deals={bill.deals}
+                dealHint={dealHint}
+                deliveryFee={deliveryFee}
+                tax={taxOf(bill)}
+                total={bill.total}
+                discount={bill.discount}
+              />
+            ) : null}
             <CheckoutError error={error} />
             <Button
               variant="brand"
-              className="mt-3 w-full"
+              className={cn("w-full", showPrices && "mt-3")}
               size="lg"
               onClick={onCheckout}
               disabled={checkoutDisabled}
@@ -185,15 +197,21 @@ export function CartPanel({
   quote,
   dealHint,
   error,
+  description,
 }: CartPanelProps) {
   const { t } = useTranslation();
+  const showPrices = useShowPrices();
   const bill = basketBill(lines, quote, discountAmount, deliveryFee, taxPolicy);
 
   return (
     <div className="flex max-h-[calc(100dvh-6rem)] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
       <div className="border-b border-border/60 px-4 py-3">
         <h2 className="font-serif text-lg leading-tight">{t("order.cart.title")}</h2>
-        <p className="mt-0.5 text-xs text-muted-foreground">{t("order.cart.estimate")}</p>
+        {showPrices ? (
+          <p className="mt-0.5 text-xs text-muted-foreground">{t("order.cart.estimate")}</p>
+        ) : description ? (
+          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+        ) : null}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
@@ -206,19 +224,21 @@ export function CartPanel({
 
       {lines.length > 0 && (
         <div className="border-t border-border/60 px-4 py-3">
-          <Totals
-            subtotal={bill.subtotal}
-            deals={bill.deals}
-            dealHint={dealHint}
-            deliveryFee={deliveryFee}
-            tax={taxOf(bill)}
-            total={bill.total}
-            discount={bill.discount}
-          />
+          {showPrices ? (
+            <Totals
+              subtotal={bill.subtotal}
+              deals={bill.deals}
+              dealHint={dealHint}
+              deliveryFee={deliveryFee}
+              tax={taxOf(bill)}
+              total={bill.total}
+              discount={bill.discount}
+            />
+          ) : null}
           <CheckoutError error={error} />
           <Button
             variant="brand"
-            className="mt-3 w-full"
+            className={cn("w-full", showPrices && "mt-3")}
             size="lg"
             onClick={onCheckout}
             disabled={checkoutDisabled}
@@ -307,6 +327,7 @@ function CartLineCard({
 }) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  const showPrices = useShowPrices();
   return (
     <div className="rounded-2xl border border-border/70 bg-card p-3">
       <div className="flex items-start gap-2">
@@ -320,11 +341,13 @@ function CartLineCard({
             <p className="mt-0.5 text-xs italic text-muted-foreground">“{line.notes}”</p>
           )}
         </div>
-        <AnimatedNumber
-          value={lineTotal(line)}
-          format={fmtMoneyFigure}
-          className="shrink-0 text-sm font-semibold tabular-nums text-brand"
-        />
+        {showPrices ? (
+          <AnimatedNumber
+            value={lineTotal(line)}
+            format={fmtMoneyFigure}
+            className="shrink-0 text-sm font-semibold tabular-nums text-brand"
+          />
+        ) : null}
       </div>
 
       <div className="mt-2.5 flex items-center justify-between">

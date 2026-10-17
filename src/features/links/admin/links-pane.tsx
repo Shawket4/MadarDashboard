@@ -63,6 +63,9 @@ import { PaneHeader } from "@/features/settings/pane-header";
 import { QrPreviewDialog } from "@/features/qr/qr-preview-dialog";
 import { LinksPage } from "@/features/links/public/links-page";
 import { Spinner } from "@/components/ui/spinner";
+import { PaidFeatureLock } from "@/components/app/paid-feature-lock";
+import { useHasFeature } from "@/hooks/use-plan";
+import { MenuDisplaySection } from "./menu-display-section";
 
 const MAX_TAGLINE = 160;
 const MAX_TITLE = 60;
@@ -86,9 +89,69 @@ interface BranchDraft extends LinksPageBranchInput {
 const newId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined;
 
+/**
+ * Every plan opens this pane. A paid shop gets the links page editor and, under
+ * it, the menu without prices. A Free shop has no links page (the paid
+ * `branding` feature) but has the menu without prices: it gets that section,
+ * usable, and the links page's sections shown locked — nothing behind them is
+ * fetched, and the server refuses the links page's own reads and writes.
+ */
 export function LinksPane() {
-  const { t } = useTranslation();
   const orgId = useOrgId() ?? "";
+  const hasBranding = useHasFeature("branding");
+  if (!hasBranding) return <FreeLinksPane orgId={orgId} />;
+  return (
+    <div className="space-y-6">
+      <PaidLinksPane orgId={orgId} />
+      <MenuDisplaySection orgId={orgId} />
+    </div>
+  );
+}
+
+function FreeLinksPane({ orgId }: { orgId: string }) {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-6">
+      <PaneHeader
+        title={t("links.editor.title", "Links page")}
+        description={t(
+          "links.editor.desc",
+          "The page your address opens on — for your Instagram bio, a QR on the counter, or a receipt.",
+        )}
+      />
+      <MenuDisplaySection orgId={orgId} />
+      <PaidFeatureLock
+        feature="branding"
+        title={t("links.editor.lockedTitle", "Your links page")}
+        preview={<LockedSections />}
+      />
+    </div>
+  );
+}
+
+/** What the links page's editor holds, as a Free shop sees it: headings, no inputs. */
+function LockedSections() {
+  const { t } = useTranslation();
+  const sections: [string, string][] = [
+    [t("links.editor.address", "Your address"), t("links.editor.addressHint", "Put it in your bio, on a counter card, or on a receipt.")],
+    [t("links.editor.about", "Under your name"), t("links.editor.aboutHint", "One line about your shop, in each language. Leave empty for none.")],
+    [t("links.editor.buttons", "Buttons"), t("links.editor.buttonsHint", "In the order they show. The first one that's on is the big button.")],
+    [t("links.editor.socials", "Social links"), t("links.editor.socialsHint", "Instagram, WhatsApp, your website.")],
+    [t("links.editor.visit", "Show “Visit us”"), t("links.editor.visitHint", "Your branches, with directions and a call button.")],
+  ];
+  return (
+    <div className="grid gap-2" data-testid="links-locked-sections">
+      {sections.map(([title, hint]) => (
+        <div key={title} className="rounded-lg border bg-card p-3">
+          <CardHeading title={title} hint={hint} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PaidLinksPane({ orgId }: { orgId: string }) {
+  const { t } = useTranslation();
   const q = useGetLinksPage(orgId, { query: { enabled: !!orgId } });
 
   if (q.isPending || !q.data) {

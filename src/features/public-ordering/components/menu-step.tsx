@@ -5,8 +5,6 @@ import { useTranslation } from "react-i18next";
 import { BadgePercent, ChevronRight, Clock, Plus, Search, UtensilsCrossed } from "lucide-react";
 
 import { usePublicMenu } from "@/data/api/generated/api";
-import type { DeliveryMenu } from "@/data/api/generated/models/deliveryMenu";
-import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,7 +17,8 @@ import { DISTANCE, recipes, Stagger, usePop } from "@/lib/motion";
 import { useGrowSignal } from "@/features/public-shell/motion";
 import i18n from "@/i18n";
 
-import type { Channel, CartLine } from "../types";
+import type { Channel, CartLine, CatalogItem as DeliveryMenuItem, CatalogMenu } from "../types";
+import { useShowPrices } from "../price-mode";
 import { ItemCustomizer } from "./item-customizer";
 import { ComboCustomizer } from "./combo-customizer";
 import { isCombo } from "../combo";
@@ -41,7 +40,7 @@ interface MenuStepProps {
    * and charge them another. Everything below this line renders the same
    * either way, which is the point: one menu surface, two sources.
    */
-  menu?: DeliveryMenu;
+  menu?: CatalogMenu;
   /**
    * What the empty state says when there is nothing to show. Defaults to the
    * delivery wording; a table's menu is not a delivery menu and must not say
@@ -84,6 +83,7 @@ interface Group {
 export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAdd, query, onQueryChange, cartSlot, browseOnly, onExitBrowse, open, readOnly, menuMode, onOrder }: MenuStepProps) {
   const { t } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
+  const showPrices = useShowPrices();
   const fetched = usePublicMenu(
     branchId,
     { channel, preview: browseOnly || undefined },
@@ -91,7 +91,7 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
     // would ask for a channel menu the shop may not even have enabled.
     { query: { enabled: !menu } },
   );
-  const { data, isLoading, isError } = menu
+  const { data, isLoading, isError }: { data?: CatalogMenu; isLoading: boolean; isError: boolean } = menu
     ? { data: menu, isLoading: false, isError: false }
     : fetched;
   const channelLabel =
@@ -356,7 +356,7 @@ export function MenuStep({ branchId, channel, menu, emptyHint, countByItem, onAd
           )}
 
           {/* Channel discount */}
-          {data.discount && (
+          {showPrices && data.discount && (
             <div className="flex items-center justify-center gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-2 text-sm font-semibold text-success">
               <BadgePercent className="size-4" />
               {data.discount.dtype === "percentage"
@@ -465,11 +465,12 @@ function MenuCard({
   readOnly?: boolean;
 }) {
   const { t } = useTranslation();
+  const showPrices = useShowPrices();
   const badge = useRef<HTMLSpanElement>(null);
   // Added to the cart: the bubble pops.
   usePop(badge, useGrowSignal(count));
   const hasSizes = item.sizes.length > 0;
-  const fromPrice = itemBasePrice(item, null);
+  const fromPrice = showPrices ? itemBasePrice(item, null) : 0;
   const description = getTranslatedDescription(item, lang);
 
   const inner = (
@@ -499,9 +500,11 @@ function MenuCard({
         {description && (
           <span className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{description}</span>
         )}
-        <span className="mt-1 text-sm font-semibold text-brand">
-          {hasSizes ? t("order.menu.from", { price: fmtMoney(fromPrice) }) : fmtMoney(item.price)}
-        </span>
+        {showPrices ? (
+          <span className="mt-1 text-sm font-semibold text-brand">
+            {hasSizes ? t("order.menu.from", { price: fmtMoney(fromPrice) }) : fmtMoney(item.price ?? 0)}
+          </span>
+        ) : null}
       </div>
     </>
   );
@@ -548,7 +551,7 @@ function Empty({ title, hint }: { title: string; hint?: string }) {
   );
 }
 
-function buildGroups(menu: DeliveryMenu | undefined, lang: string, query: string): Group[] {
+function buildGroups(menu: CatalogMenu | undefined, lang: string, query: string): Group[] {
   if (!menu) return [];
   const q = query.trim().toLowerCase();
   const match = (item: DeliveryMenuItem) =>

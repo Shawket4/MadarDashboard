@@ -1,9 +1,8 @@
 import type { CartLineInput } from "@/data/api/generated/models/cartLineInput";
-import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
 import type { DeliveryMenuDiscount } from "@/data/api/generated/models/deliveryMenuDiscount";
 
 import { storefrontItem, unitPrice } from "./pricing";
-import type { CartLine, Channel } from "./types";
+import type { CartLine, CatalogItem, Channel } from "./types";
 import { rateOf } from "@/lib/format";
 import { type CartLineShape, rules } from "@/lib/rules";
 
@@ -31,16 +30,16 @@ const lineShape = (line: CartLine): CartLineShape =>
     ? {
         combo: {
           quantity: line.quantity,
-          price: line.base_price,
-          picks: line.combo.picks.map((p) => ({ quantity: p.quantity, surcharge_unit: p.extra })),
+          price: line.base_price ?? 0,
+          picks: line.combo.picks.map((p) => ({ quantity: p.quantity, surcharge_unit: p.extra ?? 0 })),
         },
       }
     : {
         item: {
           quantity: line.quantity,
-          unit_price: line.base_price,
-          addons: line.addons.map((a) => ({ price_modifier: a.price, quantity: a.quantity })),
-          optionals: line.optionals.map((o) => o.price),
+          unit_price: line.base_price ?? 0,
+          addons: line.addons.map((a) => ({ price_modifier: a.price ?? 0, quantity: a.quantity })),
+          optionals: line.optionals.map((o) => o.price ?? 0),
         },
       };
 
@@ -75,8 +74,8 @@ export const calcDiscount = (
  * size, what a sizeless line costs — the "from" price. An item with no active
  * size is refused by the server; it shows its item price.
  */
-export const itemBasePrice = (item: DeliveryMenuItem, sizeLabel: string | null): number =>
-  unitPrice(storefrontItem(item), sizeLabel) ?? item.price;
+export const itemBasePrice = (item: CatalogItem, sizeLabel: string | null): number =>
+  unitPrice(storefrontItem(item), sizeLabel) ?? item.price ?? 0;
 
 /** Translate a configured line into the API's CartLineInput (server prices). */
 export const toCartLineInput = (line: CartLine): CartLineInput => {

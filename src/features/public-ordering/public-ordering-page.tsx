@@ -15,17 +15,15 @@ import {
 import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
 import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
 import type { DeliveryOrderInput } from "@/data/api/generated/models/deliveryOrderInput";
-import { ArrowRight, Info, MapPin, Search, ShoppingBag, Store } from "lucide-react";
+import { Info, MapPin, Store } from "lucide-react";
 import type { GuestSavedLocation } from "@/data/api/generated/models/guestSavedLocation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { AnimatedNumber, Reveal, recipes, SwapPresence } from "@/lib/motion";
+import { SwapPresence } from "@/lib/motion";
 
 import { isFlatChannel, type CartLine, type Channel, type Step } from "./types";
 import { locationStepRequired } from "./location-rules";
 import { stepSwap, useStepDirection } from "@/features/public-shell/motion";
-import { fmtMoneyFigure, STEP_ORDER } from "./ordering-motion";
-import { CartCount } from "./components/cart-count";
+import { STEP_ORDER } from "./ordering-motion";
 import { asChannel, calcDiscount, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
 import { getDeviceToken, setDeviceToken } from "@/features/public-shell/guest";
 import { canonicalPhone, formatPhoneInput, isValidPhone, samePhone } from "@/lib/phone";
@@ -42,6 +40,7 @@ import { otpRefusal, useOtpTransport } from "@/features/public-shell/use-phone-o
 import { PhoneStep } from "./components/phone-step";
 import { LocationStep } from "./components/location-step";
 import { MenuStep } from "./components/menu-step";
+import { CartBar, CartEmptyHint, HeaderSearch } from "./components/menu-bar";
 import { ItemCustomizer } from "./components/item-customizer";
 import { ComboCustomizer } from "./components/combo-customizer";
 import { isCombo } from "./combo";
@@ -929,49 +928,14 @@ export function PublicOrderingPage({
   // ── Sticky footer (view-cart bar on menu) ─────────────────────────────────
   const footer =
     step === "menu" && itemCount > 0 && !channelClosed && !menuMode ? (
-      <Reveal asChild recipe={recipes.pop}>
-        <button
-          type="button"
-          onClick={() => setCartOpen(true)}
-          data-press="brand"
-          className="flex w-full items-center justify-between rounded-full bg-foreground px-5 py-3.5 text-background shadow-lg focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        >
-          <span className="inline-flex items-center gap-2.5">
-            <CartCount
-              count={itemCount}
-              className="inline-flex min-w-6 items-center justify-center rounded-full bg-brand px-2 py-0.5 text-xs font-bold tabular-nums text-brand-foreground"
-            />
-            <span className="text-sm">{t("order.cart.units", { count: itemCount, defaultValue: "items" })}</span>
-          </span>
-          <span className="inline-flex items-center gap-2 text-sm font-semibold tabular-nums">
-            <AnimatedNumber value={itemsAfterDeals} format={fmtMoneyFigure} />
-            <ArrowRight className="size-4 rtl:rotate-180" />
-          </span>
-        </button>
-      </Reveal>
+      <CartBar count={itemCount} total={itemsAfterDeals} onOpen={() => setCartOpen(true)} />
     ) : step === "menu" && itemCount === 0 && !menuMode ? (
-      // In the same floating slot as the cart bar it turns into, so the page
-      // keeps room for it — laid over the page, it sat on the footer's links.
-      <div className="pointer-events-none flex items-center justify-center gap-2 py-2 text-xs text-muted-foreground">
-        <ShoppingBag className="size-3.5" />
-        {t("order.cart.emptyHint")}
-      </div>
+      <CartEmptyHint />
     ) : undefined;
 
   // Desktop menu search lives in the header (mobile renders its own inside MenuStep).
   const headerSearch =
-    step === "menu" && !channelClosed ? (
-      <div className="relative w-full">
-        <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={menuQuery}
-          onChange={(e) => setMenuQuery(e.target.value)}
-          placeholder={t("order.menu.search")}
-          className="ps-9 rounded-full"
-          inputMode="search"
-        />
-      </div>
-    ) : undefined;
+    step === "menu" && !channelClosed ? <HeaderSearch value={menuQuery} onChange={setMenuQuery} /> : undefined;
 
   // Every step except the first (branch picker) has a back button. The channel
   // step returns to the branch picker — important so it's never a dead end when

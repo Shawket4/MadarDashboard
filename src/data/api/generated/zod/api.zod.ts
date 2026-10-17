@@ -11862,8 +11862,61 @@ export const PutLinksPageResponse = zod.object({
 
 
 /**
+ * Every plan: no `branding` or `online` check, so a Free shop can reach it.
+ * The organisation settings capabilities, as the links page.
+ * @summary The menu-without-prices settings.
+ */
+export const GetMenuDisplayParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const GetMenuDisplayResponse = zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch the shop picked; `None` = the default (its first branch).'),
+  "branches": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string()
+}).describe('A branch, as the editor\'s picker lists it.')).describe('Every open branch, for the picker.'),
+  "effective_branch_id": zod.uuid().nullish().describe('The branch the page shows right now (the pick, else the default).\n`None` when the shop has no open branch.'),
+  "enabled": zod.boolean(),
+  "public_url": zod.string().nullish().describe('Where the page is: `<slug>.madar-pos.cloud\/menu` on a shop\'s own host,\nelse the generic host\'s `\/menu\/<org id>`. `None` when no host is\nconfigured on this server.'),
+  "title_ar": zod.string().nullish(),
+  "title_en": zod.string().nullish()
+}).describe('The editor\'s view.')
+
+
+/**
+ * @summary Save the menu-without-prices settings. Writes ONLY its own columns: a
+shop's links page (and a Free shop's lack of one) is left exactly as it was.
+ */
+export const PutMenuDisplayParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const PutMenuDisplayBody = zod.object({
+  "branch_id": zod.uuid().nullish().describe('`None` = the default branch.'),
+  "enabled": zod.boolean(),
+  "title_ar": zod.string().nullish(),
+  "title_en": zod.string().nullish()
+}).describe('What the editor saves.')
+
+export const PutMenuDisplayResponse = zod.object({
+  "branch_id": zod.uuid().nullish().describe('The branch the shop picked; `None` = the default (its first branch).'),
+  "branches": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string()
+}).describe('A branch, as the editor\'s picker lists it.')).describe('Every open branch, for the picker.'),
+  "effective_branch_id": zod.uuid().nullish().describe('The branch the page shows right now (the pick, else the default).\n`None` when the shop has no open branch.'),
+  "enabled": zod.boolean(),
+  "public_url": zod.string().nullish().describe('Where the page is: `<slug>.madar-pos.cloud\/menu` on a shop\'s own host,\nelse the generic host\'s `\/menu\/<org id>`. `None` when no host is\nconfigured on this server.'),
+  "title_ar": zod.string().nullish(),
+  "title_en": zod.string().nullish()
+}).describe('The editor\'s view.')
+
+
+/**
  * @summary The code for the shop's links page — the one address that leads to
-everything else (menu, ordering, rewards, bookings, socials).
+everything else (menu, ordering, rewards, bookings, socials) — or, with
+`target=menu_display`, for the menu without prices on the same editor.
  */
 export const OrgLinksQrParams = zod.object({
   "id": zod.uuid().describe('Organization ID')
@@ -11882,7 +11935,8 @@ export const OrgLinksQrQueryParams = zod.object({
   "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
   "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
   "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
-  "module_px": zod.number().min(orgLinksQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+  "module_px": zod.number().min(orgLinksQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "target": zod.string().optional().describe('Omitted: the links page itself (the paid `branding` feature).\n`menu_display`: the menu without prices, which every plan has.')
 })
 
 export const OrgLinksQrResponse = zod.object({
@@ -13484,6 +13538,129 @@ export const LoyaltyApplePassParams = zod.object({
 })
 
 export const LoyaltyApplePassResponse = zod.unknown()
+
+
+/**
+ * `org_id` or `slug` names the shop. Every plan, Free included. A shop that
+ * has not switched the page on answers 404, exactly like a shop that does not
+ * exist. The answer carries no price, cost, surcharge, discount or deal field.
+ * @summary The shop's menu without prices.
+ */
+export const PublicMenuDisplayQueryParams = zod.object({
+  "org_id": zod.uuid().optional().describe('The shop, when the page already knows which one it is.'),
+  "slug": zod.string().optional().describe('The first label of the hostname, when it does not — `rue` for\n`rue.madar-pos.cloud`.')
+})
+
+export const PublicMenuDisplayResponse = zod.object({
+  "branch": zod.object({
+  "id": zod.uuid(),
+  "name": zod.string()
+}),
+  "brand": zod.object({
+  "accent_color": zod.string(),
+  "background_color": zod.string().describe('`#RRGGBB`. Madar\'s own when the shop is not on the tier.'),
+  "card_image_url": zod.string().nullish(),
+  "custom_branding": zod.boolean().describe('Whether the rest of this is the shop\'s or Madar\'s.\n\nThe page does not need it to render — the palette below is already\nresolved — but it decides how loudly Madar signs the footer.'),
+  "foreground_color": zod.string(),
+  "logo_is_mark": zod.boolean().describe('True when the logo is a shape on transparency and may be repainted for\ncontrast. See `orgs::branding::is_mark`.'),
+  "logo_url": zod.string().nullish(),
+  "name": zod.string().describe('Always the shop\'s own name, at every tier. A page that does not say\nwhose it is helps nobody, and that was never the thing being sold.'),
+  "org_id": zod.uuid(),
+  "slug": zod.string().nullish().describe('`None` when the shop has no address of its own — reached by `org_id`,\nwhich every page that already knows the shop uses.')
+}).describe('The shop\'s header, with the branding tier already applied (a shop off\nthe tier wears Madar\'s colours under its own name).'),
+  "menu": zod.object({
+  "addons": zod.array(zod.object({
+  "addon_item_id": zod.uuid(),
+  "is_available": zod.boolean(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "type": zod.string().describe('`milk_type` | `coffee_type` | `extra` | a custom group\'s type.')
+}).describe('One add-on of the org\'s catalogue (milk, coffee, extras), by name.')),
+  "categories": zod.array(zod.object({
+  "display_order": zod.number().describe('The dashboard\'s drag-and-drop position (lower first). `categories`\nalready comes in the POS\'s order (madar-catalog `order`: this, then\nthe English name, then `id`); a page shown in another language\nre-orders by the name it shows (madar-web `category_order`).'),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+})
+})).describe('In the POS\'s order.'),
+  "items": zod.array(zod.object({
+  "allowed_addon_ids": zod.array(zod.uuid()).describe('The item\'s add-on allowlist (empty = no restriction).'),
+  "category_id": zod.uuid().nullish(),
+  "combo": zod.union([zod.null(),zod.object({
+  "is_fixed": zod.boolean(),
+  "slots": zod.array(zod.object({
+  "choices": zod.array(zod.object({
+  "image_url": zod.string().nullish(),
+  "included_size_label": zod.string(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sizes": zod.array(zod.object({
+  "label": zod.string()
+})).describe('In the order the priced menu offers them (cheapest first).')
+}).describe('One item a combo slot offers. Unavailable choices are left out.')),
+  "default_item_id": zod.uuid().nullish(),
+  "default_size_label": zod.string().nullish(),
+  "id": zod.uuid(),
+  "max": zod.number(),
+  "min": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "sort": zod.number()
+}))
+}).describe('A `combo` row\'s slots.')]).optional(),
+  "default_milk_addon_id": zod.uuid().nullish().describe('The item\'s base milk, pre-selected as on the till.'),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "image_url": zod.string().nullish(),
+  "kind": zod.string().describe('`item` | `combo`.'),
+  "modifier_groups": zod.array(zod.object({
+  "addon_type": zod.string().nullish(),
+  "group_id": zod.uuid(),
+  "is_required": zod.boolean(),
+  "max_selections": zod.number().nullish(),
+  "min_selections": zod.number(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "options": zod.array(zod.object({
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "option_id": zod.uuid()
+})),
+  "selection_type": zod.string().describe('\"single\" | \"multi\".')
+}).describe('A per-item modifier group, constraints resolved, by name.')).describe('Non-empty = the item\'s add-ons are exactly these groups\' options.'),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "optionals": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.looseObject({
+
+}),
+  "size_label": zod.string().nullish().describe('Set when it only applies to one size.')
+}).describe('An item\'s optional toggle (\"Extra hot\"), by name.')),
+  "sizes": zod.array(zod.object({
+  "label": zod.string()
+}))
+}))
+}),
+  "title_ar": zod.string().nullish(),
+  "title_en": zod.string().nullish()
+}).describe('Everything the menu-without-prices page shows, in one request.')
 
 
 /**

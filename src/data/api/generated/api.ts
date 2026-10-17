@@ -402,6 +402,8 @@ import type {
   MemberDetail,
   MemberView,
   MembersPage,
+  MenuDisplayInput,
+  MenuDisplaySettings,
   MenuItem,
   MenuItemFull,
   MenuMarginLedgerParams,
@@ -517,6 +519,8 @@ import type {
   PublicBrand,
   PublicCartQuoteRequest,
   PublicLinksPage,
+  PublicMenuDisplay,
+  PublicMenuDisplayParams,
   PublicMenuParams,
   PublicOrgBrandParams,
   PublicOrgFaviconParams,
@@ -22324,8 +22328,172 @@ export const usePutLinksPage = <TError = ErrorBody,
     }
 
 /**
+ * Every plan: no `branding` or `online` check, so a Free shop can reach it.
+ * The organisation settings capabilities, as the links page.
+ * @summary The menu-without-prices settings.
+ */
+export const getMenuDisplay = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MenuDisplaySettings>(
+      {url: `/orgs/${id}/links-page/menu-display`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetMenuDisplayQueryKey = (id: string,) => {
+    return [
+    `/orgs/${id}/links-page/menu-display`
+    ] as const;
+    }
+
+
+export const getGetMenuDisplayQueryOptions = <TData = Awaited<ReturnType<typeof getMenuDisplay>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMenuDisplayQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMenuDisplay>>> = ({ signal }) => getMenuDisplay(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMenuDisplayQueryResult = NonNullable<Awaited<ReturnType<typeof getMenuDisplay>>>
+export type GetMenuDisplayQueryError = ErrorBody
+
+
+export function useGetMenuDisplay<TData = Awaited<ReturnType<typeof getMenuDisplay>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMenuDisplay>>,
+          TError,
+          Awaited<ReturnType<typeof getMenuDisplay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMenuDisplay<TData = Awaited<ReturnType<typeof getMenuDisplay>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMenuDisplay>>,
+          TError,
+          Awaited<ReturnType<typeof getMenuDisplay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMenuDisplay<TData = Awaited<ReturnType<typeof getMenuDisplay>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The menu-without-prices settings.
+ */
+
+export function useGetMenuDisplay<TData = Awaited<ReturnType<typeof getMenuDisplay>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMenuDisplayQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary Save the menu-without-prices settings. Writes ONLY its own columns: a
+shop's links page (and a Free shop's lack of one) is left exactly as it was.
+ */
+export const putMenuDisplay = (
+    id: string,
+    menuDisplayInput: MenuDisplayInput,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<MenuDisplaySettings>(
+      {url: `/orgs/${id}/links-page/menu-display`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: menuDisplayInput, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutMenuDisplayMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putMenuDisplay>>, TError,{id: string;data: MenuDisplayInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putMenuDisplay>>, TError,{id: string;data: MenuDisplayInput}, TContext> => {
+
+const mutationKey = ['putMenuDisplay'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putMenuDisplay>>, {id: string;data: MenuDisplayInput}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  putMenuDisplay(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutMenuDisplayMutationResult = NonNullable<Awaited<ReturnType<typeof putMenuDisplay>>>
+    export type PutMenuDisplayMutationBody = MenuDisplayInput
+    export type PutMenuDisplayMutationError = ErrorBody
+
+    /**
+ * @summary Save the menu-without-prices settings. Writes ONLY its own columns: a
+shop's links page (and a Free shop's lack of one) is left exactly as it was.
+ */
+export const usePutMenuDisplay = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putMenuDisplay>>, TError,{id: string;data: MenuDisplayInput}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putMenuDisplay>>,
+        TError,
+        {id: string;data: MenuDisplayInput},
+        TContext
+      > => {
+      return useMutation(getPutMenuDisplayMutationOptions(options), queryClient);
+    }
+
+/**
  * @summary The code for the shop's links page — the one address that leads to
-everything else (menu, ordering, rewards, bookings, socials).
+everything else (menu, ordering, rewards, bookings, socials) — or, with
+`target=menu_display`, for the menu without prices on the same editor.
  */
 export const orgLinksQr = (
     id: string,
@@ -22404,7 +22572,8 @@ export function useOrgLinksQr<TData = Awaited<ReturnType<typeof orgLinksQr>>, TE
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary The code for the shop's links page — the one address that leads to
-everything else (menu, ordering, rewards, bookings, socials).
+everything else (menu, ordering, rewards, bookings, socials) — or, with
+`target=menu_display`, for the menu without prices on the same editor.
  */
 
 export function useOrgLinksQr<TData = Awaited<ReturnType<typeof orgLinksQr>>, TError = ErrorBody>(
@@ -26521,6 +26690,103 @@ export function useLoyaltyApplePass<TData = Awaited<ReturnType<typeof loyaltyApp
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getLoyaltyApplePassQueryOptions(token,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * `org_id` or `slug` names the shop. Every plan, Free included. A shop that
+ * has not switched the page on answers 404, exactly like a shop that does not
+ * exist. The answer carries no price, cost, surcharge, discount or deal field.
+ * @summary The shop's menu without prices.
+ */
+export const publicMenuDisplay = (
+    params?: PublicMenuDisplayParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PublicMenuDisplay>(
+      {url: `/public/menu-display`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPublicMenuDisplayQueryKey = (params?: PublicMenuDisplayParams,) => {
+    return [
+    `/public/menu-display`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPublicMenuDisplayQueryOptions = <TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPublicMenuDisplayQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof publicMenuDisplay>>> = ({ signal }) => publicMenuDisplay(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PublicMenuDisplayQueryResult = NonNullable<Awaited<ReturnType<typeof publicMenuDisplay>>>
+export type PublicMenuDisplayQueryError = ErrorBody
+
+
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+ params: undefined |  PublicMenuDisplayParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicMenuDisplay>>,
+          TError,
+          Awaited<ReturnType<typeof publicMenuDisplay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+ params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof publicMenuDisplay>>,
+          TError,
+          Awaited<ReturnType<typeof publicMenuDisplay>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+ params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The shop's menu without prices.
+ */
+
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+ params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPublicMenuDisplayQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

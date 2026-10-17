@@ -40,7 +40,10 @@ function economics(w: ComboWrite, branchId: string | null = null): ComboEconomic
     list += priceOf(id) * Math.max(1, s.min);
   }
   const cost = Math.round(list * 0.35);
-  const m = rules.margin(w.price, cost);
+  // The public bundles load the PUBLIC rules package, which has no `margin`:
+  // without this guard the mock harness threw at import and every public page
+  // previewed blank (`npm run dev:order`).
+  const m = typeof rules.margin === "function" ? rules.margin(w.price, cost) : null;
   const margin = m?.toFixed(4) ?? null;
   const warnings: ComboEconomics["warnings"] = [];
   if (m != null && minMargin !== null && m < Number(minMargin)) {
