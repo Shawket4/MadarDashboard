@@ -90,7 +90,9 @@ server {
     error_log  /var/log/nginx/get-madar.error.log;
 
     listen [::]:443 ssl; # managed by Certbot
+    listen [::]:443 quic;
     listen 443 ssl; # managed by Certbot
+    listen 443 quic;
     ssl_certificate /etc/nginx/ssl/cloudflare-origin/cert.pem; # Cloudflare Origin CA (proxied host, valid to 2041)
     ssl_certificate_key /etc/nginx/ssl/cloudflare-origin/key.pem; # Cloudflare Origin CA
 
