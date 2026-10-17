@@ -59,9 +59,13 @@ export function CartEmptyHint() {
   return (
     // In the same floating slot as the cart bar it turns into, so the page
     // keeps room for it — laid over the page, it sat on the footer's links.
-    <div className="pointer-events-none flex items-center justify-center gap-2 py-2 text-xs text-muted-foreground">
-      <ShoppingBag className="size-3.5" />
-      {t("order.cart.emptyHint")}
+    // Docked on its own surface: bare text floating over the scrolling menu
+    // landed between (and on top of) the item cards, unreadable.
+    <div className="pointer-events-none flex justify-center">
+      <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/90 px-4 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur-md">
+        <ShoppingBag className="size-3.5" />
+        {t("order.cart.emptyHint")}
+      </span>
     </div>
   );
 }
