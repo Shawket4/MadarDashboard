@@ -99,11 +99,33 @@ describe("RankedTable", () => {
     expect(screen.getByText("Nothing matches your search")).toBeInTheDocument();
   });
 
-  it("draws the share as a bar and a percent", () => {
+  it("draws the share as a bar against the leader plus the true percent", () => {
     const { container } = setup();
-    const fill = container.querySelector<HTMLElement>("[data-share-fill]")!;
-    expect(fill.style.width).toBe(`${((120 / TOTAL) * 100).toFixed(2)}%`);
-    expect(screen.getAllByRole("row")[1]).toHaveTextContent(/\d+(\.\d)?%/);
+    const fills = container.querySelectorAll<HTMLElement>("[data-share-fill]");
+    expect(parseFloat(fills[0].style.width)).toBe(100);
+    expect(parseFloat(fills[1].style.width)).toBeCloseTo((110 / 120) * 100, 1);
+    expect(screen.getAllByRole("row")[1]).toHaveTextContent(`${((120 / TOTAL) * 100).toFixed(1)}%`);
+  });
+
+  it("shows — for a row with no figure, ranked after the rest, and a picture or its initial", () => {
+    const rows = [...ROWS.slice(0, 2), { id: "x", name: "Unpriced", qty: 0, type: "even" }];
+    const value = (r: Row) => (r.id === "x" ? null : r.qty);
+    setup({
+      rows,
+      rankMetric: value,
+      columns: [
+        { id: "qty", header: "Sold", sortValue: value, cell: (r) => (value(r) === null ? "—" : String(r.qty)) },
+        { id: "share", header: "Share", share: (r) => (value(r) === null ? null : shareOf(r.qty, 230)) },
+      ],
+      item: { header: "Item", name: (r) => r.name, thumb: (r) => (r.id === "r0" ? "https://img.test/a.png" : null) },
+    });
+    const last = screen.getAllByRole("row")[3];
+    expect(within(last).getByRole("rowheader")).toHaveTextContent("Unpriced");
+    expect(within(last).getAllByRole("cell")[0]).toHaveTextContent("3");
+    expect(within(last).getAllByText("—")).toHaveLength(2);
+    expect(screen.getAllByRole("row")[1].querySelector("img")).toHaveAttribute("src", "https://img.test/a.png");
+    expect(screen.getAllByRole("row")[2].querySelector("img")).toBeNull();
+    expect(within(screen.getAllByRole("row")[2]).getByRole("rowheader")).toHaveTextContent("IItem B");
   });
 
   it("shows skeleton rows while loading, the report's error with Retry, and its empty state", () => {

@@ -55,6 +55,8 @@ export function prefetchAnalyticsTab(
     case "items":
       void qc.prefetchQuery(getBranchCombinedItemSalesQueryOptions(scopeBranchId, itemSalesParams(range)));
       void qc.prefetchQuery(getBranchAddonSalesQueryOptions(scopeBranchId, addonSalesParams(range)));
+      // The Items table's revenue and categories: the Overview's own read.
+      void qc.prefetchQuery(getBranchSalesQueryOptions(scopeBranchId, overviewParams(range, excludedItems)));
       break;
     case "tellers":
       void qc.prefetchQuery(getBranchTellerStatsQueryOptions(scopeBranchId, tellerStatsParams(range)));

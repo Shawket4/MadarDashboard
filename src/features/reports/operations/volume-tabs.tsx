@@ -12,18 +12,21 @@ import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { useChartMotion } from "@/lib/motion";
 import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPercent } from "@/lib/format";
 import {
-  useBranchAddonSales, useBranchCombinedItemSales, useBranchTellerStats, useBranchWaiterStats,
-  useOrgBranchComparison,
+  useBranchAddonSales, useBranchCombinedItemSales, useBranchSales, useBranchTellerStats, useBranchWaiterStats,
+  useListMenuItems, useOrgBranchComparison,
 } from "@/data/api/generated/api";
-import type { AddonSalesRow, CombinedItemSalesRow } from "@/data/api/generated/models";
+import type { AddonSalesRow } from "@/data/api/generated/models";
+import { useExcludedItems } from "@/components/app/exclude-items-control";
+import { useOrgId } from "@/hooks/use-org-id";
 import { type Range, tName } from "@/features/analytics/lib";
-import { addonSalesParams, itemSalesParams, tellerStatsParams } from "@/features/analytics/queries";
+import { addonSalesParams, itemSalesParams, overviewParams, tellerStatsParams } from "@/features/analytics/queries";
 import {
   CHART_GRID, CHART_GRID_VERTICAL, ChartBody, ChartFrame, MAX_BAR_SIZE, ReportStack, TableCard,
   type ChartState,
 } from "./report-kit";
 import { RankedTable, type RankedColumn } from "./ranked-table";
 import { avgPrice, fmtAvgPrice, fmtCount, humanizeType, shareOf } from "./ranked-table-util";
+import { itemRows, type ItemRow } from "./items-rows";
 
 /** Revenue ranked by person, top ten, as horizontal bars (names read along the axis). */
 function RevenueByNameCard({ title, rows, state }: { title: ReactNode; rows: { name: string; revenue: number }[]; state: ChartState }) {
@@ -52,7 +55,6 @@ function RevenueByNameCard({ title, rows, state }: { title: ReactNode; rows: { n
 const ITEMS_LIMIT = itemSalesParams({}).limit;
 const ADDONS_LIMIT = addonSalesParams({}).limit;
 
-type ItemRow = CombinedItemSalesRow;
 type AddonRow = AddonSalesRow;
 
 /** Every name a row goes by, so a search in either language finds it. */
@@ -64,21 +66,38 @@ const namesOf = (name: string, translations: unknown): string[] => [
 export function ItemsTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  const orgId = useOrgId();
   const items = useBranchCombinedItemSales(branchId, itemSalesParams(range), { query: { enabled: !!branchId } });
   const addons = useBranchAddonSales(branchId, addonSalesParams(range), { query: { enabled: !!branchId } });
-  const itemRows = useMemo(() => items.data ?? [], [items.data]);
+  // Revenue and category: the Overview's sales report, asked with the
+  // Overview's own parameters (its excluded items included) so both tabs
+  // share one cached read.
+  const [excludedItems] = useExcludedItems();
+  const sales = useBranchSales(branchId, overviewParams(range, excludedItems), { query: { enabled: !!branchId } });
+  // Pictures (and a category the report lacks): the menu list the app already
+  // caches. The table never waits for it, nor fails with it.
+  const menu = useListMenuItems({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
+  const rows = useMemo(
+    () => itemRows({ items: items.data ?? [], sales: sales.data, menu: menu.data, lang }),
+    [items.data, sales.data, menu.data, lang],
+  );
   const addonRows = useMemo(() => addons.data ?? [], [addons.data]);
 
-  // Shares are of what the period's list holds (the queries return a top N).
-  const totalUnits = useMemo(() => itemRows.reduce((s, r) => s + r.total_qty, 0), [itemRows]);
+  const itemsRevenue = useMemo(() => rows.reduce((s, r) => s + (r.revenue ?? 0), 0), [rows]);
+  const missingRevenue = rows.some((r) => r.revenue === null);
   const addonRevenue = useMemo(() => addonRows.reduce((s, r) => s + r.revenue, 0), [addonRows]);
 
-  // The item sales query carries no revenue, category, picture or previous
-  // period: the items table ranks by units sold, and its share is of units.
   const itemColumns = useMemo<RankedColumn<ItemRow>[]>(() => [
-    { id: "qty", header: t("reports.operations.ranked.sold", "Sold"), sortValue: (r) => r.total_qty, cell: (r) => fmtCount(r.total_qty), strong: true, phoneOrder: 1 },
-    { id: "share", header: t("reports.operations.ranked.shareOfUnits", "Share of units"), share: (r) => shareOf(r.total_qty, totalUnits), phoneOrder: 2 },
-  ], [t, totalUnits]);
+    { id: "qty", header: t("reports.operations.ranked.sold", "Sold"), sortValue: (r) => r.units, cell: (r) => fmtCount(r.units), phoneOrder: 3 },
+    { id: "revenue", header: t("reports.operations.ranked.revenue", "Revenue"), sortValue: (r) => r.revenue, cell: (r) => fmtMoney(r.revenue), strong: true, phoneOrder: 1 },
+    { id: "share", header: t("reports.operations.ranked.shareOfRevenue", "Share of revenue"), share: (r) => r.share, phoneOrder: 2 },
+    { id: "avg", header: t("reports.operations.ranked.avgPrice", "Avg. price"), sortValue: (r) => r.avgPrice, cell: (r) => fmtMoney(r.avgPrice), phoneOrder: 4 },
+  ], [t]);
+  const itemCategory = useMemo(() => ({
+    label: t("reports.operations.ranked.category", "Category"),
+    allLabel: t("reports.operations.ranked.allCategories", "All categories"),
+    of: (r: ItemRow) => r.category,
+  }), [t]);
 
   const addonColumns = useMemo<RankedColumn<AddonRow>[]>(() => [
     { id: "qty", header: t("reports.operations.ranked.sold", "Sold"), sortValue: (r) => r.quantity_sold, cell: (r) => fmtCount(r.quantity_sold), phoneOrder: 3 },
@@ -98,30 +117,39 @@ export function ItemsTab({ branchId, range }: { branchId: string; range: Range }
     labelOf: typeLabel,
   }), [t, typeLabel]);
 
-  const itemId = useCallback((r: ItemRow) => r.item_id, []);
+  const itemId = useCallback((r: ItemRow) => r.id, []);
   const addonId = useCallback((r: AddonRow) => r.addon_item_id, []);
-  const byUnits = useCallback((r: ItemRow) => r.total_qty, []);
+  const byItemRevenue = useCallback((r: ItemRow) => r.revenue, []);
   const byRevenue = useCallback((r: AddonRow) => r.revenue, []);
 
   return (
     <ReportStack>
       <RankedTable
         title={t("analytics.tabs.items", "Items")}
-        description={itemRows.length > 0 ? t("reports.operations.ranked.itemsSummary", "{{count}} items, {{units}} sold", { count: itemRows.length, units: fmtCount(totalUnits) }) : undefined}
-        rows={itemRows}
+        description={rows.length > 0 ? t("reports.operations.ranked.itemsSummary", "{{count}} items, {{revenue}}", { count: rows.length, revenue: fmtMoney(itemsRevenue) }) : undefined}
+        rows={rows}
         getRowId={itemId}
-        rankMetric={byUnits}
+        rankMetric={byItemRevenue}
         item={{
           header: t("reports.operations.ranked.item", "Item"),
-          name: (r) => tName(r.item_name, r.item_name_translations, lang),
-          alsoMatches: (r) => namesOf(r.item_name, r.item_name_translations),
+          name: (r) => r.name,
+          alsoMatches: (r) => r.names,
+          sub: (r) => r.category,
+          thumb: (r) => r.image,
         }}
         columns={itemColumns}
+        category={itemCategory}
         searchPlaceholder={t("reports.operations.ranked.searchItems", "Search items")}
-        loading={items.isLoading}
-        error={items.isError}
-        onRetry={() => void items.refetch()}
-        footnote={itemRows.length >= ITEMS_LIMIT ? t("reports.operations.ranked.topNote", "The top {{count}} by volume; shares are of these.", { count: ITEMS_LIMIT }) : undefined}
+        loading={items.isLoading || sales.isLoading}
+        error={items.isError || sales.isError}
+        onRetry={() => {
+          if (items.isError) void items.refetch();
+          if (sales.isError) void sales.refetch();
+        }}
+        footnote={[
+          rows.length >= ITEMS_LIMIT ? t("reports.operations.ranked.topNote", "The top {{count}} by volume; shares are of these.", { count: ITEMS_LIMIT }) : null,
+          missingRevenue ? t("reports.operations.ranked.noRevenueNote", "— means the period's sales report does not list the item yet (it sold after the report was read). Refresh to fill it in.") : null,
+        ].filter(Boolean).join(" ") || undefined}
       />
       <RankedTable
         title={t("analytics.addonSales", "Addon Sales")}

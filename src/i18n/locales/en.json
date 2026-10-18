@@ -5783,7 +5783,6 @@
         "addon": "Add-on",
         "sold": "Sold",
         "revenue": "Revenue",
-        "shareOfUnits": "Share of units",
         "shareOfRevenue": "Share of revenue",
         "avgPrice": "Avg. price",
         "type": "Type",
@@ -5795,11 +5794,14 @@
         "showTop": "Show top {{count}}",
         "showing": "{{shown}} of {{total}}",
         "noMatch": "Nothing matches your search",
-        "itemsSummary": "{{count}} items, {{units}} sold",
+        "itemsSummary": "{{count}} items, {{revenue}}",
         "addonsSummary": "{{count}} add-ons, {{revenue}}",
         "topNote": "The top {{count}} by volume; shares are of these.",
-        "itemsSummary_one": "{{count}} item, {{units}} sold",
-        "addonsSummary_one": "{{count}} add-on, {{revenue}}"
+        "itemsSummary_one": "{{count}} item, {{revenue}}",
+        "addonsSummary_one": "{{count}} add-on, {{revenue}}",
+        "category": "Category",
+        "allCategories": "All categories",
+        "noRevenueNote": "— means the period's sales report does not list the item yet (it sold after the report was read). Refresh to fill it in."
       }
     },
     "financial": {

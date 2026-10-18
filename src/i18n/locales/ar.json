@@ -5873,7 +5873,6 @@
         "addon": "الإضافة",
         "sold": "المباع",
         "revenue": "الإيرادات",
-        "shareOfUnits": "النسبة من الكمية",
         "shareOfRevenue": "النسبة من الإيرادات",
         "avgPrice": "متوسط السعر",
         "type": "النوع",
@@ -5885,9 +5884,12 @@
         "showTop": "عرض أعلى {{count}}",
         "showing": "{{shown}} من {{total}}",
         "noMatch": "لا توجد نتائج مطابقة للبحث",
-        "itemsSummary": "عدد الأصناف: {{count}}، المباع: {{units}}",
+        "itemsSummary": "عدد الأصناف: {{count}}، الإيرادات: {{revenue}}",
         "addonsSummary": "عدد الإضافات: {{count}}، الإيرادات: {{revenue}}",
-        "topNote": "أعلى {{count}} حسب الحجم، والنسب محسوبة منها."
+        "topNote": "أعلى {{count}} حسب الحجم، والنسب محسوبة منها.",
+        "category": "الفئة",
+        "allCategories": "كل الفئات",
+        "noRevenueNote": "الشرطة (—) تعني أن تقرير مبيعات الفترة لا يتضمن الصنف بعد (بيع بعد قراءة التقرير). حدّث الصفحة لاستكماله."
       }
     },
     "financial": {

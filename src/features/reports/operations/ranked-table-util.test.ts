@@ -6,6 +6,7 @@ import {
   RANK,
   ariaSortOf,
   avgPrice,
+  barLength,
   categoriesOf,
   filterRows,
   fmtAvgPrice,
@@ -39,6 +40,12 @@ describe("rankBy", () => {
   it("ranks highest first, ties share a place (1, 2, 2, 4) in the server's order", () => {
     const ranks = rankBy(ROWS, idOf, (r) => r.qty);
     expect([...ranks]).toEqual([["latte", 1], ["mocha", 2], ["cake", 2], ["éclair", 4]]);
+  });
+
+  it("puts rows with no figure after every ranked one, one place each, in the server's order", () => {
+    const rows = [{ id: "a", v: null }, { id: "b", v: 5 }, { id: "c", v: null }, { id: "d", v: 9 }];
+    const ranks = rankBy(rows, (r) => r.id, (r) => r.v);
+    expect([...ranks]).toEqual([["d", 1], ["b", 2], ["a", 3], ["c", 4]]);
   });
 
   it("returns nothing for no rows", () => {
@@ -124,8 +131,10 @@ describe("filterRows", () => {
     expect(ids("")).toHaveLength(4);
   });
 
-  it("lists categories once, in first-seen order, skipping blanks", () => {
-    expect(categoriesOf([...ROWS, { id: "x", name: "x", qty: 0, revenue: 0, type: "" }], (r) => r.type)).toEqual(["coffee", "dessert"]);
+  it("lists categories once, alphabetically in the reader's language, skipping blanks", () => {
+    const rows = [{ t: "Food" }, { t: "cold drinks" }, { t: "" }, { t: "Food" }, { t: "Bakery" }];
+    expect(categoriesOf(rows, (r) => r.t)).toEqual(["Bakery", "cold drinks", "Food"]);
+    expect(categoriesOf([{ t: "مشروبات" }, { t: "أكل" }], (r) => r.t, "ar")).toEqual(["أكل", "مشروبات"]);
   });
 });
 
@@ -135,6 +144,12 @@ describe("shares and prices", () => {
     expect(shareOf(5, 0)).toBe(0);
     expect(shareOf(150, 100)).toBe(1);
     expect(shareOf(Number.NaN, 100)).toBe(0);
+  });
+
+  it("draws a bar against the largest share, so the leader's is full", () => {
+    expect(barLength(0.4, 0.4)).toBe(1);
+    expect(barLength(0.1, 0.4)).toBe(0.25);
+    expect(barLength(0.1, 0)).toBe(0);
   });
 
   it("averages revenue over units, never dividing by zero", () => {

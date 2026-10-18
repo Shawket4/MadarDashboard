@@ -37,6 +37,7 @@ import {
   ALL,
   RANK,
   ariaSortOf,
+  barLength,
   categoriesOf,
   filterRows,
   fmtShareCell,
@@ -55,8 +56,11 @@ export interface RankedColumn<T> {
   sortValue?: (r: T) => SortValue;
   /** Formatted cell content (lib/format). A `share` column draws its own. */
   cell?: (r: T) => ReactNode;
-  /** A share column: the ratio (0 to 1) drawn as a bar plus a percent. */
-  share?: (r: T) => number;
+  /**
+   * A share column: the ratio (0 to 1) as a bar plus a percent; null draws
+   * "—". The bar is drawn against the table's largest share (barLength).
+   */
+  share?: (r: T) => number | null;
   /** Where the column sits on a phone (lower first); the key figures go first. */
   phoneOrder?: number;
   /** The headline figure: set a little heavier. */
@@ -73,8 +77,8 @@ export interface RankedTableProps<T> {
   footnote?: ReactNode;
   rows: T[];
   getRowId: (r: T) => string;
-  /** What the rank counts (highest first). */
-  rankMetric: (r: T) => number;
+  /** What the rank counts (highest first); null ranks after every figure. */
+  rankMetric: (r: T) => number | null;
   /** The item column: name (sorted and searched), an optional second line. */
   item: {
     header: string;
@@ -82,6 +86,8 @@ export interface RankedTableProps<T> {
     /** More strings the search box matches (the other language's name). */
     alsoMatches?: (r: T) => (string | null | undefined)[];
     sub?: (r: T) => ReactNode;
+    /** A picture beside the name; without one, the name's initial on a tile. */
+    thumb?: (r: T) => string | null | undefined;
   };
   columns: RankedColumn<T>[];
   /** A category filter in the toolbar; shown when the rows hold two or more. */
@@ -136,7 +142,15 @@ export function RankedTable<T>({
 
   const ranks = useMemo(() => rankBy(rows, getRowId, rankMetric), [rows, getRowId, rankMetric]);
   const rankOf = (r: T) => ranks.get(getRowId(r)) ?? Number.MAX_SAFE_INTEGER;
-  const categories = useMemo(() => (category ? categoriesOf(rows, category.of) : []), [rows, category]);
+  const categories = useMemo(
+    () => (category ? categoriesOf(rows, category.of, i18n.language) : []),
+    [rows, category, i18n.language],
+  );
+  const shareColumn = columns.find((c) => c.share);
+  const largestShare = useMemo(
+    () => (shareColumn?.share ? Math.max(0, ...rows.map((r) => shareColumn.share!(r) ?? 0)) : 0),
+    [rows, shareColumn],
+  );
   // A category that vanished with a new period falls back to all of them.
   const activeCat = cat !== ALL && !categories.includes(cat) ? ALL : cat;
 
@@ -161,10 +175,11 @@ export function RankedTable<T>({
   const shown = showAll ? sorted : sorted.slice(0, topN);
 
   // ── Motion ───────────────────────────────────────────────────────────────
-  // A new set of rows (the data itself changed) replays the arrival; a
-  // refetch that returned the same data keeps its reference and stays still.
-  const [arrival, setArrival] = useState({ data: rows, n: 0 });
-  if (!loading && arrival.data !== rows) setArrival({ data: rows, n: arrival.n + 1 });
+  // New figures (another period, another branch) replay the arrival; a
+  // refetch with the same figures, or a picture arriving, stays still.
+  const signature = rows.map((r) => `${getRowId(r)}:${rankMetric(r)}`).join("|");
+  const [arrival, setArrival] = useState({ signature, n: 0 });
+  if (!loading && arrival.signature !== signature) setArrival({ signature, n: arrival.n + 1 });
   const body = useRef<HTMLTableSectionElement>(null);
   useStagger(body, {
     selector: ":scope > tr[data-row]",
@@ -285,7 +300,12 @@ export function RankedTable<T>({
   const skeleton = Array.from({ length: SKELETON_ROWS }).map((_, i) => (
     <tr key={`sk-${i}`} aria-hidden>
       <td className={cn(cellBase, "ps-4 pe-1 sm:ps-5")}><Skeleton className="h-4 w-5" /></td>
-      <td className={cellBase}><Skeleton className="h-4 w-28 sm:w-40" /></td>
+      <td className={cellBase}>
+        <span className="flex items-center gap-2.5 sm:gap-3">
+          {item.thumb ? <Skeleton className="size-8 shrink-0 rounded-lg" /> : null}
+          <Skeleton className="h-4 w-24 sm:w-40" />
+        </span>
+      </td>
       {ordered.map((c, j) => (
         <td key={c.id} className={cn(cellBase, lastCol(j))}>
           <Skeleton className={cn("ms-auto h-4", c.share ? "w-full max-w-48" : "w-14")} />
@@ -304,8 +324,13 @@ export function RankedTable<T>({
           <bdi>{fmtNumber(rank)}</bdi>
         </td>
         <th scope="row" className={cn(cellBase, CELL_BG, stickyItem, "text-start font-normal")}>
-          <span className="block max-w-36 truncate text-[13px] font-medium sm:max-w-64 sm:text-sm" title={name}>{name}</span>
-          {sub ? <span className="block max-w-36 truncate text-xs text-muted-foreground sm:max-w-64">{sub}</span> : null}
+          <span className="flex items-center gap-2.5 sm:gap-3">
+            {item.thumb ? <Thumb src={item.thumb(r)} name={name} /> : null}
+            <span className="min-w-0">
+              <span className="block max-w-32 truncate text-[13px] font-medium sm:max-w-64 sm:text-sm" title={name}>{name}</span>
+              {sub ? <span className="block max-w-32 truncate text-xs text-muted-foreground sm:max-w-64">{sub}</span> : null}
+            </span>
+          </span>
         </th>
         {ordered.map((c, i) => (
           <td
@@ -318,7 +343,7 @@ export function RankedTable<T>({
               lastCol(i),
             )}
           >
-            {c.share ? <ShareBar ratio={c.share(r)} /> : <bdi>{c.cell?.(r)}</bdi>}
+            {c.share ? <ShareBar ratio={c.share(r)} largest={largestShare} /> : <bdi>{c.cell?.(r)}</bdi>}
           </td>
         ))}
       </tr>
@@ -411,18 +436,51 @@ export function RankedTable<T>({
   );
 }
 
-/** A share: a bar on a hairline track, then the percent. The fill grows from the inline start. */
-function ShareBar({ ratio }: { ratio: number }) {
+/**
+ * A share: a bar on a hairline track, then the percent. The bar's length is
+ * the share against the table's largest (the leader's is full); the percent
+ * is the true share. The fill grows from the inline start. No share: "—".
+ */
+function ShareBar({ ratio, largest }: { ratio: number | null; largest: number }) {
+  if (ratio === null) return <span className="text-muted-foreground">—</span>;
   return (
     <span className="flex items-center justify-end gap-2.5">
       <span aria-hidden className="relative h-1.5 w-full min-w-16 overflow-hidden rounded-full bg-muted">
         <span
           data-share-fill=""
           className="absolute inset-y-0 start-0 rounded-full bg-chart-1 origin-left rtl:origin-right"
-          style={{ width: `${(ratio * 100).toFixed(2)}%` }}
+          style={{ width: `${(barLength(ratio, largest) * 100).toFixed(2)}%` }}
         />
       </span>
       <bdi className="w-12 shrink-0 text-end">{fmtShareCell(ratio)}</bdi>
     </span>
+  );
+}
+
+/**
+ * An item's picture, 32 px, decorative (the name sits beside it). With no
+ * picture, or one that fails to load, the name's first letter on a tile.
+ */
+function Thumb({ src, name }: { src: string | null | undefined; name: string }) {
+  const [failed, setFailed] = useState<string | null>(null);
+  const box = "size-8 shrink-0 rounded-lg";
+  if (!src || failed === src) {
+    return (
+      <span aria-hidden className={cn(box, "grid place-items-center bg-muted text-xs font-semibold text-muted-foreground")}>
+        {Array.from(name.trim())[0]?.toUpperCase() ?? ""}
+      </span>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt=""
+      width={32}
+      height={32}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(src)}
+      className={cn(box, "bg-muted object-cover")}
+    />
   );
 }

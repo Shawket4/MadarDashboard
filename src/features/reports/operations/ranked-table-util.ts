@@ -18,14 +18,20 @@ export const ALL = "__all__";
 /**
  * Competition ranks ("1, 2, 2, 4") by `metric`, highest first: two items that
  * sold the same share a place. Ties keep the order the server sent them in.
+ * Rows with no figure (null) come after every ranked one, in the server's
+ * order, one place each.
  */
-export function rankBy<T>(rows: readonly T[], idOf: (r: T) => string, metric: (r: T) => number): Map<string, number> {
-  const ordered = rows.map((r, i) => ({ id: idOf(r), v: metric(r), i })).sort((a, b) => b.v - a.v || a.i - b.i);
+export function rankBy<T>(rows: readonly T[], idOf: (r: T) => string, metric: (r: T) => number | null): Map<string, number> {
+  const all = rows.map((r, i) => ({ id: idOf(r), v: metric(r), i }));
+  const known = all.filter((o) => o.v !== null && Number.isFinite(o.v)) as { id: string; v: number; i: number }[];
+  const unknown = all.filter((o) => o.v === null || !Number.isFinite(o.v));
+  known.sort((a, b) => b.v - a.v || a.i - b.i);
   const ranks = new Map<string, number>();
-  ordered.forEach((o, i) => {
-    const prev = ordered[i - 1];
+  known.forEach((o, i) => {
+    const prev = known[i - 1];
     ranks.set(o.id, prev && prev.v === o.v ? ranks.get(prev.id)! : i + 1);
   });
+  unknown.forEach((o, i) => ranks.set(o.id, known.length + i + 1));
   return ranks;
 }
 
@@ -107,14 +113,23 @@ export function filterRows<T>(
   });
 }
 
-/** The distinct categories of `rows`, in the order they first appear. */
-export function categoriesOf<T>(rows: readonly T[], categoryOf: (r: T) => string | null | undefined): string[] {
+/** The distinct categories of `rows`, in the reader's alphabetical order. */
+export function categoriesOf<T>(rows: readonly T[], categoryOf: (r: T) => string | null | undefined, locale = "en"): string[] {
   const seen = new Set<string>();
   for (const r of rows) {
     const c = categoryOf(r);
     if (c) seen.add(c);
   }
-  return [...seen];
+  return [...seen].sort(new Intl.Collator(locale, { sensitivity: "base" }).compare);
+}
+
+/**
+ * A share bar's length: the share against the largest in the table, so the
+ * leader's bar is full and a long tail still reads (the percent beside it is
+ * the true share).
+ */
+export function barLength(share: number, largest: number): number {
+  return largest > 0 ? Math.min(1, Math.max(0, share / largest)) : 0;
 }
 
 /** part ÷ total as a ratio in [0, 1]; 0 when there is no total. */
