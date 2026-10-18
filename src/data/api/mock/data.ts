@@ -196,23 +196,36 @@ export const MOCK_PEAK_DAYS: PeakDayPoint[] = _pd_raw.map((r, day_of_week) => ({
   orders_pct: _pd_total_ord > 0 ? Math.round(r.orders / _pd_total_ord * 1000) / 10 : 0,
 }));
 
+/**
+ * The Items table's "Avg extra" fields (`menu_total`, `extras_total`,
+ * `avg_extra`, piastres), as the backend sends them: the menu price of the
+ * sizes sold, what was charged on top (add-ons, swaps, options), and that per
+ * unit, rounded.
+ */
+const withExtras = <T extends { quantity_sold: number }>(row: T, menuTotal: number, extrasTotal: number) => ({
+  ...row,
+  menu_total: menuTotal,
+  extras_total: extrasTotal,
+  avg_extra: Math.round(extrasTotal / row.quantity_sold),
+});
+
 // Top sellers + sales-by-category for the analytics overview tab + leaderboards,
 // ranked as the backend ranks them: quantity, then revenue, then name.
 const TOP_ITEMS = [
-  { menu_item_id: "mi_latte", item_name: "Latte", item_name_translations: { ar: "لاتيه" }, quantity_sold: 142, revenue: 852_000 },
-  { menu_item_id: "mi_cappuccino", item_name: "Cappuccino", item_name_translations: { ar: "كابوتشينو" }, quantity_sold: 98, revenue: 539_000 },
-  { menu_item_id: "mi_americano", item_name: "Americano", item_name_translations: { ar: "أمريكانو" }, quantity_sold: 89, revenue: 400_500 },
-  { menu_item_id: "mi_frappuccino", item_name: "Frappuccino", item_name_translations: { ar: "فرابيتشينو" }, quantity_sold: 67, revenue: 569_500 },
-  { menu_item_id: "mi_cheesecake", item_name: "Cheesecake", item_name_translations: { ar: "تشيز كيك" }, quantity_sold: 62, revenue: 558_000 },
-  { menu_item_id: "mi_flatwhite", item_name: "Flat White", item_name_translations: { ar: "فلات وايت" }, quantity_sold: 54, revenue: 351_000 },
-  { menu_item_id: "mi_matcha", item_name: "Matcha Latte", item_name_translations: { ar: "ماتشا لاتيه" }, quantity_sold: 34, revenue: 255_000 },
+  withExtras({ menu_item_id: "mi_latte", item_name: "Latte", item_name_translations: { ar: "لاتيه" }, quantity_sold: 142, revenue: 852_000 }, 852_000, 106_500),
+  withExtras({ menu_item_id: "mi_cappuccino", item_name: "Cappuccino", item_name_translations: { ar: "كابوتشينو" }, quantity_sold: 98, revenue: 539_000 }, 539_000, 41_650),
+  withExtras({ menu_item_id: "mi_americano", item_name: "Americano", item_name_translations: { ar: "أمريكانو" }, quantity_sold: 89, revenue: 400_500 }, 400_500, 17_800),
+  withExtras({ menu_item_id: "mi_frappuccino", item_name: "Frappuccino", item_name_translations: { ar: "فرابيتشينو" }, quantity_sold: 67, revenue: 569_500 }, 569_500, 67_000),
+  withExtras({ menu_item_id: "mi_cheesecake", item_name: "Cheesecake", item_name_translations: { ar: "تشيز كيك" }, quantity_sold: 62, revenue: 558_000 }, 558_000, 0),
+  withExtras({ menu_item_id: "mi_flatwhite", item_name: "Flat White", item_name_translations: { ar: "فلات وايت" }, quantity_sold: 54, revenue: 351_000 }, 351_000, 29_700),
+  withExtras({ menu_item_id: "mi_matcha", item_name: "Matcha Latte", item_name_translations: { ar: "ماتشا لاتيه" }, quantity_sold: 34, revenue: 255_000 }, 255_000, 42_500),
 ];
 
-/** Sold items outside the top list: the category breakdown lists every item sold (Iced Matcha is left out on purpose, so the Items table's "—" shows). */
+/** Sold items outside the top list: the category breakdown lists every item sold (Iced Matcha is left out on purpose, so the Items table's "—" shows; the croissant has no extras fields, as from a server before them, so "Avg extra" shows "—"). */
 const MORE_ITEMS = [
-  { menu_item_id: "mi_espresso", item_name: "Espresso", item_name_translations: { ar: "إسبريسو" }, quantity_sold: 76, revenue: 266_000 },
-  { menu_item_id: "mi_icedlatte", item_name: "Iced Latte", item_name_translations: { ar: "لاتيه مثلج" }, quantity_sold: 58, revenue: 377_000 },
-  { menu_item_id: "mi_coldbrew", item_name: "Cold Brew", item_name_translations: { ar: "كولد برو" }, quantity_sold: 41, revenue: 287_000 },
+  withExtras({ menu_item_id: "mi_espresso", item_name: "Espresso", item_name_translations: { ar: "إسبريسو" }, quantity_sold: 76, revenue: 266_000 }, 266_000, 11_400),
+  withExtras({ menu_item_id: "mi_icedlatte", item_name: "Iced Latte", item_name_translations: { ar: "لاتيه مثلج" }, quantity_sold: 58, revenue: 377_000 }, 377_000, 52_200),
+  withExtras({ menu_item_id: "mi_coldbrew", item_name: "Cold Brew", item_name_translations: { ar: "كولد برو" }, quantity_sold: 41, revenue: 287_000 }, 287_000, 8_200),
   { menu_item_id: "mi_croissant", item_name: "Croissant", item_name_translations: { ar: "كرواسان" }, quantity_sold: 28, revenue: 126_000 },
 ];
 const SOLD_ITEMS = [...TOP_ITEMS, ...MORE_ITEMS];
@@ -332,14 +345,21 @@ export const MOCK_MENU_ITEMS = ITEM_SEEDS.map((s, i) => ({
   category_id: s.cat,
   image_url: mockPicture(s.cat, i),
   is_active: true,
-  // The latte has sizes, so the combo editor's per-size surcharge grid shows under mock.
+  // The latte and the cappuccino have sizes: the combo editor's per-size
+  // surcharge grid, and the Items table's price range ("EGP 55.00–65.00").
   sizes:
     s.id === "mi_latte"
       ? [
           { label: "Regular", price_override: 6_000, is_active: true },
           { label: "Large", price_override: 7_500, is_active: true },
         ]
-      : [],
+      : s.id === "mi_cappuccino"
+        ? [
+            { label: "Small", price_override: 5_500, is_active: true },
+            { label: "Large", price_override: 6_500, is_active: true },
+            { label: "Old jumbo", price_override: 9_900, is_active: false },
+          ]
+        : [],
   recipes: [],
   sku_costs: [],
 }));

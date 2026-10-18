@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import i18n from "@/i18n";
 import { useAppStore } from "@/data/stores/app.store";
-import { fmtElapsedMs, fmtHour, fmtMoney, fmtMoneySigned, fmtStamp, fmtNumber, fmtWireTime } from "./format";
+import { fmtElapsedMs, fmtHour, fmtMoney, fmtMoneyRange, fmtMoneySigned, fmtStamp, fmtNumber, fmtWireTime } from "./format";
 
 const setLang = async (l: "en" | "ar") => {
   await i18n.changeLanguage(l);
@@ -26,6 +26,16 @@ describe("money (POS shape)", () => {
     expect(fmtMoney(123450)).toBe("⁦1,234.50⁩ ج.م");
     expect(fmtMoney(-5000)).toBe("⁦−50.00⁩ ج.م");
     expect(fmtNumber(1234)).toBe("1,234");
+  });
+
+  it("a price range: one money shape, one price when the ends agree", async () => {
+    await setLang("en");
+    expect(fmtMoneyRange(5500, 7500)).toBe("EGP 55.00–75.00");
+    expect(fmtMoneyRange(7500, 5500)).toBe("EGP 55.00–75.00");
+    expect(fmtMoneyRange(5500, 5500)).toBe("EGP 55.00");
+    expect(fmtMoneyRange(null, 5500)).toBe("—");
+    await setLang("ar");
+    expect(fmtMoneyRange(5500, 7500)).toBe("⁦55.00–75.00⁩ ج.م");
   });
 });
 

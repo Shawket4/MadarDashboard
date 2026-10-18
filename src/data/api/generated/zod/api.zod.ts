@@ -7792,7 +7792,8 @@ export const ListMenuItemsQueryParams = zod.object({
   "org_id": zod.uuid(),
   "category_id": zod.uuid().optional(),
   "full": zod.boolean().optional().describe('When true, embed sizes + addon slots + optionals + recipes per item\n(the shape the POS\/teller consumes). Always returns a plain, unpaginated\narray — the POS depends on this contract.'),
-  "branch_id": zod.uuid().optional().describe('When set, prices are branch-effective (branch override replaces base_price)\nand items disabled at this branch are excluded — the per-branch menu the POS\nconsumes. Omitted → the plain org catalog (legacy behaviour).')
+  "branch_id": zod.uuid().optional().describe('When set, prices are branch-effective (branch override replaces base_price)\nand items disabled at this branch are excluded — the per-branch menu the POS\nconsumes. Omitted → the plain org catalog (legacy behaviour).'),
+  "shape": zod.string().optional().describe('OPT-IN, with `full=true` only: `compact` answers an OBJECT\n`{shape: \"compact-1\", items, group_options}` instead of the array —\nevery attached choice group\'s options once in `group_options` (keyed by\ngroup id) rather than copied into each item\'s `pricing.groups`, and\nwithout the fields no client reads (`org_id`, `image`, `created_at`,\n`updated_at`). See `menu::compact`. Any other value, or none, is the\ndefault array, unchanged.')
 })
 
 export const ListMenuItemsResponseItem = zod.object({
@@ -11118,7 +11119,7 @@ export const ExportOrdersResponse = zod.object({
   "voided": zod.number()
 }),
   "total": zod.number()
-})
+}).describe('The export\'s body. Documented here and written by `export_orders` as a\nstream in exactly this shape (`ExportTail` is everything after `data`).')
 
 
 export const PreviewRecipeBody = zod.object({
@@ -15656,11 +15657,14 @@ export const BranchSalesResponse = zod.object({
 }),
   "item_count": zod.number(),
   "items": zod.array(zod.object({
+  "avg_extra": zod.number().nullish().describe('Piastres per unit sold: `extras_total \/ quantity_sold`, rounded to the\npiastre (half away from zero). Additive.'),
+  "extras_total": zod.number().nullish().describe('Piastres charged on top of those size prices, before any discount:\nevery add-on and swap on the lines (their charge, a staff comp added\nback) plus optional fields × quantity. `paid − menu price of the size`,\nsummed; never below zero (see `order_line_extras` in\nmigrations\/20261023100000_rollup_item_extras.sql). Additive.'),
   "item_name": zod.string(),
   "item_name_translations": zod.looseObject({
 
 }),
   "menu_item_id": zod.uuid(),
+  "menu_total": zod.number().nullish().describe('Piastres: the menu price of the size each unit was sold in, AT SALE\nTIME, summed (`order_items.unit_price × quantity`; no add-ons, swaps,\noptional fields, discounts or rewards). Additive (2026-10-18): absent\nfrom older servers.'),
   "quantity_sold": zod.number(),
   "revenue": zod.number()
 })),
@@ -15682,11 +15686,14 @@ export const BranchSalesResponse = zod.object({
   "subtotal": zod.number(),
   "to": zod.iso.datetime({"offset":true}).nullish(),
   "top_items": zod.array(zod.object({
+  "avg_extra": zod.number().nullish().describe('Piastres per unit sold: `extras_total \/ quantity_sold`, rounded to the\npiastre (half away from zero). Additive.'),
+  "extras_total": zod.number().nullish().describe('Piastres charged on top of those size prices, before any discount:\nevery add-on and swap on the lines (their charge, a staff comp added\nback) plus optional fields × quantity. `paid − menu price of the size`,\nsummed; never below zero (see `order_line_extras` in\nmigrations\/20261023100000_rollup_item_extras.sql). Additive.'),
   "item_name": zod.string(),
   "item_name_translations": zod.looseObject({
 
 }),
   "menu_item_id": zod.uuid(),
+  "menu_total": zod.number().nullish().describe('Piastres: the menu price of the size each unit was sold in, AT SALE\nTIME, summed (`order_items.unit_price × quantity`; no add-ons, swaps,\noptional fields, discounts or rewards). Additive (2026-10-18): absent\nfrom older servers.'),
   "quantity_sold": zod.number(),
   "revenue": zod.number()
 })),

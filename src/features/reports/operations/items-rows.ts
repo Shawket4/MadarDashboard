@@ -5,17 +5,24 @@
 // - revenue, the units behind it, and the category: the Overview's branch
 //   sales report (`by_category[].items[]`, every item sold in the window, not
 //   a top N), read with the Overview's own parameters so the cache is shared;
-// - the picture, and the category of an item the report does not list: the
-//   menu items list the app already caches.
+// - "Avg extra": the same report's per-item `extras_total` (what was charged
+//   on top of the sizes' menu prices, before discounts, computed by the server
+//   from the order lines) over its units;
+// - the picture, the menu price (its active sizes: one price or a min–max
+//   range) and the category of an item the report does not list: the full
+//   menu items list the app already caches (`{ org_id, full: true }`, the
+//   menu studio's and the combo editor's read).
 //
 // Nothing is estimated. An item the sales report does not list has no revenue,
-// share or average price ("—", never 0): the two reads were fetched at
-// different moments (an item first sold in between) or the report failed to
-// list it. Its category then comes from the menu.
-import type { BranchSalesReport, CombinedItemSalesRow, MenuItem } from "@/data/api/generated/models";
+// share or avg extra ("—", never 0): the two reads were fetched at different
+// moments (an item first sold in between) or the report failed to list it.
+// Its category then comes from the menu. A server older than the extras
+// fields gives no avg extra either ("—"). The price is today's menu, not the
+// prices it sold at.
+import type { BranchSalesReport, CombinedItemSalesRow, ItemSize, MenuItem } from "@/data/api/generated/models";
 import type { AssetGroupRef } from "@/components/app/asset-image";
 import { tName } from "@/features/analytics/lib";
-import { avgPrice, shareOf } from "./ranked-table-util";
+import { shareOf } from "./ranked-table-util";
 
 export interface ItemRow {
   id: string;
@@ -33,8 +40,29 @@ export interface ItemRow {
   revenue: number | null;
   /** revenue over the table's known revenue, 0..1; null with no revenue. */
   share: number | null;
-  /** revenue over the report's units for the item; null with none. */
-  avgPrice: number | null;
+  /** The menu's price today, piastres: the cheapest and dearest active size (equal for one price); null off the menu. */
+  price: { min: number; max: number } | null;
+  /** Piastres per unit charged on top of the size's menu price (add-ons, swaps, options), before discounts; null when the report has no figure. */
+  avgExtra: number | null;
+}
+
+/** A menu item as the full list sends it: the plain item plus its sizes. */
+type MenuEntry = MenuItem & { sizes?: ItemSize[] | null; all_sizes?: ItemSize[] | null };
+
+/** The menu price of an item: its active sizes' min and max, else its base price. */
+export function menuPriceRange(m: MenuEntry | undefined): { min: number; max: number } | null {
+  if (!m) return null;
+  const rows = (m.all_sizes?.length ? m.all_sizes : m.sizes) ?? [];
+  const prices = rows.filter((s) => s.is_active !== false && Number.isFinite(s.price_override)).map((s) => s.price_override);
+  if (prices.length) return { min: Math.min(...prices), max: Math.max(...prices) };
+  return Number.isFinite(m.base_price) ? { min: m.base_price, max: m.base_price } : null;
+}
+
+/** `n / d` rounded to the piastre, half away from zero (the server's rule); null when nothing sold. */
+export function perUnit(n: number, d: number): number | null {
+  if (!(d > 0) || !Number.isFinite(n)) return null;
+  const q = Math.floor((2 * Math.abs(n) + d) / (2 * d));
+  return n < 0 ? -q : q;
 }
 
 /** The menu's picture of an item: a ready asset group's thumb, tile or full, else `image_url`. */
@@ -61,11 +89,12 @@ export function itemRows({
 }: {
   items: readonly CombinedItemSalesRow[];
   sales: BranchSalesReport | undefined;
-  menu: readonly MenuItem[] | undefined;
+  menu: readonly MenuEntry[] | undefined;
   lang: string;
 }): ItemRow[] {
-  // The report, by item (an item renamed mid-window is listed once per name: summed).
-  const sold = new Map<string, { revenue: number; qty: number; category: string | null }>();
+  // The report, by item (an item renamed mid-window is listed once per name:
+  // summed). `extras` stays null once any of its rows lacks the field.
+  const sold = new Map<string, { revenue: number; qty: number; extras: number | null; category: string | null }>();
   // Category names by id, for items the report does not list.
   const categoryName = new Map<string, string>();
   for (const cat of sales?.by_category ?? []) {
@@ -73,9 +102,11 @@ export function itemRows({
     if (cat.category_id && name) categoryName.set(cat.category_id, name);
     for (const it of cat.items) {
       const prev = sold.get(it.menu_item_id);
+      const extras = typeof it.extras_total === "number" ? it.extras_total : null;
       sold.set(it.menu_item_id, {
         revenue: (prev?.revenue ?? 0) + it.revenue,
         qty: (prev?.qty ?? 0) + it.quantity_sold,
+        extras: prev && prev.extras === null ? null : extras === null ? null : (prev?.extras ?? 0) + extras,
         category: prev?.category ?? name,
       });
     }
@@ -107,7 +138,8 @@ export function itemRows({
       units,
       revenue: s ? s.revenue : null,
       share: s ? shareOf(s.revenue, total) : null,
-      avgPrice: s ? avgPrice(s.revenue, s.qty) : null,
+      price: menuPriceRange(m),
+      avgExtra: s && s.extras !== null ? perUnit(s.extras, s.qty) : null,
     };
   });
 }

@@ -10,7 +10,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { CHART_AXIS_TICK, ChartCard, chartColor } from "@/components/app/chart-card";
 import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { useChartMotion } from "@/lib/motion";
-import { fmtMoney, fmtMoneyCompact, fmtNumber, fmtPercent } from "@/lib/format";
+import { fmtMoney, fmtMoneyCompact, fmtMoneyRange, fmtNumber, fmtPercent } from "@/lib/format";
 import {
   useBranchAddonSales, useBranchCombinedItemSales, useBranchSales, useBranchTellerStats, useBranchWaiterStats,
   useListMenuItems, useOrgBranchComparison,
@@ -74,9 +74,10 @@ export function ItemsTab({ branchId, range }: { branchId: string; range: Range }
   // share one cached read.
   const [excludedItems] = useExcludedItems();
   const sales = useBranchSales(branchId, overviewParams(range, excludedItems), { query: { enabled: !!branchId } });
-  // Pictures (and a category the report lacks): the menu list the app already
-  // caches. The table never waits for it, nor fails with it.
-  const menu = useListMenuItems({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
+  // Pictures, the menu price (sizes) and a category the report lacks: the full
+  // menu list the app already caches (the menu studio's and the combo
+  // editor's read). The table never waits for it, nor fails with it.
+  const menu = useListMenuItems({ org_id: orgId ?? "", full: true }, { query: { enabled: !!orgId, staleTime: 5 * 60_000 } });
   const rows = useMemo(
     () => itemRows({ items: items.data ?? [], sales: sales.data, menu: menu.data, lang }),
     [items.data, sales.data, menu.data, lang],
@@ -91,7 +92,8 @@ export function ItemsTab({ branchId, range }: { branchId: string; range: Range }
     { id: "qty", header: t("reports.operations.ranked.sold", "Sold"), sortValue: (r) => r.units, cell: (r) => fmtCount(r.units), phoneOrder: 3 },
     { id: "revenue", header: t("reports.operations.ranked.revenue", "Revenue"), sortValue: (r) => r.revenue, cell: (r) => fmtMoney(r.revenue), strong: true, phoneOrder: 1 },
     { id: "share", header: t("reports.operations.ranked.shareOfRevenue", "Share of revenue"), share: (r) => r.share, phoneOrder: 2 },
-    { id: "avg", header: t("reports.operations.ranked.avgPrice", "Avg. price"), sortValue: (r) => r.avgPrice, cell: (r) => fmtMoney(r.avgPrice), phoneOrder: 4 },
+    { id: "price", header: t("reports.operations.ranked.price", "Price"), sortValue: (r) => r.price?.min ?? null, cell: (r) => fmtMoneyRange(r.price?.min, r.price?.max), phoneOrder: 4 },
+    { id: "extra", header: t("reports.operations.ranked.avgExtra", "Avg. extra"), sortValue: (r) => r.avgExtra, cell: (r) => fmtMoney(r.avgExtra), phoneOrder: 5 },
   ], [t]);
   const itemCategory = useMemo(() => ({
     label: t("reports.operations.ranked.category", "Category"),
@@ -148,6 +150,7 @@ export function ItemsTab({ branchId, range }: { branchId: string; range: Range }
         }}
         footnote={[
           rows.length >= ITEMS_LIMIT ? t("reports.operations.ranked.topNote", "The top {{count}} by volume; shares are of these.", { count: ITEMS_LIMIT }) : null,
+          t("reports.operations.ranked.extraNote", "Price is today's menu (a range when the item has sizes). Avg. extra is what customers paid per unit on top of the menu price of the size they bought (add-ons, swaps, options), before discounts."),
           missingRevenue ? t("reports.operations.ranked.noRevenueNote", "— means the period's sales report does not list the item yet (it sold after the report was read). Refresh to fill it in.") : null,
         ].filter(Boolean).join(" ") || undefined}
       />
