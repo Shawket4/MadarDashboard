@@ -63,6 +63,7 @@ import {
   AdjustmentDialog, ExpenseAdvanceDialog, MarkPaidDialog, OverrideDialog, PAY_METHOD_FALLBACK, RecordAdvanceDialog, ReopenDialog,
   ReviewAdvanceDialog, StopDialog, UnwaiveDialog, WaiveDialog, AdvanceCapNote, RejectDialog, CorrectExpenseTagDialog,
 } from "./money-dialogs";
+import { keepScope } from "@/data/scope/list-search";
 
 type Slip = ComputedPayslip | Payslip;
 type Row = Slip & { employee_name: string; paid_method: string | null };
@@ -414,7 +415,7 @@ export function PayrollPage() {
             </p>
           </div>
           <Button asChild size="sm" variant="outline">
-            <Link to="/staff/employees">{t("dawamOps.setSalaries", "Set salaries on Employees")}</Link>
+            <Link to="/staff/employees" search={keepScope}>{t("dawamOps.setSalaries", "Set salaries on Employees")}</Link>
           </Button>
         </div>
       ) : null}

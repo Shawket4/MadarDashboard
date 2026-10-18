@@ -19,6 +19,7 @@ import { useCan } from "@/data/authz/use-authz";
 
 import { GroupEditorDialog } from "@/features/menu/groups/group-editor-dialog";
 import { invalidateStudio, type AttachDraft } from "./util";
+import { keepScopeWith } from "@/data/scope/list-search";
 
 interface Props {
   orgId: string | null;
@@ -128,7 +129,7 @@ export function SectionModifiers({ orgId, itemId, attached, setAttached }: Props
               </Badge>
               {canEditGroups ? (
                 <Button asChild variant="ghost" size="sm" className="ms-auto h-7 px-2 text-xs">
-                  <Link to="/menu/groups" search={{ edit: a.group_id }}>
+                  <Link to="/menu/groups" search={keepScopeWith({ edit: a.group_id })}>
                     <Pencil className="size-3.5" /> {t("menu.groups.editGroup", "Edit group")}
                   </Link>
                 </Button>

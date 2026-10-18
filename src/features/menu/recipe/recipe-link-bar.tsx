@@ -12,6 +12,7 @@ import { Cap } from "@/generated/capabilities";
 
 import { deleteRecipeLink } from "@/data/api/generated/api";
 import type { RecipeLinkInfo } from "@/data/api/generated/models";
+import { keepScope } from "@/data/scope/list-search";
 
 interface Props {
   itemId: string;
@@ -54,7 +55,7 @@ export function RecipeLinkBar({ itemId, sourceItemId, linkedCopyIds, link, nameO
       <span className="flex flex-wrap items-center gap-2 text-sm">
         <Link2 className="size-4 text-muted-foreground" aria-hidden="true" />
         {t("modeling.linked.follows", "Recipe follows")}
-        <Link to="/menu/items/$itemId" params={{ itemId: sourceItemId }} search={{}} className="font-medium underline-offset-2 hover:underline">
+        <Link to="/menu/items/$itemId" params={{ itemId: sourceItemId }} search={keepScope} className="font-medium underline-offset-2 hover:underline">
           {name}
         </Link>
         {link?.in_sync === false ? (
@@ -76,7 +77,7 @@ export function RecipeLinkBar({ itemId, sourceItemId, linkedCopyIds, link, nameO
       {t("modeling.linked.copies", "Linked copies:")}
       {linkedCopyIds.map((id, i) => (
         <span key={id}>
-          <Link to="/menu/items/$itemId" params={{ itemId: id }} search={{}} className="font-medium underline-offset-2 hover:underline">
+          <Link to="/menu/items/$itemId" params={{ itemId: id }} search={keepScope} className="font-medium underline-offset-2 hover:underline">
             {nameOf(id) ?? t("modeling.linked.copyN", "Copy {{n}}", { n: i + 1 })}
           </Link>
           {i < linkedCopyIds.length - 1 ? "," : null}

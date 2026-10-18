@@ -40,6 +40,7 @@ import {
   connectionLabel, deviceKindLabel, printerRoleLabel, problemText, setupLabel,
 } from "./vocabulary";
 import { Spinner } from "@/components/ui/spinner";
+import { keepScope } from "@/data/scope/list-search";
 
 export interface InspectorProps {
   branchId: string;
@@ -760,7 +761,7 @@ function SectionInspector({
         {overrides > 0 ? (
           <p className="text-xs text-muted-foreground">
             {t("builder.itemOverrides", "{{count}} items are routed here one by one.", { count: overrides })}{" "}
-            <Link to="/settings/kitchen-routing" className="font-medium text-foreground underline underline-offset-2">
+            <Link to="/settings/kitchen-routing" search={keepScope} className="font-medium text-foreground underline underline-offset-2">
               {t("builder.itemOverridesLink", "Item routing")}
             </Link>
           </p>

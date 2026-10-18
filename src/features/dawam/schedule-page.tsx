@@ -54,6 +54,7 @@ import { scheduleSearch } from "./search";
 import { useDropUnknown, useListFilters } from "@/data/scope/use-list-filters";
 import { WeekBar } from "./schedule-week-bar";
 import { intent } from "@/lib/prefetch/intent";
+import { keepScope } from "@/data/scope/list-search";
 
 export function SchedulePage() {
   const { t, i18n } = useTranslation();
@@ -245,7 +246,7 @@ export function SchedulePage() {
           <span>
             {t("dawamOps.patternNote", "Each week starts from everyone's standing pattern, which repeats by itself. A change made here is for that date only.")}{" "}
             {canEdit ? (
-              <Link to="/staff/shifts" className="font-medium text-foreground underline underline-offset-4 hover:no-underline">
+              <Link to="/staff/shifts" search={keepScope} className="font-medium text-foreground underline underline-offset-4 hover:no-underline">
                 {t("dawamOps.editPattern", "Change the standing pattern on Work shifts")}
               </Link>
             ) : null}
@@ -258,7 +259,7 @@ export function SchedulePage() {
             <span className="font-medium">{t("dawamOps.noBlocksTitle", "No work shifts yet.")}</span>{" "}
             <span className="text-muted-foreground">{t("dawamOps.noBlocksHint", "Create the shifts people work (Morning, Evening…) before rostering anyone.")}</span>
           </p>
-          <Button asChild size="sm" variant="outline"><Link to="/staff/shifts">{t("dawamOps.openWorkShifts", "Open Work shifts")}</Link></Button>
+          <Button asChild size="sm" variant="outline"><Link to="/staff/shifts" search={keepScope}>{t("dawamOps.openWorkShifts", "Open Work shifts")}</Link></Button>
         </div>
       ) : null}
 
@@ -287,7 +288,7 @@ export function SchedulePage() {
           icon={UsersRound}
           title={t("staff.noEmployeesYet", "No active employees to roster.")}
           description={t("dawamOps.noStaffHint", "Add people on Employees and give them a standing pattern; their shifts then show here week by week.")}
-          action={<Button asChild variant="outline" size="sm"><Link to="/staff/employees">{t("dawamOps.openEmployees", "Open Employees")}</Link></Button>}
+          action={<Button asChild variant="outline" size="sm"><Link to="/staff/employees" search={keepScope}>{t("dawamOps.openEmployees", "Open Employees")}</Link></Button>}
         />
       ) : (
         <div className="overflow-x-auto rounded-2xl border bg-card">

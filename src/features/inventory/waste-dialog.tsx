@@ -16,6 +16,7 @@ import { createWaste, useListBranchStock } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtNumber, fmtUnit } from "@/lib/format";
 import { WASTE_REASONS, invalidateInventory } from "./lib";
+import { keepScope } from "@/data/scope/list-search";
 
 interface Props {
   branchId: string;
@@ -94,7 +95,7 @@ export function WasteDialog({ branchId, open, onOpenChange, presetIngredientId }
         {nothingCounted ? (
           <p className="rounded-lg bg-info/10 p-2.5 text-xs">
             {t("inventory.waste.countFirstHint", "This branch has no stock on record yet.")}{" "}
-            <Link to="/inventory/counts" className="text-primary underline">{t("inventory.waste.countFirstLink", "Count it first")}</Link>
+            <Link to="/inventory/counts" search={keepScope} className="text-primary underline">{t("inventory.waste.countFirstLink", "Count it first")}</Link>
           </p>
         ) : null}
         <div className="space-y-3">

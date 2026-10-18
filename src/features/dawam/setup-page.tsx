@@ -28,6 +28,7 @@ import { DAWAM_KEY_PREFIX } from "./live";
 import { DawamRefreshButton } from "./refresh-button";
 import { setupProgress, SETUP_STEPS, useSetupData, type SetupStep } from "./setup";
 import { BranchesStep, EmployeesStep, RulesStep, ShiftsStep } from "./setup-steps";
+import { keepScope } from "@/data/scope/list-search";
 
 /** The checklist reads the branches (step 1: pinned on the map) besides Dawam's own. */
 const SETUP_KEYS = [DAWAM_KEY_PREFIX, "/branches"];
@@ -143,8 +144,8 @@ export function SetupPage() {
               <div className="space-y-2">
                 <p className="text-sm font-medium">{t("dawam.setupComplete", "All set: your team can clock in.")}</p>
                 <div className="flex flex-wrap gap-2">
-                  <Button asChild size="sm"><Link to="/staff/schedule">{t("dawam.setupGoSchedule", "Make this week's schedule")}</Link></Button>
-                  <Button asChild size="sm" variant="outline"><Link to="/staff/team">{t("dawam.setupGoTeam", "See who's in")}</Link></Button>
+                  <Button asChild size="sm"><Link to="/staff/schedule" search={keepScope}>{t("dawam.setupGoSchedule", "Make this week's schedule")}</Link></Button>
+                  <Button asChild size="sm" variant="outline"><Link to="/staff/team" search={keepScope}>{t("dawam.setupGoTeam", "See who's in")}</Link></Button>
                 </div>
               </div>
             </div>

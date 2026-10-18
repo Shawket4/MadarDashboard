@@ -10,6 +10,7 @@ import { useFlip } from "@/lib/motion";
 
 import { useOpenTills, type Till } from "./api";
 import { FlagBadge, VerificationBadge } from "./till-badges";
+import { keepScope } from "@/data/scope/list-search";
 
 /** Dashboard home: who is selling right now at the selected branch (live via the tills topic). */
 export function OpenTillsCard({ branchId }: { branchId: string | null | undefined }) {
@@ -32,7 +33,7 @@ export function OpenTillsList({ tills }: { tills: Till[] }) {
             {t("dashboard.openTills", "Open tills")}
             <span className="tabular text-muted-foreground">{tills.length}</span>
           </p>
-          <Link to="/tills" className="text-xs text-primary hover:underline">
+          <Link to="/tills" search={keepScope} className="text-xs text-primary hover:underline">
             {t("common.viewAll", "View all")}
           </Link>
         </div>

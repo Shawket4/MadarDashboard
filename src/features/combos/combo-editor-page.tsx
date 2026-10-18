@@ -481,6 +481,7 @@ function LinkRow({ to, label, hint }: { to: string; label: string; hint: string 
   return (
     <Link
       to={to}
+      search={keepScope}
       className="flex items-center justify-between gap-3 rounded-xl border p-3 transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
     >
       <span className="min-w-0">

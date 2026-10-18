@@ -45,6 +45,7 @@ import { ReceiveDialog } from "./receive-dialog";
 import { WasteDialog } from "./waste-dialog";
 import { countsDue, needsFirstCount } from "./lib";
 import { intent } from "@/lib/prefetch/intent";
+import { keepScope } from "@/data/scope/list-search";
 
 export function TodayPage() {
   const { t } = useTranslation();
@@ -144,7 +145,7 @@ export function TodayPage() {
                 {t("inventory.today.firstRunHint", "Nothing has been counted here yet, so the numbers below are empty. A whole-branch count takes a few minutes and brings stock value, low-stock alerts and usage to life.")}
               </p>
             </div>
-            <Link to="/inventory/counts" className={cn(buttonVariants({ size: "lg" }))}>
+            <Link to="/inventory/counts" search={keepScope} className={cn(buttonVariants({ size: "lg" }))}>
               <ClipboardList className="size-4" />
               {t("inventory.today.startFirstCount", "Count this branch's stock")}
             </Link>
@@ -201,7 +202,7 @@ export function TodayPage() {
           title={t("inventory.today.lowStockHeading", "Low stock — reorder soon")}
           count={lowStock.isLoading || lowStock.isError ? undefined : lowRows.length}
           trailing={
-            <Link to="/inventory/ingredients" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
+            <Link to="/inventory/ingredients" search={keepScope} className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
               {t("inventory.today.viewAll", "View all")}
               <ChevronRight className="size-4 rtl:rotate-180" />
             </Link>

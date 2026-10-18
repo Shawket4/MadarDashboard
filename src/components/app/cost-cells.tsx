@@ -6,6 +6,7 @@ import { fmtMoney, fmtPercent } from "@/lib/format";
 import { BAND_STYLE, foodCostBand } from "@/lib/recipe-cost";
 import { rules } from "@/lib/rules";
 import type { AddonCost, SkuCost } from "@/data/api/generated/models";
+import { keepScopeWith } from "@/data/scope/list-search";
 
 const BAND_ICON = { good: CheckCircle2, fair: AlertTriangle, poor: AlertCircle };
 
@@ -30,7 +31,7 @@ function CostMissingLink({ itemId, addonId }: { itemId?: string; addonId?: strin
   return (
     <Link
       to="/menu/recipes"
-      search={search as never}
+      search={keepScopeWith(search ?? {}) as never}
       onClick={(e) => e.stopPropagation()}
       title={t("menu.costMissingFix", "Some ingredient costs are missing — open recipes to fix")}
       className="inline-flex items-center text-warning hover:text-warning/80"

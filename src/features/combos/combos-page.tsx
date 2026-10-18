@@ -225,7 +225,7 @@ export function CombosPage() {
           <>
             {canSettings ? (
               <Button asChild variant="ghost" size="sm">
-                <Link to="/settings/combos">
+                <Link to="/settings/combos" search={keepScope}>
                   {t("combos.channelsLink", "Channels and margin")}
                   <ArrowRight aria-hidden className="size-3.5 rtl:rotate-180" />
                 </Link>
