@@ -1,7 +1,7 @@
 import type { StatusTone } from "@/components/app/status-pill";
 import type { Capability } from "@/generated/capabilities";
 import { queryClient } from "@/data/api/query";
-import type { BranchStockRow, ItemCountInput, StockTransfer, Stocktake, StocktakeItem } from "@/data/api/generated/models";
+import type { BranchStockRow, ItemCountInput, LastPrice, StockTransfer, Stocktake, StocktakeItem } from "@/data/api/generated/models";
 import { fmtNumber } from "@/lib/format";
 import { rules, type Action, type LineCheck, type ReceiveRefusal, type Side, type TransferStatus } from "@/lib/rules";
 
@@ -100,6 +100,21 @@ export const formatUnitCost = (piastresPerUnit: number): string =>
     minimumFractionDigits: UNIT_COST_DIGITS,
     maximumFractionDigits: UNIT_COST_DIGITS,
   });
+
+// ── Last price (a new PO line's default) ─────────────────────────────────────
+
+/** The last price paid for an ingredient, in piastres per `unit` (the server
+ *  converts it into every unit a line can use); `null` when it does not
+ *  convert to that unit, so the line offers no default rather than a wrong one. */
+export const lastPriceIn = (lp: Pick<LastPrice, "prices"> | null | undefined, unit: string): number | null => {
+  const u = unit.trim().toLowerCase();
+  return lp?.prices.find((p) => p.unit.trim().toLowerCase() === u)?.unit_price ?? null;
+};
+
+/** A line's default total from the last price, whole piastres: the price ×
+ *  the quantity as the server stores it (3 dp). `null` until a quantity is typed. */
+export const lastPriceLineTotal = (unitPrice: number, qty: number): number | null =>
+  Number.isFinite(qty) && qty > 0 ? Math.round(unitPrice * roundQty(qty)) : null;
 
 // ── Stock counts ─────────────────────────────────────────────────────────────
 

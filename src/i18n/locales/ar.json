@@ -1513,6 +1513,8 @@
       "invoiceTotal": "إجمالي الفاتورة (ج.م)",
       "unitCostLocked": "تكلفة الوحدة (ج.م لكل {{unit}})",
       "unitCostLockedHint": "محسوبة من إجمالي السطر ÷ الكمية. غيّر أيًا منهما لتتغير.",
+      "lastPrice": "آخر سعر: {{price}} / {{unit}} · {{date}}",
+      "lastPriceOtherSupplier": "من مورد آخر",
       "unitCostUnit": "وحدة"
     },
     "reports": {

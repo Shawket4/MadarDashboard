@@ -17,7 +17,9 @@ import {
   getReorderSuggestionsQueryOptions,
   getTransferDifferencesQueryOptions,
 } from "@/data/api/generated/api";
-import type { ListMovementsParams, ListPurchaseOrdersParams, ListTransfersParams } from "@/data/api/generated/models";
+import type {
+  ListMovementsParams, ListPurchaseLastPricesParams, ListPurchaseOrdersParams, ListTransfersParams,
+} from "@/data/api/generated/models";
 import type { ListValues } from "@/data/scope/list-search";
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import { cairoDateISO, cairoParts } from "@/lib/format";
@@ -59,6 +61,10 @@ export const purchasingTab = (f: PurchasingValues, branchId: string | null) =>
 export const purchaseOrdersParams = (f: PurchasingValues): ListPurchaseOrdersParams => ({
   status: f.status === "all" ? undefined : f.status,
 });
+
+/** The new-PO dialog's last prices: the chosen supplier's (else any supplier's); none chosen = no filter. */
+export const lastPricesParams = (supplierId: string | null | undefined): ListPurchaseLastPricesParams | undefined =>
+  supplierId ? { supplier_id: supplierId } : undefined;
 
 export function prefetchPurchasing(qc: QueryClient, { orgId, branchId, search }: PrefetchCtx): void {
   if (!orgId) return;

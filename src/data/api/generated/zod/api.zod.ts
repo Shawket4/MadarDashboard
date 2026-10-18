@@ -14860,6 +14860,43 @@ export const SubmitPurchaseOrderResponse = zod.object({
 })
 
 
+/**
+ * For each ingredient: the most recent PO line from `supplier_id`, preferring
+ * a received line (at the price its delivery was invoiced at) over one only
+ * ordered, and either over a cancelled order's; failing that, the same pick
+ * over every supplier (`source = "any"`). Ingredients never purchased are
+ * absent. Read-only, derived from purchase orders and goods receipts.
+ * @summary The last price paid per ingredient, to prefill a new purchase order line.
+ */
+export const ListPurchaseLastPricesParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID')
+})
+
+export const ListPurchaseLastPricesQueryParams = zod.object({
+  "supplier_id": zod.uuid().optional().describe('The supplier the order is for. Its own last price wins; when it never\nsold the ingredient (or none is given) the last price from any supplier\nis returned, with `source = \"any\"`.'),
+  "ingredient_ids": zod.string().optional().describe('Comma-separated ingredient ids. Omitted: every ingredient the org has\never put on a purchase order.')
+})
+
+export const ListPurchaseLastPricesResponseItem = zod.object({
+  "ordered_at": zod.iso.datetime({"offset":true}).describe('When the purchase order was raised.'),
+  "org_ingredient_id": zod.uuid(),
+  "po_id": zod.uuid().describe('The purchase order the price comes from.'),
+  "po_status": zod.string(),
+  "prices": zod.array(zod.object({
+  "unit": zod.string(),
+  "unit_price": zod.number().describe('Piastres per one `unit`, exact (6 dp).')
+}).describe('The remembered price expressed per one purchase unit.')).describe('The same price in every unit a new line for this ingredient can be\nordered in (its measure\'s units and its named pack), converted through\nthe ingredient\'s units. A unit that does not convert is left out: the\nclient then offers no default for it.'),
+  "received": zod.boolean().describe('True when the price is what a delivery was actually invoiced at (a\ngoods receipt), false when it is only what was ordered.'),
+  "received_at": zod.iso.datetime({"offset":true}).nullish().describe('When the delivery the price comes from was received (`received` only).'),
+  "source": zod.enum(['supplier', 'any']).describe('Where a remembered price came from.'),
+  "supplier_id": zod.uuid().nullish(),
+  "supplier_name": zod.string().nullish(),
+  "unit": zod.string().describe('The remembered line\'s purchase unit.'),
+  "unit_price": zod.number().describe('Piastres per one `unit`, exact (6 dp).')
+}).describe('The last price paid for one ingredient, the default for a new PO line.')
+export const ListPurchaseLastPricesResponse = zod.array(ListPurchaseLastPricesResponseItem)
+
+
 export const ListOrgPurchaseOrdersParams = zod.object({
   "org_id": zod.uuid().describe('Organization ID')
 })

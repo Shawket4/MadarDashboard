@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Lock, Plus, X } from "lucide-react";
+import { History, Lock, Plus, X } from "lucide-react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import {
@@ -15,12 +16,16 @@ import { AnimatedFigure } from "@/components/app/animated-figure";
 import { Combobox } from "@/components/app/combobox";
 import { DatePicker } from "@/components/app/date-picker";
 import { Separator } from "@/components/ui/separator";
-import type { OrgIngredient, POLineInput, Supplier } from "@/data/api/generated/models";
-import { createPurchaseOrder } from "@/data/api/generated/api";
+import type { LastPrice, OrgIngredient, POLineInput, Supplier } from "@/data/api/generated/models";
+import { createPurchaseOrder, useListPurchaseLastPrices } from "@/data/api/generated/api";
+import { useOrgId } from "@/hooks/use-org-id";
 import { getErrorMessage } from "@/data/api/errors";
-import { cairoDateISO, egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
-import { estimateLineTotal, formatUnitCost, invalidateInventory, unitCostFromTotal, unitsForFamily } from "./lib";
+import { cairoDateISO, egpToPiastres, fmtDate, fmtMoney, piastresToEgp } from "@/lib/format";
+import {
+  estimateLineTotal, formatUnitCost, invalidateInventory, lastPriceIn, lastPriceLineTotal, unitCostFromTotal, unitsForFamily,
+} from "./lib";
 import { isPickable } from "./archive";
+import { lastPricesParams } from "./queries";
 
 export interface POPrefillLine {
   org_ingredient_id: string;
@@ -39,7 +44,9 @@ interface Props {
 
 /** One line. The TOTAL (EGP, as on the supplier's invoice) is what is typed
  *  and sent; the unit cost is derived from it and only shown. Until someone
- *  types a total it follows the catalog's estimate for the quantity. */
+ *  types a total it follows the last price paid for the ingredient (this
+ *  supplier's, else any supplier's) × the quantity, else the catalog's
+ *  estimate. A typed total is never overwritten. */
 interface LineState {
   key: number;
   ingredientId: string | null;
@@ -65,6 +72,20 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
   const [busy, setBusy] = useState(false);
 
   const catalogById = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
+
+  // The last price paid per ingredient, for the chosen supplier (falling back
+  // to any supplier's): one request per supplier, warmed by the page prefetch.
+  const orgId = useOrgId();
+  const lastPricesQuery = useListPurchaseLastPrices(
+    orgId ?? "",
+    lastPricesParams(supplierId),
+    { query: { enabled: open && !!orgId, placeholderData: keepPreviousData } },
+  );
+  const lastPrices = lastPricesQuery.data;
+  const lastById = useMemo(
+    () => new Map((lastPrices ?? []).map((p) => [p.org_ingredient_id, p])),
+    [lastPrices],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -98,13 +119,27 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
   // An archived ingredient is not offered, but a line that already has one keeps its name.
   const catalogOptions = useMemo(() => catalog.map((c) => ({ value: c.id, label: c.name, hidden: !isPickable(c) })), [catalog]);
 
-  /** Refill an untouched total from the catalog's cost for the quantity. */
+  /** Refill an untouched total: the last price paid × the quantity, else the
+   *  catalog's cost for it. A total someone typed is left alone. */
   function withEstimate(l: LineState): LineState {
     if (l.totalTouched) return l;
     const ing = l.ingredientId ? catalogById.get(l.ingredientId) : undefined;
-    const est = ing ? estimateLineTotal(ing.cost_per_unit, parseFloat(l.qty), l.purchaseUnit, ing.unit) : null;
+    if (!ing) return { ...l, total: "" };
+    const qty = parseFloat(l.qty);
+    const last = lastPriceIn(lastById.get(ing.id), l.purchaseUnit || ing.unit);
+    const est = last != null
+      ? lastPriceLineTotal(last, qty)
+      : estimateLineTotal(ing.cost_per_unit, qty, l.purchaseUnit, ing.unit);
     return { ...l, total: est != null ? piastresToEgp(est).toFixed(2) : "" };
   }
+
+  // The last prices landing, or changing with the supplier: re-default every
+  // line nobody typed a total on.
+  useEffect(() => {
+    if (!open) return;
+    setLines((prev) => prev.map(withEstimate));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastById]);
 
   const setLine = (key: number, patch: Partial<LineState>) =>
     setLines((prev) => prev.map((l) => (l.key === key ? withEstimate({ ...l, ...patch }) : l)));
@@ -194,6 +229,9 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
               const ing = l.ingredientId ? catalogById.get(l.ingredientId) : undefined;
               const puOptions = ing ? unitsForFamily(ing.unit) : [];
               const unitCost = unitCostFromTotal(linePiastres(l), parseFloat(l.qty));
+              const last = ing ? lastById.get(ing.id) : undefined;
+              const lastUnit = l.purchaseUnit || ing?.unit || "";
+              const lastPrice = lastPriceIn(last, lastUnit);
               return (
                 <div key={l.key} className="space-y-1.5 rounded-lg border p-2">
                   <div className="flex items-center gap-2">
@@ -257,6 +295,9 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
                       </bdi>
                     </output>
                   </div>
+                  {last && lastPrice != null ? (
+                    <LastPriceHint last={last} price={lastPrice} unit={lastUnit} otherSupplier={!!supplierId && last.source === "any"} />
+                  ) : null}
                 </div>
               );
             })}
@@ -274,5 +315,25 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Where a line's default came from: "Last: EGP 45.00 / kg · 12 Oct 2026",
+ *  plus "from another supplier" when the chosen one never sold it. */
+function LastPriceHint({ last, price, unit, otherSupplier }: { last: LastPrice; price: number; unit: string; otherSupplier: boolean }) {
+  const { t } = useTranslation();
+  const text = t("inventory.purchasing.lastPrice", "Last: {{price}} / {{unit}} · {{date}}", {
+    price: fmtMoney(price, { maxFractionDigits: 6 }),
+    unit: t(`units.${unit}`, unit),
+    date: fmtDate(last.received_at ?? last.ordered_at),
+  });
+  return (
+    <p className="flex items-center gap-1.5 text-xs text-muted-foreground" data-testid="po-line-last-price">
+      <History className="size-3.5 shrink-0" aria-hidden />
+      <span>
+        {text}
+        {otherSupplier ? ` · ${t("inventory.purchasing.lastPriceOtherSupplier", "from another supplier")}` : null}
+      </span>
+    </p>
   );
 }

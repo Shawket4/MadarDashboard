@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { hashKey, QueryClient } from "@tanstack/react-query";
 
-import { getListPurchaseOrdersQueryKey, getListTransfersQueryKey, getReorderSuggestionsQueryKey } from "@/data/api/generated/api";
+import { getListPurchaseLastPricesQueryKey, getListPurchaseOrdersQueryKey, getListTransfersQueryKey, getReorderSuggestionsQueryKey } from "@/data/api/generated/api";
 import { withDefaults } from "@/data/scope/list-search";
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
-import { prefetchPurchasing, prefetchTransfers, purchaseOrdersParams, purchasingTab, transfersListParams } from "./queries";
+import { lastPricesParams, prefetchPurchasing, prefetchTransfers, purchaseOrdersParams, purchasingTab, transfersListParams } from "./queries";
 import { purchasingSearch, transfersSearch } from "./search";
 
 const ctx = { orgId: "org", branchId: null, from: null, to: null, preset: "today" as const };
@@ -27,6 +27,11 @@ describe("inventory query params", () => {
     expect(transfersListParams(withDefaults(transfersSearch.spec, { tab: "draft" }))).toEqual({ direction: undefined, status: "draft" });
   });
 
+  it("last prices: a supplier filters, none is no filter", () => {
+    expect(lastPricesParams("s1")).toEqual({ supplier_id: "s1" });
+    expect(lastPricesParams(null)).toBeUndefined();
+  });
+
   it("prefetch warms the page's keys (all-branches sentinel, default filters)", () => {
     const qc = new QueryClient();
     prefetchPurchasing(qc, ctx);
@@ -35,5 +40,7 @@ describe("inventory query params", () => {
     expect(keys).toContain(hashKey(getListPurchaseOrdersQueryKey(ALL_BRANCHES_ID, { status: undefined })));
     expect(keys).toContain(hashKey(getListTransfersQueryKey(ALL_BRANCHES_ID, { direction: undefined, status: undefined })));
     expect(keys).not.toContain(hashKey(getReorderSuggestionsQueryKey("b1")));
+    // The new-PO dialog's last prices load when it opens: the page never reads them on mount.
+    expect(keys).not.toContain(hashKey(getListPurchaseLastPricesQueryKey("org", lastPricesParams(null))));
   });
 });
