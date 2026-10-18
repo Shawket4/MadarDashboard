@@ -31,9 +31,9 @@ jobs:
       - name: Build dashboard
         run: npm run build
         env:
-          # Dashboard talks to the dedicated API origin (cross-origin; CORS allows it).
-          # The main madar-pos.cloud vhost no longer proxies /api.
-          VITE_API_URL: https://api.madar-pos.cloud
+          # Dashboard calls the API same-origin: the madar-pos.cloud vhost proxies
+          # /api/ to the backend (2026-10-18), so there is no CORS preflight per URL.
+          VITE_API_URL: /api
           # Self-hosted Sentry. The DSN is a public value (safe in the clear);
           # session replay is recorded with all text/inputs masked and media
           # blocked — see src/lib/sentry.ts.
