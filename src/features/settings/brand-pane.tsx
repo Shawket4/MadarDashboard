@@ -30,7 +30,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  getOrg,
   updateOrg,
   uploadOrgCardImage,
   uploadOrgLogo,
@@ -47,6 +46,7 @@ import {
 } from "@/features/orgs/social-links";
 
 import { PaneHeader } from "./pane-header";
+import { orgBrandQueryOptions } from "./queries";
 import { ShopAddressCard } from "./shop-address-card";
 
 import { resolveBrand } from "@/features/loyalty/shared/brand";
@@ -60,11 +60,7 @@ export function BrandPane() {
   const orgId = useOrgId() ?? "";
   const queryClient = useQueryClient();
 
-  const org = useQuery({
-    queryKey: ["org-brand", orgId],
-    queryFn: () => getOrg(orgId),
-    enabled: !!orgId,
-  });
+  const org = useQuery({ ...orgBrandQueryOptions(orgId), enabled: !!orgId });
 
   if (org.isLoading)
     return (
@@ -80,7 +76,7 @@ export function BrandPane() {
       const updated = await uploadOrgLogo(orgId, { logo: file });
       // The palette is re-derived server-side on upload, so the preview below
       // must come from a fresh read rather than an optimistic guess.
-      await queryClient.invalidateQueries({ queryKey: ["org-brand", orgId] });
+      await queryClient.invalidateQueries({ queryKey: orgBrandQueryOptions(orgId).queryKey });
       toast.success(t("settings.logoSaved", "Logo updated"));
       return updated.logo_url ?? "";
     } catch (e) {
@@ -92,7 +88,7 @@ export function BrandPane() {
   const uploadCardImage = async (file: File): Promise<string> => {
     try {
       const updated = await uploadOrgCardImage(orgId, { image: file });
-      await queryClient.invalidateQueries({ queryKey: ["org-brand", orgId] });
+      await queryClient.invalidateQueries({ queryKey: orgBrandQueryOptions(orgId).queryKey });
       toast.success(t("settings.cardImageSaved", "Card image updated"));
       return updated.brand_card_image ?? "";
     } catch (e) {

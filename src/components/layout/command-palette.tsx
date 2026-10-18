@@ -18,12 +18,13 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useOrgModules } from "@/hooks/use-org-modules";
 import { useSetupProgress } from "@/features/dawam/setup";
-import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
+import { useNavIntent } from "@/lib/prefetch/nav-context";
+import { keepScope } from "@/data/scope/list-search";
 
 export function CommandPalette() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const prefetch = useRoutePrefetch();
+  const nav = useNavIntent();
   const [open, setOpen] = useState(false);
   const authz = useAuthz();
   const modules = useOrgModules();
@@ -44,7 +45,8 @@ export function CommandPalette() {
 
   const go = (to: string) => {
     setOpen(false);
-    navigate({ to });
+    // The scope rides along, as from the sidebar: a jump keeps the branch and period.
+    navigate({ to, search: keepScope as never });
   };
 
   return (
@@ -83,9 +85,7 @@ export function CommandPalette() {
                     key={leaf.to}
                     value={`${t(leaf.labelKey, leaf.fallback)} ${leaf.to}`}
                     onSelect={() => go(leaf.to)}
-                    onMouseEnter={() => prefetch(leaf.to)}
-                    onFocus={() => prefetch(leaf.to)}
-                    onPointerDown={() => prefetch(leaf.to)}
+                    {...nav({ to: leaf.to, search: keepScope })}
                   >
                     <leaf.icon className="size-4" />
                     {t(leaf.labelKey, leaf.fallback)}

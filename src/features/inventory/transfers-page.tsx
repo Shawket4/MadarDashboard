@@ -205,6 +205,7 @@ export function TransfersPage() {
             <SegmentedControl<Tab>
               value={tab}
               onChange={setTab}
+              prefetch="tab"
               aria-label={t("common.status", "Status")}
               options={[
                 { value: "all", label: t("inventory.transfers.all", "All transfers") },
@@ -220,6 +221,7 @@ export function TransfersPage() {
               <SegmentedControl<Direction>
                 value={dir}
                 onChange={setDir}
+                prefetch="dir"
                 aria-label={t("inventory.transfers.direction", "Direction")}
                 options={[
                   { value: "all", label: t("inventory.transfers.bothWays", "Both ways") },

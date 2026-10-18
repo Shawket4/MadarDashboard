@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { useIndicator } from "@/lib/motion";
+import { tabTarget, useNavIntent, type NavTarget } from "@/lib/prefetch/nav-context";
 import { cn } from "@/lib/utils";
 
 export interface SegmentedOption<V extends string> {
@@ -15,6 +16,7 @@ export function SegmentedControl<V extends string>({
   options,
   className,
   disabled,
+  prefetch,
   "aria-label": ariaLabel,
 }: {
   value: V;
@@ -24,7 +26,14 @@ export function SegmentedControl<V extends string>({
   disabled?: boolean;
   /** Names the group for a screen reader ("Status", "View"). */
   "aria-label"?: string;
+  /**
+   * When a segment navigates (a tab or filter in the URL), where it goes: the
+   * search key it writes (`"tab"`), or a destination per value. Each segment
+   * then warms its view's data on intent, like a link.
+   */
+  prefetch?: string | ((value: V) => NavTarget | null);
 }) {
+  const nav = useNavIntent();
   const listRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLSpanElement>(null);
   useIndicator(listRef, pillRef, '[aria-checked="true"]');
@@ -63,6 +72,7 @@ export function SegmentedControl<V extends string>({
             role="radio"
             aria-checked={value === opt.value}
             disabled={disabled}
+            {...(prefetch && !disabled && value !== opt.value ? nav(tabTarget(prefetch, opt.value)) : null)}
             onClick={() => onChange(opt.value)}
             className={cn(
               "relative h-8 whitespace-nowrap rounded-[8px] px-3 text-sm font-medium transition-colors duration-base focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed",

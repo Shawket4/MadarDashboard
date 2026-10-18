@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { cn } from "@/lib/utils";
+import { intent } from "@/lib/prefetch/intent";
 
 export interface CustomerLinkControl {
   /** The viewer may open a customer at all (`customers.view`). */
@@ -43,9 +44,7 @@ export function CustomerLink({
       variant="link"
       size="sm"
       className={cn("h-auto min-w-0 max-w-full p-0 text-start", className)}
-      onMouseEnter={() => control.prefetch?.(customerId)}
-      onFocus={() => control.prefetch?.(customerId)}
-      onPointerDown={() => control.prefetch?.(customerId)}
+      {...(control.prefetch ? intent(`customer:${customerId}`, () => control.prefetch?.(customerId)) : null)}
       onClick={(e) => {
         // Rows are often clickable themselves; the name opens the person, not the row.
         e.stopPropagation();

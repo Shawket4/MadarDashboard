@@ -44,9 +44,9 @@ export const ordersDeliveryArgs = (scopeBranchId: string, from: string | null, t
   [scopeBranchId, { from: from ?? undefined, to: to ?? undefined }] as const;
 
 /** Sidebar/palette intent: warm the list and the delivery KPIs exactly as the page will open them. */
-export function prefetchOrders(qc: QueryClient, { orgId, branchId, from, to }: PrefetchCtx): void {
+export function prefetchOrders(qc: QueryClient, { orgId, branchId, from, to, search }: PrefetchCtx): void {
   if (!branchId && !orgId) return;
-  const f = ordersSearch.entryValues(branchId);
+  const f = ordersSearch.entryValues(branchId, search);
   void qc.prefetchQuery(getListOrdersQueryOptions(ordersListParams({ branchId, from, to }, f, readExcludedItems(orgId))));
   void qc.prefetchQuery(getBranchDeliverySalesQueryOptions(...ordersDeliveryArgs(branchId ?? ALL_BRANCHES_ID, from, to)));
 }

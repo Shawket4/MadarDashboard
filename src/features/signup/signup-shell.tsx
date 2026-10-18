@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { useTranslation } from "react-i18next";
 
 import { AuthShell } from "@/features/auth/auth-shell";

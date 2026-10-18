@@ -150,7 +150,7 @@ export function PaymentMethodsPage() {
         actions={<><ExportButton onExport={handleExport} loading={exporting} disabled={!methods.length} /><Button onClick={() => update({ edit: "new" })}><Plus className="size-4" /> {t("common.add", "Add")}</Button></>}
       />
       <Tabs value={filters.values.tab} onValueChange={(v) => filters.set({ tab: v as typeof filters.values.tab })} className="gap-6">
-        <PageTabsList>
+        <PageTabsList prefetch="tab">
           <PageTabsTrigger value="methods">{t("settings.paymentMethods", "Payment Methods")}</PageTabsTrigger>
           <PageTabsTrigger value="availability">{t("paymentMethods.availability.title", "Availability")}</PageTabsTrigger>
         </PageTabsList>

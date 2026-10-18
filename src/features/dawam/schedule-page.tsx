@@ -11,7 +11,7 @@
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { CalendarCheck, CalendarPlus, Grid3x3, Info, MapPin, PartyPopper, Repeat, SlidersHorizontal, Sparkles, TriangleAlert, UsersRound, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -53,6 +53,7 @@ import { scheduleParams, scheduleWeek } from "./queries";
 import { scheduleSearch } from "./search";
 import { useDropUnknown, useListFilters } from "@/data/scope/use-list-filters";
 import { WeekBar } from "./schedule-week-bar";
+import { intent } from "@/lib/prefetch/intent";
 
 export function SchedulePage() {
   const { t, i18n } = useTranslation();
@@ -324,9 +325,7 @@ export function SchedulePage() {
                         aria-label={t("dawam.prefsOf", { name: p.name, defaultValue: `${p.name}'s preferences` })}
                         onClick={() => setPrefsOf(p)}
                         // The dialog reads their change log on open: warm it on intent.
-                        onMouseEnter={() => void queryClient.prefetchQuery(getPreferenceLogQueryOptions(p.employee_id))}
-                        onFocus={() => void queryClient.prefetchQuery(getPreferenceLogQueryOptions(p.employee_id))}
-                        onPointerDown={() => void queryClient.prefetchQuery(getPreferenceLogQueryOptions(p.employee_id))}
+                        {...intent(`pref-log:${p.employee_id}`, () => void queryClient.prefetchQuery(getPreferenceLogQueryOptions(p.employee_id)))}
                       >
                         <SlidersHorizontal className="size-3.5" />
                       </Button>

@@ -17,7 +17,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Controller, useForm, useWatch, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { AxiosError } from "axios";
 import { ArrowRight, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -134,7 +135,8 @@ export function ComboEditorPage() {
 
   // Back to the list as it was left: the list restores its own filters
   // (features/combos/search.ts); only the scope rides along.
-  const goBack = () => void navigate({ to: "/menu/combos", search: keepScope as never });
+  const backTo = { to: "/menu/combos", search: keepScope };
+  const goBack = () => void navigate({ ...backTo, search: keepScope as never });
 
   const submit = async (v: ComboFormValues) => {
     if (saving) return;
@@ -198,7 +200,7 @@ export function ComboEditorPage() {
   if (!isNew && comboQ.isLoading) {
     return (
       <Page>
-        <PageHeader back={{ onClick: goBack }} title={<Skeleton className="h-7 w-56" />} />
+        <PageHeader back={{ onClick: goBack, prefetch: backTo }} title={<Skeleton className="h-7 w-56" />} />
         <div className="space-y-6">
           <Skeleton className="h-44 w-full rounded-2xl" />
           <Skeleton className="h-72 w-full rounded-2xl" />
@@ -209,7 +211,7 @@ export function ComboEditorPage() {
   if (!isNew && (comboQ.isError || !comboQ.data)) {
     return (
       <Page>
-        <PageHeader back={{ onClick: goBack }} title={title} />
+        <PageHeader back={{ onClick: goBack, prefetch: backTo }} title={title} />
         <ErrorState
           title={t("combos.loadError", "Couldn't load this combo")}
           message={comboQ.error ? getErrorMessage(comboQ.error) : undefined}
@@ -240,7 +242,7 @@ export function ComboEditorPage() {
   return (
     <Page className="pb-24">
       <PageHeader
-        back={{ onClick: goBack }}
+        back={{ onClick: goBack, prefetch: backTo }}
         title={name}
         subtitle={
           <span className="mt-1 flex flex-wrap items-center gap-2">

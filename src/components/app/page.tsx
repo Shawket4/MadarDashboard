@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { Link, useLocation } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
+import { useNavIntent, type NavTarget } from "@/lib/prefetch/nav-context";
 import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -160,7 +162,8 @@ function SectionTabBar({ tabs }: { tabs: SectionTab[] }) {
 
 // ── Header ──────────────────────────────────────────────────────────────────
 
-type PageBack = { to: string; search?: Record<string, unknown> } | { onClick: () => void };
+/** A back link, or a handler (an editor that guards unsaved work) and where it ends up, to warm on intent. */
+type PageBack = { to: string; search?: Record<string, unknown> } | { onClick: () => void; prefetch?: NavTarget };
 
 interface PageHeaderProps {
   title: ReactNode;
@@ -185,6 +188,7 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   const { t } = useTranslation();
+  const nav = useNavIntent();
   const sectionTabs = useContext(SectionTabsContext);
   const sub = subtitle ?? description;
   const embedded = useContext(EmbeddedContext);
@@ -218,7 +222,7 @@ export function PageHeader({
           {glyph}
         </Link>
       ) : (
-        <button type="button" onClick={back.onClick} className={cls} aria-label={t("common.back", "Back")}>
+        <button type="button" onClick={back.onClick} {...nav(back.prefetch ?? null)} className={cls} aria-label={t("common.back", "Back")}>
           {glyph}
         </button>
       );

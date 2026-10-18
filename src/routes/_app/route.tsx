@@ -20,6 +20,8 @@ import { ONBOARDING_SKIP_KEY } from "@/features/onboarding/config";
 import { sendsToOnboarding } from "@/features/onboarding/gate";
 import { useSyncPlan } from "@/hooks/use-plan";
 import { useOrgModulesState } from "@/hooks/use-org-modules";
+import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
+import { NavPrefetchProvider } from "@/lib/prefetch/nav-context";
 
 /**
  * Scope as typed, validated URL search params on the app shell — the single
@@ -43,6 +45,8 @@ function AppLayout() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const restored = useRef(false);
+  // Every link, tab and row in the app warms its destination's data on intent through this.
+  const warmRoute = useRoutePrefetch();
 
   // Resolve the active branch/org timezone so every formatter renders in the
   // configured zone, not the device's. See data/scope/use-timezone.ts.
@@ -111,6 +115,7 @@ function AppLayout() {
   }, [search.branchId, search.preset]);
 
   return (
+    <NavPrefetchProvider warm={warmRoute}>
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
@@ -122,5 +127,6 @@ function AppLayout() {
         <AppFooter />
       </SidebarInset>
     </SidebarProvider>
+    </NavPrefetchProvider>
   );
 }

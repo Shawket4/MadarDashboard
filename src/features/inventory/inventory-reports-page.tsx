@@ -144,7 +144,7 @@ export function InventoryReportsPage() {
           actions={isExportableTab ? <ExportButton onExport={handleExport} onExportCsv={handleExportCsv} loading={exporting} disabled={branchGate || !currentCount} /> : undefined}
           below={
             <>
-              <PageTabsList>
+              <PageTabsList prefetch="tab">
                 <PageTabsTrigger value="consumption" className="first:ps-0">{t("inventory.reports.consumption", "Consumption")}</PageTabsTrigger>
                 <PageTabsTrigger value="shrinkage">{t("inventory.reports.shrinkage", "Shrinkage")}</PageTabsTrigger>
                 <PageTabsTrigger value="waste">{t("inventory.reports.wasteReport", "Waste")}</PageTabsTrigger>

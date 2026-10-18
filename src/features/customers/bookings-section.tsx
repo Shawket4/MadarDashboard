@@ -26,6 +26,7 @@ import { Stagger } from "@/lib/motion";
 
 import { CUSTOMER_BOOKINGS_PAGE } from "./queries";
 import { keepWhilePaging } from "@/data/api/keep-while-paging";
+import { useNavIntent } from "@/lib/prefetch/nav-context";
 
 const PAGE = CUSTOMER_BOOKINGS_PAGE;
 
@@ -44,11 +45,12 @@ export function BookingsSection({ customerId }: { customerId: string }) {
   const branchName = (id: string) => branches.data?.find((b) => b.id === id)?.name ?? "—";
   const rows = q.data ?? [];
 
-  const open = (b: BookingView) =>
-    void navigate({
-      to: "/bookings",
-      search: (prev: Record<string, unknown>) => ({ ...prev, branchId: b.branch_id, date: serviceDateOf(b.starts_at), booking: b.id }),
-    });
+  const bookingOf = (b: BookingView) => ({
+    to: "/bookings",
+    search: (prev: Record<string, unknown>) => ({ ...prev, branchId: b.branch_id, date: serviceDateOf(b.starts_at), booking: b.id }),
+  });
+  const open = (b: BookingView) => void navigate(bookingOf(b) as never);
+  const nav = useNavIntent();
 
   return (
     <section className="space-y-3" aria-labelledby="customer-bookings-title">
@@ -77,7 +79,7 @@ export function BookingsSection({ customerId }: { customerId: string }) {
                 <CalendarClock aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div className="min-w-0 flex-1">
                   {canOpenBooking ? (
-                    <Button variant="link" size="sm" className="h-auto p-0 font-medium" onClick={() => open(b)}>
+                    <Button variant="link" size="sm" className="h-auto p-0 font-medium" {...nav(bookingOf(b))} onClick={() => open(b)}>
                       {fmtDateTime(b.starts_at)}
                     </Button>
                   ) : (

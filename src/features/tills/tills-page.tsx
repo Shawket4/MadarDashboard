@@ -48,6 +48,7 @@ import { OpenTillDialog } from "./open-till-dialog";
 import { DisagreementBadge, FlagBadge, TillStatusBadge, VerificationBadge } from "./till-badges";
 import { TillReportSheet } from "./till-report-sheet";
 import { prefetchTillReport, tillsListParams, type TillsFilters } from "./queries";
+import { intent } from "@/lib/prefetch/intent";
 
 export interface TillsSearch extends TillsFilters {
   report?: string;
@@ -319,7 +320,7 @@ function OpenNowStrip({
         <ListCard>
           {tills.map((s) => (
             // The row opens the till's report sheet: warm it on hover/focus.
-            <div key={s.id} onMouseEnter={() => prefetchTillReport(queryClient, s.id)} onFocus={() => prefetchTillReport(queryClient, s.id)} onPointerDown={() => prefetchTillReport(queryClient, s.id)}>
+            <div key={s.id} {...intent(`till:${s.id}`, () => prefetchTillReport(queryClient, s.id))}>
               <ListRow
                 leading={
                   <span aria-hidden className={cn("grid size-9 shrink-0 place-items-center rounded-[10px]", OPEN_TONE_CLASS)}>

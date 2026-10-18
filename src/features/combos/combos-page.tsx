@@ -9,7 +9,9 @@
  */
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
+import { useWarmRoute } from "@/lib/prefetch/nav-context";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AlertTriangle, ArrowRight, Pencil, Plus, Search, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
@@ -37,7 +39,7 @@ import { getTranslatedName } from "@/lib/translation";
 import { keepScope } from "@/data/scope/list-search";
 import { paginationFrom, useDropUnknown, useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
 import { combosSearch } from "./search";
-import { COMBOS_PAGE_SIZE, combosListParams, prefetchComboEditor } from "./queries";
+import { COMBOS_PAGE_SIZE, combosListParams } from "./queries";
 
 import { deleteCombo, useCombos } from "./api";
 import { arOf } from "./types";
@@ -81,7 +83,10 @@ export function CombosPage() {
   // A remembered category that was deleted meanwhile falls back to "All".
   useDropUnknown(f.cat, categories.data ? categories.data.map((c) => c.id) : undefined, () => set({ cat: "" }));
 
-  const open = (id: string) => void navigate({ to: "/menu/combos/$comboId", params: { comboId: id }, search: keepScope as never });
+  const editorOf = (id: string) => ({ to: "/menu/combos/$comboId", params: { comboId: id }, search: keepScope });
+  const open = (id: string) => void navigate(editorOf(id) as never);
+  // The row warms the editor's page queries (the route registry) on intent.
+  const warmRoute = useWarmRoute();
 
   const remove = async (c: ComboSummary) => {
     const name = getTranslatedName(c, lang);
@@ -280,7 +285,7 @@ export function CombosPage() {
         onRetry={() => void list.refetch()}
         getRowId={(c) => c.id}
         onRowClick={(c) => open(c.id)}
-        onRowPrefetch={(c) => prefetchComboEditor(queryClient, orgId, c.id)}
+        onRowPrefetch={(c) => warmRoute?.(editorOf(c.id))}
         onPrefetchNext={prefetchNext}
         rowActions={(c) =>
           canEdit ? (

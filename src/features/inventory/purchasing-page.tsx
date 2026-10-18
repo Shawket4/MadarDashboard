@@ -359,7 +359,7 @@ export function PurchasingPage() {
           </>
         }
         below={
-          <PageTabsList>
+          <PageTabsList prefetch="tab">
             <PageTabsTrigger value="orders" className="first:ps-0"><Truck className="size-4" /> {t("inventory.purchasing.orders", "Purchase orders")}</PageTabsTrigger>
             <PageTabsTrigger value="suppliers"><Users className="size-4" /> {t("inventory.purchasing.suppliers", "Suppliers")}</PageTabsTrigger>
             <PageTabsTrigger value="reorder" disabled={!branchId}><TrendingDown className="size-4" /> {t("inventory.purchasing.reorder", "Reorder")}</PageTabsTrigger>

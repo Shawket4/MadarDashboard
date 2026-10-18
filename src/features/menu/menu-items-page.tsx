@@ -62,10 +62,8 @@ import { runBulk } from "@/lib/bulk-runner";
 import { useDropUnknown, useListFilters, useSearchInput, tableStateFrom } from "@/data/scope/use-list-filters";
 import { keepScope } from "@/data/scope/list-search";
 import { menuItemsSearch } from "./search";
-import { menuItemsListParams, prefetchMenuStudio } from "./queries";
-import { prefetchComboEditor } from "@/features/combos/queries";
+import { menuItemsListParams } from "./queries";
 import { keepWhilePaging } from "@/data/api/keep-while-paging";
-import { useHasFeature } from "@/hooks/use-plan";
 import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { useExportLogo } from "@/hooks/use-export-logo";
@@ -75,6 +73,8 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { currencyLabel, fmtNumber } from "@/lib/format";
 import { PriceTaxHint } from "./price-tax-hint";
+import { intent } from "@/lib/prefetch/intent";
+import { useWarmRoute } from "@/lib/prefetch/nav-context";
 
 
 const ALL = "__all__";
@@ -153,16 +153,15 @@ export function MenuItemsPage() {
     return m;
   }, [addonOverrides.data]);
 
-  // Predictive prefetch: warm a query before the user commits to the action.
-  const hasRecipes = useHasFeature("inventory");
-  // A combo opens the combo editor (see openStudio), anything else the studio.
-  const prefetchItem = (m: Pick<MenuItem, "id" | "kind">) =>
-    m.kind === "combo" ? prefetchComboEditor(queryClient, orgId, m.id) : prefetchMenuStudio(queryClient, orgId, m.id, hasRecipes);
   // A combo is a menu item of kind "combo": its slots live in the combo editor, not the studio.
-  const openStudio = (id: string, kind?: string) =>
-    void (kind === "combo"
-      ? navigate({ to: "/menu/combos/$comboId", params: { comboId: id }, search: keepScope as never })
-      : navigate({ to: "/menu/items/$itemId", params: { itemId: id }, search: keepScope as never }));
+  const studioTarget = (id: string, kind?: string) =>
+    kind === "combo"
+      ? { to: "/menu/combos/$comboId", params: { comboId: id }, search: keepScope }
+      : { to: "/menu/items/$itemId", params: { itemId: id }, search: keepScope };
+  // Predictive prefetch: the editor's page queries, through the route registry, before the click lands.
+  const warmRoute = useWarmRoute();
+  const prefetchItem = (m: Pick<MenuItem, "id" | "kind">) => warmRoute?.(studioTarget(m.id, m.kind));
+  const openStudio = (id: string, kind?: string) => void navigate(studioTarget(id, kind) as never);
   const prefetchNextItemsPage = () => {
     if (itemsPage + 1 >= itemsPageCount) return;
     void queryClient.prefetchQuery(getListMenuCatalogQueryOptions({ ...itemsParams, page: f.page + 1 }));
@@ -387,6 +386,7 @@ export function MenuItemsPage() {
           <SegmentedControl
             value={tab}
             onChange={setTab}
+            prefetch="tab"
             options={[
               { value: "items", label: <>{t("nav.items", "Items")}<CountBadge n={itemsTotal} /></> },
               { value: "addons", label: <span onMouseEnter={prefetchAddons}>{t("menu.addons", "Add-ons")}<CountBadge n={addonList.length} /></span> },
@@ -481,7 +481,7 @@ export function MenuItemsPage() {
                   </DropdownMenuItem>
                 ) : (
                   <>
-                    <DropdownMenuItem onClick={() => openStudio(m.id)} onMouseEnter={() => prefetchItem(m)}>
+                    <DropdownMenuItem onClick={() => openStudio(m.id)} {...intent(null, () => prefetchItem({ id: m.id }))}>
                       <Pencil className="size-4" /> {t("menu.grid.fullEditor", "Full editor")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => void duplicate(m)}>

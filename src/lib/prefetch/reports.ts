@@ -53,8 +53,8 @@ const LEGAL_AUDIT = {
  * narrowed to the tabs the person may read, exactly as the page decides).
  */
 export const routes: RoutePrefetchMap = {
-  "/reports/operations": (qc, { orgId, branchId, from, to }) => {
-    const { tab } = operationsReportsSearch.entryValues(branchId);
+  "/reports/operations": (qc, { orgId, branchId, from, to, search }) => {
+    const { tab } = operationsReportsSearch.entryValues(branchId, search);
     if (tab === "tables") return prefetchTablesInsights(qc, { branchId, from, to }, i18next.language);
     prefetchAnalyticsTab(qc, tab, {
       orgId,
@@ -63,8 +63,8 @@ export const routes: RoutePrefetchMap = {
       excludedItems: readExcludedItems(orgId),
     });
   },
-  "/reports/financial": (qc, { orgId, branchId, from, to }) => {
-    const f = financialReportsSearch.entryValues(branchId);
+  "/reports/financial": (qc, { orgId, branchId, from, to, search }) => {
+    const f = financialReportsSearch.entryValues(branchId, search);
     const tab = openTab(f.tab, financialTabs(cachedAuthz(qc).can));
     const range = rangeOf(from, to);
     // "This branch" needs a branch: under "All branches" it is the whole organization.
@@ -91,20 +91,20 @@ export const routes: RoutePrefetchMap = {
     }
   },
   "/reports/inventory": prefetchInventoryReports,
-  "/reports/legal": (qc, { orgId, branchId, from, to }) => {
+  "/reports/legal": (qc, { orgId, branchId, from, to, search }) => {
     if (!orgId) return;
     const authz = cachedAuthz(qc);
     const modules = cachedModules(qc, orgId);
     // Which tabs show depends on the org's modules: unknown yet, nothing is guessed.
     if (!modules || !authz.can(Cap.reportsLegal)) return;
-    const tab = openTab(legalReportsSearch.entryValues(branchId).tab, legalTabs(authz.can, modules));
+    const tab = openTab(legalReportsSearch.entryValues(branchId, search).tab, legalTabs(authz.can, modules));
     const range = rangeOf(from, to);
     if (tab === "tax") void qc.prefetchQuery(getOrgTaxReportQueryOptions(orgId, range));
     else if (tab) void qc.prefetchQuery(LEGAL_AUDIT[tab](orgId, range));
   },
-  "/reports/bundles": (qc, { branchId, from, to }) => {
+  "/reports/bundles": (qc, { branchId, from, to, search }) => {
     if (!from || !to) return;
-    const { kind } = bundlesReportSearch.entryValues(branchId);
+    const { kind } = bundlesReportSearch.entryValues(branchId, search);
     void qc.prefetchQuery(getBundlesReportQueryOptions(bundlesReportParams({ branchId, from, to }, kind)));
   },
   "/reports/staff-pool": prefetchStaffPoolReport,

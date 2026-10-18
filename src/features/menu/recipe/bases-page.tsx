@@ -39,6 +39,7 @@ import {
   useListBases,
 } from "@/data/api/generated/api";
 import type { RecipeBaseOut } from "@/data/api/generated/models";
+import { intent } from "@/lib/prefetch/intent";
 
 /**
  * Recipe bases: shared line sets (e.g. "Blended matcha") that item sizes expand.
@@ -113,9 +114,7 @@ export function RecipeBasesPage() {
               key={b.id}
               className="flex items-center justify-between gap-3 py-2 pe-2 ps-4"
               // Row intent: warm the usage read the editor fires on open.
-              onMouseEnter={() => void qc.prefetchQuery(getGetBaseUsageQueryOptions(b.id))}
-              onFocus={() => void qc.prefetchQuery(getGetBaseUsageQueryOptions(b.id))}
-              onPointerDown={() => void qc.prefetchQuery(getGetBaseUsageQueryOptions(b.id))}
+              {...intent(`base-usage:${b.id}`, () => void qc.prefetchQuery(getGetBaseUsageQueryOptions(b.id)))}
             >
               <div className="min-w-0">
                 <p className="flex items-center gap-2 truncate text-sm font-medium">

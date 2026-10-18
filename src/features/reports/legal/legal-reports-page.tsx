@@ -104,7 +104,7 @@ export function LegalReportsPage() {
         }
         below={
           <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
-            <PageTabsList>
+            <PageTabsList prefetch="tab">
               {visible.map((k) => (
                 <PageTabsTrigger key={k} value={k} className="first:ps-0">{TAB_LABEL[k]}</PageTabsTrigger>
               ))}

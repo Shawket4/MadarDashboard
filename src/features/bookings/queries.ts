@@ -51,9 +51,9 @@ export function prefetchBookingDialog(qc: QueryClient, branchId: string, b: Book
 }
 
 /** Sidebar/palette intent: warm the page's mount queries for the day it will open on. */
-export function prefetchBookings(qc: QueryClient, { branchId }: PrefetchCtx): void {
+export function prefetchBookings(qc: QueryClient, { branchId, search }: PrefetchCtx): void {
   if (!branchId) return;
   void qc.prefetchQuery(getGetBookingSettingsQueryOptions({ branch_id: branchId }));
   void qc.prefetchQuery(getListFloorTablesQueryOptions({ branch_id: branchId }));
-  void qc.prefetchQuery(getListBookingsQueryOptions(bookingsListParams(branchId, bookingsSearch.entryValues(branchId))));
+  void qc.prefetchQuery(getListBookingsQueryOptions(bookingsListParams(branchId, bookingsSearch.entryValues(branchId, search))));
 }

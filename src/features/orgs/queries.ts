@@ -15,6 +15,6 @@ export function orgsListParams(f: ListValues<typeof orgsSearch.spec>): ListOrgsP
 }
 
 /** Sidebar/palette intent: warm the list exactly as the page will open it. */
-export function prefetchOrgs(qc: QueryClient, { branchId }: PrefetchCtx): void {
-  void qc.prefetchQuery(getListOrgsQueryOptions(orgsListParams(orgsSearch.entryValues(branchId))));
+export function prefetchOrgs(qc: QueryClient, { branchId, search }: PrefetchCtx): void {
+  void qc.prefetchQuery(getListOrgsQueryOptions(orgsListParams(orgsSearch.entryValues(branchId, search))));
 }

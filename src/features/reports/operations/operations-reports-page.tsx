@@ -87,7 +87,7 @@ export function OperationsReportsPage() {
         actions={headerActions}
         below={
           <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
-            <PageTabsList>
+            <PageTabsList prefetch="tab">
               {TABS.map((k) => (
                 <PageTabsTrigger key={k} value={k} className="first:ps-0">{TAB_LABEL[k]}</PageTabsTrigger>
               ))}

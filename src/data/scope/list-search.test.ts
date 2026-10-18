@@ -13,6 +13,7 @@ import {
   recallListSearch,
   rememberListSearch,
   restoreFor,
+  STAYS,
   withDefaults,
 } from "./list-search";
 
@@ -162,6 +163,26 @@ describe("defineListSearch", () => {
     defineListSearch("/demo/scroll", spec);
     expect(listScrollKey({ pathname: "/demo/scroll", href: "/demo/scroll?cat=a", state: { __TSR_key: "k1" } })).toBe("/demo/scroll?cat=a");
     expect(listScrollKey({ pathname: "/elsewhere", href: "/elsewhere", state: { __TSR_key: "k2" } })).toBe("k2");
+  });
+});
+
+describe("entryValues (what a prefetch reads the destination as)", () => {
+  const def = defineListSearch("/demo/entry", spec);
+
+  it("a plain link opens on the remembered state, else the defaults", () => {
+    expect(def.entryValues("b-1").tab).toBe("items");
+    rememberListSearch("/demo/entry", { tab: "addons", cat: "c-2" }, "b-1");
+    expect(def.entryValues("b-1", { branchId: "b-1", preset: "today" })).toMatchObject({ tab: "addons", cat: "c-2" });
+  });
+
+  it("a link naming any of the list's params opens on exactly those", () => {
+    rememberListSearch("/demo/entry", { tab: "addons", cat: "c-2" }, "b-1");
+    expect(def.entryValues("b-1", { q: "lat" })).toMatchObject({ tab: "items", cat: "", q: "lat" });
+  });
+
+  it("the list's own tab switch restores nothing, even back to the default tab", () => {
+    rememberListSearch("/demo/entry", { tab: "addons" }, "b-1");
+    expect(def.entryValues("b-1", { [STAYS]: true }).tab).toBe("items");
   });
 });
 

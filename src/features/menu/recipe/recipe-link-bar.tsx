@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { toast } from "sonner";
 import { Link2, Unlink } from "lucide-react";
 

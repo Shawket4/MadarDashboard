@@ -10,7 +10,9 @@
  */
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
+import { useNavIntent } from "@/lib/prefetch/nav-context";
 
 import { EmbeddedPages, Page, PageHeader, PAGE_WIDTH_CLASS } from "@/components/app/page";
 import {
@@ -38,6 +40,8 @@ export function SettingsShell() {
   const groups = visibleSettings(useAuthz(), useOrgModules(), usePlan());
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  // The phone picker's items warm their pane like the rail's links do.
+  const nav = useNavIntent();
   const onIndex = pathname === "/settings" || pathname === "/settings/";
 
   const current = groups.flatMap((g) => g.items).find((i) => isActive(i, pathname, onIndex));
@@ -62,7 +66,7 @@ export function SettingsShell() {
               <SelectGroup key={group.labelKey}>
                 <SelectLabel>{t(group.labelKey, group.fallback)}</SelectLabel>
                 {group.items.map((item) => (
-                  <SelectItem key={item.to} value={item.to}>
+                  <SelectItem key={item.to} value={item.to} {...nav(item.to)}>
                     <item.icon className="size-4 text-muted-foreground" aria-hidden />
                     {t(item.labelKey, item.fallback)}
                   </SelectItem>

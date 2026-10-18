@@ -20,8 +20,6 @@ import type { RoutePrefetchMap } from "@/lib/route-prefetch";
 
 /** Sidebar/palette intent prefetch for the inventory area: route → its mount-time queries. */
 export const routes: RoutePrefetchMap = {
-  // The sidebar parent redirects to Today.
-  "/inventory": (qc, ctx) => routes["/inventory/today"](qc, ctx),
   "/inventory/today": (qc, { orgId, branchId }) => {
     // Branch-scoped vs org roll-up, mirroring the page's branch/org split.
     if (branchId) {

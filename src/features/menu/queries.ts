@@ -51,9 +51,9 @@ export function menuItemsListParams(
 }
 
 /** Sidebar/palette intent: warm Menu › Items exactly as the page will open it. */
-export function prefetchMenuItems(qc: QueryClient, { orgId, branchId }: PrefetchCtx): void {
+export function prefetchMenuItems(qc: QueryClient, { orgId, branchId, search }: PrefetchCtx): void {
   if (!orgId) return;
-  const f = menuItemsSearch.entryValues(branchId);
+  const f = menuItemsSearch.entryValues(branchId, search);
   // A remembered recipe filter was set with recipes.read, so assume it is still held.
   void qc.prefetchQuery(getListMenuCatalogQueryOptions(menuItemsListParams(orgId, f, true)));
   void qc.prefetchQuery(getListCategoriesQueryOptions({ org_id: orgId }));
@@ -102,11 +102,11 @@ export function pricingAddonParams(orgId: string | null, f: PricingValues): List
 }
 
 /** Sidebar/palette intent: warm Pricing & availability as the page will open it (needs a branch). */
-export function prefetchPricing(qc: QueryClient, { orgId, branchId }: PrefetchCtx): void {
+export function prefetchPricing(qc: QueryClient, { orgId, branchId, search }: PrefetchCtx): void {
   if (!orgId) return;
   void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
   if (!branchId) return;
-  const f = pricingSearch.entryValues(branchId);
+  const f = pricingSearch.entryValues(branchId, search);
   void qc.prefetchQuery(getListMenuCatalogQueryOptions(pricingCatalogParams(orgId, f)));
   void qc.prefetchQuery(getListAddonCatalogQueryOptions(pricingAddonParams(orgId, f)));
   void qc.prefetchQuery(getListBranchAddonOverridesQueryOptions({ branch_id: branchId }));

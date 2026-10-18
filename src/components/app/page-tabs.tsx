@@ -3,6 +3,11 @@ import { Tabs as TabsPrimitive } from "radix-ui";
 
 import { cn } from "@/lib/utils";
 import { useIndicator } from "@/lib/motion";
+import { withIntent } from "@/lib/prefetch/intent";
+import { tabTarget, useNavIntent, type NavTarget } from "@/lib/prefetch/nav-context";
+
+/** Where the list's tabs go when they navigate (see `PageTabsList`'s `prefetch`). */
+const TabPrefetchContext = React.createContext<string | ((value: string) => NavTarget | null) | undefined>(undefined);
 
 /**
  * Scrollable page-level tab list — for multi-tab feature pages with many tabs.
@@ -13,12 +18,21 @@ import { useIndicator } from "@/lib/motion";
 export function PageTabsList({
   className,
   children,
+  prefetch,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.List>) {
+}: React.ComponentProps<typeof TabsPrimitive.List> & {
+  /**
+   * When the tabs live in the URL: the search key they write (`"tab"`), or a
+   * destination per tab value. Each trigger then warms its tab's data on
+   * intent (hover, focus, pointerdown), like a link.
+   */
+  prefetch?: string | ((value: string) => NavTarget | null);
+}) {
   const listRef = React.useRef<HTMLDivElement>(null);
   const barRef = React.useRef<HTMLSpanElement>(null);
   useIndicator(listRef, barRef);
   return (
+    <TabPrefetchContext.Provider value={prefetch}>
     <div className={cn("w-full overflow-x-auto no-scrollbar", className)}>
       <TabsPrimitive.List
         ref={listRef}
@@ -34,6 +48,7 @@ export function PageTabsList({
         />
       </TabsPrimitive.List>
     </div>
+    </TabPrefetchContext.Provider>
   );
 }
 
@@ -45,6 +60,9 @@ export function PageTabsTrigger({
   className,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+  const prefetch = React.useContext(TabPrefetchContext);
+  const nav = useNavIntent();
+  const warm = prefetch && !props.disabled ? nav(tabTarget(prefetch, props.value)) : null;
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
@@ -62,7 +80,7 @@ export function PageTabsTrigger({
         "data-[state=active]:text-foreground",
         className,
       )}
-      {...props}
+      {...withIntent(props, warm)}
     />
   );
 }

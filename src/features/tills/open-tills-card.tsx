@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { Wallet } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";

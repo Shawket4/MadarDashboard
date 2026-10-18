@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";

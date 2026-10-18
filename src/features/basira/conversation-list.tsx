@@ -26,6 +26,7 @@ import { fmtDate } from "@/lib/format";
 import { Stagger, useFlip } from "@/lib/motion";
 
 import type { ConversationSummary } from "./types";
+import { intent } from "@/lib/prefetch/intent";
 
 export function ConversationList({
   conversations,
@@ -86,8 +87,7 @@ export function ConversationList({
                     <button
                       type="button"
                       onClick={() => onOpen(c.id)}
-                      onMouseEnter={() => onPrefetch(c.id)}
-                      onFocus={() => onPrefetch(c.id)}
+                      {...intent(`conversation:${c.id}`, () => onPrefetch(c.id))}
                       className={cn(
                         // Padded on the trailing side to leave room for the menu,
                         // so a long title is truncated by the box rather than

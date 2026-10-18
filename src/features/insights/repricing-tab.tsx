@@ -12,6 +12,8 @@ import { repricing, useRepricing } from "@/data/api/generated/api";
 import { fmtMoney, fmtPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { TINT } from "./util";
+import { useNavIntent } from "@/lib/prefetch/nav-context";
+import { keepScope } from "@/data/scope/list-search";
 
 type Suggestion = Awaited<ReturnType<typeof repricing>>["suggestions"][number];
 
@@ -24,6 +26,7 @@ type Suggestion = Awaited<ReturnType<typeof repricing>>["suggestions"][number];
 export function RepricingTab({ scopeBranchId }: { scopeBranchId: string }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const nav = useNavIntent();
   const q = useRepricing(scopeBranchId);
 
   const columns = useMemo<ColumnDef<Suggestion>[]>(
@@ -95,7 +98,7 @@ export function RepricingTab({ scopeBranchId }: { scopeBranchId: string }) {
             total: skus_considered,
           })}
         </p>
-        <Button size="sm" variant="outline" onClick={() => void navigate({ to: "/menu/pricing" })}>
+        <Button size="sm" variant="outline" {...nav({ to: "/menu/pricing", search: keepScope })} onClick={() => void navigate({ to: "/menu/pricing", search: keepScope as never })}>
           {t("insights.repricing.adjust", "Adjust prices")}
         </Button>
       </div>

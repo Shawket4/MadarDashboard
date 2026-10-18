@@ -7,7 +7,7 @@
  */
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import {
   CheckCircle2, ClipboardPaste, ExternalLink, FileSpreadsheet, LocateFixed, MapPin, MoonStar, Plus, TriangleAlert, UserRoundPlus,
 } from "lucide-react";

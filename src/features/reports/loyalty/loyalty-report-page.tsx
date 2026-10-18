@@ -140,7 +140,7 @@ export function LoyaltyReportPage() {
             </span>
           }
           below={
-            <PageTabsList>
+            <PageTabsList prefetch="tab">
               <PageTabsTrigger value="overview" className="first:ps-0">{t("reports.loyalty.tabs.overview", "Overview")}</PageTabsTrigger>
               <PageTabsTrigger value="campaigns">{t("reports.loyalty.tabs.campaigns", "Campaigns")}</PageTabsTrigger>
               <PageTabsTrigger value="liability">{t("reports.loyalty.tabs.liability", "Liability")}</PageTabsTrigger>
