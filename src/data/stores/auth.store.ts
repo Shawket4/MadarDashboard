@@ -3,9 +3,13 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { apiContext } from "@/data/api/client";
 import { queryClient } from "@/data/api/query";
+import { clearShellCache } from "@/data/api/persist-shell";
 import { useAppStore } from "@/data/stores/app.store";
 import { LS_KEYS } from "@/data/config/constants";
 import type { UserPublic } from "@/data/types";
+
+/** Mirrors hooks/use-org-modules.ts (not imported: a store must not pull in React hooks). */
+const MODULES_KEY_PREFIX = "madar.modules.";
 
 interface AuthState {
   user: UserPublic | null;
@@ -50,8 +54,11 @@ export const useAuthStore = create<AuthState>()(
           selectedBranchId: null,
         });
 
-        // Flush React Query cached requests
+        // Flush React Query cached requests, and the shell kept between visits
+        // (and the per-org module answers kept in localStorage).
         queryClient.clear();
+        clearShellCache();
+        forgetRememberedModules();
 
         set({ token: null, user: null, plan: null });
       },
@@ -69,6 +76,17 @@ export const useAuthStore = create<AuthState>()(
     },
   ),
 );
+
+function forgetRememberedModules() {
+  try {
+    for (let i = safeStorage.length - 1; i >= 0; i--) {
+      const k = safeStorage.key(i);
+      if (k?.startsWith(MODULES_KEY_PREFIX)) safeStorage.removeItem(k);
+    }
+  } catch {
+    /* storage is a convenience */
+  }
+}
 
 // Wire the 401 handler so the axios interceptor can purge auth cleanly.
 // Idempotent within a teardown: when several in-flight requests 401 at once we

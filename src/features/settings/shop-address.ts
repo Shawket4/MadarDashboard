@@ -33,6 +33,13 @@ const REWARDS_PATH = "/rewards";
  * describes itself correctly too.
  */
 export function publicRootDomain(apiUrl?: string, fallbackHost?: string): string | null {
+  // A root-relative API (`/api`, served by the dashboard's own host): that host
+  // is the root domain itself (`madar-pos.cloud`, or `www.` in front of it).
+  if (apiUrl?.startsWith("/") && fallbackHost) {
+    const own = fallbackHost.replace(/^www\./, "").split(".").filter(Boolean);
+    if (own.length < 2 || own.every((l) => /^\d+$/.test(l))) return null;
+    return own.join(".");
+  }
   const host = (() => {
     try {
       if (apiUrl) return new URL(apiUrl).hostname;

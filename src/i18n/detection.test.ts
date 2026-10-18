@@ -6,7 +6,8 @@ async function bootWith(languages: string[]) {
   Object.defineProperty(window.navigator, "language", { value: languages[0], configurable: true });
   localStorage.clear();
   vi.resetModules();
-  const i18n = (await import("./index")).default;
+  const { default: i18n, i18nReady } = await import("./index");
+  await i18nReady;
   return {
     language: i18n.language,
     resolved: i18n.resolvedLanguage,
@@ -71,7 +72,8 @@ describe("what a phone gets", () => {
     localStorage.clear();
     localStorage.setItem("madar.lang", "ar");
     vi.resetModules();
-    const i18n = (await import("./index")).default;
+    const { default: i18n, i18nReady } = await import("./index");
+    await i18nReady;
     expect(i18n.language).toBe("ar");
     expect(document.documentElement.dir).toBe("rtl");
   });
@@ -86,7 +88,8 @@ describe("arriving from the marketing site", () => {
     localStorage.clear();
     if (stored) localStorage.setItem("madar.lang", stored);
     vi.resetModules();
-    const i18n = (await import("./index")).default;
+    const { default: i18n, i18nReady } = await import("./index");
+    await i18nReady;
     const got = { language: i18n.language, dir: document.documentElement.dir, stored: localStorage.getItem("madar.lang") };
     window.history.replaceState({}, "", "/");
     return got;

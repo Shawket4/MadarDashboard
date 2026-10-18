@@ -72,15 +72,31 @@ export const SCALE = {
   overlay: 0.97,
 } as const;
 
-/** Stagger between siblings, in seconds, and the most a whole stagger may add. */
+/**
+ * Stagger between siblings, in seconds, and the most a whole stagger may add.
+ * Product content never waits its turn for long: a whole product group lands
+ * within `productMaxTotal`, and data landing on skeletons (SkeletonSwap)
+ * within `swapMaxTotal`.
+ */
 export const STAGGER = {
   product: 0.03,
   brand: 0.06,
-  /** However many items, a stagger adds at most this much in total. */
+  /** However many items, a brand stagger adds at most this much in total. */
   maxTotal: 0.3,
+  /** However many items, a product stagger adds at most this much in total. */
+  productMaxTotal: 0.12,
+  /** Data landing on skeletons: per item, and in total. */
+  swap: 0.02,
+  swapMaxTotal: 0.08,
   /** Items past this index arrive with the last staggered one. */
   maxItems: 12,
 } as const;
+
+/**
+ * The opacity content lands at when it arrives with data (SkeletonSwap) or a
+ * new page appears: already legible on its first frame, then it settles.
+ */
+export const ARRIVE_OPACITY = 0.6;
 
 export type Register = "product" | "brand";
 
@@ -96,6 +112,13 @@ export const sec = (ms: number) => ms / 1000;
 /** The per-item stagger for `count` items, capped so the whole run stays short. */
 export function staggerFor(count: number, register: Register = "product"): number {
   const each = REGISTER[register].stagger;
+  const total = register === "brand" ? STAGGER.maxTotal : STAGGER.productMaxTotal;
   const n = Math.min(count, STAGGER.maxItems);
-  return n > 1 ? Math.min(each, STAGGER.maxTotal / (n - 1)) : 0;
+  return n > 1 ? Math.min(each, total / (n - 1)) : 0;
+}
+
+/** The per-item stagger for data landing on `count` skeletons: near zero, capped. */
+export function swapStaggerFor(count: number): number {
+  const n = Math.min(count, STAGGER.maxItems);
+  return n > 1 ? Math.min(STAGGER.swap, STAGGER.swapMaxTotal / (n - 1)) : 0;
 }

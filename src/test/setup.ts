@@ -14,6 +14,14 @@ import * as fullRules from "@/lib/rules/wasm/full/madar_web.js";
 // before its first render; Node cannot fetch it, so it gets the bytes.
 await initRules(fullRules, readFileSync(resolve(__dirname, "../lib/rules/wasm/full/madar_web_bg.wasm")));
 
+// The locales load lazily in the app (src/i18n); a test renders synchronously,
+// so both are handed to its loader up front (also for a module re-imported
+// after vi.resetModules), and a switch inside a test is immediate.
+(globalThis as { __MADAR_LOCALES__?: Record<string, unknown> }).__MADAR_LOCALES__ = {
+  en: JSON.parse(readFileSync(resolve(__dirname, "../i18n/locales/en.json"), "utf8")),
+  ar: JSON.parse(readFileSync(resolve(__dirname, "../i18n/locales/ar.json"), "utf8")),
+};
+
 // jsdom implements no media queries at all, and `window.matchMedia` is simply
 // absent. Anything that reaches the theme store (`lib/theme`) or the mobile
 // breakpoint hook therefore throws on IMPORT, which turns a unit test of a pure

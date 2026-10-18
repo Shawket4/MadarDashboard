@@ -326,6 +326,7 @@ export function SchedulePage() {
                         // The dialog reads their change log on open: warm it on intent.
                         onMouseEnter={() => void queryClient.prefetchQuery(getPreferenceLogQueryOptions(p.employee_id))}
                         onFocus={() => void queryClient.prefetchQuery(getPreferenceLogQueryOptions(p.employee_id))}
+                        onPointerDown={() => void queryClient.prefetchQuery(getPreferenceLogQueryOptions(p.employee_id))}
                       >
                         <SlidersHorizontal className="size-3.5" />
                       </Button>

@@ -85,6 +85,7 @@ export function CommandPalette() {
                     onSelect={() => go(leaf.to)}
                     onMouseEnter={() => prefetch(leaf.to)}
                     onFocus={() => prefetch(leaf.to)}
+                    onPointerDown={() => prefetch(leaf.to)}
                   >
                     <leaf.icon className="size-4" />
                     {t(leaf.labelKey, leaf.fallback)}

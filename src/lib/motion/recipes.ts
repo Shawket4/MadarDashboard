@@ -1,5 +1,5 @@
 import type { TweenVars } from "./gsap";
-import { DISTANCE, DURATION, EASE_NAME, REGISTER, SCALE, sec, type Register } from "./tokens";
+import { ARRIVE_OPACITY, DISTANCE, DURATION, EASE_NAME, REGISTER, SCALE, sec, type Register } from "./tokens";
 
 /**
  * The motion vocabulary: every enter/exit in the app is one of these. A recipe
@@ -39,6 +39,29 @@ export function rise(register: Register = "product", distance: number = REGISTER
     exit: { opacity: 0, y: -Math.round(distance / 2), duration: sec(DURATION.fast), ease: EASE_NAME.in },
   };
 }
+
+/**
+ * Data landing (product): legible on its first frame (ARRIVE_OPACITY), then it
+ * settles up into place while the skeleton under it fades out. Nothing is
+ * held back for the motion; the motion plays as the content appears.
+ */
+export function arrive(distance: number = DISTANCE.sm): Recipe {
+  return {
+    from: { opacity: ARRIVE_OPACITY, y: distance },
+    to: { opacity: 1, y: 0, duration: sec(DURATION.base), ease: EASE_NAME.out },
+    exit: { opacity: 0, duration: sec(DURATION.fast), ease: EASE_NAME.in },
+  };
+}
+
+/**
+ * A new page (a route change): a short cross-fade from ARRIVE_OPACITY, never an
+ * empty frame and never a hide-then-rise of the whole page.
+ */
+export const crossfade: Recipe = {
+  from: { opacity: ARRIVE_OPACITY },
+  to: { opacity: 1, duration: sec(DURATION.base), ease: EASE_NAME.out },
+  exit: { opacity: 0, duration: sec(DURATION.fast), ease: EASE_NAME.in },
+};
 
 /** Fade only: for content that should not move (a figure, an overlay scrim). */
 export function fade(duration: number = DURATION.base): Recipe {

@@ -241,18 +241,14 @@ export function DataTable<TData, TValue>({
     return () => ro.disconnect();
   }, [isMobile, loading, rows.length, colSpan]);
 
-  // Row arrival: the visible rows rise in when a new set of them lands (the
-  // first load, another page, a filter that swapped the rows), never for a
-  // refetch that only touched some of them, and never under someone typing.
-  const rowIds = rows.map((r) => r.id);
-  const [arrival, setArrival] = useState({ ids: [] as string[], page: -1, n: 0 });
-  if (!loading && (pageIndex !== arrival.page || rowIds.join("\u0000") !== arrival.ids.join("\u0000"))) {
-    const fresh = pageIndex !== arrival.page || !rowIds.some((id) => arrival.ids.includes(id));
-    const typing = !!document.activeElement?.matches("input, textarea");
-    setArrival({ ids: rowIds, page: pageIndex, n: arrival.n + (fresh && !typing ? 1 : 0) });
-  }
+  // Row arrival: the visible rows arrive once, when the table first has rows
+  // (at mount, or when its first load lands), legible from their first frame
+  // and staggered within STAGGER.productMaxTotal. Later data (another page, a
+  // filter, a refetch) just shows: the rows are the content, not a show.
+  const [arrived, setArrived] = useState(false);
+  if (!arrived && !loading && rows.length > 0) setArrived(true);
   const rowsRef = useRef<HTMLElement>(null);
-  useStagger(rowsRef, { selector: ":scope > [data-row]", replayKey: arrival.n, recipe: recipes.rise("product", DISTANCE.xs) });
+  useStagger(rowsRef, { selector: ":scope > [data-row]", when: arrived, replayKey: arrived, recipe: recipes.arrive(DISTANCE.xs) });
 
   const toggleExpanded = (id: string) => setExpanded((s) => ({ ...s, [id]: !s[id] }));
 

@@ -3,8 +3,8 @@ import { useEffect, useRef, useState, type DependencyList, type RefObject } from
 import { enter, markArrived, mayEnter } from "./engine";
 import { getFlip, getGsap, loadFlip, loadGsap, type Gsap, type Timeline } from "./gsap";
 import { inViewport, prefersReducedMotion } from "./media";
-import { rise, type Recipe } from "./recipes";
-import { DURATION, EASE_NAME, sec, staggerFor, STAGGER, type Register } from "./tokens";
+import { arrive, rise, type Recipe } from "./recipes";
+import { DURATION, EASE_NAME, sec, staggerFor, STAGGER, swapStaggerFor, type Register } from "./tokens";
 
 import { useIsoLayoutEffect, useLatest } from "./latest";
 
@@ -51,15 +51,16 @@ export function useGsap(
 
 /**
  * The delay that puts an element arriving on its own (a SkeletonSwap whose
- * data landed) in step with the Stagger it sits in, by its item's index.
+ * data landed) in order with the Stagger it sits in, by its item's index:
+ * the swap stagger (≤20 ms an item, ≤80 ms in all), so data never waits its turn.
  */
-export function groupDelay(el: HTMLElement, register: Register = "product") {
+export function groupDelay(el: HTMLElement) {
   const root = el.closest<HTMLElement>("[data-stagger]");
   if (!root) return 0;
   const items = Array.from(root.children);
   const i = items.findIndex((c) => c.contains(el));
   if (i < 0) return 0;
-  return Math.min(i, STAGGER.maxItems - 1) * staggerFor(items.length, register);
+  return Math.min(i, STAGGER.maxItems - 1) * swapStaggerFor(items.length);
 }
 
 /** A ref'd value's "did it change since the last run" flag, for replayKey. */
@@ -146,9 +147,11 @@ export interface StaggerOptions {
 }
 
 /**
- * Bring a group in one after another: KPI rows, list rows, cards. Only the
- * items on screen move; the run is capped (STAGGER.maxTotal) however long the
- * list, so a 200-row table arrives as fast as a 6-row one.
+ * Bring a group in one after another: KPI rows, list rows, cards (product:
+ * legible from the first frame, recipes.arrive; brand: a rise). Only the
+ * items on screen move; the run is capped (STAGGER.productMaxTotal, or
+ * maxTotal for brand) however long the list, so a 200-row table arrives as fast
+ * as a 6-row one.
  */
 export function useStagger(ref: RefObject<HTMLElement | null>, opts: StaggerOptions = {}) {
   const { register = "product", recipe, selector = ":scope > *", when = true, replayKey, delay = 0 } = opts;
@@ -168,7 +171,9 @@ export function useStagger(ref: RefObject<HTMLElement | null>, opts: StaggerOpti
     markArrived(items.filter((i) => !onScreen.includes(i)));
     if (!onScreen.length) return;
     const each = staggerFor(onScreen.length, register);
-    return enter(onScreen, recipe ?? rise(register), {
+    // Product groups arrive legible (recipes.arrive): a group that mounts with
+    // its data shows it at once and settles, never waiting its turn hidden.
+    return enter(onScreen, recipe ?? (register === "product" ? arrive() : rise(register)), {
       delay,
       stagger: (i: number) => Math.min(i, STAGGER.maxItems - 1) * each,
     });

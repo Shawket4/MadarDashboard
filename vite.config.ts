@@ -9,6 +9,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
 import { preloadMotion } from "./vite/preload-motion";
+import { preloadRules } from "./vite/preload-rules";
 import { zodJitless } from "./vite/zod-jitless";
 import { isDemo, pageHead } from "./vite/page-head";
 
@@ -55,6 +56,8 @@ export default defineConfig({
     noDocsInTheBundle(),
     // GSAP downloads with the HTML (still a lazy chunk): motion is ready at once.
     preloadMotion(),
+    // The rules' wasm downloads with the HTML, not after the entry has run.
+    preloadRules(),
     zodJitless(),
     // index.html's title, description and canonical: the dashboard's, or the
     // demo's when VITE_DEMO=1 builds the same file for demo.madar-pos.cloud.

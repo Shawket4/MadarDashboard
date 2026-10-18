@@ -312,6 +312,7 @@ function GroupRow({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       onMouseEnter={onPrefetch}
       onFocus={onPrefetch}
+      onPointerDown={onPrefetch}
       className={cn("flex flex-wrap items-center gap-3 rounded-lg border bg-card p-2.5", isDragging && "z-10 opacity-70 shadow-lg")}
     >
       {canEdit ? (

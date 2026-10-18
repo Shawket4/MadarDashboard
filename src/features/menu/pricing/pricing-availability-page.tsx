@@ -685,6 +685,7 @@ function ItemRow({
             onClick={() => setOpen((v) => !v)}
             onMouseEnter={() => prefetchStudio(item.id)}
             onFocus={() => prefetchStudio(item.id)}
+            onPointerDown={() => prefetchStudio(item.id)}
             aria-expanded={open}
             className="flex w-full items-center gap-2.5 px-3 py-2.5 text-start transition-colors hover:bg-muted/40"
           >
@@ -969,6 +970,7 @@ function ItemCard({
         onClick={() => setOpen((v) => !v)}
         onMouseEnter={() => prefetchStudio(item.id)}
         onFocus={() => prefetchStudio(item.id)}
+        onPointerDown={() => prefetchStudio(item.id)}
         aria-expanded={open}
         className="flex w-full items-center gap-2.5 px-3 py-2.5 text-start transition-colors hover:bg-muted/40"
       >
@@ -1311,6 +1313,7 @@ export function PricingAvailabilityPage() {
             onClick={() => setPage(page + 1)}
             onMouseEnter={prefetchNext}
             onFocus={prefetchNext}
+            onPointerDown={prefetchNext}
             aria-label={t("common.next", "Next")}
           >
             <ChevronRight className="size-4 rtl:rotate-180" />

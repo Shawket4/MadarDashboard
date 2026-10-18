@@ -64,7 +64,7 @@ document.documentElement.classList.add("brand-surface");
 
 // Side effects: i18n + RTL and the theme class. NOTE: the admin auth/app stores are
 // intentionally NOT imported — this origin never holds a session.
-import "@/i18n";
+import { i18nReady } from "@/i18n";
 import { initPublicTheme } from "@/features/public-shell/use-public-theme";
 import { PublicToaster } from "@/features/public-shell/public-toaster";
 
@@ -267,8 +267,9 @@ function render() {
 // Dev-only mock harness (VITE_MOCK=1): serve curated public data so the ordering
 // flow can be previewed/screenshotted without a backend. Tree-shaken from prod.
 const mockFlag = (import.meta.env as Record<string, string | undefined>).VITE_MOCK;
-// The madar-shared rules (WebAssembly, the public package) load before the first render.
-void initRules(rulesWasm).then(() => {
+// The madar-shared rules (WebAssembly, the public package) and the active
+// language's strings load, in parallel, before the first render.
+void Promise.all([initRules(rulesWasm), i18nReady]).then(() => {
   if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
     void import("@/data/api/mock/enable-public").then(({ enablePublicMocks }) =>
       enablePublicMocks().then(render),

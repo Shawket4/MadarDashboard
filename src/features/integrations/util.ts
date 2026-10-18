@@ -20,7 +20,11 @@ export const isRevoked = (c: CredentialSummary) => !!c.revoked_at;
  * username/password sent with it.
  */
 export const analyticsUrl = () => {
-  const base = (env.VITE_API_URL ?? "").replace(/\/+$/, "");
+  // Always the absolute default origin: a partner pastes this into their own
+  // system, where a same-origin `/api` means nothing. A relative base (a build
+  // with VITE_API_URL=/api) is made absolute on this origin.
+  let base = (env.VITE_API_URL ?? "").replace(/\/+$/, "");
+  if (base.startsWith("/") && typeof window !== "undefined") base = `${window.location.origin}${base}`;
   return `${base}/integrations/analytics/orders?from=YYYY-MM-DD&to=YYYY-MM-DD`;
 };
 

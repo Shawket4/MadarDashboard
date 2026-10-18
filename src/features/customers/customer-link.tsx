@@ -45,6 +45,7 @@ export function CustomerLink({
       className={cn("h-auto min-w-0 max-w-full p-0 text-start", className)}
       onMouseEnter={() => control.prefetch?.(customerId)}
       onFocus={() => control.prefetch?.(customerId)}
+      onPointerDown={() => control.prefetch?.(customerId)}
       onClick={(e) => {
         // Rows are often clickable themselves; the name opens the person, not the row.
         e.stopPropagation();

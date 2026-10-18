@@ -534,6 +534,7 @@ function Timeline({
                     onClick={() => onOpen(b)}
                     onMouseEnter={() => onPrefetch(b)}
                     onFocus={() => onPrefetch(b)}
+                    onPointerDown={() => onPrefetch(b)}
                     title={`${b.guest_name} · ${b.party_size} · ${fmtTime(b.starts_at)}–${fmtTime(b.ends_at)}`}
                     className={cn("absolute top-1.5 h-8 truncate rounded-md border px-2 text-start text-xs font-medium transition-colors duration-fast hover:brightness-95", tone)}
                     style={{ insetInlineStart: `${span.left}%`, width: `${span.width}%` }}

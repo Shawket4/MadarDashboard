@@ -158,7 +158,8 @@ fails if the two drift):
   lockstep).
 - Eases: `out` (entrances) · `in` (exits) · `inOut` · `expo` (brand) · `drawer` (sheets,
   sidebar) · `overshoot` (brand only).
-- Plus `DISTANCE` (4/6/12/18 px), `SCALE` and `STAGGER` (capped at 0.3 s in total).
+- Plus `DISTANCE` (4/6/12/18 px), `SCALE` and `STAGGER` (a product group lands within
+  0.12 s in total, data on skeletons within 0.08 s; brand within 0.3 s).
 - In CSS: `duration-fast|base|slow|brand|count`, `ease-out|in|in-out|expo|drawer|overshoot`.
   A bare `transition-colors` already gets `fast` + `out`.
 
@@ -174,7 +175,7 @@ fails if the two drift):
 | Need | Use |
 |---|---|
 | Content arriving (a page, a card, data after a skeleton) | `<Reveal>` / `useReveal`, `<SkeletonSwap>` |
-| A group arriving one by one (KPIs, rows, cards) | `<Stagger>` / `useStagger` (on-screen items only, capped) |
+| A group arriving one by one (KPIs, rows, cards) | `<Stagger>` / `useStagger` (on-screen items only, capped; product items arrive legible, `recipes.arrive`) |
 | A KPI figure | `<CountUp>` (count once, snap after); a live figure: `<AnimatedNumber>`; low level: `useCountUp` |
 | A chart | `<ChartCard>` (it wears `ChartEntrance`; inside a `Stagger` it holds still), `{...useChartMotion()}` on each Recharts series. A chart outside a card: `<ChartEntrance>` |
 | Show/hide with an exit (was `AnimatePresence`) | `<Presence show>` / `usePresence` |
@@ -184,12 +185,12 @@ fails if the two drift):
 | Error / success feedback | `useShake` (the row or form, never a field being typed in) / `usePop` |
 | A status that changes in place | `<StatusPill popOn={status}>` (pops on a change, never on arrival) |
 | Loading | `<Spinner>` (`components/ui/spinner`; `icon={RefreshCw} spinning={busy}` for a refresh arrow); `Button loading` has it |
-| A placeholder | `<Skeleton>` (`components/ui/skeleton`); `<SkeletonSwap>` when data replaces it (content rises in, skeleton fades out) |
+| A placeholder | `<Skeleton>` (`components/ui/skeleton`); `<SkeletonSwap>` when data replaces it (content arrives legible and settles while the skeleton fades out beneath it) |
 | A pressable card or tile | `data-press="product"` or `"brand"`; `Button` has it already |
 | A set piece or ambient loop | `useTimeline` (`pauseOffscreen` for loops) |
 | Anything else | `useGsap(fn, deps, { scope })`: scoped, reverted on cleanup, StrictMode-safe |
 
-Recipes (`recipes.rise`, `fade`, `dialog`, `sheet(side)`, `popper(side)`, `pop`) are the
+Recipes (`recipes.rise`, `arrive`, `crossfade`, `fade`, `dialog`, `sheet(side)`, `popper(side)`, `pop`) are the
 named enter/exit shapes; hooks take a recipe, nothing writes raw tween values.
 
 **Already wired, nothing to add:**
@@ -198,7 +199,10 @@ named enter/exit shapes; hooks take a recipe, nothing writes raw tween values.
   content while it leaves.
 - Menus, popovers, selects and tooltips enter from their side and close at once.
 - Tab panels rise in, and `PageTabsList` slides its underline.
-- `Page` rises in on every route change.
+- `Page` cross-fades in on every route change (from `ARRIVE_OPACITY`, 220 ms: never an
+  empty frame, never a hide-then-rise of the whole page).
+- `DataTable` rows arrive once, on the table's first rows; later pages, filters and
+  refetches just show.
 - `Skeleton` shimmers in the reading direction.
 - `Button` presses.
 
@@ -220,16 +224,20 @@ bundles; `toast()` is called from anywhere), Recharts series with `useChartMotio
   animates in. Entrances hide their targets in a layout effect (before paint). The only
   content that does not animate is content genuinely re-shown: an element whose
   entrance already finished, run again with no new content (a Suspense re-show), and
-  skeletons waiting for data. Every route (the `Page` rises on each pathname), first
+  skeletons waiting for data. Every route (the `Page` cross-fades on each pathname), first
   load, tab panel, dialog, sheet, list arrival and data landing animates. An entrance
   cut off by its cleanup (StrictMode's second run, a Suspense hide) carries on from
   where it was. Shake and pop fire once per signal.
-- **Data landing is new content.** `SkeletonSwap` (every `StatCard` uses it) renders the
-  content as a new element, hidden in the same commit that swaps the skeleton out, fades
-  the skeleton out first (120 ms) and only then rises the content, in step with its
-  `Stagger`: never a blink, never a figure showing through a grey bar. Reduced motion:
-  final state at once. `scripts/motion-harness/play-probe.mjs` checks both ways at 4×
-  throttle, phone and desktop: every scenario's main content animates, with no ghosts.
+- **Data landing is new content, and it is never held back.** `SkeletonSwap` (every
+  `StatCard` uses it) renders the content as a new element in the same commit that swaps
+  the skeleton out, already legible (`recipes.arrive`: opacity `ARRIVE_OPACITY` 0.6 and
+  6 px low on its first frame), and settles it over 220 ms while the skeleton fades out
+  BENEATH it (`isolate`, the ghost at `-z-10`), at the same time: a crossfade, never a
+  wait. In a `Stagger` the cards land ≤20 ms apart, ≤80 ms in all. Motion plays AS
+  content appears; it never makes content wait its turn (the owner, 2026-10-18).
+  Reduced motion: final state at once. `scripts/motion-harness/play-probe.mjs` checks
+  both ways at 4× throttle, phone and desktop: every scenario's main content animates,
+  with no ghosts; `latency-probe.mjs` measures data → first legible frame and → settled.
 - **Nothing animates off screen.** Entrances skip what is out of view (brand pages may
   `scroll`-reveal), and loops pause off screen.
 - **RTL.**
@@ -368,6 +376,24 @@ these rules:
     `deploy/nginx/README.md`.
   - Back up first, run `nginx -t`, then reload.
   - Only with the owner's go-ahead.
+
+## Boot and the network
+- **Boot waits for three things, in parallel** (`src/main.tsx`): the rules' wasm
+  (preloaded from the HTML by `vite/preload-rules.ts`; the date scope and formatters call
+  the rules while rendering, so it cannot be deferred), the active language's strings
+  (`src/i18n`: each locale is its own chunk; a switch loads the other before it switches),
+  and the shell restored from IndexedDB (`data/api/persist-shell.ts`, at most 250 ms).
+- **Shell cache.** Only `/auth/me`, `/authz/me`, `/orgs/{id}`, `/orgs/{id}/modules`,
+  `/branches` and `/public/orgs/brand` are kept, 24 h at most, restored stale (always
+  refetched), cleared on sign-out and org switch, never anything credential-like. Business
+  data is never persisted. `/orgs/{id}/modules` is also remembered per org in
+  localStorage, like authz.
+- **API base.** `VITE_API_URL` may be absolute (`https://api.madar-pos.cloud`, today) or
+  root-relative (`/api`, once the dashboard host proxies it). Everything that builds an API
+  URL takes it as a prefix and must work with both: a URL built with `new URL()` needs
+  `window.location.origin` as its base, and a partner-facing URL is made absolute.
+- **Sentry Replay** loads after the first paint (`lib/sentry-replay.ts`), from our own
+  chunk: never `lazyLoadIntegration`, whose CDN the CSP refuses.
 
 ## Gotchas
 - **Mock mode + service worker.** `dev:mock` needs MSW's worker

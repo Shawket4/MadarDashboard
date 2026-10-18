@@ -37,7 +37,7 @@ import { bootMotion } from "@/lib/motion";
 
 // Side-effect modules: i18n + RTL, theme class, and the stores that wire
 // themselves into the axios ambient context.
-import "@/i18n";
+import { i18nReady } from "@/i18n";
 import { initDeviceTheme } from "@/lib/theme";
 import "@/data/stores/auth.store";
 import "@/data/stores/app.store";
@@ -47,6 +47,7 @@ import { ConfirmProvider } from "@/components/app/confirm-dialog";
 import { AppErrorBoundary } from "@/components/app/app-error-boundary";
 import { initSentry } from "@/lib/sentry";
 import { queryClient } from "@/data/api/query";
+import { restoreShell } from "@/data/api/persist-shell";
 import { DevTools } from "@/components/app/dev-tools";
 import { initRules } from "@/lib/rules";
 import * as rulesWasm from "@/lib/rules/wasm/full/madar_web.js";
@@ -168,8 +169,12 @@ function boot() {
   }
 }
 
-// The madar-shared rules (WebAssembly) come first: every rule call after this is synchronous.
-initRules(rulesWasm).then(boot, renderFatal);
+// The madar-shared rules (WebAssembly) and the active language's strings come
+// first: every rule call and every t() after this is synchronous. Alongside,
+// the shell's last answers are restored from IndexedDB (at most 250 ms; see
+// data/api/persist-shell.ts). All in parallel; the wasm is preloaded from the
+// HTML (vite/preload-rules.ts).
+Promise.all([initRules(rulesWasm), i18nReady, restoreShell(queryClient)]).then(boot, renderFatal);
 
 // A module-level failure upstream of `render()` — a store, i18n, a browser API
 // a stricter engine refuses — throws before anything above runs, leaving a

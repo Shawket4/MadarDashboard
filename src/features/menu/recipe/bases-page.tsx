@@ -115,6 +115,7 @@ export function RecipeBasesPage() {
               // Row intent: warm the usage read the editor fires on open.
               onMouseEnter={() => void qc.prefetchQuery(getGetBaseUsageQueryOptions(b.id))}
               onFocus={() => void qc.prefetchQuery(getGetBaseUsageQueryOptions(b.id))}
+              onPointerDown={() => void qc.prefetchQuery(getGetBaseUsageQueryOptions(b.id))}
             >
               <div className="min-w-0">
                 <p className="flex items-center gap-2 truncate text-sm font-medium">

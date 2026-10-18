@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { Reveal, Stagger } from "./components";
 import { loadGsap } from "./gsap";
+import { ARRIVE_OPACITY } from "./tokens";
 
 const frames = (n = 2) =>
   act(async () => {
@@ -50,6 +51,17 @@ describe("entrances never hide what is already on screen", () => {
       </Stagger>,
     );
     expect(screen.getByText("old").style.opacity).toBe("");
-    expect(screen.getByText("new").style.opacity).toBe("0");
+    // A product item arrives legible and settles (recipes.arrive), never hidden.
+    expect(screen.getByText("new").style.opacity).toBe(String(ARRIVE_OPACITY));
+    expect(screen.getByText("new").style.transform).toMatch(/translate/);
+  });
+
+  it("a brand Stagger still rises from the clean pre-state", () => {
+    render(
+      <Stagger register="brand">
+        <div>card</div>
+      </Stagger>,
+    );
+    expect(screen.getByText("card").style.opacity).toBe("0");
   });
 });

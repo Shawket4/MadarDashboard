@@ -104,6 +104,7 @@ function NavRow({ entry, isActive, visible, pathname, pf, close, keepScope }: Na
               isActive={groupActive}
               onMouseEnter={() => pf(entry.basePath)}
               onFocus={() => pf(entry.basePath)}
+              onPointerDown={() => pf(entry.basePath)}
             >
               <entry.icon />
               <span>{t(entry.labelKey, entry.fallback)}</span>
@@ -115,7 +116,7 @@ function NavRow({ entry, isActive, visible, pathname, pf, close, keepScope }: Na
               {entry.children.filter(visible).map((child) => (
                 <SidebarMenuSubItem key={child.to}>
                   <SidebarMenuSubButton asChild isActive={isActive(child.to)}>
-                    <Link to={child.to} search={keepScope} onClick={close} onMouseEnter={() => pf(child.to)} onFocus={() => pf(child.to)}>
+                    <Link to={child.to} search={keepScope} onClick={close} onMouseEnter={() => pf(child.to)} onFocus={() => pf(child.to)} onPointerDown={() => pf(child.to)}>
                       <child.icon />
                       <span>{t(child.labelKey, child.fallback)}</span>
                     </Link>
@@ -132,7 +133,7 @@ function NavRow({ entry, isActive, visible, pathname, pf, close, keepScope }: Na
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive(entry.to)} tooltip={t(entry.labelKey, entry.fallback)}>
-        <Link to={entry.to} search={keepScope} onClick={close} onMouseEnter={() => pf(entry.to)} onFocus={() => pf(entry.to)}>
+        <Link to={entry.to} search={keepScope} onClick={close} onMouseEnter={() => pf(entry.to)} onFocus={() => pf(entry.to)} onPointerDown={() => pf(entry.to)}>
           <entry.icon />
           <span>{t(entry.labelKey, entry.fallback)}</span>
         </Link>

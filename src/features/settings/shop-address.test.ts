@@ -22,6 +22,13 @@ describe("publicRootDomain", () => {
     expect(publicRootDomain("not a url", "app.madar-pos.cloud")).toBe("madar-pos.cloud");
     expect(publicRootDomain(undefined, "app.madar-pos.cloud")).toBe("madar-pos.cloud");
   });
+
+  it("with a same-origin API (/api), the dashboard's own host is the root", () => {
+    expect(publicRootDomain("/api", "madar-pos.cloud")).toBe("madar-pos.cloud");
+    expect(publicRootDomain("/api", "www.madar-pos.cloud")).toBe("madar-pos.cloud");
+    expect(publicRootDomain("/api", "localhost")).toBeNull();
+    expect(publicRootDomain("/api", "127.0.0.1")).toBeNull();
+  });
 });
 
 describe("shopAddresses", () => {

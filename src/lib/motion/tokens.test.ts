@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { DURATION, EASE, staggerFor, STAGGER } from "./tokens";
+import { DURATION, EASE, staggerFor, STAGGER, swapStaggerFor } from "./tokens";
 
 const css = readFileSync(resolve(__dirname, "motion.css"), "utf8");
 
@@ -40,5 +40,13 @@ describe("staggerFor", () => {
   it("caps the whole run however long the list", () => {
     const each = staggerFor(500, "brand");
     expect(each * (STAGGER.maxItems - 1)).toBeLessThanOrEqual(STAGGER.maxTotal + 1e-9);
+  });
+  it("lands a whole product group within its cap", () => {
+    expect(staggerFor(500) * (STAGGER.maxItems - 1)).toBeLessThanOrEqual(STAGGER.productMaxTotal + 1e-9);
+  });
+  it("lands data on skeletons almost together (≤20 ms each, ≤80 ms in all)", () => {
+    expect(swapStaggerFor(1)).toBe(0);
+    expect(swapStaggerFor(3)).toBeLessThanOrEqual(0.02);
+    expect(swapStaggerFor(500) * (STAGGER.maxItems - 1)).toBeLessThanOrEqual(0.08 + 1e-9);
   });
 });

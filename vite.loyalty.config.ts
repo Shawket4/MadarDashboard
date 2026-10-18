@@ -14,6 +14,7 @@ import compression from "vite-plugin-compression";
 import { constants as zlibConstants } from "node:zlib";
 import { noDocsInTheBundle } from "./vite/no-docs-in-the-bundle";
 import { preloadMotion } from "./vite/preload-motion";
+import { preloadRules } from "./vite/preload-rules";
 import { zodJitless } from "./vite/zod-jitless";
 
 export default defineConfig({
@@ -22,6 +23,8 @@ export default defineConfig({
     noDocsInTheBundle(),
     // GSAP downloads with the HTML (still a lazy chunk): motion is ready at once.
     preloadMotion(),
+    // The rules' wasm downloads with the HTML, not after the entry has run.
+    preloadRules(),
     zodJitless(),
     react(),
     tailwindcss(),

@@ -91,36 +91,43 @@ export function initSentry(router: AnyRouter): void {
       // (`/orders/$orderId`) instead of a URL with real ids baked in. A route
       // with an id in it is one transaction group per record, forever.
       Sentry.tanstackRouterBrowserTracingIntegration(router),
-
-      // ── Session Replay (DOM recording) ────────────────────────────────────
-      // PRIVACY: masking is ON and must stay on. The dashboard DOM routinely
-      // renders customer names, phone numbers and delivery addresses (orders,
-      // delivery, reservations) as well as staff salaries, payslips and
-      // deductions (the staff/payroll module). `maskAllText` replaces every
-      // text node with asterisks before it ever leaves the browser,
-      // `maskAllInputs` does the same for form values, and `blockAllMedia`
-      // keeps images/video (receipts, uploaded ID documents, menu photos) out
-      // of the recording. Replays are for reproducing layout/interaction bugs,
-      // not for reading the data on screen. Do NOT ship an unmasked config,
-      // and do not add `unmask`/`unblock` selectors without a privacy review.
-      Sentry.replayIntegration({
-        maskAllText: true,
-        maskAllInputs: true,
-        blockAllMedia: true,
-        // Request/response bodies are never recorded. There is no allowlist of
-        // URLs worth the risk on an app whose every endpoint returns customer
-        // data, and a recorded body is not reachable by a key-based scrubber.
-        networkDetailAllowUrls: [],
-      }),
     ],
 
     // Performance: sample lightly — this is a low-traffic internal dashboard on
     // a self-hosted Sentry with finite disk.
     tracesSampleRate: sampleRate(env.VITE_SENTRY_TRACES_SAMPLE_RATE, 0.1),
 
-    // Replay: a small slice of ordinary sessions, but always keep the session
-    // that produced an error (that is the one worth watching back).
+    // Replay: a small slice of ordinary sessions, and a slice of the sessions
+    // that produce an error. Not every session: on-error capture keeps the
+    // recorder running (buffering) in every sampled session, and recording a
+    // dashboard full of animated DOM costs frames on a counter tablet.
+    // The integration itself arrives after the first paint (loadReplay).
     replaysSessionSampleRate: sampleRate(env.VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE, 0.1),
-    replaysOnErrorSampleRate: sampleRate(env.VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE, 1.0),
+    replaysOnErrorSampleRate: sampleRate(env.VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE, 0.1),
   });
+  loadReplay();
+}
+
+/**
+ * Session Replay (rrweb) is a large module and records from the moment it
+ * starts, so it stays out of the entry: it is imported once the page has loaded
+ * and the main thread is idle, and added to the running client. The sample
+ * rates above still decide whether a session records. It is our own chunk
+ * (`sentry-replay.ts`), not Sentry's CDN loader (`lazyLoadIntegration`), which
+ * the CSP's `script-src 'self'` would refuse.
+ */
+function loadReplay(): void {
+  if (typeof window === "undefined") return;
+  const start = () => {
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1));
+    idle(() => {
+      import("./sentry-replay")
+        .then(({ maskedReplay }) => Sentry.addIntegration(maskedReplay()))
+        .catch(() => {
+          /* observability is never worth an error of its own */
+        });
+    });
+  };
+  if (document.readyState === "complete") start();
+  else window.addEventListener("load", start, { once: true });
 }

@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { apiContext } from "@/data/api/client";
 import { queryClient } from "@/data/api/query";
+import { clearShellCache } from "@/data/api/persist-shell";
 import { APP_TZ, LS_KEYS } from "@/data/config/constants";
 import i18n from "@/i18n";
 import { registerActiveTzSource } from "@/lib/format";
@@ -62,7 +63,10 @@ export const useAppStore = create<AppState>()(
           // read such as listPaymentMethods) keeps its key across a switch:
           // without this the last org's data showed until stale. A first
           // pick has nothing to drop.
-          if (orgChanged && s.selectedOrgId !== null) void queryClient.resetQueries();
+          if (orgChanged && s.selectedOrgId !== null) {
+            void queryClient.resetQueries();
+            clearShellCache();
+          }
           return {
             selectedOrgId: id,
             selectedOrgLogo: logoUrl ?? null,

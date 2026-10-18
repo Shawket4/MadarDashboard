@@ -55,7 +55,8 @@ export function useShopFavicon(params: { orgId?: string | null; slug?: string | 
 
     let base: URL;
     try {
-      base = new URL(`${env.VITE_API_URL}/public/orgs/favicon`);
+      // The shop builds' base is root-relative (`/api`), so resolve it on this origin.
+      base = new URL(`${env.VITE_API_URL}/public/orgs/favicon`, window.location.origin);
     } catch {
       // A malformed API URL should not take the page down over an icon.
       return;

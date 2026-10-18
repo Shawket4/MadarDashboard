@@ -13,7 +13,7 @@ import {
 } from "./hooks";
 import { useIsoLayoutEffect } from "./latest";
 import { inViewport, prefersReducedMotion, useReducedMotion } from "./media";
-import { fade, rise, type Recipe } from "./recipes";
+import { arrive, fade, type Recipe } from "./recipes";
 import { DURATION, EASE_NAME, sec } from "./tokens";
 
 type DivProps = Omit<ComponentProps<"div">, "ref">;
@@ -138,16 +138,19 @@ export function ChartEntrance({
   );
 }
 
-/** Seconds a leaving skeleton takes to fade out; its content's rise waits for it. */
-const SKELETON_OUT = sec(DURATION.fast) * 0.75;
+/** Seconds a leaving skeleton takes to fade out, under the content arriving over it. */
+const SKELETON_OUT = sec(DURATION.fast);
 
 /**
- * Skeleton while loading; when the data lands, the content rises in where the
- * skeleton was (in step with the Stagger it sits in) and the skeleton fades
- * out over it, never blinking. The content is a new element, hidden before
- * its first paint; if GSAP has not loaded yet it waits for it, hidden, at most
- * ARRIVAL_PATIENCE_MS. Content there from the start just shows (the page's or
- * the group's entrance covers it). Reduced motion: the content, at once.
+ * Skeleton while loading; when the data lands, the content is there on the
+ * very next frame, already legible (recipes.arrive), and settles into place
+ * while the skeleton fades out underneath it: a crossfade, never a wait. In a
+ * Stagger the cards land almost together (≤20 ms apart, ≤80 ms in all). The
+ * content is a new element, set to its pre-state before its first paint; if
+ * GSAP has not loaded yet the same recipe plays with the Web Animations API
+ * after at most ENTER_PATIENCE_MS, legible meanwhile. Content there from the
+ * start just shows (the page's or the group's entrance covers it). Reduced
+ * motion: the content, at once.
  */
 export function SkeletonSwap({
   loading,
@@ -175,13 +178,12 @@ export function SkeletonSwap({
   const content = useRef<HTMLDivElement>(null);
   const ghost = useRef<HTMLDivElement>(null);
 
-  // Sequenced, never layered: the skeleton fades out first (SKELETON_OUT) and
-  // the content rises only then, in step with its Stagger, so no figure shows
-  // through a grey bar. The content is hidden before its first paint.
+  // Overlapped, in one go: the content arrives legible and settles while the
+  // skeleton (painted beneath it) fades out over the same frames.
   useIsoLayoutEffect(() => {
     const el = content.current;
     if (!arrivals || !el || prefersReducedMotion() || !inViewport(el)) return;
-    return enter([el], rise(), { delay: groupDelay(el) + SKELETON_OUT });
+    return enter([el], arrive(), { delay: groupDelay(el) });
   }, [arrivals]);
 
   useIsoLayoutEffect(() => {
@@ -194,13 +196,15 @@ export function SkeletonSwap({
     const out: Recipe = {
       from: {},
       to: {},
-      exit: { opacity: 0, duration: SKELETON_OUT, delay: groupDelay(el), ease: EASE_NAME.in },
+      exit: { opacity: 0, duration: SKELETON_OUT, delay: groupDelay(el), ease: EASE_NAME.out },
     };
     return leave([el], out, () => setLeaving(false));
   }, [leaving]);
 
   return (
-    <div className={["relative", className].filter(Boolean).join(" ")}>
+    // `isolate` keeps the leaving skeleton (-z-10) beneath the content but
+    // above whatever the card sits on.
+    <div className={["relative isolate", className].filter(Boolean).join(" ")}>
       {loading ? (
         skeleton
       ) : (
@@ -209,7 +213,7 @@ export function SkeletonSwap({
         </div>
       )}
       {leaving && !loading ? (
-        <div ref={ghost} aria-hidden className="pointer-events-none absolute inset-0">
+        <div ref={ghost} aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           {skeleton}
         </div>
       ) : null}

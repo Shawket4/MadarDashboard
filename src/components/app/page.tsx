@@ -41,7 +41,7 @@ export function EmbeddedPages({ children }: { children: ReactNode }) {
   return <EmbeddedContext.Provider value>{children}</EmbeddedContext.Provider>;
 }
 
-/** Standard page container: gutter, width mode, start-aligned, gentle fade-in. */
+/** Standard page container: gutter, width mode, start-aligned, a short cross-fade in. */
 export function Page({
   children,
   className,
@@ -52,8 +52,8 @@ export function Page({
   width?: PageWidth;
 }) {
   const embedded = useContext(EmbeddedContext);
-  // Every route change brings the page in, even where the same Page stays
-  // mounted. Read from the URL (the router has already moved it when we render),
+  // Every route change cross-fades the page in (from legible, never an empty
+  // frame), even where the same Page stays mounted. Read from the URL (the router has already moved it when we render),
   // not a router hook, so pages render anywhere a router is mocked or absent.
   const pathname = typeof window === "undefined" ? "" : window.location.pathname;
   if (embedded) {
@@ -66,7 +66,7 @@ export function Page({
   return (
     <PageWidthContext.Provider value={width}>
       <Reveal
-        recipe={recipes.rise()}
+        recipe={recipes.crossfade}
         replayKey={pathname}
         data-page-width={width}
         className={cn("w-full space-y-6 px-4 pt-3 pb-8 sm:px-6 lg:px-8 lg:pt-4", PAGE_WIDTH_CLASS[width], className)}
