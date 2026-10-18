@@ -11,7 +11,9 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { StatusPill } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import type { StockTransfer, TransferDifferenceRow, TransferLineInput } from "@/data/api/generated/models";
-import { listTransfers, useListBranches, useListTransfers, useTransferDifferences, useTransferLocations } from "@/data/api/generated/api";
+import { getListTransfersQueryKey, listTransfers, useListBranches, useListTransfers, useTransferDifferences, useTransferLocations } from "@/data/api/generated/api";
+import { keepWhilePaging } from "@/data/api/keep-while-paging";
+import { useLoadMore } from "@/hooks/use-load-more";
 import { useAuthz, useAuthzAt } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
@@ -19,7 +21,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { transfersSearch } from "./search";
-import { periodParams, transfersListParams } from "./queries";
+import { TRANSFERS_WINDOW, TRANSFERS_WINDOW_MAX, periodParams, transfersListParams } from "./queries";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
@@ -66,12 +68,20 @@ export function TransfersPage() {
   const selling = useMemo(() => (locations.data ?? []).filter((b) => b.kind === "branch"), [locations.data]);
   const canCreateHere = useAuthzAt(here?.id).can(Cap.inventoryTransfersCreate);
 
-  // Same params as the sidebar prefetch (./queries.ts).
-  const transfers = useListTransfers(
-    scopeBranchId,
-    transfersListParams(filters.values),
-    { query: { enabled: !!scopeBranchId && tab !== "differences" } },
-  );
+  // Same params as the sidebar prefetch (./queries.ts): a "Load more" window
+  // from the newest (the endpoint's default silently stopped at 100).
+  const more = useLoadMore({
+    resetKey: `${scopeBranchId}|${filters.values.tab}|${filters.values.dir}`,
+    pageSize: TRANSFERS_WINDOW,
+    max: TRANSFERS_WINDOW_MAX,
+  });
+  const transfersParams = transfersListParams(filters.values, more.limit);
+  const transfers = useListTransfers(scopeBranchId, transfersParams, {
+    query: {
+      enabled: !!scopeBranchId && tab !== "differences",
+      placeholderData: keepWhilePaging(getListTransfersQueryKey(scopeBranchId, transfersParams), "limit"),
+    },
+  });
   const diffs = useTransferDifferences(
     orgId ?? "",
     periodParams({ from, to }),
@@ -253,7 +263,9 @@ export function TransfersPage() {
           onRetry={() => void transfers.refetch()}
           getRowId={(tr) => tr.id}
           onRowClick={(tr) => { setOpenedSnapshot(tr); setOpenId(tr.id); }}
-          urlState={tableStateFrom(filters)}
+          // Sort stays in the URL; the window replaces pages.
+          urlState={{ ...tableStateFrom(filters), pageIndex: undefined, onPageIndexChange: undefined }}
+          loadMore={more.props(transfers.data?.length ?? 0, transfers.isFetching)}
           emptyState={<EmptyState icon={ArrowLeftRight} title={t("inventory.transfers.noTransfers", "No transfers found")} />}
         />
       )}

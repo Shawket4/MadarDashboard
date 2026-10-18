@@ -15,7 +15,7 @@ import {
   getOrgLowStockQueryOptions,
 } from "@/data/api/generated/api";
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
-import { periodParams, prefetchPurchasing, prefetchTransfers, todayBounds } from "@/features/inventory/queries";
+import { periodParams, prefetchPurchasing, prefetchTransfers, todayBounds, wasteListParams } from "@/features/inventory/queries";
 import type { RoutePrefetchMap } from "@/lib/route-prefetch";
 
 /** Sidebar/palette intent prefetch for the inventory area: route → its mount-time queries. */
@@ -60,7 +60,7 @@ export const routes: RoutePrefetchMap = {
     if (!orgId) return;
     // The log and the by-reason report roll up org-wide under "All branches".
     const scopeBranchId = branchId ?? ALL_BRANCHES_ID;
-    void qc.prefetchQuery(getListWasteQueryOptions(scopeBranchId));
+    void qc.prefetchQuery(getListWasteQueryOptions(scopeBranchId, wasteListParams()));
     void qc.prefetchQuery(getBranchWasteReportQueryOptions(scopeBranchId, periodParams({ from, to })));
   },
   "/inventory/transfers": prefetchTransfers,

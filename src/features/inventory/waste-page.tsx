@@ -13,12 +13,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { StockMovement } from "@/data/api/generated/models";
-import { listWaste, useBranchWasteReport, useListWaste } from "@/data/api/generated/api";
+import { getListWasteQueryKey, listWaste, useBranchWasteReport, useListWaste } from "@/data/api/generated/api";
+import { keepWhilePaging } from "@/data/api/keep-while-paging";
+import { useLoadMore } from "@/hooks/use-load-more";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { wasteSearch } from "./search";
-import { periodParams } from "./queries";
+import { WASTE_WINDOW, WASTE_WINDOW_MAX, periodParams, wasteListParams } from "./queries";
 import { useCan } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
@@ -40,7 +42,13 @@ export function WastePage() {
 
   // The waste log scopes to the selected branch or rolls up across the org
   // ("All branches"). Logging waste needs a concrete branch (gated below).
-  const waste = useListWaste(scopeBranchId, undefined, { query: { enabled: !!scopeBranchId } });
+  // A "Load more" window from the newest (./queries.ts): the endpoint's
+  // default silently stopped at the latest 200 entries.
+  const more = useLoadMore({ resetKey: scopeBranchId, pageSize: WASTE_WINDOW, max: WASTE_WINDOW_MAX });
+  const wasteParams = wasteListParams(more.limit);
+  const waste = useListWaste(scopeBranchId, wasteParams, {
+    query: { enabled: !!scopeBranchId, placeholderData: keepWhilePaging(getListWasteQueryKey(scopeBranchId, wasteParams), "limit") },
+  });
   // The "by reason" report also rolls up org-wide for All branches (the
   // waste-report endpoint accepts the all-branches sentinel).
   const report = useBranchWasteReport(scopeBranchId, periodParams({ from, to }), { query: { enabled: !!scopeBranchId } });
@@ -243,7 +251,9 @@ export function WastePage() {
             onRetry={() => void waste.refetch()}
             getRowId={(m) => m.id}
             searchPlaceholder={t("common.search", "Search")}
-            urlState={tableStateFrom(filters)}
+            // Search and sort stay in the URL; the window replaces pages.
+            urlState={{ ...tableStateFrom(filters), pageIndex: undefined, onPageIndexChange: undefined }}
+            loadMore={more.props(waste.data?.length ?? 0, waste.isFetching)}
             emptyState={<EmptyState icon={Trash2} title={t("inventory.waste.noWaste", "No waste recorded")} />}
           />
         </div>
