@@ -20,6 +20,7 @@ import {
   DeviceKind,
   Dir,
   Grain,
+  LastPriceSource,
   LateDeductionKind,
   LinksItemKind,
   LintSeverity,
@@ -155,6 +156,7 @@ import type {
   KitchenStation,
   KitchenTicketView,
   LabourDay,
+  LastPrice,
   LastTillWarning,
   LeaveBalance,
   LedgerWindow,
@@ -1183,6 +1185,8 @@ export const getListPoReceiptsResponseMock = (): GoodsReceipt[] => (Array.from({
 export const getReceivePurchaseOrderResponseMock = (): PurchaseOrderFull => ({...{branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.string.uuid(), expected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), received_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), received_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), reference: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'},...{lines: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), line_cost: faker.number.int(), org_ingredient_id: faker.string.uuid(), purchase_order_id: faker.string.uuid(), purchase_unit: faker.string.alpha({length: {min: 10, max: 20}}), quantity_ordered: faker.number.float({fractionDigits: 2}), quantity_received: faker.number.float({fractionDigits: 2}), unit: faker.string.alpha({length: {min: 10, max: 20}}), unit_cost: faker.number.int(), unit_cost_exact: faker.number.float({fractionDigits: 2}), units_per_purchase_unit: faker.number.float({fractionDigits: 2})}))},})
 
 export const getSubmitPurchaseOrderResponseMock = (overrideResponse: Partial<Extract<PurchaseOrder, object>> = {}): PurchaseOrder => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.string.uuid(), expected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), received_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), received_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), reference: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getListPurchaseLastPricesResponseMock = (): LastPrice[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({ordered_at: faker.date.past().toISOString().slice(0, 19) + 'Z', org_ingredient_id: faker.string.uuid(), po_id: faker.string.uuid(), po_status: faker.string.alpha({length: {min: 10, max: 20}}), prices: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({unit: faker.string.alpha({length: {min: 10, max: 20}}), unit_price: faker.number.float({fractionDigits: 2})})), received: faker.datatype.boolean(), received_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), source: faker.helpers.arrayElement(Object.values(LastPriceSource)), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), unit: faker.string.alpha({length: {min: 10, max: 20}}), unit_price: faker.number.float({fractionDigits: 2})})))
 
 export const getListOrgPurchaseOrdersResponseMock = (): PurchaseOrder[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', created_by: faker.string.uuid(), expected_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), id: faker.string.uuid(), note: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), org_id: faker.string.uuid(), received_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), received_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), reference: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), status: faker.string.alpha({length: {min: 10, max: 20}}), supplier_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), supplier_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
 
@@ -6117,6 +6121,18 @@ export const getSubmitPurchaseOrderMockHandler = (overrideResponse?: PurchaseOrd
   }, options)
 }
 
+export const getListPurchaseLastPricesMockHandler = (overrideResponse?: LastPrice[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<LastPrice[]> | LastPrice[]), options?: RequestHandlerOptions) => {
+  return http.get('*/purchasing/orgs/:orgId/last-prices', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListPurchaseLastPricesResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getListOrgPurchaseOrdersMockHandler = (overrideResponse?: PurchaseOrder[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PurchaseOrder[]> | PurchaseOrder[]), options?: RequestHandlerOptions) => {
   return http.get('*/purchasing/orgs/:orgId/orders', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
 
@@ -9620,6 +9636,7 @@ export const getMadarAPIMock = () => [
   getListPoReceiptsMockHandler(),
   getReceivePurchaseOrderMockHandler(),
   getSubmitPurchaseOrderMockHandler(),
+  getListPurchaseLastPricesMockHandler(),
   getListOrgPurchaseOrdersMockHandler(),
   getListSuppliersMockHandler(),
   getCreateSupplierMockHandler(),

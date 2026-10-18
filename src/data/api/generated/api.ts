@@ -313,6 +313,7 @@ import type {
   KitchenTicketView,
   LabourDay,
   LabourVsSalesParams,
+  LastPrice,
   LeaveBalance,
   LegacyListTillEntitiesParams,
   LegacyTill,
@@ -367,6 +368,7 @@ import type {
   ListOrdersParams,
   ListOrgPurchaseOrdersParams,
   ListOrgsParams,
+  ListPurchaseLastPricesParams,
   ListPurchaseOrdersParams,
   ListRequestsParams,
   ListRoutesParams,
@@ -29042,6 +29044,112 @@ export const useSubmitPurchaseOrder = <TError = ErrorBody,
       > => {
       return useMutation(getSubmitPurchaseOrderMutationOptions(options), queryClient);
     }
+
+/**
+ * For each ingredient: the most recent PO line from `supplier_id`, preferring
+ * a received line (at the price its delivery was invoiced at) over one only
+ * ordered, and either over a cancelled order's; failing that, the same pick
+ * over every supplier (`source = "any"`). Ingredients never purchased are
+ * absent. Read-only, derived from purchase orders and goods receipts.
+ * @summary The last price paid per ingredient, to prefill a new purchase order line.
+ */
+export const listPurchaseLastPrices = (
+    orgId: string,
+    params?: ListPurchaseLastPricesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<LastPrice[]>(
+      {url: `/purchasing/orgs/${orgId}/last-prices`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListPurchaseLastPricesQueryKey = (orgId: string,
+    params?: ListPurchaseLastPricesParams,) => {
+    return [
+    `/purchasing/orgs/${orgId}/last-prices`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPurchaseLastPricesQueryOptions = <TData = Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError = ErrorBody>(orgId: string,
+    params?: ListPurchaseLastPricesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPurchaseLastPricesQueryKey(orgId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPurchaseLastPrices>>> = ({ signal }) => listPurchaseLastPrices(orgId,params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPurchaseLastPricesQueryResult = NonNullable<Awaited<ReturnType<typeof listPurchaseLastPrices>>>
+export type ListPurchaseLastPricesQueryError = ErrorBody
+
+
+export function useListPurchaseLastPrices<TData = Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError = ErrorBody>(
+ orgId: string,
+    params: undefined |  ListPurchaseLastPricesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseLastPrices>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseLastPrices>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchaseLastPrices<TData = Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError = ErrorBody>(
+ orgId: string,
+    params?: ListPurchaseLastPricesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseLastPrices>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseLastPrices>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchaseLastPrices<TData = Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError = ErrorBody>(
+ orgId: string,
+    params?: ListPurchaseLastPricesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The last price paid per ingredient, to prefill a new purchase order line.
+ */
+
+export function useListPurchaseLastPrices<TData = Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError = ErrorBody>(
+ orgId: string,
+    params?: ListPurchaseLastPricesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseLastPrices>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPurchaseLastPricesQueryOptions(orgId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const listOrgPurchaseOrders = (
     orgId: string,
