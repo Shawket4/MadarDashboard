@@ -7,6 +7,7 @@ import {
   getBranchWasteReportQueryOptions,
   getListBranchesQueryOptions,
   getListCatalogQueryOptions,
+  getListPurchaseLastPricesQueryOptions,
   getListPurchaseOrdersQueryOptions,
   getListSuppliersQueryOptions,
   getListTransfersQueryOptions,
@@ -17,7 +18,9 @@ import {
   getReorderSuggestionsQueryOptions,
   getTransferDifferencesQueryOptions,
 } from "@/data/api/generated/api";
-import type { ListMovementsParams, ListPurchaseOrdersParams, ListTransfersParams } from "@/data/api/generated/models";
+import type {
+  ListMovementsParams, ListPurchaseLastPricesParams, ListPurchaseOrdersParams, ListTransfersParams,
+} from "@/data/api/generated/models";
 import type { ListValues } from "@/data/scope/list-search";
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import { cairoDateISO, cairoParts } from "@/lib/format";
@@ -60,11 +63,17 @@ export const purchaseOrdersParams = (f: PurchasingValues): ListPurchaseOrdersPar
   status: f.status === "all" ? undefined : f.status,
 });
 
+/** The new-PO dialog's last prices: the chosen supplier's (else any supplier's); none chosen = no filter. */
+export const lastPricesParams = (supplierId: string | null | undefined): ListPurchaseLastPricesParams | undefined =>
+  supplierId ? { supplier_id: supplierId } : undefined;
+
 export function prefetchPurchasing(qc: QueryClient, { orgId, branchId, search }: PrefetchCtx): void {
   if (!orgId) return;
   const f = purchasingSearch.entryValues(branchId, search);
   void qc.prefetchQuery(getListSuppliersQueryOptions(orgId));
   void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
+  // The new-PO dialog opens with no supplier: its last prices are ready.
+  void qc.prefetchQuery(getListPurchaseLastPricesQueryOptions(orgId, lastPricesParams(null)));
   void qc.prefetchQuery(getListPurchaseOrdersQueryOptions(branchId ?? ALL_BRANCHES_ID, purchaseOrdersParams(f)));
   if (branchId && purchasingTab(f, branchId) === "reorder") void qc.prefetchQuery(getReorderSuggestionsQueryOptions(branchId));
 }

@@ -1501,6 +1501,8 @@
       "invoiceTotal": "Invoice total (EGP)",
       "unitCostLocked": "Unit cost (EGP per {{unit}})",
       "unitCostLockedHint": "Worked out from the line total ÷ the quantity. Change either to change it.",
+      "lastPrice": "Last: {{price}} / {{unit}} · {{date}}",
+      "lastPriceOtherSupplier": "from another supplier",
       "unitCostUnit": "unit"
     },
     "reports": {

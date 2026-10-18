@@ -573,6 +573,9 @@ export const handlers = [
     const po = MOCK_PURCHASE_ORDERS.find((p) => p.id === params.poId) ?? MOCK_PURCHASE_ORDERS[0];
     return HttpResponse.json({ ...po, lines: MOCK_PO_LINES[po.id] ?? [] });
   }),
+  http.get("*/purchasing/orgs/*/last-prices", ({ request }) =>
+    HttpResponse.json(mockLastPrices(new URL(request.url).searchParams.get("supplier_id"))),
+  ),
   http.get("*/purchasing/orgs/*/orders", () => HttpResponse.json(MOCK_PURCHASE_ORDERS)),
   http.get("*/purchasing/orgs/*/suppliers", () => HttpResponse.json(MOCK_SUPPLIERS)),
   http.get("*/purchasing/branches/*/reorder-suggestions", () => HttpResponse.json(MOCK_REORDER_SUGGESTIONS)),
@@ -942,4 +945,55 @@ function mockPublicLinks() {
       : [],
     loyalty_mode: "visits",
   };
+}
+
+/**
+ * GET /purchasing/orgs/{org}/last-prices over the mock POs, like the server:
+ * per ingredient the asked supplier's newest line (received before ordered
+ * before cancelled), else anyone's, in the line's unit and its measure's.
+ */
+function mockLastPrices(supplierId: string | null) {
+  const FAMILY: Record<string, [string, number][]> = {
+    g: [["g", 1], ["kg", 1000]], kg: [["g", 0.001], ["kg", 1]],
+    ml: [["ml", 1], ["l", 1000]], l: [["ml", 0.001], ["l", 1]], pcs: [["pcs", 1]],
+  };
+  const tier = (status: string) => (status === "received" || status === "partially_received" ? 0 : status === "cancelled" ? 2 : 1);
+  const best = new Map<string, Record<string, unknown>>();
+  const rank = (c: { fromSupplier: boolean; status: string; at: string }) => [c.fromSupplier ? 0 : 1, tier(c.status), -Date.parse(c.at)];
+  const better = (a: number[], b: number[]) => {
+    const i = a.findIndex((v, n) => v !== b[n]);
+    return i >= 0 && a[i] < b[i];
+  };
+  for (const po of MOCK_PURCHASE_ORDERS) {
+    for (const l of MOCK_PO_LINES[po.id] ?? []) {
+      const id = l.org_ingredient_id as string;
+      const cand = { fromSupplier: !!supplierId && po.supplier_id === supplierId, status: po.status, at: po.received_at ?? po.created_at };
+      const prev = best.get(id);
+      if (prev && !better(rank(cand), rank(prev._rank as typeof cand))) continue;
+      const unitPrice = l.unit_cost_exact as number;
+      const perBase = unitPrice / (l.units_per_purchase_unit as number);
+      const prices = [
+        { unit: l.purchase_unit as string, unit_price: unitPrice },
+        ...(FAMILY[l.unit as string] ?? [])
+          .filter(([u]) => u !== l.purchase_unit)
+          .map(([u, f]) => ({ unit: u, unit_price: Math.round(perBase * f * 1e6) / 1e6 })),
+      ];
+      best.set(id, {
+        _rank: cand,
+        org_ingredient_id: id,
+        source: cand.fromSupplier ? "supplier" : "any",
+        supplier_id: po.supplier_id,
+        supplier_name: po.supplier_name,
+        po_id: po.id,
+        po_status: po.status,
+        received: tier(po.status) === 0,
+        ordered_at: po.created_at,
+        received_at: po.received_at,
+        unit: l.purchase_unit,
+        unit_price: unitPrice,
+        prices,
+      });
+    }
+  }
+  return [...best.values()].map(({ _rank, ...row }) => { void _rank; return row; });
 }

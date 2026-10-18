@@ -22,6 +22,8 @@ import {
   parseCount,
   roundQty,
   isBelowZero,
+  lastPriceIn,
+  lastPriceLineTotal,
   wasteReceivedLate,
   wasteSource,
   wasteWhen,
@@ -260,5 +262,25 @@ describe("the purchase rules match madar-shared's vectors", () => {
 describe("the count rule matches madar-shared's vectors", () => {
   it.each(countVectors.cases)("$name", (c) => {
     expect(isVarianceFlagged(c.book, c.counted, c.pct)).toBe(c.expected);
+  });
+});
+
+describe("last price (a new PO line's default)", () => {
+  const lp = { prices: [{ unit: "g", unit_price: 4.5 }, { unit: "kg", unit_price: 4500 }, { unit: "sack", unit_price: 112500 }] };
+
+  it("reads the price in the line's unit, and nothing in a unit that does not convert", () => {
+    expect(lastPriceIn(lp, "kg")).toBe(4500);
+    expect(lastPriceIn(lp, "g")).toBe(4.5);
+    expect(lastPriceIn(lp, " Sack ")).toBe(112500);
+    expect(lastPriceIn(lp, "ml")).toBeNull();
+    expect(lastPriceIn(undefined, "kg")).toBeNull();
+  });
+
+  it("totals whole piastres on the quantity as stored; nothing until a quantity is typed", () => {
+    expect(lastPriceLineTotal(4500, 2)).toBe(9000);
+    expect(lastPriceLineTotal(4.5, 333)).toBe(1499); // 1498.5 rounds half up
+    expect(lastPriceLineTotal(4500, 0.0004)).toBe(0); // 0.0004 kg is 0.000 as stored
+    expect(lastPriceLineTotal(4500, 0)).toBeNull();
+    expect(lastPriceLineTotal(4500, Number.NaN)).toBeNull();
   });
 });
