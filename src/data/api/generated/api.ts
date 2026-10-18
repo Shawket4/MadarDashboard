@@ -26731,7 +26731,7 @@ export const getPublicMenuDisplayQueryKey = (params?: PublicMenuDisplayParams,) 
     }
 
 
-export const getPublicMenuDisplayQueryOptions = <TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getPublicMenuDisplayQueryOptions = <TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = void | ErrorBody>(params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -26750,10 +26750,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type PublicMenuDisplayQueryResult = NonNullable<Awaited<ReturnType<typeof publicMenuDisplay>>>
-export type PublicMenuDisplayQueryError = ErrorBody
+export type PublicMenuDisplayQueryError = void | ErrorBody
 
 
-export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = void | ErrorBody>(
  params: undefined |  PublicMenuDisplayParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof publicMenuDisplay>>,
@@ -26763,7 +26763,7 @@ export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMen
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = void | ErrorBody>(
  params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof publicMenuDisplay>>,
@@ -26773,7 +26773,7 @@ export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMen
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = void | ErrorBody>(
  params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -26781,7 +26781,7 @@ export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMen
  * @summary The shop's menu without prices.
  */
 
-export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = ErrorBody>(
+export function usePublicMenuDisplay<TData = Awaited<ReturnType<typeof publicMenuDisplay>>, TError = void | ErrorBody>(
  params?: PublicMenuDisplayParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicMenuDisplay>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -27935,7 +27935,7 @@ export const getPublicTableMenuQueryKey = (id: string,) => {
     }
 
 
-export const getPublicTableMenuQueryOptions = <TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getPublicTableMenuQueryOptions = <TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = void | ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -27954,10 +27954,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type PublicTableMenuQueryResult = NonNullable<Awaited<ReturnType<typeof publicTableMenu>>>
-export type PublicTableMenuQueryError = ErrorBody
+export type PublicTableMenuQueryError = void | ErrorBody
 
 
-export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = ErrorBody>(
+export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = void | ErrorBody>(
  id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof publicTableMenu>>,
@@ -27967,7 +27967,7 @@ export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTable
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = ErrorBody>(
+export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = void | ErrorBody>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof publicTableMenu>>,
@@ -27977,7 +27977,7 @@ export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTable
       >, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = ErrorBody>(
+export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = void | ErrorBody>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -27985,7 +27985,7 @@ export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTable
  * @summary The menu at this table.
  */
 
-export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = ErrorBody>(
+export function usePublicTableMenu<TData = Awaited<ReturnType<typeof publicTableMenu>>, TError = void | ErrorBody>(
  id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof publicTableMenu>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {

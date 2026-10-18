@@ -5,6 +5,7 @@
 // visible, then hidden, then animated back in). Every scenario must have its
 // main content animate, with zero ghosts. Saves screencast frames per scenario.
 //   node play-probe.mjs <baseUrl> <outDir> [--only=name] [--no-frames] [--reduced]
+// A scenario's `expect` lists selectors of which at least one element must animate.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 
@@ -41,6 +42,12 @@ const SCENARIOS = [
   { name: "dialog-search", start: "/", act: (page) => page.keyboard.press("Control+k") },
   { name: "sheet-order", start: "/orders", act: click("[data-row]") },
   { name: "tab-reports", start: "/reports/operations", act: click('[role=tab][data-state=inactive]') },
+  // Reports > Operations > Items: the ranked tables' rows stagger in and their
+  // share bars grow, on a cold load and on a tab switch; a re-sort slides rows.
+  // The cold load waits longer: at 4x the dev server's mocked data lands ~9 s in.
+  { name: "load-items", load: "/reports/operations?tab=items", wait: 14000, expect: ["tr[data-row]", "[data-share-fill]"] },
+  { name: "tab-items", start: "/reports/operations?tab=overview", act: click('[role=tab]:has-text("Items")'), expect: ["tr[data-row]", "[data-share-fill]"] },
+  { name: "sort-items", start: "/reports/operations?tab=items", settle: 12000, act: click('th[scope=col] button:has-text("Item")'), expect: ["tr[data-row]"] },
 ];
 
 function detector() {
@@ -127,13 +134,15 @@ function detector() {
       ghostEls.length = 0;
       samples.clear();
     },
-    result() {
+    result(expect = []) {
+      const expected = Object.fromEntries(expect.map((sel) => [sel, 0]));
       let animated = 0;
       let content = 0;
       const examples = [];
       for (const [el, set] of samples) {
         if (set.size < 3) continue;
         animated++;
+        for (const sel of expect) if (el.matches?.(sel)) expected[sel]++;
         if (el.closest?.(CONTENT)) {
           content++;
           if (examples.length < 3) examples.push(describe(el));
@@ -142,7 +151,7 @@ function detector() {
       // A ghost comes back into view; something hidden that stays hidden or
       // goes (an exit still fading, a skeleton leaving) is not one.
       const back = (el) => el.isConnected && parseFloat(getComputedStyle(el).opacity) >= 0.9;
-      return { animated, content, examples, ghosts: ghosts.filter((_, i) => back(ghostEls[i])) };
+      return { animated, content, examples, expected, ghosts: ghosts.filter((_, i) => back(ghostEls[i])) };
     },
   };
 }
@@ -201,20 +210,20 @@ for (const vp of Object.keys(VIEWPORTS)) {
         await page.waitForLoadState("networkidle").catch(() => {});
         await page.goto("about:blank");
         await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
-        const stop = await record(cdp, `${s.name}-${vp}`, 6000);
+        const stop = await record(cdp, `${s.name}-${vp}`, s.wait ?? 6000);
         await page.goto(base + s.load);
-        await page.waitForTimeout(6000);
-        results[key] = { ...(await page.evaluate(() => window.__probe.result())), frames: await stop() };
+        await page.waitForTimeout(s.wait ?? 6000);
+        results[key] = { ...(await page.evaluate((e) => window.__probe.result(e), s.expect ?? [])), frames: await stop() };
       } else {
         await page.goto(base + s.start);
         await page.waitForLoadState("networkidle").catch(() => {});
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(s.settle ?? 3000);
         await page.evaluate(() => window.__probe.reset());
         await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
         const stop = await record(cdp, `${s.name}-${vp}`, 2500);
         await s.act(page);
         await page.waitForTimeout(2500);
-        results[key] = { ...(await page.evaluate(() => window.__probe.result())), frames: await stop() };
+        results[key] = { ...(await page.evaluate((e) => window.__probe.result(e), s.expect ?? [])), frames: await stop() };
       }
     } catch (e) {
       results[key] = { error: String(e).split("\n")[0].slice(0, 160) };
@@ -231,8 +240,11 @@ for (const [k, v] of Object.entries(results)) {
     failed++;
     continue;
   }
-  const ok = (reduced || v.content > 0) && v.ghosts.length === 0;
+  // A scenario that names what must move (`expect`) fails if any of it stood still.
+  const missing = reduced ? [] : Object.entries(v.expected ?? {}).filter(([, n]) => n === 0).map(([sel]) => sel);
+  const ok = (reduced || v.content > 0) && v.ghosts.length === 0 && missing.length === 0;
   if (!ok) failed++;
-  console.log(`${ok ? "ok  " : "FAIL"} ${k}: animated ${v.animated} (content ${v.content}), ghosts ${v.ghosts.length}  ${v.examples[0] ?? ""}`);
+  const named = Object.entries(v.expected ?? {}).map(([sel, n]) => `${sel} ${n}`).join(", ");
+  console.log(`${ok ? "ok  " : "FAIL"} ${k}: animated ${v.animated} (content ${v.content}), ghosts ${v.ghosts.length}${named ? `, moved: ${named}` : ""}  ${v.examples[0] ?? ""}`);
 }
 console.log(failed ? `${failed} scenario(s) failed` : "all scenarios animate, no ghosts");

@@ -180,6 +180,7 @@ fails if the two drift):
 | A chart | `<ChartCard>` (it wears `ChartEntrance`; inside a `Stagger` it holds still), `{...useChartMotion()}` on each Recharts series. A chart outside a card: `<ChartEntrance>` |
 | Show/hide with an exit (was `AnimatePresence`) | `<Presence show>` / `usePresence` |
 | Swap content by key (steps, a changed figure) | `<SwapPresence swapKey>` |
+| A ranked table (rows, share bars, sortable) | `RankedTable` (`features/reports/operations/ranked-table.tsx`): rows stagger in, bars `grow`, a re-sort Flips |
 | A list that reorders or loses items | `useFlip` (GSAP Flip, transforms only; it measures only when its key changes, never on a keystroke) |
 | Active tab or segment | `useIndicator` (a sliding bar, physical px, RTL-safe) |
 | Error / success feedback | `useShake` (the row or form, never a field being typed in) / `usePop` |
@@ -190,7 +191,8 @@ fails if the two drift):
 | A set piece or ambient loop | `useTimeline` (`pauseOffscreen` for loops) |
 | Anything else | `useGsap(fn, deps, { scope })`: scoped, reverted on cleanup, StrictMode-safe |
 
-Recipes (`recipes.rise`, `arrive`, `crossfade`, `fade`, `dialog`, `sheet(side)`, `popper(side)`, `pop`) are the
+Recipes (`recipes.rise`, `arrive`, `crossfade`, `fade`, `dialog`, `sheet(side)`, `popper(side)`, `pop`, `grow` for a bar
+drawn to its length) are the
 named enter/exit shapes; hooks take a recipe, nothing writes raw tween values.
 
 **Already wired, nothing to add:**

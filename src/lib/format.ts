@@ -125,6 +125,20 @@ export const fmtMoney = (
   return moneyShape(figure, sign);
 };
 
+/**
+ * A price range in one money shape: `EGP 55.00–75.00` (`55.00–75.00 ج.م` in
+ * Arabic, the figures kept left to right). Equal ends print one price; a
+ * missing end renders an em-dash.
+ */
+export const fmtMoneyRange = (min: number | null | undefined, max: number | null | undefined): string => {
+  if (min === null || min === undefined || !Number.isFinite(min)) return "—";
+  if (max === null || max === undefined || !Number.isFinite(max) || max === min) return fmtMoney(min);
+  const [lo, hi] = min <= max ? [min, max] : [max, min];
+  if (lo < 0) return `${fmtMoney(lo)}–${fmtMoney(hi)}`;
+  const fig = (p: number) => groupFigure(piastresToEgp(p), 2, 2);
+  return moneyShape(`${fig(lo)}–${fig(hi)}`, "");
+};
+
 /** Signed ledger money: `+EGP 20.00` / `−EGP 50.00`. */
 export const fmtMoneySigned = (piastres: number | null | undefined): string =>
   fmtMoney(piastres, { signed: true });
@@ -153,9 +167,9 @@ export const fmtNumberCompact = (n: number | null | undefined): string =>
     .format(n ?? 0)
     .replace(/-/g, MINUS);
 
-/** Percent with 1 decimal place */
-export const fmtPercent = (ratio: number): string =>
-  new Intl.NumberFormat(getLocale(), { style: "percent", maximumFractionDigits: 1, numberingSystem: "latn" })
+/** Percent with up to 1 decimal place (`minimumFractionDigits: 1` for a column that lines up). */
+export const fmtPercent = (ratio: number, opts?: { minimumFractionDigits?: 0 | 1 }): string =>
+  new Intl.NumberFormat(getLocale(), { style: "percent", maximumFractionDigits: 1, numberingSystem: "latn", ...opts })
     .format(ratio)
     .replace(/-/g, MINUS);
 

@@ -5776,7 +5776,36 @@
         "branches": "Branches",
         "lowStock": "Low stock"
       },
-      "title": "Operations"
+      "title": "Operations",
+      "ranked": {
+        "rank": "Rank",
+        "item": "Item",
+        "addon": "Add-on",
+        "sold": "Sold",
+        "revenue": "Revenue",
+        "shareOfRevenue": "Share of revenue",
+        "avgPrice": "Avg. price",
+        "price": "Price",
+        "avgExtra": "Avg. extra",
+        "extraNote": "Price is today's menu (a range when the item has sizes). Avg. extra is what customers paid per unit on top of the menu price of the size they bought (add-ons, swaps, options), before discounts.",
+        "type": "Type",
+        "allTypes": "All types",
+        "searchItems": "Search items",
+        "searchAddons": "Search add-ons",
+        "sortBy": "Sort by {{column}}",
+        "showAll": "Show all {{count}}",
+        "showTop": "Show top {{count}}",
+        "showing": "{{shown}} of {{total}}",
+        "noMatch": "Nothing matches your search",
+        "itemsSummary": "{{count}} items, {{revenue}}",
+        "addonsSummary": "{{count}} add-ons, {{revenue}}",
+        "topNote": "The top {{count}} by volume; shares are of these.",
+        "itemsSummary_one": "{{count}} item, {{revenue}}",
+        "addonsSummary_one": "{{count}} add-on, {{revenue}}",
+        "category": "Category",
+        "allCategories": "All categories",
+        "noRevenueNote": "— means the period's sales report does not list the item yet (it sold after the report was read). Refresh to fill it in."
+      }
     },
     "financial": {
       "title": "Financial",
