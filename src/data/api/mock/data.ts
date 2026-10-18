@@ -838,9 +838,18 @@ const MOCK_SHIFTS = SHIFT_SEEDS.map((s) => ({
   reconciliation_status: null, disagreement_count: 0, open_bills_at_close: null, old_bills_at_close: null,
 }));
 
-export function tillsPage(branchId: string) {
-  const data = branchId === ALL_BRANCHES_ID ? MOCK_SHIFTS : MOCK_SHIFTS.filter((s) => s.branch_id === branchId);
-  return { data, total: data.length, page: 1, per_page: data.length || 1, total_pages: 1 };
+/** `GET /tills/branches/{id}` as the server answers it: the flagged filter and
+ *  `page`/`per_page` when sent (without them, every till on one page). */
+export function tillsPage(branchId: string, url?: URL) {
+  let data = branchId === ALL_BRANCHES_ID ? MOCK_SHIFTS : MOCK_SHIFTS.filter((s) => s.branch_id === branchId);
+  if (url?.searchParams.get("flagged") === "true") {
+    data = data.filter((s) => s.opened_while_another_open || s.reconciliation_status === "disagreed");
+  }
+  const total = data.length;
+  const paged = !!url && (url.searchParams.has("page") || url.searchParams.has("per_page"));
+  const per_page = paged ? Math.min(200, Math.max(1, Number(url.searchParams.get("per_page")) || 20)) : total || 1;
+  const page = paged ? Math.max(1, Number(url.searchParams.get("page")) || 1) : 1;
+  return { data: data.slice((page - 1) * per_page, page * per_page), total, page, per_page, total_pages: Math.ceil(total / per_page) };
 }
 
 export const MOCK_CURRENT_TILL = {

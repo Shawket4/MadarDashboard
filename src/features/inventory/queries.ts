@@ -18,7 +18,7 @@ import {
   getTransferDifferencesQueryOptions,
 } from "@/data/api/generated/api";
 import type {
-  ListMovementsParams, ListPurchaseLastPricesParams, ListPurchaseOrdersParams, ListTransfersParams,
+  ListMovementsParams, ListPurchaseLastPricesParams, ListPurchaseOrdersParams, ListTransfersParams, ListWasteParams,
 } from "@/data/api/generated/models";
 import type { ListValues } from "@/data/scope/list-search";
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
@@ -79,10 +79,32 @@ export function prefetchPurchasing(qc: QueryClient, { orgId, branchId, search }:
 
 type TransfersValues = ListValues<typeof transfersSearch.spec>;
 
-export const transfersListParams = (f: TransfersValues): ListTransfersParams => ({
+/**
+ * The transfers list is a "Load more" window from the newest: the endpoint
+ * answers 100 rows when no limit is sent and caps `limit` at 500, so a plain
+ * read silently stopped at the latest 100 transfers.
+ */
+export const TRANSFERS_WINDOW = 100;
+export const TRANSFERS_WINDOW_MAX = 500;
+
+export const transfersListParams = (f: TransfersValues, limit: number = TRANSFERS_WINDOW): ListTransfersParams => ({
   direction: f.dir === "all" ? undefined : f.dir,
   status: f.tab === "all" || f.tab === "differences" ? undefined : f.tab,
+  limit,
+  offset: 0,
 });
+
+// ── Waste ────────────────────────────────────────────────────────────────────
+
+/**
+ * The waste log is a "Load more" window from the newest: the endpoint answers
+ * 200 rows when no limit is sent and caps `limit` at 1000, so a plain read
+ * silently stopped at the latest 200 entries.
+ */
+export const WASTE_WINDOW = 100;
+export const WASTE_WINDOW_MAX = 1000;
+
+export const wasteListParams = (limit: number = WASTE_WINDOW): ListWasteParams => ({ limit, offset: 0 });
 
 export function prefetchTransfers(qc: QueryClient, { orgId, branchId, from, to, search }: PrefetchCtx): void {
   if (!orgId) return;

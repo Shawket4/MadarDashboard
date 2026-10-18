@@ -4,7 +4,17 @@ import { hashKey, QueryClient } from "@tanstack/react-query";
 import { getListPurchaseLastPricesQueryKey, getListPurchaseOrdersQueryKey, getListTransfersQueryKey, getReorderSuggestionsQueryKey } from "@/data/api/generated/api";
 import { withDefaults } from "@/data/scope/list-search";
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
-import { lastPricesParams, prefetchPurchasing, prefetchTransfers, purchaseOrdersParams, purchasingTab, transfersListParams } from "./queries";
+import {
+  TRANSFERS_WINDOW,
+  WASTE_WINDOW,
+  lastPricesParams,
+  prefetchPurchasing,
+  prefetchTransfers,
+  purchaseOrdersParams,
+  purchasingTab,
+  transfersListParams,
+  wasteListParams,
+} from "./queries";
 import { purchasingSearch, transfersSearch } from "./search";
 
 const ctx = { orgId: "org", branchId: null, from: null, to: null, preset: "today" as const };
@@ -23,8 +33,21 @@ describe("inventory query params", () => {
     expect(transfersListParams(withDefaults(transfersSearch.spec, { tab: "differences", dir: "incoming" }))).toEqual({
       direction: "incoming",
       status: undefined,
+      limit: TRANSFERS_WINDOW,
+      offset: 0,
     });
-    expect(transfersListParams(withDefaults(transfersSearch.spec, { tab: "draft" }))).toEqual({ direction: undefined, status: "draft" });
+    expect(transfersListParams(withDefaults(transfersSearch.spec, { tab: "draft" }))).toEqual({
+      direction: undefined,
+      status: "draft",
+      limit: TRANSFERS_WINDOW,
+      offset: 0,
+    });
+  });
+
+  it("transfers and waste always send a window, so the server's silent default cut-off never applies", () => {
+    expect(transfersListParams(withDefaults(transfersSearch.spec, {}), 300)).toMatchObject({ limit: 300, offset: 0 });
+    expect(wasteListParams()).toEqual({ limit: WASTE_WINDOW, offset: 0 });
+    expect(wasteListParams(400)).toEqual({ limit: 400, offset: 0 });
   });
 
   it("last prices: a supplier filters, none is no filter", () => {
@@ -38,7 +61,9 @@ describe("inventory query params", () => {
     prefetchTransfers(qc, ctx);
     const keys = warmed(qc);
     expect(keys).toContain(hashKey(getListPurchaseOrdersQueryKey(ALL_BRANCHES_ID, { status: undefined })));
-    expect(keys).toContain(hashKey(getListTransfersQueryKey(ALL_BRANCHES_ID, { direction: undefined, status: undefined })));
+    expect(keys).toContain(
+      hashKey(getListTransfersQueryKey(ALL_BRANCHES_ID, { direction: undefined, status: undefined, limit: TRANSFERS_WINDOW, offset: 0 })),
+    );
     expect(keys).not.toContain(hashKey(getReorderSuggestionsQueryKey("b1")));
     // The new-PO dialog's last prices load when it opens: the page never reads them on mount.
     expect(keys).not.toContain(hashKey(getListPurchaseLastPricesQueryKey("org", lastPricesParams(null))));
