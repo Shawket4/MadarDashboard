@@ -150,7 +150,7 @@ export function StaffReportsPage() {
         }
       />
       <Tabs value={tab} onValueChange={setPicked} className="gap-6">
-        <PageTabsList>
+        <PageTabsList prefetch="tab">
           {tabs.includes("attendance") ? <PageTabsTrigger value="attendance"><CalendarClock className="size-4" />{t("dawam.rAttendance", "Attendance & discipline")}</PageTabsTrigger> : null}
           {tabs.includes("labour") ? <PageTabsTrigger value="labour"><Scale className="size-4" />{t("dawam.rLabour", "Labour vs sales")}</PageTabsTrigger> : null}
           {tabs.includes("payroll") ? <PageTabsTrigger value="payroll"><Banknote className="size-4" />{t("dawam.rPayroll", "Overtime & payroll")}</PageTabsTrigger> : null}

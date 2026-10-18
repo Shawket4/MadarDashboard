@@ -12,3 +12,14 @@ export const kitchenStationsSearch = defineListSearch("/settings/kitchen-station
   q: param.string(),
   page: param.page(),
 });
+
+/** Items tab page size. */
+export const ROUTING_PER_PAGE = 50;
+
+/** The items tab's catalog read: one builder for the page and its prefetch, so both use one key. */
+export const routingCatalogParams = (orgId: string | null, f: { q: string; page: number }) => ({
+  org_id: orgId ?? "",
+  search: f.q || undefined,
+  page: f.page,
+  per_page: ROUTING_PER_PAGE,
+});

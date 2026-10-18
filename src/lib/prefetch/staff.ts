@@ -72,13 +72,13 @@ export const routes: RoutePrefetchMap = {
   "/staff/setup": (qc, { orgId }) => {
     if (authzOf(qc).can(Cap.hrRulesEdit)) warmSetup(qc, orgId);
   },
-  "/staff/employees": (qc, { orgId, branchId }) => {
-    void qc.prefetchQuery(getListEmployeesQueryOptions(employeesListParams(employeesSearch.entryValues(branchId))));
+  "/staff/employees": (qc, { orgId, branchId, search }) => {
+    void qc.prefetchQuery(getListEmployeesQueryOptions(employeesListParams(employeesSearch.entryValues(branchId, search))));
     void qc.prefetchQuery(getListDepartmentsQueryOptions());
     if (orgId) void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
   },
-  "/staff/attendance": (qc, { orgId, branchId }) => {
-    const params = attendanceParams(branchId, attendanceSearch.entryValues(branchId));
+  "/staff/attendance": (qc, { orgId, branchId, search }) => {
+    const params = attendanceParams(branchId, attendanceSearch.entryValues(branchId, search));
     void qc.prefetchQuery(getListAttendanceQueryOptions(params));
     void qc.prefetchQuery(getAttendanceSummaryQueryOptions(params));
     void qc.prefetchQuery(getListEmployeesQueryOptions({}));
@@ -115,10 +115,10 @@ export const routes: RoutePrefetchMap = {
     if (can.overtime) void qc.prefetchQuery(getListAttendanceQueryOptions(params.overtime));
     if (can.payLines) void qc.prefetchQuery(getListAdjustmentsQueryOptions(params.payLines));
   },
-  "/staff/schedule": (qc, { orgId, branchId }) => {
+  "/staff/schedule": (qc, { orgId, branchId, search }) => {
     const authz = authzOf(qc);
     if (!authz.can(Cap.hrScheduleRead)) return;
-    const f = scheduleSearch.entryValues(branchId);
+    const f = scheduleSearch.entryValues(branchId, search);
     if (orgId) void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
     warmSetup(qc, orgId);
     // With "All branches" and nothing picked, the page opens on the first branch the list answers: left to the page.
@@ -136,25 +136,25 @@ export const routes: RoutePrefetchMap = {
       if (f.coverage) void qc.prefetchQuery(getGetCoverageQueryOptions({ branch_id: branch }));
     }
   },
-  "/staff/requests": (qc, { branchId }) => {
-    void qc.prefetchQuery(getListRequestsQueryOptions(requestsListParams(requestsSearch.entryValues(branchId))));
+  "/staff/requests": (qc, { branchId, search }) => {
+    void qc.prefetchQuery(getListRequestsQueryOptions(requestsListParams(requestsSearch.entryValues(branchId, search))));
     void qc.prefetchQuery(getListEmployeesQueryOptions({}));
   },
-  "/staff/payroll": (qc, { orgId, branchId }) => {
+  "/staff/payroll": (qc, { orgId, branchId, search }) => {
     if (!authzOf(qc).canAny(Cap.hrPayrollRead, Cap.hrPayrollRun)) return;
     // An older month opened by `month` is found in the current run's answer: left to the page.
     void qc.prefetchQuery(getCurrentQueryOptions());
     void qc.prefetchQuery(getListEmployeesQueryOptions({ employment_status: "active" }));
     warmSetup(qc, orgId);
-    const { tab } = payrollSearch.entryValues(branchId);
+    const { tab } = payrollSearch.entryValues(branchId, search);
     if (tab === "lines") void qc.prefetchQuery(getListAdjustmentsQueryOptions({}));
     if (tab === "advances") void qc.prefetchQuery(getListAdvancesQueryOptions({}));
     if (tab === "expenses") void qc.prefetchQuery(getListExpenseAdvancesQueryOptions(expenseAdvancesParams(branchId)));
   },
-  "/staff/reports": (qc, { orgId, branchId }) => {
+  "/staff/reports": (qc, { orgId, branchId, search }) => {
     const authz = authzOf(qc);
     void qc.prefetchQuery(getGetAttendanceSettingsQueryOptions({}));
-    const f = staffReportsSearch.entryValues(branchId);
+    const f = staffReportsSearch.entryValues(branchId, search);
     // This pay period needs the business's start day: warmed only once it is known.
     const settings = qc.getQueryData<AttendanceSettings>(getGetAttendanceSettingsQueryKey({}));
     if (!(f.from && f.to) && !settings) return;
@@ -174,11 +174,11 @@ export const routes: RoutePrefetchMap = {
     if (tab === "payroll") void qc.prefetchQuery(getPayrollHistoryQueryOptions(params));
     if (tab === "advances") void qc.prefetchQuery(getAdvancesQueryOptions(params));
   },
-  "/staff/rules": (qc, { branchId }) => {
+  "/staff/rules": (qc, { branchId, search }) => {
     const authz = authzOf(qc);
     if (!authz.canAny(Cap.hrRulesEdit, Cap.hrRulesView)) return;
     void qc.prefetchQuery(getListBranchRulesQueryOptions());
-    void qc.prefetchQuery(getGetAttendanceSettingsQueryOptions(rulesSettingsParams(rulesSearch.entryValues(branchId))));
+    void qc.prefetchQuery(getGetAttendanceSettingsQueryOptions(rulesSettingsParams(rulesSearch.entryValues(branchId, search))));
   },
   "/reports/staff": (qc, { branchId, from, to }) => {
     if (!from || !to || !authzOf(qc).can(Cap.hrAttendanceRead)) return;

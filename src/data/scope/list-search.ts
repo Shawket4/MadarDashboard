@@ -296,12 +296,22 @@ export interface ListSearchDef<S extends ListSpec> {
   /** For the route: `beforeLoad: def.beforeLoad` — restores the remembered state. */
   beforeLoad: (ctx: { search: Record<string, unknown>; preload?: boolean; cause?: string }) => void;
   /**
-   * What the list shows when entered from a plain link (the sidebar): the
-   * remembered state, else the defaults. Prefetch from these so the warmed
-   * query key is the one the page reads on mount.
+   * What the list shows when entered by a link carrying `search` (default: a
+   * plain link, like the sidebar's): the link's own params when it names any
+   * (a tab, a filter), else the remembered state, else the defaults — exactly
+   * what `beforeLoad` restores. Prefetch from these so the warmed query key is
+   * the one the page reads on mount.
    */
-  entryValues: (branchId: string | null) => ListValues<S>;
+  entryValues: (branchId: string | null, search?: Record<string, unknown>) => ListValues<S>;
 }
+
+/**
+ * Marks a prefetch destination on the page already open (a tab, a filter): its
+ * `useListFilters` writes the memory before it navigates, so `beforeLoad`
+ * restores nothing and the destination is exactly its search. Set by
+ * `lib/prefetch/warm.ts`, read by `entryValues`.
+ */
+export const STAYS = "__stays";
 
 export function defineListSearch<S extends ListSpec>(path: string, spec: S): ListSearchDef<S> {
   listPaths.add(path);
@@ -315,7 +325,8 @@ export function defineListSearch<S extends ListSpec>(path: string, spec: S): Lis
       if (!restored) return;
       throw redirect({ to: path as never, search: { ...search, ...restored } as never, replace: true });
     },
-    entryValues: (branchId) => withDefaults(spec, restoreFor(spec, path, { branchId }) ?? {}),
+    entryValues: (branchId, search = {}) =>
+      withDefaults(spec, (!search[STAYS] && restoreFor(spec, path, { ...search, branchId: branchId ?? undefined })) || search),
   };
 }
 

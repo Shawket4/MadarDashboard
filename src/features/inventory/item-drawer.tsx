@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { ChefHat, ClipboardList, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 

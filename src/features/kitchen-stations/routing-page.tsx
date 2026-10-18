@@ -25,14 +25,13 @@ import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { Stagger, SwapPresence, recipes } from "@/lib/motion";
 import { getTranslatedName } from "@/lib/translation";
 import { useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
-import { kitchenRoutingSearch } from "./search";
+import { kitchenRoutingSearch, routingCatalogParams } from "./search";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { invalidateRouting } from "./util";
 
 const UNASSIGNED = "__none__";
-const PER_PAGE = 50;
 
 export function RoutingPage() {
   const { t, i18n } = useTranslation();
@@ -71,10 +70,7 @@ export function RoutingPage() {
   }, [routesQ.data]);
   const stationName = (id: string | undefined) => stations.find((s) => s.id === id)?.name;
 
-  const catalogParams = useMemo(
-    () => ({ org_id: orgId ?? "", search: itemsSearchQ || undefined, page: itemsPage + 1, per_page: PER_PAGE }),
-    [orgId, itemsSearchQ, itemsPage],
-  );
+  const catalogParams = useMemo(() => routingCatalogParams(orgId, { q: itemsSearchQ, page: itemsPage + 1 }), [orgId, itemsSearchQ, itemsPage]);
   // Paging keeps the page count while the rows show skeletons; a new search shows skeletons alone.
   const catalog = useListMenuCatalog(catalogParams, {
     query: { enabled: enabled && !!orgId && tab === "items", placeholderData: keepWhilePaging(getListMenuCatalogQueryKey(catalogParams)) },
@@ -220,6 +216,7 @@ export function RoutingPage() {
             <SegmentedControl
               value={tab}
               onChange={setTab}
+              prefetch="tab"
               options={[
                 { value: "categories", label: t("kitchen.byCategory", "By category") },
                 { value: "items", label: t("kitchen.byItem", "Per item") },

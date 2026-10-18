@@ -5,7 +5,7 @@
  * the set-up checklist when more than the rules is missing (SA-4).
  */
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { Scale } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

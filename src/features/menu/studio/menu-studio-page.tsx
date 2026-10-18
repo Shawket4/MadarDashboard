@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { toast } from "sonner";
 import { useQueries } from "@tanstack/react-query";
 import { ArrowRight, Copy } from "lucide-react";
@@ -333,7 +334,8 @@ function MenuStudio() {
   // ── Actions ─────────────────────────────────────────────────────────────────
   // Back to the list as it was left: the list restores its own filters
   // (features/menu/search.ts); only the scope rides along, never `?tab=`.
-  const goBack = () => void navigate({ to: "/menu/items", search: keepScope as never });
+  const backTo = { to: "/menu/items", search: keepScope };
+  const goBack = () => void navigate({ ...backTo, search: keepScope as never });
 
   const onDuplicate = async () => {
     const ok = await confirm({
@@ -568,7 +570,7 @@ function MenuStudio() {
     return (
       <Page width="reading">
         <PageHeader
-          back={{ onClick: goBack }}
+          back={{ onClick: goBack, prefetch: backTo }}
           title={<Skeleton className="h-7 w-56" />}
         />
         <div className="space-y-8">
@@ -583,7 +585,7 @@ function MenuStudio() {
   if (studioQ.isError || !studio) {
     return (
       <Page width="reading">
-        <PageHeader back={{ onClick: goBack }} title={t("menu.studio.itemTitle", "Menu item")} />
+        <PageHeader back={{ onClick: goBack, prefetch: backTo }} title={t("menu.studio.itemTitle", "Menu item")} />
         <ErrorState
           title={t("menu.studio.loadError", "Could not load this item")}
           message={studioQ.error ? getErrorMessage(studioQ.error) : undefined}
@@ -602,7 +604,7 @@ function MenuStudio() {
   return (
     <Page width="reading" className="space-y-0">
       <PageHeader
-        back={{ onClick: goBack }}
+        back={{ onClick: goBack, prefetch: backTo }}
         title={name || t("menu.studio.untitled", "Untitled item")}
         subtitle={
           !studio.is_active ? (

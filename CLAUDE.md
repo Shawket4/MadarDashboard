@@ -395,6 +395,36 @@ these rules:
 - **Sentry Replay** loads after the first paint (`lib/sentry-replay.ts`), from our own
   chunk: never `lazyLoadIntegration`, whose CDN the CSP refuses.
 
+## Prefetch: every navigation warms its page's data
+- **One gesture model** (`lib/prefetch/intent.ts`): a mouse hover or keyboard focus warms
+  after 65 ms (a pass-over warms nothing; one pending hover at a time), `pointerdown` at
+  once (a phone's only signal), the same target at most once per 2 s, hovers at most 6
+  targets a second (a press is never throttled), nothing on Save-Data or 2G. It only ever
+  calls `prefetchQuery`, which skips data still fresh (the 30 s `staleTime`) and joins one
+  in flight. Never a mutation, never an export.
+- **One registry** (`ROUTE_PREFETCH` in `lib/route-prefetch.ts`, an area per file under
+  `lib/prefetch/`): route path as the tree spells it (`/menu/items/$itemId`) → the queries
+  its page fires on mount, built with the page's OWN params helpers so the key is the
+  page's key. Entries get the destination's scope, path params and validated search; a
+  list page reads its state with `xSearch.entryValues(branchId, search)` (the link's own
+  params, else what the list remembers, else defaults: exactly what `beforeLoad`
+  restores). Redirect-only routes go in `REDIRECTS`; pages with nothing to warm in
+  `NOTHING_TO_WARM` with a reason. `route-prefetch.test.ts` walks the route tree and fails
+  on a page route with neither; `prefetch/keys-match.test.tsx` renders sampled pages and
+  fails when a warmed key is not one the page reads (or the reverse).
+- **Adopted by the components, not by hand.**
+  - `<Link>` comes from `@/components/app/link` (ESLint refuses the router's in the dashboard).
+  - `PageTabsList prefetch="tab"` and `SegmentedControl prefetch="tab"` for tabs in the URL.
+  - `PageHeader back={{ onClick, prefetch }}` for an editor's guarded back button.
+  - `DataTable onRowPrefetch` and `ListRow onPrefetch` for rows.
+  - `useNavIntent()` for any other button that navigates
+    (`<Button {...nav({ to, search: keepScope })} onClick={…}>`), `useWarmRoute()` to warm
+    from a callback, and `intent(key, fire)` for a row that opens a sheet or dialog.
+
+  The shell (`routes/_app/route.tsx`) provides the warm-up through `NavPrefetchProvider`;
+  outside it (public bundles, tests) they warm nothing. A new data page = a registry entry
+  in the same change.
+
 ## Gotchas
 - **Mock mode + service worker.** `dev:mock` needs MSW's worker
   (`public/mockServiceWorker.js`). After switching dev servers on the same port, a

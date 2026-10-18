@@ -52,6 +52,7 @@ import { GroupEditorDialog } from "./group-editor-dialog";
 import { GroupUsageDialog } from "./group-usage-dialog";
 import { isSwapType, selectionToPickRule, SWAP_SLUGS, SWAP_TYPES } from "./group-model";
 import { useGroupUsage } from "./use-group-usage";
+import { intent } from "@/lib/prefetch/intent";
 
 /** The item-private "Options" sets are groups with no legacy type; they are
  * edited in each item's editor, not here. */
@@ -310,9 +311,7 @@ function GroupRow({
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      onMouseEnter={onPrefetch}
-      onFocus={onPrefetch}
-      onPointerDown={onPrefetch}
+      {...(onPrefetch ? intent(`group:${group.id}`, onPrefetch) : null)}
       className={cn("flex flex-wrap items-center gap-3 rounded-lg border bg-card p-2.5", isDragging && "z-10 opacity-70 shadow-lg")}
     >
       {canEdit ? (

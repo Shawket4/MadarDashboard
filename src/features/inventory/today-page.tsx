@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AlertTriangle, Boxes, CalendarClock, ChevronRight, ClipboardList, OctagonX, PackageCheck, ShoppingCart, Trash2, Truck, Wallet } from "lucide-react";
 
@@ -43,6 +43,7 @@ import { PurchaseOrderDialog } from "./purchase-order-dialog";
 import { ReceiveDialog } from "./receive-dialog";
 import { WasteDialog } from "./waste-dialog";
 import { countsDue, needsFirstCount } from "./lib";
+import { intent } from "@/lib/prefetch/intent";
 
 export function TodayPage() {
   const { t } = useTranslation();
@@ -258,8 +259,7 @@ export function TodayPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => setReceivePoId(p.id)}
-                        onMouseEnter={() => prefetchPo(p.id)}
-                        onFocus={() => prefetchPo(p.id)}
+                        {...intent(`po:${p.id}`, () => prefetchPo(p.id))}
                       >
                         <PackageCheck className="size-4" /> {t("inventory.today.receive", "Receive")}
                       </Button>

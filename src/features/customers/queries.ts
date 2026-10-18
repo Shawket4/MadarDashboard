@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 
 import {
+  getGetLoyaltySettingsQueryOptions,
   getGetCustomerQueryOptions,
   getGetLoyaltyMemberQueryOptions,
   getListBranchesQueryOptions,
@@ -10,6 +11,8 @@ import {
 } from "@/data/api/generated/api";
 import type { ListCustomersParams } from "@/data/api/generated/models";
 import type { PrefetchCtx } from "@/lib/route-prefetch";
+import { cachedAuthz } from "@/features/reports/queries";
+import { Cap } from "@/generated/capabilities";
 import type { PeopleAccess } from "./access";
 import { customersSearch } from "./search";
 import { PAGE_SIZE, isSource, type CustomerSource } from "./util";
@@ -52,10 +55,12 @@ export function prefetchCustomer(
 /**
  * Sidebar/palette intent: the list as the page opens it (remembered filters,
  * first window). The nav entry needs `customers.view`, so it reads `/customers`.
- * The loyalty-program query is capability-gated, so it is left to fetch on mount.
+ * The loyalty program (points or stamps, for the balance column) only for who
+ * may read it, as the list asks: the page's list is org-wide, so `{}`.
  */
-export function prefetchCustomers(qc: QueryClient, { branchId }: PrefetchCtx): void {
-  const f = customersSearch.entryValues(branchId);
+export function prefetchCustomers(qc: QueryClient, { branchId, search }: PrefetchCtx): void {
+  const f = customersSearch.entryValues(branchId, search);
   const from = isSource(f.from) ? f.from : null;
   void qc.prefetchQuery(getListCustomersQueryOptions(customersListParams({ q: f.q, member: f.members || undefined, from }, PAGE_SIZE)));
+  if (cachedAuthz(qc).can(Cap.loyaltyRead)) void qc.prefetchQuery(getGetLoyaltySettingsQueryOptions({}));
 }

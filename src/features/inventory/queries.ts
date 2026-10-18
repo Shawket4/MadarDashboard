@@ -60,9 +60,9 @@ export const purchaseOrdersParams = (f: PurchasingValues): ListPurchaseOrdersPar
   status: f.status === "all" ? undefined : f.status,
 });
 
-export function prefetchPurchasing(qc: QueryClient, { orgId, branchId }: PrefetchCtx): void {
+export function prefetchPurchasing(qc: QueryClient, { orgId, branchId, search }: PrefetchCtx): void {
   if (!orgId) return;
-  const f = purchasingSearch.entryValues(branchId);
+  const f = purchasingSearch.entryValues(branchId, search);
   void qc.prefetchQuery(getListSuppliersQueryOptions(orgId));
   void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
   void qc.prefetchQuery(getListPurchaseOrdersQueryOptions(branchId ?? ALL_BRANCHES_ID, purchaseOrdersParams(f)));
@@ -78,9 +78,9 @@ export const transfersListParams = (f: TransfersValues): ListTransfersParams => 
   status: f.tab === "all" || f.tab === "differences" ? undefined : f.tab,
 });
 
-export function prefetchTransfers(qc: QueryClient, { orgId, branchId, from, to }: PrefetchCtx): void {
+export function prefetchTransfers(qc: QueryClient, { orgId, branchId, from, to, search }: PrefetchCtx): void {
   if (!orgId) return;
-  const f = transfersSearch.entryValues(branchId);
+  const f = transfersSearch.entryValues(branchId, search);
   void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
   // Transfer locations load only with the create capability, which the prefetch can't see.
   if (f.tab === "differences") void qc.prefetchQuery(getTransferDifferencesQueryOptions(orgId, periodParams({ from, to })));
@@ -90,9 +90,9 @@ export function prefetchTransfers(qc: QueryClient, { orgId, branchId, from, to }
 // ── Reports ▸ Inventory ──────────────────────────────────────────────────────
 
 /** Reports ▸ Inventory (route owned by lib/prefetch/reports.ts): warm the tab it opens on. */
-export function prefetchInventoryReports(qc: QueryClient, { orgId, branchId, from, to }: PrefetchCtx): void {
+export function prefetchInventoryReports(qc: QueryClient, { orgId, branchId, from, to, search }: PrefetchCtx): void {
   if (!orgId) return;
-  const f = inventoryReportsSearch.entryValues(branchId);
+  const f = inventoryReportsSearch.entryValues(branchId, search);
   // "This branch" needs a branch; under All branches the report is the whole org.
   const branch = f.scope === "branch" ? branchId : null;
   const range = periodParams({ from, to });

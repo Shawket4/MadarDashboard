@@ -19,7 +19,7 @@ export const loyaltyReportRange = (s: { branchId: string | null; from: string | 
 export function prefetchLoyaltyReport(qc: QueryClient, ctx: PrefetchCtx): void {
   const range = loyaltyReportRange(ctx);
   void qc.prefetchQuery(getGetLoyaltyBehaviorQueryOptions(range));
-  const { tab } = loyaltyReportSearch.entryValues(ctx.branchId);
+  const { tab } = loyaltyReportSearch.entryValues(ctx.branchId, ctx.search);
   if (tab === "campaigns") void qc.prefetchQuery(getGetLoyaltyCampaignEffectivenessQueryOptions(range));
   if (tab === "liability") void qc.prefetchQuery(getGetLoyaltyLiabilityTrendQueryOptions(range));
 }

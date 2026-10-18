@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { ChevronRight, Minus, Plus, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { intent } from "@/lib/prefetch/intent";
 
 /**
  * One list row (POS SPEC §7) — 56 min height, inset 16/20, hairline between
@@ -35,7 +36,7 @@ interface ListRowProps {
   trailing?: ReactNode;
   selected?: boolean;
   onClick?: () => void;
-  /** Warm what `onClick` opens, on hover/focus (predictive loading, like DataTable's `onRowPrefetch`). */
+  /** Warm what `onClick` opens, on intent (lib/prefetch/intent; like DataTable's `onRowPrefetch`). */
   onPrefetch?: () => void;
   href?: string;
   disabled?: boolean;
@@ -60,6 +61,7 @@ export function ListRow({
   className,
 }: ListRowProps) {
   const interactive = !!onClick && !disabled;
+  const uid = useId();
 
   let lead: ReactNode = leading ?? null;
   if (!lead && variant === "ledger" && sign) {
@@ -128,8 +130,7 @@ export function ListRow({
       type="button"
       data-slot="list-row"
       onClick={onClick}
-      onMouseEnter={onPrefetch}
-      onFocus={onPrefetch}
+      {...(onPrefetch ? intent(`list-row:${uid}`, onPrefetch) : null)}
       aria-current={selected || undefined}
       className={cls}
     >

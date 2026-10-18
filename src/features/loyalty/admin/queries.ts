@@ -19,11 +19,11 @@ export const programParams = (branchId: string | null): { branch_id?: string } =
   branchId ? { branch_id: branchId } : {};
 
 /** Sidebar/palette intent: warm Settings › Loyalty on the tab it will open. */
-export function prefetchLoyaltySettings(qc: QueryClient, { orgId, branchId }: PrefetchCtx): void {
+export function prefetchLoyaltySettings(qc: QueryClient, { orgId, branchId, search }: PrefetchCtx): void {
   if (!orgId) return;
   const params = programParams(branchId);
   void qc.prefetchQuery(getListBranchesQueryOptions({ org_id: orgId }));
-  const { tab } = loyaltySearch.entryValues(branchId);
+  const { tab } = loyaltySearch.entryValues(branchId, search);
   if (tab === "program" || tab === "rewards") void qc.prefetchQuery(getGetLoyaltySettingsQueryOptions(params));
   if (tab === "rewards") {
     // The earning-items card shows only in visits mode, known once settings resolve.

@@ -145,16 +145,18 @@ export function ProfitabilityPage() {
     createDecision.mutate(decisionVars(row, signal, "acted"), {
       onSuccess: () => void invalidateInsights(),
     });
-    if (signal.link === "pricing") {
-      void navigate({ to: "/menu/pricing", search: keepScope as never });
-    } else {
-      void navigate({
-        to: "/menu/items/$itemId",
-        params: { itemId: row.menu_item_id },
-        search: ((prev: Record<string, unknown>) => ({ ...keepScope(prev), ...(signal.link === "studio_recipe" ? { tab: "recipe" } : {}) })) as never,
-      });
-    }
+    void navigate(fixTarget(row, signal) as never);
   };
+
+  /** The surface `signal.link` names: Pricing, or the item's studio (its recipe section for a recipe fix). */
+  const fixTarget = (row: MarginLedgerRow, signal: Signal) =>
+    signal.link === "pricing"
+      ? { to: "/menu/pricing", search: keepScope }
+      : {
+          to: "/menu/items/$itemId",
+          params: { itemId: row.menu_item_id },
+          search: (prev: Record<string, unknown>) => ({ ...keepScope(prev), ...(signal.link === "studio_recipe" ? { tab: "recipe" } : {}) }),
+        };
 
   /** Dismiss/snooze: suppression is server-side — invalidate and the signal
    *  drops out of the ledger. */
@@ -369,6 +371,7 @@ export function ProfitabilityPage() {
                 signal={sig}
                 busy={createDecision.isPending}
                 onFix={(x) => fix(r, x)}
+                fixTarget={(x) => fixTarget(r, x)}
                 onDecide={(x, action) => decide(r, x, action)}
               />
             ))}
@@ -405,7 +408,7 @@ export function ProfitabilityPage() {
             />
           }
           below={
-            <PageTabsList>
+            <PageTabsList prefetch="ptab">
               <PageTabsTrigger value="ledger" className="first:ps-0">{t("insights.profitability.ledgerTab", "Ledger")}</PageTabsTrigger>
               <PageTabsTrigger value="repricing">{t("insights.profitability.repricingTab", "Repricing")}</PageTabsTrigger>
               <PageTabsTrigger value="decisions">{t("insights.profitability.decisionsTab", "Decisions")}</PageTabsTrigger>

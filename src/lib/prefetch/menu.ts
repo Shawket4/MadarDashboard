@@ -14,8 +14,6 @@ import type { RoutePrefetchMap } from "@/lib/route-prefetch";
 
 /** Sidebar/palette intent prefetch for the menu area: route → its mount-time queries. */
 export const routes: RoutePrefetchMap = {
-  // The sidebar parent redirects to Items.
-  "/menu": (qc, ctx) => routes["/menu/items"](qc, ctx),
   "/menu/items": prefetchMenuItems,
   "/menu/groups": (qc, { orgId }) => {
     // Each group's usage count is one query per group id, known only once the list resolves.

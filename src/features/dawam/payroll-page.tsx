@@ -7,7 +7,7 @@
  */
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   BadgeCheck, Banknote, CircleDollarSign, FileDown, HandCoins, History, PencilLine, Plus, ReceiptText, RotateCcw, Trash2, Undo2,
@@ -427,7 +427,7 @@ export function PayrollPage() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab} className="gap-6">
-        <PageTabsList>
+        <PageTabsList prefetch="tab">
           <PageTabsTrigger value="payslips"><Banknote className="size-4" />{t("dawam.payslips", "Payslips")}</PageTabsTrigger>
           <PageTabsTrigger value="lines"><ReceiptText className="size-4" />{t("dawam.payLines", "Bonuses & deductions")}</PageTabsTrigger>
           <PageTabsTrigger value="advances"><HandCoins className="size-4" />{t("dawam.salaryAdvances", "Salary advances")}</PageTabsTrigger>

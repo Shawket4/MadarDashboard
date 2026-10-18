@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { Link, useLocation } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -29,7 +30,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useOrgModules } from "@/hooks/use-org-modules";
 import { useSetupProgress } from "@/features/dawam/setup";
-import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
+import { useNavIntent } from "@/lib/prefetch/nav-context";
 import { useOrgId } from "@/hooks/use-org-id";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { Presence } from "@/lib/motion";
@@ -68,13 +69,13 @@ interface NavRowProps {
   isActive: (to: string) => boolean;
   visible: (leaf: NavLeaf) => boolean;
   pathname: string;
-  pf: (path: string) => void;
   close: () => void;
   keepScope: (prev: Record<string, unknown>) => Record<string, unknown>;
 }
 
-function NavRow({ entry, isActive, visible, pathname, pf, close, keepScope }: NavRowProps) {
+function NavRow({ entry, isActive, visible, pathname, close, keepScope }: NavRowProps) {
   const { t } = useTranslation();
+  const nav = useNavIntent();
   const { state, isMobile, setOpen } = useSidebar();
   const groupActive = isParent(entry) && pathname.startsWith(entry.basePath);
   const [groupOpen, setGroupOpen] = useState(groupActive);
@@ -102,9 +103,8 @@ function NavRow({ entry, isActive, visible, pathname, pf, close, keepScope }: Na
             <SidebarMenuButton
               tooltip={t(entry.labelKey, entry.fallback)}
               isActive={groupActive}
-              onMouseEnter={() => pf(entry.basePath)}
-              onFocus={() => pf(entry.basePath)}
-              onPointerDown={() => pf(entry.basePath)}
+              // The group only unfolds; its first page is where the hand goes next.
+              {...nav({ to: entry.basePath, search: keepScope })}
             >
               <entry.icon />
               <span>{t(entry.labelKey, entry.fallback)}</span>
@@ -116,7 +116,7 @@ function NavRow({ entry, isActive, visible, pathname, pf, close, keepScope }: Na
               {entry.children.filter(visible).map((child) => (
                 <SidebarMenuSubItem key={child.to}>
                   <SidebarMenuSubButton asChild isActive={isActive(child.to)}>
-                    <Link to={child.to} search={keepScope} onClick={close} onMouseEnter={() => pf(child.to)} onFocus={() => pf(child.to)} onPointerDown={() => pf(child.to)}>
+                    <Link to={child.to} search={keepScope} onClick={close}>
                       <child.icon />
                       <span>{t(child.labelKey, child.fallback)}</span>
                     </Link>
@@ -133,7 +133,7 @@ function NavRow({ entry, isActive, visible, pathname, pf, close, keepScope }: Na
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive(entry.to)} tooltip={t(entry.labelKey, entry.fallback)}>
-        <Link to={entry.to} search={keepScope} onClick={close} onMouseEnter={() => pf(entry.to)} onFocus={() => pf(entry.to)} onPointerDown={() => pf(entry.to)}>
+        <Link to={entry.to} search={keepScope} onClick={close}>
           <entry.icon />
           <span>{t(entry.labelKey, entry.fallback)}</span>
         </Link>
@@ -154,7 +154,6 @@ interface NavGroupSectionProps {
   isActive: (to: string) => boolean;
   visible: (leaf: NavLeaf) => boolean;
   pathname: string;
-  pf: (path: string) => void;
   close: () => void;
   keepScope: (prev: Record<string, unknown>) => Record<string, unknown>;
 }
@@ -236,9 +235,6 @@ export function AppSidebar() {
     row?.scrollIntoView?.({ block: "nearest" });
   }, [pathname, drawn]);
 
-  // Predictive preloading on hover/focus: route code chunk + the page's queries.
-  const pf = useRoutePrefetch();
-
   // Carry only the scope params across navigation (drop page-specific selection
   // like ?order / ?edit) so links keep branch + period but reset local state.
   const keepScope = (prev: Record<string, unknown>) => ({ branchId: prev.branchId, preset: prev.preset, from: prev.from, to: prev.to });
@@ -292,7 +288,6 @@ export function AppSidebar() {
               isActive={isActive}
               visible={visible}
               pathname={pathname}
-              pf={pf}
               close={close}
               keepScope={keepScope}
             />

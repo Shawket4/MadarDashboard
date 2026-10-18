@@ -8,7 +8,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { ArrowLeft, ArrowRight, Check, PartyPopper } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";

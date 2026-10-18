@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { Compass } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

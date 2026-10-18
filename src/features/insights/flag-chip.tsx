@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { StatusPill } from "@/components/app/status-pill";
 import { SIGNAL_TONE, signalLabel, signalReason } from "./signals";
+import { useNavIntent, type NavTarget } from "@/lib/prefetch/nav-context";
 
 /**
  * One advisory flag as a compact chip. Clicking opens a popover with the
@@ -16,17 +17,21 @@ import { SIGNAL_TONE, signalLabel, signalReason } from "./signals";
 export function FlagChip({
   signal,
   onFix,
+  fixTarget,
   onDecide,
   busy,
 }: {
   signal: Signal;
   /** Record `acted` (fire-and-forget) then navigate to the fix surface. */
   onFix: (signal: Signal) => void;
+  /** Where Fix lands, so its data warms on intent. */
+  fixTarget?: (signal: Signal) => NavTarget;
   /** POST the decision, then invalidate so the signal disappears. */
   onDecide: (signal: Signal, action: "dismissed" | "snoozed") => Promise<void>;
   busy?: boolean;
 }) {
   const { t } = useTranslation();
+  const nav = useNavIntent();
   const [open, setOpen] = useState(false);
 
   const decide = async (action: "dismissed" | "snoozed") => {
@@ -49,7 +54,7 @@ export function FlagChip({
       <PopoverContent align="start" sideOffset={6} className="w-72 space-y-3">
         <p className="text-sm leading-relaxed">{signalReason(t, signal)}</p>
         <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" disabled={busy} onClick={() => onFix(signal)}>
+          <Button size="sm" disabled={busy} {...nav(fixTarget?.(signal) ?? null)} onClick={() => onFix(signal)}>
             <Wrench className="size-3.5" />
             {t("insights.actions.fix", "Fix")}
           </Button>

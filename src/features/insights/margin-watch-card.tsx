@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 
 import { ChartCard } from "@/components/app/chart-card";

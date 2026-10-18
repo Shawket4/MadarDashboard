@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { Check, Layers, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

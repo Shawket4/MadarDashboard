@@ -23,8 +23,6 @@ const can = (qc: QueryClient, cap: Capability) =>
 
 /** Sidebar/palette intent prefetch for the admin area: route → its mount-time queries. */
 export const routes: RoutePrefetchMap = {
-  // Settings opens on Appearance, which reads nothing from the server.
-  "/settings": () => {},
   "/branch-setup": (qc, { branchId }) => {
     if (branchId) void qc.prefetchQuery(getGetPlanQueryOptions({ branch_id: branchId }));
   },

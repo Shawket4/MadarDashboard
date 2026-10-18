@@ -63,6 +63,7 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { unitPrice } from "./unit-price";
 import { invalidatePricingOverrides } from "./util";
+import { intent } from "@/lib/prefetch/intent";
 
 // ── Scope columns ─────────────────────────────────────────────────────────────
 
@@ -683,9 +684,7 @@ function ItemRow({
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            onMouseEnter={() => prefetchStudio(item.id)}
-            onFocus={() => prefetchStudio(item.id)}
-            onPointerDown={() => prefetchStudio(item.id)}
+            {...intent(`studio:${item.id}`, () => prefetchStudio(item.id))}
             aria-expanded={open}
             className="flex w-full items-center gap-2.5 px-3 py-2.5 text-start transition-colors hover:bg-muted/40"
           >
@@ -968,9 +967,7 @@ function ItemCard({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        onMouseEnter={() => prefetchStudio(item.id)}
-        onFocus={() => prefetchStudio(item.id)}
-        onPointerDown={() => prefetchStudio(item.id)}
+        {...intent(`studio:${item.id}`, () => prefetchStudio(item.id))}
         aria-expanded={open}
         className="flex w-full items-center gap-2.5 px-3 py-2.5 text-start transition-colors hover:bg-muted/40"
       >
@@ -1350,6 +1347,7 @@ export function PricingAvailabilityPage() {
               <SegmentedControl
                 value={tab as "items" | "addons"}
                 onChange={setTab}
+                prefetch="tab"
                 options={[
                   { value: "items", label: t("menu.pricing.menuItems", "Menu items") },
                   { value: "addons", label: t("menu.pricing.addonItems", "Add-ons") },

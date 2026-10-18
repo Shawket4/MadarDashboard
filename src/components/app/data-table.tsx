@@ -38,6 +38,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DISTANCE, recipes, useStagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { intent } from "@/lib/prefetch/intent";
 import { useSearchInput, type DataTableUrlState } from "@/data/scope/use-list-filters";
 
 /**
@@ -152,6 +153,8 @@ export function DataTable<TData, TValue>({
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const uid = useId();
+  // A row warms what it opens on intent (hover after a pause, focus, pointerdown at once: lib/prefetch/intent).
+  const rowIntent = (row: Row<TData>) => (onRowPrefetch ? intent(`${uid}:${row.id}`, () => onRowPrefetch(row.original)) : null);
   const titleId = (rowId: string) => `${uid}-title-${rowId}`;
   const [localSorting, setLocalSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -446,13 +449,13 @@ export function DataTable<TData, TValue>({
                     data-row
                     data-press="product"
                     className="relative rounded-2xl"
-                    onMouseEnter={() => onRowPrefetch?.(row.original)}
+                    {...rowIntent(row)}
                   >
                     <button
                       type="button"
                       aria-labelledby={titleId(row.id)}
                       onClick={() => onRowClick(row.original)}
-                      onFocus={() => onRowPrefetch?.(row.original)}
+                      {...rowIntent(row)}
                       className="absolute inset-0 z-[1] rounded-2xl focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
                     />
                     {renderPhoneCard(row, true)}
@@ -464,14 +467,13 @@ export function DataTable<TData, TValue>({
                     data-row
                     data-press="product"
                     onClick={() => onRowClick(row.original)}
-                    onMouseEnter={() => onRowPrefetch?.(row.original)}
-                    onFocus={() => onRowPrefetch?.(row.original)}
+                    {...rowIntent(row)}
                     className="block w-full rounded-2xl text-start focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
                   >
                     {renderPhoneCard(row)}
                   </button>
                 ) : (
-                  <div key={row.id} data-row onMouseEnter={() => onRowPrefetch?.(row.original)}>
+                  <div key={row.id} data-row {...rowIntent(row)}>
                     {renderPhoneCard(row)}
                   </div>
                 ),
@@ -499,7 +501,7 @@ export function DataTable<TData, TValue>({
                           data-state={selected ? "selected" : undefined}
                           aria-selected={selectedRowId !== undefined ? selected : undefined}
                           onClick={() => onRowClick?.(row.original)}
-                          onMouseEnter={() => onRowPrefetch?.(row.original)}
+                          {...rowIntent(row)}
                           onKeyDown={
                             onRowClick
                               ? (e) => {
@@ -626,8 +628,7 @@ export function DataTable<TData, TValue>({
               variant="outline"
               size="icon-sm"
               onClick={() => table.nextPage()}
-              onMouseEnter={() => onPrefetchNext?.()}
-              onFocus={() => onPrefetchNext?.()}
+              {...(onPrefetchNext ? intent(`${uid}:next:${pageIndex}`, onPrefetchNext) : null)}
               disabled={!table.getCanNextPage()}
               aria-label={t("common.next", "Next")}
             >

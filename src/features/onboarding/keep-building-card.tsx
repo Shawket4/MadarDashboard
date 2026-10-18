@@ -11,6 +11,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { usePlan } from "@/hooks/use-plan";
 import { NUDGE_DISMISS_KEY, stepApplies } from "./config";
+import { useNavIntent } from "@/lib/prefetch/nav-context";
 
 /**
  * Calm, dismissible "keep building your café" nudge on the dashboard. Shows the
@@ -21,6 +22,7 @@ import { NUDGE_DISMISS_KEY, stepApplies } from "./config";
 export function KeepBuildingCard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const nav = useNavIntent();
   const orgId = useOrgId();
   const [dismissed, setDismissed] = useState(() => {
     try {
@@ -69,7 +71,7 @@ export function KeepBuildingCard() {
             : t("onboarding.nudge.bodyFree", "Keep building — add your team and add-ons to get the most out of your till.")}
         </p>
       </div>
-      <Button size="sm" onClick={() => navigate({ to: "/onboarding" })}>
+      <Button size="sm" {...nav("/onboarding")} onClick={() => navigate({ to: "/onboarding" })}>
         {t("onboarding.nudge.cta", "Keep building")} <ArrowRight className="size-4 rtl:rotate-180" />
       </Button>
       <button

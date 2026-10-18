@@ -292,7 +292,7 @@ export function TillSessionsPage() {
             />
           }
           below={
-            <PageTabsList>
+            <PageTabsList prefetch="tab">
               <PageTabsTrigger value="sessions" className="first:ps-0">
                 {t("reports.tills.tabSessions", "Sessions")}
               </PageTabsTrigger>

@@ -46,8 +46,8 @@ export function prefetchComboEditor(qc: QueryClient, orgId: string | null, combo
 }
 
 /** Sidebar/palette intent: warm Menu › Combos exactly as the page will open it. */
-export function prefetchCombos(qc: QueryClient, { orgId, branchId }: PrefetchCtx): void {
+export function prefetchCombos(qc: QueryClient, { orgId, branchId, search }: PrefetchCtx): void {
   if (!orgId) return;
-  void qc.prefetchQuery(getListCombosQueryOptions(combosListParams(combosSearch.entryValues(branchId))));
+  void qc.prefetchQuery(getListCombosQueryOptions(combosListParams(combosSearch.entryValues(branchId, search))));
   void qc.prefetchQuery(getListCategoriesQueryOptions({ org_id: orgId }));
 }

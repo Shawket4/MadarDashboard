@@ -63,6 +63,7 @@ import {
   addDays, dayTotals, dayWindow, hourTicks, invalidateBookings, isActive, isHeld, isLate,
   serviceToday, timelineSpan, type BookingStatus,
 } from "./util";
+import { intent } from "@/lib/prefetch/intent";
 
 type View = "list" | "timeline";
 type Filter = "active" | "all" | BookingStatus;
@@ -532,9 +533,7 @@ function Timeline({
                     key={b.id}
                     type="button"
                     onClick={() => onOpen(b)}
-                    onMouseEnter={() => onPrefetch(b)}
-                    onFocus={() => onPrefetch(b)}
-                    onPointerDown={() => onPrefetch(b)}
+                    {...intent(`booking:${b.id}`, () => onPrefetch(b))}
                     title={`${b.guest_name} · ${b.party_size} · ${fmtTime(b.starts_at)}–${fmtTime(b.ends_at)}`}
                     className={cn("absolute top-1.5 h-8 truncate rounded-md border px-2 text-start text-xs font-medium transition-colors duration-fast hover:brightness-95", tone)}
                     style={{ insetInlineStart: `${span.left}%`, width: `${span.width}%` }}

@@ -178,7 +178,7 @@ export function FinancialReportsPage() {
         below={
           <>
             <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
-              <PageTabsList>
+              <PageTabsList prefetch="tab">
                 {visible.map((k) => (
                   <PageTabsTrigger key={k} value={k} className="first:ps-0">{TAB_LABEL[k]}</PageTabsTrigger>
                 ))}
@@ -188,6 +188,7 @@ export function FinancialReportsPage() {
               <SegmentedControl<InventoryScope>
                 value={invScope}
                 onChange={setInvScope}
+                prefetch="inv"
                 options={[
                   { value: "branch", label: t("inventory.reports.branch", "This branch") },
                   { value: "org", label: t("inventory.reports.org", "Whole organization") },

@@ -36,7 +36,12 @@ const uiPaths = [
     message: 'Mount <Toaster> from @/components/ui/sonner (dashboard) or <PublicToaster> (public bundles); call toast() from sonner anywhere.',
   },
 ]
-const appPaths = [...motionPaths, ...uiPaths]
+// Dashboard links warm their destination's data on intent (lib/prefetch). The
+// public bundles have their own routers and no registry: they keep the router's.
+const LINK_MSG = 'Import Link from @/components/app/link: it prefetches the destination page\'s data on intent (lib/prefetch/intent.ts).'
+const linkPaths = [{ name: '@tanstack/react-router', importNames: ['Link'], message: LINK_MSG }]
+const publicPaths = [...motionPaths, ...uiPaths]
+const appPaths = [...publicPaths, ...linkPaths]
 // A slash in the middle anchors these to the package, never to @/lib/motion.
 const motionImports = [
   { group: ['gsap/*'], message: GSAP_MSG },
@@ -106,6 +111,13 @@ export default [
       'no-restricted-imports': ['error', { paths: appPaths, patterns: motionImports }],
     },
   },
+  // The wrapper itself, and the order bundle's tracking page.
+  {
+    files: ['src/components/app/link.tsx', 'src/features/order-tracking/**', 'src/loyalty/**'],
+    rules: {
+      'no-restricted-imports': ['error', { paths: publicPaths, patterns: motionImports }],
+    },
+  },
   // The wrappers themselves.
   {
     files: ['src/components/ui/**', 'src/features/public-shell/public-toaster.tsx'],
@@ -124,7 +136,7 @@ export default [
       'no-restricted-imports': [
         'error',
         {
-          paths: appPaths,
+          paths: publicPaths,
           patterns: [
             ...motionImports,
             {
@@ -143,7 +155,7 @@ export default [
       'no-restricted-imports': [
         'error',
         {
-          paths: appPaths,
+          paths: publicPaths,
           patterns: [
             ...motionImports,
             {

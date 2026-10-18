@@ -14,6 +14,7 @@ import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
+import { intent } from "@/lib/prefetch/intent";
 import type { FloorTable } from "@/data/api/generated/models";
 import { queryClient } from "@/data/api/query";
 import { tableHistoryQueryOptions } from "./table-history";
@@ -274,12 +275,16 @@ export function FloorCanvas({
         const occupant = occupants.get(tb.id) ?? null;
         const reservation = reservations?.get(tb.id) ?? null;
         const isSelected = selection.has(tb.id);
+        const history = intent(`table-history:${tb.id}`, () => void queryClient.prefetchQuery(tableHistoryQueryOptions(tb.id)));
         return (
           <g
             key={tb.id}
-            onPointerDown={(e) => onPointerDownTable(e, tb)}
-            // Selecting a table opens its history in the inspector: warm it on hover.
-            onPointerEnter={() => void queryClient.prefetchQuery(tableHistoryQueryOptions(tb.id))}
+            // Selecting a table opens its history in the inspector: warm it on intent.
+            {...history}
+            onPointerDown={(e) => {
+              onPointerDownTable(e, tb);
+              history.onPointerDown(e);
+            }}
           >
             <title>
               {`${tb.label} · ${tb.seats} ${t("floor.seatsShort", "seats")}${occupant ? ` · ${occupant}` : reservation ? ` · ${reservation.label}` : ""}`}

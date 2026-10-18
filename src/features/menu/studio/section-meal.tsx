@@ -10,7 +10,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/app/link";
 import { ArrowRight, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 

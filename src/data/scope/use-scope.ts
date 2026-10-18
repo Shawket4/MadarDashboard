@@ -3,7 +3,7 @@ import { APP_TZ } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
 import { DEFAULT_PRESET, rangeForPreset, type ScopePreset } from "./presets";
 
-interface ScopeSearch {
+export interface ScopeSearch {
   branchId?: string;
   preset?: ScopePreset;
   from?: string;
@@ -40,20 +40,12 @@ export interface Scope {
 }
 
 /**
- * The single source of truth for branch + period scope: validated URL search
- * params on the `/_app` route. Every scoped page reads this, so a link always
- * opens the exact same view. Branch selection also feeds the X-Branch header
- * synchronously (via the app store) so the next request carries it.
+ * The scope a URL search names, in the zone `tz`: what `useScope` reads on the
+ * page, and what an intent prefetch reads off a link's destination (so the
+ * warmed keys are the ones the page will ask for).
  */
-export function useScope(): Scope {
-  const search = useSearch({ strict: false }) as ScopeSearch;
-  const navigate = useNavigate();
-
+export function scopeFromSearch(search: ScopeSearch, tz: string): { branchId: string | null; preset: ScopePreset; from: string; to: string } {
   const urlPreset: ScopePreset = search.preset ?? DEFAULT_PRESET;
-  const branchId = search.branchId ?? null;
-  // Subscribe to the resolved branch/org timezone so preset day-boundaries are
-  // recomputed when the scope (and thus its zone) changes.
-  const tz = useAppStore((s) => s.activeTimezone) || APP_TZ;
   // "Custom" is only a period while it carries its dates, and it can arrive
   // without them: the last-used preset is persisted, the hand-picked range is
   // not, so a bare-URL entry replays `custom` with nothing to resolve. A null
@@ -71,6 +63,24 @@ export function useScope(): Scope {
   const preset: ScopePreset = custom ? "custom" : namedPreset;
   const range = custom ?? rangeForPreset(namedPreset, tz);
 
+  return { branchId: search.branchId ?? null, preset, from: range.from, to: range.to };
+}
+
+/**
+ * The single source of truth for branch + period scope: validated URL search
+ * params on the `/_app` route. Every scoped page reads this, so a link always
+ * opens the exact same view. Branch selection also feeds the X-Branch header
+ * synchronously (via the app store) so the next request carries it.
+ */
+export function useScope(): Scope {
+  const search = useSearch({ strict: false }) as ScopeSearch;
+  const navigate = useNavigate();
+
+  // Subscribe to the resolved branch/org timezone so preset day-boundaries are
+  // recomputed when the scope (and thus its zone) changes.
+  const tz = useAppStore((s) => s.activeTimezone) || APP_TZ;
+  const { branchId, preset, from, to } = scopeFromSearch(search, tz);
+
   const update = (patch: Partial<ScopeSearch>) =>
     void navigate({ to: ".", replace: true, search: (prev: Record<string, unknown>) => ({ ...prev, ...patch }) });
 
@@ -79,8 +89,8 @@ export function useScope(): Scope {
     scopeBranchId: branchId ?? ALL_BRANCHES_ID,
     isAllBranches: branchId === null,
     preset,
-    from: range.from,
-    to: range.to,
+    from,
+    to,
     setBranch: (id) => {
       useAppStore.getState().setSelectedBranch(id);
       update({ branchId: id ?? undefined });
