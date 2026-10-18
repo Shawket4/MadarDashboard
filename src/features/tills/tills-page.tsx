@@ -109,7 +109,8 @@ export function TillsPage() {
   // pages: `?page=` is the server's page, never a slice of a full download.
   const tills = useListTills(scopeBranchId, tillsListParams(search));
   // The Flagged KPI counts every page under the filters (the response's total).
-  const flagged = useListTills(scopeBranchId, tillsFlaggedParams(search));
+  // Only a branch shows KPIs; "All branches" never reads the count.
+  const flagged = useListTills(branchId ? scopeBranchId : null, tillsFlaggedParams(search));
   // The teller/device menus: the latest tills, not the page on screen.
   const recent = useListTills(scopeBranchId, tillsOptionsParams());
   const page = search.page ?? 1;

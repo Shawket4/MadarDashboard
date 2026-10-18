@@ -43,13 +43,23 @@ describe("tills list params", () => {
 });
 
 describe("prefetchTills", () => {
-  it("warms page 1, the flagged count and the filter menus with the page's own keys", () => {
-    const qc = new QueryClient();
-    const spy = vi.spyOn(qc, "prefetchQuery").mockResolvedValue(undefined);
-    prefetchTills(qc, { orgId: "o1", branchId: null, from: null, to: null, preset: "today" });
-    const warmed = spy.mock.calls.map(([o]) => hashKey((o as { queryKey: readonly unknown[] }).queryKey));
+  it("warms page 1 and the filter menus with the page's own keys; the flagged count only at a branch", () => {
+    const warm = (branchId: string | null) => {
+      const qc = new QueryClient();
+      const spy = vi.spyOn(qc, "prefetchQuery").mockResolvedValue(undefined);
+      prefetchTills(qc, { orgId: "o1", branchId, from: null, to: null, preset: "today" });
+      return spy.mock.calls.map(([o]) => hashKey((o as { queryKey: readonly unknown[] }).queryKey));
+    };
+    // All branches: no KPIs, so the flagged count is never read.
+    const all = warm(null);
+    for (const params of [tillsListParams({}), tillsOptionsParams()]) {
+      expect(all).toContain(hashKey(getListTillsQueryKey(ALL_BRANCHES_ID, params)));
+    }
+    expect(all).not.toContain(hashKey(getListTillsQueryKey(ALL_BRANCHES_ID, tillsFlaggedParams({}))));
+    // A branch: the Flagged KPI too.
+    const one = warm("b1");
     for (const params of [tillsListParams({}), tillsFlaggedParams({}), tillsOptionsParams()]) {
-      expect(warmed).toContain(hashKey(getListTillsQueryKey(ALL_BRANCHES_ID, params)));
+      expect(one).toContain(hashKey(getListTillsQueryKey("b1", params)));
     }
   });
 });

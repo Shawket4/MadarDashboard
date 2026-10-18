@@ -96,7 +96,8 @@ export function prefetchTills(qc: QueryClient, { orgId, branchId }: PrefetchCtx)
     const scope = branchId ?? ALL_BRANCHES_ID;
     // Page 1, the Flagged KPI and the filter menus, with the page's exact keys.
     void qc.prefetchQuery(getListTillsQueryOptions(scope, tillsListParams({})));
-    void qc.prefetchQuery(getListTillsQueryOptions(scope, tillsFlaggedParams({})));
+    // The Flagged KPI shows only at a branch.
+    if (branchId) void qc.prefetchQuery(getListTillsQueryOptions(scope, tillsFlaggedParams({})));
     void qc.prefetchQuery(getListTillsQueryOptions(scope, tillsOptionsParams()));
   }
 }
