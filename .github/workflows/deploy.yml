@@ -27,6 +27,8 @@ jobs:
       # they name (src/lib/*.source.json).
       - name: Shared vectors match madar-shared
         run: scripts/check-shared-vectors.sh
+        env:
+          MADAR_SHARED_TOKEN: ${{ secrets.MADAR_SHARED_TOKEN }}
 
       - name: Build dashboard
         run: npm run build

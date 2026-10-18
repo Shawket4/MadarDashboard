@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 # The dashboard's copies of madar-shared vector files must be byte-identical to
 # the files at the tag they name (src/lib/*.source.json). Run by CI; needs
-# network. Locally, with a madar-shared checkout beside this one, the vitest
-# suite checks the same thing without it.
+# network (and MADAR_SHARED_TOKEN, since madar-shared is private). Locally, with
+# a madar-shared checkout beside this one, the vitest suite checks the same
+# thing without it.
 #
 # The vendored WebAssembly rules (src/lib/rules/wasm/*/) must be the bytes
 # their .source.json records (`npm run sync:rules` writes both). Offline.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# madar-shared is private: with MADAR_SHARED_TOKEN set (CI secret) the raw
+# fetch carries it; unset, the curl is the anonymous one it always was.
+auth=()
+if [ -n "${MADAR_SHARED_TOKEN:-}" ]; then auth=(-H "Authorization: Bearer $MADAR_SHARED_TOKEN"); fi
 status=0
 for src in src/lib/rules/wasm/*/.source.json; do
   dir=$(dirname "$src")
@@ -26,7 +31,7 @@ for src in src/lib/*.source.json; do
   tag=$(node -p "require('./$src').tag")
   path=$(node -p "require('./$src').path")
   url="https://raw.githubusercontent.com/$repo/$tag/$path"
-  if curl -fsSL "$url" | cmp -s - "$copy"; then
+  if curl -fsSL ${auth[@]+"${auth[@]}"} "$url" | cmp -s - "$copy"; then
     echo "ok       $copy = $repo@$tag:$path"
   else
     echo "DIFFERS  $copy vs $url" >&2

@@ -39,6 +39,8 @@ state (orders, table occupancy, shifts). Where both touch one entity, the split 
 explicit — see "Floor / tables" below. When you change a shared surface, check
 `/Users/magd/madar/packages/features/` for the POS half.
 
+**madar-shared is private.** CI authenticates with the `MADAR_SHARED_TOKEN` secret (the vector check in `scripts/check-shared-vectors.sh` fetches raw files with it); local builds need git credentials for github.com (`gh auth setup-git`). The release wasm and vectors are vendored, so no workflow runs cargo.
+
 ## Core Technology Stack
 - **Framework**: React 19, Vite, TypeScript
 - **Routing**: **TanStack Router** (file-based, `src/routes/`, generated

@@ -49,6 +49,8 @@ jobs:
 
       - name: Shared vectors match madar-shared (at their tags)
         run: scripts/check-shared-vectors.sh
+        env:
+          MADAR_SHARED_TOKEN: ${{ secrets.MADAR_SHARED_TOKEN }}
 
   site:
     name: Marketing site (build + verify in Chrome)
