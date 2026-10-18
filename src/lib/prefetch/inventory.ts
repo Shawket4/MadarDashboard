@@ -53,6 +53,8 @@ export const routes: RoutePrefetchMap = {
   "/inventory/counts": (qc, { orgId, branchId }) => {
     // The open count's editor keys on an id from this list, so it fetches on mount.
     if (orgId) void qc.prefetchQuery(getListStocktakesQueryOptions(branchId ?? ALL_BRANCHES_ID));
+    // The catalog it reads to mark archived ingredients.
+    if (orgId) void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
   },
   "/inventory/waste": (qc, { orgId, branchId, from, to }) => {
     if (!orgId) return;

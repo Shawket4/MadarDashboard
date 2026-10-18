@@ -12,6 +12,7 @@ import {
   getBranchTellerStatsQueryOptions,
   getBranchWaiterStatsQueryOptions,
   getOrgBranchComparisonQueryOptions,
+  getListMenuItemsQueryOptions,
 } from "@/data/api/generated/api";
 import type { Range } from "./analytics-page";
 import type { Granularity } from "./lib";
@@ -57,6 +58,8 @@ export function prefetchAnalyticsTab(
       void qc.prefetchQuery(getBranchAddonSalesQueryOptions(scopeBranchId, addonSalesParams(range)));
       // The Items table's revenue and categories: the Overview's own read.
       void qc.prefetchQuery(getBranchSalesQueryOptions(scopeBranchId, overviewParams(range, excludedItems)));
+      // Its Price range and thumbnails: the full menu list the app already caches.
+      if (orgId) void qc.prefetchQuery(getListMenuItemsQueryOptions({ org_id: orgId, full: true }));
       break;
     case "tellers":
       void qc.prefetchQuery(getBranchTellerStatsQueryOptions(scopeBranchId, tellerStatsParams(range)));
