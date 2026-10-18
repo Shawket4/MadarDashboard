@@ -11,6 +11,7 @@ import type { UseQueryResult } from "@tanstack/react-query";
 import {
   getGetTillReportQueryOptions,
   getListOpenTillsQueryOptions,
+  getListTillsQueryKey,
   useClosePreview,
   useCloseTill as useCloseTillMutation,
   useDeleteTill as useDeleteTillMutation,
@@ -39,6 +40,7 @@ import type {
   TillStatus,
   TillSpotView,
 } from "@/data/api/generated/models";
+import { keepWhilePaging } from "@/data/api/keep-while-paging";
 import { queryClient } from "@/data/api/query";
 
 export type ReconciliationLineStatus = "checked" | "disagreed" | "unreviewed";
@@ -73,9 +75,16 @@ export function cleanParams(p: ListTillsParams): ListTillsParams | undefined {
 
 const invalidateOnSuccess = { mutation: { onSuccess: () => void invalidateTills() } };
 
-/** T3: tills at a branch, filtered (status, teller, device, flagged, range). */
+/**
+ * T3: tills at a branch, filtered (status, teller, device, flagged, range) and
+ * paged by the server. While only `page` changes the previous page stays as
+ * placeholder (`keepWhilePaging`), so the count and page total hold steady.
+ */
 export function useListTills(branchId: string | null | undefined, params: ListTillsParams = {}) {
-  return useListTillsQuery(branchId ?? "", cleanParams(params), { query: { enabled: !!branchId } });
+  const clean = cleanParams(params);
+  return useListTillsQuery(branchId ?? "", clean, {
+    query: { enabled: !!branchId, placeholderData: keepWhilePaging(getListTillsQueryKey(branchId ?? "", clean)) },
+  });
 }
 
 /** T4: every open till at the branch, newest first. */

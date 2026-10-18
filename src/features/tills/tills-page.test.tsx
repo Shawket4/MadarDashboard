@@ -38,6 +38,30 @@ describe("TillsTable", () => {
   });
 });
 
+describe("TillsTable server paging", () => {
+  it("shows the server's page count and asks for the next page instead of slicing rows", async () => {
+    const onPage = vi.fn();
+    // One server page of 2 rows out of 3 pages: the table must not page them itself.
+    render(
+      <TillsTable
+        tills={[till({ id: "a" }), till({ id: "b" })]}
+        onOpenReport={() => {}}
+        paging={{ pageIndex: 0, pageCount: 3, onPageIndexChange: onPage }}
+      />,
+    );
+    expect(screen.getByText(/1.*3/, { selector: "p" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Next|التالي/ }));
+    expect(onPage).toHaveBeenCalledWith(1);
+  });
+
+  it("renders every row it is given on the current server page", () => {
+    const rows = Array.from({ length: 20 }, (_, i) => till({ id: `t${i}` }));
+    render(<TillsTable tills={rows} onOpenReport={() => {}} paging={{ pageIndex: 4, pageCount: 9, onPageIndexChange: () => {} }} />);
+    expect(screen.getAllByText("Mona Adel").length).toBeGreaterThanOrEqual(20);
+    expect(screen.getByText(/5.*9/, { selector: "p" })).toBeInTheDocument();
+  });
+});
+
 describe("TillFilters", () => {
   it("toggles the flagged filter", async () => {
     const onChange = vi.fn();
@@ -54,8 +78,15 @@ describe("TillFilters", () => {
       device: undefined,
       flagged: true,
       today: undefined,
+      page: undefined,
     });
     expect(validateTillsSearch({ status: "nope" }).status).toBeUndefined();
+  });
+
+  it("reads the server page from the URL; page 1 and junk are no page", () => {
+    expect(validateTillsSearch({ page: "3" }).page).toBe(3);
+    expect(validateTillsSearch({ page: 2 }).page).toBe(2);
+    for (const page of ["1", "0", "-2", "x", "1.5", undefined]) expect(validateTillsSearch({ page }).page).toBeUndefined();
   });
 });
 

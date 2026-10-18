@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { getListTillsQueryOptions, listTills } from "@/data/api/generated/api";
 import { queryClient } from "@/data/api/query";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAuthz } from "@/data/authz/use-authz";
@@ -29,6 +30,7 @@ import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { fmtDateTime, fmtDuration, fmtMoney, fmtMoneySigned } from "@/lib/format";
 
 import {
@@ -47,7 +49,16 @@ import { CloseTillDialog } from "./close-till-dialog";
 import { OpenTillDialog } from "./open-till-dialog";
 import { DisagreementBadge, FlagBadge, TillStatusBadge, VerificationBadge } from "./till-badges";
 import { TillReportSheet } from "./till-report-sheet";
-import { prefetchTillReport, tillsListParams, type TillsFilters } from "./queries";
+import {
+  TILLS_OPTIONS_WINDOW,
+  TILLS_PAGE_SIZE,
+  prefetchTillReport,
+  tillsExportParams,
+  tillsFlaggedParams,
+  tillsListParams,
+  tillsOptionsParams,
+  type TillsFilters,
+} from "./queries";
 import { intent } from "@/lib/prefetch/intent";
 
 export interface TillsSearch extends TillsFilters {
@@ -60,6 +71,7 @@ export function validateTillsSearch(s: Record<string, unknown>): TillsSearch {
   const str = (v: unknown) => (typeof v === "string" && v ? v : undefined);
   const bool = (v: unknown) => v === true || v === "true" || v === "1" || undefined;
   const status = str(s.status);
+  const page = Number(s.page);
   return {
     report: str(s.report),
     status: STATUSES.includes(status as TillStatus) ? (status as TillStatus) : undefined,
@@ -67,6 +79,7 @@ export function validateTillsSearch(s: Record<string, unknown>): TillsSearch {
     device: str(s.device),
     flagged: bool(s.flagged),
     today: bool(s.today),
+    page: Number.isInteger(page) && page > 1 ? page : undefined,
   };
 }
 
@@ -92,8 +105,27 @@ export function TillsPage() {
   const current = useTillPreFill(branchId);
   const openNow = useOpenTills(branchId);
   const billsNotice = useOpenBillsNotice(branchId);
-  // One builder for the page AND the sidebar prefetch (queries.ts).
+  // One builder for the page AND the sidebar prefetch (queries.ts). The server
+  // pages: `?page=` is the server's page, never a slice of a full download.
   const tills = useListTills(scopeBranchId, tillsListParams(search));
+  // The Flagged KPI counts every page under the filters (the response's total).
+  const flagged = useListTills(scopeBranchId, tillsFlaggedParams(search));
+  // The teller/device menus: the latest tills, not the page on screen.
+  const recent = useListTills(scopeBranchId, tillsOptionsParams());
+  const page = search.page ?? 1;
+  const totalPages = tills.data?.total_pages ?? 0;
+  // A filter change starts again at page 1; the report sheet keeps the page.
+  const setFilters = (patch: Partial<TillsSearch>) => setSearch({ ...patch, page: undefined });
+  const setPage = (p: number) => setSearch({ page: p > 1 ? p : undefined });
+  // A page past the end (tills deleted meanwhile): the last real page.
+  const pastEnd = !!tills.data && !tills.isPlaceholderData && page > 1 && page > totalPages;
+  useEffect(() => {
+    if (pastEnd) setSearch({ page: totalPages > 1 ? totalPages : undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pastEnd, totalPages]);
+  const prefetchNext = () => {
+    if (scopeBranchId && page < totalPages) void queryClient.prefetchQuery(getListTillsQueryOptions(scopeBranchId, tillsListParams({ ...search, page: page + 1 })));
+  };
 
   const forceClose = useForceCloseTill();
   const removeTill = useDeleteTill();
@@ -133,11 +165,13 @@ export function TillsPage() {
   };
 
   const rows = useMemo(() => tills.data?.data ?? [], [tills.data]);
-  // Teller/device filter options come from what the branch has actually seen.
-  const tellers = useMemo(() => uniqueBy(rows, (r) => r.teller_id, (r) => r.teller_name), [rows]);
+  // Teller/device filter options come from what the branch has actually seen
+  // lately, plus the page on screen (so a filtered teller always has a name).
+  const seen = useMemo(() => [...(recent.data?.data ?? []), ...rows], [recent.data, rows]);
+  const tellers = useMemo(() => uniqueBy(seen, (r) => r.teller_id, (r) => r.teller_name), [seen]);
   const devices = useMemo(
-    () => uniqueBy(rows.filter((r) => r.device_id), (r) => r.device_id!, (r) => r.device_label || r.device_code || "—"),
-    [rows],
+    () => uniqueBy(seen.filter((r) => r.device_id), (r) => r.device_id!, (r) => r.device_label || r.device_code || "—"),
+    [seen],
   );
 
   const handleExport = async () => {
@@ -154,10 +188,17 @@ export function TillsPage() {
     ];
     setExporting(true);
     try {
+      // Every till under the filters, not the page on screen.
+      // The endpoint pages by number at a fixed size, so the walk's offset is
+      // always a whole number of pages.
+      const all = await fetchAllPages<Till>(async (offset) => {
+        const res = await listTills(scopeBranchId, tillsExportParams(search, Math.floor(offset / TILLS_OPTIONS_WINDOW) + 1), EXPORT_REQUEST);
+        return { rows: res.data, total: res.total };
+      });
       await exportToExcel({
         filename: "Madar-Tills",
         logoUrl,
-        sheets: [{ name: t("nav.tills", "Tills"), title: t("nav.tills", "Tills"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],
+        sheets: [{ name: t("nav.tills", "Tills"), title: t("nav.tills", "Tills"), rows: all as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],
       });
     } catch (e) {
       toastExportError(e);
@@ -203,7 +244,7 @@ export function TillsPage() {
 
   const myOpen = branchId && current.data?.has_open_till ? current.data.open_till : null;
   const notice = billsNotice.data;
-  const flaggedCount = rows.filter((r) => r.opened_while_another_open || r.reconciliation_status === "disagreed").length;
+  const flaggedCount = flagged.data?.total ?? 0;
 
   const kpis: LedgerItem[] = [
     { key: "open", label: t("tills.openNow", "Open now"), value: openNow.data?.length ?? 0, icon: Clock, accent: openNow.data?.length ? "success" : "neutral", loading: !!branchId && openNow.isLoading },
@@ -223,7 +264,7 @@ export function TillsPage() {
       accent: notice?.old_bills_count ? "warning" : "neutral",
       loading: !!branchId && billsNotice.isLoading,
     },
-    { key: "flagged", label: t("tills.flaggedKpi", "Flagged in list"), value: flaggedCount, accent: flaggedCount ? "warning" : "neutral", loading: tills.isLoading },
+    { key: "flagged", label: t("tills.flaggedKpi", "Flagged in list"), value: flaggedCount, accent: flaggedCount ? "warning" : "neutral", loading: flagged.isLoading },
   ];
 
   return (
@@ -233,7 +274,7 @@ export function TillsPage() {
         subtitle={t("tills.subtitle", "Each teller's sales session and cash drawer")}
         actions={
           <>
-            <ExportButton onExport={handleExport} loading={exporting} disabled={!rows.length} />
+            <ExportButton onExport={handleExport} loading={exporting} disabled={!tills.data?.total} />
             {branchId && !myOpen ? (
               <Button onClick={() => setOpenDialog(true)}>
                 <PlusCircle className="size-4" />
@@ -242,7 +283,7 @@ export function TillsPage() {
             ) : null}
           </>
         }
-        below={<TillFilters search={search} tellers={tellers} devices={devices} onChange={setSearch} />}
+        below={<TillFilters search={search} tellers={tellers} devices={devices} onChange={setFilters} />}
       />
 
       {branchId ? <LedgerStrip items={kpis} /> : null}
@@ -253,12 +294,13 @@ export function TillsPage() {
         <SectionHeader title={t("tills.history", "All tills")} count={tills.data?.total ?? rows.length} />
         <TillsTable
           tills={rows}
-          loading={tills.isLoading}
+          loading={tills.isLoading || tills.isPlaceholderData}
           error={tills.error}
           onRetry={() => void tills.refetch()}
           showBranch={isAllBranches}
           onOpenReport={setReportId}
           renderActions={actions}
+          paging={{ pageIndex: page - 1, pageCount: totalPages, onPageIndexChange: (i) => setPage(i + 1), onPrefetchNext: prefetchNext }}
         />
       </section>
 
@@ -434,6 +476,7 @@ export function TillsTable({
   showBranch,
   onOpenReport,
   renderActions,
+  paging,
 }: {
   tills: Till[];
   loading?: boolean;
@@ -442,6 +485,8 @@ export function TillsTable({
   showBranch?: boolean;
   onOpenReport: (id: string) => void;
   renderActions?: (t: Till) => React.ReactNode;
+  /** The server's paging: `tills` is that one page. */
+  paging?: { pageIndex: number; pageCount: number; onPageIndexChange: (i: number) => void; onPrefetchNext?: () => void };
 }) {
   const { t } = useTranslation();
   const columns = useMemo<ColumnDef<Till>[]>(
@@ -526,7 +571,16 @@ export function TillsTable({
       getRowId={(s) => s.id}
       rowActions={renderActions}
       hideViewOptions
-      pageSize={20}
+      pageSize={TILLS_PAGE_SIZE}
+      {...(paging
+        ? {
+            manualPagination: true,
+            pageCount: paging.pageCount,
+            pagination: { pageIndex: paging.pageIndex, pageSize: TILLS_PAGE_SIZE },
+            onPaginationChange: (u) => paging.onPageIndexChange((typeof u === "function" ? u({ pageIndex: paging.pageIndex, pageSize: TILLS_PAGE_SIZE }) : u).pageIndex),
+            onPrefetchNext: paging.onPrefetchNext,
+          }
+        : {})}
       emptyState={
         <EmptyState
           icon={Clock}
