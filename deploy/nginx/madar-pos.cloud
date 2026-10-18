@@ -49,6 +49,45 @@ server {
         try_files $uri =404;
     }
 
+    # Same-origin API for the dashboard: no CORS preflight before each new URL.
+    # Mirrors the API vhost (api.madar-pos.cloud), which every till, the public
+    # bundles and older dashboards keep using. Host is the API's own, so the
+    # backend sees exactly what it sees there. The realtime stream needs nothing
+    # extra: the backend sends X-Accel-Buffering: no and a keepalive every 20 s.
+    # Uploads as on the API vhost: GET/HEAD are files; POST /uploads/... are the
+    # backend's image-upload routes and must reach it.
+    location ^~ /api/uploads/ {
+        error_page 418 = @dash_api_uploads;
+        if ($request_method !~ ^(GET|HEAD)$) { return 418; }
+        alias /opt/madar-rust/uploads/;
+        expires 30d; access_log off; try_files $uri @dash_api_uploads;
+    }
+    location @dash_api_uploads {
+        rewrite ^/api(/.*)$ $1 break;
+        proxy_pass http://madar_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host api.madar-pos.cloud;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 120s;
+    }
+    location ^~ /api/ {
+        proxy_pass http://madar_api/;          # trailing slash strips /api
+        proxy_http_version 1.1;
+        proxy_set_header Host api.madar-pos.cloud;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 60s;
+        gzip off;                              # the backend compresses
+        proxy_max_temp_file_size 0;
+    }
+
     # Short addresses: the marketing site's English pages, or the legal site.
     # No dashboard route is named like these (the app's /pricing is /menu/pricing).
     location ~ ^/(pricing|features|about|contact)/?$ {
@@ -112,6 +151,8 @@ server {
     error_log  /var/log/nginx/madar-pos.error.log;
 
     listen 443 ssl; # managed by Certbot
+
+    http2 on;
     listen 443 quic;
     add_header Alt-Svc 'h3=":443"; ma=86400' always;
     listen [::]:443 ssl ipv6only=on; # managed by Certbot

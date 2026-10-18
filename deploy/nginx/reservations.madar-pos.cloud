@@ -70,6 +70,8 @@ server {
     }
 
     listen 443 ssl; # managed by Certbot
+
+    http2 on;
     listen 443 quic;
     add_header Alt-Svc 'h3=":443"; ma=86400' always;
     listen [::]:443 ssl; # managed by Certbot
