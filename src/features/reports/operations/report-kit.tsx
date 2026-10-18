@@ -6,6 +6,9 @@
 //     <ChartGrid> <ChartCard>…           charts, two up on desktop, arriving in turn
 //       <ChartBody state={…}> chart       skeleton → error → empty → the chart
 //     <TableCard title … />               a titled card holding a DataTable
+//     <RankedTable … />                   a ranked leaderboard (./ranked-table):
+//                                         sortable figures, share bars, search,
+//                                         a category filter, top N + Show all
 //
 // Recharts stays in each tab (a chart's ResponsiveContainer must sit inside its
 // ChartCard in the same file: scripts/motion-check.mjs).

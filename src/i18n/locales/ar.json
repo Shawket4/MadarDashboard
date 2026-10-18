@@ -5866,7 +5866,29 @@
         "branches": "الفروع",
         "lowStock": "مخزون منخفض"
       },
-      "title": "العمليات"
+      "title": "العمليات",
+      "ranked": {
+        "rank": "الترتيب",
+        "item": "الصنف",
+        "addon": "الإضافة",
+        "sold": "المباع",
+        "revenue": "الإيرادات",
+        "shareOfUnits": "النسبة من الكمية",
+        "shareOfRevenue": "النسبة من الإيرادات",
+        "avgPrice": "متوسط السعر",
+        "type": "النوع",
+        "allTypes": "كل الأنواع",
+        "searchItems": "البحث في الأصناف",
+        "searchAddons": "البحث في الإضافات",
+        "sortBy": "الترتيب حسب {{column}}",
+        "showAll": "عرض الكل ({{count}})",
+        "showTop": "عرض أعلى {{count}}",
+        "showing": "{{shown}} من {{total}}",
+        "noMatch": "لا توجد نتائج مطابقة للبحث",
+        "itemsSummary": "عدد الأصناف: {{count}}، المباع: {{units}}",
+        "addonsSummary": "عدد الإضافات: {{count}}، الإيرادات: {{revenue}}",
+        "topNote": "أعلى {{count}} حسب الحجم، والنسب محسوبة منها."
+      }
     },
     "financial": {
       "title": "المالية",

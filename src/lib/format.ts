@@ -153,9 +153,9 @@ export const fmtNumberCompact = (n: number | null | undefined): string =>
     .format(n ?? 0)
     .replace(/-/g, MINUS);
 
-/** Percent with 1 decimal place */
-export const fmtPercent = (ratio: number): string =>
-  new Intl.NumberFormat(getLocale(), { style: "percent", maximumFractionDigits: 1, numberingSystem: "latn" })
+/** Percent with up to 1 decimal place (`minimumFractionDigits: 1` for a column that lines up). */
+export const fmtPercent = (ratio: number, opts?: { minimumFractionDigits?: 0 | 1 }): string =>
+  new Intl.NumberFormat(getLocale(), { style: "percent", maximumFractionDigits: 1, numberingSystem: "latn", ...opts })
     .format(ratio)
     .replace(/-/g, MINUS);
 

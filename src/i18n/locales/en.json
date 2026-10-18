@@ -5776,7 +5776,31 @@
         "branches": "Branches",
         "lowStock": "Low stock"
       },
-      "title": "Operations"
+      "title": "Operations",
+      "ranked": {
+        "rank": "Rank",
+        "item": "Item",
+        "addon": "Add-on",
+        "sold": "Sold",
+        "revenue": "Revenue",
+        "shareOfUnits": "Share of units",
+        "shareOfRevenue": "Share of revenue",
+        "avgPrice": "Avg. price",
+        "type": "Type",
+        "allTypes": "All types",
+        "searchItems": "Search items",
+        "searchAddons": "Search add-ons",
+        "sortBy": "Sort by {{column}}",
+        "showAll": "Show all {{count}}",
+        "showTop": "Show top {{count}}",
+        "showing": "{{shown}} of {{total}}",
+        "noMatch": "Nothing matches your search",
+        "itemsSummary": "{{count}} items, {{units}} sold",
+        "addonsSummary": "{{count}} add-ons, {{revenue}}",
+        "topNote": "The top {{count}} by volume; shares are of these.",
+        "itemsSummary_one": "{{count}} item, {{units}} sold",
+        "addonsSummary_one": "{{count}} add-on, {{revenue}}"
+      }
     },
     "financial": {
       "title": "Financial",

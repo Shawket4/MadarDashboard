@@ -49,6 +49,20 @@ export function fade(duration: number = DURATION.base): Recipe {
   };
 }
 
+/**
+ * A bar growing to its length along the reading direction (a share bar in a
+ * table). The bar sets its own `transform-origin` at its inline start, so the
+ * same recipe grows rightwards in English and leftwards in Arabic. Under
+ * reduced motion the hooks skip it and the bar is drawn at its length.
+ */
+export function grow(duration: number = DURATION.slow): Recipe {
+  return {
+    from: { scaleX: 0 },
+    to: { scaleX: 1, duration: sec(duration), ease: EASE_NAME.out },
+    exit: { opacity: 0, duration: sec(DURATION.fast), ease: EASE_NAME.in },
+  };
+}
+
 /** A centred dialog. */
 export const dialog: Recipe = {
   from: { opacity: 0, scale: SCALE.overlay, y: DISTANCE.xs },

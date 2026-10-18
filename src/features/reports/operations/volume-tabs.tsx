@@ -1,7 +1,8 @@
 // Operations ▸ Items, Tellers, Waiters and Branches: who and what moved the
 // volume. Laid out like the Overview (report-kit): a chart card, then the
-// detail table in a titled card.
-import { useMemo, type ReactNode } from "react";
+// detail table in a titled card. Items ranks items and add-ons in
+// RankedTable (./ranked-table), the kit's ranked table.
+import { useCallback, useMemo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -14,12 +15,15 @@ import {
   useBranchAddonSales, useBranchCombinedItemSales, useBranchTellerStats, useBranchWaiterStats,
   useOrgBranchComparison,
 } from "@/data/api/generated/api";
+import type { AddonSalesRow, CombinedItemSalesRow } from "@/data/api/generated/models";
 import { type Range, tName } from "@/features/analytics/lib";
 import { addonSalesParams, itemSalesParams, tellerStatsParams } from "@/features/analytics/queries";
 import {
-  CHART_GRID, CHART_GRID_VERTICAL, ChartBody, ChartFrame, ChartGrid, MAX_BAR_SIZE, ReportStack, TableCard,
+  CHART_GRID, CHART_GRID_VERTICAL, ChartBody, ChartFrame, MAX_BAR_SIZE, ReportStack, TableCard,
   type ChartState,
 } from "./report-kit";
+import { RankedTable, type RankedColumn } from "./ranked-table";
+import { avgPrice, fmtAvgPrice, fmtCount, humanizeType, shareOf } from "./ranked-table-util";
 
 /** Revenue ranked by person, top ten, as horizontal bars (names read along the axis). */
 function RevenueByNameCard({ title, rows, state }: { title: ReactNode; rows: { name: string; revenue: number }[]; state: ChartState }) {
@@ -44,35 +48,101 @@ function RevenueByNameCard({ title, rows, state }: { title: ReactNode; rows: { n
 }
 
 // ── Items ────────────────────────────────────────────────────────────────────
+/** The most rows the items and add-ons queries return (analytics/queries.ts). */
+const ITEMS_LIMIT = itemSalesParams({}).limit;
+const ADDONS_LIMIT = addonSalesParams({}).limit;
+
+type ItemRow = CombinedItemSalesRow;
+type AddonRow = AddonSalesRow;
+
+/** Every name a row goes by, so a search in either language finds it. */
+const namesOf = (name: string, translations: unknown): string[] => [
+  name,
+  ...Object.values((translations ?? {}) as Record<string, unknown>).filter((v): v is string => typeof v === "string"),
+];
+
 export function ItemsTab({ branchId, range }: { branchId: string; range: Range }) {
   const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const items = useBranchCombinedItemSales(branchId, itemSalesParams(range), { query: { enabled: !!branchId } });
   const addons = useBranchAddonSales(branchId, addonSalesParams(range), { query: { enabled: !!branchId } });
-  const rows = useMemo(() => items.data ?? [], [items.data]);
-  const itemCols = useMemo<ColumnDef<NonNullable<typeof items.data>[number]>[]>(() => [
-    { id: "name", header: t("common.name", "Name"), meta: { label: t("common.name", "Name"), phone: "title" }, cell: ({ row: { original: r } }) => <span className="font-medium">{tName(r.item_name, r.item_name_translations, i18n.language)}</span> },
-    { id: "total", header: t("analytics.totalSold", "Total sold"), meta: { label: t("analytics.totalSold", "Total sold"), numeric: true }, cell: ({ row: { original: r } }) => <span className="font-semibold">{fmtNumber(r.total_qty)}</span> },
-  ], [t, i18n.language]);
-  const addonCols = useMemo<ColumnDef<NonNullable<typeof addons.data>[number]>[]>(() => [
-    { id: "name", header: t("common.name", "Name"), meta: { label: t("common.name", "Name"), phone: "title" }, cell: ({ row: { original: r } }) => <span className="font-medium">{tName(r.addon_name, r.addon_name_translations, i18n.language)}</span> },
-    { id: "sold", header: t("analytics.sold", "sold"), meta: { label: t("analytics.sold", "sold"), numeric: true }, cell: ({ row: { original: r } }) => fmtNumber(r.quantity_sold) },
-    { id: "revenue", header: t("dashboard.revenue", "Revenue"), meta: { label: t("dashboard.revenue", "Revenue"), numeric: true }, cell: ({ row: { original: r } }) => <span className="font-semibold">{fmtMoney(r.revenue)}</span> },
-  ], [t, i18n.language]);
+  const itemRows = useMemo(() => items.data ?? [], [items.data]);
+  const addonRows = useMemo(() => addons.data ?? [], [addons.data]);
+
+  // Shares are of what the period's list holds (the queries return a top N).
+  const totalUnits = useMemo(() => itemRows.reduce((s, r) => s + r.total_qty, 0), [itemRows]);
+  const addonRevenue = useMemo(() => addonRows.reduce((s, r) => s + r.revenue, 0), [addonRows]);
+
+  // The item sales query carries no revenue, category, picture or previous
+  // period: the items table ranks by units sold, and its share is of units.
+  const itemColumns = useMemo<RankedColumn<ItemRow>[]>(() => [
+    { id: "qty", header: t("reports.operations.ranked.sold", "Sold"), sortValue: (r) => r.total_qty, cell: (r) => fmtCount(r.total_qty), strong: true, phoneOrder: 1 },
+    { id: "share", header: t("reports.operations.ranked.shareOfUnits", "Share of units"), share: (r) => shareOf(r.total_qty, totalUnits), phoneOrder: 2 },
+  ], [t, totalUnits]);
+
+  const addonColumns = useMemo<RankedColumn<AddonRow>[]>(() => [
+    { id: "qty", header: t("reports.operations.ranked.sold", "Sold"), sortValue: (r) => r.quantity_sold, cell: (r) => fmtCount(r.quantity_sold), phoneOrder: 3 },
+    { id: "revenue", header: t("reports.operations.ranked.revenue", "Revenue"), sortValue: (r) => r.revenue, cell: (r) => fmtMoney(r.revenue), strong: true, phoneOrder: 1 },
+    { id: "share", header: t("reports.operations.ranked.shareOfRevenue", "Share of revenue"), share: (r) => shareOf(r.revenue, addonRevenue), phoneOrder: 2 },
+    { id: "avg", header: t("reports.operations.ranked.avgPrice", "Avg. price"), sortValue: (r) => avgPrice(r.revenue, r.quantity_sold), cell: (r) => fmtAvgPrice(r.revenue, r.quantity_sold), phoneOrder: 4 },
+  ], [t, addonRevenue]);
+
+  const typeLabel = useCallback(
+    (type: string) => t(`menu.addonTypes.${type}`, { defaultValue: humanizeType(type) }),
+    [t],
+  );
+  const addonCategory = useMemo(() => ({
+    label: t("reports.operations.ranked.type", "Type"),
+    allLabel: t("reports.operations.ranked.allTypes", "All types"),
+    of: (r: AddonRow) => r.addon_type,
+    labelOf: typeLabel,
+  }), [t, typeLabel]);
+
+  const itemId = useCallback((r: ItemRow) => r.item_id, []);
+  const addonId = useCallback((r: AddonRow) => r.addon_item_id, []);
+  const byUnits = useCallback((r: ItemRow) => r.total_qty, []);
+  const byRevenue = useCallback((r: AddonRow) => r.revenue, []);
 
   return (
     <ReportStack>
-      <ChartGrid>
-        <TableCard
-          title={t("analytics.tabs.items", "Items")}
-          columns={itemCols} data={rows} getRowId={(r) => r.item_id} pageSize={50}
-          loading={items.isLoading} error={items.isError} onRetry={() => void items.refetch()}
-        />
-        <TableCard
-          title={t("analytics.addonSales", "Addon Sales")}
-          columns={addonCols} data={addons.data ?? []} getRowId={(r) => r.addon_item_id}
-          loading={addons.isLoading} error={addons.isError} onRetry={() => void addons.refetch()}
-        />
-      </ChartGrid>
+      <RankedTable
+        title={t("analytics.tabs.items", "Items")}
+        description={itemRows.length > 0 ? t("reports.operations.ranked.itemsSummary", "{{count}} items, {{units}} sold", { count: itemRows.length, units: fmtCount(totalUnits) }) : undefined}
+        rows={itemRows}
+        getRowId={itemId}
+        rankMetric={byUnits}
+        item={{
+          header: t("reports.operations.ranked.item", "Item"),
+          name: (r) => tName(r.item_name, r.item_name_translations, lang),
+          alsoMatches: (r) => namesOf(r.item_name, r.item_name_translations),
+        }}
+        columns={itemColumns}
+        searchPlaceholder={t("reports.operations.ranked.searchItems", "Search items")}
+        loading={items.isLoading}
+        error={items.isError}
+        onRetry={() => void items.refetch()}
+        footnote={itemRows.length >= ITEMS_LIMIT ? t("reports.operations.ranked.topNote", "The top {{count}} by volume; shares are of these.", { count: ITEMS_LIMIT }) : undefined}
+      />
+      <RankedTable
+        title={t("analytics.addonSales", "Addon Sales")}
+        description={addonRows.length > 0 ? t("reports.operations.ranked.addonsSummary", "{{count}} add-ons, {{revenue}}", { count: addonRows.length, revenue: fmtMoney(addonRevenue) }) : undefined}
+        rows={addonRows}
+        getRowId={addonId}
+        rankMetric={byRevenue}
+        item={{
+          header: t("reports.operations.ranked.addon", "Add-on"),
+          name: (r) => tName(r.addon_name, r.addon_name_translations, lang),
+          alsoMatches: (r) => namesOf(r.addon_name, r.addon_name_translations),
+          sub: (r) => typeLabel(r.addon_type),
+        }}
+        columns={addonColumns}
+        category={addonCategory}
+        searchPlaceholder={t("reports.operations.ranked.searchAddons", "Search add-ons")}
+        loading={addons.isLoading}
+        error={addons.isError}
+        onRetry={() => void addons.refetch()}
+        footnote={addonRows.length >= ADDONS_LIMIT ? t("reports.operations.ranked.topNote", "The top {{count}} by volume; shares are of these.", { count: ADDONS_LIMIT }) : undefined}
+      />
     </ReportStack>
   );
 }

@@ -108,6 +108,8 @@ function transformOf(v: TweenVars): string {
   if (num(v.xPercent) || num(v.yPercent)) parts.push(`translate(${num(v.xPercent)}%, ${num(v.yPercent)}%)`);
   if (num(v.x) || num(v.y)) parts.push(`translate(${num(v.x)}px, ${num(v.y)}px)`);
   if (v.scale !== undefined && num(v.scale) !== 1) parts.push(`scale(${num(v.scale)})`);
+  if (v.scaleX !== undefined && num(v.scaleX) !== 1) parts.push(`scaleX(${num(v.scaleX)})`);
+  if (v.scaleY !== undefined && num(v.scaleY) !== 1) parts.push(`scaleY(${num(v.scaleY)})`);
   return parts.join(" ") || "none";
 }
 
