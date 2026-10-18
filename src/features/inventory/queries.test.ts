@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { hashKey, QueryClient } from "@tanstack/react-query";
 
-import {
-  getListPurchaseLastPricesQueryKey, getListPurchaseOrdersQueryKey, getListTransfersQueryKey, getReorderSuggestionsQueryKey,
-} from "@/data/api/generated/api";
+import { getListPurchaseLastPricesQueryKey, getListPurchaseOrdersQueryKey, getListTransfersQueryKey, getReorderSuggestionsQueryKey } from "@/data/api/generated/api";
 import { withDefaults } from "@/data/scope/list-search";
 import { ALL_BRANCHES_ID } from "@/data/scope/use-scope";
 import { lastPricesParams, prefetchPurchasing, prefetchTransfers, purchaseOrdersParams, purchasingTab, transfersListParams } from "./queries";
@@ -42,7 +40,7 @@ describe("inventory query params", () => {
     expect(keys).toContain(hashKey(getListPurchaseOrdersQueryKey(ALL_BRANCHES_ID, { status: undefined })));
     expect(keys).toContain(hashKey(getListTransfersQueryKey(ALL_BRANCHES_ID, { direction: undefined, status: undefined })));
     expect(keys).not.toContain(hashKey(getReorderSuggestionsQueryKey("b1")));
-    // The new-PO dialog's last prices, as it asks for them with no supplier picked.
-    expect(keys).toContain(hashKey(getListPurchaseLastPricesQueryKey("org", lastPricesParams(null))));
+    // The new-PO dialog's last prices load when it opens: the page never reads them on mount.
+    expect(keys).not.toContain(hashKey(getListPurchaseLastPricesQueryKey("org", lastPricesParams(null))));
   });
 });

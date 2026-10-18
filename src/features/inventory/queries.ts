@@ -7,7 +7,6 @@ import {
   getBranchWasteReportQueryOptions,
   getListBranchesQueryOptions,
   getListCatalogQueryOptions,
-  getListPurchaseLastPricesQueryOptions,
   getListPurchaseOrdersQueryOptions,
   getListSuppliersQueryOptions,
   getListTransfersQueryOptions,
@@ -72,8 +71,6 @@ export function prefetchPurchasing(qc: QueryClient, { orgId, branchId, search }:
   const f = purchasingSearch.entryValues(branchId, search);
   void qc.prefetchQuery(getListSuppliersQueryOptions(orgId));
   void qc.prefetchQuery(getListCatalogQueryOptions(orgId));
-  // The new-PO dialog opens with no supplier: its last prices are ready.
-  void qc.prefetchQuery(getListPurchaseLastPricesQueryOptions(orgId, lastPricesParams(null)));
   void qc.prefetchQuery(getListPurchaseOrdersQueryOptions(branchId ?? ALL_BRANCHES_ID, purchaseOrdersParams(f)));
   if (branchId && purchasingTab(f, branchId) === "reorder") void qc.prefetchQuery(getReorderSuggestionsQueryOptions(branchId));
 }
