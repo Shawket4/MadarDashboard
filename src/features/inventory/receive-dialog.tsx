@@ -20,6 +20,8 @@ import { egpToPiastres, fmtDateTime, fmtMoney, fmtNumber, piastresToEgp } from "
 import type { GoodsReceipt } from "@/data/api/generated/models";
 import { useStagger } from "@/lib/motion";
 import { deliveryCost, formatUnitCost, invalidateInventory } from "./lib";
+import { ArchivedBadge, useArchivedIngredientIds } from "./archive";
+import { useOrgId } from "@/hooks/use-org-id";
 
 interface Props {
   poId: string | null;
@@ -30,6 +32,7 @@ interface Props {
 /** Receive a PO — supports partial multi-shipment (the PO stays open for the rest). */
 export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
   const { t } = useTranslation();
+  const archivedIds = useArchivedIngredientIds(useOrgId());
   const po = useGetPurchaseOrder(poId ?? "", { query: { enabled: open && !!poId } });
   // Data landing after the skeleton rows: the lines arrive (before anyone types in them).
   const linesRef = useRef<HTMLTableSectionElement>(null);
@@ -135,7 +138,9 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                       Number.isFinite(arriving) && arriving > 0 ? deliveryCost(arriving, null, null, l.line_cost, l.quantity_ordered) : null;
                     return (
                       <TableRow key={l.id}>
-                        <TableCell className="font-medium">{l.ingredient_name}</TableCell>
+                        <TableCell className="font-medium">
+                          <span className="flex flex-wrap items-center gap-2">{l.ingredient_name}{archivedIds.has(l.org_ingredient_id) ? <ArchivedBadge /> : null}</span>
+                        </TableCell>
                         <TableCell className="text-end font-mono tabular"><bdi>{fmtNumber(l.quantity_ordered)}</bdi> {l.purchase_unit}</TableCell>
                         <TableCell className="text-end font-mono tabular"><bdi>{fmtNumber(l.quantity_received)}</bdi></TableCell>
                         <TableCell className="text-end font-mono tabular"><bdi>{fmtNumber(remaining)}</bdi></TableCell>
@@ -191,7 +196,9 @@ export function ReceiveDialog({ poId, open, onOpenChange }: Props) {
                       <TableBody>
                         {r.lines.map((l) => (
                           <TableRow key={l.id}>
-                            <TableCell>{l.ingredient_name}</TableCell>
+                            <TableCell>
+                              <span className="flex flex-wrap items-center gap-2">{l.ingredient_name}{archivedIds.has(l.org_ingredient_id) ? <ArchivedBadge /> : null}</span>
+                            </TableCell>
                             <TableCell className="text-end font-mono tabular"><bdi>{fmtNumber(l.quantity, { signDisplay: "exceptZero" })}</bdi></TableCell>
                             <TableCell className="text-end font-mono tabular"><bdi>{l.line_cost != null ? fmtMoney(l.line_cost) : "—"}</bdi></TableCell>
                             <TableCell className="text-end font-mono tabular text-muted-foreground">

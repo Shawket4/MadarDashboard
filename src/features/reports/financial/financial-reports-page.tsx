@@ -79,7 +79,7 @@ export function FinancialReportsPage() {
   const branchVal = useBranchInventoryValuation(branchId ?? "", { query: { enabled: isInvBranch && onInv("valuation") && !!branchId } });
   const orgVal = useOrgInventoryValuation(orgId ?? "", { query: { enabled: !isInvBranch && onInv("valuation") && !!orgId } });
   const valuation = isInvBranch ? branchVal : orgVal;
-  const catalog = useListCatalog(orgId ?? "", { query: { enabled: onInv("valuation") && !!orgId } });
+  const catalog = useListCatalog(orgId ?? "", undefined, { query: { enabled: onInv("valuation") && !!orgId } });
 
   const branchSpend = useBranchSupplierSpend(branchId ?? "", range, { query: { enabled: isInvBranch && onInv("supplierSpend") && !!branchId } });
   const orgSpend = useOrgSupplierSpend(orgId ?? "", range, { query: { enabled: !isInvBranch && onInv("supplierSpend") && !!orgId } });

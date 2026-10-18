@@ -26,6 +26,7 @@ import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { WasteDialog } from "./waste-dialog";
 import { wasteReceivedLate, wasteSource, wasteWhen } from "./lib";
+import { ArchivedBadge } from "./archive";
 
 export function WastePage() {
   const { t } = useTranslation();
@@ -105,7 +106,10 @@ export function WastePage() {
           const fromItem = m.waste_subject_kind === "menu_item" && m.waste_subject_name;
           return (
             <span className="flex flex-col">
-              <span className="font-medium">{m.ingredient_name}</span>
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="font-medium">{m.ingredient_name}</span>
+                {m.ingredient_archived_at ? <ArchivedBadge /> : null}
+              </span>
               {fromItem ? (
                 <span className="text-xs text-muted-foreground">
                   {t("inventory.waste.fromItem", "From {{item}} × {{qty}}", {

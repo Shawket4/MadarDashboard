@@ -8,6 +8,8 @@ import { defineListSearch, param } from "@/data/scope/list-search";
 
 /** Ingredients: low/uncounted filter + the table's search, sort and page. */
 export const ingredientsSearch = defineListSearch("/inventory/ingredients", {
+  // Active ingredients, or the archived ones (archive.tsx).
+  view: param.enum(["active", "archived"] as const, "active"),
   filter: param.enum(["all", "low", "uncounted"] as const, "all"),
   q: param.string(),
   sort: param.sort(),

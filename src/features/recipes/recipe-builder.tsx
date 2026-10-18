@@ -15,6 +15,7 @@ import { BAND_STYLE, draftLineCost, draftRecipeCost, foodCostBand, recipeMargin 
 import { rules } from "@/lib/rules";
 import { Presence, useFlip, useShake } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { isPickable } from "@/features/inventory/archive";
 
 export interface RecipeRowInit {
   size_label: string;
@@ -97,10 +98,10 @@ export function RecipeBuilder({
   const dirty = form.formState.isDirty;
 
   const byId = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
-  const activeCatalog = useMemo(() => catalog.filter((c) => c.is_active), [catalog]);
+  // Archived/inactive ones stay (hidden) so a saved line keeps its name.
   const catalogOptions = useMemo(
-    () => activeCatalog.map((c) => ({ value: c.id, label: c.name, hint: t(`units.${c.unit}`, c.unit), keywords: c.category_name })),
-    [activeCatalog, t],
+    () => catalog.map((c) => ({ value: c.id, label: c.name, hint: t(`units.${c.unit}`, c.unit), keywords: c.category_name, hidden: !isPickable(c) })),
+    [catalog, t],
   );
   const draftLine = (r: BuilderRow) => ({
     ingredient: r.org_ingredient_id ? byId.get(r.org_ingredient_id) : undefined,

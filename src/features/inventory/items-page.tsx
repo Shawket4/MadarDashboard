@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Boxes, CircleDashed, PackagePlus } from "lucide-react";
+import { Archive, ArchiveRestore, Boxes, CircleDashed, PackagePlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Page, PageHeader } from "@/components/app/page";
@@ -32,8 +32,13 @@ import { ItemDrawer } from "./item-drawer";
 import { WasteDialog } from "./waste-dialog";
 import { invalidateInventory, isOpenStocktake } from "./lib";
 import { OnHand } from "./on-hand";
+import { ArchiveIngredientDialog, ArchivedBadge, unarchiveIngredient } from "./archive";
+import { RowAction } from "@/features/users/row-action";
+import { useCan } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 
 type Filter = "all" | "low" | "uncounted";
+type View = "active" | "archived";
 
 /** Ingredients: the org catalog, with this branch's book stock beside it. */
 export function ItemsPage() {
@@ -46,15 +51,19 @@ export function ItemsPage() {
   const filters = useListFilters(ingredientsSearch);
   const filter: Filter = filters.values.filter;
   const setFilter = (v: Filter) => filters.set({ filter: v });
+  const view: View = filters.values.view;
+  const setView = (v: View) => filters.set({ view: v });
+  const canEdit = useCan(Cap.inventoryAdjust);
+  const [archiveItem, setArchiveItem] = useState<OrgIngredient | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogItem, setDialogItem] = useState<OrgIngredient | null>(null);
   const [drawerItem, setDrawerItem] = useState<OrgIngredient | null>(null);
   const [wasteOpen, setWasteOpen] = useState(false);
   const [wastePreset, setWastePreset] = useState<string | null>(null);
 
-  const catalog = useListCatalog(orgId ?? "", { query: { enabled: !!orgId } });
+  const catalog = useListCatalog(orgId ?? "", undefined, { query: { enabled: !!orgId } });
   const branches = useListBranches({ org_id: orgId ?? "" }, { query: { enabled: !!orgId } });
-  const stock = useListBranchStock(branchId ?? "", { query: { enabled: !!branchId } });
+  const stock = useListBranchStock(branchId ?? "", undefined, { query: { enabled: !!branchId } });
   const stocktakes = useListStocktakes(branchId ?? "", { query: { enabled: !!branchId } });
 
   const logoUrl = useExportLogo();
@@ -67,11 +76,12 @@ export function ItemsPage() {
   }, [stock.data]);
 
   const rows = useMemo(() => {
-    let items = catalog.data ?? [];
+    let items = (catalog.data ?? []).filter((it) => (view === "archived") === !!it.archived_at);
+    if (view === "archived") return items;
     if (branchId && filter === "low") items = items.filter((it) => stockByIngredient.get(it.id)?.below_par);
     if (branchId && filter === "uncounted") items = items.filter((it) => !stockByIngredient.get(it.id)?.last_counted_at);
     return items;
-  }, [catalog.data, branchId, filter, stockByIngredient]);
+  }, [catalog.data, branchId, filter, stockByIngredient, view]);
 
   const drawerRow = drawerItem ? stockByIngredient.get(drawerItem.id) ?? null : null;
   const activeBranches = useMemo(() => (branches.data ?? []).filter((b) => b.is_active), [branches.data]);
@@ -97,7 +107,12 @@ export function ItemsPage() {
 
   const columns = useMemo<ColumnDef<OrgIngredient>[]>(() => {
     const base: ColumnDef<OrgIngredient>[] = [
-      { accessorKey: "name", header: t("inventory.catalog.name", "Name"), meta: { label: t("inventory.catalog.name", "Name"), phone: "title" }, cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+      { accessorKey: "name", header: t("inventory.catalog.name", "Name"), meta: { label: t("inventory.catalog.name", "Name"), phone: "title" }, cell: ({ row }) => (
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="font-medium">{row.original.name}</span>
+          {row.original.archived_at ? <ArchivedBadge /> : null}
+        </span>
+      ) },
       {
         accessorKey: "category_name",
         header: t("inventory.catalog.category", "Category"),
@@ -215,17 +230,27 @@ export function ItemsPage() {
           </>
         }
         below={
-          branchId ? (
-            <SegmentedControl<Filter>
-              value={filter}
-              onChange={setFilter}
+          <div className="flex flex-wrap items-center gap-2">
+            <SegmentedControl<View>
+              value={view}
+              onChange={setView}
               options={[
-                { value: "all", label: t("common.all", "All") },
-                { value: "low", label: t("inventory.reports.lowStock", "Low stock") },
-                { value: "uncounted", label: t("inventory.stock.neverCounted", "Never counted") },
+                { value: "active", label: t("inventory.archive.active", "Active") },
+                { value: "archived", label: t("inventory.archive.archivedTab", "Archived") },
               ]}
             />
-          ) : undefined
+            {branchId && view === "active" ? (
+              <SegmentedControl<Filter>
+                value={filter}
+                onChange={setFilter}
+                options={[
+                  { value: "all", label: t("common.all", "All") },
+                  { value: "low", label: t("inventory.reports.lowStock", "Low stock") },
+                  { value: "uncounted", label: t("inventory.stock.neverCounted", "Never counted") },
+                ]}
+              />
+            ) : null}
+          </div>
         }
       />
 
@@ -237,11 +262,24 @@ export function ItemsPage() {
         onRetry={() => void catalog.refetch()}
         getRowId={(it) => it.id}
         onRowClick={(it) => setDrawerItem(it)}
+        rowActions={canEdit ? (it) => it.archived_at ? (
+          <RowAction label={t("inventory.archive.unarchive", "Unarchive")} onClick={() => void unarchiveIngredient(orgId, it, t)}>
+            <ArchiveRestore className="size-4" />
+          </RowAction>
+        ) : (
+          <RowAction label={t("inventory.archive.action", "Archive")} onClick={() => setArchiveItem(it)}>
+            <Archive className="size-4" />
+          </RowAction>
+        ) : undefined}
         onRowPrefetch={(it) => { if (branchId) void queryClient.prefetchQuery(getListMovementsQueryOptions(branchId, itemMovementsParams(it.id))); }}
         searchPlaceholder={t("inventory.catalog.search", "Search ingredients")}
         urlState={tableStateFrom(filters)}
         toolbar={<ClearFiltersButton filters={filters} />}
-        emptyState={<EmptyState icon={Boxes} title={t("inventory.catalog.noItems", "No ingredients yet")} />}
+        emptyState={
+          view === "archived"
+            ? <EmptyState icon={Archive} title={t("inventory.archive.none", "No archived ingredients")} />
+            : <EmptyState icon={Boxes} title={t("inventory.catalog.noItems", "No ingredients yet")} />
+        }
       />
 
       <ItemDialog orgId={orgId} open={dialogOpen} onOpenChange={setDialogOpen} item={dialogItem} branches={activeBranches} />
@@ -255,6 +293,16 @@ export function ItemsPage() {
         onEdit={() => { if (drawerItem) { openEdit(drawerItem); setDrawerItem(null); } }}
         onLogWaste={() => { if (drawerItem) { setWastePreset(drawerItem.id); setWasteOpen(true); setDrawerItem(null); } }}
         onCount={() => { if (drawerItem) void countItem(drawerItem); }}
+        canArchive={canEdit}
+        onArchive={() => { if (drawerItem) { setArchiveItem(drawerItem); setDrawerItem(null); } }}
+        onUnarchive={() => { if (drawerItem) { const it = drawerItem; setDrawerItem(null); void unarchiveIngredient(orgId, it, t); } }}
+      />
+
+      <ArchiveIngredientDialog
+        orgId={orgId}
+        item={archiveItem}
+        open={!!archiveItem}
+        onOpenChange={(o) => !o && setArchiveItem(null)}
       />
 
       {branchId ? (

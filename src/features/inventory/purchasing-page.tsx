@@ -65,7 +65,7 @@ export function PurchasingPage() {
   const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
 
   const suppliers = useListSuppliers(orgId ?? "", { query: { enabled: !!orgId } });
-  const catalog = useListCatalog(orgId ?? "", { query: { enabled: !!orgId } });
+  const catalog = useListCatalog(orgId ?? "", undefined, { query: { enabled: !!orgId } });
   // Same params as the sidebar prefetch (./queries.ts).
   const orders = useListPurchaseOrders(scopeBranchId, purchaseOrdersParams(filters.values), { query: { enabled: !!scopeBranchId } });
   const reorder = useReorderSuggestions(branchId ?? "", { query: { enabled: tab === "reorder" && !!branchId } });

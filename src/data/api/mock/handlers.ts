@@ -536,7 +536,31 @@ export const handlers = [
 
   // ── Inventory ─────────────────────────────────────────────────────────────
   http.get("*/inventory/orgs/*/categories", () => HttpResponse.json(MOCK_INGREDIENT_CATEGORIES)),
-  http.get("*/inventory/orgs/*/catalog", () => HttpResponse.json(MOCK_INGREDIENT_CATALOG)),
+  http.get("*/inventory/orgs/*/catalog", ({ request }) => {
+    // `status`: active | archived | all (the default, what older builds read).
+    const status = new URL(request.url).searchParams.get("status");
+    const rows = MOCK_INGREDIENT_CATALOG as Array<{ archived_at?: string | null }>;
+    if (status === "active") return HttpResponse.json(rows.filter((r) => !r.archived_at));
+    if (status === "archived") return HttpResponse.json(rows.filter((r) => r.archived_at));
+    return HttpResponse.json(rows);
+  }),
+  http.get("*/inventory/orgs/*/catalog/:id/usage", ({ params }) => {
+    const ing = MOCK_INGREDIENT_CATALOG.find((i) => i.id === params.id);
+    return HttpResponse.json({
+      ingredient_id: params.id, name: ing?.name ?? "", unit: ing?.unit ?? "g", archived_at: null,
+      usages: [], stock: [], needs_confirmation: false, never_used: true,
+    });
+  }),
+  http.post("*/inventory/orgs/*/catalog/:id/archive", ({ params }) => {
+    const ing = MOCK_INGREDIENT_CATALOG.find((i) => i.id === params.id) as ({ archived_at?: string | null } | undefined);
+    if (ing) ing.archived_at = ing.archived_at ?? new Date().toISOString();
+    return HttpResponse.json(ing ?? {});
+  }),
+  http.post("*/inventory/orgs/*/catalog/:id/unarchive", ({ params }) => {
+    const ing = MOCK_INGREDIENT_CATALOG.find((i) => i.id === params.id) as ({ archived_at?: string | null } | undefined);
+    if (ing) ing.archived_at = null;
+    return HttpResponse.json(ing ?? {});
+  }),
   http.get("*/inventory/orgs/*/settings", () => HttpResponse.json(MOCK_INVENTORY_SETTINGS)),
   http.get("*/inventory/branches/*/stock", () => HttpResponse.json(MOCK_BRANCH_STOCK)),
   http.get("*/inventory/branches/*/waste", () => HttpResponse.json([])),

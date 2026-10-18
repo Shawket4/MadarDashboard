@@ -42,6 +42,7 @@ import type {
   AnalyticsOrdersParams,
   AnalyticsResponse,
   ApplyPackagingRulesResult,
+  ArchiveIngredientRequest,
   AskSwap,
   AssetJobView,
   AssignBranchRequest,
@@ -300,6 +301,7 @@ import type {
   HolidayDecision,
   HolidayView,
   IngredientCategory,
+  IngredientUsage,
   InventoryValuationReport,
   ItemOptionOut,
   ItemRouteInput,
@@ -332,7 +334,9 @@ import type {
   ListBookingsParams,
   ListBranchAddonOverridesParams,
   ListBranchMenuOverridesParams,
+  ListBranchStockParams,
   ListBranchesParams,
+  ListCatalogParams,
   ListCategoriesParams,
   ListChannelAddonOverridesParams,
   ListChannelOverridesParams,
@@ -12703,12 +12707,14 @@ export function useListMovements<TData = Awaited<ReturnType<typeof listMovements
 
 export const listBranchStock = (
     branchId: string,
+    params?: ListBranchStockParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<BranchStockRow[]>(
-      {url: `/inventory/branches/${branchId}/stock`, method: 'GET', signal
+      {url: `/inventory/branches/${branchId}/stock`, method: 'GET',
+        params, signal
     },
       options);
     }
@@ -12716,23 +12722,25 @@ export const listBranchStock = (
 
 
 
-export const getListBranchStockQueryKey = (branchId: string,) => {
+export const getListBranchStockQueryKey = (branchId: string,
+    params?: ListBranchStockParams,) => {
     return [
-    `/inventory/branches/${branchId}/stock`
+    `/inventory/branches/${branchId}/stock`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListBranchStockQueryOptions = <TData = Awaited<ReturnType<typeof listBranchStock>>, TError = ErrorBody>(branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchStock>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getListBranchStockQueryOptions = <TData = Awaited<ReturnType<typeof listBranchStock>>, TError = ErrorBody>(branchId: string,
+    params?: ListBranchStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchStock>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListBranchStockQueryKey(branchId);
+  const queryKey =  queryOptions?.queryKey ?? getListBranchStockQueryKey(branchId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBranchStock>>> = ({ signal }) => listBranchStock(branchId, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBranchStock>>> = ({ signal }) => listBranchStock(branchId,params, requestOptions, signal);
 
 
 
@@ -12746,7 +12754,8 @@ export type ListBranchStockQueryError = ErrorBody
 
 
 export function useListBranchStock<TData = Awaited<ReturnType<typeof listBranchStock>>, TError = ErrorBody>(
- branchId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchStock>>, TError, TData>> & Pick<
+ branchId: string,
+    params: undefined |  ListBranchStockParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchStock>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listBranchStock>>,
           TError,
@@ -12756,7 +12765,8 @@ export function useListBranchStock<TData = Awaited<ReturnType<typeof listBranchS
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListBranchStock<TData = Awaited<ReturnType<typeof listBranchStock>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchStock>>, TError, TData>> & Pick<
+ branchId: string,
+    params?: ListBranchStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchStock>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listBranchStock>>,
           TError,
@@ -12766,16 +12776,18 @@ export function useListBranchStock<TData = Awaited<ReturnType<typeof listBranchS
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListBranchStock<TData = Awaited<ReturnType<typeof listBranchStock>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchStock>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ branchId: string,
+    params?: ListBranchStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchStock>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListBranchStock<TData = Awaited<ReturnType<typeof listBranchStock>>, TError = ErrorBody>(
- branchId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchStock>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ branchId: string,
+    params?: ListBranchStockParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBranchStock>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListBranchStockQueryOptions(branchId,options)
+  const queryOptions = getListBranchStockQueryOptions(branchId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -13101,12 +13113,14 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 export const listCatalog = (
     orgId: string,
+    params?: ListCatalogParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
 
 
       return customInstance<OrgIngredient[]>(
-      {url: `/inventory/orgs/${orgId}/catalog`, method: 'GET', signal
+      {url: `/inventory/orgs/${orgId}/catalog`, method: 'GET',
+        params, signal
     },
       options);
     }
@@ -13114,23 +13128,25 @@ export const listCatalog = (
 
 
 
-export const getListCatalogQueryKey = (orgId: string,) => {
+export const getListCatalogQueryKey = (orgId: string,
+    params?: ListCatalogParams,) => {
     return [
-    `/inventory/orgs/${orgId}/catalog`
+    `/inventory/orgs/${orgId}/catalog`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListCatalogQueryOptions = <TData = Awaited<ReturnType<typeof listCatalog>>, TError = ErrorBody>(orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCatalog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getListCatalogQueryOptions = <TData = Awaited<ReturnType<typeof listCatalog>>, TError = ErrorBody>(orgId: string,
+    params?: ListCatalogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCatalog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListCatalogQueryKey(orgId);
+  const queryKey =  queryOptions?.queryKey ?? getListCatalogQueryKey(orgId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCatalog>>> = ({ signal }) => listCatalog(orgId, requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCatalog>>> = ({ signal }) => listCatalog(orgId,params, requestOptions, signal);
 
 
 
@@ -13144,7 +13160,8 @@ export type ListCatalogQueryError = ErrorBody
 
 
 export function useListCatalog<TData = Awaited<ReturnType<typeof listCatalog>>, TError = ErrorBody>(
- orgId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCatalog>>, TError, TData>> & Pick<
+ orgId: string,
+    params: undefined |  ListCatalogParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCatalog>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listCatalog>>,
           TError,
@@ -13154,7 +13171,8 @@ export function useListCatalog<TData = Awaited<ReturnType<typeof listCatalog>>, 
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListCatalog<TData = Awaited<ReturnType<typeof listCatalog>>, TError = ErrorBody>(
- orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCatalog>>, TError, TData>> & Pick<
+ orgId: string,
+    params?: ListCatalogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCatalog>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listCatalog>>,
           TError,
@@ -13164,16 +13182,18 @@ export function useListCatalog<TData = Awaited<ReturnType<typeof listCatalog>>, 
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListCatalog<TData = Awaited<ReturnType<typeof listCatalog>>, TError = ErrorBody>(
- orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCatalog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ orgId: string,
+    params?: ListCatalogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCatalog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useListCatalog<TData = Awaited<ReturnType<typeof listCatalog>>, TError = ErrorBody>(
- orgId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCatalog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ orgId: string,
+    params?: ListCatalogParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCatalog>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListCatalogQueryOptions(orgId,options)
+  const queryOptions = getListCatalogQueryOptions(orgId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -13364,6 +13384,239 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateCatalogItemMutationOptions(options), queryClient);
     }
+
+/**
+ * @summary Archive an ingredient: it leaves pickers, reorder suggestions and (once no
+branch holds stock) stock-count sheets. Nothing else changes: recipes that
+use it keep deducting and costing it, every till keeps it in its mirror,
+history keeps showing it, no movement is posted and no balance moves.
+ */
+export const archiveCatalogItem = (
+    orgId: string,
+    id: string,
+    nullArchiveIngredientRequest?: null | ArchiveIngredientRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrgIngredient>(
+      {url: `/inventory/orgs/${orgId}/catalog/${id}/archive`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: nullArchiveIngredientRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getArchiveCatalogItemMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveCatalogItem>>, TError,{orgId: string;id: string;data?: null | ArchiveIngredientRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof archiveCatalogItem>>, TError,{orgId: string;id: string;data?: null | ArchiveIngredientRequest}, TContext> => {
+
+const mutationKey = ['archiveCatalogItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof archiveCatalogItem>>, {orgId: string;id: string;data?: null | ArchiveIngredientRequest}> = (props) => {
+          const {orgId,id,data} = props ?? {};
+
+          return  archiveCatalogItem(orgId,id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ArchiveCatalogItemMutationResult = NonNullable<Awaited<ReturnType<typeof archiveCatalogItem>>>
+    export type ArchiveCatalogItemMutationBody = null | ArchiveIngredientRequest | undefined
+    export type ArchiveCatalogItemMutationError = ErrorBody
+
+    /**
+ * @summary Archive an ingredient: it leaves pickers, reorder suggestions and (once no
+branch holds stock) stock-count sheets. Nothing else changes: recipes that
+use it keep deducting and costing it, every till keeps it in its mirror,
+history keeps showing it, no movement is posted and no balance moves.
+ */
+export const useArchiveCatalogItem = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveCatalogItem>>, TError,{orgId: string;id: string;data?: null | ArchiveIngredientRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof archiveCatalogItem>>,
+        TError,
+        {orgId: string;id: string;data?: null | ArchiveIngredientRequest},
+        TContext
+      > => {
+      return useMutation(getArchiveCatalogItemMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Bring an archived ingredient back: pickers and counts list it again. Its
+name never left it, so this cannot conflict.
+ */
+export const unarchiveCatalogItem = (
+    orgId: string,
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<OrgIngredient>(
+      {url: `/inventory/orgs/${orgId}/catalog/${id}/unarchive`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getUnarchiveCatalogItemMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unarchiveCatalogItem>>, TError,{orgId: string;id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof unarchiveCatalogItem>>, TError,{orgId: string;id: string}, TContext> => {
+
+const mutationKey = ['unarchiveCatalogItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unarchiveCatalogItem>>, {orgId: string;id: string}> = (props) => {
+          const {orgId,id} = props ?? {};
+
+          return  unarchiveCatalogItem(orgId,id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnarchiveCatalogItemMutationResult = NonNullable<Awaited<ReturnType<typeof unarchiveCatalogItem>>>
+
+    export type UnarchiveCatalogItemMutationError = ErrorBody
+
+    /**
+ * @summary Bring an archived ingredient back: pickers and counts list it again. Its
+name never left it, so this cannot conflict.
+ */
+export const useUnarchiveCatalogItem = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unarchiveCatalogItem>>, TError,{orgId: string;id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unarchiveCatalogItem>>,
+        TError,
+        {orgId: string;id: string},
+        TContext
+      > => {
+      return useMutation(getUnarchiveCatalogItemMutationOptions(options), queryClient);
+    }
+
+export const getCatalogItemUsage = (
+    orgId: string,
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<IngredientUsage>(
+      {url: `/inventory/orgs/${orgId}/catalog/${id}/usage`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetCatalogItemUsageQueryKey = (orgId: string,
+    id: string,) => {
+    return [
+    `/inventory/orgs/${orgId}/catalog/${id}/usage`
+    ] as const;
+    }
+
+
+export const getGetCatalogItemUsageQueryOptions = <TData = Awaited<ReturnType<typeof getCatalogItemUsage>>, TError = ErrorBody>(orgId: string,
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCatalogItemUsage>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCatalogItemUsageQueryKey(orgId,id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCatalogItemUsage>>> = ({ signal }) => getCatalogItemUsage(orgId,id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: orgId !== null && orgId !== undefined && id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCatalogItemUsage>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetCatalogItemUsageQueryResult = NonNullable<Awaited<ReturnType<typeof getCatalogItemUsage>>>
+export type GetCatalogItemUsageQueryError = ErrorBody
+
+
+export function useGetCatalogItemUsage<TData = Awaited<ReturnType<typeof getCatalogItemUsage>>, TError = ErrorBody>(
+ orgId: string,
+    id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCatalogItemUsage>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCatalogItemUsage>>,
+          TError,
+          Awaited<ReturnType<typeof getCatalogItemUsage>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCatalogItemUsage<TData = Awaited<ReturnType<typeof getCatalogItemUsage>>, TError = ErrorBody>(
+ orgId: string,
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCatalogItemUsage>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCatalogItemUsage>>,
+          TError,
+          Awaited<ReturnType<typeof getCatalogItemUsage>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetCatalogItemUsage<TData = Awaited<ReturnType<typeof getCatalogItemUsage>>, TError = ErrorBody>(
+ orgId: string,
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCatalogItemUsage>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetCatalogItemUsage<TData = Awaited<ReturnType<typeof getCatalogItemUsage>>, TError = ErrorBody>(
+ orgId: string,
+    id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCatalogItemUsage>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCatalogItemUsageQueryOptions(orgId,id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const listIngredientCategories = (
     orgId: string,

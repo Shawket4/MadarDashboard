@@ -30,6 +30,7 @@ import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { countsSearch } from "./search";
 import { VarianceReportDialog } from "./variance-report-dialog";
 import { STOCKTAKE_STATUS_TONES, invalidateInventory, isOpenStocktake, needsFirstCount } from "./lib";
+import { isPickable } from "./archive";
 
 type ScopeType = "full" | "category" | "items";
 
@@ -56,13 +57,13 @@ export function CountsPage() {
 
   const stocktakes = useListStocktakes(scopeBranchId, { query: { enabled: !!scopeBranchId } });
   const categories = useListIngredientCategories(orgId ?? "", { query: { enabled: scopeDialogOpen && !!orgId } });
-  const catalog = useListCatalog(orgId ?? "", { query: { enabled: scopeDialogOpen && !!orgId } });
+  const catalog = useListCatalog(orgId ?? "", undefined, { query: { enabled: scopeDialogOpen && !!orgId } });
   const openCount = useMemo(() => (stocktakes.data ?? []).find((s) => isOpenStocktake(s.status)) ?? null, [stocktakes.data]);
   const history = useMemo(() => (stocktakes.data ?? []).filter((s) => !isOpenStocktake(s.status)), [stocktakes.data]);
   const firstRun = !!branchId && !openCount && !stocktakes.isLoading && needsFirstCount(stocktakes.data);
 
   const catalogOptions = useMemo(
-    () => (catalog.data ?? []).map((i: OrgIngredient) => ({ value: i.id, label: i.name, hint: i.category_name })),
+    () => (catalog.data ?? []).filter(isPickable).map((i: OrgIngredient) => ({ value: i.id, label: i.name, hint: i.category_name })),
     [catalog.data],
   );
 

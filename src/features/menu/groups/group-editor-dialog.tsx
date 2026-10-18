@@ -56,6 +56,7 @@ import {
   type GroupFormInput,
   type GroupFormValues,
 } from "./group-model";
+import { isPickable } from "@/features/inventory/archive";
 
 interface Props {
   orgId: string;
@@ -105,7 +106,7 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
   // group is a note or a price: no ingredient catalog is read, and the effect
   // question is not asked (the effect stays "Nothing").
   const stock = useHasFeature("inventory");
-  const catalogQ = useListCatalog(orgId, { query: { enabled: open && !!orgId && stock } });
+  const catalogQ = useListCatalog(orgId, undefined, { query: { enabled: open && !!orgId && stock } });
   const catalog = useMemo(() => catalogQ.data ?? [], [catalogQ.data]);
   const catalogById = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
   const groupsQ = useListGroups({ org_id: orgId }, { query: { enabled: open && !!orgId } });
@@ -190,16 +191,15 @@ export function GroupEditorDialog({ orgId, group, open, onOpenChange, usedOn, on
 
   const ingredientOptions = useMemo<ComboboxOption[]>(
     () =>
-      catalog
-        .filter((c) => c.is_active)
-        .map((c) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit), keywords: c.category_name })),
+      // Archived/inactive ones stay (hidden) so a saved line keeps its name.
+      catalog.map((c) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit), keywords: c.category_name, hidden: !isPickable(c) })),
     [catalog],
   );
   const swapOptions = useMemo<ComboboxOption[]>(
     () =>
       catalog
-        .filter((c) => c.is_active && c.category_id === swapCategoryId)
-        .map((c) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit) })),
+        .filter((c) => c.category_id === swapCategoryId)
+        .map((c) => ({ value: c.id, label: c.name, hint: fmtUnit(c.unit), hidden: !isPickable(c) })),
     [catalog, swapCategoryId],
   );
 

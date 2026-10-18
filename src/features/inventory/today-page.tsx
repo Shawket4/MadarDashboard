@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ArchivedBadge } from "./archive";
 import { useTranslation } from "react-i18next";
 import { Link } from "@/components/app/link";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -73,8 +74,8 @@ export function TodayPage() {
   const lowStock = branchId ? branchLow : orgLow;
   const pos = useListOrgPurchaseOrders(orgId ?? "", { expected_before: todayEndISO }, { query: { enabled: !!orgId } });
   const suppliers = useListSuppliers(orgId ?? "", { query: { enabled: !!orgId } });
-  const catalog = useListCatalog(orgId ?? "", { query: { enabled: !!orgId } });
-  const branchStock = useListBranchStock(branchId ?? "", { query: { enabled: !!branchId } });
+  const catalog = useListCatalog(orgId ?? "", undefined, { query: { enabled: !!orgId } });
+  const branchStock = useListBranchStock(branchId ?? "", undefined, { query: { enabled: !!branchId } });
   const stocktakes = useListStocktakes(branchId ?? "", { query: { enabled: !!branchId } });
   const waste = useListWaste(branchId ?? "", undefined, { query: { enabled: !!branchId } });
 
@@ -301,7 +302,7 @@ export function TodayPage() {
                     key={m.id}
                     variant="ledger"
                     sign="out"
-                    title={m.ingredient_name}
+                    title={m.ingredient_archived_at ? <span className="inline-flex items-center gap-2">{m.ingredient_name}<ArchivedBadge /></span> : m.ingredient_name}
                     meta={m.reason ? t(`inventory.waste.reasons.${m.reason}`, m.reason) : undefined}
                     value={`${fmtNumber(Math.abs(m.quantity))} ${fmtUnit(m.unit)}`}
                     numericValue

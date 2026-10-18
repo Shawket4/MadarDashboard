@@ -5782,6 +5782,7 @@ export const ListMovementsResponseItem = zod.object({
   "device_id": zod.uuid().nullish(),
   "device_name": zod.string().nullish(),
   "id": zod.uuid(),
+  "ingredient_archived_at": zod.iso.datetime({"offset":true}).nullish().describe('The ingredient\'s archive time (history keeps showing an archived\ningredient, with a badge); `null` = active.'),
   "ingredient_name": zod.string(),
   "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
@@ -5813,7 +5814,12 @@ export const ListBranchStockParams = zod.object({
   "branch_id": zod.uuid().describe('Branch ID')
 })
 
+export const ListBranchStockQueryParams = zod.object({
+  "status": zod.enum(['active', 'archived', 'all']).optional().describe('`active` | `archived` | `all`. Omitted = `all`: every non-deleted\ningredient, exactly the rows older dashboards and tills read (they look\nnames and costs up in this list, so an archived ingredient a recipe\nstill uses must stay in it). Pickers ask for `active`.')
+})
+
 export const ListBranchStockResponseItem = zod.object({
+  "archived_at": zod.iso.datetime({"offset":true}).nullish().describe('The ingredient\'s archive time; `null` = active. An archived ingredient\nstill holding stock here keeps appearing so it can be counted or\nwasted down.'),
   "below_par": zod.boolean(),
   "branch_id": zod.uuid(),
   "category_id": zod.uuid(),
@@ -5845,6 +5851,7 @@ export const SetParLevelsBody = zod.object({
 }).describe('Par levels for one ingredient at one branch. `null` clears a level.')
 
 export const SetParLevelsResponse = zod.object({
+  "archived_at": zod.iso.datetime({"offset":true}).nullish().describe('The ingredient\'s archive time; `null` = active. An archived ingredient\nstill holding stock here keeps appearing so it can be counted or\nwasted down.'),
   "below_par": zod.boolean(),
   "branch_id": zod.uuid(),
   "category_id": zod.uuid(),
@@ -5948,6 +5955,7 @@ export const ListWasteResponseItem = zod.object({
   "device_id": zod.uuid().nullish(),
   "device_name": zod.string().nullish(),
   "id": zod.uuid(),
+  "ingredient_archived_at": zod.iso.datetime({"offset":true}).nullish().describe('The ingredient\'s archive time (history keeps showing an archived\ningredient, with a badge); `null` = active.'),
   "ingredient_name": zod.string(),
   "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
@@ -5999,6 +6007,7 @@ export const CreateWasteResponse = zod.object({
   "device_id": zod.uuid().nullish(),
   "device_name": zod.string().nullish(),
   "id": zod.uuid(),
+  "ingredient_archived_at": zod.iso.datetime({"offset":true}).nullish().describe('The ingredient\'s archive time (history keeps showing an archived\ningredient, with a badge); `null` = active.'),
   "ingredient_name": zod.string(),
   "movement_type": zod.string().describe('inventory_movement_type: sale | void_restock | adjustment_add |\nadjustment_remove | waste | transfer_out | transfer_in | purchase_in |\npurchase_return | stock_count'),
   "note": zod.string().nullish(),
@@ -6029,7 +6038,13 @@ export const ListCatalogParams = zod.object({
   "org_id": zod.uuid().describe('Organization ID')
 })
 
+export const ListCatalogQueryParams = zod.object({
+  "status": zod.enum(['active', 'archived', 'all']).optional().describe('`active` | `archived` | `all`. Omitted = `all`: every non-deleted\ningredient, exactly the rows older dashboards and tills read (they look\nnames and costs up in this list, so an archived ingredient a recipe\nstill uses must stay in it). Pickers ask for `active`.')
+})
+
 export const ListCatalogResponseItem = zod.object({
+  "archived_at": zod.iso.datetime({"offset":true}).nullish().describe('Set when the ingredient is archived: hidden from pickers, stock-count\nsheets (once no branch holds stock) and reorder suggestions, but kept\nfor history and still deducted by any recipe that uses it. `null` =\nactive. Independent of `is_active` (which the POS feed reads).'),
+  "archived_by": zod.uuid().nullish().describe('Who archived it; `null` when active.'),
   "category_id": zod.uuid(),
   "category_name": zod.string(),
   "category_slug": zod.string(),
@@ -6070,6 +6085,8 @@ export const CreateCatalogItemBody = zod.object({
 })
 
 export const CreateCatalogItemResponse = zod.object({
+  "archived_at": zod.iso.datetime({"offset":true}).nullish().describe('Set when the ingredient is archived: hidden from pickers, stock-count\nsheets (once no branch holds stock) and reorder suggestions, but kept\nfor history and still deducted by any recipe that uses it. `null` =\nactive. Independent of `is_active` (which the POS feed reads).'),
+  "archived_by": zod.uuid().nullish().describe('Who archived it; `null` when active.'),
   "category_id": zod.uuid(),
   "category_name": zod.string(),
   "category_slug": zod.string(),
@@ -6119,6 +6136,8 @@ export const UpdateCatalogItemBody = zod.object({
 })
 
 export const UpdateCatalogItemResponse = zod.object({
+  "archived_at": zod.iso.datetime({"offset":true}).nullish().describe('Set when the ingredient is archived: hidden from pickers, stock-count\nsheets (once no branch holds stock) and reorder suggestions, but kept\nfor history and still deducted by any recipe that uses it. `null` =\nactive. Independent of `is_active` (which the POS feed reads).'),
+  "archived_by": zod.uuid().nullish().describe('Who archived it; `null` when active.'),
   "category_id": zod.uuid(),
   "category_name": zod.string(),
   "category_slug": zod.string(),
@@ -6138,6 +6157,104 @@ export const UpdateCatalogItemResponse = zod.object({
   "updated_at": zod.iso.datetime({"offset":true}),
   "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%.')
 })
+
+
+/**
+ * @summary Archive an ingredient: it leaves pickers, reorder suggestions and (once no
+branch holds stock) stock-count sheets. Nothing else changes: recipes that
+use it keep deducting and costing it, every till keeps it in its mirror,
+history keeps showing it, no movement is posted and no balance moves.
+ */
+export const ArchiveCatalogItemParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID'),
+  "id": zod.uuid().describe('Ingredient ID')
+})
+
+export const ArchiveCatalogItemBody = zod.union([zod.null(),zod.object({
+  "confirm": zod.boolean().optional().describe('Required (`true`) when the ingredient is still used or holds stock\n(`GET …\/usage` says so); otherwise the archive answers 409\n`ARCHIVE_NEEDS_CONFIRMATION`.')
+})])
+
+export const ArchiveCatalogItemResponse = zod.object({
+  "archived_at": zod.iso.datetime({"offset":true}).nullish().describe('Set when the ingredient is archived: hidden from pickers, stock-count\nsheets (once no branch holds stock) and reorder suggestions, but kept\nfor history and still deducted by any recipe that uses it. `null` =\nactive. Independent of `is_active` (which the POS feed reads).'),
+  "archived_by": zod.uuid().nullish().describe('Who archived it; `null` when active.'),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
+  "category_slug": zod.string(),
+  "cost_per_unit": zod.number().nullish().describe('Standard (org default) cost, piastres per unit. `null` ⟺ never entered\n(unknown, NOT free) — recipes using this ingredient are cost-missing.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "density_g_per_ml": zod.number().nullish().describe('Grams per millilitre, bridging weight↔volume in recipes; `null` = none.'),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "pack_size": zod.number().nullish().describe('How many BASE STOCK units one `pack_unit` yields; `null` = none.'),
+  "pack_unit": zod.string().nullish().describe('Named purchase pack (e.g. \"case\", \"sack\"); `null` = none.'),
+  "supplier_id": zod.uuid().nullish().describe('Default supplier for reordering this ingredient; `null` = none set.'),
+  "supplier_name": zod.string().nullish(),
+  "unit": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%.')
+})
+
+
+/**
+ * @summary Bring an archived ingredient back: pickers and counts list it again. Its
+name never left it, so this cannot conflict.
+ */
+export const UnarchiveCatalogItemParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID'),
+  "id": zod.uuid().describe('Ingredient ID')
+})
+
+export const UnarchiveCatalogItemResponse = zod.object({
+  "archived_at": zod.iso.datetime({"offset":true}).nullish().describe('Set when the ingredient is archived: hidden from pickers, stock-count\nsheets (once no branch holds stock) and reorder suggestions, but kept\nfor history and still deducted by any recipe that uses it. `null` =\nactive. Independent of `is_active` (which the POS feed reads).'),
+  "archived_by": zod.uuid().nullish().describe('Who archived it; `null` when active.'),
+  "category_id": zod.uuid(),
+  "category_name": zod.string(),
+  "category_slug": zod.string(),
+  "cost_per_unit": zod.number().nullish().describe('Standard (org default) cost, piastres per unit. `null` ⟺ never entered\n(unknown, NOT free) — recipes using this ingredient are cost-missing.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "density_g_per_ml": zod.number().nullish().describe('Grams per millilitre, bridging weight↔volume in recipes; `null` = none.'),
+  "description": zod.string().nullish(),
+  "id": zod.uuid(),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "org_id": zod.uuid(),
+  "pack_size": zod.number().nullish().describe('How many BASE STOCK units one `pack_unit` yields; `null` = none.'),
+  "pack_unit": zod.string().nullish().describe('Named purchase pack (e.g. \"case\", \"sack\"); `null` = none.'),
+  "supplier_id": zod.uuid().nullish().describe('Default supplier for reordering this ingredient; `null` = none set.'),
+  "supplier_name": zod.string().nullish(),
+  "unit": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "yield_pct": zod.number().nullish().describe('Usable % after trim\/cook loss (e.g. 70 = 70%); `null` = 100%.')
+})
+
+
+export const GetCatalogItemUsageParams = zod.object({
+  "org_id": zod.uuid().describe('Organization ID'),
+  "id": zod.uuid().describe('Ingredient ID')
+})
+
+export const GetCatalogItemUsageResponse = zod.object({
+  "archived_at": zod.iso.datetime({"offset":true}).nullish(),
+  "ingredient_id": zod.uuid(),
+  "name": zod.string(),
+  "needs_confirmation": zod.boolean().describe('`usages` or `stock` is non-empty: an archive must send `confirm: true`.'),
+  "never_used": zod.boolean().describe('Nothing references it at all, history included (no movement, recipe,\nPO, count, transfer or waste row), so a delete loses nothing.'),
+  "stock": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "branch_name": zod.string(),
+  "on_hand": zod.number().describe('In the ingredient\'s base unit; may be negative.')
+}).describe('Non-zero book stock of the ingredient at one branch.')).describe('Branches holding non-zero stock of it. Archiving leaves the balances\nalone; such a branch keeps seeing it in counts until it reaches zero.'),
+  "unit": zod.string(),
+  "usages": zod.array(zod.object({
+  "detail": zod.string().nullish().describe('Extra context: the size label, the option\'s group, the PO\'s branch, the\ntransfer\'s route.'),
+  "id": zod.uuid().describe('The using entity\'s id (menu item, option, base, rule, PO, count, transfer).'),
+  "kind": zod.string().describe('`recipe` (a menu item size\'s recipe) | `modifier_option` (an add-on\'s\nor option\'s recipe line) | `swap` (an option that replaces it, e.g. a\nmilk swap) | `recipe_base` | `packaging_rule` | `purchase_order` (open:\ndraft, ordered, partially received) | `stocktake` (open count) |\n`transfer` (requested, draft or dispatched).'),
+  "name": zod.string().describe('Its display name (menu item \/ option \/ base \/ rule name, PO reference\nor supplier, the count\'s branch, `#<number>` for a transfer).')
+}).describe('One live thing that uses an ingredient.')).describe('Active recipes, add-on\/option lines, swaps, bases, packaging rules and\nopen documents that reference it. Archiving does NOT change them:\nthose recipes keep deducting and costing the ingredient.')
+}).describe('Where an ingredient is still used, for the archive confirmation.')
 
 
 export const ListIngredientCategoriesParams = zod.object({

@@ -20,6 +20,8 @@ export interface ComboboxOption {
   /** Extra searchable text (not displayed). */
   keywords?: string;
   hint?: string;
+  /** Still names a saved value, but is not offered (e.g. an archived ingredient). */
+  hidden?: boolean;
 }
 
 interface Props {
@@ -74,7 +76,7 @@ export function Combobox({
           <CommandList>
             <CommandEmpty>{emptyText ?? t("common.noResults", "No results found")}</CommandEmpty>
             <CommandGroup>
-              {options.map((o) => (
+              {options.filter((o) => !o.hidden).map((o) => (
                 <CommandItem
                   key={o.value}
                   value={o.value}

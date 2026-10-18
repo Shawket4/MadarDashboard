@@ -16,6 +16,7 @@ import type {
 } from "@/data/api/generated/models";
 import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import type { ExcelColumn } from "@/lib/excel";
+import { IngredientName } from "./archive";
 
 type Query<T> = { data: T | undefined; isLoading: boolean; isError: boolean; error: unknown; refetch: () => unknown };
 
@@ -179,6 +180,7 @@ export function ConsumptionTab({ consumption, noData }: { consumption: Query<Con
       ]}
       rows={(consumption.data ?? []).map((r) => ({
         key: r.org_ingredient_id,
+        ingredientId: r.org_ingredient_id,
         cells: [r.ingredient_name, `${fmtNumber(r.consumed_qty)} ${fmtUnit(r.unit)}`, fmtMoney(r.consumed_value)],
       }))}
     />
@@ -199,6 +201,7 @@ export function ShrinkageTab({ shrinkage, noData }: { shrinkage: Query<Shrinkage
       ]}
       rows={(shrinkage.data ?? []).map((r, i) => ({
         key: `${r.org_ingredient_id}-${r.reason}-${i}`,
+        ingredientId: r.org_ingredient_id,
         cells: [
           r.ingredient_name,
           r.reason === "unexplained" ? t("inventory.varianceReasons.other", "Other") : t(`inventory.varianceReasons.${r.reason}`, r.reason),
@@ -224,6 +227,7 @@ export function WasteTab({ wasteReport, noData }: { wasteReport: Query<WasteRepo
       ]}
       rows={(wasteReport.data ?? []).map((r, i) => ({
         key: `${r.org_ingredient_id}-${r.reason}-${i}`,
+        ingredientId: r.org_ingredient_id,
         cells: [r.ingredient_name, t(`inventory.waste.reasons.${r.reason}`, r.reason), `${fmtNumber(r.waste_qty)} ${fmtUnit(r.unit)}`, fmtMoney(r.waste_value)],
       }))}
     />
@@ -291,7 +295,7 @@ export function MaterialCostTrendTab({ trend, noData }: { trend: Query<MaterialC
       id: "ingredient",
       header: t("inventory.reports.ingredient", "Item"),
       meta: { label: t("inventory.reports.ingredient", "Item"), phone: "title" },
-      cell: ({ row: { original: r } }) => <span className="font-medium">{r.ingredient_name}</span>,
+      cell: ({ row: { original: r } }) => <IngredientName id={r.org_ingredient_id} name={r.ingredient_name} />,
     },
     {
       id: "supplier",
@@ -352,7 +356,7 @@ export function MaterialCostTrendTab({ trend, noData }: { trend: Query<MaterialC
   );
 }
 
-type ReportRow = { key: string; cells: string[] };
+type ReportRow = { key: string; cells: string[]; /** First cell is this ingredient's name (gets the Archived badge). */ ingredientId?: string };
 
 function ReportTable({ head, rows, query, empty }: {
   head: { label: string; numeric?: boolean }[];
@@ -367,7 +371,11 @@ function ReportTable({ head, rows, query, empty }: {
         header: h.label,
         accessorFn: (r) => r.cells[i],
         meta: { label: h.label, numeric: h.numeric, phone: i === 0 ? "title" : undefined },
-        cell: ({ row }) => (i === 0 ? <span className="font-medium">{row.original.cells[i]}</span> : row.original.cells[i]),
+        cell: ({ row }) => (i === 0
+          ? row.original.ingredientId
+            ? <IngredientName id={row.original.ingredientId} name={row.original.cells[i]} />
+            : <span className="font-medium">{row.original.cells[i]}</span>
+          : row.original.cells[i]),
       })),
     [head],
   );

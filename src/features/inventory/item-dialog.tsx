@@ -21,6 +21,7 @@ import {
 import { getErrorMessage } from "@/data/api/errors";
 import { egpToPiastres, fmtUnit, piastresToEgp } from "@/lib/format";
 import { UNITS, invalidateInventory, unitsForFamily } from "./lib";
+import { archivedNameHolder, unarchiveIngredient } from "./archive";
 
 interface Props {
   orgId: string;
@@ -159,7 +160,18 @@ export function ItemDialog({ orgId, open, onOpenChange, item, branches }: Props)
       toast.success(t("common.savedChanges", "Changes saved"));
       onOpenChange(false);
     } catch (e) {
-      toast.error(getErrorMessage(e));
+      // The name belongs to an archived ingredient: bring that one back instead.
+      const archivedId = archivedNameHolder(e);
+      if (archivedId) {
+        toast.error(getErrorMessage(e), {
+          action: {
+            label: t("inventory.archive.unarchive", "Unarchive"),
+            onClick: () => void unarchiveIngredient(orgId, { id: archivedId, name: name.trim() }, t).then((ok) => ok && onOpenChange(false)),
+          },
+        });
+      } else {
+        toast.error(getErrorMessage(e));
+      }
     } finally {
       setBusy(false);
     }

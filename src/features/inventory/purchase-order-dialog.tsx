@@ -20,6 +20,7 @@ import { createPurchaseOrder } from "@/data/api/generated/api";
 import { getErrorMessage } from "@/data/api/errors";
 import { cairoDateISO, egpToPiastres, fmtMoney, piastresToEgp } from "@/lib/format";
 import { estimateLineTotal, formatUnitCost, invalidateInventory, unitCostFromTotal, unitsForFamily } from "./lib";
+import { isPickable } from "./archive";
 
 export interface POPrefillLine {
   org_ingredient_id: string;
@@ -94,7 +95,8 @@ export function PurchaseOrderDialog({ branchId, open, onOpenChange, suppliers, c
     () => suppliers.filter((s) => s.is_active).map((s) => ({ value: s.id, label: s.name })),
     [suppliers],
   );
-  const catalogOptions = useMemo(() => catalog.map((c) => ({ value: c.id, label: c.name })), [catalog]);
+  // An archived ingredient is not offered, but a line that already has one keeps its name.
+  const catalogOptions = useMemo(() => catalog.map((c) => ({ value: c.id, label: c.name, hidden: !isPickable(c) })), [catalog]);
 
   /** Refill an untouched total from the catalog's cost for the quantity. */
   function withEstimate(l: LineState): LineState {
