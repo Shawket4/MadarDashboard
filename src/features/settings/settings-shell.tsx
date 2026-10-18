@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { Link } from "@/components/app/link";
 import { useNavIntent } from "@/lib/prefetch/nav-context";
+import { keepScope } from "@/data/scope/list-search";
 
 import { EmbeddedPages, Page, PageHeader, PAGE_WIDTH_CLASS } from "@/components/app/page";
 import {
@@ -57,7 +58,7 @@ export function SettingsShell() {
 
       {/* Phone / tablet: the pane list as a picker. */}
       <div className="lg:hidden">
-        <Select value={current?.to ?? ""} onValueChange={(to) => void navigate({ to })}>
+        <Select value={current?.to ?? ""} onValueChange={(to) => void navigate({ to, search: keepScope as never })}>
           <SelectTrigger className="w-full sm:w-80" aria-label={t("settings.pickPane", "Settings section")}>
             <SelectValue placeholder={t("nav.settings", "Settings")} />
           </SelectTrigger>
@@ -66,7 +67,7 @@ export function SettingsShell() {
               <SelectGroup key={group.labelKey}>
                 <SelectLabel>{t(group.labelKey, group.fallback)}</SelectLabel>
                 {group.items.map((item) => (
-                  <SelectItem key={item.to} value={item.to} {...nav(item.to)}>
+                  <SelectItem key={item.to} value={item.to} {...nav({ to: item.to, search: keepScope })}>
                     <item.icon className="size-4 text-muted-foreground" aria-hidden />
                     {t(item.labelKey, item.fallback)}
                   </SelectItem>
@@ -94,6 +95,7 @@ export function SettingsShell() {
                   <Link
                     key={item.to}
                     to={item.to}
+                    search={keepScope}
                     aria-current={active ? "page" : undefined}
                     data-active={active || undefined}
                     className={cn(

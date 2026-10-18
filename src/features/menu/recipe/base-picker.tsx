@@ -12,6 +12,7 @@ import { Cap } from "@/generated/capabilities";
 
 import { putSizeBase } from "@/data/api/generated/api";
 import type { RecipeBaseOut } from "@/data/api/generated/models";
+import { keepScope } from "@/data/scope/list-search";
 
 const NONE = "__none";
 const MIXED = "__mixed";
@@ -78,7 +79,7 @@ export function BasePicker({ sizes, bases, disabled, onChanged }: Props) {
         </SelectContent>
       </Select>
       <Button asChild variant="link" size="sm" className="h-auto px-0">
-        <Link to="/menu/bases">{t("modeling.base.manage", "Manage bases")}</Link>
+        <Link to="/menu/bases" search={keepScope}>{t("modeling.base.manage", "Manage bases")}</Link>
       </Button>
       {disabled ? (
         <span className="text-xs text-muted-foreground">

@@ -28,6 +28,7 @@ import type { MealTarget } from "@/features/combos/types";
 import { mealDelta, slotsAdmitting } from "@/features/combos/meal";
 import { useMenuOptions } from "@/features/combos/use-menu-options";
 import { Cap } from "@/generated/capabilities";
+import { keepScope } from "@/data/scope/list-search";
 
 const NONE = "__none__";
 
@@ -81,7 +82,7 @@ export function SectionMeal({ itemId, categoryId }: { itemId: string; categoryId
       <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed p-4 text-sm">
         <span className="text-muted-foreground">{t("combos.meal.isCombo", "This item is a combo. Its slots and prices are set in the combo editor.")}</span>
         <Button asChild variant="ghost" size="sm">
-          <Link to="/menu/combos/$comboId" params={{ comboId: itemId }}>
+          <Link to="/menu/combos/$comboId" params={{ comboId: itemId }} search={keepScope}>
             {t("combos.meal.openEditor", "Open the combo editor")}
             <ArrowRight aria-hidden className="size-3.5 rtl:rotate-180" />
           </Link>
@@ -98,7 +99,7 @@ export function SectionMeal({ itemId, categoryId }: { itemId: string; categoryId
           {t("combos.meal.noCombos", "No combos yet. Create one first, then point this item at it.")}
         </span>
         <Button asChild variant="ghost" size="sm">
-          <Link to="/menu/combos">
+          <Link to="/menu/combos" search={keepScope}>
             {t("combos.title", "Combos")}
             <ArrowRight aria-hidden className="size-3.5 rtl:rotate-180" />
           </Link>

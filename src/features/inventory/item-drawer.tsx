@@ -24,6 +24,7 @@ import { invalidateInventory, isBelowZero } from "./lib";
 import { itemMovementsParams } from "./queries";
 import { belowZeroClass } from "./on-hand";
 import { ArchivedBadge } from "./archive";
+import { keepScope } from "@/data/scope/list-search";
 
 interface Props {
   item: OrgIngredient | null;
@@ -200,7 +201,7 @@ export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdi
               <Trash2 className="size-4" /> {t("inventory.waste.record", "Record waste")}
             </Button>
           ) : null}
-          <Link to="/menu/recipes" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+          <Link to="/menu/recipes" search={keepScope} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
             <ChefHat className="size-4" /> {t("inventory.viewRecipes", "View recipes")}
           </Link>
           {canArchive && item ? (

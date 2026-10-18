@@ -32,6 +32,7 @@ import { tierPiastres } from "@/features/staff/rules-preview";
 import { fmtLatLng, inEgypt, mapsLink, parsePin, round6, type LatLng } from "./geo";
 import { branchPinned } from "./setup";
 import { Presence } from "@/lib/motion";
+import { keepScopeWith, keepScope } from "@/data/scope/list-search";
 
 type PinBranch = Pick<Branch, "id" | "name" | "latitude" | "longitude" | "geo_radius_meters">;
 
@@ -50,7 +51,7 @@ export function BranchesStep({ branches, canEdit }: { branches: PinBranch[]; can
         icon={MapPin}
         title={t("dawam.setupNoBranches", "No branches yet")}
         description={t("dawam.setupNoBranchesHint", "Add the first branch with its name and timezone, then come back here to pin it.")}
-        action={<Button asChild><Link to="/branches" search={{ edit: "new" }}><Plus className="size-4" />{t("dawam.setupAddBranch", "Add a branch")}</Link></Button>}
+        action={<Button asChild><Link to="/branches" search={keepScopeWith({ edit: "new" })}><Plus className="size-4" />{t("dawam.setupAddBranch", "Add a branch")}</Link></Button>}
       />
     );
   }
@@ -365,7 +366,7 @@ export function ShiftsStep({
       </ul>
       <div className="flex flex-wrap items-center gap-3">
         {newButton}
-        <Button asChild variant="link" className="px-0"><Link to="/staff/shifts">{t("dawam.setupOpenShifts", "Open work shifts")}</Link></Button>
+        <Button asChild variant="link" className="px-0"><Link to="/staff/shifts" search={keepScope}>{t("dawam.setupOpenShifts", "Open work shifts")}</Link></Button>
       </div>
     </div>
   );
@@ -458,7 +459,7 @@ export function RulesStep({
           <Button onClick={() => void saveDefaults()} loading={busy}>{t("dawam.setupSaveRules", "Save these rules")}</Button>
         )}
         <Button asChild variant={saved ? "default" : "outline"}>
-          <Link to="/staff/rules">{saved ? t("dawam.setupOpenRules", "Open the rules") : t("dawam.setupAdjustRules", "Adjust them first")}</Link>
+          <Link to="/staff/rules" search={keepScope}>{saved ? t("dawam.setupOpenRules", "Open the rules") : t("dawam.setupAdjustRules", "Adjust them first")}</Link>
         </Button>
       </div>
     </div>

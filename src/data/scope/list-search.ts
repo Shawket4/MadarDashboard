@@ -340,3 +340,8 @@ export function keepScope(prev: Record<string, unknown>): Record<string, unknown
   const { branchId, preset, from, to } = prev;
   return { branchId, preset, from, to };
 }
+
+/** `keepScope` plus page-specific params, for a link that deep-links into a view. */
+export const keepScopeWith =
+  (extra: Record<string, unknown>) =>
+  (prev: Record<string, unknown>): Record<string, unknown> => ({ ...keepScope(prev), ...extra });

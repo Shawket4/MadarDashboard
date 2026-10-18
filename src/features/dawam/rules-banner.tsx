@@ -10,6 +10,7 @@ import { Scale } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { setupProgress, useSetupData } from "./setup";
+import { keepScope } from "@/data/scope/list-search";
 
 export function RulesFirstBanner() {
   const { t } = useTranslation();
@@ -31,9 +32,9 @@ export function RulesFirstBanner() {
       </div>
       <Button asChild>
         {more ? (
-          <Link to="/staff/setup">{t("dawam.setupFinish", "Finish set-up")}</Link>
+          <Link to="/staff/setup" search={keepScope}>{t("dawam.setupFinish", "Finish set-up")}</Link>
         ) : (
-          <Link to="/staff/rules">{t("dawam.rulesFirstAction", "Set the rules")}</Link>
+          <Link to="/staff/rules" search={keepScope}>{t("dawam.rulesFirstAction", "Set the rules")}</Link>
         )}
       </Button>
     </div>

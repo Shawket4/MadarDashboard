@@ -14,6 +14,7 @@ import { CountUp, recipes, Reveal } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { signalReason } from "./signals";
 import { TINT } from "./util";
+import { keepScope } from "@/data/scope/list-search";
 
 /**
  * Dashboard "Margin watch" card: the period's gross margin with its trend, the
@@ -121,6 +122,7 @@ export function MarginWatchCard() {
           <div className="border-t pt-3">
             <Link
               to="/reports/operations/profitability"
+              search={keepScope}
               className="inline-flex items-center gap-1 text-sm font-medium text-foreground underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
               {t("insights.watch.viewAll", "Menu profitability")}

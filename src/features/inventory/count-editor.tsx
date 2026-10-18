@@ -33,6 +33,7 @@ import {
 } from "./lib";
 import { isPickable } from "./archive";
 import { ArchivedBadge, useArchivedIngredientIds } from "./archive";
+import { keepScope } from "@/data/scope/list-search";
 
 const SUCCESS_TEXT = "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]";
 const DANGER_TEXT = "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]";
@@ -355,7 +356,7 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
             icon={ClipboardList}
             title={t("inventory.stocktakes.nothingToCount", "Nothing to count yet")}
             description={t("inventory.stocktakes.nothingToCountHint", "This organization has no ingredients in its catalog. Add ingredients first, then count them here.")}
-            action={<Link to="/inventory/ingredients" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}><Plus className="size-4" />{t("inventory.catalog.newItem", "New ingredient")}</Link>}
+            action={<Link to="/inventory/ingredients" search={keepScope} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}><Plus className="size-4" />{t("inventory.catalog.newItem", "New ingredient")}</Link>}
           />
         ) : (
           <div className="overflow-x-auto rounded-lg border">
