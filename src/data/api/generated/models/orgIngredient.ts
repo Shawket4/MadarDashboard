@@ -2,6 +2,19 @@
 // @ts-nocheck
 
 export interface OrgIngredient {
+  /**
+     * Set when the ingredient is archived: hidden from pickers, stock-count
+     * sheets (once no branch holds stock) and reorder suggestions, but kept
+     * for history and still deducted by any recipe that uses it. `null` =
+     * active. Independent of `is_active` (which the POS feed reads).
+     * @nullable
+     */
+  archived_at?: string | null;
+  /**
+     * Who archived it; `null` when active.
+     * @nullable
+     */
+  archived_by?: string | null;
   category_id: string;
   category_name: string;
   category_slug: string;

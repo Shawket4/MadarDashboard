@@ -88,7 +88,7 @@ export function MenuItemDialog({ orgId, categories, item, defaultCategoryId, ope
   // Recipes cost stock: they belong to the paid plan's inventory. A Free shop
   // sees no recipe builder, reads no catalog and writes no recipe.
   const hasRecipes = useHasFeature("inventory");
-  const catalog = useListCatalog(orgId, { query: { enabled: open && !!orgId && hasRecipes } });
+  const catalog = useListCatalog(orgId, undefined, { query: { enabled: open && !!orgId && hasRecipes } });
   const { data: allAddons } = useListAddonItems({ org_id: orgId }, { query: { enabled: open && !!orgId } });
   // Reusable modifier groups — the allowlist picker writes group ATTACHMENTS
   // (unified model) keyed by each addon's type → its group.

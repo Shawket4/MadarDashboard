@@ -31,6 +31,8 @@ import { cn } from "@/lib/utils";
 import {
   VARIANCE_REASONS, buildCountPayload, invalidateInventory, isVarianceFlagged, missingReasons, parseCount,
 } from "./lib";
+import { isPickable } from "./archive";
+import { ArchivedBadge, useArchivedIngredientIds } from "./archive";
 
 const SUCCESS_TEXT = "text-[color-mix(in_oklch,var(--color-success)_60%,var(--color-foreground))]";
 const DANGER_TEXT = "text-[color-mix(in_oklch,var(--color-destructive)_60%,var(--color-foreground))]";
@@ -61,13 +63,14 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
   const { t } = useTranslation();
   const confirm = useConfirm();
   const orgId = useOrgId();
+  const archivedIds = useArchivedIngredientIds(orgId);
   // Book stock keeps moving while the count is open (sales, deliveries), so
   // the baseline is refreshed periodically — the same figure finalize will use.
   const stocktake = useGetStocktake(stocktakeId, { query: { enabled: !!stocktakeId, refetchInterval: 30_000 } });
   const data = stocktake.data;
   const threshold = data?.variance_threshold_pct ?? 10;
   const scopeKind = (data?.scope as { kind?: string } | undefined)?.kind ?? "full";
-  const catalog = useListCatalog(orgId ?? "", { query: { enabled: !!orgId && scopeKind !== "full" } });
+  const catalog = useListCatalog(orgId ?? "", undefined, { query: { enabled: !!orgId && scopeKind !== "full" } });
 
   const [counts, setCounts] = useState<Record<string, string>>({});
   const [reasons, setReasons] = useState<Record<string, string>>({});
@@ -207,7 +210,7 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
   const addableOptions = useMemo(() => {
     const present = new Set(rows.map((r) => r.org_ingredient_id));
     return (catalog.data ?? [])
-      .filter((c: OrgIngredient) => !present.has(c.id))
+      .filter((c: OrgIngredient) => !present.has(c.id) && isPickable(c))
       .map((c: OrgIngredient) => ({ value: c.id, label: c.name, hint: c.category_name }));
   }, [catalog.data, rows]);
 
@@ -382,6 +385,7 @@ export function CountEditor({ stocktakeId, onFinalized, onCancelled }: Props) {
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-medium">{it.ingredient_name}</span>
+                          {archivedIds.has(it.org_ingredient_id) ? <ArchivedBadge /> : null}
                           {it.is_new ? <StatusPill tone="info" size="sm" icon={Sparkles}>{t("inventory.stocktakes.newHere", "New here")}</StatusPill> : null}
                           {flagged ? <StatusPill tone="warning" size="sm">{t("inventory.flagged", "Flagged")}</StatusPill> : null}
                         </div>

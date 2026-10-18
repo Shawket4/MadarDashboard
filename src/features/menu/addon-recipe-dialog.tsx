@@ -37,7 +37,7 @@ interface Props {
  */
 export function AddonRecipeDialog({ orgId, addon, open, onOpenChange }: Props) {
   const { t } = useTranslation();
-  const catalogQ = useListCatalog(orgId, { query: { enabled: open && !!orgId } });
+  const catalogQ = useListCatalog(orgId, undefined, { query: { enabled: open && !!orgId } });
   const catalog = useMemo(() => catalogQ.data ?? [], [catalogQ.data]);
   const ingredients = useListAddonIngredients(addon?.id ?? "", { query: { enabled: open && !!addon?.id } });
 

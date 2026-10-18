@@ -7,6 +7,13 @@
  * moved or counted it (on hand is 0 and every date is null).
  */
 export interface BranchStockRow {
+  /**
+     * The ingredient's archive time; `null` = active. An archived ingredient
+     * still holding stock here keeps appearing so it can be counted or
+     * wasted down.
+     * @nullable
+     */
+  archived_at?: string | null;
   below_par: boolean;
   branch_id: string;
   category_id: string;

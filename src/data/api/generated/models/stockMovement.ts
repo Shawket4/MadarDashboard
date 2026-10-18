@@ -28,6 +28,12 @@ export interface StockMovement {
   /** @nullable */
   device_name?: string | null;
   id: string;
+  /**
+     * The ingredient's archive time (history keeps showing an archived
+     * ingredient, with a badge); `null` = active.
+     * @nullable
+     */
+  ingredient_archived_at?: string | null;
   ingredient_name: string;
   /**
      * inventory_movement_type: sale | void_restock | adjustment_add |

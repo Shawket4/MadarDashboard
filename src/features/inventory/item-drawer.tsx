@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { ChefHat, ClipboardList, Pencil, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, ChefHat, ClipboardList, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -23,6 +23,7 @@ import { StatusPill } from "@/components/app/status-pill";
 import { invalidateInventory, isBelowZero } from "./lib";
 import { itemMovementsParams } from "./queries";
 import { belowZeroClass } from "./on-hand";
+import { ArchivedBadge } from "./archive";
 
 interface Props {
   item: OrgIngredient | null;
@@ -33,13 +34,17 @@ interface Props {
   onEdit: () => void;
   onLogWaste: () => void;
   onCount: () => void;
+  /** May archive / unarchive (inventory.adjust). */
+  canArchive?: boolean;
+  onArchive?: () => void;
+  onUnarchive?: () => void;
 }
 
 /**
  * Ingredient detail at the selected branch. On hand is read-only: it is the
  * ledger's number. The way to correct it is to count the item.
  */
-export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdit, onLogWaste, onCount }: Props) {
+export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdit, onLogWaste, onCount, canArchive, onArchive, onUnarchive }: Props) {
   const { t } = useTranslation();
   const [parMin, setParMin] = useState("");
   const [parMax, setParMax] = useState("");
@@ -84,6 +89,7 @@ export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdi
           <SheetTitle className="flex items-center gap-2">
             {item?.name}
             {item ? <Badge variant="secondary">{item.category_name}</Badge> : null}
+            {item?.archived_at ? <ArchivedBadge /> : null}
           </SheetTitle>
           <SheetDescription>
             {item ? (
@@ -197,6 +203,17 @@ export function ItemDrawer({ item, branchId, stockRow, open, onOpenChange, onEdi
           <Link to="/menu/recipes" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
             <ChefHat className="size-4" /> {t("inventory.viewRecipes", "View recipes")}
           </Link>
+          {canArchive && item ? (
+            item.archived_at ? (
+              <Button variant="outline" size="sm" onClick={onUnarchive}>
+                <ArchiveRestore className="size-4" /> {t("inventory.archive.unarchive", "Unarchive")}
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" onClick={onArchive}>
+                <Archive className="size-4" /> {t("inventory.archive.action", "Archive")}
+              </Button>
+            )
+          ) : null}
         </SheetFooter>
       </SheetContent>
     </Sheet>

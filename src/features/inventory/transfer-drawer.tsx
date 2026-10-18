@@ -25,6 +25,8 @@ import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { rules } from "@/lib/rules";
 import { TRANSFER_TONES, checkReceiveLine, invalidateInventory, transferActions } from "./lib";
 import { TransferDialog, type TransferDialogMode } from "./transfer-dialog";
+import { ArchivedBadge, useArchivedIngredientIds } from "./archive";
+import { useOrgId } from "@/hooks/use-org-id";
 
 interface Props {
   transfer: StockTransfer | null;
@@ -48,6 +50,7 @@ export function transferStatusLabel(t: TFunction, status: string) {
 /** One transfer: its lines, who did what, and the next step for this person. */
 export function TransferDrawer({ transfer: tr, onOpenChange, onChanged, branches, myBranchIds }: Props) {
   const { t } = useTranslation();
+  const archivedIds = useArchivedIngredientIds(useOrgId());
   const confirm = useConfirm();
   // Each step is checked at its side's location, so read what's held at each.
   const atSource = useAuthzAt(tr?.source_branch_id);
@@ -129,7 +132,7 @@ export function TransferDrawer({ transfer: tr, onOpenChange, onChanged, branches
                     return (
                       <tr key={l.id} className="border-b last:border-0">
                         <td className="py-2">
-                          <span className="font-medium">{l.ingredient_name}</span>
+                          <span className="inline-flex flex-wrap items-center gap-2"><span className="font-medium">{l.ingredient_name}</span>{archivedIds.has(l.org_ingredient_id) ? <ArchivedBadge /> : null}</span>
                           {l.note ? <span className="block text-xs text-muted-foreground">{l.note}</span> : null}
                         </td>
                         <td className="tabular py-2 text-end">{fmtNumber(l.qty_sent)} {fmtUnit(l.unit)}</td>
@@ -219,6 +222,7 @@ export function TransferDrawer({ transfer: tr, onOpenChange, onChanged, branches
 /** What arrived, line by line; prefilled with what was sent. */
 function ReceiveDialog({ transfer: tr, onClose, onDone }: { transfer: StockTransfer | null; onClose: () => void; onDone: (t: StockTransfer) => void }) {
   const { t } = useTranslation();
+  const archivedIds = useArchivedIngredientIds(useOrgId());
   const [qty, setQty] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
@@ -273,7 +277,7 @@ function ReceiveDialog({ transfer: tr, onClose, onDone }: { transfer: StockTrans
             <div key={l.id} className="space-y-1.5 rounded-lg border p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{l.ingredient_name}</p>
+                  <p className="flex items-center gap-2 text-sm font-medium"><span className="truncate">{l.ingredient_name}</span>{archivedIds.has(l.org_ingredient_id) ? <ArchivedBadge /> : null}</p>
                   <p className="text-xs text-muted-foreground">{t("inventory.transfers.sentQty", { qty: `${fmtNumber(l.qty_sent)} ${fmtUnit(l.unit)}`, defaultValue: `Sent ${fmtNumber(l.qty_sent)} ${fmtUnit(l.unit)}` })}</p>
                 </div>
                 <Input

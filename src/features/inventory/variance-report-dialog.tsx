@@ -14,6 +14,8 @@ import {
 import { useVarianceReport } from "@/data/api/generated/api";
 import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useOrgId } from "@/hooks/use-org-id";
+import { ArchivedBadge, useArchivedIngredientIds } from "./archive";
 
 interface Props {
   stocktakeId: string | null;
@@ -28,6 +30,7 @@ interface Props {
  */
 export function VarianceReportDialog({ stocktakeId, open, onOpenChange }: Props) {
   const { t } = useTranslation();
+  const archivedIds = useArchivedIngredientIds(useOrgId());
   const report = useVarianceReport(stocktakeId ?? "", { query: { enabled: open && !!stocktakeId } });
   const data = report.data;
 
@@ -75,6 +78,7 @@ export function VarianceReportDialog({ stocktakeId, open, onOpenChange }: Props)
                       <TableCell>
                         <div className="flex items-center gap-2 font-medium">
                           {r.ingredient_name}
+                          {archivedIds.has(r.org_ingredient_id) ? <ArchivedBadge /> : null}
                           {r.is_flagged ? <StatusPill tone="warning" size="sm">{t("inventory.flagged", "Flagged")}</StatusPill> : null}
                         </div>
                         <p className="text-xs text-muted-foreground">{r.category_name}</p>

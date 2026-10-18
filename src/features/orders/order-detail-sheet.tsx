@@ -39,6 +39,7 @@ import { serviceModeOf } from "./service-mode";
 import { OrderStatusBadge } from "./order-status-badge";
 import { addonNormalTotal, orderStaffComp, staffDrinkLine } from "./staff-drink-lines";
 import { ONE_SIZE } from "@/features/menu/util";
+import { ArchivedBadge } from "@/features/inventory/archive";
 
 interface Deduction {
   ingredient_name: string;
@@ -77,7 +78,7 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
   const orgId = role === "super_admin" ? selectedOrgId : (userOrgId ?? null);
 
   const { data: order, isLoading } = useGetOrder(orderId ?? "", { query: { enabled: !!orderId && open } });
-  const { data: catalog } = useListCatalog(orgId ?? "", {
+  const { data: catalog } = useListCatalog(orgId ?? "", undefined, {
     query: { enabled: open && !!orgId, staleTime: 5 * 60_000 },
   });
   // The step timestamps live on the delivery order, not the materialized sale —
@@ -100,6 +101,8 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
     return m;
   }, [catalog]);
 
+  // History keeps an archived ingredient's deduction, with the badge.
+  const archivedIds = useMemo(() => new Set((catalog ?? []).filter((c) => c.archived_at).map((c) => c.id)), [catalog]);
   const deductionCost = (d: Deduction): number | null => {
     if (d.cost != null) return d.cost;
     if (d.org_ingredient_id && costPerUnit.has(d.org_ingredient_id)) {
@@ -473,7 +476,8 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                                   return (
                                     <p key={di} className="flex items-center justify-between gap-2 tabular">
                                       <span>
-                                        {d.ingredient_name}: <bdi>{fmtNumber(Number(d.quantity), { maximumFractionDigits: 3 })} {fmtUnit(d.unit)}</bdi>
+                                        {d.ingredient_name}
+                                        {d.org_ingredient_id && archivedIds.has(d.org_ingredient_id) ? <ArchivedBadge className="mx-1 align-middle" /> : null}: <bdi>{fmtNumber(Number(d.quantity), { maximumFractionDigits: 3 })} {fmtUnit(d.unit)}</bdi>
                                       </span>
                                       {dcost != null ? <span className="text-muted-foreground">{fmtMoney(dcost)}</span> : null}
                                     </p>

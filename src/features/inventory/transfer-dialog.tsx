@@ -25,6 +25,7 @@ import { Cap } from "@/generated/capabilities";
 import { useOrgId } from "@/hooks/use-org-id";
 import { fmtNumber, fmtUnit } from "@/lib/format";
 import { checkReceiveLine, invalidateInventory } from "./lib";
+import { isPickable } from "./archive";
 
 /** `new`: a draft or a request. `edit`: change a draft/request's lines. `accept`: answer a request. */
 export type TransferDialogMode = "new" | "edit" | "accept";
@@ -99,16 +100,16 @@ export function TransferDialog({
   const orgId = useOrgId();
   // The other side can be any location of the org, not only where this person works.
   const locations = useTransferLocations(orgId ?? "", { query: { enabled: open && !!orgId } });
-  const sourceStock = useListBranchStock(sourceId, { query: { enabled: open && !!sourceId && !asRequest } });
+  const sourceStock = useListBranchStock(sourceId, undefined, { query: { enabled: open && !!sourceId && !asRequest } });
   // The asking side can't read the source's stock, so it picks from the catalog.
-  const catalog = useListCatalog(orgId ?? "", { query: { enabled: open && asRequest && !!orgId } });
+  const catalog = useListCatalog(orgId ?? "", undefined, { query: { enabled: open && asRequest && !!orgId } });
   const stockById = useMemo(() => new Map((sourceStock.data ?? []).map((s) => [s.org_ingredient_id, s])), [sourceStock.data]);
   const unitById = useMemo(() => new Map((catalog.data ?? []).map((c) => [c.id, c.unit])), [catalog.data]);
   // Sending: only what the source holds can travel. Asking: anything in the catalog.
   const options = useMemo(
     () =>
       asRequest
-        ? (catalog.data ?? []).map((c) => ({ value: c.id, label: c.name, keywords: c.category_name, hint: fmtUnit(c.unit) }))
+        ? (catalog.data ?? []).map((c) => ({ value: c.id, label: c.name, keywords: c.category_name, hint: fmtUnit(c.unit), hidden: !isPickable(c) }))
         : (sourceStock.data ?? [])
             .filter((s) => s.on_hand > 0 || lines.some((l) => l.ingredientId === s.org_ingredient_id))
             .map((s) => ({ value: s.org_ingredient_id, label: s.ingredient_name, keywords: s.category_name, hint: `${fmtNumber(s.on_hand)} ${fmtUnit(s.unit)}` })),

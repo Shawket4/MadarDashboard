@@ -77,6 +77,7 @@ import { SectionModifiers } from "./section-modifiers";
 import { SectionOptions } from "./section-options";
 import { PreviewPanel } from "./preview/preview-panel";
 import { SectionMeal } from "./section-meal";
+import { isPickable } from "@/features/inventory/archive";
 
 // NOTE: the route file is `items_.$itemId.tsx` (trailing underscore = un-nested
 // from the items LIST route), so the route id carries the underscore too.
@@ -145,16 +146,15 @@ function MenuStudio() {
   const presets = useMemo(() => presetsQ.data ?? [], [presetsQ.data]);
 
   // Org ingredient catalog — shared by the sizes (recipe) and options sections.
-  const catalogQ = useListCatalog(orgId ?? "", { query: { enabled: !!orgId && hasRecipes } });
+  const catalogQ = useListCatalog(orgId ?? "", undefined, { query: { enabled: !!orgId && hasRecipes } });
   // Stable identity: `data ?? []` mints a fresh [] every render,
   // invalidating every useMemo keyed on it (react-hooks v7 catch).
   const catalog = useMemo(() => catalogQ.data ?? [], [catalogQ.data]);
   const catalogById = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
   const ingredientOptions = useMemo(
     () =>
-      catalog
-        .filter((c) => c.is_active)
-        .map((c) => ({ value: c.id, label: c.name, hint: t(`units.${c.unit}`, c.unit), keywords: c.category_name })),
+      // Archived/inactive ones stay (hidden) so a saved line keeps its name.
+      catalog.map((c) => ({ value: c.id, label: c.name, hint: t(`units.${c.unit}`, c.unit), keywords: c.category_name, hidden: !isPickable(c) })),
     [catalog, t],
   );
 

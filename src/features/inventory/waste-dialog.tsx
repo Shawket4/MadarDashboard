@@ -28,7 +28,7 @@ interface Props {
 /** Record spoilage/loss against branch stock. Reused by Today and item detail. */
 export function WasteDialog({ branchId, open, onOpenChange, presetIngredientId }: Props) {
   const { t } = useTranslation();
-  const stock = useListBranchStock(branchId, { query: { enabled: open && !!branchId } });
+  const stock = useListBranchStock(branchId, undefined, { query: { enabled: open && !!branchId } });
   const [ingredientId, setIngredientId] = useState<string | null>(null);
   const [qty, setQty] = useState("");
   const [reason, setReason] = useState("expired");
@@ -52,6 +52,8 @@ export function WasteDialog({ branchId, open, onOpenChange, presetIngredientId }
         value: s.org_ingredient_id,
         label: s.ingredient_name,
         keywords: s.category_name,
+        // An archived ingredient is offered only while there is stock to waste down.
+        hidden: !!s.archived_at && s.on_hand <= 0 && s.org_ingredient_id !== presetIngredientId,
         hint:
           s.on_hand > 0
             ? `${fmtNumber(s.on_hand)} ${fmtUnit(s.unit)}`
@@ -59,7 +61,7 @@ export function WasteDialog({ branchId, open, onOpenChange, presetIngredientId }
               ? t("inventory.catalog.belowZeroHint", { qty: `${fmtNumber(s.on_hand)} ${fmtUnit(s.unit)}`, defaultValue: `${fmtNumber(s.on_hand)} ${fmtUnit(s.unit)} (below zero)` })
               : t("inventory.waste.nothingOnHand", "nothing on hand"),
       })),
-    [stock.data, t],
+    [stock.data, t, presetIngredientId],
   );
   const selected = (stock.data ?? []).find((s) => s.org_ingredient_id === ingredientId) ?? null;
   const quantity = parseFloat(qty);
