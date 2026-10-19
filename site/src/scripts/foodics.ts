@@ -1,23 +1,21 @@
 // The Foodics walkthrough (home/Foodics.astro, media/FoodicsStage.astro): one beat per
 // step, on one timeline.
-//  pin    desktop, the home page's panel (data-foodics="pin"): the panel holds the screen
-//         and scrolling plays the beats (scrubbed), the current step lit beside them
-//  play   phones and tablets, and the Free page's compact scene (data-foodics="play"): the
-//         beats play once as the scene comes in, paused while it is off screen
-//  still  reduced motion, no JavaScript: the page as rendered, its last frame (this module
-//         never loads); if reduced motion comes on later, the scene goes back to it
-// The engine (scripts/motion.ts) sets this up with the scenes, before the vocabulary, so the
-// pin is in place when everything after it measures the page. Transform and opacity only.
+//  loop   every scene, every width: the beats play as the scene comes in, the last frame
+//         holds, and it starts again; paused while it is off screen. The current step is
+//         lit in the list and the stepper. A step (the stepper's, or one in the list) plays
+//         that beat and holds it; the stepper's button pauses or plays the loop.
+//  still  reduced motion, no JavaScript: the page as rendered, its last frame and no stepper
+//         (this module never loads); if reduced motion comes on later, it goes back to that
+// The engine (scripts/motion.ts) sets this up with the scenes, before the vocabulary.
+// Transform and opacity only.
 import { gsap, ScrollTrigger, rtl } from "./motion";
-import { EASE, SCRUB } from "@/lib/motion";
+import { EASE } from "@/lib/motion";
 
 const root = document.documentElement;
-/** Scrolling per beat while the panel holds, as a share of the screen's height. */
-const PER_BEAT = 0.62;
-/** The fixed header's height: the panel holds in the screen below it. */
-const HEADER = 64;
-/** Played (not scrubbed), the beats run a little quicker than their written time. */
+/** The beats run a little quicker than their written time. */
 const PLAY_SPEED = 1.2;
+/** How long the last frame holds before the walkthrough starts again, in seconds. */
+const HOLD = 2.4;
 
 /** `el`'s middle in px from `stage`'s corner, by layout: transforms don't move it. */
 function middle(el: HTMLElement, stage: HTMLElement) {
@@ -146,62 +144,99 @@ function beats(stage: HTMLElement) {
     });
   }
   add(one("progress"), { scaleX: 0 }, { scaleX: 1, duration: at, ease: "none" }, 0);
-  // The last frame holds a moment before the panel lets go.
-  tl.to({}, { duration: 0.6 }, at);
   return { tl, starts };
 }
 
 /**
- * Sets up every Foodics scene on the page; returns how many pin, so the engine knows to
- * measure the page again. Built inside a matchMedia: reduced motion reverts it to the page
- * as rendered, and crossing the desktop width rebuilds it in the other mode.
+ * Sets up every Foodics scene on the page. Built inside a matchMedia: reduced motion reverts
+ * it to the page as rendered. Nothing pins, so the engine has nothing to measure again (0).
  */
 export function scenes() {
-  let pins = 0;
   for (const scene of document.querySelectorAll<HTMLElement>("[data-foodics]")) {
     const stage = scene.querySelector<HTMLElement>("[data-foodics-stage]");
     if (!stage) continue;
     // The head script's 8 s fallback has shown the last frame and it is on screen: leave it.
     if (!root.classList.contains("reveal-wait") && stage.getBoundingClientRect().top < window.innerHeight) continue;
     const steps = Array.from(scene.querySelectorAll<HTMLElement>("[data-fx-step]"));
-    const pin = scene.dataset.foodics === "pin";
-    if (pin) pins++;
-    // `short` is the stylesheet's tighter steps (styles/sections/foodics.css): crossing it
-    // changes the panel's height, so whether it fits is measured again.
-    gsap.matchMedia().add({ motion: "(prefers-reduced-motion: no-preference)", wide: "(min-width: 1024px)", short: "(max-height: 820px)" }, (context) => {
-      const { motion, wide } = context.conditions ?? {};
-      if (!motion) return;
+    const stepper = scene.querySelector<HTMLElement>("[data-fx-stepper]");
+    const dots = Array.from(scene.querySelectorAll<HTMLButtonElement>("[data-fx-go]"));
+    const toggle = scene.querySelector<HTMLButtonElement>("[data-fx-toggle]");
+    gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
       const { tl, starts } = beats(stage);
-      // The step the scene is on, lit in the list.
+      tl.timeScale(PLAY_SPEED);
+      // A step's beat runs to just before the next one starts (the last, to the end).
+      const ends = starts.map((_, k) => (starts[k + 1] !== undefined ? starts[k + 1]! - 0.05 : tl.duration()));
+      // The step the scene is on, lit in the list and the stepper.
       let lit = -1;
       const light = () => {
         const k = Math.max(0, starts.filter((s) => tl.time() >= s).length - 1);
         if (k === lit) return;
         lit = k;
         steps.forEach((s, i) => s.toggleAttribute("data-active", i === k));
+        dots.forEach((d, i) => (i === k ? d.setAttribute("aria-current", "step") : d.removeAttribute("aria-current")));
       };
       tl.eventCallback("onUpdate", light);
       light();
-      // It holds only where the whole panel fits under the header; elsewhere it plays.
-      if (pin && wide && scene.offsetHeight <= window.innerHeight - HEADER) {
-        ScrollTrigger.create({
-          trigger: scene,
-          pin: true,
-          anticipatePin: 1,
-          // Held in the middle of the screen under the header (at its top, if a resize has
-          // since made the panel taller than that).
-          start: () => (scene.offsetHeight > window.innerHeight - HEADER ? `top ${HEADER}px` : `center ${Math.round((window.innerHeight + HEADER) / 2)}px`),
-          end: () => `+=${Math.round(window.innerHeight * PER_BEAT * starts.length)}`,
-          scrub: SCRUB,
-          animation: tl,
-          invalidateOnRefresh: true,
+
+      // Looping unless someone picked a step or pressed pause; only ever while on screen.
+      let auto = true;
+      let seen = false;
+      let seek: gsap.core.Tween | undefined;
+      const again = gsap.delayedCall(HOLD, () => tl.restart()).pause();
+      tl.eventCallback("onComplete", () => {
+        if (auto && seen) again.restart(true);
+      });
+      const run = () => {
+        if (!auto || !seen) {
+          tl.pause();
+          again.pause();
+        } else if (tl.progress() === 1) again.restart(true);
+        else tl.play();
+      };
+      const show = () => {
+        if (!toggle) return;
+        toggle.toggleAttribute("data-paused", !auto);
+        toggle.setAttribute("aria-label", (auto ? toggle.dataset.pause : toggle.dataset.play) ?? "");
+      };
+      // A step: its beat from the start, then held there until play.
+      const go = (k: number) => {
+        if (starts[k] === undefined) return;
+        auto = false;
+        again.pause();
+        seek?.kill();
+        seek = tl.tweenFromTo(starts[k]!, ends[k]!, { onUpdate: light });
+        show();
+      };
+      const onToggle = () => {
+        seek?.kill();
+        auto = !auto;
+        show();
+        run();
+      };
+      const onDot = (e: Event) => go(Number((e.currentTarget as HTMLElement).dataset.fxGo));
+      // A step in the list picks it too, unless the click was on its link.
+      const onStep = (e: Event) => {
+        if ((e.target as HTMLElement).closest("a")) return;
+        go(steps.indexOf(e.currentTarget as HTMLElement));
+      };
+      toggle?.addEventListener("click", onToggle);
+      dots.forEach((d) => d.addEventListener("click", onDot));
+      steps.forEach((s) => s.addEventListener("click", onStep));
+      ScrollTrigger.create({ trigger: stage, start: "top bottom", end: "bottom top", onToggle: (self) => { seen = self.isActive; run(); } });
+      if (stepper) stepper.hidden = false;
+      scene.setAttribute("data-fx-live", "");
+      show();
+      return () => {
+        toggle?.removeEventListener("click", onToggle);
+        dots.forEach((d) => d.removeEventListener("click", onDot));
+        steps.forEach((s) => {
+          s.removeEventListener("click", onStep);
+          s.removeAttribute("data-active");
         });
-      } else {
-        tl.timeScale(PLAY_SPEED);
-        ScrollTrigger.create({ trigger: stage, start: "center 75%", end: "bottom top", toggleActions: "play pause resume pause", animation: tl });
-      }
-      return () => steps.forEach((s) => s.removeAttribute("data-active"));
+        if (stepper) stepper.hidden = true;
+        scene.removeAttribute("data-fx-live");
+      };
     });
   }
-  return pins;
+  return 0;
 }

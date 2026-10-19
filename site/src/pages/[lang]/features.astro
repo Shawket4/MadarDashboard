@@ -9,6 +9,7 @@ import CtaBand from "@/components/kit/CtaBand.astro";
 import Hero from "@/components/kit/Hero.astro";
 import FeatureGrid from "@/components/kit/FeatureGrid.astro";
 import CrewMoment from "@/components/kit/CrewMoment.astro";
+import Foodics from "@/components/home/Foodics.astro";
 import { t, featureGroups } from "@/i18n";
 import { type Lang, LANGS, pageHref, signupHref } from "@/lib/site";
 import { breadcrumbs } from "@/lib/schema";
@@ -25,6 +26,9 @@ const groups = featureGroups(lang);
 ---
 <BaseLayout lang={lang} page="features" headerTone="paper" jsonLd={[breadcrumbs(lang, "features")]}>
   <Hero kicker={f.kicker} title={f.title} lead={f.intro} headClass="max-w-5xl" orbit="-end-[34rem] -top-[34rem] h-[76rem] w-[76rem] opacity-70" />
+
+  <!-- Coming from Foodics: first after the hero (owner, 2026-10-19). -->
+  <Foodics lang={lang} />
 
   <!-- What today's POS gets wrong -->
   <Section id="wrong" tone="ink" split={4} kicker={f.wrongKicker} title={f.wrongTitle}>

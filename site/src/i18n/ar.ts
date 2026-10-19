@@ -471,6 +471,10 @@ export const ar: Copy = {
       { t: "ابدأ بيع", b: "احفظ، والمنيو يبقى على الكاشير." },
     ],
     cta: "اعمل حسابك المجاني",
+    note: "Foodics علامة تجارية لأصحابها. مدار مش تابع لـFoodics ولا معتمد منها.",
+    stepper: "خطوات الشرح",
+    pause: "وقّف الشرح",
+    play: "شغّل الشرح",
     // The dashboard's and the till's own words, as they read in Arabic (formal, like the apps).
     stage: {
       code: "تحقق من واتساب",

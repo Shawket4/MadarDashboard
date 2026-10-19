@@ -479,6 +479,12 @@ export const en = {
       { t: "Sell", b: "Save, and the menu is on your till." },
     ],
     cta: "Create your free account",
+    /** Naming Foodics only to say what Madar reads; no logo, no claim of a tie. */
+    note: "Foodics is a trademark of its owner. Madar is not affiliated with or endorsed by Foodics.",
+    /** The scene's controls (scripts/foodics.ts): pick a step to play and hold it; pause or play the loop. */
+    stepper: "Walkthrough steps",
+    pause: "Pause the walkthrough",
+    play: "Play the walkthrough",
     /** The scene's own words (decorative): the dashboard and the till as they read. */
     stage: {
       code: "Check your WhatsApp",

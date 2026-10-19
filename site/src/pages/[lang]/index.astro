@@ -29,6 +29,8 @@ const sec = (x: { kicker: string; title: string; body: string; points: string[] 
 ---
 <BaseLayout lang={lang} page="home" headerTone="ink" jsonLd={jsonLd}>
   <Hero lang={lang} />
+  <!-- Coming from Foodics: first after the hero, so a shop on Foodics sees the switch at once (owner, 2026-10-19). -->
+  <Foodics lang={lang} />
   <Pillars lang={lang} />
   <FamilyShowcase lang={lang} />
   <Apps lang={lang} />
@@ -117,7 +119,4 @@ const sec = (x: { kicker: string; title: string; body: string; points: string[] 
   </div>
 
   <Tiles lang={lang} />
-  <!-- Coming from Foodics: after the story has shown what Madar does, the switch itself,
-       just before the closing band's "we set it up with you". -->
-  <Foodics lang={lang} />
 </BaseLayout>

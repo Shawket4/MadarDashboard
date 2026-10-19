@@ -1,6 +1,6 @@
 ---
 /** Line icons drawn on a 24 grid: 1.75 stroke, round caps (clean vector, no wobble). */
-export type IconName = "whatsapp" | "phone" | "mail" | "arrow" | "arrow-down" | "check" | "menu" | "close" | "instagram" | "facebook" | "external" | "globe" | "spark" | "clock" | "chevron-down" | "lock" | "receipt" | "chart" | "table" | "team" | "upload";
+export type IconName = "whatsapp" | "phone" | "mail" | "arrow" | "arrow-down" | "check" | "menu" | "close" | "instagram" | "facebook" | "external" | "globe" | "spark" | "clock" | "chevron-down" | "lock" | "receipt" | "chart" | "table" | "team" | "upload" | "play" | "pause";
 interface Props {
   name: IconName;
   class?: string;
@@ -29,6 +29,8 @@ const common = {
     {name === "arrow" && <path d="M5 12h14m-6-6 6 6-6 6" />}
     {name === "arrow-down" && <path d="M12 5v14m-6-6 6 6 6-6" />}
     {name === "check" && <path d="m5 12.5 4.5 4.5L19 7.5" />}
+    {name === "play" && <path d="M8 5.5v13l10.5-6.5Z" />}
+    {name === "pause" && <path d="M9 6v12M15 6v12" />}
     {name === "menu" && <path d="M4 7h16M4 12h16M4 17h10" />}
     {name === "close" && <path d="M6 6l12 12M18 6 6 18" />}
     {name === "chevron-down" && <path d="m6 9 6 6 6-6" />}

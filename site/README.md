@@ -137,7 +137,7 @@ screenshots, the 3D and the cappuccino's animations, online or offline (owner).
 | The hero chip's figures, the "one ledger" beams | `src/components/kit/CountUp.astro` (counted by the engine, `data-count`), `src/components/kit/LedgerBeams.astro` + `src/scripts/beams.ts` |
 | An area's screens | `media` and `stepMap` on each `AreaSection` in `src/pages/[lang]/index.astro`: the screens play in the order the steps first need them (step 0 is the intro, then one per point). On the features page, `shots` on each `FeatureArea` (`src/pages/[lang]/features.astro`): two or more wide screens make a strip, two or more phones a fan |
 | The cappuccino steps | `src/scripts/barista.ts`, files in `src/assets/lottie/` (Madar's own prep-step animations) |
-| Coming from Foodics | `foodics` in both copy files; `src/components/home/Foodics.astro` (the steps), `src/components/media/FoodicsStage.astro` (the scene, also in the Free page's menu step), `src/scripts/foodics.ts` (its beats), `src/styles/sections/foodics.css` |
+| Coming from Foodics | `foodics` in both copy files; `src/components/home/Foodics.astro` (the steps), `src/components/media/FoodicsStage.astro` (the scene; the section is on home, Free and Features), `src/scripts/foodics.ts` (its beats), `src/styles/sections/foodics.css` |
 | The roadmap | `features.roadmap` in both copy files (`state`: `shipped` or `dev`), drawn by `src/components/features/Roadmap.astro` and `roadmap()` in `story.ts` |
 | Colours, type, buttons, motion, spacing | `src/styles/tokens.css` (every value; `site/CLAUDE.md` has the map and the rules): the brand kit's palette, and the design system's type (MadarDashboard `DESIGN.md`): IBM Plex Sans Arabic leads in both languages, IBM Plex Sans behind it, IBM Plex Mono for figures |
 
@@ -178,10 +178,10 @@ Motion rules:
   fades in over the 2D orbit. No WebGL or data saving on: no pin, the orbit and the
   whole list instead. Reduced motion or no JavaScript: the same, with the orbit still.
 - The cappuccino pins on desktop only; on phones its steps play while it is on screen.
-- The Foodics walkthrough (home, after the tiles) pins on desktop wherever the whole panel
-  fits under the header, held in the middle of the screen, and scrolling plays its five
-  beats with the current step lit beside it. On phones and tablets (and a desktop window
-  too short for the panel) it plays once as it comes in, as does the Free page's compact one. Its last frame is the page as rendered, so reduced motion and no
+- The Foodics walkthrough (home, Free and Features, first after the hero) loops on its own
+  while on screen: its five beats, the last frame held, again, with the current step lit
+  beside it. The stepper under the scene (or a step in the list) plays one step and holds
+  it; its round button pauses or plays the loop. Its last frame is the page as rendered, so reduced motion and no
   JavaScript show it whole and still; with motion the head script's `.reveal-wait` holds
   its first frame until the engine takes over (`styles/sections/foodics.css`).
 - Entrances that come up while the page moves fast just finish

@@ -1,11 +1,11 @@
 ---
 /**
  * "Coming from Foodics?": five steps from a Foodics menu to selling on Madar, beside the
- * scene that plays them (media/FoodicsStage.astro, scripts/foodics.ts).
- *  - Desktop: the steps and the scene pin, and scrolling plays the beats with the current
- *    step lit.
- *  - Phones and tablets: the scene plays once as it comes in, the steps under it.
- *  - Reduced motion and no JavaScript: the last frame and every step, nothing pinned.
+ * scene that plays them (media/FoodicsStage.astro, scripts/foodics.ts). On the home, Free
+ * and Features pages, first after the hero (owner, 2026-10-19).
+ *  - The scene loops on its own while on screen, the current step lit. The stepper under
+ *    it (or a step in the list) plays that step and holds it; its button pauses or plays.
+ *  - Reduced motion and no JavaScript: the last frame and every step, no stepper.
  * Each step has an id (foodics-1 …) for the HowTo's steps (lib/schema.ts, foodicsHowTo).
  */
 import Section from "@/components/kit/Section.astro";
@@ -14,12 +14,14 @@ import Icon from "@/components/ui/Icon.astro";
 import { t } from "@/i18n";
 import { type Lang, signupHref } from "@/lib/site";
 
+const pad = (n: number) => String(n).padStart(2, "0");
+
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const f = t(lang).foodics;
 ---
 <Section id="foodics" kicker={f.kicker} title={f.title} lead={f.lead}>
-  <div class="fx-panel" data-foodics="pin">
+  <div class="fx-panel" data-foodics="loop">
     <div class="fx-grid">
       <ol class="fx-steps" data-reveal-group>
         {f.steps.map((s, i) => (
@@ -39,7 +41,18 @@ const f = t(lang).foodics;
       </ol>
       <div class="fx-scene" data-reveal>
         <FoodicsStage lang={lang} />
+        <div class="fx-stepper" role="group" aria-label={f.stepper} data-fx-stepper data-md-skip hidden>
+          <button type="button" class="fx-toggle press" aria-label={f.pause} data-fx-toggle data-pause={f.pause} data-play={f.play}>
+            <Icon name="pause" size={18} class="fx-ic-pause" /><Icon name="play" size={18} class="fx-ic-play" />
+          </button>
+          <ol class="fx-dots">
+            {f.steps.map((s, i) => (
+              <li><button type="button" class="fx-dot press ltr" aria-label={`${i + 1}. ${s.t}`} data-fx-go={i}>{pad(i + 1)}</button></li>
+            ))}
+          </ol>
+        </div>
       </div>
     </div>
   </div>
+  <p class="mt-8 max-w-2xl text-xs text-muted">{f.note}</p>
 </Section>

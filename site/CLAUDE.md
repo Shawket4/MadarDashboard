@@ -21,7 +21,7 @@ Never re-implement any of it in a page. Node 22.18 or newer (scripts import `.ts
 | `src/scripts/load-motion.ts` | every page's motion door: imports the engine only when the page has something to move and motion is allowed |
 | `src/scripts/motion.ts` | **the one motion engine** (GSAP, Lenis, the vocabulary, set pieces, matchMedia) |
 | `src/scripts/story.ts` | the scenes: pins, screens (`carousel.ts`), family (`family.ts`), cappuccino (`barista.ts`), rail, roadmap |
-| `src/scripts/foodics.ts` | the Foodics walkthrough (`home/Foodics.astro`, `media/FoodicsStage.astro`): pinned and scrubbed on desktop, played once elsewhere (and on the Free page); its last frame is the page as rendered |
+| `src/scripts/foodics.ts` | the Foodics walkthrough (`home/Foodics.astro`, `media/FoodicsStage.astro`): loops while on screen, with a stepper that plays one step and holds it (and pauses the loop); on home, Free and Features; its last frame is the page as rendered |
 | `src/scripts/crew.ts` | the crew's set pieces and idle life (blink, eyes, wave, hop, lanyard physics) |
 | `src/lib/motion.ts` | the motion tokens for scripts, read from the CSS at runtime |
 | `src/i18n/{en,ar}.ts` | the hand-built pages' words; Arabic is typed against English (same shape or the build fails) |
