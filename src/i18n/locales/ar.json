@@ -225,7 +225,8 @@
     "combos": "الكومبو",
     "deals": "العروض",
     "reportsBundles": "الكومبو والعروض",
-    "combosSettings": "الكومبو والعروض"
+    "combosSettings": "الكومبو والعروض",
+    "shopSetup": "إعداد المتجر"
   },
   "auth": {
     "welcome": "مرحباً بعودتك",

@@ -225,7 +225,8 @@
     "combos": "Combos",
     "deals": "Deals",
     "reportsBundles": "Bundles",
-    "combosSettings": "Combos and deals"
+    "combosSettings": "Combos and deals",
+    "shopSetup": "Shop setup"
   },
   "auth": {
     "welcome": "Welcome back",

@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  ClipboardCheck,
   Armchair,
   Network,
   Contact,
@@ -190,6 +191,8 @@ export const NAV: NavGroup[] = [
     labelKey: "nav.setup",
     fallback: "Setup",
     entries: [
+      // Can the shop sell yet: the readiness checks, and the shop's health after the first sale.
+      { caps: [Cap.orgSettingsEdit], module: "pos", to: "/setup", labelKey: "nav.shopSetup", fallback: "Shop setup", icon: ClipboardCheck },
       { to: "/settings", labelKey: "nav.settings", fallback: "Settings", icon: Settings },
       // The branch's hardware and how it talks: a canvas, so a page of its own
       // rather than a settings pane.
