@@ -102,6 +102,9 @@ import type {
   BranchTillSessionsParams,
   BranchWaiterStatsParams,
   BranchWasteReportParams,
+  BulkMenuParams,
+  BulkMenuRequest,
+  BulkMenuResponse,
   BulkReviewRequest,
   BulkReviewResult,
   BundlesReport,
@@ -19734,6 +19737,67 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDeletePriceOverrideMutationOptions(options), queryClient);
+    }
+
+export const bulkMenu = (
+    bulkMenuRequest: BulkMenuRequest,
+    params?: BulkMenuParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<BulkMenuResponse>(
+      {url: `/menu/bulk`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: bulkMenuRequest,
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getBulkMenuMutationOptions = <TError = ErrorBody | void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkMenu>>, TError,{data: BulkMenuRequest;params?: BulkMenuParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof bulkMenu>>, TError,{data: BulkMenuRequest;params?: BulkMenuParams}, TContext> => {
+
+const mutationKey = ['bulkMenu'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkMenu>>, {data: BulkMenuRequest;params?: BulkMenuParams}> = (props) => {
+          const {data,params} = props ?? {};
+
+          return  bulkMenu(data,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BulkMenuMutationResult = NonNullable<Awaited<ReturnType<typeof bulkMenu>>>
+    export type BulkMenuMutationBody = BulkMenuRequest
+    export type BulkMenuMutationError = ErrorBody | void
+
+    export const useBulkMenu = <TError = ErrorBody | void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkMenu>>, TError,{data: BulkMenuRequest;params?: BulkMenuParams}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof bulkMenu>>,
+        TError,
+        {data: BulkMenuRequest;params?: BulkMenuParams},
+        TContext
+      > => {
+      return useMutation(getBulkMenuMutationOptions(options), queryClient);
     }
 
 export const getMenuLint = (

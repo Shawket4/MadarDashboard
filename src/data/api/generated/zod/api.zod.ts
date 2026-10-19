@@ -9580,6 +9580,110 @@ export const DeletePriceOverrideBody = zod.object({
 export const DeletePriceOverrideResponse = zod.void()
 
 
+export const BulkMenuQueryParams = zod.object({
+  "dry_run": zod.boolean().optional().describe('Check and write, then roll back: nothing is kept.')
+})
+
+export const bulkMenuBodyMenuGroupsItemMaxMin = 0;
+
+export const bulkMenuBodyMenuGroupsItemMinMin = 0;
+
+export const bulkMenuBodyMenuItemsItemGroupsItemMaxMin = 0;
+
+export const bulkMenuBodyMenuItemsItemGroupsItemMinMin = 0;
+
+export const bulkMenuBodyMenuVersionMin = 0;
+
+
+
+export const BulkMenuBody = zod.object({
+  "confirm": zod.string().nullish().describe('`replace` only: the sentence the owner typed\n(`madar_menu::replace_sentence`, either language).'),
+  "menu": zod.object({
+  "categories": zod.array(zod.object({
+  "key": zod.string(),
+  "name": zod.string(),
+  "name_ar": zod.string().nullish()
+})).optional(),
+  "groups": zod.array(zod.object({
+  "family": zod.enum(['milk_type', 'coffee_type', 'extra']).describe('Which kind of choice a group is, the `legacy_addon_type` the POS reads.'),
+  "key": zod.string(),
+  "max": zod.number().min(bulkMenuBodyMenuGroupsItemMaxMin).nullish().describe('`None`: as many as there are options.'),
+  "min": zod.number().min(bulkMenuBodyMenuGroupsItemMinMin).describe('The group\'s own limits; an item\'s link may differ ([`BulkLink`]).'),
+  "name": zod.string(),
+  "name_ar": zod.string().nullish(),
+  "options": zod.array(zod.object({
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "name_ar": zod.string().nullish(),
+  "price": zod.number()
+}))
+})).optional(),
+  "items": zod.array(zod.object({
+  "category": zod.string().describe('A [`BulkCategory::key`].'),
+  "description": zod.string().nullish(),
+  "description_ar": zod.string().nullish(),
+  "groups": zod.array(zod.object({
+  "group": zod.string().describe('A [`BulkGroup::key`].'),
+  "max": zod.number().min(bulkMenuBodyMenuItemsItemGroupsItemMaxMin).nullish(),
+  "min": zod.number().min(bulkMenuBodyMenuItemsItemGroupsItemMinMin)
+}).describe('An item\'s use of a group, with the limits that apply on this item.')).optional().describe('The item\'s groups, in the order the till shows them.'),
+  "is_active": zod.boolean(),
+  "name": zod.string(),
+  "name_ar": zod.string().nullish(),
+  "optionals": zod.array(zod.object({
+  "name": zod.string(),
+  "name_ar": zod.string().nullish(),
+  "price": zod.number()
+})).optional().describe('Free-form extras the item alone offers.'),
+  "price": zod.number().describe('The item\'s price; with no `sizes` it is the one price it sells at.'),
+  "sizes": zod.array(zod.object({
+  "is_active": zod.boolean(),
+  "label": zod.string(),
+  "price": zod.number()
+})).optional().describe('Each size\'s full price (not a difference over `price`).')
+})).optional(),
+  "version": zod.number().min(bulkMenuBodyMenuVersionMin)
+}),
+  "mode": zod.enum(['add', 'replace']).optional()
+})
+
+export const bulkMenuResponseSummaryCategoriesMin = 0;
+
+export const bulkMenuResponseSummaryGroupsMin = 0;
+
+export const bulkMenuResponseSummaryItemsMin = 0;
+
+export const bulkMenuResponseSummaryLinksMin = 0;
+
+export const bulkMenuResponseSummaryOptionalsMin = 0;
+
+export const bulkMenuResponseSummaryOptionsMin = 0;
+
+export const bulkMenuResponseSummarySizesMin = 0;
+
+
+
+export const BulkMenuResponse = zod.object({
+  "archived": zod.union([zod.null(),zod.object({
+  "categories": zod.number(),
+  "groups": zod.number(),
+  "items": zod.number()
+}).describe('`replace` only.')]).optional(),
+  "dry_run": zod.boolean(),
+  "import_id": zod.uuid().nullish().describe('The `menu_imports` row; `None` on a dry run.'),
+  "mode": zod.enum(['add', 'replace']),
+  "summary": zod.object({
+  "categories": zod.number().min(bulkMenuResponseSummaryCategoriesMin),
+  "groups": zod.number().min(bulkMenuResponseSummaryGroupsMin),
+  "items": zod.number().min(bulkMenuResponseSummaryItemsMin),
+  "links": zod.number().min(bulkMenuResponseSummaryLinksMin),
+  "optionals": zod.number().min(bulkMenuResponseSummaryOptionalsMin),
+  "options": zod.number().min(bulkMenuResponseSummaryOptionsMin),
+  "sizes": zod.number().min(bulkMenuResponseSummarySizesMin)
+}).describe('What was written (or, on a dry run, would be).')
+})
+
+
 export const GetMenuLintQueryParams = zod.object({
   "org_id": zod.uuid().describe('Organization to lint.'),
   "group_id": zod.uuid().nullish().describe('Only findings about this modifier group (for the group editor).')

@@ -82,7 +82,7 @@ function MirrorTile({ spec }: { spec: { tile: TileSpec; step?: OnboardingStep } 
         </span>
         <span className="text-xs font-medium text-muted-foreground">{t(tile.labelKey, tile.labelFallback)}</span>
         <span className="text-2xl font-semibold">
-          <AnimatedNumber value={count} format={String} duration={DURATION.count} />
+          <AnimatedNumber value={count} format={(n) => String(Math.round(n))} duration={DURATION.count} />
         </span>
       </Card>
     </Reveal>

@@ -2528,7 +2528,12 @@
       "SIGNUP_CODE_LOCKED": "Too many wrong tries. Send a new code to try again.",
       "SIGNUP_TOKEN_EXPIRED": "Your phone check timed out. Verify your number again to finish.",
       "INGREDIENT_NAME_ARCHIVED": "An archived ingredient already has this name. Unarchive it instead of creating a new one.",
-      "ARCHIVE_NEEDS_CONFIRMATION": "This ingredient is still used or holds stock. Review where it is used, then confirm the archive."
+      "ARCHIVE_NEEDS_CONFIRMATION": "This ingredient is still used or holds stock. Review where it is used, then confirm the archive.",
+      "MENU_NOT_EMPTY": "The menu already has categories or items. Replace it instead.",
+      "MENU_REPLACE_NOT_CONFIRMED": "Type the sentence shown to replace the whole menu.",
+      "MENU_IMPORT_LIMIT": "This shop has imported a menu too many times today. Try again tomorrow.",
+      "BULK_MENU_INVALID": "Madar could not accept this menu.",
+      "BULK_MENU_UNSUPPORTED_VERSION": "This page is out of date. Reload it and try again."
     },
     "tooManyRequests": "Too many requests just now. Try again in a moment.",
     "contact": "Contact Madar",
@@ -7757,6 +7762,105 @@
       "offNote": "Switch it on and save, and the address opens your menu.",
       "noAddress": "This server has no public address set up yet.",
       "qrTitle": "Menu (no prices) code"
+    }
+  },
+  "menuImport": {
+    "cardTitle": "Already on Foodics?",
+    "cardAdd": "Bring your whole menu over from Foodics: categories, items, sizes and choices.",
+    "cardReplace": "Replace this menu with the one you have in Foodics, in one go.",
+    "cardCta": "Import from Foodics",
+    "cardReplaceCta": "Replace from Foodics",
+    "title": "Import your menu from Foodics",
+    "replaceTitle": "Replace your menu with a Foodics export",
+    "hint": "Your files are read on this device. Nothing is saved until you confirm, and only the menu is sent to Madar.",
+    "howTitle": "In the Foodics console",
+    "how1": "Sign in as a user who can manage the menu (the owner can).",
+    "how2": "Open Menu, then each list below, then Import/Export, then Export.",
+    "how3": "Choose all the downloaded files here at once.",
+    "filesLabel": "The exports",
+    "choose": "Foodics export files (.csv)",
+    "files": {
+      "categories": "Categories",
+      "products": "Products",
+      "product_modifiers": "Product modifiers",
+      "modifier_groups": "Modifiers",
+      "modifier_options": "Modifier options",
+      "product_optionals": "Product extras"
+    },
+    "filesRead": "Files read",
+    "place": "{{file}}, line {{line}}",
+    "count": {
+      "categories": "Categories",
+      "items": "Items",
+      "sizes": "Sizes",
+      "groups": "Choice groups",
+      "options": "Choices"
+    },
+    "warnings": "To check: {{count}}",
+    "moreWarnings": "And {{count}} more.",
+    "preview": "Your menu",
+    "checking": "Checking with Madar…",
+    "ready": "Madar checked this menu: it is ready to import.",
+    "switchToReplace": "Replace the menu instead",
+    "run": "Import the menu",
+    "done": "Your menu is in. Items: {{count}}.",
+    "other": "Choose other files",
+    "replace": {
+      "warn": "Replacing puts away the current menu: categories {{categories}}, items {{items}}. Past orders and reports keep it.",
+      "type": "To confirm, type:",
+      "mismatch": "Type the sentence exactly as shown.",
+      "run": "Replace the menu"
+    },
+    "errors": {
+      "tooBig": "{{name}} is too large to be a menu export.",
+      "unknownFile": "{{name}} is not a Foodics menu export.",
+      "duplicateFile": "Two of the files are the same export ({{file}}).",
+      "missingProducts": "Add the Products export: it holds the items themselves.",
+      "badCsv": "{{file}} could not be read (line {{line}})."
+    },
+    "issues": {
+      "missing_file": "No {{file}} export was given.",
+      "blank_name": "A row with no name was skipped.",
+      "duplicate": "“{{name}}” appears twice; the first one is kept.",
+      "duplicate_sku": "Two products share the SKU {{sku}}; the first one is kept.",
+      "uncategorized": "“{{item}}” has no category, so it goes under Uncategorized.",
+      "not_a_number": "“{{value}}” in {{column}} is not a number, so the row was skipped.",
+      "not_yes_no": "“{{value}}” in {{column}} is not Yes or No, so it was read as Yes.",
+      "unknown_sku": "No product has the SKU {{sku}}, so the row was skipped.",
+      "unknown_group": "No modifier is called “{{group}}”, so its options were skipped.",
+      "duplicate_link": "“{{item}}” lists “{{group}}” twice; the second was skipped.",
+      "empty_group": "“{{group}}” has no options, so it was left out.",
+      "min_lowered": "“{{item}}” requires {{from}} from “{{group}}”, which has {{to}} on sale; it now requires {{to}}.",
+      "sizes_by_name": "“{{group}}” was read as the items' sizes.",
+      "looks_like_sizes": "“{{group}}” is named like sizes but was kept as a choice group.",
+      "second_sizes": "“{{item}}” has a second sizes group, “{{group}}”; it was skipped.",
+      "duplicate_group": "Two modifiers are called “{{name}}”; the first one is kept.",
+      "not_a_swap": "“{{group}}” lets a customer pick more than one, so it is an extras group, not a milk or beans swap."
+    },
+    "refusals": {
+      "unsupported_version": "This menu was built by another version of Madar ({{got}}). Reload the page and try again.",
+      "empty": "The files have no items to import.",
+      "too_many": "Too many {{what}}: {{got}} (at most {{max}}).",
+      "blank": "One of the {{what}} has no name.",
+      "too_long": "“{{name}}…” is longer than {{max}} characters.",
+      "bad_text": "“{{name}}” holds a character Madar cannot save.",
+      "duplicate": "“{{name}}” appears twice.",
+      "unknown_category": "“{{item}}” is in a category that is not in the files.",
+      "unknown_group": "“{{item}}” uses a modifier that is not in the files.",
+      "bad_limits": "“{{group}}” asks for more choices than it has on sale.",
+      "bad_price": "“{{name}}” has a price Madar cannot accept.",
+      "swap_not_single": "“{{group}}” swaps the milk or the beans, so only one may be picked.",
+      "no_active_size": "“{{item}}” has sizes, but none of them is on sale.",
+      "reserved_label": "“{{item}}” uses a size name Madar keeps for itself ({{label}})."
+    },
+    "things": {
+      "category": "categories",
+      "item": "items",
+      "group": "choice groups",
+      "option": "choices",
+      "size": "sizes",
+      "link": "choice groups on one item",
+      "optional": "extras"
     }
   }
 }

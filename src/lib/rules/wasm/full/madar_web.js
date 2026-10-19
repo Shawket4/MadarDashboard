@@ -54,6 +54,19 @@ export function bill_discount(subtotal, discount_type, value) {
 }
 
 /**
+ * The server's checks on a bulk menu, for the preview.
+ * @param {BulkMenu} menu
+ * @returns {BulkSummary | BulkRefusal}
+ */
+export function bulk_validate(menu) {
+    const ret = wasm.bulk_validate(menu);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
  * The branch-local business date of an instant (epoch ms).
  * @param {string} tz
  * @param {number} at_ms
@@ -233,6 +246,21 @@ export function combo_quote(combo, picks, n) {
 }
 
 /**
+ * Whether `typed` is that sentence, in either language.
+ * @param {string} org_name
+ * @param {string} typed
+ * @returns {boolean}
+ */
+export function confirms_replace(org_name, typed) {
+    const ptr0 = passStringToWasm0(org_name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(typed, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.confirms_replace(ptr0, len0, ptr1, len1);
+    return ret !== 0;
+}
+
+/**
  * `qty` in `from_unit` as `to_unit`, 3 dp; across families a refusal.
  * @param {number} qty
  * @param {string} from_unit
@@ -374,6 +402,22 @@ export function first_pay(monthly, hire_date, start_day) {
  */
 export function food_cost_band(cost, price) {
     const ret = wasm.food_cost_band(cost, price);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * A Foodics console export read into a bulk menu: each file's text, in
+ * any order. A file that cannot be read is returned, not thrown.
+ * @param {string[]} files
+ * @returns {FoodicsParsed | FoodicsError}
+ */
+export function foodics_parse(files) {
+    const ptr0 = passArrayJsValueToWasm0(files, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.foodics_parse(ptr0, len0);
     if (ret[2]) {
         throw takeFromExternrefTable0(ret[1]);
     }
@@ -656,6 +700,29 @@ export function recipe_cost(lines) {
         throw takeFromExternrefTable0(ret[1]);
     }
     return takeFromExternrefTable0(ret[0]);
+}
+
+/**
+ * The sentence an owner types to replace the whole menu, in `lang`.
+ * @param {string} org_name
+ * @param {string} lang
+ * @returns {string}
+ */
+export function replace_sentence(org_name, lang) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passStringToWasm0(org_name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(lang, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.replace_sentence(ptr0, len0, ptr1, len1);
+        deferred3_0 = ret[0];
+        deferred3_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
 }
 
 /**

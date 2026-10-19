@@ -33,6 +33,7 @@ import { AddonDialog } from "@/features/menu/addon-dialog";
 import { MenuItemDialog } from "@/features/menu/menu-item-dialog";
 import { CreateIngredientDialog } from "@/features/recipes/create-ingredient-dialog";
 import { UserDialog } from "@/features/users/user-dialog";
+import { FoodicsImportCard } from "@/features/menu-import/foodics-import-card";
 
 import type { StepKey } from "./config";
 import { useStepCopy } from "./step-copy";
@@ -116,9 +117,16 @@ function StepBody(props: Omit<Props, "onPrev" | "isFirst">) {
       );
     case "categories":
       return (
-        <AddViaDialog count={count("categories")} stepKey="categories" refresh={refresh}>
-          {(open, set) => <CategoryDialog orgId={orgId} category={null} open={open} onOpenChange={set} />}
-        </AddViaDialog>
+        <div className="space-y-6">
+          <FoodicsImportCard
+            orgId={orgId}
+            live={{ categories: count("categories"), items: count("menu_items") }}
+            refresh={refresh}
+          />
+          <AddViaDialog count={count("categories")} stepKey="categories" refresh={refresh}>
+            {(open, set) => <CategoryDialog orgId={orgId} category={null} open={open} onOpenChange={set} />}
+          </AddViaDialog>
+        </div>
       );
     case "menu_items":
       return <MenuItemsBody orgId={orgId} count={count("menu_items")} refresh={refresh} />;
