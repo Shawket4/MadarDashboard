@@ -1,0 +1,17 @@
+---
+/** Rewards by Madar: rendered from its copy (src/i18n/pages/rewards.ts) by kit/Page.astro, with its own lockup over the hero. */
+import Page from "@/components/kit/Page.astro";
+import { staticPaths } from "@/lib/page";
+import { REWARDS } from "@/lib/rewards";
+import type { Lang } from "@/lib/site";
+import en from "@/assets/brand/rewards-endorsed-en-ink.svg?url";
+import ar from "@/assets/brand/rewards-endorsed-ar-ink.svg?url";
+
+export const getStaticPaths = staticPaths("rewards");
+const { lang } = Astro.params as { lang: Lang };
+// The lockups' viewBoxes (700.104×100, 543.138×100), so the box is reserved before the file loads.
+const lockup = { en: { src: en, width: 700, height: 100 }, ar: { src: ar, width: 543, height: 100 } }[lang];
+---
+<Page page="rewards" lang={lang}>
+  <img slot="mark" class="mb-8 block h-10 w-auto md:h-12" src={lockup.src} width={lockup.width} height={lockup.height} alt={REWARDS.name[lang]} data-intro style="--i:0" />
+</Page>

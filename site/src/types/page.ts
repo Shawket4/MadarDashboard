@@ -10,7 +10,8 @@ import type { PageKey } from "@/lib/pages";
 /** Where a link goes, in either language (kit/Page.astro makes the address). */
 export type Href =
   | { page: PageKey; hash?: string }
-  | { to: "whatsapp" | "signup" | "phone" | "email" }
+  | { to: "whatsapp"; text?: string }
+  | { to: "signup" | "phone" | "email" }
   | { url: string };
 export interface Action {
   label: string;
@@ -45,7 +46,7 @@ export type SectionData =
   /** DataTable: a plain table that scrolls in its box on a phone. */
   | (Head & { kind: "table"; label: string; columns: string[]; rows: string[][] })
   /** CtaBand: the dark strip with one button, the crew on its edge. */
-  | { kind: "band"; kicker?: string; title: string; body?: string; action: Action; more?: Action; crew?: Pose[] };
+  | { kind: "band"; kicker?: string; title: string; body?: string; price?: { amount: string; per: string }; action: Action; more?: Action; crew?: Pose[] };
 
 export interface PageCopy {
   meta: { title: string; description: string };

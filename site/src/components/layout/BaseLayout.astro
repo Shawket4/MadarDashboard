@@ -114,7 +114,7 @@ const ld = [organization(), ...jsonLd];
     </main>
     {closing && <ClosingBand lang={lang} />}
     <Footer lang={lang} page={page} />
-    <ContactSheet lang={lang} />
+    <ContactSheet lang={lang} freeMonth={page !== "rewards"} />
     <StickyWhatsApp lang={lang} action={sticky} />
     <script>
       import "@/scripts/ui";

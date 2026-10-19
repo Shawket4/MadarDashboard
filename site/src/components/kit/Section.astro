@@ -63,7 +63,7 @@ const body = Astro.slots.has("default") ? (await Astro.slots.render("default")).
 >
   {orbit && <Orbit tone={tone === "ink" ? "ink" : "paper"} class={`absolute -z-10 ${orbit}`} />}
   <div class="container-site">
-    <div class:list={[PAD[pad], intro && "sec-intro", rule && (tone === "ink" ? "border-t border-line-ink" : "border-t border-rule"), split && "grid gap-12 lg:grid-cols-12 lg:gap-16"]}>
+    <div class:list={[PAD[pad], intro && "sec-intro", rule && (tone === "ink" ? "border-t border-line-ink" : "border-t border-rule"), split && "grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16"]}>
       {split ? (
         <Fragment>
           <div class={SPLIT[split][0]}>

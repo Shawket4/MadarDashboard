@@ -144,7 +144,8 @@ arrival; شريحة's slice is a `.crew-sweep` mask with `.crew-limb` parts. Add
   In Arabic prose say صفر / ولا, never a bare 0; figures and prices sit in Plex Mono in `.ltr`.
 - Claims match the product (`MadarRust/authz/spec/plans.toml`): Free is one branch, one till,
   POS, reports and the floor; it has no inventory or recipes, online ordering, loyalty,
-  bookings, kitchen screens, waiter handhelds, Dawam, branding or Basira.
+  bookings, kitchen screens, waiter handhelds, Dawam, branding or Basira. Loyalty can be added to
+  Free as Rewards by Madar, a paid add-on (name, host, prices: `src/lib/rewards.ts`, the one place).
 - No layout shift: fonts preloaded (BaseLayout), sizes reserved, motion on transform/opacity.
 - Tap targets 44 px (`.hit` gives a small link an invisible 44 px area); no horizontal
   overflow at 360 px.

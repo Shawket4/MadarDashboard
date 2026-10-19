@@ -109,7 +109,8 @@ html[lang="ar"] .cta-band-cur { font-family: var(--font-arabic); font-size: .7em
 @media (min-width: 768px) {
   .cta-band { flex-direction: row; align-items: center; justify-content: space-between; gap: 2rem; padding: 2rem 2.25rem; }
   .cta-band > .min-w-0 { flex: 1; }
-  .cta-band-actions { flex: none; }
+  /* Never narrower than the button, but a long second link wraps under it instead of overflowing. */
+  .cta-band-actions { flex: 0 1 auto; }
 }
 .cta-band-crew { position: absolute; bottom: 100%; inset-inline-end: 1.5rem; display: flex; align-items: flex-end; gap: .4rem; }
 .cta-band-crew .crew-shadow { display: none; }

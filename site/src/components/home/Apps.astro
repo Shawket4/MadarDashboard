@@ -4,6 +4,9 @@
  * Store (Apple's badge, the one store link); the kitchen screen, the dashboard and Dawam
  * are coming to both stores, said in words. The dashboard already runs in a browser.
  * Icons are the kits' own app tiles (Madar Design System, Dawam Design System v2).
+ * Rewards by Madar closes the list: a web app, not a store app, so it is not in APPS
+ * (shared/apps.ts feeds store badges, downloads and the dashboard's Setup QR codes); its
+ * tile is apps/icons/rewards.svg all the same (Rewards Design System export, tile-ink).
  */
 import Section from "@/components/kit/Section.astro";
 import StoreBadges from "@/components/ui/StoreBadges.astro";
@@ -12,8 +15,10 @@ import cashier from "@shared/apps/icons/cashier.svg?url";
 import kitchen from "@shared/apps/icons/kitchen.svg?url";
 import dashboard from "@shared/apps/icons/dashboard.svg?url";
 import dawam from "@shared/apps/icons/dawam.svg?url";
+import rewardsMark from "@shared/apps/icons/rewards.svg?url";
+import { REWARDS, REWARDS_URL } from "@/lib/rewards";
 import { t } from "@/i18n";
-import { type Lang, type AppKey, APP_KEYS, DASHBOARD_URL, isLive, downloadsHref } from "@/lib/site";
+import { type Lang, type AppKey, APP_KEYS, DASHBOARD_URL, isLive, downloadsHref, pageHref } from "@/lib/site";
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -52,5 +57,17 @@ const soon = APP_KEYS.filter((k) => !isLive(k));
           </li>
         ))}
       </ul>
+      <div class="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4 border-t border-line-ink pt-9">
+        <img class="app-icon size-12" src={rewardsMark} width="48" height="48" alt="" />
+        <div class="min-w-0 flex-1 basis-56">
+          <p class="font-semibold">{REWARDS.name[lang]}</p>
+          <p class="mt-0.5 text-sm text-muted-ink">{a.rewards.line}</p>
+          <p class="mt-2 text-xs font-medium text-muted-ink">{a.rewards.where}</p>
+        </div>
+        <div class="flex flex-wrap gap-x-6 gap-y-1">
+          <a class="link-cta text-sm" href={pageHref(lang, "rewards")}>{a.rewards.more} <Icon name="arrow" size={14} /></a>
+          <a class="link-cta text-sm" href={REWARDS_URL} rel="noopener" data-umami-event="rewards-open" data-umami-event-where="home-apps">{a.rewards.open} <Icon name="arrow" size={14} /></a>
+        </div>
+      </div>
     </div>
 </Section>
