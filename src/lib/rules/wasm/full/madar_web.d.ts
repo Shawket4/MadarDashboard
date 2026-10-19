@@ -1240,6 +1240,13 @@ export function replenish_suggest(input: ReplenishInput): ReplenishSuggestion;
 export function scale_qty(qty: number, factor: number): number;
 
 /**
+ * What a scanned or typed string is: `{kind: "token" | "phone" | "partial",
+ * value}`. Feed it every keystroke of a wedge scanner and act once `kind`
+ * is not `partial`.
+ */
+export function scan_classify(raw: string): { kind: 'token' | 'phone' | 'partial'; value: string };
+
+/**
  * The index of the FIRST rung `late_minutes` falls on, or `null` (on
  * time, or past a ladder that stops).
  */
@@ -1335,6 +1342,7 @@ export interface InitOutput {
     readonly recipe_cost: (a: number, b: number) => [number, number, number];
     readonly replenish_suggest: (a: any) => [number, number, number];
     readonly scale_qty: (a: number, b: number) => number;
+    readonly scan_classify: (a: number, b: number) => [number, number, number];
     readonly select_late_tier: (a: number, b: number, c: number) => [number, number, number];
     readonly till_plan_lines: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number];
     readonly transfer_step: (a: any, b: any) => [number, number, number];

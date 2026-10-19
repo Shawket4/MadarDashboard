@@ -15,7 +15,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { featureOfPath, moduleOfPath } from "@/config/nav";
 import { UpgradePage } from "@/components/app/upgrade-page";
 import { useAuthStore } from "@/data/stores/auth.store";
-import { hasFeature } from "@/generated/plans";
+import { orgHasFeature } from "@/lib/plan-features";
 import { useAuthzLoadError } from "@/data/authz/use-authz";
 import { useOrgModulesState } from "@/hooks/use-org-modules";
 
@@ -30,6 +30,7 @@ export function ModuleGate({ children }: { children: ReactNode }) {
   const authzFailed = useAuthzLoadError();
   const needs = moduleOfPath(pathname);
   const plan = useAuthStore((s) => s.plan);
+  useAuthStore((s) => s.addons); // an add-on switched alone re-renders the gate
   const feature = featureOfPath(pathname);
   if (authzFailed) {
     return (
@@ -44,7 +45,7 @@ export function ModuleGate({ children }: { children: ReactNode }) {
   }
   // A page of a feature the Free plan lacks is the upgrade page, however the
   // URL was reached. An unknown plan reads as Paid (nothing is hidden on a guess).
-  const lacksFeature = !!feature && !hasFeature(plan, feature);
+  const lacksFeature = !!feature && !orgHasFeature(plan, feature);
   if (!needs) return lacksFeature ? <UpgradePage feature={feature} /> : <>{children}</>;
   if (!known && error) {
     // Say so: a blank page (or every module on a guess) is worse.

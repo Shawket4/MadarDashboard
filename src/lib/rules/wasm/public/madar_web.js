@@ -274,6 +274,23 @@ export function price_options(view, selection) {
 }
 
 /**
+ * What a scanned or typed string is: `{kind: "token" | "phone" | "partial",
+ * value}`. Feed it every keystroke of a wedge scanner and act once `kind`
+ * is not `partial`.
+ * @param {string} raw
+ * @returns {{ kind: 'token' | 'phone' | 'partial'; value: string }}
+ */
+export function scan_classify(raw) {
+    const ptr0 = passStringToWasm0(raw, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.scan_classify(ptr0, len0);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
  * One unit of the item at `size_label` before any option (madar-catalog
  * `unit_price`).
  * @param {ItemView} item

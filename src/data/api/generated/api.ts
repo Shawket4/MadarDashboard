@@ -30,6 +30,7 @@ import type {
   AddonCost,
   AddonIngredient,
   AddonItem,
+  AddonRequest,
   AddonSalesRow,
   AddonSlot,
   AdjustRequest,
@@ -152,6 +153,9 @@ import type {
   ConversationDetail,
   ConversationList,
   CorrectRecordRequest,
+  CounterRedeemRequest,
+  CounterResult,
+  CounterStampRequest,
   CoverableShift,
   CoverageView,
   CreateActivationCodeRequest,
@@ -16305,6 +16309,136 @@ export function useGetLoyaltyCampaignEffectiveness<TData = Awaited<ReturnType<ty
 
 
 
+/**
+ * @summary Complete a full card: deduct exactly the card's size; extra stamps stay.
+ */
+export const loyaltyCounterRedeem = (
+    counterRedeemRequest: CounterRedeemRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CounterResult>(
+      {url: `/loyalty/counter/redeem`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: counterRedeemRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyCounterRedeemMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyCounterRedeem>>, TError,{data: CounterRedeemRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof loyaltyCounterRedeem>>, TError,{data: CounterRedeemRequest}, TContext> => {
+
+const mutationKey = ['loyaltyCounterRedeem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loyaltyCounterRedeem>>, {data: CounterRedeemRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  loyaltyCounterRedeem(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoyaltyCounterRedeemMutationResult = NonNullable<Awaited<ReturnType<typeof loyaltyCounterRedeem>>>
+    export type LoyaltyCounterRedeemMutationBody = CounterRedeemRequest
+    export type LoyaltyCounterRedeemMutationError = ErrorBody
+
+    /**
+ * @summary Complete a full card: deduct exactly the card's size; extra stamps stay.
+ */
+export const useLoyaltyCounterRedeem = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyCounterRedeem>>, TError,{data: CounterRedeemRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof loyaltyCounterRedeem>>,
+        TError,
+        {data: CounterRedeemRequest},
+        TContext
+      > => {
+      return useMutation(getLoyaltyCounterRedeemMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Stamp a member's card for a visit (no order).
+ */
+export const loyaltyCounterStamp = (
+    counterStampRequest: CounterStampRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CounterResult>(
+      {url: `/loyalty/counter/stamp`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: counterStampRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyCounterStampMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyCounterStamp>>, TError,{data: CounterStampRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof loyaltyCounterStamp>>, TError,{data: CounterStampRequest}, TContext> => {
+
+const mutationKey = ['loyaltyCounterStamp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loyaltyCounterStamp>>, {data: CounterStampRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  loyaltyCounterStamp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoyaltyCounterStampMutationResult = NonNullable<Awaited<ReturnType<typeof loyaltyCounterStamp>>>
+    export type LoyaltyCounterStampMutationBody = CounterStampRequest
+    export type LoyaltyCounterStampMutationError = ErrorBody
+
+    /**
+ * @summary Stamp a member's card for a visit (no order).
+ */
+export const useLoyaltyCounterStamp = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyCounterStamp>>, TError,{data: CounterStampRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof loyaltyCounterStamp>>,
+        TError,
+        {data: CounterStampRequest},
+        TContext
+      > => {
+      return useMutation(getLoyaltyCounterStampMutationOptions(options), queryClient);
+    }
+
 export const getLoyaltyEarningItems = (
     params?: GetLoyaltyEarningItemsParams,
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -22310,6 +22444,147 @@ export const useUpdateOrg = <TError = ErrorBody,
         TContext
       > => {
       return useMutation(getUpdateOrgMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Switch an add-on on for an org (super admin). Loyalty on a Free org is Rewards by Madar:
+the loyalty programme, its card and the teller page, without the paid plan.
+On a paid org it changes nothing (paid has every feature) and is refused,
+so no row claims a sale that was not made. Repeating it keeps the first
+start date.
+ */
+export const putOrgAddon = (
+    id: string,
+    feature: string,
+    addonRequest: AddonRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PlanState>(
+      {url: `/orgs/${id}/addons/${feature}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: addonRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutOrgAddonMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putOrgAddon>>, TError,{id: string;feature: string;data: AddonRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putOrgAddon>>, TError,{id: string;feature: string;data: AddonRequest}, TContext> => {
+
+const mutationKey = ['putOrgAddon'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putOrgAddon>>, {id: string;feature: string;data: AddonRequest}> = (props) => {
+          const {id,feature,data} = props ?? {};
+
+          return  putOrgAddon(id,feature,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutOrgAddonMutationResult = NonNullable<Awaited<ReturnType<typeof putOrgAddon>>>
+    export type PutOrgAddonMutationBody = AddonRequest
+    export type PutOrgAddonMutationError = ErrorBody
+
+    /**
+ * @summary Switch an add-on on for an org (super admin). Loyalty on a Free org is Rewards by Madar:
+the loyalty programme, its card and the teller page, without the paid plan.
+On a paid org it changes nothing (paid has every feature) and is refused,
+so no row claims a sale that was not made. Repeating it keeps the first
+start date.
+ */
+export const usePutOrgAddon = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putOrgAddon>>, TError,{id: string;feature: string;data: AddonRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putOrgAddon>>,
+        TError,
+        {id: string;feature: string;data: AddonRequest},
+        TContext
+      > => {
+      return useMutation(getPutOrgAddonMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary End an add-on (super admin). The row is kept, ended; a member's points,
+passes and history stay, the features just switch off.
+ */
+export const endOrgAddon = (
+    id: string,
+    feature: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<PlanState>(
+      {url: `/orgs/${id}/addons/${feature}`, method: 'DELETE', signal
+    },
+      options);
+    }
+
+
+
+
+export const getEndOrgAddonMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endOrgAddon>>, TError,{id: string;feature: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof endOrgAddon>>, TError,{id: string;feature: string}, TContext> => {
+
+const mutationKey = ['endOrgAddon'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof endOrgAddon>>, {id: string;feature: string}> = (props) => {
+          const {id,feature} = props ?? {};
+
+          return  endOrgAddon(id,feature,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EndOrgAddonMutationResult = NonNullable<Awaited<ReturnType<typeof endOrgAddon>>>
+
+    export type EndOrgAddonMutationError = ErrorBody
+
+    /**
+ * @summary End an add-on (super admin). The row is kept, ended; a member's points,
+passes and history stay, the features just switch off.
+ */
+export const useEndOrgAddon = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endOrgAddon>>, TError,{id: string;feature: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof endOrgAddon>>,
+        TError,
+        {id: string;feature: string},
+        TContext
+      > => {
+      return useMutation(getEndOrgAddonMutationOptions(options), queryClient);
     }
 
 export const orgBookingQr = (

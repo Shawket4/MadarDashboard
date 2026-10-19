@@ -43,7 +43,8 @@ import {
 } from "lucide-react";
 import type { Authz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
-import { hasFeature, type Feature } from "@/generated/plans";
+import { type Feature } from "@/generated/plans";
+import { orgHasFeature } from "@/lib/plan-features";
 
 export interface NavLeaf {
   to: string;
@@ -262,7 +263,7 @@ export const leafVisible = (
   plan?: string | null,
 ): boolean => {
   if (leaf.module && modules && !modules.includes(leaf.module)) return false;
-  if (leaf.feature && !hasFeature(plan, leaf.feature)) return false;
+  if (leaf.feature && !orgHasFeature(plan, leaf.feature)) return false;
   if (leaf.setup) return setupIncomplete && authz.canAny(...(leaf.caps ?? []));
   if (leaf.superAdminOnly) return authz.platform;
   if (leaf.caps) return authz.canAny(...leaf.caps);

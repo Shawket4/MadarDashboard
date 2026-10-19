@@ -4,6 +4,8 @@ import type { TaxPolicyPublic } from './taxPolicyPublic';
 import type { UserPublic } from './userPublic';
 
 export interface MeResponse {
+  /** Features the org has as add-ons beside its plan (Rewards by Madar: `["loyalty"]`). */
+  addons?: string[];
   /** Org currency code (e.g. "EGP"). */
   currency_code: string;
   /** The organization's plan: `free` | `paid`. Re-read on every `/auth/me`. */

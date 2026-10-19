@@ -446,7 +446,9 @@
     "overFreeTitle": "Over the Free plan's limits",
     "overFreeBranches": "{{branches}} branches; Free includes {{limit}}. It cannot add a branch.",
     "overFreeTills": "Tills switched off: {{tills}}. The owner chooses each branch's active till under Settings > Plan.",
-    "overFreeAction": "Move it back to the paid plan to switch every till on again."
+    "overFreeAction": "Move it back to the paid plan to switch every till on again.",
+    "addonLoyalty": "Loyalty add-on (Rewards by Madar)",
+    "addonLoyaltyHint": "Stamp cards, wallet passes and the teller page on the Free plan. Upgrading to Paid ends it; going back to Free does not bring it back."
   },
   "branches": {
     "title": "Branches",
@@ -2534,7 +2536,13 @@
       "MENU_REPLACE_NOT_CONFIRMED": "Type the sentence shown to replace the whole menu.",
       "MENU_IMPORT_LIMIT": "This shop has imported a menu too many times today. Try again tomorrow.",
       "BULK_MENU_INVALID": "Madar could not accept this menu.",
-      "BULK_MENU_UNSUPPORTED_VERSION": "This page is out of date. Reload it and try again."
+      "BULK_MENU_UNSUPPORTED_VERSION": "This page is out of date. Reload it and try again.",
+      "LOYALTY_CARD_NOT_FULL": "This card isn't full yet.",
+      "LOYALTY_COUNTER_STAMPS_ONLY": "The counter stamps cards; this programme collects points.",
+      "LOYALTY_PROGRAM_OFF": "The loyalty programme is switched off here.",
+      "LOYALTY_KEY_REUSED": "That request was already used for something else. Try again.",
+      "LOYALTY_CARD_AT_CAP": "This card is at the shop's limit. Complete it before stamping more.",
+      "ADDON_ON_PAID": "The paid plan already includes this."
     },
     "tooManyRequests": "Too many requests just now. Try again in a moment.",
     "contact": "Contact Madar",
@@ -5140,7 +5148,9 @@
       "winback": "Win-back gift",
       "manual": "Manual adjustment",
       "by": "by {{name}}",
-      "bySystem": "automatic"
+      "bySystem": "automatic",
+      "counterEarn": "Stamped at the counter",
+      "counterRedeem": "Card completed at the counter"
     },
     "statRedemptions": "Rewards redeemed",
     "statRedemptionsHint": "{{units}} items over the last 30 days",
@@ -5187,7 +5197,9 @@
       "confirm": "Remove from programme",
       "done": "Removed from the loyalty programme"
     },
-    "orderNow": "Order now"
+    "orderNow": "Order now",
+    "stampsPerCard": "Stamps per card",
+    "stampsPerCardHint": "A full card is completed at the counter for a free item; extra stamps carry over to the next card."
   },
   "publicShell": {
     "signature": {
@@ -7888,5 +7900,45 @@
     "open": "Get {{name}}",
     "footerLabel": "Madar on every screen",
     "startHere": "Start here: put it on your tablet"
+  },
+  "rewardsTeller": {
+    "alreadyStamped": "Already stamped",
+    "cameraFailed": "The camera isn't available. Scan with a card reader, or type the phone number.",
+    "cameraLabel": "Camera: hold the card's QR code up to it",
+    "cameraOff": "Close the camera",
+    "cameraOn": "Scan with the camera",
+    "confirmRedeemBody": "Hand over the free item. {{size}} stamps come off the card.",
+    "confirmRedeemTitle": "Complete {{name}}'s card?",
+    "confirmStampsBody": "{{name}} bought {{count}} items on this visit.",
+    "confirmStampsTitle": "Stamp {{count}} items?",
+    "email": "Email",
+    "expired": "Signed out. Enter your PIN again.",
+    "extra": "+{{count}} on the next card",
+    "fewer": "One fewer",
+    "find": "Find",
+    "items": "Items on this visit",
+    "more": "One more",
+    "nextCustomer": "Next customer",
+    "notACard": "That isn't a card or a phone number.",
+    "notFull": "Card not full yet",
+    "password": "Password",
+    "pickBranch": "Which branch is this device at?",
+    "pinDelete": "Delete a digit",
+    "pinDigits": "{{count}} digits entered",
+    "pinGo": "Go",
+    "pinTitle": "Enter your PIN",
+    "productName": "Rewards by Madar",
+    "redeem": "Complete card",
+    "redeemed": "Card completed. Enjoy!",
+    "scanLabel": "Scan the card, or type the phone number",
+    "setupAgain": "Set this device up again",
+    "setupHint": "The shop owner signs in once. After that, staff sign in with their PIN.",
+    "setupNoShop": "This account has no shop. Sign in with the shop owner's account.",
+    "setupTitle": "Set up this device",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "stamp": "Stamp",
+    "stamped": "{{count}} stamps added",
+    "stampsOf": "{{have}} of {{size}} stamps"
   }
 }

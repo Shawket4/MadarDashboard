@@ -30,7 +30,8 @@ import {
 import type { OrgModule } from "@/config/nav";
 import type { Authz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
-import { hasFeature, type Feature } from "@/generated/plans";
+import { type Feature } from "@/generated/plans";
+import { orgHasFeature } from "@/lib/plan-features";
 
 export interface SettingsLeaf {
   to: string;
@@ -271,7 +272,7 @@ export const visibleSettings = (authz: Authz, modules: readonly string[], plan?:
     ...g,
     items: g.items.filter((i) => {
       if (i.module && !modules.includes(i.module)) return false;
-      if (i.feature && !hasFeature(plan, i.feature)) return false;
+      if (i.feature && !orgHasFeature(plan, i.feature)) return false;
       if (i.freeOnly && plan !== "free") return false;
       if (i.superAdminOnly) return authz.platform;
       if (i.caps) return authz.canAny(...i.caps);

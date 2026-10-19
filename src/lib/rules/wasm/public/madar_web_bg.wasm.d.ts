@@ -17,6 +17,7 @@ export const option_charge: (a: any, b: number, c: number, d: number, e: number)
 export const phone_canonical: (a: number, b: number) => [number, number, number];
 export const price_line: (a: any, b: any) => [number, number, number];
 export const price_options: (a: any, b: any) => [number, number, number];
+export const scan_classify: (a: number, b: number) => [number, number, number];
 export const unit_price: (a: any, b: number, c: number) => [number, number, number];
 export const __wbindgen_malloc: (a: number, b: number) => number;
 export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

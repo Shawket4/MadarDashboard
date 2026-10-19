@@ -5,6 +5,11 @@ import type { TillBrief } from './tillBrief';
 import type { UserPublic } from './userPublic';
 
 export interface LoginResponse {
+  /**
+     * Features the org has as add-ons beside its plan (Rewards by Madar: `["loyalty"]` on
+     * Free). Additive: an old client ignores it and sees the plan alone.
+     */
+  addons?: string[];
   currency_code: string;
   open_till?: null | TillBrief;
   /**

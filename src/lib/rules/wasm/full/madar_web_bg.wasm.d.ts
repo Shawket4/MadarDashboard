@@ -42,6 +42,7 @@ export const recipe_base_qty: (a: number, b: number, c: number, d: number, e: nu
 export const recipe_cost: (a: number, b: number) => [number, number, number];
 export const replenish_suggest: (a: any) => [number, number, number];
 export const scale_qty: (a: number, b: number) => number;
+export const scan_classify: (a: number, b: number) => [number, number, number];
 export const select_late_tier: (a: number, b: number, c: number) => [number, number, number];
 export const till_plan_lines: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number];
 export const transfer_step: (a: any, b: any) => [number, number, number];

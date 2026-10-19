@@ -6,6 +6,7 @@ import { queryClient } from "@/data/api/query";
 import { clearShellCache } from "@/data/api/persist-shell";
 import { useAppStore } from "@/data/stores/app.store";
 import { LS_KEYS } from "@/data/config/constants";
+import { setOrgAddons } from "@/lib/plan-features";
 import type { UserPublic } from "@/data/types";
 
 /** Mirrors hooks/use-org-modules.ts (not imported: a store must not pull in React hooks). */
@@ -22,9 +23,11 @@ interface AuthState {
    * pages at a Free shop.
    */
   plan: string | null;
+  /** Features the org has as add-ons beside its plan (Rewards by Madar: `["loyalty"]` on Free). */
+  addons: string[];
   hasHydrated: boolean;
   signIn: (token: string, user: UserPublic, plan?: string | null) => void;
-  setPlan: (plan: string | null) => void;
+  setPlan: (plan: string | null, addons?: string[]) => void;
   signOut: () => void;
   setUser: (user: UserPublic) => void;
 }
@@ -35,12 +38,16 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       plan: null,
+      addons: [],
       hasHydrated: false,
       signIn: (token, user, plan) => {
         apiContext.setToken(token);
         set({ token, user, plan: plan ?? null });
       },
-      setPlan: (plan) => set({ plan }),
+      setPlan: (plan, addons = []) => {
+        setOrgAddons(addons);
+        set({ plan, addons });
+      },
       signOut: () => {
         // Purge api contexts
         apiContext.setToken(null);
@@ -60,16 +67,18 @@ export const useAuthStore = create<AuthState>()(
         clearShellCache();
         forgetRememberedModules();
 
-        set({ token: null, user: null, plan: null });
+        setOrgAddons([]);
+        set({ token: null, user: null, plan: null, addons: [] });
       },
       setUser: (user) => set({ user }),
     }),
     {
       name: LS_KEYS.auth,
       storage: createJSONStorage(() => safeStorage),
-      partialize: (s) => ({ user: s.user, token: s.token, plan: s.plan }),
+      partialize: (s) => ({ user: s.user, token: s.token, plan: s.plan, addons: s.addons }),
       onRehydrateStorage: () => (state) => {
         if (state?.token) apiContext.setToken(state.token);
+        setOrgAddons(state?.addons ?? []);
         state?.hasHydrated !== undefined &&
           useAuthStore.setState({ hasHydrated: true });
       },

@@ -20,11 +20,16 @@ Element.prototype.scrollIntoView ??= () => {};
 let planState: unknown;
 const updateOrg = vi.fn(async (_id: string, _b: unknown) => ({}));
 const createOrg = vi.fn(async (_b: unknown) => ({ id: "new-org" }));
+const putAddon = vi.fn();
+const endAddon = vi.fn();
 vi.mock("@/data/api/generated/api", () => ({
   updateOrg: (id: string, b: unknown) => updateOrg(id, b),
   createOrg: (b: unknown) => createOrg(b),
   uploadOrgLogo: vi.fn(),
   useGetOrgPlan: () => ({ data: planState }),
+  getGetOrgPlanQueryKey: (id: string) => [`/orgs/${id}/plan`],
+  usePutOrgAddon: () => ({ mutate: putAddon, isPending: false }),
+  useEndOrgAddon: () => ({ mutate: endAddon, isPending: false }),
 }));
 vi.mock("./util", () => ({ invalidateOrgs: vi.fn() }));
 vi.mock("@/components/app/timezone-select", () => ({ TimezoneSelect: () => null }));
@@ -46,6 +51,8 @@ const wrap = (node: ReactNode) => render(<QueryClientProvider client={new QueryC
 
 beforeEach(() => {
   updateOrg.mockClear();
+  putAddon.mockClear();
+  endAddon.mockClear();
   planState = undefined;
   createOrg.mockClear();
 });
@@ -158,5 +165,42 @@ describe("OrgDialog plan (madar-plan)", () => {
     planState = { plan: "free", over_branch_limit: false, live_branches: 1, branch_limit: 1, inactive_tills: 0 };
     wrap(<OrgDialog org={{ ...(ORG as object), plan: "free" } as never} open onOpenChange={vi.fn()} />);
     expect(screen.queryByText("Over the Free plan's limits")).toBeNull();
+  });
+});
+
+describe("OrgDialog loyalty add-on (Rewards by Madar)", () => {
+  const FREE = { ...(ORG as object), plan: "free" } as never;
+
+  it("a super admin switches it on for a Free org, at once", async () => {
+    as("super_admin");
+    planState = { plan: "free", addons: [], over_branch_limit: false, inactive_tills: 0 };
+    const user = userEvent.setup();
+    wrap(<OrgDialog org={FREE} open onOpenChange={vi.fn()} />);
+    const sw = screen.getByRole("switch", { name: "Loyalty add-on (Rewards by Madar)" });
+    expect(sw).not.toBeChecked();
+    await user.click(sw);
+    expect(putAddon).toHaveBeenCalledWith({ id: "o1", feature: "loyalty", data: {} });
+    expect(updateOrg).not.toHaveBeenCalled();
+  });
+
+  it("switching it off ends it", async () => {
+    as("super_admin");
+    planState = { plan: "free", addons: ["loyalty"], over_branch_limit: false, inactive_tills: 0 };
+    const user = userEvent.setup();
+    wrap(<OrgDialog org={FREE} open onOpenChange={vi.fn()} />);
+    const sw = screen.getByRole("switch", { name: "Loyalty add-on (Rewards by Madar)" });
+    expect(sw).toBeChecked();
+    await user.click(sw);
+    expect(endAddon).toHaveBeenCalledWith({ id: "o1", feature: "loyalty" });
+  });
+
+  it("is not offered on a paid org, nor to an org owner", () => {
+    as("super_admin");
+    const { unmount } = wrap(<OrgDialog org={{ ...(ORG as object), plan: "paid" } as never} open onOpenChange={vi.fn()} />);
+    expect(screen.queryByRole("switch", { name: "Loyalty add-on (Rewards by Madar)" })).toBeNull();
+    unmount();
+    as("org_admin");
+    wrap(<OrgDialog org={FREE} open onOpenChange={vi.fn()} />);
+    expect(screen.queryByRole("switch", { name: "Loyalty add-on (Rewards by Madar)" })).toBeNull();
   });
 });

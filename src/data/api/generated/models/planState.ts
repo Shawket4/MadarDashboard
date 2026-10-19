@@ -5,6 +5,11 @@ import type { PlanStateEntitlements } from './planStateEntitlements';
 
 export interface PlanState {
   /**
+     * Active add-on keys (Rewards by Madar: `["loyalty"]`), already inside
+     * `entitlements.features`.
+     */
+  addons?: string[];
+  /**
      * The plan's branch limit, `null` for unlimited.
      * @minimum 0
      * @nullable

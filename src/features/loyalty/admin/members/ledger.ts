@@ -49,6 +49,10 @@ export function ledgerLabel(e: Pick<LedgerEntry, "kind" | "source">, t: TFunctio
       return t("loyalty.ledger.winback", "Win-back gift");
     case "manual":
       return t("loyalty.ledger.manual", "Manual adjustment");
+    case "counter":
+      return e.kind === "redeem"
+        ? t("loyalty.ledger.counterRedeem", "Card completed at the counter")
+        : t("loyalty.ledger.counterEarn", "Stamped at the counter");
     default:
       return e.kind;
   }

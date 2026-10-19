@@ -36,7 +36,8 @@ import { prefetchMenuStudio } from "@/features/menu/queries";
 import { paymentMethodsSearch } from "@/features/payment-methods/search";
 import { orgBrandQueryOptions } from "@/features/settings/queries";
 import { Cap, type Capability } from "@/generated/capabilities";
-import { hasFeature } from "@/generated/plans";
+import { type Feature } from "@/generated/plans";
+import { orgHasFeature } from "@/lib/plan-features";
 import type { RoutePrefetchMap } from "@/lib/route-prefetch";
 
 const superAdmin = () => useAuthStore.getState().user?.role === "super_admin";
@@ -49,7 +50,7 @@ const can = (qc: QueryClient, ...caps: Capability[]) => {
 };
 
 /** `useHasFeature(f)`, outside React. */
-const planHas = (f: Parameters<typeof hasFeature>[1]) => hasFeature(useAuthStore.getState().plan, f);
+const planHas = (f: Feature) => orgHasFeature(useAuthStore.getState().plan, f);
 
 /** The export logo every exporting pane reads (`useExportLogo` → `usePublicBrand`), with the hook's own options. */
 const warmExportLogo = (qc: QueryClient, orgId: string | null) => {

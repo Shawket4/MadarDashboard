@@ -31,6 +31,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 
 import { loyaltyAccess } from "../../shared/access";
 import { Spinner } from "@/components/ui/spinner";
+import { useIsStandaloneLoyalty } from "@/hooks/use-plan";
 
 export function ProgramPane({ scope }: { scope: ProgramScope }) {
   const { t } = useTranslation();
@@ -39,6 +40,9 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
   const save = usePutLoyaltySettings();
   const authz = useAuthz();
   const { canEditProgram } = loyaltyAccess(authz);
+  // Loyalty sold on its own (Free + the add-on): a stamp card and nothing
+  // else. One number to set (stamps per card); the counter page stamps it.
+  const standalone = useIsStandaloneLoyalty();
 
   const form = useForm<ProgramValues>({
     // Only what the form shows is checked: a value left in a hidden field never blocks Save.
@@ -75,7 +79,13 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
 
   const submit = async (v: ProgramValues) => {
     try {
-      await save.mutateAsync({ data: toWire(v, scope, settings) });
+      const body = toWire(v, scope, settings);
+      await save.mutateAsync({
+        data: standalone
+          ? // A stamp card: one stamp per item, any item completes it, at the card's size.
+            { ...body, mode: "visits", stamp_per_line_item: true, reward_any_item: true }
+          : body,
+      });
       toast.success(t("loyalty.saved", "Program saved"));
       await query.refetch();
     } catch (e) {
@@ -147,7 +157,25 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
         </CardContent>
       </Card>
 
-      <CollectingCard form={form} derivedCap={settings?.effective_balance_cap ?? null} />
+      {standalone ? (
+        <Card>
+          <CardContent className="space-y-3 p-5">
+            <TextRow
+              form={form}
+              name="default_reward_cost"
+              type="number"
+              mono
+              label={t("loyalty.stampsPerCard", "Stamps per card")}
+              hint={t(
+                "loyalty.stampsPerCardHint",
+                "A full card is completed at the counter for a free item; extra stamps carry over to the next card.",
+              )}
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <CollectingCard form={form} derivedCap={settings?.effective_balance_cap ?? null} />
+      )}
       <SignupCard form={form} saved={settings} />
       <PassesCard
         form={form}

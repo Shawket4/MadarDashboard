@@ -13,6 +13,8 @@ describe("reading the ledger", () => {
     [{ kind: "reverse_redeem", source: "void" }, "Reward returned (void)", "reversal"],
     [{ kind: "reverse_earn", source: "refund" }, "Refund clawback", "reversal"],
     [{ kind: "adjust", source: "manual" }, "Manual adjustment", "manual"],
+    [{ kind: "earn", source: "counter" }, "Stamped at the counter", "earn"],
+    [{ kind: "redeem", source: "counter" }, "Card completed at the counter", "spend"],
     [{ kind: "adjust", source: "birthday" }, "Birthday gift", "gift"],
     [{ kind: "adjust", source: "winback" }, "Win-back gift", "gift"],
   ])("labels %o", (row, label, tone) => {

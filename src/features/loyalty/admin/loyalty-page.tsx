@@ -21,6 +21,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { useOrgId } from "@/hooks/use-org-id";
 
 import { useAuthz } from "@/data/authz/use-authz";
+import { useIsStandaloneLoyalty } from "@/hooks/use-plan";
 
 import { loyaltyAccess } from "../shared/access";
 import { MembersPane } from "./members/members-pane";
@@ -60,7 +61,10 @@ export function LoyaltyPage() {
   // The open tab lives in the URL (./search.ts), restored on return. Overview
   // needs members access; a link to it without that opens Program.
   const { values: f, set } = useListFilters(loyaltySearch);
-  const tab = f.tab === "overview" && !canListMembers ? "program" : f.tab;
+  // A stamp card sold on its own has no reward catalogue to edit.
+  const standalone = useIsStandaloneLoyalty();
+  const tab =
+    (f.tab === "overview" && !canListMembers) || (f.tab === "rewards" && standalone) ? "program" : f.tab;
   const setTab = (v: typeof f.tab) => set({ tab: v });
 
   return (
@@ -83,7 +87,7 @@ export function LoyaltyPage() {
         onChange={setTab}
         options={[
           { value: "program", label: t("loyalty.tabProgram", "Program") },
-          { value: "rewards", label: t("loyalty.tabRewards", "Rewards") },
+          ...(standalone ? [] : [{ value: "rewards" as const, label: t("loyalty.tabRewards", "Rewards") }]),
           { value: "members", label: t("loyalty.tabMembers", "Members") },
           ...(canListMembers
             ? [{ value: "overview" as const, label: t("loyalty.tabOverview", "Overview") }]

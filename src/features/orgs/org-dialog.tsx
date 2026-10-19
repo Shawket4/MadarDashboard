@@ -16,7 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ImageUploader } from "@/components/app/image-uploader";
 import { TimezoneSelect } from "@/components/app/timezone-select";
-import { createOrg, updateOrg, uploadOrgLogo, useGetOrgPlan } from "@/data/api/generated/api";
+import {
+  createOrg, getGetOrgPlanQueryKey, updateOrg, uploadOrgLogo, useEndOrgAddon, useGetOrgPlan, usePutOrgAddon,
+} from "@/data/api/generated/api";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { useAppStore } from "@/data/stores/app.store";
@@ -384,6 +387,8 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
               )} />
             ) : null}
 
+            {superAdmin && org && org.plan === "free" ? <LoyaltyAddonSwitch orgId={org.id} /> : null}
+
             {org && org.plan === "free" ? <OverFreeLimitsNote orgId={org.id} /> : null}
 
             {/* Editable here as well as in the shop's own brand settings: an
@@ -403,6 +408,48 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         </Form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * Loyalty sold on its own (Rewards by Madar): a super admin switches the `loyalty` add-on
+ * on a Free org. It saves at once, apart from the form: it is a sale, not an
+ * edit of the org. Paid already includes loyalty, and moving to paid ends it
+ * (the server's rule), so it is only offered on Free.
+ */
+function LoyaltyAddonSwitch({ orgId }: { orgId: string }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const plan = useGetOrgPlan(orgId);
+  const on = plan.data?.addons?.includes("loyalty") ?? false;
+  const done = {
+    onSuccess: () => qc.invalidateQueries({ queryKey: getGetOrgPlanQueryKey(orgId) }),
+    onError: (e: unknown) => toast.error(getErrorMessage(e)),
+  };
+  const put = usePutOrgAddon({ mutation: done });
+  const end = useEndOrgAddon({ mutation: done });
+  const busy = plan.isLoading || put.isPending || end.isPending;
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-lg bg-muted p-3">
+      <div className="space-y-1">
+        <label htmlFor="addon-loyalty" className="text-sm font-medium">
+          {t("orgs.addonLoyalty", "Loyalty add-on (Rewards by Madar)")}
+        </label>
+        <p className="text-xs text-muted-foreground">
+          {t("orgs.addonLoyaltyHint", "Stamp cards, wallet passes and the teller page on the Free plan. Upgrading to Paid ends it; going back to Free does not bring it back.")}
+        </p>
+      </div>
+      <Switch
+        id="addon-loyalty"
+        checked={on}
+        disabled={busy}
+        onCheckedChange={(next) =>
+          next
+            ? put.mutate({ id: orgId, feature: "loyalty", data: {} })
+            : end.mutate({ id: orgId, feature: "loyalty" })
+        }
+      />
+    </div>
   );
 }
 

@@ -542,6 +542,7 @@ export const DeviceSessionHeader = zod.object({
 })
 
 export const DeviceSessionResponse = zod.object({
+  "addons": zod.array(zod.string()).optional().describe('Features the org has as add-ons beside its plan (Rewards by Madar: `[\"loyalty\"]` on\nFree). Additive: an old client ignores it and sees the plan alone.'),
   "currency_code": zod.string(),
   "open_till": zod.union([zod.null(),zod.object({
   "branch_id": zod.uuid(),
@@ -596,6 +597,7 @@ export const LoginBody = zod.object({
 }).describe('Login is dual-mode:\n\n- \*\*Email + password\*\* (admins, managers, super-admins): supply\n  `email` and `password`. `org_id` is optional — if provided, the\n  user must belong to that org; if omitted, lookup is by email only.\n- \*\*PIN + name\*\* (tellers): supply `name`, `pin`, and \*\*`branch_id`\*\*\n  (required). The teller must be assigned to that branch. `org_id` is\n  derived server-side from the branch — never trusted from the client.')
 
 export const LoginResponse = zod.object({
+  "addons": zod.array(zod.string()).optional().describe('Features the org has as add-ons beside its plan (Rewards by Madar: `[\"loyalty\"]` on\nFree). Additive: an old client ignores it and sees the plan alone.'),
   "currency_code": zod.string(),
   "open_till": zod.union([zod.null(),zod.object({
   "branch_id": zod.uuid(),
@@ -634,6 +636,7 @@ export const LoginResponse = zod.object({
 
 
 export const MeResponse = zod.object({
+  "addons": zod.array(zod.string()).optional().describe('Features the org has as add-ons beside its plan (Rewards by Madar: `[\"loyalty\"]`).'),
   "currency_code": zod.string().describe('Org currency code (e.g. \"EGP\").'),
   "plan": zod.string().optional().describe('The organization\'s plan: `free` | `paid`. Re-read on every `\/auth\/me`.'),
   "require_table_for_orders": zod.boolean().optional().describe('Every dine-in sale belongs to a table. Re-read on every `\/auth\/me`, so\nswitching it on reaches a till that has been running for weeks.'),
@@ -7359,6 +7362,79 @@ export const GetLoyaltyCampaignEffectivenessResponse = zod.object({
 })
 
 
+/**
+ * @summary Complete a full card: deduct exactly the card's size; extra stamps stay.
+ */
+export const LoyaltyCounterRedeemBody = zod.object({
+  "branch_id": zod.uuid(),
+  "customer_id": zod.uuid(),
+  "idempotency_key": zod.string().describe('One per attempt, made by the page (a UUID).')
+})
+
+export const LoyaltyCounterRedeemResponse = zod.object({
+  "already": zod.boolean().describe('True when this key had already been used: nothing new was written.'),
+  "member": zod.object({
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "can_redeem": zod.boolean().describe('The balance affords at least one reward on offer here.'),
+  "enrolled_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "lifetime_points": zod.number(),
+  "lifetime_visits": zod.number(),
+  "locale": zod.string(),
+  "mode": zod.string().describe('`\"points\"` or `\"visits\"` — what the branch that asked collects.'),
+  "name": zod.string(),
+  "next_reward_cost": zod.number().describe('The cheapest reward on offer here, in `mode`\'s currency — what the\nprogress line counts towards. Falls back to the scope\'s default cost\nwhen no rewards have been curated.'),
+  "org_id": zod.uuid(),
+  "phone": zod.string(),
+  "points_balance": zod.number(),
+  "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
+  "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
+  "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
+  "visits_balance": zod.number()
+}).describe('The member after the change, with the card\'s figures.'),
+  "stamps": zod.number().describe('Stamps this call moved: positive for a stamp, negative for a completed\ncard. On a retry, what the first call moved.')
+})
+
+
+/**
+ * @summary Stamp a member's card for a visit (no order).
+ */
+export const loyaltyCounterStampBodyItemsMax = 50;
+
+
+
+export const LoyaltyCounterStampBody = zod.object({
+  "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().describe('The member, as `\/loyalty\/lookup` resolved them.'),
+  "idempotency_key": zod.string().describe('One per attempt, made by the page (a UUID). A retry with the same key\nstamps nothing new.'),
+  "items": zod.number().min(1).max(loyaltyCounterStampBodyItemsMax).describe('Items bought on this visit, 1 to 50.')
+})
+
+export const LoyaltyCounterStampResponse = zod.object({
+  "already": zod.boolean().describe('True when this key had already been used: nothing new was written.'),
+  "member": zod.object({
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "can_redeem": zod.boolean().describe('The balance affords at least one reward on offer here.'),
+  "enrolled_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "lifetime_points": zod.number(),
+  "lifetime_visits": zod.number(),
+  "locale": zod.string(),
+  "mode": zod.string().describe('`\"points\"` or `\"visits\"` — what the branch that asked collects.'),
+  "name": zod.string(),
+  "next_reward_cost": zod.number().describe('The cheapest reward on offer here, in `mode`\'s currency — what the\nprogress line counts towards. Falls back to the scope\'s default cost\nwhen no rewards have been curated.'),
+  "org_id": zod.uuid(),
+  "phone": zod.string(),
+  "points_balance": zod.number(),
+  "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
+  "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
+  "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
+  "visits_balance": zod.number()
+}).describe('The member after the change, with the card\'s figures.'),
+  "stamps": zod.number().describe('Stamps this call moved: positive for a stamp, negative for a completed\ncard. On a retry, what the first call moved.')
+})
+
+
 export const GetLoyaltyEarningItemsQueryParams = zod.object({
   "branch_id": zod.uuid().optional().describe('Omit for the org-wide default; supply a branch for its override.')
 })
@@ -7464,7 +7540,7 @@ export const LoyaltyLookupResponse = zod.object({
   "points": zod.number(),
   "reverses_id": zod.uuid().nullish().describe('For a reversal, the row it undoes.'),
   "reward_name": zod.string().nullish(),
-  "source": zod.string().describe('Why the row exists: `sale`, `redemption`, `void`, `refund`, `birthday`,\n`winback` or `manual`. What a till or a dashboard should print as the\nreason, instead of guessing from the kind and the note.')
+  "source": zod.string().describe('Why the row exists: `sale`, `redemption`, `void`, `refund`, `birthday`,\n`winback`, `manual`, `merge` or `counter` (no order: the Rewards teller page). What a till or a dashboard should print as the\nreason, instead of guessing from the kind and the note.')
 }).describe('One line of a member\'s history.')).describe('Recent history, so a teller can answer \"where did my points go?\".'),
   "rewards": zod.array(zod.object({
   "base_price": zod.number().describe('Menu price in piastres — what the reward is worth, for the admin\'s sake.'),
@@ -7536,7 +7612,7 @@ export const GetLoyaltyMemberResponse = zod.object({
   "points": zod.number(),
   "reverses_id": zod.uuid().nullish().describe('For a reversal, the row it undoes.'),
   "reward_name": zod.string().nullish(),
-  "source": zod.string().describe('Why the row exists: `sale`, `redemption`, `void`, `refund`, `birthday`,\n`winback` or `manual`. What a till or a dashboard should print as the\nreason, instead of guessing from the kind and the note.')
+  "source": zod.string().describe('Why the row exists: `sale`, `redemption`, `void`, `refund`, `birthday`,\n`winback`, `manual`, `merge` or `counter` (no order: the Rewards teller page). What a till or a dashboard should print as the\nreason, instead of guessing from the kind and the note.')
 }).describe('One line of a member\'s history.')),
   "member": zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
@@ -11889,6 +11965,93 @@ export const UpdateOrgResponse = zod.object({
 })
 
 
+/**
+ * @summary Switch an add-on on for an org (super admin). Loyalty on a Free org is Rewards by Madar:
+the loyalty programme, its card and the teller page, without the paid plan.
+On a paid org it changes nothing (paid has every feature) and is refused,
+so no row claims a sale that was not made. Repeating it keeps the first
+start date.
+ */
+export const PutOrgAddonParams = zod.object({
+  "id": zod.uuid().describe('Organization ID'),
+  "feature": zod.string().describe('The add-on: `loyalty`')
+})
+
+export const PutOrgAddonBody = zod.object({
+  "note": zod.string().nullish().describe('Why, for the record (e.g. \"Rewards trial\").')
+})
+
+export const putOrgAddonResponseBranchLimitMin = 0;
+
+
+
+export const PutOrgAddonResponse = zod.object({
+  "addons": zod.array(zod.string()).optional().describe('Active add-on keys (Rewards by Madar: `[\"loyalty\"]`), already inside\n`entitlements.features`.'),
+  "branch_limit": zod.number().min(putOrgAddonResponseBranchLimitMin).nullish().describe('The plan\'s branch limit, `null` for unlimited.'),
+  "branches": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "name": zod.string(),
+  "tills": zod.array(zod.object({
+  "active": zod.boolean().describe('`false`: the plan switched this till off (not its branch\'s active one).\nAlways `true` on Paid.'),
+  "code": zod.string().describe('The till\'s short code on receipts (`T1`).'),
+  "device_id": zod.uuid(),
+  "label": zod.string().nullish(),
+  "last_sale_at": zod.iso.datetime({"offset":true}).nullish().describe('When the till last rang a sale, if it ever did.'),
+  "last_seen_at": zod.iso.datetime({"offset":true}).describe('When the till last talked to the server.')
+})).describe('The branch\'s POS tills, the active one first.')
+})),
+  "entitlements": zod.looseObject({
+
+}).describe('What the plan allows: `{features: [..], limits: {branches,\npos_devices_per_branch, kds_devices, waiter_devices}, realtime}`\n(madar-plan\'s `Entitlements`). A limit that is `null` is unlimited.'),
+  "inactive_tills": zod.number().describe('POS tills the plan has switched off.'),
+  "live_branches": zod.number().describe('Live selling branches (not deleted, not warehouses).'),
+  "org_id": zod.uuid(),
+  "over_branch_limit": zod.boolean().describe('Past the plan\'s branch limit (a downgraded org keeps all its branches\nand cannot add one).'),
+  "plan": zod.string().describe('`free` | `paid`.'),
+  "signup_source": zod.string().describe('`admin` | `self`.')
+})
+
+
+/**
+ * @summary End an add-on (super admin). The row is kept, ended; a member's points,
+passes and history stay, the features just switch off.
+ */
+export const EndOrgAddonParams = zod.object({
+  "id": zod.uuid().describe('Organization ID'),
+  "feature": zod.string().describe('The add-on: `loyalty`')
+})
+
+export const endOrgAddonResponseBranchLimitMin = 0;
+
+
+
+export const EndOrgAddonResponse = zod.object({
+  "addons": zod.array(zod.string()).optional().describe('Active add-on keys (Rewards by Madar: `[\"loyalty\"]`), already inside\n`entitlements.features`.'),
+  "branch_limit": zod.number().min(endOrgAddonResponseBranchLimitMin).nullish().describe('The plan\'s branch limit, `null` for unlimited.'),
+  "branches": zod.array(zod.object({
+  "branch_id": zod.uuid(),
+  "name": zod.string(),
+  "tills": zod.array(zod.object({
+  "active": zod.boolean().describe('`false`: the plan switched this till off (not its branch\'s active one).\nAlways `true` on Paid.'),
+  "code": zod.string().describe('The till\'s short code on receipts (`T1`).'),
+  "device_id": zod.uuid(),
+  "label": zod.string().nullish(),
+  "last_sale_at": zod.iso.datetime({"offset":true}).nullish().describe('When the till last rang a sale, if it ever did.'),
+  "last_seen_at": zod.iso.datetime({"offset":true}).describe('When the till last talked to the server.')
+})).describe('The branch\'s POS tills, the active one first.')
+})),
+  "entitlements": zod.looseObject({
+
+}).describe('What the plan allows: `{features: [..], limits: {branches,\npos_devices_per_branch, kds_devices, waiter_devices}, realtime}`\n(madar-plan\'s `Entitlements`). A limit that is `null` is unlimited.'),
+  "inactive_tills": zod.number().describe('POS tills the plan has switched off.'),
+  "live_branches": zod.number().describe('Live selling branches (not deleted, not warehouses).'),
+  "org_id": zod.uuid(),
+  "over_branch_limit": zod.boolean().describe('Past the plan\'s branch limit (a downgraded org keeps all its branches\nand cannot add one).'),
+  "plan": zod.string().describe('`free` | `paid`.'),
+  "signup_source": zod.string().describe('`admin` | `self`.')
+})
+
+
 export const OrgBookingQrParams = zod.object({
   "id": zod.uuid().describe('Organisation ID')
 })
@@ -12329,6 +12492,7 @@ export const getOrgPlanResponseBranchLimitMin = 0;
 
 
 export const GetOrgPlanResponse = zod.object({
+  "addons": zod.array(zod.string()).optional().describe('Active add-on keys (Rewards by Madar: `[\"loyalty\"]`), already inside\n`entitlements.features`.'),
   "branch_limit": zod.number().min(getOrgPlanResponseBranchLimitMin).nullish().describe('The plan\'s branch limit, `null` for unlimited.'),
   "branches": zod.array(zod.object({
   "branch_id": zod.uuid(),
@@ -12373,6 +12537,7 @@ export const putActiveTillResponseBranchLimitMin = 0;
 
 
 export const PutActiveTillResponse = zod.object({
+  "addons": zod.array(zod.string()).optional().describe('Active add-on keys (Rewards by Madar: `[\"loyalty\"]`), already inside\n`entitlements.features`.'),
   "branch_limit": zod.number().min(putActiveTillResponseBranchLimitMin).nullish().describe('The plan\'s branch limit, `null` for unlimited.'),
   "branches": zod.array(zod.object({
   "branch_id": zod.uuid(),
@@ -14183,6 +14348,7 @@ export const SignupBody = zod.object({
 })
 
 export const SignupResponse = zod.object({
+  "addons": zod.array(zod.string()).optional().describe('Features the org has as add-ons beside its plan (Rewards by Madar: `[\"loyalty\"]` on\nFree). Additive: an old client ignores it and sees the plan alone.'),
   "currency_code": zod.string(),
   "open_till": zod.union([zod.null(),zod.object({
   "branch_id": zod.uuid(),

@@ -911,6 +911,13 @@ export function price_line(view: CatalogView, selection: Selection): PricedLine 
 export function price_options(view: CatalogView, selection: Selection): PricedOptions | PriceError;
 
 /**
+ * What a scanned or typed string is: `{kind: "token" | "phone" | "partial",
+ * value}`. Feed it every keystroke of a wedge scanner and act once `kind`
+ * is not `partial`.
+ */
+export function scan_classify(raw: string): { kind: 'token' | 'phone' | 'partial'; value: string };
+
+/**
  * One unit of the item at `size_label` before any option (madar-catalog
  * `unit_price`).
  */
@@ -936,6 +943,7 @@ export interface InitOutput {
     readonly phone_canonical: (a: number, b: number) => [number, number, number];
     readonly price_line: (a: any, b: any) => [number, number, number];
     readonly price_options: (a: any, b: any) => [number, number, number];
+    readonly scan_classify: (a: number, b: number) => [number, number, number];
     readonly unit_price: (a: any, b: number, c: number) => [number, number, number];
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

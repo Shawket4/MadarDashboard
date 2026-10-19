@@ -1,0 +1,7 @@
+{
+  "about": "src/lib/scan_vectors.json is a byte-for-byte copy of madar-shared's file at this tag (the POS core and this app share it). A change is made there, released with a tag, and copied here with the tag and hash below updated; scripts/check-shared-vectors.sh (CI) and shared_vectors.test.ts check it.",
+  "repo": "Shawket4/madar-shared",
+  "tag": "v0.11.0",
+  "path": "crates/madar-ids/vectors/scan_vectors.json",
+  "sha256": "a579b92b119b2dcf5914972e570673a8c49233d3d2d1ab42ec1154f94a238229"
+}
