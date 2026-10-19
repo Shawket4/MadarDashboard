@@ -106,6 +106,28 @@ describe("SignupPage", () => {
     expect(screen.getByRole("button", { name: /Resend the code in \d:\d\d/ })).toBeDisabled();
   });
 
+  it("takes a number from any country: picked from the list, or pasted with its +code", async () => {
+    const user = userEvent.setup();
+    page();
+    await user.selectOptions(screen.getByLabelText("Country code"), "SA");
+    const field = screen.getByLabelText("Mobile number");
+    await user.type(field, "050 123 4567");
+    await user.click(screen.getByRole("button", { name: "Send the code" }));
+    await waitFor(() => expect(otpCall).toHaveBeenCalledWith({ phone: "966501234567" }));
+    expect(screen.getByText("+966501234567")).toHaveAttribute("dir", "ltr");
+  });
+
+  it("a number pasted with another +code switches the country", async () => {
+    const user = userEvent.setup();
+    page();
+    const field = screen.getByLabelText("Mobile number");
+    await user.click(field);
+    await user.paste("+44 7700 900123");
+    expect(screen.getByLabelText("Country code")).toHaveValue("GB");
+    expect(field).toHaveValue("770 090 0123");
+    expect(screen.getByRole("button", { name: "Send the code" })).toBeEnabled();
+  });
+
   it("takes the phone however it is pasted, and shows it grouped after the fixed +20", async () => {
     const user = userEvent.setup();
     page();

@@ -1,7 +1,7 @@
 import { AxiosError, AxiosHeaders } from "axios";
 import { describe, expect, it } from "vitest";
 
-import { clock, groupNational, nationalDigits, nationalIssue, passwordStrength, signupAttribution, signupPhone, signupProblem } from "./util";
+import { clock, groupNational, nationalDigits, nationalIssue, passwordStrength, regionOf, signupAttribution, signupPhone, signupProblem } from "./util";
 
 const refusal = (status: number, data: Record<string, unknown>) =>
   new AxiosError("Request failed", "ERR_BAD_REQUEST", undefined, undefined, {
@@ -60,6 +60,35 @@ describe("the phone, as typed after +20", () => {
   it("sends the canonical number only when it is a whole mobile", () => {
     expect(signupPhone("1001234567")).toBe("201001234567");
     expect(signupPhone("100123")).toBeNull();
+  });
+});
+
+describe("the phone, anywhere else", () => {
+  it("takes a number after its code, with or without the trunk 0", () => {
+    expect(nationalDigits("050 123 4567", "SA")).toBe("501234567");
+    expect(nationalDigits("+966 50 123 4567", "SA")).toBe("501234567");
+    expect(nationalDigits("07700 900123", "GB")).toBe("7700900123");
+    expect(nationalDigits("(202) 555-0143", "US")).toBe("2025550143");
+    // Italy keeps its 0: it is part of the number.
+    expect(nationalDigits("06 1234 5678", "IT")).toBe("0612345678");
+  });
+  it("sends the canonical number once code and number make an E.164 phone", () => {
+    expect(signupPhone("501234567", "SA")).toBe("966501234567");
+    expect(signupPhone("7700900123", "GB")).toBe("447700900123");
+    expect(signupPhone("2025550143", "US")).toBe("12025550143");
+    expect(signupPhone("50123", "SA")).toBeNull();
+    expect(nationalIssue("50123", true, "SA")).toBe("short");
+    expect(nationalIssue("50123", false, "SA")).toBeNull();
+    // No Egyptian prefix rule elsewhere: a UAE mobile starts with 5.
+    expect(nationalIssue("5", false, "AE")).toBeNull();
+  });
+  it("finds the country of a number pasted with its +code", () => {
+    expect(regionOf("+966 50 123 4567", "EG")).toBe("SA");
+    expect(regionOf("00971501234567", "EG")).toBe("AE");
+    expect(regionOf("+1 202 555 0143", "EG")).toBe("US");
+    expect(regionOf("+1 416 555 0143", "CA")).toBe("CA");
+    expect(regionOf("+20 100 123 4567", "SA")).toBe("EG");
+    expect(regionOf("0100 123 4567", "EG")).toBeNull();
   });
 });
 

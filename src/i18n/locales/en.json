@@ -7584,7 +7584,10 @@
     "codeExpired": "That code has expired or was already used. Send a new one.",
     "codeLocked": "Too many wrong tries. Send a new code to try again.",
     "tokenExpired": "Your phone check timed out. Verify your number again to finish.",
-    "verifying": "Checking the code…"
+    "verifying": "Checking the code…",
+    "country": "Country code",
+    "phoneShortIntl": "Enter the whole number after +{{code}}.",
+    "phonePlaceholderIntl": "Mobile number"
   },
   "menuDisplay": {
     "title": "Menu",

@@ -44,6 +44,8 @@ import {
   SIGNUP_CODE_LENGTH,
   signupAttribution,
   signupPhone,
+  DEFAULT_REGION,
+  dialCode,
   signupProblem,
   useCountdown,
   type SignupProblem,
@@ -122,6 +124,7 @@ export function SignupPage() {
   /** True once the person has moved between steps: the next step takes focus (the first screen does not, so a phone keyboard doesn't cover it). */
   const [moved, setMoved] = useState(false);
   const [national, setNational] = useState("");
+  const [region, setRegion] = useState(DEFAULT_REGION);
   const [code, setCode] = useState("");
   const [resendAt, setResendAt] = useState<number | null>(null);
   const [problem, setProblem] = useState<SignupProblem | null>(null);
@@ -143,8 +146,8 @@ export function SignupPage() {
     pixelPageView();
   }, []);
 
-  const canonical = signupPhone(national);
-  const shown = formatPhoneDisplay(canonical ?? `20${national}`);
+  const canonical = signupPhone(national, region);
+  const shown = formatPhoneDisplay(canonical ?? `${dialCode(region)}${national}`);
 
   const go = (s: SignupStep) => {
     setDir(SIGNUP_STEPS.indexOf(s) < SIGNUP_STEPS.indexOf(step) ? -1 : 1);
@@ -323,6 +326,8 @@ export function SignupPage() {
                 <PhoneInput
                   id="signup-phone"
                   value={national}
+                  region={region}
+                  onRegionChange={(r) => { setRegion(r); if (problem) { setProblem(null); setMessage(null); } }}
                   autoFocus={moved}
                   invalid={problem === "phone_taken"}
                   aria-describedby="signup-phone-hint"
