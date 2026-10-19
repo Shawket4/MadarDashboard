@@ -334,7 +334,7 @@ export function FoodicsImportDialog({
                   <li>
                     {t(
                       "menuImport.how2",
-                      "Open Menu, then each list below, then Import/Export, then Export.",
+                      "Open Menu, then each list below, then Import/Export, then Export. On Products, also export the product modifiers (which item offers which choices).",
                     )}
                   </li>
                   <li>
