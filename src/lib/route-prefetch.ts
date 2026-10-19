@@ -54,6 +54,7 @@ export const REDIRECTS: Record<string, string> = {
   "/delivery/settings": "/settings/delivery",
   "/delivery/zones": "/settings/delivery-zones",
   "/inventory": "/inventory/today",
+  "/onboarding": "/setup",
   "/insights/inventory-reports": "/reports/inventory",
   "/insights/profitability": "/reports/operations",
   "/insights/sales": "/reports/operations",

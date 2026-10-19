@@ -33,3 +33,12 @@ Two ways to drive it:
 `setActive(false)` stops drawing (off screen, panel hidden); `dispose()` frees the
 GPU context. Both hosts load the engine lazily, keep a 2D fallback, and never load it
 under reduced motion.
+
+## apps.ts: the Madar apps
+
+The one list of apps (`APPS`: store listings, `downloadsHref`), their icons
+(`apps/icons/`), the stores' official badges (`apps/stores/`) and each app's
+downloads page as a QR code (`apps-qr.ts`, plus `apps/qr/*.svg` for the Flutter
+dashboard). The site's home, pricing and footer read it, and so do the
+dashboard's Setup page and footer. After a downloads URL changes, run
+`node scripts/app-qr/write.mjs`.

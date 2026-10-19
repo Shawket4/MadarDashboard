@@ -1,9 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { requireAuth } from "@/lib/auth-guard";
-import { OnboardingPage } from "@/features/onboarding/onboarding-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// Authenticated but full-screen (outside the app shell): guided setup checklist.
+// The old full-screen wizard's address: Setup replaced it (links in old emails, bookmarks).
 export const Route = createFileRoute("/onboarding")({
-  beforeLoad: ({ location }) => requireAuth(location.href),
-  component: OnboardingPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/setup", replace: true });
+  },
 });

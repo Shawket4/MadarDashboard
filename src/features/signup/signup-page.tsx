@@ -7,7 +7,7 @@
  * kept; typing the right one creates the shop at once.
  *
  * On success the session is stored exactly as sign-in stores it, and the owner
- * lands in onboarding.
+ * lands on Setup.
  */
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
@@ -223,7 +223,7 @@ export function SignupPage() {
       pixelSignupDone(r.org_id);
       signIn(r.token, r.user, r.plan);
       useAppStore.getState().setSelectedBranch(r.branch_id);
-      void navigate({ to: "/onboarding" });
+      void navigate({ to: "/setup" });
     },
     onError: (e) => {
       const p = signupProblem(e);

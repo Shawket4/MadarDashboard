@@ -1,5 +1,6 @@
 /** Contact and link facts for the site. One place to change them. (The pages themselves: lib/pages.ts.) */
 import { type Lang, type PageKey, LANGS, pageHref, isEnglishOnly } from "./pages";
+import { APPS, APP_KEYS } from "@shared/apps";
 export { type Lang, type PageKey, LANGS, pageHref, isEnglishOnly };
 export const SITE_URL = "https://get.madar-pos.cloud";
 
@@ -19,26 +20,7 @@ export const EMAIL_HREF = `mailto:${EMAIL}`;
 export const INSTAGRAM = "https://www.instagram.com/madar.cloud/";
 export const FACEBOOK = "https://www.facebook.com/profile.php?id=61591636403380";
 
-/**
- * Every Madar app and where it is listed. A URL shows that store's official badge wherever
- * the app appears (the home page's apps, pricing, the footer); an app with no URL reads
- * "coming soon". When an app goes live on a store, its URL here is the whole change.
- */
-export const APPS = {
-  cashier: { appStore: "https://apps.apple.com/us/app/madar-cashier/id6815221877", googlePlay: null },
-  kitchen: { appStore: null, googlePlay: null },
-  dashboard: { appStore: null, googlePlay: null },
-  dawam: { appStore: null, googlePlay: null },
-} as const satisfies Record<string, { appStore: string | null; googlePlay: string | null }>;
-export type AppKey = keyof typeof APPS;
-export const APP_KEYS = Object.keys(APPS) as AppKey[];
-/** An app is live once it is on at least one store. */
-/** Every build (Android APKs, Mac, Windows, Linux) lives on the downloads site, apart from this one. */
-export const DOWNLOADS_URL = "https://downloads.madar-pos.cloud";
-const DOWNLOAD_ID: Record<AppKey, string> = { cashier: "pos", kitchen: "kitchen", dashboard: "dashboard", dawam: "dawam" };
-/** The downloads page in `lang`, with this app's card in the middle of the screen. */
-export const downloadsHref = (lang: Lang, app: AppKey): string => `${DOWNLOADS_URL}/${lang === "ar" ? "ar/" : ""}?app=${DOWNLOAD_ID[app]}`;
-export const isLive = (app: AppKey): boolean => Boolean(APPS[app].appStore || APPS[app].googlePlay);
+export { APPS, APP_KEYS, DOWNLOADS_URL, downloadsHref, isLive, type AppKey } from "@shared/apps";
 /** Every store listing, for the organisation's `sameAs`. */
 export const STORE_URLS: string[] = APP_KEYS.flatMap((k): (string | null)[] => [APPS[k].appStore, APPS[k].googlePlay]).filter(
   (u): u is string => typeof u === "string",

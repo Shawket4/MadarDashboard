@@ -21,7 +21,7 @@ import { ChartCard, chartColor } from "@/components/app/chart-card";
 import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
-import { KeepBuildingCard } from "@/features/onboarding/keep-building-card";
+import { SetupCard } from "@/features/setup/setup-card";
 import { OpenTillsCard } from "@/features/tills/open-tills-card";
 import { ConciseValue, LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { MarginWatchCard } from "@/features/insights/margin-watch-card";
@@ -194,7 +194,7 @@ export function DashboardPage() {
           </span>
         }
       />
-      <KeepBuildingCard />
+      <SetupCard />
       <section className="space-y-4">
         <LedgerStrip items={kpiCards} dense />
         <OpenTillsCard branchId={branchId} />

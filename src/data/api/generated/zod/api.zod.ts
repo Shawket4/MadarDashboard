@@ -12284,17 +12284,17 @@ export const GetOnboardingParams = zod.object({
 })
 
 export const GetOnboardingResponse = zod.object({
-  "can_complete": zod.boolean().describe('True when every `required` step is done (the Finish button enabler).'),
-  "completed": zod.boolean().describe('Derived terminal flag (`completed_at IS NOT NULL`) — the dashboard\nroutes into the wizard while this is false.'),
+  "can_complete": zod.boolean(),
+  "completed": zod.boolean().describe('Always true: old builds never open their wizard.'),
   "completed_at": zod.iso.datetime({"offset":true}).nullish(),
   "org_id": zod.uuid(),
-  "recipe_coverage": zod.number().describe('Recipe coverage across active menu items (0..1) — drives the cost\nengine; surfaced separately because it\'s a percentage, not a bool.'),
+  "recipe_coverage": zod.number(),
   "steps": zod.array(zod.object({
-  "count": zod.number().describe('Supporting count (branches created, items added, …).'),
-  "done": zod.boolean().describe('True when the underlying data exists.'),
-  "key": zod.string().describe('Stable key the dashboard switches on — never localized.'),
-  "required": zod.boolean().describe('Steps that are encouraged but not blocking (`required = false`\nnever gates `can_complete`).')
-}).describe('One derived setup step.'))
+  "count": zod.number(),
+  "done": zod.boolean(),
+  "key": zod.string(),
+  "required": zod.boolean()
+}).describe('One step of the old checklist. The shim sends none.'))
 })
 
 
@@ -12303,17 +12303,17 @@ export const CompleteOnboardingParams = zod.object({
 })
 
 export const CompleteOnboardingResponse = zod.object({
-  "can_complete": zod.boolean().describe('True when every `required` step is done (the Finish button enabler).'),
-  "completed": zod.boolean().describe('Derived terminal flag (`completed_at IS NOT NULL`) — the dashboard\nroutes into the wizard while this is false.'),
+  "can_complete": zod.boolean(),
+  "completed": zod.boolean().describe('Always true: old builds never open their wizard.'),
   "completed_at": zod.iso.datetime({"offset":true}).nullish(),
   "org_id": zod.uuid(),
-  "recipe_coverage": zod.number().describe('Recipe coverage across active menu items (0..1) — drives the cost\nengine; surfaced separately because it\'s a percentage, not a bool.'),
+  "recipe_coverage": zod.number(),
   "steps": zod.array(zod.object({
-  "count": zod.number().describe('Supporting count (branches created, items added, …).'),
-  "done": zod.boolean().describe('True when the underlying data exists.'),
-  "key": zod.string().describe('Stable key the dashboard switches on — never localized.'),
-  "required": zod.boolean().describe('Steps that are encouraged but not blocking (`required = false`\nnever gates `can_complete`).')
-}).describe('One derived setup step.'))
+  "count": zod.number(),
+  "done": zod.boolean(),
+  "key": zod.string(),
+  "required": zod.boolean()
+}).describe('One step of the old checklist. The shim sends none.'))
 })
 
 
@@ -12425,6 +12425,35 @@ export const OrgQrResponse = zod.object({
   "short_code": zod.string(),
   "short_url": zod.string()
 }).describe('JSON returned from every QR-generation endpoint.')
+
+
+export const GetReadinessParams = zod.object({
+  "id": zod.uuid().describe('Organization ID')
+})
+
+export const GetReadinessResponse = zod.object({
+  "checks": zod.array(zod.object({
+  "count": zod.number().describe('How many things the check counted: problems when it names them, else the\nthings found (branches, sellable items, people).'),
+  "key": zod.string().describe('Stable key the dashboards switch on, never localized: `branch`, `menu`,\n`payment`, `sign_in`, `tablet`, `items_no_category`, `items_zero_price`,\n`required_group_empty`, `menu_lint`, `recipes`, `ingredient_costs`, `team`, `receipt`.'),
+  "level": zod.enum(['blocking', 'advice']),
+  "more": zod.number().describe('Problems past the first 20.'),
+  "ok": zod.boolean(),
+  "problems": zod.array(zod.object({
+  "entity_id": zod.uuid(),
+  "entity_type": zod.string().describe('`branch` | `item` | `attachment` | `option` | `ingredient`.'),
+  "group_id": zod.uuid().nullish().describe('The modifier group to open, when the problem is about one.'),
+  "item_id": zod.uuid().nullish().describe('The item to open, when the problem is about one.'),
+  "message": zod.string().nullish().describe('The lint\'s sentence, English, for the menu-lint problems only.'),
+  "name": zod.string(),
+  "rule": zod.string().nullish().describe('The menu lint rule (`F1`…) when the problem comes from the lint.')
+}).describe('One named thing a check found wrong: a branch, an item, an attachment, an ingredient.')).describe('Up to 20 named problems.'),
+  "total": zod.number().nullish().describe('What `count` is out of, when that reads better as a share (recipes: of active items).')
+})).describe('Blocking checks first, then advice. Empty for an org without the POS.'),
+  "first_order_at": zod.iso.datetime({"offset":true}).nullish(),
+  "live": zod.boolean().describe('The shop has taken an order.'),
+  "org_id": zod.uuid(),
+  "ready": zod.boolean().describe('Every blocking check passes: a cashier can ring up and take payment.')
+})
 
 
 export const ListRulesResponseItem = zod.object({

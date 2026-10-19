@@ -216,7 +216,7 @@ describe("SignupPage", () => {
     expect(pw).toHaveAttribute("type", "text");
   });
 
-  it("creates the shop, stores the session as sign-in does, and lands in onboarding", async () => {
+  it("creates the shop, stores the session as sign-in does, and lands on Setup", async () => {
     const user = userEvent.setup();
     page();
     await toDetailsStep(user);
@@ -227,7 +227,7 @@ describe("SignupPage", () => {
     await user.type(screen.getByLabelText("Password"), "correct horse");
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: "Create my shop" }));
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/onboarding" }));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/setup" }));
     expect(signupCall).toHaveBeenCalledWith({
       signup_token: "TOKEN-1", shop_name: "The Rue", owner_name: "Mona",
       email: "mona@therue.com", password: "correct horse", template: "restaurant", terms_version: TERMS_VERSION,

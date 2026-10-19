@@ -10,19 +10,21 @@ import { FoodicsImportDialog } from "./foodics-import-dialog";
 import { modeFor } from "./util";
 
 /**
- * "Already on Foodics?" in the onboarding menu stage: import the whole menu
+ * "Import from Foodics" on the Setup page's menu row: import the whole menu
  * from the console's exports, or replace the menu there is with them. Shown
  * only to someone who holds what the server will ask for.
  */
-export function FoodicsImportCard({
+export function FoodicsImportButton({
   orgId,
   live,
   refresh,
+  variant = "default",
 }: {
   orgId: string;
-  /** What the checklist counts: an empty menu adds, any other replaces. */
+  /** What the shop has: an empty menu adds, any other replaces. */
   live: { categories: number; items: number };
   refresh: () => void;
+  variant?: "default" | "outline";
 }) {
   const { t } = useTranslation();
   const { can } = useAuthz();
@@ -37,28 +39,9 @@ export function FoodicsImportCard({
   if (!canAdd || (mode === "replace" && !canReplace)) return null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-4 sm:flex-row sm:items-center">
-      <FileSpreadsheet
-        className="size-6 shrink-0 text-primary"
-        aria-hidden="true"
-      />
-      <div className="min-w-0 flex-1">
-        <p className="font-medium">
-          {t("menuImport.cardTitle", "Already on Foodics?")}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {mode === "replace"
-            ? t(
-                "menuImport.cardReplace",
-                "Replace this menu with the one you have in Foodics, in one go.",
-              )
-            : t(
-                "menuImport.cardAdd",
-                "Bring your whole menu over from Foodics: categories, items, sizes and choices.",
-              )}
-        </p>
-      </div>
-      <Button variant="outline" onClick={() => setOpen(true)}>
+    <>
+      <Button size="sm" variant={variant} onClick={() => setOpen(true)}>
+        <FileSpreadsheet aria-hidden="true" />
         {mode === "replace"
           ? t("menuImport.cardReplaceCta", "Replace from Foodics")
           : t("menuImport.cardCta", "Import from Foodics")}
@@ -71,6 +54,6 @@ export function FoodicsImportCard({
         onOpenChange={setOpen}
         onImported={refresh}
       />
-    </div>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import {
   ActivationCodeState,
   BranchKind,
   BulkMode,
+  CheckLevel,
   ColumnKind,
   Compare,
   DeviceKind,
@@ -259,6 +260,7 @@ import type {
   QrResponse,
   QuoteResponse,
   QuotedCombo,
+  Readiness,
   ReadyGroupRef,
   RecipeBaseOut,
   RecipeBaseSaveResult,
@@ -1026,6 +1028,8 @@ export const getGetOrgPlanResponseMock = (overrideResponse: Partial<Extract<Plan
 export const getPutActiveTillResponseMock = (overrideResponse: Partial<Extract<PlanState, object>> = {}): PlanState => ({branch_limit: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: 0}), null]), undefined]), branches: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), name: faker.string.alpha({length: {min: 10, max: 20}}), tills: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({active: faker.datatype.boolean(), code: faker.string.alpha({length: {min: 10, max: 20}}), device_id: faker.string.uuid(), label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), last_sale_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), last_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z'}))})), entitlements: {}, inactive_tills: faker.number.int(), live_branches: faker.number.int(), org_id: faker.string.uuid(), over_branch_limit: faker.datatype.boolean(), plan: faker.string.alpha({length: {min: 10, max: 20}}), signup_source: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 export const getOrgQrResponseMock = (overrideResponse: Partial<Extract<QrResponse, object>> = {}): QrResponse => ({kind: faker.string.alpha({length: {min: 10, max: 20}}), long_url: faker.string.alpha({length: {min: 10, max: 20}}), qr_data_url: faker.string.alpha({length: {min: 10, max: 20}}), short_code: faker.string.alpha({length: {min: 10, max: 20}}), short_url: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getGetReadinessResponseMock = (overrideResponse: Partial<Extract<Readiness, object>> = {}): Readiness => ({checks: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({count: faker.number.int(), key: faker.string.alpha({length: {min: 10, max: 20}}), level: faker.helpers.arrayElement(Object.values(CheckLevel)), more: faker.number.int(), ok: faker.datatype.boolean(), problems: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({entity_id: faker.string.uuid(), entity_type: faker.string.alpha({length: {min: 10, max: 20}}), group_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), item_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), message: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), rule: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])})), total: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined])})), first_order_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), live: faker.datatype.boolean(), org_id: faker.string.uuid(), ready: faker.datatype.boolean(), ...overrideResponse})
 
 export const getListRulesResponseMock = (): PackagingRuleOut[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), is_active: faker.datatype.boolean(), lines: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({ingredient_id: faker.string.uuid(), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), quantity: faker.string.alpha({length: {min: 10, max: 20}}), sort: faker.number.int(), unit: faker.string.alpha({length: {min: 10, max: 20}}), usable_quantity: faker.string.alpha({length: {min: 10, max: 20}})})), match_category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), match_item_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), match_size_label: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), org_id: faker.string.uuid(), sort: faker.number.int(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})))
 

@@ -21,7 +21,7 @@ const SCREENS = [
   { name: "floor", path: "/floor" },
   { name: "reports", path: "/reports/operations" },
   { name: "settings", path: "/settings" },
-  { name: "onboarding", path: "/onboarding" },
+  { name: "setup", path: "/setup" },
   { name: "signin", path: "/login", signedOut: true },
   { name: "signup", path: "/signup", signedOut: true },
 ];
@@ -37,7 +37,6 @@ async function context({ lang, theme, signedOut, reduced = false }) {
   await ctx.addInitScript(([l, t]) => {
     localStorage.setItem("madar.lang", l);
     localStorage.setItem("madar.theme", t);
-    sessionStorage.setItem("madar.onboarding.skip", "1");
   }, [lang, theme]);
   if (signedOut) {
     // The mock seeds a session at boot; drop that line for signed-out screens.

@@ -6,7 +6,7 @@ import {
   getGetLinksPageQueryOptions,
   getGetMenuDisplayQueryOptions,
   getGetMyAuthzQueryKey,
-  getGetOnboardingQueryOptions,
+  getGetReadinessQueryOptions,
   getGetOrgPlanQueryOptions,
   getGetOrgQueryOptions,
   getGetRoutingModeQueryOptions,
@@ -80,11 +80,11 @@ export const routes: RoutePrefetchMap = {
     if (comboId && comboId !== "new" && can(qc, Cap.menuItemsRead)) prefetchComboEditor(qc, orgId, comboId);
   },
 
-  // ── First run ──────────────────────────────────────────────────────────────
-  // The step panel's reads follow the first open step: left to the page.
-  "/onboarding": (qc, { orgId }) => {
+  // ── Setup ──────────────────────────────────────────────────────────────────
+  // The page reads readiness fresh on mount anyway; warming it makes the first frame whole.
+  "/setup": (qc, { orgId }) => {
     if (!orgId) return;
-    void qc.prefetchQuery(getGetOnboardingQueryOptions(orgId));
+    void qc.prefetchQuery(getGetReadinessQueryOptions(orgId));
     void qc.prefetchQuery(getGetOrgQueryOptions(orgId));
   },
 

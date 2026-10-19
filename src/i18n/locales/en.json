@@ -3048,153 +3048,6 @@
     "body": "Changes are temporary and reset in {{time}}.",
     "reset": "Reset"
   },
-  "onboarding": {
-    "title": "Let's open your café",
-    "subtitle": "A few quick steps — watch your dashboard come to life as you go.",
-    "readyPct": "{{pct}}% ready to open",
-    "cheer": {
-      "go": "Let's go!",
-      "start": "Nice start!",
-      "half": "Halfway there!",
-      "most": "Almost there!",
-      "done": "Ready to open!"
-    },
-    "celebrate": {
-      "title": "Your café is open! 🎉",
-      "body": "Taking you to your dashboard…"
-    },
-    "skip": "Skip for now",
-    "back": "Back",
-    "continue": "Continue",
-    "optional": "Optional",
-    "countAdded": "{{count}} added",
-    "navLabel": "Setup steps",
-    "loadError": "Couldn't load your setup",
-    "finishedToast": "Your café is open — welcome aboard!",
-    "stages": {
-      "cafe": "Your café",
-      "branch": "Your branch",
-      "pay": "Get paid",
-      "menu": "Your menu",
-      "team": "Your team",
-      "live": "Go live"
-    },
-    "steps": {
-      "org_profile": {
-        "title": "Name your café",
-        "desc": "Add your name, logo and currency — they show up across the dashboard and your customers' menu.",
-        "name": "Café name",
-        "namePh": "e.g. Madar Coffee",
-        "currency": "Currency",
-        "save": "Save & continue",
-        "saved": "Café details saved.",
-        "logoHint": "PNG, JPG or WebP",
-        "logoCopy": "Add your logo — it shows up across the dashboard, receipts and your customers' menu."
-      },
-      "branch": {
-        "title": "Add your first branch",
-        "desc": "Every order, till and report rolls up by branch. Add your first location to begin.",
-        "cta": "Add a branch",
-        "addAnother": "Add another branch",
-        "added": "{{count}} branch added — nicely done.",
-        "empty": "No branch yet — add your first to put your café on the map.",
-        "ready": "{{name}} is ready.",
-        "readyNoName": "Your branch is ready.",
-        "freeNote": "The Free plan includes one branch, and signing up already created it.",
-        "edit": "Edit branch details",
-        "moreBranches": "Need more branches? Contact Madar",
-        "free_title": "Your branch",
-        "free_desc": "Every order, till and report rolls up by branch. Add its address and phone so receipts carry them."
-      },
-      "payment_methods": {
-        "title": "How you get paid",
-        "desc": "Cash, card, wallet — set up the ways customers pay so the drawer balances.",
-        "cta": "Add a payment method",
-        "addAnother": "Add another method",
-        "added": "{{count}} payment methods ready.",
-        "empty": "Add at least one way to take payment."
-      },
-      "ingredients": {
-        "title": "Stock your pantry",
-        "desc": "Add the ingredients you buy and what they cost — this powers recipe costing and inventory.",
-        "cta": "Add an ingredient",
-        "addAnother": "Add another ingredient",
-        "added": "{{count}} ingredients in your catalog.",
-        "empty": "Optional, but adding ingredients unlocks true cost and margin."
-      },
-      "categories": {
-        "title": "Organize your menu",
-        "desc": "Group your menu into categories like Hot Drinks or Pastries.",
-        "cta": "Add a category",
-        "addAnother": "Add another category",
-        "added": "{{count}} categories created.",
-        "empty": "Add a category — every item lives in one."
-      },
-      "menu_items": {
-        "title": "Build your menu",
-        "desc": "Add what you sell, with prices and sizes. You can add a recipe and add-ons right here too.",
-        "cta": "Add a menu item",
-        "addAnother": "Add another item",
-        "added": "{{count}} on the menu board.",
-        "empty": "Build your first item — set its price, sizes, recipe and add-ons in one go.",
-        "needCategory": "Add a category first — every item lives in one."
-      },
-      "addons": {
-        "title": "Add-ons & extras",
-        "desc": "Extra shot, oat milk, large size — optional add-ons customers can choose.",
-        "cta": "Add an add-on",
-        "addAnother": "Add another add-on",
-        "added": "{{count}} add-ons available.",
-        "empty": "Optional — create extras customers can add to an item."
-      },
-      "recipes": {
-        "title": "Recipes & costs",
-        "desc": "Give items a recipe so Madar knows the cost and margin of everything you sell.",
-        "intro": "Open an item and add its recipe — Madar then knows the cost and margin of everything you sell.",
-        "noItems": "Add a menu item first, then come back to give it a recipe.",
-        "addFor": "Add recipe"
-      },
-      "team": {
-        "title": "Invite your team",
-        "desc": "Add managers and tellers so your staff can run tills and take orders.",
-        "cta": "Add a team member",
-        "addAnother": "Add another member",
-        "added": "{{count}} team members added.",
-        "empty": "Optional — invite your managers and tellers."
-      },
-      "go_live": {
-        "title": "Open your café",
-        "desc": "The finish line — open up and start taking orders.",
-        "heading": "Ready to open your café",
-        "ready": "The essentials are in place. Open your café and start taking orders — you can keep refining anytime.",
-        "notReady": "Finish the required steps (branch, payments, a category and a menu item) to open your café.",
-        "cta": "Open my café"
-      }
-    },
-    "mirror": {
-      "branches": "Branches",
-      "payments": "Payment methods",
-      "categories": "Categories",
-      "items": "Menu items",
-      "ingredients": "Ingredients",
-      "addons": "Add-ons",
-      "team": "Team",
-      "coverage": "Recipe cost coverage",
-      "coverageHint": "Add recipes to know every item's margin.",
-      "sales": "Today's sales",
-      "salesLocked": "Unlocks with your first order",
-      "firstSale": "First sale in!",
-      "yourCafe": "Your café",
-      "dashboard": "Dashboard",
-      "preview": "Live preview"
-    },
-    "nudge": {
-      "title": "Your café is open · {{done}}/{{total}} set up",
-      "body": "Keep building — add recipes, your team and more to unlock cost insights.",
-      "cta": "Keep building",
-      "bodyFree": "Keep building — add your team and add-ons to get the most out of your till."
-    }
-  },
   "scope": {
     "selectBranch": "Select branch",
     "branch": "Branch",
@@ -7765,9 +7618,6 @@
     }
   },
   "menuImport": {
-    "cardTitle": "Already on Foodics?",
-    "cardAdd": "Bring your whole menu over from Foodics: categories, items, sizes and choices.",
-    "cardReplace": "Replace this menu with the one you have in Foodics, in one go.",
     "cardCta": "Import from Foodics",
     "cardReplaceCta": "Replace from Foodics",
     "title": "Import your menu from Foodics",
@@ -7863,5 +7713,176 @@
       "link": "choice groups on one item",
       "optional": "extras"
     }
+  },
+  "setup": {
+    "title": "Set up your shop",
+    "subtitle": "Everything a cashier needs to ring up the first sale, checked against your shop as it is now.",
+    "healthTitle": "Shop health",
+    "healthSubtitle": "What still reads wrong on the till, and what's worth doing next.",
+    "noPos": {
+      "title": "Nothing to set up for the till",
+      "body": "This organisation doesn't sell with Madar POS. Dawam has its own set-up under Staff.",
+      "cta": "Open Staff set-up"
+    },
+    "sellHeading": "To start selling",
+    "worthHeading": "Worth doing",
+    "showList": "See which",
+    "hideList": "Hide list",
+    "andMore": "and {{count}} more",
+    "state": {
+      "done": "Done",
+      "todo": "To do before selling",
+      "advice": "Worth doing"
+    },
+    "progress": "{{done}} of {{total}} done",
+    "hero": {
+      "yourShop": "Your shop",
+      "welcome": "Welcome to Madar",
+      "readyEyebrow": "Ready to sell",
+      "liveEyebrow": "Live",
+      "setupTitle": "{{shop}}, let's get you selling.",
+      "readyTitle": "{{shop}} is ready to sell.",
+      "liveTitle": "{{shop}} is live.",
+      "setupBody_one": "One thing stands between you and your first sale. It ticks itself off as soon as it's done.",
+      "setupBody_other": "{{count}} things stand between you and your first sale. Each one ticks itself off as soon as it's done.",
+      "readyBody": "Ring up a first order on the tablet and you're live. The rest of the family is here when you need it.",
+      "liveBody": "First sale on {{date}}. Everything below is advice."
+    },
+    "tablet": {
+      "title": "Connect a tablet",
+      "subtitle": "Two steps and {{branch}} can sell.",
+      "subtitleAny": "Two steps and the tablet can sell.",
+      "install": "Install Madar Cashier on the tablet",
+      "scan": "Open the tablet's camera and point it at the code. It opens the download page.",
+      "code": "Open it and enter a code",
+      "codeHint": "Make a code here and type it on the tablet. It joins this branch at once."
+    },
+    "card": {
+      "title_one": "One thing before your first sale",
+      "title_other": "{{count}} things before your first sale",
+      "next": "Next: {{what}}.",
+      "cta": "Continue setup",
+      "readyTitle": "Ready to sell",
+      "readyBody": "Ring up a first order on the tablet and you're live.",
+      "readyCta": "Get the apps"
+    },
+    "checks": {
+      "branch": {
+        "title": "Branch",
+        "action": "Add a branch",
+        "ok_one": "{{count}} branch open.",
+        "ok_other": "{{count}} branches open.",
+        "todo": "Add a branch: every till signs in to one."
+      },
+      "menu": {
+        "title": "Menu",
+        "action": "Add items myself",
+        "ok_one": "{{count}} item on the till.",
+        "ok_other": "{{count}} items on the till.",
+        "todo": "Your menu is empty, so the till has nothing to sell."
+      },
+      "payment": {
+        "title": "Payment",
+        "action": "Payment methods",
+        "ok": "Every branch can take payment.",
+        "todo": "Nothing is left to pay with at {{names}}."
+      },
+      "sign_in": {
+        "title": "Who signs in on the till",
+        "action": "Add a PIN",
+        "ok": "Someone can sign in at every branch.",
+        "todo": "Nobody at {{names}} can sign in yet. Add your PIN, or a cashier's."
+      },
+      "tablet": {
+        "title": "Tablet",
+        "action": "Connect a tablet",
+        "ok": "A tablet is connected at every branch.",
+        "todo": "No tablet at {{names}} yet."
+      },
+      "items_no_category": {
+        "title": "Items without a category",
+        "action": "Open the menu",
+        "ok": "Every item is in a category.",
+        "todo_one": "{{count}} item has no category, so it shows only in search.",
+        "todo_other": "{{count}} items have no category, so they show only in search."
+      },
+      "items_zero_price": {
+        "title": "Prices",
+        "action": "Set prices",
+        "ok": "Every item has a price.",
+        "todo_one": "{{count}} item sells for 0.",
+        "todo_other": "{{count}} items sell for 0."
+      },
+      "required_group_empty": {
+        "title": "Required choices",
+        "action": "Open choices",
+        "ok": "Every required choice has something to pick.",
+        "todo_one": "{{count}} required choice has nothing to pick, so the till skips it.",
+        "todo_other": "{{count}} required choices have nothing to pick, so the till skips them."
+      },
+      "menu_lint": {
+        "title": "Menu checks",
+        "action": "Open the menu",
+        "ok": "The menu reads right on the till.",
+        "todo_one": "{{count}} thing on the menu reads wrong on the till.",
+        "todo_other": "{{count}} things on the menu read wrong on the till."
+      },
+      "recipes": {
+        "title": "Recipes",
+        "action": "Add recipes",
+        "ok": "Every item has a recipe.",
+        "todo": "{{done}} of {{total}} items have a recipe, so costs and stock are missing for the rest."
+      },
+      "ingredient_costs": {
+        "title": "Ingredient costs",
+        "action": "Add costs",
+        "ok": "Every ingredient has a cost.",
+        "todo_one": "{{count}} ingredient costs 0, so margins read too high.",
+        "todo_other": "{{count}} ingredients cost 0, so margins read too high."
+      },
+      "team": {
+        "title": "Team",
+        "action": "Add people",
+        "ok_one": "{{count}} person on the team.",
+        "ok_other": "{{count}} people on the team.",
+        "todo": "Just you so far. Add the people who work the till."
+      },
+      "receipt": {
+        "title": "Receipt",
+        "action": "Upload a logo",
+        "ok": "Your logo is on the receipt.",
+        "todo": "Your receipts show no logo yet."
+      }
+    },
+    "alreadyFine": "Already fine: {{names}}."
+  },
+  "apps": {
+    "cashier": {
+      "name": "Madar Cashier",
+      "line": "The till, on iPad and iPhone.",
+      "scan": "Point the tablet's camera here to install it."
+    },
+    "kitchen": {
+      "name": "Madar Kitchen",
+      "line": "A live screen for each station.",
+      "scan": "Point the kitchen tablet's camera here."
+    },
+    "dashboard": {
+      "name": "Madar Dashboard",
+      "line": "This dashboard, on your phone and desktop.",
+      "scan": "Scan with your phone to take the dashboard with you."
+    },
+    "dawam": {
+      "name": "Dawam",
+      "line": "Staff clock in; the hours become payslips.",
+      "scan": "Your team scan this to get Dawam on their phones."
+    },
+    "qrLabel": "QR code: download {{name}}",
+    "appStoreAlt": "Download {{name}} on the App Store",
+    "googlePlayAlt": "Get {{name}} on Google Play",
+    "allDownloads": "Android, Mac and Windows downloads",
+    "open": "Get {{name}}",
+    "footerLabel": "Madar on every screen",
+    "startHere": "Start here: put it on your tablet"
   }
 }

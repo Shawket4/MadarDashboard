@@ -104,9 +104,9 @@ const SCENARIOS = [
   {
     name: "home-tile",
     start: "/",
-    // The "Keep building" tile on the home page opens the set-up checklist.
-    target: (page) => page.getByRole("button", { name: "Keep building" }),
-    done: () => location.pathname === "/onboarding" && !!document.querySelector("h1, h2") && window.__tap.ready(document.body),
+    // The home page's setup card opens Setup (the mock's fresh shop has things left to do).
+    target: (page) => page.getByRole("link", { name: "Continue setup" }),
+    done: () => location.pathname === "/setup" && !!document.querySelector("[data-page-width] h2") && window.__tap.ready(document.querySelector("[data-page-width]")),
   },
   {
     name: "orders-row",
@@ -146,7 +146,7 @@ for (const s of SCENARIOS.filter((x) => !only || x.name.startsWith(only))) {
     await ctx.addInitScript(() => {
       localStorage.setItem("madar.lang", "en");
       localStorage.setItem("madar.theme", "light");
-      sessionStorage.setItem("madar.onboarding.skip", "1");
+      localStorage.setItem("madar.mock.setup", "fresh");
     });
     await serveReplay(ctx);
     await ctx.addInitScript(probe);
@@ -194,7 +194,7 @@ if (!only || "storm".startsWith(only)) {
   await ctx.addInitScript(() => {
     localStorage.setItem("madar.lang", "en");
     localStorage.setItem("madar.theme", "light");
-    sessionStorage.setItem("madar.onboarding.skip", "1");
+    localStorage.setItem("madar.mock.setup", "fresh");
   });
   let counting = false;
   const seen = [];

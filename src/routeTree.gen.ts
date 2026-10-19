@@ -17,6 +17,7 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppUsersRouteImport } from './routes/_app/users'
 import { Route as AppTillsRouteImport } from './routes/_app/tills'
 import { Route as AppShiftsRouteImport } from './routes/_app/shifts'
+import { Route as AppSetupRouteImport } from './routes/_app/setup'
 import { Route as AppQrRouteImport } from './routes/_app/qr'
 import { Route as AppPermissionsRouteImport } from './routes/_app/permissions'
 import { Route as AppOrgsRouteImport } from './routes/_app/orgs'
@@ -148,6 +149,11 @@ const AppTillsRoute = AppTillsRouteImport.update({
 const AppShiftsRoute = AppShiftsRouteImport.update({
   id: '/shifts',
   path: '/shifts',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppSetupRoute = AppSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppQrRoute = AppQrRouteImport.update({
@@ -648,6 +654,7 @@ export interface FileRoutesByFullPath {
   '/orgs': typeof AppOrgsRoute
   '/permissions': typeof AppPermissionsRoute
   '/qr': typeof AppQrRoute
+  '/setup': typeof AppSetupRoute
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
@@ -744,6 +751,7 @@ export interface FileRoutesByTo {
   '/orgs': typeof AppOrgsRoute
   '/permissions': typeof AppPermissionsRoute
   '/qr': typeof AppQrRoute
+  '/setup': typeof AppSetupRoute
   '/shifts': typeof AppShiftsRoute
   '/tills': typeof AppTillsRoute
   '/users': typeof AppUsersRoute
@@ -848,6 +856,7 @@ export interface FileRoutesById {
   '/_app/orgs': typeof AppOrgsRoute
   '/_app/permissions': typeof AppPermissionsRoute
   '/_app/qr': typeof AppQrRoute
+  '/_app/setup': typeof AppSetupRoute
   '/_app/shifts': typeof AppShiftsRoute
   '/_app/tills': typeof AppTillsRoute
   '/_app/users': typeof AppUsersRoute
@@ -953,6 +962,7 @@ export interface FileRouteTypes {
     | '/orgs'
     | '/permissions'
     | '/qr'
+    | '/setup'
     | '/shifts'
     | '/tills'
     | '/users'
@@ -1049,6 +1059,7 @@ export interface FileRouteTypes {
     | '/orgs'
     | '/permissions'
     | '/qr'
+    | '/setup'
     | '/shifts'
     | '/tills'
     | '/users'
@@ -1152,6 +1163,7 @@ export interface FileRouteTypes {
     | '/_app/orgs'
     | '/_app/permissions'
     | '/_app/qr'
+    | '/_app/setup'
     | '/_app/shifts'
     | '/_app/tills'
     | '/_app/users'
@@ -1296,6 +1308,13 @@ declare module '@tanstack/react-router' {
       path: '/shifts'
       fullPath: '/shifts'
       preLoaderRoute: typeof AppShiftsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/setup': {
+      id: '/_app/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof AppSetupRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/_app/qr': {
@@ -2110,6 +2129,7 @@ interface AppRouteRouteChildren {
   AppOrgsRoute: typeof AppOrgsRoute
   AppPermissionsRoute: typeof AppPermissionsRoute
   AppQrRoute: typeof AppQrRoute
+  AppSetupRoute: typeof AppSetupRoute
   AppShiftsRoute: typeof AppShiftsRoute
   AppTillsRoute: typeof AppTillsRoute
   AppUsersRoute: typeof AppUsersRoute
@@ -2164,6 +2184,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppOrgsRoute: AppOrgsRoute,
   AppPermissionsRoute: AppPermissionsRoute,
   AppQrRoute: AppQrRoute,
+  AppSetupRoute: AppSetupRoute,
   AppShiftsRoute: AppShiftsRoute,
   AppTillsRoute: AppTillsRoute,
   AppUsersRoute: AppUsersRoute,

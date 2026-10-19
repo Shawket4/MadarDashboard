@@ -10,16 +10,10 @@ import { ModuleGate } from "@/components/app/module-gate";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { requireAuth } from "@/lib/auth-guard";
 import { useAppStore } from "@/data/stores/app.store";
-import { useAuthStore } from "@/data/stores/auth.store";
 import { useSyncTimezone } from "@/data/scope/use-timezone";
 import { DEFAULT_PRESET } from "@/data/scope/presets";
 import { useBranchRealtime } from "@/data/realtime/use-branch-realtime";
-import { useOrgId } from "@/hooks/use-org-id";
-import { useGetOnboarding } from "@/data/api/generated/api";
-import { ONBOARDING_SKIP_KEY } from "@/features/onboarding/config";
-import { sendsToOnboarding } from "@/features/onboarding/gate";
 import { useSyncPlan } from "@/hooks/use-plan";
-import { useOrgModulesState } from "@/hooks/use-org-modules";
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
 import { NavPrefetchProvider } from "@/lib/prefetch/nav-context";
 
@@ -57,33 +51,6 @@ function AppLayout() {
   // One realtime stream for the selected branch, shared by every page (floor,
   // bookings, tickets, delivery). Mounted here so navigation never reconnects.
   useBranchRealtime(search.branchId);
-
-  // First-run gate: a fresh org_admin whose onboarding isn't complete is routed
-  // into the full-screen setup wizard. Skipping (the wizard's "Skip for now")
-  // sets a per-session flag so they aren't bounced straight back; completing it
-  // flips `completed` and the gate stops firing for good.
-  const orgId = useOrgId();
-  const role = useAuthStore((s) => s.user?.role);
-  const skipped = (() => {
-    try {
-      return sessionStorage.getItem(ONBOARDING_SKIP_KEY) === "1";
-    } catch {
-      return false;
-    }
-  })();
-  // The POS checklist is for an org that sells with Madar POS; a Dawam-only
-  // owner's first run is Staff ▸ Set-up (SA-4), never the POS wizard.
-  const mods = useOrgModulesState();
-  const hasPos = mods.known && mods.modules.includes("pos");
-  const onboarding = useGetOnboarding(orgId ?? "", {
-    query: { enabled: !!orgId && role === "org_admin" && !skipped && hasPos },
-  });
-  const toOnboarding = sendsToOnboarding({
-    role, skipped, modules: mods.modules, modulesKnown: mods.known, completed: onboarding.data?.completed,
-  });
-  useEffect(() => {
-    if (toOnboarding) void navigate({ to: "/onboarding" });
-  }, [toOnboarding, navigate]);
 
   // On a bare entry (no scope in the URL), hydrate it from the persisted
   // last-used scope so every URL is complete and shareable. Runs once.

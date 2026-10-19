@@ -136,11 +136,6 @@ beforeAll(async () => {
   useAuthStore.getState().signIn(TOKEN, { id: "u1", name: "Owner", email: "o@x", phone: "", role: "org_admin", org_id: ORG, branch_id: null, is_active: true }, "paid");
   useAppStore.getState().setSelectedOrg(ORG);
   useAppStore.getState().setActiveTimezone(APP_TZ);
-  try {
-    sessionStorage.setItem("madar.onboarding.skip", "1");
-  } catch {
-    /* jsdom has it */
-  }
   shell = await pageKeys("/settings", scoped);
 }, 60_000);
 

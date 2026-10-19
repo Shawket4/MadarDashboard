@@ -228,40 +228,59 @@ const MOCK_TRACKING = {
   items: MOCK_ORDER_ITEMS,
 };
 
-/** A rich, mostly-complete onboarding so the wizard + mirror look alive under
- *  the mock harness: required steps done (can_complete), some optional steps
- *  still open (so the "keep building" nudge shows), recipe coverage partial.
- *  Statefully flips to completed on /complete so the finish→dashboard flow
- *  (and the redirect gate) behave like the real backend. */
-// `localStorage["madar.mock.onboarded"] = "1"` starts past onboarding (scripted walkthroughs).
-let onboardingDone = (() => {
+/** The Setup page's answer. A fresh shop (the `empty` demo, or
+ *  `localStorage["madar.mock.setup"] = "fresh"`) has its branch and tenders and
+ *  nothing else, as signup leaves it; otherwise a shop that sells and still has
+ *  advice open, so both faces of the page show under the mock harness. */
+let freshShop = (() => {
   try {
-    return localStorage.getItem("madar.mock.onboarded") === "1";
+    return localStorage.getItem("madar.mock.setup") === "fresh";
   } catch {
     return false;
   }
 })();
-const onboardingStatus = () => ({
-  org_id: MOCK_ORG_ID,
-  completed: onboardingDone,
-  completed_at: onboardingDone ? "2026-06-30T10:00:00Z" : null,
-  can_complete: true,
-  recipe_coverage: 0.45,
-  steps: [
-    { key: "org_profile", done: true, count: 1, required: false },
-    { key: "branch", done: true, count: 2, required: true },
-    { key: "payment_methods", done: true, count: 3, required: true },
-    { key: "categories", done: true, count: 4, required: true },
-    { key: "menu_items", done: true, count: 9, required: true },
-    { key: "ingredients", done: true, count: 12, required: false },
-    { key: "recipes", done: false, count: 4, required: false },
-    { key: "addons", done: false, count: 0, required: false },
-    { key: "team", done: false, count: 0, required: false },
-    { key: "first_order", done: false, count: 0, required: false },
-  ],
-});
+const maadi = { entity_type: "branch", entity_id: "branch_maadi", name: "Maadi", rule: null, message: null, item_id: null, group_id: null };
+const item = (id: string, name: string) => ({ entity_type: "item", entity_id: id, name, rule: null, message: null, item_id: id, group_id: null });
+const readiness = () => {
+  const check = (key: string, level: "blocking" | "advice", ok: boolean, count: number, problems: unknown[] = [], total: number | null = null) => ({
+    key, level, ok, count, total, problems, more: 0,
+  });
+  const checks = freshShop
+    ? [
+        check("branch", "blocking", true, 1),
+        check("menu", "blocking", false, 0),
+        check("payment", "blocking", true, 0, [], 1),
+        check("sign_in", "blocking", false, 1, [maadi], 1),
+        check("tablet", "blocking", false, 1, [maadi], 1),
+        check("items_no_category", "advice", true, 0),
+        check("items_zero_price", "advice", true, 0),
+        check("required_group_empty", "advice", true, 0),
+        check("menu_lint", "advice", true, 0),
+        check("recipes", "advice", true, 0, [], 0),
+        check("ingredient_costs", "advice", true, 0),
+        check("team", "advice", false, 1),
+        check("receipt", "advice", false, 0),
+      ]
+    : [
+        check("branch", "blocking", true, 2),
+        check("menu", "blocking", true, 9),
+        check("payment", "blocking", true, 0, [], 2),
+        check("sign_in", "blocking", true, 0, [], 2),
+        check("tablet", "blocking", true, 0, [], 2),
+        check("items_no_category", "advice", true, 0),
+        check("items_zero_price", "advice", false, 1, [item("mi_staff_water", "Staff water")]),
+        check("required_group_empty", "advice", true, 0),
+        check("menu_lint", "advice", true, 0),
+        check("recipes", "advice", false, 5, [item("mi_mocha", "Mocha"), item("mi_cortado", "Cortado"), item("mi_v60", "V60"), item("mi_croissant", "Croissant"), item("mi_cookie", "Cookie")], 9),
+        check("ingredient_costs", "advice", true, 0),
+        check("team", "advice", true, 4),
+        check("receipt", "advice", true, 1),
+      ];
+  const ready = checks.every((c) => c.ok || c.level === "advice");
+  return { org_id: MOCK_ORG_ID, ready, live: !freshShop, first_order_at: freshShop ? null : "2026-06-30T10:00:00Z", checks };
+};
 
-/** Echo a create back with a synthetic id so onboarding dialogs succeed under
+/** Echo a create back with a synthetic id so the editors' dialogs succeed under
  *  mock (multipart bodies aren't JSON — fall back to just an id). */
 const echoCreated = async ({ request }: { request: Request }) => {
   let body: Record<string, unknown> = {};
@@ -363,22 +382,18 @@ export const handlers = [
   http.all(/^[^?]*\/(src|node_modules|@vite|@fs|@id)\//, () => passthrough()),
   // ── Demo session ──────────────────────────────────────────────────────────
   // Mirrors the demo backend so `dev:demo` exercises the playground locally:
-  // `full` lands on a populated dashboard, `empty` flows into onboarding.
+  // `full` lands on a populated dashboard, `empty` on a fresh shop's Setup.
   http.post("*/demo/session", ({ request }) => {
     const variant = new URL(request.url).searchParams.get("variant") === "empty" ? "empty" : "full";
-    onboardingDone = variant === "full";
+    freshShop = variant === "empty";
     const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     return HttpResponse.json({ token: MOCK_TOKEN, org_id: MOCK_ORG_ID, expires_at, variant, user: MOCK_USER });
   }),
 
-  // ── Onboarding ────────────────────────────────────────────────────────────
-  http.get("*/orgs/*/onboarding", () => HttpResponse.json(onboardingStatus())),
-  http.post("*/orgs/*/onboarding/complete", () => {
-    onboardingDone = true;
-    return HttpResponse.json(onboardingStatus());
-  }),
+  // ── Setup ─────────────────────────────────────────────────────────────────
+  http.get("*/orgs/*/readiness", () => HttpResponse.json(readiness())),
 
-  // ── Setup writes (so the onboarding wizard's dialogs succeed under mock) ─────
+  // ── Setup writes (so the editors Setup links to succeed under mock) ──────────
   http.post("*/branches", echoCreated),
   http.post("*/payment-methods", echoCreated),
   http.post("*/categories", echoCreated),

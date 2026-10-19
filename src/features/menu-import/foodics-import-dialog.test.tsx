@@ -32,7 +32,7 @@ vi.mock("@/data/authz/use-authz", () => ({
 
 const i18n = (await import("@/i18n")).default;
 const { FoodicsImportDialog } = await import("./foodics-import-dialog");
-const { FoodicsImportCard } = await import("./foodics-import-card");
+const { FoodicsImportButton } = await import("./foodics-import-button");
 
 const wrap = (node: ReactNode) =>
   render(
@@ -270,10 +270,10 @@ describe("Import from Foodics", () => {
   });
 });
 
-describe("The onboarding card", () => {
+describe("The Setup page's import button", () => {
   it("offers an import into an empty menu, a replace otherwise, to who holds them", () => {
     const { rerender } = wrap(
-      <FoodicsImportCard
+      <FoodicsImportButton
         orgId="o1"
         live={{ categories: 0, items: 0 }}
         refresh={vi.fn()}
@@ -284,7 +284,7 @@ describe("The onboarding card", () => {
     ).toBeInTheDocument();
     rerender(
       <QueryClientProvider client={new QueryClient()}>
-        <FoodicsImportCard
+        <FoodicsImportButton
           orgId="o1"
           live={{ categories: 2, items: 9 }}
           refresh={vi.fn()}
@@ -299,7 +299,7 @@ describe("The onboarding card", () => {
   it("is not offered to someone the server would refuse", () => {
     caps = ADD;
     wrap(
-      <FoodicsImportCard
+      <FoodicsImportButton
         orgId="o1"
         live={{ categories: 2, items: 9 }}
         refresh={vi.fn()}
@@ -310,7 +310,7 @@ describe("The onboarding card", () => {
     ).toBeNull();
     caps = [];
     wrap(
-      <FoodicsImportCard
+      <FoodicsImportButton
         orgId="o1"
         live={{ categories: 0, items: 0 }}
         refresh={vi.fn()}
