@@ -29,6 +29,7 @@ import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { DISTANCE, recipes, Stagger, SwapPresence, type Recipe } from "@/lib/motion";
 import { formatPhoneDisplay } from "@/lib/phone";
+import { pixelPageView, pixelSignupDone } from "@/lib/meta-pixel";
 import { track } from "@/lib/umami";
 import { cn } from "@/lib/utils";
 
@@ -137,7 +138,10 @@ export function SignupPage() {
   /** The campaign tags the page opened with, read once: stored with the shop. */
   const [attribution] = useState(() => signupAttribution(window.location.search));
   // The funnel in Umami: this pageview (with the landing's utm_*), then one event per step.
-  useEffect(() => track(), []);
+  useEffect(() => {
+    track();
+    pixelPageView();
+  }, []);
 
   const canonical = signupPhone(national);
   const shown = formatPhoneDisplay(canonical ?? `20${national}`);
@@ -216,6 +220,7 @@ export function SignupPage() {
   const signup = useSignup({ mutation: {
     onSuccess: (r, v) => {
       track("signup-done", { template: v.data.template });
+      pixelSignupDone(r.org_id);
       signIn(r.token, r.user, r.plan);
       useAppStore.getState().setSelectedBranch(r.branch_id);
       void navigate({ to: "/onboarding" });

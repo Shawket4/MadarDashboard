@@ -129,7 +129,7 @@ function untar(tar: Uint8Array<ArrayBuffer>) {
  */
 const PAGE_HEADERS = {
   "content-security-policy":
-    "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://cloud.umami.is; connect-src 'self' https://cloudflareinsights.com https://gateway.umami.is; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+    "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://cloud.umami.is https://connect.facebook.net; connect-src 'self' https://cloudflareinsights.com https://gateway.umami.is https://www.facebook.com; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
   "x-content-type-options": "nosniff",
   "x-frame-options": "DENY",
   "referrer-policy": "strict-origin-when-cross-origin",
