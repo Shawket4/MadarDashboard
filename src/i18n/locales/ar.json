@@ -8021,7 +8021,8 @@
       "unknownFile": "الملف {{name}} ليس ملف تصدير قائمة من Foodics.",
       "duplicateFile": "ملفان من التصدير نفسه ({{file}}).",
       "missingProducts": "أضف ملف المنتجات (Products): فيه الأصناف نفسها.",
-      "badCsv": "تعذّرت قراءة {{file}} (السطر {{line}})."
+      "badCsv": "تعذّرت قراءة {{file}} (السطر {{line}}).",
+      "loadFailed": "تعذّر تحميل الاستيراد. تحقّق من الاتصال وحاول مجددًا."
     },
     "issues": {
       "missing_file": "لم يُرفَق ملف {{file}}.",

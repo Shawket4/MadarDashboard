@@ -3,9 +3,9 @@
   "repo": "Shawket4/madar-shared",
   "ref": "v0.10.0",
   "files": {
-    "madar_web.d.ts": "64c5cff4ad04bcc2f1aab3bf690339a5be5be6e1c1f242f6e6c04b51427a55a2",
-    "madar_web.js": "9063fa1e49a363345783ccd7666ffcde2cda1a6c45d79497d9df576081e16b26",
-    "madar_web_bg.wasm": "40c5913893b39a4de73e56039a2642179371a68894aefa593eae91f91ffcae83",
-    "madar_web_bg.wasm.d.ts": "f952a728ae6d9c5837bde465c85d23096d3e1518b59a2674ea8c9a78672daaa5"
+    "madar_web.d.ts": "1fc2c3ed5e49662da4158000cfff6eac1b1298f123c4357a1227bf2e779ee945",
+    "madar_web.js": "1d944e2274ee72d36391d4f0237213ec2c8c84ca382056f03485e88a472125ad",
+    "madar_web_bg.wasm": "e07018affe9321b5907d66d744ebd073ad11e0f299261dbf814e6987672bb74e",
+    "madar_web_bg.wasm.d.ts": "46e48fdd943b281e3431a7014bcc7ec5baa66c1e756022db3539908ce2d81c5e"
   }
 }

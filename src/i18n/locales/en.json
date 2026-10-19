@@ -7816,7 +7816,8 @@
       "unknownFile": "{{name}} is not a Foodics menu export.",
       "duplicateFile": "Two of the files are the same export ({{file}}).",
       "missingProducts": "Add the Products export: it holds the items themselves.",
-      "badCsv": "{{file}} could not be read (line {{line}})."
+      "badCsv": "{{file}} could not be read (line {{line}}).",
+      "loadFailed": "The import could not load. Check the connection and try again."
     },
     "issues": {
       "missing_file": "No {{file}} export was given.",

@@ -1,6 +1,5 @@
 import type { TFunction } from "i18next";
 
-import { rules } from "@/lib/rules";
 import type {
   BulkMenu,
   BulkRefusal,
@@ -9,12 +8,14 @@ import type {
   FoodicsFile,
   FoodicsParsed,
   FoodicsWarning,
-} from "@/lib/rules";
+  MenuRules,
+} from "@/lib/rules/menu";
 
 /**
  * The self-serve menu import (Madar MENU_IMPORT_PLAN.md). The files are read
- * here, in the browser, by madar-shared's Foodics reader (the rules wasm);
- * only the menu it builds goes to the server, which runs the same checks.
+ * here, in the browser, by madar-shared's Foodics reader (its own wasm
+ * package, `menuRules()`, loaded when the dialog opens); only the menu it
+ * builds goes to the server, which runs the same checks.
  */
 
 /** The most one file may weigh, as the reader allows (madar-menu MAX_FILE_BYTES). */
@@ -41,6 +42,7 @@ export const isRefusal = (r: BulkSummary | BulkRefusal): r is BulkRefusal =>
 /** Reads the picked files and runs the Foodics reader over their text. */
 export async function readFoodicsFiles(
   files: File[],
+  menu: MenuRules,
   t: TFunction,
 ): Promise<ReadResult> {
   const big = files.find((f) => f.size > MAX_FILE_BYTES);
@@ -53,7 +55,7 @@ export async function readFoodicsFiles(
       }),
     };
   const texts = await Promise.all(files.map((f) => f.text()));
-  const result = rules.foodics_parse(texts);
+  const result = menu.foodics_parse(texts);
   if (isError(result))
     return { ok: false, message: foodicsErrorMessage(result, files, t) };
   // The reader names each file's kind in the order they were given.

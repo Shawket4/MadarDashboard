@@ -2,40 +2,41 @@ import { describe, expect, it } from "vitest";
 
 import en from "@/i18n/locales/en.json";
 import ar from "@/i18n/locales/ar.json";
-import { rules } from "@/lib/rules";
+import { menuRules } from "@/lib/rules/menu";
 import type {
   BulkRefusal,
   BulkThing,
   FoodicsFile,
   FoodicsIssue,
-} from "@/lib/rules";
+} from "@/lib/rules/menu";
 import vectors from "@/lib/menu_import_vectors.json";
 
 import { byCategory, modeFor } from "./util";
+
+// Loaded from disk by src/test/setup.ts, as the dialog loads it on demand.
+const menu = await menuRules();
 
 /** madar-shared's own cases, through the wasm the dialog calls. */
 describe("menu_import_vectors through the rules wasm", () => {
   it.each(vectors.foodics.map((c) => [c.name, c] as const))(
     "foodics_parse %s",
     (_, c) => {
-      expect(rules.foodics_parse(c.files)).toEqual(c.expected);
+      expect(menu.foodics_parse(c.files)).toEqual(c.expected);
     },
   );
   it.each(vectors.validate.map((c) => [c.name, c] as const))(
     "bulk_validate %s",
     (_, c) => {
       expect(
-        rules.bulk_validate(
-          c.menu as Parameters<typeof rules.bulk_validate>[0],
-        ),
+        menu.bulk_validate(c.menu as Parameters<typeof menu.bulk_validate>[0]),
       ).toEqual(c.expected);
     },
   );
   it("replace_sentence and confirms_replace", () => {
     for (const c of vectors.sentences)
-      expect(rules.replace_sentence(c.org_name, c.lang)).toBe(c.expected);
+      expect(menu.replace_sentence(c.org_name, c.lang)).toBe(c.expected);
     for (const c of vectors.confirm)
-      expect(rules.confirms_replace(c.org_name, c.typed), c.name).toBe(
+      expect(menu.confirms_replace(c.org_name, c.typed), c.name).toBe(
         c.expected,
       );
   });
@@ -126,7 +127,7 @@ describe("helpers", () => {
   });
   it("lists items under their category, in the file's order, and leaves empty categories out", () => {
     const by = vectors.foodics.find((c) => c.name === "by_name")!;
-    const parsed = rules.foodics_parse(by.files);
+    const parsed = menu.foodics_parse(by.files);
     if ("error" in parsed) throw new Error("by_name reads");
     expect(
       byCategory(parsed.menu).map((c) => [c.name, c.items.map((i) => i.name)]),

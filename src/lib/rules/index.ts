@@ -4,10 +4,11 @@
  * a rule module here wraps a `rules.*` call and keeps its TS signature, and its
  * vector test runs against the wasm.
  *
- * Two packages, vendored by `npm run sync:rules` (never edit wasm/):
+ * Three packages, vendored by `npm run sync:rules` (never edit wasm/):
  * - `wasm/full`: the dashboard, awaited in src/main.tsx;
  * - `wasm/public`: a subset for the customer bundles (order, reservations,
- *   loyalty), awaited in their main.tsx.
+ *   loyalty), awaited in their main.tsx;
+ * - `wasm/menu`: the menu import, loaded when its dialog opens (`./menu.ts`).
  * Each entry imports its package and awaits `initRules` before its first render;
  * vitest loads the full one from disk (src/test/setup.ts). After that every
  * call is synchronous.

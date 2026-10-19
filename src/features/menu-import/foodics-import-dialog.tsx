@@ -39,8 +39,13 @@ import type {
 import { getErrorMessage } from "@/data/api/errors";
 import { invalidateCatalog } from "@/features/menu/util";
 import { fmtMoney } from "@/lib/format";
-import { rules } from "@/lib/rules";
-import type { BulkRefusal, FoodicsFile, FoodicsParsed } from "@/lib/rules";
+import { menuRules } from "@/lib/rules/menu";
+import type {
+  BulkRefusal,
+  FoodicsFile,
+  FoodicsParsed,
+  MenuRules,
+} from "@/lib/rules/menu";
 import { SwapPresence, recipes } from "@/lib/motion";
 
 import {
@@ -97,6 +102,8 @@ export function FoodicsImportDialog({
   const [readError, setReadError] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
   const [check, setCheck] = useState<Check>({ state: "idle" });
+  // The reader's own wasm package, fetched when the dialog first opens.
+  const [menu, setMenu] = useState<MenuRules | null>(null);
   const orgName =
     useGetOrg(orgId, { query: { enabled: open && !!orgId } }).data?.name ?? "";
 
@@ -106,13 +113,15 @@ export function FoodicsImportDialog({
       setParsed(null);
       setReadError(null);
       setCheck({ state: "idle" });
+      // Warm it up; a failure is said when the files are picked.
+      menuRules().then(setMenu, () => {});
     }
   }, [open, asked]);
 
   // The server's own checks before the owner commits (the same rules run here).
   const verdict = useMemo(
-    () => (parsed ? rules.bulk_validate(parsed.menu) : null),
-    [parsed],
+    () => (parsed && menu ? menu.bulk_validate(parsed.menu) : null),
+    [parsed, menu],
   );
   const refusal: BulkRefusal | null =
     verdict && isRefusal(verdict) ? verdict : null;
@@ -169,17 +178,32 @@ export function FoodicsImportDialog({
 
   // Ask the server once the files read clean, and again when the mode changes.
   useEffect(() => {
-    if (!parsed || refusal) return;
+    if (!parsed || !menu || refusal) return;
     setCheck({ state: "checking" });
     dryRun.mutate({ data: body(), params: { dry_run: true } });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- re-check on new files or a new mode only
-  }, [parsed, refusal, mode]);
+  }, [parsed, menu, refusal, mode]);
 
   const pick = async (list: FileList | null) => {
     if (!list?.length) return;
     setReading(true);
     setReadError(null);
-    const result = await readFoodicsFiles(Array.from(list), t);
+    let loaded: MenuRules;
+    try {
+      loaded = await menuRules();
+    } catch {
+      setReading(false);
+      setParsed(null);
+      setReadError(
+        t(
+          "menuImport.errors.loadFailed",
+          "The import could not load. Check the connection and try again.",
+        ),
+      );
+      return;
+    }
+    setMenu(loaded);
+    const result = await readFoodicsFiles(Array.from(list), loaded, t);
     setReading(false);
     if (result.ok) {
       setParsed(result.parsed);
@@ -196,14 +220,14 @@ export function FoodicsImportDialog({
         sentence: z
           .string()
           .refine(
-            (v) => rules.confirms_replace(orgName, v),
+            (v) => !!menu && menu.confirms_replace(orgName, v),
             t(
               "menuImport.replace.mismatch",
               "Type the sentence exactly as shown.",
             ),
           ),
       }),
-    [orgName, t],
+    [orgName, t, menu],
   );
   type Values = z.infer<typeof schema>;
   const form = useForm<z.input<typeof schema>, unknown, Values>({
@@ -215,10 +239,9 @@ export function FoodicsImportDialog({
     if (open) form.reset({ sentence: "" });
   }, [open, form]);
 
-  const sentence = rules.replace_sentence(
-    orgName,
-    i18n.language === "ar" ? "ar" : "en",
-  );
+  const sentence = menu
+    ? menu.replace_sentence(orgName, i18n.language === "ar" ? "ar" : "en")
+    : "";
   const ready = check.state === "ok" && !refusal && !write.isPending;
   const submit = (v?: Values) => write.mutate({ data: body(v?.sentence) });
 
