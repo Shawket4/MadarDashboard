@@ -112,6 +112,31 @@ export function faqPage(lang: Lang, items: readonly { q: string; a: string }[]) 
   };
 }
 
+/**
+ * The home page's "Coming from Foodics?" steps (home/Foodics.astro) as a HowTo, in the
+ * page's language: each step as the page shows it, linked to its own place on the page.
+ */
+export function foodicsHowTo(lang: Lang) {
+  const f = t(lang).foodics;
+  const url = absoluteUrl(pageHref(lang, "home"));
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "@id": `${url}#foodics`,
+    name: f.howTo,
+    description: f.lead,
+    url: `${url}#foodics`,
+    inLanguage: lang,
+    step: f.steps.map((s, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      name: s.t,
+      text: s.b,
+      url: `${url}#foodics-${i + 1}`,
+    })),
+  };
+}
+
 /** Home → this page, in the page's language. */
 export function breadcrumbs(lang: Lang, page: Exclude<PageKey, "home">) {
   return {

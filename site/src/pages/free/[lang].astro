@@ -14,6 +14,7 @@ import CrewBadge from "@/components/free/CrewBadge.astro";
 import ZReport from "@/components/free/ZReport.astro";
 import CrewMoment from "@/components/kit/CrewMoment.astro";
 import StepList from "@/components/kit/StepList.astro";
+import FoodicsStage from "@/components/media/FoodicsStage.astro";
 import { t } from "@/i18n";
 import { type Lang, LANGS, downloadsHref, pageHref, signupHref, whatsappHref } from "@/lib/site";
 import { breadcrumbs, faqPage, freeApplication } from "@/lib/schema";
@@ -163,6 +164,13 @@ const jsonLd = [faqPage(lang, f.faq.items), freeApplication(lang), breadcrumbs(l
           </a>
           <p class="mt-2 text-xs text-muted">{f.steps.apkNote}</p>
         </div>
+      </div>
+      <!-- Coming from Foodics: the import, short, with its scene played once; the home page
+           has the five steps. -->
+      <div slot="step-2" class="mt-5" data-foodics="play">
+        <p class="text-sm text-muted"><span class="font-semibold text-ink">{f.steps.foodics.title}</span> {f.steps.foodics.body}</p>
+        <FoodicsStage lang={lang} compact class="mt-4" />
+        <a class="link-cta mt-1 text-sm" href={`${pageHref(lang, "home")}#foodics`} data-umami-event="foodics" data-umami-event-where="free-steps">{f.steps.foodics.link} <Icon name="arrow" size={16} /></a>
       </div>
     </StepList>
     <p class="mt-12 flex max-w-2xl items-start gap-2.5 text-muted" data-reveal>

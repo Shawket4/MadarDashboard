@@ -455,6 +455,65 @@ export const en = {
     more: "See it in Features",
   },
 
+  /**
+   * "Coming from Foodics?" (the home page, after the tiles; the Free page's menu step links
+   * here). Only what the import does (Madar/MENU_IMPORT_PLAN.md): it runs in the dashboard's
+   * setup, the files are read in the browser and only the menu is sent, the preview (with
+   * what was skipped) comes before anything is saved, and Arabic names come from Foodics'
+   * own Arabic names when they are there. The Foodics labels are its console's English ones.
+   */
+  foodics: {
+    kicker: "Coming from Foodics?",
+    title: "Bring your menu with you.",
+    lead: "Madar reads the menu you export from Foodics: its categories, items, sizes and choices. You see all of it before anything is saved.",
+    /** The HowTo's name (structured data, src/lib/schema.ts). */
+    howTo: "Move your menu from Foodics to Madar",
+    steps: [
+      { t: "Sign up free", b: "Your mobile number and a code on WhatsApp. No card." },
+      {
+        t: "Export your menu from Foodics",
+        b: "Sign in to the Foodics console as a user who can read and manage the menu, such as the owner. Under Menu, open Categories, Products, Modifiers and Modifier Options, choose Import/Export, then Export on each; on Products, export the product modifiers too (which item takes which choices). Download the CSV files.",
+      },
+      { t: "Drop the files into Madar", b: "On the menu step of your Madar setup. The files stay on your device: Madar reads them in your browser and sends only the menu." },
+      { t: "Check the preview", b: "Every category, item, size and choice, and anything Madar had to skip, before anything is saved. Arabic names come from the Arabic names in Foodics, where you added them." },
+      { t: "Sell", b: "Save, and the menu is on your till." },
+    ],
+    cta: "Create your free account",
+    /** The scene's own words (decorative): the dashboard and the till as they read. */
+    stage: {
+      code: "Check your WhatsApp",
+      menu: "Your menu",
+      from: "From Foodics",
+      drop: "Drop your Foodics files here",
+      /** Foodics' own names for its menu pages, in English in both languages. */
+      files: ["Categories", "Products", "Modifiers", "Modifier options"],
+      local: "Read on this device",
+      /** The files' kind, not their number: how many a Foodics export makes is not ours to say. */
+      count: "CSV",
+      hot: "Hot coffee",
+      cappuccino: "Cappuccino",
+      regular: "Regular",
+      large: "Large",
+      milk: "Milk: whole, oat",
+      flatWhite: "Flat white",
+      bakery: "Bakery",
+      croissant: "Croissant",
+      skipped: "1 row skipped: no name",
+      unsaved: "Nothing is saved yet",
+      save: "Save menu",
+      saved: "Saved",
+      /** The WhatsApp message with the sign-up code. */
+      message: "Madar code: 482017",
+      order: "Order",
+      charge: "Charge",
+      pickup: "Pickup",
+      dineIn: "Dine in",
+      branch: "Zamalek",
+      sync: "Up to date",
+      currency: "EGP",
+    },
+  },
+
   closing: {
     kicker: "Run your first month on us",
     title: "Every cup costed. Every shift counted.",
@@ -736,6 +795,12 @@ export const en = {
       askAndroid: "Ask us for the Android app on WhatsApp",
       waAndroid: "Hi Madar, I signed up for the free plan and I'd like the Android app.",
       need: "You need: an iPad or Android tablet, and a Star or Epson thermal printer if you print receipts.",
+      /** Under "Add your menu": the Foodics import, short; the home page has the steps. */
+      foodics: {
+        title: "Coming from Foodics?",
+        body: "Export your menu from the Foodics console and drop the CSV files into Madar. You check the preview before anything is saved.",
+        link: "See the five steps",
+      },
     },
 
     faq: {

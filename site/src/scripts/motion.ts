@@ -22,7 +22,8 @@
 //   data-light          hero art, a big card: its soft shadow and glow move with the scroll
 //   data-progress       the header's page progress line
 // The scenes (pins, the screens, the family, the cappuccino, the roadmap, the rail) are
-// story.ts's, set up first so every trigger after them measures the page at its length.
+// story.ts's, and the Foodics walkthrough foodics.ts's, set up first so every trigger after
+// them measures the page at its length.
 //
 // Two ways in:
 //  - fresh (from outside, or a reload): the first screen's entrance is CSS
@@ -626,9 +627,10 @@ const crewReady = has("[data-crew], [data-swing], .zr")
 
 async function start() {
   // The modules a page needs, before anything is measured.
-  const [story] = await Promise.all([
+  const [story, , foodics] = await Promise.all([
     has("[data-family], [data-order], [data-barista], [data-pin-set], [data-roadmap], [data-basira], [data-stage-time], [data-rail]") ? import("./story") : null,
     crewReady,
+    has("[data-foodics]") ? import("./foodics") : null,
   ]);
   if (has("[data-beams]")) void import("./beams").then((m) => m.drawBeams(true));
   smoothScroll();
@@ -638,9 +640,10 @@ async function start() {
   root.removeAttribute("data-arrive");
 
   // The scenes' pins first, in page order: every trigger after them measures the page with
-  // the pins' extra scroll length in place. Then land on a # address before anything below
+  // the pins' extra scroll length in place (the Foodics walkthrough, foodics.ts, comes after
+  // the story wherever both are on a page). Then land on a # address before anything below
   // decides what is on screen and what was passed.
-  if (story?.scenes()) ScrollTrigger.refresh();
+  if ((story?.scenes() ?? 0) + (foodics?.scenes() ?? 0)) ScrollTrigger.refresh();
   landOnHash();
   await breathe();
   story?.extras();

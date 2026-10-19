@@ -9,7 +9,7 @@ import { WAITS, PATIENCE_MS } from "./waits";
 const MOVES = [
   "[data-reveal]", "[data-split]", "[data-pop]", "[data-draw]", "[data-count]", "[data-parallax]", "[data-sequence]",
   "[data-orbit]", "[data-light]", "[data-crew]", "[data-swing]", "[data-beams]",
-  "[data-family]", "[data-order]", "[data-barista]", "[data-pin-set]", "[data-roadmap]", "[data-rail]",
+  "[data-family]", "[data-order]", "[data-barista]", "[data-pin-set]", "[data-roadmap]", "[data-rail]", "[data-foodics]",
 ].join(", ");
 
 const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -47,6 +47,7 @@ if (!reduce) {
     // after another): the scenes and the crew import the engine themselves.
     void import("./motion");
     if (has("[data-family], [data-order], [data-barista], [data-pin-set], [data-roadmap], [data-basira], [data-stage-time], [data-rail]")) void import("./story");
+    if (has("[data-foodics]")) void import("./foodics");
     if (has("[data-crew], [data-swing], .zr")) void import("./crew");
     else root.classList.remove("crew-wait");
   } else root.classList.remove("reveal-wait", "crew-wait");

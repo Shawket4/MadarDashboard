@@ -1,0 +1,45 @@
+---
+/**
+ * "Coming from Foodics?": five steps from a Foodics menu to selling on Madar, beside the
+ * scene that plays them (media/FoodicsStage.astro, scripts/foodics.ts).
+ *  - Desktop: the steps and the scene pin, and scrolling plays the beats with the current
+ *    step lit.
+ *  - Phones and tablets: the scene plays once as it comes in, the steps under it.
+ *  - Reduced motion and no JavaScript: the last frame and every step, nothing pinned.
+ * Each step has an id (foodics-1 …) for the HowTo's steps (lib/schema.ts, foodicsHowTo).
+ */
+import Section from "@/components/kit/Section.astro";
+import FoodicsStage from "@/components/media/FoodicsStage.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { t } from "@/i18n";
+import { type Lang, signupHref } from "@/lib/site";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const f = t(lang).foodics;
+---
+<Section id="foodics" kicker={f.kicker} title={f.title} lead={f.lead}>
+  <div class="fx-panel" data-foodics="pin">
+    <div class="fx-grid">
+      <ol class="fx-steps" data-reveal-group>
+        {f.steps.map((s, i) => (
+          <li id={`foodics-${i + 1}`} class="fx-step" data-reveal data-fx-step>
+            <span class="fx-step-n ltr" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+            <div class="min-w-0">
+              <h3 class="fx-step-title">{s.t}</h3>
+              <p class="fx-step-body">{s.b}</p>
+              {i === 0 && (
+                <a class="link-cta fx-step-cta" href={signupHref(lang)} data-umami-event="free-signup" data-umami-event-where="foodics">
+                  {f.cta} <Icon name="arrow" size={18} />
+                </a>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+      <div class="fx-scene" data-reveal>
+        <FoodicsStage lang={lang} />
+      </div>
+    </div>
+  </div>
+</Section>

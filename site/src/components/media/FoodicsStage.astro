@@ -1,0 +1,155 @@
+---
+/**
+ * The Foodics walkthrough's scene, one beat per step of the home page's list: the code
+ * comes on WhatsApp and goes into the dashboard (a browser); the menu files from Foodics
+ * land and drop into it; it reads them into a menu (categories, items, sizes, choices, and
+ * the row it skipped); it is saved and the till lights up with it, the first order rung up.
+ * scripts/foodics.ts plays the beats: scrubbed by its pinned panel on desktop, once as it
+ * comes in elsewhere. `compact` (the Free page's menu step) is the files and the preview.
+ *
+ * As rendered it is the last frame, which is what reduced motion and no JavaScript show.
+ * With motion the head script's .reveal-wait holds the first frame from the first paint
+ * until the engine takes over (styles/sections/foodics.css: fx-in, fx-out, fx-mid).
+ * Decorative: the words are the list's (aria-hidden, left out of the Markdown).
+ */
+import Icon from "@/components/ui/Icon.astro";
+import { t } from "@/i18n";
+import type { Lang } from "@/lib/site";
+
+interface Props {
+  lang: Lang;
+  compact?: boolean;
+  class?: string;
+}
+const { lang, compact = false, class: cls } = Astro.props;
+const f = t(lang).foodics;
+const s = f.stage;
+const last = f.steps.length - 1;
+const pad = (n: number) => String(n).padStart(2, "0");
+// A price as the dashboard and the till write it: "EGP 110" in English, "110 ج.م" in Arabic.
+const money = (v: string) => (lang === "ar" ? `${v} ${s.currency}` : `${s.currency} ${v}`);
+// Step i's label in the caption: on show at the first frame (out), the last (in), or only between (mid).
+const beat = (i: number) => (i === 0 ? "fx-out" : i === last ? "fx-in" : "fx-mid");
+const tiles = [
+  { name: s.cappuccino, price: "110.00", kind: "fx-cup", sold: true },
+  { name: s.flatWhite, price: "115.00", kind: "fx-cup", sold: false },
+  { name: s.croissant, price: "75.00", kind: "fx-bake", sold: false },
+];
+---
+<div class:list={["fx-stage", compact && "fx-compact", cls]} aria-hidden="true" data-md-skip data-foodics-stage>
+  <div class="fx-frame">
+    {!compact && <span class="fx-glow fx-in" data-fx="glow"></span>}
+
+    <div class="fx-browser frame-browser">
+      <div class="frame-browser-bar"><span></span><span></span><span></span></div>
+      <div class="fx-screen">
+        {!compact && (
+          <div class="fx-signup fx-out" data-fx="signup">
+            <span class="fx-wa"><Icon name="whatsapp" /></span>
+            <p class="fx-signup-title">{s.code}</p>
+            <div class="fx-code ltr">
+              {"482017".split("").map((d) => (
+                <span class="fx-box"><span class="fx-digit fx-in" data-fx="digit">{d}</span></span>
+              ))}
+              <span class="fx-ok fx-in" data-fx="ok"><Icon name="check" /></span>
+            </div>
+          </div>
+        )}
+
+        <div class:list={["fx-import", !compact && "fx-in"]} data-fx="import">
+          <div class="fx-head">
+            <span class="fx-menu">{s.menu}</span>
+            <span class="fx-from">{s.from}</span>
+          </div>
+          <div class="fx-body">
+            <p class="fx-local fx-in" data-fx="local">
+              <Icon name="lock" /><span>{s.local}</span><span class="fx-count">{s.count}</span>
+            </p>
+            <div class="fx-pane">
+              <div class="fx-drop fx-out" data-fx="drop">
+                <span class="fx-hot fx-mid" data-fx="hot"></span>
+                <Icon name="upload" />
+                <span>{s.drop}</span>
+              </div>
+              <ul class="fx-tree fx-in" data-fx="tree">
+                <li class="fx-row fx-cat fx-in" data-fx="cat"><Icon name="chevron-down" />{s.hot}</li>
+                <li class="fx-row fx-item fx-in" data-fx="item">
+                  <span class="fx-name">{s.cappuccino}</span>
+                  <span class="fx-size fx-in" data-fx="size">{s.regular}</span>
+                  <span class="fx-size fx-in" data-fx="size">{s.large}</span>
+                  <span class="fx-price">{money("110")}</span>
+                </li>
+                <li class="fx-row fx-choice fx-in" data-fx="choice">{s.milk}</li>
+                <li class="fx-row fx-item fx-in" data-fx="item"><span class="fx-name">{s.flatWhite}</span><span class="fx-price">{money("115")}</span></li>
+                <li class="fx-row fx-cat fx-in" data-fx="cat"><Icon name="chevron-down" />{s.bakery}</li>
+                <li class="fx-row fx-item fx-in" data-fx="item"><span class="fx-name">{s.croissant}</span><span class="fx-price">{money("75")}</span></li>
+                <li class="fx-row fx-skip fx-in" data-fx="skip"><i></i>{s.skipped}</li>
+              </ul>
+            </div>
+            <div class="fx-foot fx-in" data-fx="foot">
+              <span class="fx-save" data-fx="save">{s.save}</span>
+              <span class="fx-status">
+                <span class:list={["fx-unsaved", compact ? "fx-in" : "fx-mid"]} data-fx="unsaved">{s.unsaved}</span>
+                {!compact && <span class="fx-saved fx-in" data-fx="saved"><Icon name="check" />{s.saved}</span>}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {!compact && (
+      <div class="fx-note fx-mid" data-fx="note">
+        <span class="fx-note-icon"><Icon name="whatsapp" /></span>
+        <span class="fx-note-text"><b>WhatsApp</b><span>{s.message}</span></span>
+      </div>
+    )}
+
+    <div class="fx-files">
+      {s.files.map((name) => (
+        <span class="fx-file fx-mid" data-fx="file"><span class="fx-csv">CSV</span><span class="fx-file-name">{name}</span></span>
+      ))}
+    </div>
+
+    {!compact && (
+      <div class="fx-till fx-in" data-fx="till">
+        <div class="fx-ipad frame-ipad">
+          <div class="fx-till-screen">
+            <div class="fx-till-on fx-in" data-fx="on">
+              <span class="fx-till-side"><i></i><i></i><i></i><i></i></span>
+              <span class="fx-till-bar"><b>{s.branch}</b><span class="fx-sync fx-in" data-fx="sync"><Icon name="check" />{s.sync}</span></span>
+              <span class="fx-order">
+                <b class="fx-order-title">{s.order}</b>
+                <span class="fx-order-line fx-in" data-fx="line"><span>1× {s.cappuccino}</span><span class="fx-num">110.00</span></span>
+                <span class="fx-modes"><span>{s.pickup}</span><span>{s.dineIn}</span></span>
+                <span class="fx-charge">{s.charge}<span class="fx-num fx-in" data-fx="total">{money("110.00")}</span></span>
+              </span>
+              <span class="fx-tiles">
+                {tiles.map((x) => (
+                  <span class="fx-tile fx-in" data-fx="tile" data-sold={x.sold ? "" : undefined}>
+                    <span class:list={["fx-tile-img", x.kind]}><i></i></span>
+                    <span class="fx-tile-name">{x.name}</span>
+                    <span class="fx-num">{money(x.price)}</span>
+                    {x.sold && <span class="fx-badge fx-in" data-fx="badge"><b>1</b></span>}
+                  </span>
+                ))}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {!compact && (
+      <div class="fx-caption">
+        <span class="fx-labels">
+          {f.steps.map((step, i) => <span class:list={["fx-label", beat(i)]} data-fx="label">{step.t}</span>)}
+        </span>
+        <span class="fx-counts ltr">
+          {f.steps.map((_, i) => <span class:list={["fx-n", beat(i)]} data-fx="n">{pad(i + 1)} / {pad(last + 1)}</span>)}
+        </span>
+      </div>
+    )}
+    {!compact && <span class="fx-progress"><i data-fx="progress"></i></span>}
+  </div>
+</div>

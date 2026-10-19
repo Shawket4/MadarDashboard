@@ -15,12 +15,13 @@ Never re-implement any of it in a page. Node 22.18 or newer (scripts import `.ts
 | `src/styles/motion.css` | the first screen's entrance and a `#` address's arrival (CSS), page transitions, the interface's keyframes |
 | `src/styles/components.css` | buttons, links, chips, cards, header, dialogs, sticky bar, device frames, `.press`/`.lift`, `.hit` |
 | `src/styles/kit.css` | the kit's styles: Section rhythm, plan table, band, check list, data table, steps, the progress line |
-| `src/styles/sections/*.css` | one feature each: `menu`, `screens` (MediaStack scenes), `family`, `story`, `roadmap`, `pricing`, `free`, `crew` (the characters, their idle keyframes) |
+| `src/styles/sections/*.css` | one feature each: `menu`, `screens` (MediaStack scenes), `family`, `story`, `roadmap`, `pricing`, `free`, `foodics` (the Foodics walkthrough), `crew` (the characters, their idle keyframes) |
 | `src/components/kit/` | the shared page pieces (below) |
 | `src/components/crew/` | the crew's figures (owner's artwork) |
 | `src/scripts/load-motion.ts` | every page's motion door: imports the engine only when the page has something to move and motion is allowed |
 | `src/scripts/motion.ts` | **the one motion engine** (GSAP, Lenis, the vocabulary, set pieces, matchMedia) |
 | `src/scripts/story.ts` | the scenes: pins, screens (`carousel.ts`), family (`family.ts`), cappuccino (`barista.ts`), rail, roadmap |
+| `src/scripts/foodics.ts` | the Foodics walkthrough (`home/Foodics.astro`, `media/FoodicsStage.astro`): pinned and scrubbed on desktop, played once elsewhere (and on the Free page); its last frame is the page as rendered |
 | `src/scripts/crew.ts` | the crew's set pieces and idle life (blink, eyes, wave, hop, lanyard physics) |
 | `src/lib/motion.ts` | the motion tokens for scripts, read from the CSS at runtime |
 | `src/i18n/{en,ar}.ts` | the hand-built pages' words; Arabic is typed against English (same shape or the build fails) |
@@ -86,7 +87,8 @@ never write a page's own reveal keyframes, observers or `requestAnimationFrame` 
   and every page complete and still. What is on screen when the engine starts is settled
   (left as it is); only what scrolls in later plays. The crew's figures always play.
 - Timing hooks read from the CSS: `--delay` and `--stagger` on an element or a parent.
-- Scenes (pins) live in `story.ts` and are set up before the vocabulary; they use the
+- Scenes (pins) live in `story.ts` (the Foodics walkthrough in `foodics.ts`, set up right after
+  them) and are set up before the vocabulary; they use the
   engine's `gsap`, `ScrollTrigger`, `whenSeen`, `jump` and tokens. One ticker: Lenis runs on
   it, crew physics too (`gsap.ticker.add`). Only the shared 3D engine (`../shared/showcase`,
   also the dashboard's) keeps its own frame loop, on screen only.

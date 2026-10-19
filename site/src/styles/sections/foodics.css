@@ -1,0 +1,210 @@
+/* ---------- Coming from Foodics (home/Foodics.astro, media/FoodicsStage.astro) ----------
+   Five steps beside a scene that plays them (scripts/foodics.ts): the dashboard takes the
+   WhatsApp code, the Foodics files drop into it, it reads them into a menu, and the till
+   lights up with it. The Free page's menu step shows the files and the preview alone. */
+
+/* The scene's states. As rendered it is its last frame (reduced motion, no JavaScript):
+   fx-in on show, fx-out and fx-mid not. With motion the head script's .reveal-wait holds
+   its first frame from the first paint (fx-in hidden, fx-out on show) until the engine has
+   built the scene and holds every piece itself. Opacity only here: the engine moves. */
+.fx-out, .fx-mid { opacity: 0; visibility: hidden; }
+.reveal-wait .fx-out { opacity: 1; visibility: visible; }
+.reveal-wait .fx-in { opacity: 0; }
+.reveal-wait .fx-progress i { transform: scaleX(0); }
+
+/* ---------- The steps ---------- */
+.fx-grid { display: grid; gap: 2.5rem; }
+.fx-scene { order: -1; }
+.fx-steps { display: grid; gap: .25rem; }
+.fx-step { position: relative; isolation: isolate; display: grid; grid-template-columns: 2rem minmax(0, 1fr); column-gap: .75rem; padding: .8rem .9rem; border-radius: 1rem; }
+.fx-step-n { font-family: var(--font-mono); font-size: .875rem; font-weight: 500; line-height: 1.75rem; color: var(--color-teal); }
+.fx-step-title { font-size: 1.08rem; font-weight: 600; line-height: 1.6; }
+.fx-step-body { margin-top: .2rem; font-size: .96rem; line-height: 1.55; color: var(--color-muted); }
+html[lang="ar"] .fx-step-body { line-height: 1.75; }
+.fx-step-cta { min-height: 2.75rem; }
+/* The step the scene is on (scripts/foodics.ts sets data-active while it plays): a card that fades in under it. */
+.fx-step::before {
+  content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none;
+  background: var(--color-white); box-shadow: 0 0 0 1px var(--color-hairline), var(--shadow-lift);
+  opacity: 0; transition: opacity .45s var(--ease-out-expo);
+}
+.fx-step[data-active]::before { opacity: 1; }
+
+/* Where the gutter has room, the lit card reaches past the column so the words line up with the heading. */
+@media (min-width: 768px) { .fx-step { padding-inline: 1rem; margin-inline: -1rem; } }
+@media (min-width: 1024px) {
+  .fx-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: center; column-gap: 3.5rem; }
+  .fx-steps { grid-column: span 5; }
+  .fx-scene { grid-column: span 7; order: 0; }
+}
+/* Short laptop screens: tighter steps, so the panel fits under the header while it holds. */
+@media (min-width: 1024px) and (max-height: 820px) {
+  .fx-step { padding-block: .55rem; }
+  .fx-step-title { font-size: 1rem; }
+  .fx-step-body { font-size: .9rem; line-height: 1.5; }
+  .fx-step-cta { min-height: 2.75rem; margin-block: -.2rem; }
+}
+
+/* ---------- The scene ----------
+   One Ink card. Inside it everything is sized in em from one font size that follows the
+   card's width (container units), so the picture keeps its proportions at any size. Below
+   32rem the card is portrait (the code and the files come in under the dashboard); from
+   32rem landscape (beside it), which is every desktop and tablet width, iPad landscape included. */
+.fx-stage {
+  container: fx / inline-size;
+  position: relative; isolation: isolate; overflow: hidden;
+  border-radius: 1.75rem; color: var(--color-ink);
+  background:
+    radial-gradient(90% 70% at 100% 0%, color-mix(in oklab, var(--color-teal-light) 16%, transparent), transparent 70%),
+    var(--color-ink);
+  box-shadow: var(--shadow-lift);
+}
+[dir="rtl"] .fx-stage {
+  background:
+    radial-gradient(90% 70% at 0% 0%, color-mix(in oklab, var(--color-teal-light) 16%, transparent), transparent 70%),
+    var(--color-ink);
+}
+.fx-frame { position: relative; aspect-ratio: 4 / 5; font-size: clamp(9px, 3.2cqi, 14px); line-height: 1.3; }
+.fx-stage svg { width: 1em; height: 1em; flex: none; }
+
+/* The dashboard, in its browser. */
+.fx-browser { position: absolute; inset-inline: 4%; top: 5%; height: 64%; display: flex; flex-direction: column; border-radius: .9em; }
+.fx-browser .frame-browser-bar { flex: none; height: 1.8em; gap: .35em; padding-inline: .75em; }
+.fx-browser .frame-browser-bar span { width: .55em; height: .55em; }
+.fx-screen { position: relative; flex: 1; min-height: 0; background: var(--color-surface); }
+
+.fx-signup { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75em; padding: 1em; text-align: center; }
+.fx-wa { display: grid; place-items: center; width: 2.6em; height: 2.6em; border-radius: 999px; background: color-mix(in oklab, var(--color-tint) 70%, var(--color-white)); color: var(--color-teal); }
+.fx-wa svg { width: 1.35em; height: 1.35em; }
+.fx-signup-title { font-weight: 600; }
+.fx-code { display: flex; align-items: center; gap: .35em; }
+.fx-box { display: grid; place-items: center; width: 1.9em; height: 2.3em; border-radius: .45em; background: var(--color-white); box-shadow: inset 0 0 0 1px var(--color-rule); }
+.fx-digit { font-family: var(--font-mono); font-size: 1.1em; font-weight: 500; }
+.fx-ok { display: grid; place-items: center; width: 1.6em; height: 1.6em; margin-inline-start: .35em; border-radius: 999px; background: var(--color-teal); color: var(--color-white); }
+.fx-ok svg { width: 1em; height: 1em; stroke-width: 2.6; }
+
+.fx-import { position: absolute; inset: 0; display: flex; flex-direction: column; padding: .8em .9em .9em; }
+.fx-head { display: flex; align-items: center; gap: .6em; }
+.fx-menu { font-weight: 600; }
+.fx-from { padding: .15em .65em; border-radius: 999px; background: color-mix(in oklab, var(--color-tint) 70%, var(--color-white)); color: var(--color-teal); font-size: .72em; font-weight: 600; }
+.fx-body { flex: 1; min-height: 0; display: flex; flex-direction: column; margin-top: .6em; }
+/* The drop zone covers the pane until the menu is read; the tree takes its place. */
+.fx-pane { position: relative; flex: 1; min-height: 0; margin-top: .5em; }
+.fx-drop {
+  position: absolute; inset: 0; isolation: isolate; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5em;
+  padding: 1em; border-radius: .8em; border: 1.5px dashed color-mix(in oklab, var(--color-teal) 42%, transparent);
+  background: color-mix(in oklab, var(--color-tint) 28%, var(--color-white)); color: var(--color-muted); font-size: .85em; text-align: center;
+}
+.fx-drop svg { width: 1.9em; height: 1.9em; color: var(--color-teal); }
+.fx-hot { position: absolute; z-index: -1; inset: -1.5px; border-radius: inherit; border: 2px solid var(--color-teal); background: color-mix(in oklab, var(--color-tint) 70%, var(--color-white)); }
+.fx-local { display: flex; align-items: center; gap: .4em; font-size: .76em; color: var(--color-muted); }
+.fx-local svg { width: 1.15em; height: 1.15em; color: var(--color-teal); }
+.fx-count { margin-inline-start: auto; padding: .1em .6em; border-radius: 999px; background: var(--color-white); box-shadow: inset 0 0 0 1px var(--color-rule); font-weight: 500; }
+
+.fx-tree { padding-block: .25em; border-radius: .7em; background: var(--color-white); box-shadow: inset 0 0 0 1px var(--color-hairline); }
+.fx-row { display: flex; align-items: center; gap: .45em; min-height: 2em; padding-inline: .8em; font-size: .8em; white-space: nowrap; }
+.fx-row + .fx-row { box-shadow: inset 0 1px 0 color-mix(in oklab, var(--color-rule) 55%, transparent); }
+.fx-cat { font-weight: 600; }
+.fx-cat svg { color: var(--color-teal); }
+.fx-item { padding-inline-start: 2.2em; }
+.fx-choice { padding-inline-start: 3.2em; font-size: .72em; color: var(--color-muted); }
+.fx-skip { font-size: .72em; color: var(--color-muted); }
+.fx-skip i { width: .6em; height: .6em; border-radius: 999px; background: var(--color-sun); box-shadow: 0 0 0 .22em color-mix(in oklab, var(--color-sun) 28%, transparent); }
+.fx-name { overflow: hidden; text-overflow: ellipsis; }
+.fx-size { padding: .05em .55em; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--color-rule); font-size: .82em; color: var(--color-muted); }
+.fx-price, .fx-num { font-family: var(--font-mono), var(--font-arabic); }
+.fx-price { margin-inline-start: auto; font-size: .9em; color: var(--color-muted); }
+/* Saved or not first, at the start: the till comes in over the dashboard's lower end. */
+.fx-foot { display: flex; align-items: center; gap: .7em; padding-top: .6em; }
+.fx-status { order: -1; display: grid; font-size: .74em; color: var(--color-muted); }
+.fx-status > * { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: .35em; white-space: nowrap; }
+.fx-saved { color: var(--color-teal); font-weight: 600; }
+.fx-saved svg { width: 1.2em; height: 1.2em; stroke-width: 2.4; }
+.fx-save { display: inline-flex; align-items: center; height: 2.2em; padding-inline: .9em; border-radius: .5em; background: var(--color-ink); color: var(--color-paper); font-size: .76em; font-weight: 600; white-space: nowrap; }
+
+/* The code, as WhatsApp shows it. */
+.fx-note {
+  position: absolute; inset-inline: 9%; top: 73%; display: flex; align-items: center; gap: .65em; padding: .65em .8em;
+  border-radius: .9em; background: var(--color-white); box-shadow: 0 .8em 1.8em -.8em color-mix(in oklab, var(--color-bezel) 90%, transparent);
+}
+.fx-note-icon { display: grid; place-items: center; width: 2.1em; height: 2.1em; border-radius: .55em; background: var(--color-teal); color: var(--color-white); }
+.fx-note-icon svg { width: 1.2em; height: 1.2em; }
+.fx-note-text { display: grid; min-width: 0; font-size: .82em; line-height: 1.35; }
+.fx-note-text b { font-size: .85em; font-weight: 600; color: var(--color-muted); }
+.fx-note-text span { font-weight: 500; }
+
+/* The files from Foodics: a 2 × 2 pile under the dashboard (portrait), a column beside it (landscape). */
+.fx-files { position: absolute; inset-inline: 10%; top: 71%; height: 18%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10% 6%; }
+.fx-file {
+  display: flex; align-items: center; gap: .5em; min-width: 0; padding-inline: .55em; border-radius: .55em;
+  background: var(--color-white); box-shadow: 0 .7em 1.4em -.6em color-mix(in oklab, var(--color-bezel) 85%, transparent);
+}
+.fx-csv { flex: none; padding: .2em .4em; border-radius: .3em; background: var(--color-teal); color: var(--color-white); font-family: var(--font-mono); font-size: .62em; font-weight: 500; letter-spacing: .04em; }
+.fx-file-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .8em; font-weight: 600; }
+
+/* The till: Madar Cashier on an iPad, dark until the menu reaches it; the first order rung up. */
+.fx-glow { position: absolute; z-index: -1; inset-inline-end: -16%; bottom: -10%; width: 90%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in oklab, var(--color-teal-light) 34%, transparent), transparent 75%); pointer-events: none; }
+.fx-till { position: absolute; inset-inline-end: 4%; bottom: 10.5%; width: 66%; }
+.fx-ipad { border-radius: 1.2em; padding: .42em; }
+.fx-ipad > * { border-radius: .75em; }
+.fx-till-screen { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: linear-gradient(140deg, color-mix(in oklab, var(--color-paper) 8%, var(--color-ink-2)), var(--color-ink-2) 48%); }
+.fx-till-on {
+  position: absolute; inset: 0; display: grid; grid-template-columns: 1.9em minmax(0, 4fr) minmax(0, 5fr); grid-template-rows: 1.75em minmax(0, 1fr);
+  background: var(--color-paper); font-size: .78em;
+}
+.fx-till-side { grid-row: 1 / 3; display: flex; flex-direction: column; align-items: center; gap: .6em; padding-top: .5em; background: var(--color-ink); }
+.fx-till-side i { width: .8em; height: .8em; border-radius: .25em; background: color-mix(in oklab, var(--color-paper) 20%, transparent); }
+.fx-till-side i:first-child { margin-bottom: .2em; border-radius: 999px; background: none; box-shadow: inset 0 0 0 .16em var(--color-paper); }
+.fx-till-bar { grid-column: 2 / 4; display: flex; align-items: center; justify-content: space-between; gap: .5em; padding-inline: .7em; background: var(--color-ink); color: var(--color-paper); font-size: .8em; }
+.fx-sync { display: inline-flex; align-items: center; gap: .3em; color: var(--color-muted-ink); }
+.fx-sync svg { color: var(--color-teal-light); stroke-width: 2.4; }
+.fx-order { display: flex; flex-direction: column; gap: .45em; min-width: 0; padding: .55em; background: var(--color-white); box-shadow: inset calc(var(--flip) * -1px) 0 0 var(--color-hairline); }
+.fx-order-title { font-size: .82em; }
+.fx-order-line { display: flex; justify-content: space-between; gap: .4em; padding: .5em; border-radius: .4em; box-shadow: inset 0 0 0 1px var(--color-hairline); font-size: .64em; white-space: nowrap; }
+.fx-order-line > :first-child { overflow: hidden; text-overflow: ellipsis; }
+.fx-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: auto; padding: .15em; border-radius: .45em; background: var(--color-paper); font-size: .56em; text-align: center; white-space: nowrap; }
+.fx-modes > * { padding-block: .35em; border-radius: .35em; overflow: hidden; text-overflow: ellipsis; }
+.fx-modes > :first-child { background: var(--color-white); box-shadow: 0 0 0 1px var(--color-hairline); font-weight: 600; }
+.fx-charge { display: flex; align-items: center; justify-content: space-between; gap: .4em; padding: .6em .6em; border-radius: .45em; background: var(--color-ink); color: var(--color-paper); font-size: .66em; font-weight: 600; white-space: nowrap; }
+.fx-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: .45em; padding: .55em; }
+.fx-tile { position: relative; display: flex; flex-direction: column; min-width: 0; border-radius: .45em; background: var(--color-white); box-shadow: 0 0 0 1px var(--color-hairline); }
+.fx-tile-img { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: .45em .45em 0 0; background: color-mix(in oklab, var(--color-sun) 14%, var(--color-paper)); }
+/* A cup from above (coffee in a white cup) and a pastry, in the brand's own colours. */
+.fx-cup i { height: 64%; aspect-ratio: 1; border-radius: 999px; background: radial-gradient(circle, color-mix(in oklab, var(--color-coral) 34%, var(--color-ink)) 52%, var(--color-white) 55%); box-shadow: 0 .2em .4em -.15em color-mix(in oklab, var(--color-bezel) 35%, transparent); }
+.fx-bake i { height: 46%; aspect-ratio: 3 / 2; border-radius: 50% 50% 42% 42% / 64% 64% 36% 36%; background: color-mix(in oklab, var(--color-sun) 72%, var(--color-coral)); }
+.fx-tile-name { padding: .3em .45em 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .62em; font-weight: 600; }
+.fx-tile .fx-num { padding: .05em .45em .4em; white-space: nowrap; font-size: .56em; color: var(--color-muted); }
+/* The tile just tapped: ringed, with its count (as the till marks it). */
+.fx-badge { position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 .14em var(--color-ink); }
+.fx-badge b { position: absolute; top: .3em; inset-inline-end: .3em; display: grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 999px; background: var(--color-ink); color: var(--color-paper); font-family: var(--font-mono); font-size: .56em; font-weight: 500; }
+
+/* Which step it is on, and how far through. */
+.fx-caption { position: absolute; inset-inline: 0; bottom: 0; display: flex; align-items: center; gap: 1em; height: 2.8em; padding-inline: 1.2em; border-top: 1px solid var(--color-line-ink); background: var(--color-ink-2); color: var(--color-paper); }
+.fx-labels { display: grid; flex: 1; min-width: 0; }
+.fx-counts { display: grid; flex: none; }
+:is(.fx-labels, .fx-counts) > * { grid-area: 1 / 1; }
+.fx-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9em; font-weight: 600; }
+.fx-n { font-family: var(--font-mono); font-size: .78em; color: var(--color-muted-ink); }
+.fx-progress { position: absolute; inset-inline: 0; top: 0; height: 3px; background: color-mix(in oklab, var(--color-paper) 8%, transparent); }
+.fx-progress i { position: absolute; inset: 0; background: var(--color-teal-light); transform-origin: 0% 50%; }
+[dir="rtl"] .fx-progress i { transform-origin: 100% 50%; }
+
+/* Landscape, from 32rem: the dashboard on the start side, the code and the files beside it,
+   the till coming in over its lower end. */
+@container fx (min-width: 32rem) {
+  .fx-frame { aspect-ratio: 5 / 4; font-size: clamp(10px, 2.1cqi, 15px); }
+  .fx-browser { inset-inline: 4% auto; top: 7%; width: 64%; height: 63%; }
+  .fx-note { inset-inline: auto 3.5%; top: 13%; width: 27%; padding-inline: .65em; }
+  .fx-files { inset-inline: auto 5%; top: 9%; width: 25%; height: 44%; grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 8%; }
+  .fx-row { min-height: 2.1em; font-size: .86em; }
+  .fx-till { inset-inline-end: 4%; bottom: 12%; width: 47%; }
+  .fx-glow { inset-inline-end: -10%; bottom: -16%; width: 72%; }
+}
+
+/* The Free page's menu step: the dashboard alone, the files landing over its drop zone. */
+.fx-compact { border-radius: 1.25rem; }
+.fx-compact .fx-frame { aspect-ratio: 4 / 3; font-size: clamp(9px, 3.3cqi, 13px); }
+.fx-compact .fx-browser { top: 8%; height: auto; bottom: -1.5em; }
+.fx-compact .fx-files { inset-inline: 14%; top: 36%; height: 38%; gap: 12% 6%; }
+.fx-compact .fx-head, .fx-compact .fx-choice, .fx-compact .fx-foot { display: none; }
+.fx-compact .fx-body { margin-top: 0; }
