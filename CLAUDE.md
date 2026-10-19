@@ -3,7 +3,7 @@
 ## Project Overview
 The management dashboard for the Madar ecosystem: a React 19 + Vite app, also packaged
 as a desktop app with Tauri. This repo builds the authenticated dashboard and the public
-customer bundles (ordering, tracking, reservations, loyalty) from one codebase (see the
+customer bundles (ordering, tracking, reservations, loyalty, the Rewards by Madar teller page) from one codebase (see the
 `vite.*.config.ts` files and the `dev:*` scripts). The marketing site
 (get.madar-pos.cloud) is a separate Astro package in `site/` with its own dependencies;
 read `site/README.md` before touching it, and follow `site/CLAUDE.md` (its design system:
@@ -346,7 +346,7 @@ Every page this repo serves goes out with a CSP, set in nginx (`deploy/nginx/`),
 in code. A new page, bundle, vhost or nginx location inherits it only by following
 these rules:
 - **Where it lives.** `deploy/nginx/madar-csp-public.conf` holds the policy of every
-  public page (get, order, reservations, loyalty, and every shop's own host through
+  public page (get, order, reservations, loyalty, rewards, and every shop's own host through
   MadarRust's `deploy/shop/nginx-wildcard.conf`). `madar-csp-dashboard.conf` holds the
   dashboard's. That one is **report-only** (violations go to Sentry's security endpoint)
   until Sentry shows nothing unexpected; then rename the header to enforce it. Change a

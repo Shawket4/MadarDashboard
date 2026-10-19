@@ -1,5 +1,5 @@
 # The Rewards teller page (loyalty sold on its own, REWARDS_DESIGN.md) — ISOLATED origin
-# like rewards.madar-pos.cloud: its own bundle (dist-rewards, no admin code), no
+# like loyalty.madar-pos.cloud: its own bundle (dist-rewards, no admin code), no
 # shared cookies/storage with the dashboard, the public CSP. A staff tool: the
 # camera is used (getUserMedia needs https, which this host has), and sw.js /
 # manifest.webmanifest are top-level files, served by the file-like regex

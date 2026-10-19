@@ -94,6 +94,13 @@ jobs:
           # grant.
           VITE_API_URL: /api
 
+      - name: Build rewards app (separate, isolated bundle)
+        run: npm run build:rewards
+        env:
+          # The Rewards by Madar teller page (rewards.madar-pos.cloud). Its
+          # vhost proxies /api/ to the backend, so the API is same-origin.
+          VITE_API_URL: /api
+
       - name: Build demo dashboard (VITE_DEMO — talks to the isolated demo API)
         run: npm run build:demo
         env:
@@ -218,6 +225,24 @@ jobs:
           rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
           -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
           dist-loyalty/ "$VPS_USER@$VPS_HOST:/var/www/madar-loyalty/"
+
+      - name: Ensure rewards web root exists
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: sudo mkdir -p /var/www/madar-rewards && sudo chown -R $USER /var/www/madar-rewards
+
+      - name: Deploy rewards app to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        # Matches the nginx root in deploy/nginx/rewards.madar-pos.cloud.
+        run: >-
+          rsync -rl --checksum --delete --filter='P /assets/***' --chmod=D755,F644
+          -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          dist-rewards/ "$VPS_USER@$VPS_HOST:/var/www/madar-rewards/"
 
       - name: Ensure demo web root exists
         uses: appleboy/ssh-action@v1.0.3
