@@ -14029,6 +14029,15 @@ export const OtpVerifyResponse = zod.object({
  * @summary Make a shop on the Free plan.
  */
 export const SignupBody = zod.object({
+  "attribution": zod.union([zod.null(),zod.object({
+  "fbclid": zod.string().nullish().describe('Meta\'s click id, for a later Conversions API event.'),
+  "gclid": zod.string().nullish().describe('Google\'s click id.'),
+  "utm_campaign": zod.string().nullish(),
+  "utm_content": zod.string().nullish(),
+  "utm_medium": zod.string().nullish(),
+  "utm_source": zod.string().nullish(),
+  "utm_term": zod.string().nullish()
+}).describe('The campaign tags the signup page was opened with, if any. Stored with the\norg for analysis only; a missing or odd value never refuses a signup.')]).optional(),
   "code": zod.string().nullish(),
   "email": zod.string(),
   "owner_name": zod.string(),

@@ -41,6 +41,7 @@ import {
   failureStatus,
   passwordStrength,
   SIGNUP_CODE_LENGTH,
+  signupAttribution,
   signupPhone,
   signupProblem,
   useCountdown,
@@ -133,6 +134,8 @@ export function SignupPage() {
   /** Bumped to put focus back on the code boxes after a refusal. */
   const [refocus, setRefocus] = useState(0);
   const resendIn = useCountdown(resendAt);
+  /** The campaign tags the page opened with, read once: stored with the shop. */
+  const [attribution] = useState(() => signupAttribution(window.location.search));
   // The funnel in Umami: this pageview (with the landing's utm_*), then one event per step.
   useEffect(() => track(), []);
 
@@ -251,7 +254,7 @@ export function SignupPage() {
     if (!verified) return;
     setProblem(null);
     setMessage(null);
-    signup.mutate({ data: { ...values, signup_token: verified.token, terms_version: TERMS_VERSION } });
+    signup.mutate({ data: { ...values, signup_token: verified.token, terms_version: TERMS_VERSION, attribution } });
   };
 
   /** The sixth digit: the server checks it, and only its yes moves on. */

@@ -33,6 +33,18 @@ export type SignupProblem =
  * answers with a stable code for each way it can fail; any other 400 is a field
  * the server judged differently, and is shown as the server's refusal.
  */
+const CAMPAIGN_TAGS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "fbclid", "gclid"] as const;
+
+/** The campaign tags in the signup URL (the landing copies them there), for the org record; `undefined` when there are none. */
+export function signupAttribution(search: string): Partial<Record<(typeof CAMPAIGN_TAGS)[number], string>> | undefined {
+  const q = new URLSearchParams(search);
+  const found = CAMPAIGN_TAGS.flatMap((k) => {
+    const v = q.get(k)?.trim();
+    return v ? [[k, v] as const] : [];
+  });
+  return found.length ? Object.fromEntries(found) : undefined;
+}
+
 /** The HTTP status of a failed request, or "network" when none came back (for analytics). */
 export const failureStatus = (err: unknown): string => String((err instanceof AxiosError && err.response?.status) || "network");
 

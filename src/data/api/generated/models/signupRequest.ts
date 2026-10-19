@@ -1,7 +1,9 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { SignupAttribution } from './signupAttribution';
 
 export interface SignupRequest {
+  attribution?: null | SignupAttribution;
   /** @nullable */
   code?: string | null;
   email: string;

@@ -1,7 +1,7 @@
 import { AxiosError, AxiosHeaders } from "axios";
 import { describe, expect, it } from "vitest";
 
-import { clock, groupNational, nationalDigits, nationalIssue, passwordStrength, signupPhone, signupProblem } from "./util";
+import { clock, groupNational, nationalDigits, nationalIssue, passwordStrength, signupAttribution, signupPhone, signupProblem } from "./util";
 
 const refusal = (status: number, data: Record<string, unknown>) =>
   new AxiosError("Request failed", "ERR_BAD_REQUEST", undefined, undefined, {
@@ -77,5 +77,12 @@ describe("passwordStrength", () => {
     expect(clock(58)).toBe("0:58");
     expect(clock(60)).toBe("1:00");
     expect(clock(5)).toBe("0:05");
+  });
+});
+
+describe("signupAttribution", () => {
+  it("keeps only the campaign tags, trimmed, and nothing when there are none", () => {
+    expect(signupAttribution("?lang=ar&utm_source=%20ig%20&utm_medium=&fbclid=Iw1&x=1")).toEqual({ utm_source: "ig", fbclid: "Iw1" });
+    expect(signupAttribution("?lang=en")).toBeUndefined();
   });
 });
