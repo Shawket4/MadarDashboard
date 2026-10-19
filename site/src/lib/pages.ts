@@ -40,6 +40,7 @@ export const PAGES = [
   definePage({ key: "about", path: "about/", nav: true, footer: true }),
   definePage({ key: "contact", path: "contact/", footer: true }),
   definePage({ key: "developers", path: "developers/", langs: ["en"], footer: true }),
+  definePage({ key: "rewards", path: "rewards/", footer: true, data: true }),
   // new pages above this line (scripts/new-page.mjs)
 ] as const;
 

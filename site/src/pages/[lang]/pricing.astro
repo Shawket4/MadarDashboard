@@ -7,12 +7,14 @@ import CrewMoment from "@/components/kit/CrewMoment.astro";
 import PlanTable from "@/components/kit/PlanTable.astro";
 import CtaBand from "@/components/kit/CtaBand.astro";
 import CheckList from "@/components/kit/CheckList.astro";
+import DataTable from "@/components/kit/DataTable.astro";
 import Icon from "@/components/ui/Icon.astro";
 import StoreBadges from "@/components/ui/StoreBadges.astro";
 import cashier from "@shared/apps/icons/cashier.svg?url";
 import { t } from "@/i18n";
 import { type Lang, LANGS, whatsappHref, pageHref, signupHref, downloadsHref } from "@/lib/site";
-import { softwareApplication, breadcrumbs } from "@/lib/schema";
+import { softwareApplication, rewardsApplication, breadcrumbs } from "@/lib/schema";
+import { REWARDS_PRICES, REWARDS_TERMS, rewardsSaving } from "@/lib/rewards";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -44,7 +46,9 @@ const pkg = (plan: (typeof p.plans)[number], term: Term) => {
 // The package the page opens on (owner): Advanced Operation for 6 months.
 const chosen = pkg(advanced, "six");
 
-const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing")];
+const rw = p.rewards;
+
+const jsonLd = [softwareApplication(lang, "pricing"), rewardsApplication(lang), breadcrumbs(lang, "pricing")];
 ---
 <BaseLayout lang={lang} page="pricing" headerTone="paper" closing={false} jsonLd={jsonLd}>
   <!-- The price list: both plans side by side on every screen, every term in sight.
@@ -121,6 +125,31 @@ const jsonLd = [softwareApplication(lang, "pricing"), breadcrumbs(lang, "pricing
     >
       <CrewMoment slot="crew" pose="joy" class="cta-band-nuqta" />
     </CtaBand>
+  </Section>
+
+  <!-- Rewards by Madar: the loyalty add-on to Free, its terms from lib/rewards.ts (no monthly
+       term, savings against the 3-month price). No self-serve purchase: WhatsApp. -->
+  <Section id="rewards" split={5} kicker={rw.kicker} title={rw.title} lead={rw.body}>
+    <div slot="head" class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3" data-reveal>
+      <a class="btn btn-ink btn-lg" href={whatsappHref(lang, rw.wa)} target="_blank" rel="noopener" data-umami-event="whatsapp" data-umami-event-where="pricing-rewards">
+        <Icon name="whatsapp" size={18} /> {rw.cta}
+      </a>
+      <a class="link-cta" href={pageHref(lang, "rewards")}>{rw.more}</a>
+    </div>
+    <DataTable label={rw.kicker}>
+      <table>
+        <thead><tr><th scope="col">{rw.term}</th><th scope="col">{rw.price}</th><th scope="col">{p.save}</th></tr></thead>
+        <tbody>
+          {REWARDS_TERMS.map((term) => (
+            <tr>
+              <td>{p.terms[term]}</td>
+              <td><span class="ltr">{fmt(REWARDS_PRICES[term])}</span> {p.currency} · {rw.perShop}</td>
+              <td>{rewardsSaving(term) > 0 && <Fragment>{p.save}{" "}<span class="ltr">{fmt(rewardsSaving(term))}</span>{" "}{p.currency}</Fragment>}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </DataTable>
   </Section>
 
   <!-- The free month closes the page (the site-wide closing band would say it twice). -->

@@ -9,7 +9,7 @@
 //  - the page file (src/pages/[lang]/<key>.astro): two lines, rendered by kit/Page.astro.
 // Then: write the copy, `npm run build && npm run check && npm run verify`, and add a share
 // card in scripts/og.mjs if it should have its own (it shows the home card until then).
-import { readFile, writeFile, rm, access } from "node:fs/promises";
+import { readFile, writeFile, rm, access, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -51,6 +51,8 @@ if (!source.includes(MARK)) {
 
 const name = key.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 await writeFile(registry, source.replace(MARK, `${entry}\n${MARK}`));
+// The first data page makes the folder (git keeps no empty one).
+await mkdir(path.dirname(copyFile), { recursive: true });
 
 await writeFile(
   copyFile,

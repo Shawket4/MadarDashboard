@@ -2,7 +2,8 @@
 /**
  * A data page, from its copy alone (src/i18n/pages/<key>.ts, shaped by types/page.ts):
  * BaseLayout, a Hero, then one kit piece per section, in the site's rhythm and motion.
- * JSON-LD: the breadcrumb, and a FAQPage when it has questions. `npm run new:page`
+ * JSON-LD: the breadcrumb, and a FAQPage when it has questions. Slot "mark": a logo over
+ * the hero's kicker (the page file passes it). `npm run new:page`
  * makes the page file that renders it.
  */
 import BaseLayout from "@/components/layout/BaseLayout.astro";
@@ -17,7 +18,7 @@ import CtaBand from "./CtaBand.astro";
 import CrewMoment from "./CrewMoment.astro";
 import Icon from "@/components/ui/Icon.astro";
 import { pageCopy } from "@/i18n";
-import { breadcrumbs, faqPage } from "@/lib/schema";
+import { breadcrumbs, faqPage, rewardsApplication } from "@/lib/schema";
 import { type Lang, pageHref, whatsappHref, signupHref, PHONE_HREF, EMAIL_HREF } from "@/lib/site";
 import type { PageKey } from "@/lib/pages";
 import type { Action, Href } from "@/types/page";
@@ -29,17 +30,27 @@ interface Props {
 const { page, lang } = Astro.props;
 const copy = pageCopy(lang, page);
 const to = (h: Href) =>
-  "page" in h ? pageHref(lang, h.page, h.hash) : "url" in h ? h.url : { whatsapp: whatsappHref(lang), signup: signupHref(lang), phone: PHONE_HREF, email: EMAIL_HREF }[h.to];
+  "page" in h ? pageHref(lang, h.page, h.hash) : "url" in h ? h.url : h.to === "whatsapp" ? whatsappHref(lang, h.text) : { signup: signupHref(lang), phone: PHONE_HREF, email: EMAIL_HREF }[h.to];
 /** An action's link attributes: outside the site (WhatsApp, another host) opens apart. */
 const link = (a: Action) => {
   const away = ("to" in a.href && a.href.to === "whatsapp") || ("url" in a.href && /^https?:/.test(a.href.url));
   return { href: to(a.href), ...(away ? { target: "_blank", rel: "noopener" } : {}) };
 };
 const faqs = copy.sections.flatMap((s) => (s.kind === "faq" ? s.items : []));
-const jsonLd = [breadcrumbs(lang, page as Exclude<PageKey, "home">), ...(faqs.length ? [faqPage(lang, faqs)] : [])];
+const jsonLd = [
+  breadcrumbs(lang, page as Exclude<PageKey, "home">),
+  ...(faqs.length ? [faqPage(lang, faqs)] : []),
+  // A page about a product of its own carries it (lib/schema.ts).
+  ...(page === "rewards" ? [rewardsApplication(lang)] : []),
+];
 const ink = copy.hero.tone === "ink";
+// A page that ends on its own band doesn't need the site's closing band (Madar's free month) as well.
+const closing = !copy.sections.some((s) => s.kind === "band");
+// The phones' sticky bar carries the hero's own WhatsApp message, when it has one.
+const heroWa = copy.hero.action && "to" in copy.hero.action.href && copy.hero.action.href.to === "whatsapp" ? copy.hero.action : undefined;
+const sticky = heroWa && { href: to(heroWa.href), label: heroWa.label, event: "whatsapp" };
 ---
-<BaseLayout lang={lang} page={page} headerTone={ink ? "ink" : "paper"} jsonLd={jsonLd}>
+<BaseLayout lang={lang} page={page} headerTone={ink ? "ink" : "paper"} jsonLd={jsonLd} closing={closing} sticky={sticky}>
   <Hero
     tone={copy.hero.tone}
     kicker={copy.hero.kicker}
@@ -47,6 +58,7 @@ const ink = copy.hero.tone === "ink";
     lead={copy.hero.lead}
     orbit={ink ? "-end-[30rem] -top-[26rem] h-[76rem] w-[76rem]" : "-end-[34rem] -top-[34rem] h-[76rem] w-[76rem] opacity-70"}
   >
+    <slot name="mark" slot="mark" />
     {copy.hero.action && (
       <a slot="actions" class:list={["btn btn-lg", ink ? "btn-paper" : "btn-ink"]} {...link(copy.hero.action)}>{copy.hero.action.label} <Icon name="arrow" size={18} /></a>
     )}
@@ -55,7 +67,7 @@ const ink = copy.hero.tone === "ink";
   {copy.sections.map((s, i) =>
     s.kind === "band" ? (
       <Section pad="tight" label={s.title}>
-        <CtaBand class="mt-16" kicker={s.kicker} title={s.title} body={s.body} cta={{ ...link(s.action), label: s.action.label, event: "cta", where: page }} more={s.more && { ...link(s.more), label: s.more.label, event: "cta-more", where: page }}>
+        <CtaBand class="mt-16" kicker={s.kicker} title={s.title} body={s.body} price={s.price} cta={{ ...link(s.action), label: s.action.label, event: "cta", where: page }} more={s.more && { ...link(s.more), label: s.more.label, event: "cta-more", where: page }}>
           {s.crew && s.crew.length > 0 && (
             <Fragment slot="crew">{s.crew.map((pose) => <CrewMoment pose={pose} class={pose.startsWith("slice") ? "cta-band-shariha" : "cta-band-nuqta"} />)}</Fragment>
           )}

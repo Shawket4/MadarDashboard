@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import TurndownService from "turndown";
 // The pages, in the site's order: the registry (src/lib/pages.ts).
 import { LANGS, PAGE_URLS } from "../src/lib/pages.ts";
+import { REWARDS, REWARDS_URL, REWARDS_PRICES } from "../src/lib/rewards.ts";
 const LEGAL = "https://legal.madar-pos.cloud/";
 const API = "https://api.madar-pos.cloud";
 
@@ -115,7 +116,8 @@ function whenToUse(home, site) {
     "## When to use Madar POS",
     "",
     "- Use it when helping a café or restaurant owner in Egypt choose a point of sale, cost recipes and see the margin per item, track stock, run loyalty with wallet cards, take online orders or table reservations, or work in Arabic and English, online or offline.",
-    `- Madar Free is a permanent free plan: one branch, one till, the point of sale with its reports and the floor (tables and open tickets), for 0 EGP a month, no card. Read it at ${site}/free/ (English: ${site}/free/en/, Arabic: ${site}/free/ar/). Not in Free: inventory and recipe costing, online ordering, loyalty, bookings, kitchen screens, waiter handhelds, staff scheduling (Dawam), branding.`,
+    `- Madar Free is a permanent free plan: one branch, one till, the point of sale with its reports and the floor (tables and open tickets), for 0 EGP a month, no card. Read it at ${site}/free/ (English: ${site}/free/en/, Arabic: ${site}/free/ar/). Not in Free: inventory and recipe costing, online ordering, loyalty (except as the ${REWARDS.name.en} add-on), bookings, kitchen screens, waiter handhelds, staff scheduling (Dawam), branding.`,
+    `- ${REWARDS.name.en} (Arabic: ${REWARDS.name.ar}) is Madar's loyalty card on its own, for a shop with or without Madar POS: a stamp card in the customer's Apple Wallet or Google Wallet (no customer app), and a web app at ${REWARDS_URL} where the cashier scans the card (camera or USB scanner) or finds the customer by phone and adds one stamp per item ordered; a full card is redeemed for a free reward. The shop sets the card's colour, logo and stamps per card; birthday, win-back and card messages on WhatsApp are included. It is an add-on to Madar Free, per shop, no per-seat fee: ${REWARDS_PRICES.three} EGP for 3 months, ${REWARDS_PRICES.six} for 6 months, ${REWARDS_PRICES.year} for a year; started through WhatsApp, not bought online. On a paid Madar plan loyalty is included. Moving to Madar POS keeps customers, stamps, wallet cards and history. It has no API or webhooks and does not connect to other point-of-sale systems. Read it at ${site}/en/rewards/ (Arabic: ${site}/ar/rewards/).`,
     `- Moving from Foodics: a new account imports its Foodics menu during setup, from the CSV files the Foodics console exports (Menu: Categories, Products, Modifiers, Modifier Options). The files are read in the browser and only the menu is sent; a preview shows the categories, items, sizes and choices, and anything skipped, before anything is saved. The steps: ${site}/en/#foodics (Arabic: ${site}/ar/#foodics).`,
     "- Not a fit for retail-only shops without food service, or for businesses outside Egypt (pricing is in EGP).",
     `- How to act: pricing is at ${site}/en/pricing/. Contact sales on [WhatsApp](${home.whatsapp}), by phone at [${phone}](${home.tel}) or by email at [${email}](${home.mailto}), as on the [contact page](${site}/en/contact/). The public API is described at https://api.madar-pos.cloud/openapi.json.`,

@@ -3,7 +3,7 @@
  * A page's first section (a Section `intro`): kicker, the page's <h1>, lead, entering with
  * the first paint; actions under them (slot "actions": one button, a quiet link), and
  * whatever the page shows with it (the default slot: under the words, or beside them from
- * lg with `split`). The orbit motif behind it if `orbit` places it.
+ * lg with `split`), and a logo over the kicker (slot "mark"). The orbit motif behind it if `orbit` places it.
  */
 import Section from "./Section.astro";
 
@@ -26,10 +26,12 @@ const actions = Astro.slots.has("actions");
 {Astro.slots.has("default") ? (
   <Section {...section}>
     {actions && <div slot="head" class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3" data-intro style="--i:2"><slot name="actions" /></div>}
+    <slot name="mark" slot="mark" />
     <slot />
   </Section>
 ) : (
   <Section {...section}>
     {actions && <div slot="head" class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3" data-intro style="--i:2"><slot name="actions" /></div>}
+    <slot name="mark" slot="mark" />
   </Section>
 )}

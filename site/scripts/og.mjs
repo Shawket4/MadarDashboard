@@ -10,6 +10,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { en } from "../src/i18n/en.ts";
 import { ar } from "../src/i18n/ar.ts";
+import * as rewards from "../src/i18n/pages/rewards.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const site = path.resolve(here, "..");
@@ -35,6 +36,8 @@ const pages = {
   contact: { copy: (c) => [c.contact.title, c.contact.subtitle], shot: "pos-charge", frame: "ipad" },
   // No bare "0" on the card: in the Arabic face's sans it reads as ٥ (five).
   free: { copy: (c) => [c.freePage.title, c.freePage.doors.self.body], shot: "pos-cart", frame: "ipad" },
+  // A data page: its words from its own copy module; its own symbol (Rewards Design System) before Madar's logo.
+  rewards: { copy: (_, lang) => [rewards[lang].hero.title, firstSentence(rewards[lang].hero.lead)], shot: "wallet-pass", frame: "iphone", mark: "rewards-symbol-paper.svg" },
 };
 const only = process.argv.slice(2);
 
@@ -53,7 +56,8 @@ const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, dev
 for (const [lang, c] of [["en", en], ["ar", ar]]) {
   for (const [key, cfg] of Object.entries(pages)) {
     if (only.length && !only.includes(key)) continue;
-    const [title, sub] = cfg.copy(c);
+    const [title, sub] = cfg.copy(c, lang);
+    const mark = cfg.mark ? `<span class="s">${await svg(cfg.mark)}</span>` : "";
     const rtl = lang === "ar";
     const shotBox =
       cfg.frame === "browser"
@@ -88,7 +92,7 @@ for (const [lang, c] of [["en", en], ["ar", ar]]) {
       <svg class="rings" viewBox="0 0 1600 1600" fill="none"><g stroke="#EFF3F4" stroke-opacity=".1" stroke-width="2"><circle cx="800" cy="800" r="170"/><circle cx="800" cy="800" r="330"/><circle cx="800" cy="800" r="520"/><circle cx="800" cy="800" r="740"/></g><circle cx="800" cy="800" r="10" fill="#EFF3F4" fill-opacity=".85"/><circle cx="560" cy="540" r="13" fill="#0D6273"/></svg>
       ${shotBox}
       <div class="copy">
-        <div class="logo"><span class="s">${symbolPaper}</span><span class="w">${words[lang]}</span></div>
+        <div class="logo">${mark}<span class="s">${symbolPaper}</span><span class="w">${words[lang]}</span></div>
         <h1>${title}</h1>
         <p>${sub}</p>
       </div>

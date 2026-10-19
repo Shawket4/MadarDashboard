@@ -78,7 +78,7 @@ integration in `astro.config.mjs`):
 | `/.well-known/mcp.json` | `public/.well-known/mcp.json`: a pointer to the MCP server on api.madar-pos.cloud, whose own server card lists the tools |
 
 JSON-LD comes from `src/lib/schema.ts`: Organization on every page; WebSite,
-SoftwareApplication and a HowTo (the Foodics steps, `foodicsHowTo()`) on the home pages; SoftwareApplication on Pricing; on the Free page a FAQPage, a SoftwareApplication "Madar Free" with a 0 EGP Offer (`freeApplication()`) and a breadcrumb to `/free/<lang>/`; FAQPage on
+SoftwareApplication and a HowTo (the Foodics steps, `foodicsHowTo()`) on the home pages; SoftwareApplication on Pricing; a SoftwareApplication for Rewards by Madar with an Offer per term (`rewardsApplication()`, from `src/lib/rewards.ts`) on Pricing and the Rewards page; on the Free page a FAQPage, a SoftwareApplication "Madar Free" with a 0 EGP Offer (`freeApplication()`) and a breadcrumb to `/free/<lang>/`; FAQPage on
 the FAQ; BreadcrumbList on every page but home; Organization, WebSite and
 SoftwareApplication on `/`. The dashboard's sign-in page (`index.html` at the repo root)
 carries a hand-kept copy of the Organization and SoftwareApplication: change both together.

@@ -8,6 +8,7 @@ import {
   type Lang, type PageKey, SITE_URL, absoluteUrl, pageHref,
   EMAIL, PHONE_E164, INSTAGRAM, FACEBOOK, STORE_URLS,
 } from "@/lib/site";
+import { REWARDS, REWARDS_URL, REWARDS_PRICES, REWARDS_TERMS } from "@/lib/rewards";
 
 const ROOT = `${SITE_URL}/`;
 export const ORG_ID = `${ROOT}#organization`;
@@ -99,6 +100,35 @@ export function freeApplication(lang: Lang) {
       availability: "https://schema.org/InStock",
       url: absoluteUrl(pageHref(lang, "free")),
     },
+  };
+}
+
+/**
+ * Rewards by Madar: the wallet stamp card, a web app (lib/rewards.ts), with one Offer per
+ * billing term (the add-on to Madar Free, per shop). On the Rewards and Pricing pages.
+ */
+export function rewardsApplication(lang: Lang) {
+  const c = t(lang);
+  const other = lang === "en" ? "ar" : "en";
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: REWARDS.name[lang],
+    alternateName: REWARDS.name[other],
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: absoluteUrl(pageHref(lang, "rewards")),
+    installUrl: REWARDS_URL,
+    inLanguage: lang,
+    publisher: { "@id": ORG_ID },
+    offers: REWARDS_TERMS.map((term) => ({
+      "@type": "Offer",
+      name: `${REWARDS.name[lang]} · ${c.pricing.terms[term]}`,
+      price: REWARDS_PRICES[term],
+      priceCurrency: "EGP",
+      description: `${c.pricing.termTotal[term]}, ${c.pricing.rewards.perShop}`,
+      url: absoluteUrl(pageHref(lang, "pricing", "rewards")),
+    })),
   };
 }
 

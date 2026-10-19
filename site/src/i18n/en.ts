@@ -3,6 +3,11 @@
  * Product claims follow the brochure v3 copy (checked against the code during the
  * brochure work) and LANDING_DECISIONS.md.
  */
+import { REWARDS, REWARDS_PRICES, fmtEgp } from "../lib/rewards.ts";
+
+const RW: string = REWARDS.name.en;
+const RW_PRICE = `${fmtEgp(REWARDS_PRICES.three)} EGP for 3 months, ${fmtEgp(REWARDS_PRICES.six)} for 6 months or ${fmtEgp(REWARDS_PRICES.year)} for a year`;
+
 export const en = {
   meta: {
     siteName: "Madar",
@@ -115,7 +120,7 @@ export const en = {
       "The kitchen: every order reaches the station that makes it, on its own screen.",
       "Recipe costing: the cost and margin of every item, per size, down to the gram.",
       "Stock: one ingredient catalogue, purchase orders, waste, transfers and stocktakes.",
-      "Loyalty: points or stamps on a card in Apple Wallet and Google Wallet.",
+      "Loyalty: points or stamps on a card in Apple Wallet and Google Wallet, also on its own as " + RW + ", with no till.",
       "Online ordering: your own ordering page for pickup and delivery, with live tracking.",
       "Reservations: table bookings by phone or online that hold their tables.",
     ],
@@ -181,7 +186,7 @@ export const en = {
       ordering: { name: "Ordering", title: "Your own ordering page", line: "Guests order from your menu, in Arabic or English." },
       receipt: { name: "Ledger", title: "One ledger", line: "Counter sales and deliveries close into the same books." },
       kitchen: { name: "Kitchen", title: "The kitchen screen", line: "Each station gets its own screen, live." },
-      rewards: { name: "Rewards", title: "Rewards", line: "Points or stamps, in Apple Wallet and Google Wallet." },
+      rewards: { name: "Rewards", title: "Rewards", line: "Points or stamps in Apple Wallet and Google Wallet, at the till or on its own." },
     },
   },
 
@@ -199,6 +204,13 @@ export const en = {
       kitchen: { name: "Madar Kitchen", line: "A live screen for each station." },
       dashboard: { name: "Madar Dashboard", line: "Your numbers, menu and settings." },
       dawam: { name: "Dawam", line: "Staff clock in; the hours become payslips." },
+    },
+    /** Rewards by Madar: a web app, not a store app (home/Apps.astro; its name: lib/rewards.ts). */
+    rewards: {
+      line: "A stamp card in your customers' wallets, with or without the till.",
+      where: "Runs in the browser on any phone or tablet",
+      open: "Open it",
+      more: "How it works",
     },
   },
 
@@ -348,6 +360,7 @@ export const en = {
       more: [
         "Choose rewards from your menu, or open the whole menu at one price: collect five, get anything.",
         "Redemption happens at the till, priced by the server.",
+        `No Madar till? ${RW} runs the stamp card on its own, from a web app at the counter.`,
         "Every member gets their own page: balance, progress, rewards and past orders.",
       ],
       alts: {
@@ -657,6 +670,7 @@ export const en = {
           "Stocktakes, waste and branch transfers",
           "Till and cash reconciliation",
           "Branded, accountant-ready Excel exports",
+          "Wallet loyalty: points or stamps in Apple Wallet and Google Wallet",
         ],
         prices: { monthly: 3000, three: 8500, six: 16000, year: 30000 },
         featured: false,
@@ -689,6 +703,18 @@ export const en = {
       per: "a month",
       cta: "Create your free account",
       more: "What's in Free",
+    },
+    /** Rewards by Madar, the loyalty add-on (prices: lib/rewards.ts, REWARDS_PRICES). */
+    rewards: {
+      kicker: RW,
+      title: "Just need a loyalty card?",
+      body: `${RW} is the wallet stamp card on its own, as an add-on to Madar Free: no Madar till needed. Per shop, with no per-seat fee. On the plans above, loyalty is included.`,
+      perShop: "per shop",
+      cta: "Contact us on WhatsApp to start",
+      more: `About ${RW}`,
+      wa: `Hi Madar, I'd like to start ${RW} for my shop.`,
+      term: "Term",
+      price: "Price",
     },
     free: {
       kicker: "First month on us",
@@ -749,7 +775,7 @@ export const en = {
         { t: "Your whole team", b: "Unlimited staff, each with their own PIN and permissions." },
       ],
       limitsTitle: "The limits, plainly",
-      limits: "One branch with one till. Stock and recipe costing, kitchen screens, waiter handhelds, online ordering and loyalty are on the paid plans.",
+      limits: `One branch with one till. Stock and recipe costing, kitchen screens, waiter handhelds and online ordering are on the paid plans. Loyalty is too, or add it to Free with ${RW}.`,
     },
 
     compare: {
@@ -778,7 +804,8 @@ export const en = {
         "Stocktakes, waste, purchasing and transfers",
         "Kitchen screens and waiter handhelds",
         "Online ordering and delivery",
-        "Wallet loyalty and table bookings",
+        `Wallet loyalty (on Free, the ${RW} add-on)`,
+        "Table bookings",
         "Your brand and your own web address",
         "Staff schedules and payroll (Dawam)",
         "Basira: ask your numbers in plain words",
@@ -819,6 +846,10 @@ export const en = {
         {
           q: "What's the catch?",
           a: "Free runs one branch with one till, and leaves out the features bigger operations pay for: stock and recipe costing, more tills, kitchen screens, online ordering and loyalty. If one till is all you need, you can stay on Free as long as you like.",
+        },
+        {
+          q: "Can I add a loyalty card to Free?",
+          a: `Yes, with ${RW}, an add-on to Free: ${RW_PRICE}, per shop. Customers carry a stamp card in Apple Wallet or Google Wallet, and your cashier adds stamps from a web app. Contact us on WhatsApp to start.`,
         },
         {
           q: "Can I add a second till or a second branch?",
@@ -883,6 +914,18 @@ export const en = {
         a: "Yes. Madar Free runs one till in one branch, with its floor plan, tables, open tickets and sales reports, for 0 EGP a month, for good. You sign up yourself, with no card. The paid plans add stock and recipe costing, kitchen screens, more tills and branches, online ordering and loyalty.",
       },
       {
+        q: `Can I run loyalty without Madar POS?`,
+        a: `Yes. ${RW} is a stamp card in your customers' Apple Wallet or Google Wallet, and your cashier adds stamps from a web app on any phone or tablet, whatever you take payments with. It's an add-on to Madar Free: ${RW_PRICE}, per shop. It doesn't connect to other point-of-sale systems.`,
+      },
+      {
+        q: `Can I start with ${RW} and move to Madar POS later?`,
+        a: "Yes. It's a change of plan on the same account, not a migration: your customers, their stamps, their wallet cards and their history stay as they are. On a paid plan, loyalty is included.",
+      },
+      {
+        q: "What do my customers need for the loyalty card?",
+        a: "A phone with Apple Wallet or Google Wallet, and a mobile number to join. There's no app to download.",
+      },
+      {
         q: "How is Madar billed?",
         a: "Per branch, monthly or for 3, 6 or 12 months, with no per-seat fee. We settle it with you in person: no card online, no lock-in.",
       },
@@ -916,7 +959,7 @@ export const en = {
   about: {
     kicker: "About & support",
     title: "Built in Cairo, with the cafés that run on it.",
-    lead: "Madar POS is built in Cairo by Shawket Ibrahim and developed with the cafés that run on it every day. Madar isn't software looking for a customer; it's an operational partnership. We set it up in your branches, shape the logic to how you work, and grow it with you.",
+    lead: "Madar POS is built in Cairo by Shawket Ibrahim and developed with the cafés that run on it every day. Madar isn't software looking for a customer; it's an operational partnership. We set it up in your branches, shape the logic to how you work, and grow it with you. Madar POS runs the counter, Dawam the team, and " + RW + " the loyalty card, with the till or on its own.",
     sections: [
       {
         title: "A direct line, not a ticket queue.",

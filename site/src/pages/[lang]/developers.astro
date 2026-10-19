@@ -9,6 +9,7 @@ import Hero from "@/components/kit/Hero.astro";
 import DataTable from "@/components/kit/DataTable.astro";
 import { type Lang, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_E164, absoluteUrl } from "@/lib/site";
 import { breadcrumbs } from "@/lib/schema";
+import { REWARDS } from "@/lib/rewards";
 
 export function getStaticPaths() {
   return [{ params: { lang: "en" } }];
@@ -175,6 +176,13 @@ content-type: application/json
         should not try to finish it for them: send the person the shop's order or booking link (the
         <code>order</code> and <code>book</code> items of <code>/v1/public/orgs/links</code>, such as
         <code>https://drops.madar-pos.cloud/order/</code>) and they finish there.
+      </p>
+
+      <h2>Loyalty and {REWARDS.name.en}</h2>
+      <p>
+        There is no public API and there are no webhooks for loyalty. {REWARDS.name.en} (the
+        wallet stamp card on its own) doesn't connect to other point-of-sale systems: stamps are
+        added in its own web app, or at a Madar till.
       </p>
 
       <h2>Limits and errors</h2>
