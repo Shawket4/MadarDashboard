@@ -244,9 +244,22 @@ A page without its own card uses the home page's.
 
 ## Analytics
 
-Umami, cookieless. Off until the build has `PUBLIC_UMAMI_WEBSITE_ID` (and optionally
-`PUBLIC_UMAMI_SRC` for a self-hosted script). Buttons carry `data-umami-event`
-(`whatsapp`, `call`, `email`, `free-month`, `lang-switch`, …).
+Umami Cloud, cookieless. Off until the build has `PUBLIC_UMAMI_WEBSITE_ID` (CI passes the
+repository variable `UMAMI_WEBSITE_ID`; `PUBLIC_UMAMI_SRC` swaps in a self-hosted script).
+It counts only on get.madar-pos.cloud (`data-domains`), never on localhost or a preview.
+The public CSP allows `cloud.umami.is` (script) and `gateway.umami.is` (beacon).
+
+- **Events.** Buttons carry `data-umami-event` (`whatsapp`, `free-signup`, `free-month`,
+  `downloads`, `app-store`, `call`, `email`, `lang-switch`, …) and
+  `data-umami-event-where` (which button: `hero`, `footer`, `sticky`, …).
+- **Campaigns.** Links you share carry `utm_source`, `utm_medium` and `utm_campaign`
+  (e.g. `?utm_source=instagram&utm_medium=bio&utm_campaign=free-plan`); Umami reads them
+  from the URL. `scripts/utm.ts` keeps them for the visit and copies them onto the
+  signup links.
+- **Signup.** madar-pos.cloud/signup reports to the same website (`src/lib/umami.ts`,
+  signup page only): a pageview, then `signup-code-sent` / `signup-code-failed`,
+  `signup-code-verified` / `signup-code-refused`, `signup-done` / `signup-failed`, each
+  failure with its `reason` and HTTP `status` (a WhatsApp outage shows as code-failed). So one Umami funnel runs from the landing to a shop made.
 
 ## Versions worth knowing
 

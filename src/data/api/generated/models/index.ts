@@ -971,6 +971,7 @@ export * from './shiftSummary';
 export * from './shrinkageRow';
 export * from './signal';
 export * from './signalParams';
+export * from './signupAttribution';
 export * from './signupOtpRequest';
 export * from './signupOtpResponse';
 export * from './signupRequest';

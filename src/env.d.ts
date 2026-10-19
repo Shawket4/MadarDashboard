@@ -15,4 +15,6 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE?: string;
   /** `0`..`1`. Defaults to 1.0 — always keep the replay of an erroring session. */
   readonly VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE?: string;
+  /** Umami Cloud website id (the landing's). Unset ⇒ the signup page sends nothing. */
+  readonly VITE_UMAMI_WEBSITE_ID?: string;
 }
