@@ -17,4 +17,6 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE?: string;
   /** Umami Cloud website id (the landing's). Unset ⇒ the signup page sends nothing. */
   readonly VITE_UMAMI_WEBSITE_ID?: string;
+  /** Meta Pixel (dataset) id. Unset ⇒ the signup page loads no pixel. */
+  readonly VITE_META_PIXEL_ID?: string;
 }

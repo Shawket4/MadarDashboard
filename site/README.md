@@ -259,7 +259,18 @@ The public CSP allows `cloud.umami.is` (script) and `gateway.umami.is` (beacon).
 - **Signup.** madar-pos.cloud/signup reports to the same website (`src/lib/umami.ts`,
   signup page only): a pageview, then `signup-code-sent` / `signup-code-failed`,
   `signup-code-verified` / `signup-code-refused`, `signup-done` / `signup-failed`, each
-  failure with its `reason` and HTTP `status` (a WhatsApp outage shows as code-failed). So one Umami funnel runs from the landing to a shop made.
+  failure with its `reason` and HTTP `status` (a WhatsApp outage shows as code-failed).
+
+### Meta Pixel
+
+Off until the build has `PUBLIC_META_PIXEL_ID` (CI: the repository variable
+`META_PIXEL_ID`), and only on get.madar-pos.cloud. `shared/meta-pixel.ts` loads Meta's
+`fbevents.js` (never the inline snippet, which the CSP refuses) with automatic event
+setup off. Every page sends `PageView`; madar-pos.cloud/signup sends `PageView` and,
+when the shop is made, `CompleteRegistration` with event id `signup-<org id>`, the id a
+server-side Conversions API event for the same signup must reuse. The public CSP allows
+`connect.facebook.net` (script) and `www.facebook.com` (events). Unlike Umami it sets
+cookies (`_fbp`). So one Umami funnel runs from the landing to a shop made.
 
 ## Versions worth knowing
 

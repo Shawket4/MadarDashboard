@@ -43,6 +43,8 @@ jobs:
           VITE_SENTRY_ENVIRONMENT: production
           # Umami on /signup: the landing's website, so one funnel spans both hosts.
           VITE_UMAMI_WEBSITE_ID: ${{ vars.UMAMI_WEBSITE_ID }}
+          # The Meta Pixel on /signup (PageView, CompleteRegistration).
+          VITE_META_PIXEL_ID: ${{ vars.META_PIXEL_ID }}
           # Source-map upload. Only runs when all three are present; add
           # SENTRY_AUTH_TOKEN (org token with project:releases + project:write)
           # as a repository secret, otherwise the build simply skips the upload
@@ -111,6 +113,8 @@ jobs:
         env:
           # Cookieless Umami analytics: on once this repository variable is set.
           PUBLIC_UMAMI_WEBSITE_ID: ${{ vars.UMAMI_WEBSITE_ID }}
+          # The Meta Pixel's PageView: on once this repository variable is set.
+          PUBLIC_META_PIXEL_ID: ${{ vars.META_PIXEL_ID }}
           ASTRO_TELEMETRY_DISABLED: 1
 
       # Every SPA host below is deployed with rsync over SSH: it uploads what
