@@ -363,7 +363,8 @@ these rules:
     `noDocsInTheBundle()`.
   - **Public bundles talk to their own origin only** (`connect-src 'self'`): they call the
     API through the host's `/api/`, never a cross-origin URL. No Sentry and no
-    third-party script, font or frame. Fonts are self-hosted (`@fontsource`), images
+    third-party script, font or frame. The one exception is Umami Cloud analytics on get
+    (`site/README.md`, "Analytics"). Fonts are self-hosted (`@fontsource`), images
     may come from any `https:`, and WebAssembly is allowed (`'wasm-unsafe-eval'`).
   - **Workers:** `blob:` workers only on the dashboard.
   - **A new outside origin** (an API, a CDN, map tiles fetched by script, an embed)

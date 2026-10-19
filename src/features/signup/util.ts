@@ -33,6 +33,9 @@ export type SignupProblem =
  * answers with a stable code for each way it can fail; any other 400 is a field
  * the server judged differently, and is shown as the server's refusal.
  */
+/** The HTTP status of a failed request, or "network" when none came back (for analytics). */
+export const failureStatus = (err: unknown): string => String((err instanceof AxiosError && err.response?.status) || "network");
+
 export function signupProblem(err: unknown): SignupProblem {
   if (!(err instanceof AxiosError)) return "other";
   const status = err.response?.status;

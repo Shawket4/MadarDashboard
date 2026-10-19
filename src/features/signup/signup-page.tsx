@@ -9,7 +9,7 @@
  * On success the session is stored exactly as sign-in stores it, and the owner
  * lands in onboarding.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Link } from "@/components/app/link";
 import { useForm } from "react-hook-form";
@@ -29,6 +29,7 @@ import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { DISTANCE, recipes, Stagger, SwapPresence, type Recipe } from "@/lib/motion";
 import { formatPhoneDisplay } from "@/lib/phone";
+import { track } from "@/lib/umami";
 import { cn } from "@/lib/utils";
 
 import { OtpInput } from "./otp-input";
@@ -37,6 +38,7 @@ import { SignupShell } from "./signup-shell";
 import { SIGNUP_STEPS, StepIndicator, type SignupStep } from "./step-indicator";
 import {
   clock,
+  failureStatus,
   passwordStrength,
   SIGNUP_CODE_LENGTH,
   signupPhone,
@@ -131,6 +133,8 @@ export function SignupPage() {
   /** Bumped to put focus back on the code boxes after a refusal. */
   const [refocus, setRefocus] = useState(0);
   const resendIn = useCountdown(resendAt);
+  // The funnel in Umami: this pageview (with the landing's utm_*), then one event per step.
+  useEffect(() => track(), []);
 
   const canonical = signupPhone(national);
   const shown = formatPhoneDisplay(canonical ?? `20${national}`);
@@ -166,10 +170,12 @@ export function SignupPage() {
         setCode("");
         setVerified(null);
         setResendAt(Date.now() + Math.max(1, r.resend_after_seconds) * 1000);
+        track("signup-code-sent");
         go("code");
       },
       onError: (e) => {
         const p = signupProblem(e);
+        track("signup-code-failed", { reason: p, status: failureStatus(e) });
         // A code went out less than a minute ago: it is on its way, so go on to
         // step two and let the timer say when another may be asked for.
         if (p === "cooldown") {
@@ -188,10 +194,12 @@ export function SignupPage() {
   const verify = useSignupVerify({ mutation: {
     onSuccess: (r, v) => {
       setVerified({ token: r.signup_token, code: v.data.code });
+      track("signup-code-verified");
       go("details");
     },
     onError: (e) => {
       const p = signupProblem(e);
+      track("signup-code-refused", { reason: p, status: failureStatus(e) });
       // A wrong, spent or locked code: clear the boxes and put the cursor back in them.
       setCode("");
       setRefocus((n) => n + 1);
@@ -203,13 +211,15 @@ export function SignupPage() {
   } });
 
   const signup = useSignup({ mutation: {
-    onSuccess: (r) => {
+    onSuccess: (r, v) => {
+      track("signup-done", { template: v.data.template });
       signIn(r.token, r.user, r.plan);
       useAppStore.getState().setSelectedBranch(r.branch_id);
       void navigate({ to: "/onboarding" });
     },
     onError: (e) => {
       const p = signupProblem(e);
+      track("signup-failed", { reason: p, status: failureStatus(e) });
       if (p === "token_expired") {
         // The verified phone timed out: back to the phone step, the shop's details kept in the form.
         setVerified(null);
