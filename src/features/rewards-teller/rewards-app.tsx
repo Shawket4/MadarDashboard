@@ -5,7 +5,7 @@
  * ("Rewards by Madar" / "مكافآت من مدار"); the manifest and rewards.html
  * repeat it. The brand files are in public-rewards/ (see its README.md).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LogOut } from "lucide-react";
 
@@ -36,6 +36,13 @@ export function RewardsApp() {
     setSetup(null);
   };
   const isAr = (i18n.resolvedLanguage ?? i18n.language).startsWith("ar");
+  const productName = t("rewardsTeller.productName", "Rewards by Madar");
+
+  // The tab says the product's name in the page's language, like the other
+  // public pages set theirs (rewards.html's <title> is the English one).
+  useEffect(() => {
+    document.title = productName;
+  }, [productName]);
 
   return (
     <div className="flex min-h-dvh flex-col gap-6 px-4 pb-8 pt-[max(1rem,env(safe-area-inset-top))]">
@@ -44,7 +51,7 @@ export function RewardsApp() {
           {/* The Ink tile with the present (design system svg/tile-ink.svg). */}
           <img src="/tile-ink.svg" alt="" className="size-8 shrink-0" />
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{t("rewardsTeller.productName", "Rewards by Madar")}</p>
+            <p className="truncate text-sm font-semibold">{productName}</p>
             {setup ? <p className="truncate text-xs text-muted-foreground">{setup.branchName}</p> : null}
           </div>
         </div>
