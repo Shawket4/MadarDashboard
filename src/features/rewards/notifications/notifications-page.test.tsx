@@ -25,7 +25,7 @@ const scheduled: Broadcast = {
 };
 let page: BroadcastsPage = { items: [scheduled], total: 1, sent_last_24h: 1, limits };
 
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
+vi.mock("@/components/ui/toast", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@/components/app/confirm-dialog", () => ({ useConfirm: () => confirm }));
 vi.mock("@/components/app/page", () => ({
   Page: ({ children }: { children: unknown }) => <div>{children as never}</div>,

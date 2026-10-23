@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Pencil, Plus, Shield, Trash2 } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";

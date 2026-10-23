@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@/components/app/link";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Link2, Unlink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

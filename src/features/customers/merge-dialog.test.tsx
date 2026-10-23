@@ -30,7 +30,6 @@ vi.mock("@/data/api/generated/api", () => ({
   useListCustomers: () => ({ data: options, isLoading: false }),
   useMergeCustomer: () => ({ mutateAsync, isPending: false }),
 }));
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 // The picker is cmdk in a popover; what matters here is what picking leads to.
 vi.mock("@/components/ui/popover", () => ({
   Popover: ({ children }: { children: ReactNode }) => <div>{children}</div>,
@@ -52,7 +51,7 @@ vi.mock("@/components/ui/command", () => ({
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");
-const { toast } = await import("sonner");
+const { toast } = await import("@/components/ui/toast");
 const { MergeDialog } = await import("./merge-dialog");
 
 const refusal = (code: string) =>
@@ -75,7 +74,6 @@ const pick = async () => userEvent.click(screen.getByTestId("option"));
 
 beforeEach(() => {
   mutateAsync.mockReset();
-  vi.mocked(toast.error).mockClear();
 });
 
 describe("MergeDialog", () => {

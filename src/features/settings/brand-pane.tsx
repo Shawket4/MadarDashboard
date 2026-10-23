@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { useOrgId } from "@/hooks/use-org-id";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { SectionHeader } from "@/components/app/section-header";
 import { ImageUploader } from "@/components/app/image-uploader";

@@ -34,7 +34,7 @@ import { clearDeviceToken } from "@/features/public-shell/guest";
 import type { JoinInfo, JoinResult } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { PhoneVerify } from "@/features/public-shell/phone-verify";
-import { useErrorToast } from "@/features/public-shell/public-toaster";
+import { useErrorToast } from "@/components/ui/toast";
 import { Reveal, recipes } from "@/lib/motion";
 import { rules } from "@/lib/rules";
 

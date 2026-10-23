@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { toast } from "@/components/ui/toast";
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -21,10 +22,8 @@ Element.prototype.scrollIntoView ??= () => {};
 
 const decideRequest = vi.fn(async (_id: string, _body: unknown) => ({}));
 const createRequestAdmin = vi.fn(async (_body: unknown) => ({ status: "pending" }));
-const toastError = vi.fn();
 /** The days' records a mission's approval checks for punches (M16). */
 const listAttendance = vi.fn(async (_p: unknown) => [] as unknown[]);
-const toastSuccess = vi.fn();
 
 const LEAVE = { id: "q1", employee_id: "e1", employee_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", end_date: "2026-09-26", is_half_day: false, created_at: "2026-09-22T07:00:00Z" };
 const MINE = { id: "q2", employee_id: "e-me", employee_name: "Karim Manager", kind: "late_arrival", status: "pending", on_date: "2026-09-24", to_time: "10:00:00", is_half_day: false, created_at: "2026-09-22T08:00:00Z" };
@@ -67,9 +66,6 @@ vi.mock("@/components/inputs", async () => {
     ),
   };
 });
-vi.mock("sonner", () => ({
-  toast: { success: (m: string) => toastSuccess(m), info: vi.fn(), error: (m: string) => toastError(m) },
-}));
 
 const { useAuthStore } = await import("@/data/stores/auth.store");
 useAuthStore.setState({ user: { id: "u-me" } as never });
@@ -98,8 +94,8 @@ const pick = async (user: ReturnType<typeof userEvent.setup>, combobox: string, 
 beforeEach(() => {
   decideRequest.mockClear();
   createRequestAdmin.mockClear();
-  toastError.mockClear();
-  toastSuccess.mockClear();
+  vi.mocked(toast.error).mockClear();
+  vi.mocked(toast.success).mockClear();
   rows = [LEAVE, MINE, APPROVED];
   held = ["hr.leave.create", "hr.leave.edit", "hr.attendance.edit"];
 });
@@ -183,7 +179,7 @@ describe("Requests inbox: nothing fails in silence (H2)", () => {
     await user.click(approve);
     expect(decideRequest).toHaveBeenCalledTimes(1);
     finish({});
-    await waitFor(() => expect(toastSuccess).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledTimes(1));
   });
 
   it("a decision refreshes everything that reads it: the roster, attendance, pay (H2-D9)", async () => {
@@ -311,7 +307,7 @@ describe("Requests inbox", () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(screen.getByRole("button", { name: "Approve" }));
-    await waitFor(() => expect(toastError).toHaveBeenCalled());
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
   });
 });
 
@@ -411,7 +407,7 @@ describe("Filing for someone", () => {
     const dialog = await screen.findByRole("dialog");
     await pick(user, "Employee", "Karim Manager");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
-    await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith("Request filed and approved"));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Request filed and approved"));
   });
 
   it("asks paid or unpaid when the filer's own leave is approved as filed, and refuses without it (QUESTIONS #19, RQ-2)", async () => {

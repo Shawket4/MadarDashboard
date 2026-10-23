@@ -21,7 +21,7 @@ import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { Link } from "@/components/app/link";
 import { AxiosError } from "axios";
 import { ArrowRight, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { ErrorState } from "@/components/app/empty-state";

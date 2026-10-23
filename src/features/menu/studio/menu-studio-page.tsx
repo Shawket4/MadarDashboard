@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { Link } from "@/components/app/link";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { useQueries } from "@tanstack/react-query";
 import { ArrowRight, Copy } from "lucide-react";
 

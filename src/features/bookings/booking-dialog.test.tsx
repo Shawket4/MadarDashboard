@@ -22,7 +22,6 @@ vi.mock("@/data/api/generated/api", () => ({
     isFetching: false,
   }),
 }));
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const i18n = (await import("@/i18n")).default;
 const { BookingDialog } = await import("./booking-dialog");

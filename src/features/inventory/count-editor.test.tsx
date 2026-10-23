@@ -24,7 +24,6 @@ const stocktake = {
 
 vi.mock("@tanstack/react-router", async () => ({
   ...(await import("@/test/url-search-mock")).routerMock(), Link: (p: { children: ReactNode }) => <a>{p.children}</a> }));
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
 vi.mock("@/components/app/confirm-dialog", () => ({ useConfirm: () => vi.fn() }));
 vi.mock("@/data/api/generated/api", () => ({

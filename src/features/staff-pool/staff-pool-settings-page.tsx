@@ -18,7 +18,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

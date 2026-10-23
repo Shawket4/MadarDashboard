@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Target } from "lucide-react";
 
 import { useGetMarginTargets, usePutMarginTarget } from "@/data/api/generated/api";

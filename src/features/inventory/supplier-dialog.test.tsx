@@ -8,7 +8,6 @@ import { describe, expect, it, vi } from "vitest";
 
 const customInstance = vi.fn().mockResolvedValue({});
 vi.mock("@/data/api/custom-instance", () => ({ customInstance: (...a: unknown[]) => customInstance(...a) }));
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("./lib", () => ({ invalidateInventory: vi.fn() }));
 
 const i18n = (await import("@/i18n")).default;

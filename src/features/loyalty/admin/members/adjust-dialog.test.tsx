@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AxiosError, AxiosHeaders } from "axios";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import type { MemberView } from "@/data/api/generated/models";
 
@@ -17,7 +17,6 @@ const mutateAsync = vi.fn().mockResolvedValue({});
 vi.mock("@/data/api/generated/api", () => ({
   useLoyaltyAdjust: () => ({ mutateAsync, isPending: false }),
 }));
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { ArrowDown, ArrowUp, GripVertical, Layers, Pencil, Plus, Store, Trash2 } from "lucide-react";
 import {
   DndContext,

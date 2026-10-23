@@ -10,7 +10,7 @@ contract**. This doc explains the structure and conventions.
 - **TanStack Query** + **Orval** (generated hooks) + **Axios** — the data layer
 - **Zustand** (auth / app / scope stores)
 - **Motion** (animation), **react-hook-form + zod** (forms), **i18next** (en/ar, RTL)
-- **Recharts**, **lucide-react**, **sonner**, **cmdk**, **exceljs**
+- **Recharts**, **lucide-react**, **sileo** (toasts, only through `components/ui/toast`), **cmdk**, **exceljs**
 
 ## Folder layout
 ```

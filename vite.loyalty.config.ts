@@ -18,6 +18,8 @@ import { preloadRules } from "./vite/preload-rules";
 import { zodJitless } from "./vite/zod-jitless";
 
 export default defineConfig({
+  // The toast library loads on the first toast; pre-bundle it so dev does not reload then.
+  optimizeDeps: { include: ["sileo", "motion/react"] },
   plugins: [
     // `public/` is copied verbatim, so a README beside an asset ships with it.
     noDocsInTheBundle(),

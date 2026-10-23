@@ -12,7 +12,7 @@
 import { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Check, ChevronsUpDown, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

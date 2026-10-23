@@ -3,7 +3,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { BookOpen, CupSoda, Plus, Ruler, Search, Trash2, X } from "lucide-react";
 import { z } from "zod";
 

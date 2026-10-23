@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFieldArray, useForm, useFormContext, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Info, Plus, Trash2 } from "lucide-react";
 
 import {

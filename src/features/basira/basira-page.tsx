@@ -57,7 +57,7 @@ import { cn } from "@/lib/utils";
 import { prefersReducedMotion, Reveal } from "@/lib/motion";
 import { fmtDateTime } from "@/lib/format";
 import { getErrorMessage } from "@/data/api/errors";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/data/api/query";
 

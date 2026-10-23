@@ -35,7 +35,6 @@ const branches = [
   { id: "b-2", name: "Maadi", name_translations: {} },
 ];
 
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
   return {

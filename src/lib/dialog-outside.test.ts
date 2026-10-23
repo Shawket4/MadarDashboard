@@ -14,6 +14,17 @@ describe("keepOpenForConfirm (E2E D-059)", () => {
     expect(preventDefault).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps a dialog open when the press is on a toast", () => {
+    const toaster = document.createElement("div");
+    toaster.setAttribute("data-madar-toaster", "");
+    const toast = document.createElement("button");
+    toaster.append(toast);
+    document.body.append(toaster);
+    const preventDefault = vi.fn();
+    keepOpenForConfirm({ target: toast, preventDefault });
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+  });
+
   it("still lets a real outside press close it", () => {
     const outside = document.createElement("button");
     document.body.append(outside);

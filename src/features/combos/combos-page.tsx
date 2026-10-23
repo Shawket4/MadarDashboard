@@ -14,7 +14,7 @@ import { Link } from "@/components/app/link";
 import { useWarmRoute } from "@/lib/prefetch/nav-context";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AlertTriangle, ArrowRight, Pencil, Plus, Search, Trash2, UtensilsCrossed } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { AssetImage, assetOf } from "@/components/app/asset-image";
 import { Page, PageHeader } from "@/components/app/page";

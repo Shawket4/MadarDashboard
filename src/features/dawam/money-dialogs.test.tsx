@@ -22,8 +22,7 @@ vi.mock("@/data/api/generated/api", () => ({
 }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "o" }));
 vi.mock("@/data/authz/use-authz", () => ({ useAuthz: () => ({ can: () => false, canAny: () => false }) }));
-const toast = { success: vi.fn(), info: vi.fn(), error: vi.fn(), warning: vi.fn() };
-vi.mock("sonner", () => ({ toast }));
+const { toast } = await import("@/components/ui/toast");
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateStaff: vi.fn() };
@@ -42,7 +41,6 @@ const wrap = (node: React.ReactNode) => render(<QueryClientProvider client={new 
 
 beforeEach(() => {
   for (const f of Object.values(calls)) f.mockClear();
-  for (const f of Object.values(toast)) f.mockClear();
 });
 
 describe("RecordAdvanceDialog", () => {

@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AttendanceSettings } from "@/data/api/generated/models";
+import { toast } from "@/components/ui/toast";
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -24,7 +25,6 @@ Element.prototype.scrollIntoView ??= () => {};
 let held: string[] = [];
 const put = vi.fn(async (_body: unknown) => ({}));
 const del = vi.fn(async (_id: string) => undefined);
-const toastError = vi.fn();
 const seenParams: unknown[] = [];
 
 const BUSINESS = {
@@ -79,7 +79,6 @@ vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateAttendance: vi.fn() };
 });
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), info: vi.fn(), error: (m: string) => toastError(m) } }));
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");
@@ -111,7 +110,7 @@ const pickBranch = async (user: ReturnType<typeof userEvent.setup>, name: RegExp
 beforeEach(() => {
   put.mockClear();
   del.mockClear();
-  toastError.mockClear();
+  vi.mocked(toast.error).mockClear();
   seenParams.length = 0;
   business = BUSINESS;
   arkan = ARKAN;
@@ -214,7 +213,7 @@ describe("Rules page for the owner", () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(screen.getByRole("button", { name: /Save/ }));
-    await waitFor(() => expect(toastError).toHaveBeenCalled());
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
   });
 
   it("reads a SETTING_OUT_OF_RANGE refusal in the page language, naming the rule (B-SETUP-1)", async () => {
@@ -228,12 +227,12 @@ describe("Rules page for the owner", () => {
     put.mockRejectedValueOnce(refusal({ field: "advance_cap_percent", min: 0, max: 100, min_inclusive: true, max_inclusive: true }));
     renderPage();
     await user.click(screen.getByRole("button", { name: /Save/ }));
-    await waitFor(() => expect(toastError).toHaveBeenCalledWith("Advance cap (% of salary) must be from 0 to 100."));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Advance cap (% of salary) must be from 0 to 100."));
     put.mockRejectedValueOnce(refusal({ field: "overtime_mode", allowed: ["off", "automatic", "approval"] }));
     await i18n.changeLanguage("ar");
     try {
       await user.click(screen.getByRole("button", { name: /حفظ/ }));
-      await waitFor(() => expect(toastError).toHaveBeenLastCalledWith("الوقت الإضافي: هذه القيمة ليست من الخيارات المسموحة."));
+      await waitFor(() => expect(toast.error).toHaveBeenLastCalledWith("الوقت الإضافي: هذه القيمة ليست من الخيارات المسموحة."));
     } finally {
       await i18n.changeLanguage("en");
     }

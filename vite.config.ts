@@ -151,6 +151,10 @@ export default defineConfig({
       // constructor" (prod is fine — Rollup handles CJS). It still lands in its
       // own lazy "exceljs-vendor" chunk via build.rollupOptions.manualChunks.
       "exceljs",
+      // The toast library loads on the first toast (components/ui/toast). Found
+      // that late, the dev server re-optimises and reloads the page under it.
+      "sileo",
+      "motion/react",
     ],
   },
   build: {

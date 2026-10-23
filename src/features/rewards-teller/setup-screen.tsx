@@ -7,7 +7,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
+import { AxiosError } from "axios";
 import { z } from "zod";
+
+import { ChevronRight, MapPin } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,53 +49,85 @@ export function SetupScreen({ onDone }: { onDone: (setup: Setup, owner: Session)
       else setPick({ orgId, owner, branches });
     } catch (e) {
       saveSession(null);
-      setError(getErrorMessage(e));
+      // A 401 here is the email or password, not an ended session.
+      setError(
+        e instanceof AxiosError && e.response?.status === 401
+          ? t("rewardsTeller.setupWrong", "Wrong email or password.")
+          : getErrorMessage(e),
+      );
     }
   };
 
   if (pick) {
     return (
-      <section className="mx-auto w-full max-w-sm space-y-3">
-        <h2 className="text-lg font-semibold">{t("rewardsTeller.pickBranch", "Which branch is this device at?")}</h2>
-        {pick.branches.map((b) => (
-          <Button
-            key={b.id}
-            variant="outline"
-            className="h-12 w-full justify-start"
-            onClick={() => onDone({ orgId: pick.orgId, branchId: b.id, branchName: b.name }, pick.owner)}
-          >
-            {b.name}
-          </Button>
-        ))}
+      <section className="mx-auto w-full max-w-md space-y-5" aria-labelledby="pick-title">
+        <div className="space-y-1">
+          <h1 id="pick-title" className="text-2xl font-semibold text-balance">
+            {t("rewardsTeller.pickBranch", "Which branch is this device at?")}
+          </h1>
+          <p className="text-base text-muted-foreground">
+            {t("rewardsTeller.pickBranchHint", "Stamps from this device count at the branch you pick. You can change it later.")}
+          </p>
+        </div>
+        {pick.branches.length === 0 ? (
+          <p role="alert" className="rounded-2xl border p-4 text-base">
+            {t("rewardsTeller.noBranches", "This shop has no open branch yet. Add one in the Madar dashboard, then sign in again.")}
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {pick.branches.map((b) => (
+              <li key={b.id}>
+                <button
+                  type="button"
+                  data-press="product"
+                  className="flex h-16 w-full items-center gap-3 rounded-2xl border bg-card px-4 text-start text-lg font-semibold shadow-xs outline-none transition-colors hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  onClick={() => onDone({ orgId: pick.orgId, branchId: b.id, branchName: b.name }, pick.owner)}
+                >
+                  <MapPin className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+                  <span className="min-w-0 flex-1 truncate">{b.name}</span>
+                  <ChevronRight className="size-5 shrink-0 text-muted-foreground rtl:rotate-180" aria-hidden />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     );
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(submit)} className="mx-auto w-full max-w-sm space-y-4" noValidate>
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold">{t("rewardsTeller.setupTitle", "Set up this device")}</h2>
-          <p className="text-sm text-muted-foreground">
+      <form onSubmit={form.handleSubmit(submit)} className="mx-auto w-full max-w-md space-y-5" noValidate aria-labelledby="setup-title">
+        <div className="space-y-2">
+          <img src="/tile-ink.svg" alt="" className="mb-5 size-14 dark:hidden" />
+          <img src="/tile-paper.svg" alt="" className="mb-5 hidden size-14 dark:block" />
+          <h1 id="setup-title" className="text-2xl font-semibold">
+            {t("rewardsTeller.setupTitle", "Set up this device")}
+          </h1>
+          <p className="text-base text-pretty text-muted-foreground">
             {t("rewardsTeller.setupHint", "The shop owner signs in once. After that, staff sign in with their PIN.")}
           </p>
         </div>
         <FormField control={form.control} name="email" render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("rewardsTeller.email", "Email")}</FormLabel>
-            <FormControl><Input type="email" autoComplete="username" dir="ltr" {...field} /></FormControl>
+            <FormLabel className="text-base">{t("rewardsTeller.email", "Email")}</FormLabel>
+            <FormControl><Input type="email" autoComplete="username" dir="ltr" className="h-14 rounded-2xl px-4 text-lg md:text-lg" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
         <FormField control={form.control} name="password" render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("rewardsTeller.password", "Password")}</FormLabel>
-            <FormControl><Input type="password" autoComplete="current-password" dir="ltr" {...field} /></FormControl>
+            <FormLabel className="text-base">{t("rewardsTeller.password", "Password")}</FormLabel>
+            <FormControl><Input type="password" autoComplete="current-password" dir="ltr" className="h-14 rounded-2xl px-4 text-lg md:text-lg" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
-        {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
-        <Button type="submit" className="h-12 w-full" loading={form.formState.isSubmitting}>
+        {error ? (
+          <p role="alert" className="rounded-2xl border border-[color-mix(in_oklab,var(--color-destructive)_35%,transparent)] bg-[color-mix(in_oklab,var(--color-destructive)_10%,var(--color-card))] p-4 text-base font-medium text-[color-mix(in_oklab,var(--color-destructive)_55%,var(--color-foreground))]">
+            {error}
+          </p>
+        ) : null}
+        <Button type="submit" className="h-14 w-full rounded-2xl text-lg" loading={form.formState.isSubmitting}>
           {t("rewardsTeller.signIn", "Sign in")}
         </Button>
       </form>

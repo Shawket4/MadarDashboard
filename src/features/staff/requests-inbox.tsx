@@ -8,7 +8,7 @@ import {
   Ban, CalendarOff, Check, Clock3, LogOut, Plane, Plus, ShieldCheck, Timer, X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";

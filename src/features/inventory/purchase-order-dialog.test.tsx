@@ -52,7 +52,6 @@ const customInstance = vi.fn((config: { url: string; params?: { supplier_id?: st
 });
 vi.mock("@/data/api/custom-instance", () => ({ customInstance: (c: never) => customInstance(c) }));
 vi.mock("@/hooks/use-org-id", () => ({ useOrgId: () => "org-1" }));
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");

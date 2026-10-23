@@ -20,7 +20,6 @@ vi.mock("@/data/api/generated/api", () => ({
   useListOrgs: () => ({ data: [] }),
 }));
 vi.mock("./util", () => ({ invalidateUsers: vi.fn() }));
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/data/stores/auth.store", () => ({
   useAuthStore: (sel: (s: unknown) => unknown) => sel({ user: { role: "org_admin" } }),
 }));

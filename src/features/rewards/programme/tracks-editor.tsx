@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Controller, useFieldArray, useForm, useWatch, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Check, Circle, Coffee, Gift, Heart, Plus, Square, Star, Trash2, X, type LucideIcon } from "lucide-react";
 
 import { Combobox } from "@/components/app/combobox";

@@ -30,7 +30,7 @@ export const onQueryError = (error: unknown, query: { queryKey: Query["queryKey"
   if (typeof head !== "string" || !(head === "/staff" || head.startsWith("/staff/"))) return;
   const id = isRateLimited(error) ? "dawam-refresh-429" : "dawam-refresh-failed";
   // Loaded on use: this module is also imported where there is no DOM (node tests, tooling).
-  void Promise.all([import("./errors"), import("sonner")]).then(([{ getErrorMessage }, { toast }]) =>
+  void Promise.all([import("./errors"), import("@/components/ui/toast")]).then(([{ getErrorMessage }, { toast }]) =>
     toast.error(getErrorMessage(error), { id }),
   );
 };

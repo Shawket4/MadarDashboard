@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import {
   AlertTriangle, Armchair, CalendarClock, CalendarDays, Check, ChevronLeft, ChevronRight,
   MoreHorizontal, Pencil, Phone, Plus, Settings2, UserX, Users, XCircle,

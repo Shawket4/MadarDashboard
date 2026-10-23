@@ -13,7 +13,7 @@
 import { useMemo, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { AlertTriangle, CircleAlert, RotateCcw, Send } from "lucide-react";
 
 import { useConfirm } from "@/components/app/confirm-dialog";

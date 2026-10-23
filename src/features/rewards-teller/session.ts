@@ -19,6 +19,8 @@ import { apiContext } from "@/data/api/client";
 const SETUP_KEY = "rewardsTeller.setup";
 const DEVICE_KEY = "rewardsTeller.device";
 const SESSION_KEY = "rewardsTeller.session";
+const RECENT_KEY = "rewardsTeller.recent";
+const SOUND_KEY = "rewardsTeller.sound";
 
 export interface Setup {
   orgId: string;
@@ -30,6 +32,19 @@ export interface Session {
   token: string;
   name: string;
 }
+
+/** One thing done at the counter this session: the strip under the scanner. */
+export interface Activity {
+  memberId: string;
+  name: string;
+  kind: "stamp" | "redeem" | "gift";
+  /** Stamps added, or taken off by a completed card (0 for a birthday gift). */
+  count: number;
+  at: string;
+}
+
+/** The most the strip keeps: a glance back, not a ledger (the dashboard has that). */
+const MAX_RECENT = 12;
 
 function read<T>(store: Storage | undefined, key: string): T | null {
   try {
@@ -78,3 +93,18 @@ export function saveSession(s: Session | null): void {
   apiContext.setToken(s?.token ?? null);
   write(session(), SESSION_KEY, s);
 }
+
+/** This session's counter activity, newest first. It ends with the session. */
+export const loadRecent = (): Activity[] => read<Activity[]>(session(), RECENT_KEY) ?? [];
+
+export function pushRecent(a: Activity): Activity[] {
+  const next = [a, ...loadRecent()].slice(0, MAX_RECENT);
+  write(session(), RECENT_KEY, next);
+  return next;
+}
+
+export const clearRecent = (): void => write(session(), RECENT_KEY, null);
+
+/** The counter's sound: off unless this device turned it on. */
+export const loadSound = (): boolean => read<boolean>(safeStorage, SOUND_KEY) === true;
+export const saveSound = (on: boolean): void => write(safeStorage, SOUND_KEY, on);
