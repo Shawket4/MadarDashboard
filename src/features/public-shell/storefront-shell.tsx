@@ -4,7 +4,7 @@ import { ArrowUpRight, Languages, Moon, Sun } from "lucide-react";
 
 import { MadarMark } from "@/components/brand/marks";
 import { MadarWordmark } from "@/components/brand/madar-wordmark";
-import { RewardsEndorsement } from "@/components/brand/rewards-endorsement";
+import { RewardsLockup } from "@/components/brand/rewards-lockup";
 import { LegalLinks } from "@/components/legal-links";
 
 import { currentYear } from "@shared/dates";
@@ -146,8 +146,7 @@ export type MadarProduct = "loyalty" | "ordering" | "reservations";
  * Madar's signature, on every public page at every tier, the same on a shop's own
  * page as on ours: an app-store-style badge (the orbit, "Online ordering by", the
  * wordmark) that reads as a button before anyone hovers it, then the copyright and
- * the legal links. A Rewards page signs with Rewards by Madar's endorsed lockup
- * instead, in the kit's quiet Slate (`RewardsEndorsement`).
+ * the legal links.
  *
  * It wears Madar's own mark and the theme's neutral tokens, never the shop's: the
  * shop's brand skin recolours `primary` and `brand`, and this is Madar's, not
@@ -168,45 +167,27 @@ export function MadarFooter({ product }: { product?: MadarProduct }) {
           with the copyright and the links under it, and a longer product line
           ("Loyalty cards by") widens the column instead of breaking the line-up. */}
       <div className="inline-flex flex-col items-stretch gap-5">
-        {product === "loyalty" ? (
-          // Rewards by Madar signs its pages with its own endorsed lockup, quietly
-          // (the kit's Slate, no badge): the card above is the shop's, and the
-          // dark badge read heavier than anything the shop put on the page.
-          <a
-            href={href}
-            target="_blank"
-            rel="noopener"
-            className="mx-auto flex rounded-md outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            <RewardsEndorsement
-              lang={lang.startsWith("ar") ? "ar" : "en"}
-              label={t("loyalty.rewardsByMadar", "Rewards by Madar")}
-            />{" "}
-            <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
-          </a>
-        ) : (
-          // The store badge (Madar Design System, "Madar signature"): ink in both themes, the
-          // orbit at its small optical size, the words, the wordmark, and an arrow that says it
-          // goes somewhere. It pins --brand to the kit's teal, because a shop's skin re-colours
-          // --brand and this is Madar's mark, not theirs.
-          <a
-            href={href}
-            target="_blank"
-            rel="noopener"
-            className="group flex h-12 items-center gap-2.5 rounded-[11px] bg-(--madar-ink) pe-4 ps-3.5 text-(--madar-paper) shadow-md shadow-black/10 outline-none transition-[translate,box-shadow] [--brand:var(--madar-teal-light)] hover:-translate-y-px hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:shadow-none dark:ring-1 dark:ring-(--madar-paper)/20"
-          >
-            <MadarMark optical className="size-[26px] shrink-0 [&_.fill-brand]:fill-(--madar-teal-deep)" />
-            <span className="flex flex-col items-start gap-[5px] leading-none">
-              <span className="text-[10.5px] opacity-70">{t(`publicShell.signature.by.${product ?? "generic"}`)}</span>{" "}
-              <MadarWordmark lang={lang.startsWith("ar") ? "ar" : "en"} title={t("publicShell.signature.name")} className="h-[16.5px] rtl:h-5" />
-            </span>{" "}
-            <ArrowUpRight
-              aria-hidden
-              className="ms-auto size-4 shrink-0 opacity-70 transition-[translate,opacity] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"
-            />
-            <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
-          </a>
-        )}
+        {/* The store badge (Madar Design System, "Madar signature"): ink in both themes,
+            the orbit at its small optical size, the words, the wordmark, and an arrow
+            that says it goes somewhere. It pins --brand to the kit's teal, because a
+            shop's skin re-colours --brand and this is Madar's mark, not theirs. */}
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener"
+          className="group flex h-12 items-center gap-2.5 rounded-[11px] bg-(--madar-ink) pe-4 ps-3.5 text-(--madar-paper) shadow-md shadow-black/10 outline-none transition-[translate,box-shadow] [--brand:var(--madar-teal-light)] hover:-translate-y-px hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:shadow-none dark:ring-1 dark:ring-(--madar-paper)/20"
+        >
+          <MadarMark optical className="size-[26px] shrink-0 [&_.fill-brand]:fill-(--madar-teal-deep)" />
+          <span className="flex flex-col items-start gap-[5px] leading-none">
+            <span className="text-[10.5px] opacity-70">{t(`publicShell.signature.by.${product ?? "generic"}`)}</span>{" "}
+            <MadarWordmark lang={lang.startsWith("ar") ? "ar" : "en"} title={t("publicShell.signature.name")} className="h-[16.5px] rtl:h-5" />
+          </span>{" "}
+          <ArrowUpRight
+            aria-hidden
+            className="ms-auto size-4 shrink-0 opacity-70 transition-[translate,opacity] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"
+          />
+          <span className="sr-only">{t("common.opensInNewTab", "(opens in a new tab)")}</span>
+        </a>
         <div className="flex flex-col items-center gap-1.5">
           <p className="text-[11px] text-muted-foreground">
             {t("common.copyright", { year: currentYear(lang), defaultValue: "© {{year}} Madar. All rights reserved." })}
@@ -234,10 +215,13 @@ export function StorefrontShell({
   brand,
   product,
   headerMark = true,
-  footer = true,
 }: {
   children: ReactNode;
-  /** Which product this page is, for the footer's signature. */
+  /**
+   * Which product this page is, for the footer's signature. A Rewards page
+   * (`"loyalty"`) also opens with Rewards by Madar's lockup in the header,
+   * where another page has the shop's mark: the shop's own is on its card.
+   */
   product?: MadarProduct;
   /**
    * Whose page this is.
@@ -255,13 +239,6 @@ export function StorefrontShell({
    * rather than the same logo twice within a thumb's height.
    */
   headerMark?: boolean;
-  /**
-   * False when the page draws `MadarFooter` itself, inside content that swaps
-   * step by step (the loyalty sign-up): a footer left behind a swap jumps into
-   * view after the network answers, which is a layout shift; one that swaps
-   * with its step is simply new.
-   */
-  footer?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
@@ -281,15 +258,27 @@ export function StorefrontShell({
 
   return (
     // `overflow-x-clip`: a step sliding in past the edge (in Arabic, past the
-    // left one) must not widen the page. With zoom allowed, a phone answers a
-    // page wider than the screen by re-fitting it, and everything on it jumps.
-    // `clip`, not `hidden`, so the sticky header keeps sticking.
+    // left one) must not widen the page, which would scroll sideways or be
+    // re-fitted by the phone, moving everything on it. `clip`, not `hidden`,
+    // so the sticky header keeps sticking.
     <div className="relative flex min-h-[100dvh] flex-col overflow-x-clip bg-background text-foreground">
       <BrandWash brand={brand} />
 
       <header data-sticky-header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[480px] items-center gap-2 px-4 py-3">
-          {brand && headerMark ? (
+          {product === "loyalty" ? (
+            // The kit's compact lockup at its 28px minimum (`RewardsLockup`), at the
+            // start, going where the footer's badge goes.
+            <a
+              href={madarSiteHref(lang, signatureSource(typeof window === "undefined" ? "" : window.location.hostname), product)}
+              target="_blank"
+              rel="noopener"
+              aria-label={`${t("loyalty.rewardsByMadar", "Rewards by Madar")} ${t("common.opensInNewTab", "(opens in a new tab)")}`}
+              className="me-auto flex shrink-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <RewardsLockup lang={lang.startsWith("ar") ? "ar" : "en"} />
+            </a>
+          ) : brand && headerMark ? (
             <BrandMark brand={brand} />
           ) : (
             <>
@@ -308,7 +297,7 @@ export function StorefrontShell({
 
       <main className="relative z-10 mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-10 pt-5">
         <div className="flex-1">{children}</div>
-        {footer ? <MadarFooter product={product} /> : null}
+        <MadarFooter product={product} />
       </main>
     </div>
   );

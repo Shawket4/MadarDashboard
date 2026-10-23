@@ -29,7 +29,7 @@
  *   `member_count`     "1,200+ people already have this card", only past 100
  *   `brand`            the card, the controls' colour, the names, the links
  */
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ import { useLoyaltyJoin, useLoyaltyJoinInfo } from "@/data/api/generated/api";
 import type { JoinResult } from "@/data/api/generated/models";
 import { clearDeviceToken } from "@/features/public-shell/guest";
 import { stepSwap, useStepDirection } from "@/features/public-shell/motion";
-import { MadarFooter } from "@/features/public-shell/storefront-shell";
+import { useHeaderHeight } from "@/features/public-shell/use-header-height";
 import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { useOtpTransport, usePhoneOtp, type PhoneOtpTransport } from "@/features/public-shell/use-phone-otp";
 import { clock, useCountdown } from "@/components/inputs/countdown";
@@ -267,6 +267,20 @@ function JoinFlow({
     if (joined && window.scrollY > 0) window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
   }, [joined]);
 
+  // Madar's footer sits under the steps, and a step shorter than the last (the
+  // code after the form) would pull it up into view once the network answered:
+  // a layout shift. So every step fills the screen under the header, and a new
+  // one opens at its own top: the footer then moves only below the fold.
+  const headerHeight = useHeaderHeight();
+  const steps = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = steps.current;
+    if (!el || phase === "details" || phase === "done") return; // done goes back to the card
+    const top = el.getBoundingClientRect().top + window.scrollY - headerHeight;
+    if (window.scrollY > top) window.scrollTo({ top });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- on a new step only
+  }, [phase]);
+
   const shopTerms = (lang === "ar" && data.terms_ar) || data.terms || "";
   const announce =
     phase === "code"
@@ -280,7 +294,7 @@ function JoinFlow({
           : "";
 
   return (
-    <LoyaltyPage brand={brand} headerMark={false} footer={false}>
+    <LoyaltyPage brand={brand}>
       <PressStage phase={pressPhase}>
         <div ref={cardRef}>
           <PressedCard brand={brand}>
@@ -304,84 +318,82 @@ function JoinFlow({
           {announce}
         </p>
 
-        {/* Each step brings what follows it, Madar's footer included, so a
-            swap only ever removes and adds: nothing below the card is left
-            behind to jump when the network answers. */}
-        <SwapPresence
-          swapKey={phase}
-          initial={false}
-          recipe={stepSwap(stepDir, i18n.dir() === "rtl")}
-          className="flex flex-col gap-8"
-        >
-          {phase === "details" ? (
-            <Details
-              data={data}
-              brand={brand}
-              unit={unit}
-              accent={accent}
-              name={name}
-              setName={setName}
-              birthday={birthday}
-              setBirthday={setBirthday}
-              national={national}
-              setNational={setNational}
-              region={region}
-              setRegion={setRegion}
-              ready={detailsReady(details)}
-              online={online}
-              busy={otp.sending || join.isPending}
-              joining={join.isPending}
-              problem={otp.error ?? error}
-              hasTerms={!!shopTerms}
-              onSubmit={() => void otp.start()}
-            />
-          ) : phase === "known" && known ? (
-            <Known
-              known={known}
-              brand={brand}
-              sending={otp.sending}
-              problem={otp.error}
-              onSendCode={() => void otp.start()}
-              onChangeNumber={() => setKnown(null)}
-            />
-          ) : phase === "code" ? (
-            <Code
-              phone={phone}
-              online={online}
-              verifying={otp.verifying}
-              joining={join.isPending}
-              sending={otp.sending}
-              codeError={otp.error}
-              joinError={error}
-              resetSignal={otp.resetSignal}
-              sentAt={sentAt}
-              onComplete={(c) => void otp.verify(c)}
-              onResend={() => void otp.resend()}
-              onRetryJoin={() => void otp.start()}
-              onChangeNumber={() => {
-                setKnown(null);
-                otp.changeNumber();
-              }}
-            />
-          ) : joined ? (
-            <Done joined={joined} data={data} unit={unit} accent={accent} pass={pass} memberToken={memberToken} />
-          ) : null}
-          {phase === "details" ? (
-            <>
-              <RewardsList rewards={data.rewards} accent={accent} unit={unit} />
-              {shopTerms ? (
-                // The consent line's "programme terms" lands here.
-                <div id="loyalty-terms" className="scroll-mt-24">
-                  <Section title={t("loyalty.termsHeading", "Terms")}>
-                    <p className="whitespace-pre-line text-[13px] leading-relaxed text-muted-foreground">{shopTerms}</p>
-                  </Section>
-                </div>
-              ) : null}
-              <SocialLinks links={data.brand.social_links} accent={accent} />
-            </>
-          ) : null}
-          <MadarFooter product="loyalty" />
-        </SwapPresence>
+        <div ref={steps} style={{ minHeight: `calc(100vh - ${headerHeight}px)` }}>
+          <SwapPresence
+            swapKey={phase}
+            initial={false}
+            recipe={stepSwap(stepDir, i18n.dir() === "rtl")}
+            className="flex flex-col gap-8"
+          >
+            {phase === "details" ? (
+              <Details
+                data={data}
+                brand={brand}
+                unit={unit}
+                accent={accent}
+                name={name}
+                setName={setName}
+                birthday={birthday}
+                setBirthday={setBirthday}
+                national={national}
+                setNational={setNational}
+                region={region}
+                setRegion={setRegion}
+                ready={detailsReady(details)}
+                online={online}
+                busy={otp.sending || join.isPending}
+                joining={join.isPending}
+                problem={otp.error ?? error}
+                hasTerms={!!shopTerms}
+                onSubmit={() => void otp.start()}
+              />
+            ) : phase === "known" && known ? (
+              <Known
+                known={known}
+                brand={brand}
+                sending={otp.sending}
+                problem={otp.error}
+                onSendCode={() => void otp.start()}
+                onChangeNumber={() => setKnown(null)}
+              />
+            ) : phase === "code" ? (
+              <Code
+                phone={phone}
+                online={online}
+                verifying={otp.verifying}
+                joining={join.isPending}
+                sending={otp.sending}
+                codeError={otp.error}
+                joinError={error}
+                resetSignal={otp.resetSignal}
+                sentAt={sentAt}
+                onComplete={(c) => void otp.verify(c)}
+                onResend={() => void otp.resend()}
+                onRetryJoin={() => void otp.start()}
+                onChangeNumber={() => {
+                  setKnown(null);
+                  otp.changeNumber();
+                }}
+              />
+            ) : joined ? (
+              <Done joined={joined} data={data} unit={unit} accent={accent} pass={pass} memberToken={memberToken} />
+            ) : null}
+            {phase === "details" ? (
+              <>
+                <RewardsList rewards={data.rewards} accent={accent} unit={unit} />
+                {shopTerms ? (
+                  // The consent line's "programme terms" lands here.
+                  <div id="loyalty-terms" className="scroll-mt-24">
+                    <Section title={t("loyalty.termsHeading", "Terms")}>
+                      <p className="whitespace-pre-line text-[13px] leading-relaxed text-muted-foreground">{shopTerms}</p>
+                    </Section>
+                  </div>
+                ) : null}
+                <SocialLinks links={data.brand.social_links} accent={accent} />
+              </>
+            ) : null}
+          </SwapPresence>
+        </div>
       </PressStage>
     </LoyaltyPage>
   );

@@ -92,7 +92,7 @@ function Card({
   const unit = stampUnit(data.mode, stampUnitOf(data));
 
   return (
-    <LoyaltyPage brand={brand} headerMark={false}>
+    <LoyaltyPage brand={brand}>
       {/* The card is the headline; this names it for a screen reader. */}
       <h1 className="sr-only">
         {t("loyalty.cardTitle", { shop: brand.orgName, defaultValue: "Your {{shop}} card" })}

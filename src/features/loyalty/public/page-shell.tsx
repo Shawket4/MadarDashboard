@@ -102,23 +102,18 @@ export function Panel({
 }
 
 /**
- * The page: the shop's card, then whatever this page is, then Madar.
+ * The page: Rewards by Madar at the top, the shop's card, whatever this page
+ * is, then Madar's footer.
  *
- * `StorefrontShell` supplies the header chrome and the footer — Madar's
- * signature stays on every page at every tier. Each page heads itself: the
- * card says whose page it is, so there is no headline over it.
+ * `StorefrontShell` supplies the header (the product's lockup on every loyalty
+ * page) and the footer, Madar's signature on every page at every tier. Each
+ * page heads itself: the card says whose page it is.
  */
 export function LoyaltyPage({
   brand,
-  headerMark = true,
-  footer = true,
   children,
 }: {
   brand: ResolvedBrand;
-  /** False when the shop's card, logo and all, sits right under the header. */
-  headerMark?: boolean;
-  /** False when each step draws Madar's footer itself (see `StorefrontShell`). */
-  footer?: boolean;
   children: ReactNode;
 }) {
   // The shop's colour on the buttons is `StorefrontShell`'s job (`useBrandSkin`),
@@ -132,7 +127,7 @@ export function LoyaltyPage({
   }, [brand.programName, brand.orgName]);
 
   return (
-    <StorefrontShell brand={brand} product="loyalty" headerMark={headerMark} footer={footer}>
+    <StorefrontShell brand={brand} product="loyalty">
       <div className="flex flex-col gap-8 pb-2 pt-3">{children}</div>
     </StorefrontShell>
   );

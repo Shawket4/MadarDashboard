@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 
-await import("@/i18n");
+const i18n = (await import("@/i18n")).default;
 const { MadarFooter, StorefrontShell } = await import("./storefront-shell");
 const { madarSiteHref, signatureSource } = await import("./madar-site");
 
@@ -19,15 +19,67 @@ const renderShell = (brand: typeof shop | null) =>
 
 describe("StorefrontShell footer", () => {
   // One footer, whoever's page it is: a branded shop's customers see the same
-  // signature as everyone else's. A Rewards page signs as Rewards by Madar.
+  // signature as everyone else's.
   for (const [who, brand] of [["a branded shop", shop], ["Madar's own page", null]] as const) {
     it(`signs ${who} the same way`, () => {
       renderShell(brand);
       const footer = screen.getByRole("contentinfo");
-      expect(within(footer).getByRole("img", { name: "Rewards by Madar" })).toBeInTheDocument();
+      expect(footer).toHaveTextContent("Loyalty cards by");
       expect(footer).toHaveTextContent(/©/);
+      expect(screen.getByRole("img", { name: "Madar POS" })).toBeInTheDocument();
     });
   }
+});
+
+describe("StorefrontShell header", () => {
+  const shell = (product: "loyalty" | "ordering") =>
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <StorefrontShell brand={shop} product={product}>
+          <p>page</p>
+        </StorefrontShell>
+      </QueryClientProvider>,
+    );
+
+  it("opens a Rewards page with Rewards by Madar's lockup, going where the footer's badge goes", () => {
+    shell("loyalty");
+    const header = screen.getByRole("banner");
+    const link = within(header).getByRole("link", { name: "Rewards by Madar (opens in a new tab)" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://get.madar-pos.cloud/en/?utm_source=localhost&utm_medium=powered_by&utm_campaign=loyalty",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+    // The kit's compact lockup, Ink for the light theme and Paper for the dark,
+    // sized at its 28px minimum before either arrives.
+    const [ink, paper] = Array.from(link.querySelectorAll("img"));
+    expect(ink.getAttribute("src")).toMatch(/rewards-lockup-en-ink.*\.svg/);
+    expect(paper.getAttribute("src")).toMatch(/rewards-lockup-en-paper.*\.svg/);
+    for (const img of [ink, paper]) {
+      expect(img).toHaveAttribute("height", "28");
+      expect(img).toHaveAttribute("width", "132");
+    }
+    expect(paper).toHaveAttribute("loading", "lazy");
+    // The shop's mark is on its card, not here.
+    expect(within(header).queryByText("Drops")).not.toBeInTheDocument();
+  });
+
+  it("draws the Arabic lockup on an Arabic page", async () => {
+    await i18n.changeLanguage("ar");
+    shell("loyalty");
+    const link = within(screen.getByRole("banner")).getByRole("link", { name: "مكافآت من مدار (يفتح في علامة تبويب جديدة)" });
+    const [ink] = Array.from(link.querySelectorAll("img"));
+    expect(ink.getAttribute("src")).toMatch(/rewards-lockup-ar-ink.*\.svg/);
+    expect(ink).toHaveAttribute("width", "103");
+    await i18n.changeLanguage("en");
+  });
+
+  it("keeps the shop's mark on every other page", () => {
+    shell("ordering");
+    const header = screen.getByRole("banner");
+    expect(within(header).queryByRole("link")).not.toBeInTheDocument();
+    expect(within(header).getByText("Drops")).toBeInTheDocument();
+  });
 });
 
 describe("MadarFooter signature", () => {
@@ -54,22 +106,6 @@ describe("MadarFooter signature", () => {
   it("says Powered by where the page names no product (the links page, the menu)", () => {
     render(<MadarFooter />);
     expectSignature("Powered by Madar POS", "shop_page");
-  });
-
-  it("signs a Rewards page with the kit's endorsed lockup, quietly, sized before it loads", () => {
-    render(<MadarFooter product="loyalty" />);
-    const link = screen.getByRole("link", { name: "Rewards by Madar (opens in a new tab)" });
-    expect(link).toHaveAttribute(
-      "href",
-      "https://get.madar-pos.cloud/en/?utm_source=localhost&utm_medium=powered_by&utm_campaign=loyalty",
-    );
-    expect(link).toHaveAttribute("target", "_blank");
-    const lockup = within(link).getByRole("img", { name: "Rewards by Madar" });
-    expect(lockup.getAttribute("src")).toMatch(/rewards-endorsed-en-slate.*\.svg/);
-    expect(lockup).toHaveAttribute("height", "40"); // the kit's minimum for an endorsed lockup
-    expect(lockup).toHaveAttribute("width", "280");
-    // No badge: neither Madar POS's orbit nor its wordmark.
-    expect(screen.queryByRole("img", { name: "Madar POS" })).not.toBeInTheDocument();
   });
 });
 
