@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { endServerSession } from "@/data/api/server-session";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { initials } from "@/lib/format";
 
@@ -22,6 +23,7 @@ export function UserMenu() {
   const signOut = useAuthStore((s) => s.signOut);
 
   const onSignOut = () => {
+    endServerSession(useAuthStore.getState().token);
     signOut();
     navigate({ to: "/login" });
   };
