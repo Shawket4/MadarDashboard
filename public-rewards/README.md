@@ -13,6 +13,8 @@ new export over the same names; no code changes.
 | `apple-touch-icon-180.png` | `png/pwa/` | `rewards.html` |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` | `png/pwa/` | `manifest.webmanifest` |
 | `splash-{light,dark}-WxH.png` (46) | `png/pwa/` | `rewards.html` (the links from `splash-links.html`) |
-| `tile-ink.svg` | `svg/` | the page header |
+| `tile-ink.svg`, `tile-paper.svg` | `svg/` | the page header and set-up (paper in dark mode) |
+| `symbol-ink.svg`, `symbol-paper.svg` | `svg/` | the member card's present (by the card colour's luminance) |
+| `rewards-by-madar-{ink,paper}-16.svg` | `footer/` | the member card's foot line |
 
 `manifest.webmanifest` and `sw.js` are ours.

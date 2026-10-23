@@ -20,12 +20,11 @@ import { bootMotion } from "@/lib/motion";
 import { queryClient } from "@/data/api/query";
 import { initRules } from "@/lib/rules";
 import * as rulesWasm from "@/lib/rules/wasm/public/madar_web.js";
-import { ConfirmProvider } from "@/components/app/confirm-dialog";
-import { PublicToaster } from "@/features/public-shell/public-toaster";
 import { initPublicTheme } from "@/features/public-shell/use-public-theme";
 import { RewardsApp } from "@/features/rewards-teller/rewards-app";
 
-document.documentElement.classList.add("brand-surface");
+// No "brand-surface": Rewards by Madar is monochrome (Ink and Paper), so the
+// counter keeps the ink primary instead of Madar's teal.
 initPublicTheme();
 bootMotion();
 
@@ -39,10 +38,7 @@ void Promise.all([initRules(rulesWasm), i18nReady]).then(() => {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <ConfirmProvider>
-          <RewardsApp />
-        </ConfirmProvider>
-        <PublicToaster />
+        <RewardsApp />
       </QueryClientProvider>
     </StrictMode>,
   );

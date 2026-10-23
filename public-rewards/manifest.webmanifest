@@ -1,11 +1,18 @@
 {
+  "id": "/",
   "name": "Rewards by Madar",
   "short_name": "Rewards",
   "description": "Stamp loyalty cards at the counter.",
+  "lang": "en",
+  "dir": "auto",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
+  "categories": [
+    "business",
+    "productivity"
+  ],
   "background_color": "#EFF3F4",
   "theme_color": "#14181E",
   "icons": [
