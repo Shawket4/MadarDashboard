@@ -258,7 +258,7 @@ function JoinFlow({
   const cardRef = useRef<HTMLDivElement>(null);
   usePop(cardRef, joined ? 1 : 0);
   useEffect(() => {
-    if (joined) window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    if (joined && window.scrollY > 0) window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
   }, [joined]);
 
   const shopTerms = (lang === "ar" && data.terms_ar) || data.terms || "";

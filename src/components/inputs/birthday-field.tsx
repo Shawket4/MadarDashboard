@@ -161,9 +161,13 @@ function BirthdaySheet({
   onDone: (b: Birthday) => void;
 }) {
   const { t } = useTranslation();
-  const [draft, setDraft] = useState(() => startingBirthday(value, mode, bounds));
+  // The wheels as the person set them, and what that comes to. Kept apart so a
+  // clamp is never remembered: the 31st, walked through February to March,
+  // reads 29 on the way and 31 again on arrival.
+  const [wanted, setWanted] = useState(() => startingBirthday(value, mode, bounds));
+  const draft = clampBirthday(wanted, bounds);
   const set = (part: "day" | "month" | "year", v: number) =>
-    setDraft((d) => clampBirthday({ ...d, [part]: part === "year" && v === NO_YEAR ? null : v }, bounds));
+    setWanted((w) => ({ ...w, [part]: part === "year" && v === NO_YEAR ? null : v }));
   const done = () => onDone(mode === "none" ? { ...draft, year: null } : draft);
 
   const names = useMemo(() => monthNames(locale), [locale]);

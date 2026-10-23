@@ -14,7 +14,8 @@ export function LegalLinks({ className }: { className?: string }) {
   return (
     <nav
       aria-label={t("legal.label", "Legal")}
-      className={cn("flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground/80", className)}
+      // Full muted ink: at 80% it measured 3.9:1 on the page, under AA for 11px links.
+      className={cn("flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground", className)}
     >
       <a
         href={LEGAL_URLS.privacy}

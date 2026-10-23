@@ -36,6 +36,18 @@ describe("brandTokens", () => {
     expect(contrast(dark["--primary-foreground"]!, dark["--primary"]!)).toBeGreaterThanOrEqual(AA);
   });
 
+  it("keeps both the fill and its label at AA, whatever the colour and the theme", () => {
+    // An oxblood walked just far enough for the dark page left 4.1:1 for its label.
+    const colours = ["#5B1A2B", "#7B1E3A", "#9BE3C8", "#F4C542", "#2E94A6", "#8A9AA3", "#E63946", "#457B9D", "#000000", "#FFFFFF", "#808080"];
+    for (const mode of ["light", "dark"] as const) {
+      for (const c of colours) {
+        const t = brandTokens(c, mode)!;
+        expect(contrast(t["--primary"]!, PAGE_GROUND[mode]), `${c} on ${mode}`).toBeGreaterThanOrEqual(AA);
+        expect(contrast(t["--primary-foreground"]!, t["--primary"]!), `label on ${c} (${mode})`).toBeGreaterThanOrEqual(AA);
+      }
+    }
+  });
+
   it("leaves Madar's own teal, and anything unpaintable, to the storefront tokens", () => {
     expect(brandTokens("#0D6273", "light")).toBeNull();
     expect(brandTokens("#0d6273", "dark")).toBeNull();

@@ -14,6 +14,7 @@ import {
   contrast,
   HEX,
   luminance,
+  mix,
   readableOn,
 } from "@/features/public-shell/brand-color";
 
@@ -30,6 +31,20 @@ const MADAR_INK = "#12222A";
 /** A colour we are willing to paint with, or the fallback. */
 const safe = (value: string | null | undefined, fallback: string): string =>
   value && HEX.test(value) ? value : fallback;
+
+/**
+ * Secondary text on the card: the ink softened toward the ground, but only as
+ * far as AA allows. It was a fixed 72% white, which measured 4.45:1 on Madar's
+ * own teal, under the floor for the small labels it sets ("Member", the
+ * programme's name, the stamp numerals).
+ */
+const softened = (ink: string, ground: string): string => {
+  for (let t = 0.3; t > 0.001; t -= 0.02) {
+    const c = mix(ink, ground, t);
+    if (contrast(c, ground) >= AA) return c;
+  }
+  return ink;
+};
 
 // The arithmetic is shared with every storefront; re-exported so the card's
 // callers keep one import.
@@ -123,7 +138,7 @@ export function resolveBrand(
     cardImageUrl: brand?.card_image_url?.trim() || null,
     background,
     foreground,
-    muted: dark ? "rgba(255,255,255,0.72)" : "rgba(0,0,0,0.60)",
+    muted: softened(foreground, background),
     accent: safe(brand?.label_color, dark ? MADAR_TEAL_LIGHT : MADAR_TEAL),
     isDark: dark,
     pageAccent: (ground: string) => readableOn(background, ground),

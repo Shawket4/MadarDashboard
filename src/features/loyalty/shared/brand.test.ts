@@ -134,6 +134,21 @@ describe("resolveBrand", () => {
     expect(b.isDark).toBe(false);
   });
 
+  it("softens the secondary ink only as far as AA allows", () => {
+    // 72% white measured 4.45:1 on Madar's teal: under the floor for "Member".
+    for (const ground of ["#0D6273", "#5B1A2B", "#F4C542", "#8A9AA3", "#EFF3F4", "#14181E"]) {
+      const b = resolveBrand(
+        {
+          org_name: "X", program_name: "Rewards", program_name_ar: null, logo_url: null, logo_is_mark: false,
+          background_color: ground, foreground_color: null, label_color: null, social_links: [],
+        },
+        "en",
+      );
+      expect(contrast(b.muted, b.background), ground).toBeGreaterThanOrEqual(AA);
+      expect(contrast(b.muted, b.background), ground).toBeLessThan(contrast(b.foreground, b.background));
+    }
+  });
+
   it("gives a shop that configured nothing a finished card", () => {
     const b = resolveBrand(undefined, "en");
     expect(b.orgName).toBe("Madar");

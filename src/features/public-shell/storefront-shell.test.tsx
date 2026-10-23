@@ -24,7 +24,7 @@ describe("StorefrontShell footer", () => {
     it(`signs ${who} the same way`, () => {
       renderShell(brand);
       const footer = screen.getByRole("contentinfo");
-      expect(footer).toHaveTextContent("Loyalty cards by");
+      expect(footer).toHaveTextContent("Rewards by"); // the product's name: Rewards by Madar
       expect(footer).toHaveTextContent(/©/);
       expect(screen.getByRole("img", { name: "Madar POS" })).toBeInTheDocument();
     });
