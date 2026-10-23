@@ -252,7 +252,8 @@ function JoinFlow({
   // The card, as it is now: the preview at zero until there is a member.
   const mode = joined?.mode ?? data.mode;
   const unit = stampUnit(mode, stampUnitOf(data));
-  const target = joined?.next_reward_cost ?? data.next_reward_cost;
+  // The card's size: the server's cheapest-reward figure when it sends one.
+  const target = data.card_size ?? joined?.next_reward_cost ?? data.next_reward_cost;
   const balance = joined?.balance ?? 0;
   const memberToken = joined?.member_token ?? "";
   // The Apple pass is made on demand; the page owns that wait (`card-press.tsx`).
@@ -473,15 +474,16 @@ function MemberCount({ count }: { count: number | null | undefined }) {
  * configured, and what earns a stamp here (an order, an item, or the counter's
  * say-so). The target is a bare count: the first sentence has said what it counts.
  */
-function ruleSentence(data: JoinInfo, unit: StampUnit, t: ReturnType<typeof useTranslation>["t"]): string {
-  const count = data.next_reward_cost;
-  switch (ruleKind(data)) {
+function ruleSentence(data: JoinInfo, unit: StampUnit, cardSize: number, t: ReturnType<typeof useTranslation>["t"]): string {
+  // The figure in each of Arabic's plural forms ("اجمع ختمين", "اجمع 12 ختمًا").
+  const counted = { count: cardSize, n: fmtNumber(cardSize) };
+  switch (ruleKind({ ...data, next_reward_cost: cardSize })) {
     case "stampsWithTarget":
       return unit === "item"
-        ? t("loyalty.ruleItems", { count, defaultValue: "A stamp for every item you buy. Collect {{count}} for a reward." })
+        ? t("loyalty.ruleItems", { ...counted, defaultValue_one: "A stamp for every item you buy. Collect {{n}} for a reward.", defaultValue_other: "A stamp for every item you buy. Collect {{n}} for a reward." })
         : unit === "stamp"
-          ? t("loyalty.ruleCounter", { count, defaultValue: "Your card is stamped at the counter. Collect {{count}} for a reward." })
-          : t("loyalty.ruleStamps", { count, defaultValue: "A stamp for every order. Collect {{count}} for a reward." });
+          ? t("loyalty.ruleCounter", { ...counted, defaultValue_one: "Your card is stamped at the counter. Collect {{n}} for a reward.", defaultValue_other: "Your card is stamped at the counter. Collect {{n}} for a reward." })
+          : t("loyalty.ruleStamps", { ...counted, defaultValue_one: "A stamp for every order. Collect {{n}} for a reward.", defaultValue_other: "A stamp for every order. Collect {{n}} for a reward." });
     case "stamps":
       return unit === "item"
         ? t("loyalty.introItems", "A stamp for every item you buy, and a reward when the card is full.")
@@ -490,9 +492,10 @@ function ruleSentence(data: JoinInfo, unit: StampUnit, t: ReturnType<typeof useT
           : t("loyalty.introVisits", "A stamp for every order, and a reward when the card is full.");
     case "pointsWithTarget":
       return t("loyalty.rulePoints", {
-        count,
+        ...counted,
         amount: fmtMoney(data.earn_piastres_per_point),
-        defaultValue: "A point for every {{amount}} you spend. Collect {{count}} for a reward.",
+        defaultValue_one: "A point for every {{amount}} you spend. Collect {{n}} for a reward.",
+        defaultValue_other: "A point for every {{amount}} you spend. Collect {{n}} for a reward.",
       });
     case "pointsRate":
       return t("loyalty.rulePointsRate", {
@@ -573,7 +576,7 @@ function Details({
             />
           </h1>
           <p className="max-w-[40ch] text-[15px] leading-relaxed text-muted-foreground text-pretty">
-            {ruleSentence(data, unit, t)}
+            {ruleSentence(data, unit, data.card_size ?? data.next_reward_cost, t)}
           </p>
           <MemberCount count={data.member_count} />
         </header>

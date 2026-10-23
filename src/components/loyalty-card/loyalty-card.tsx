@@ -6,9 +6,9 @@
  * Laid out as a physical card: the shop at the top (its logo, its name, the
  * programme's name under it), the state of play in the middle, and the
  * member's name along the bottom edge with their code beside it. It is the
- * SHOP's card, so nothing on it is Madar's: Rewards by Madar signs the page's
- * footer instead. And it speaks in sentences, not labels: no "MEMBER" over the
- * name, no caption under the code, no tracked capitals anywhere.
+ * SHOP's card: the one mark of ours on it is the Rewards present where a shop
+ * has no logo, as on the wallet pass. And it speaks in sentences, not labels:
+ * no "MEMBER" over the name, no caption under the code, no tracked capitals.
  *
  * ## Stamps and points
  * A stamp programme draws its stamps and says how many are left; a points
@@ -37,6 +37,8 @@ import { useTranslation } from "react-i18next";
 import { QrCode } from "lucide-react";
 
 import { AssetImage } from "@/components/app/asset-image";
+import presentInk from "@/components/brand/rewards-present-ink.svg?url";
+import presentPaper from "@/components/brand/rewards-present-paper.svg?url";
 import { AnimatedNumber, Reveal, recipes } from "@/lib/motion";
 import { rules } from "@/lib/rules";
 
@@ -114,7 +116,19 @@ export function LoyaltyCard({ brand, mode, unit: given, balance, target, member 
           <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-1.5 shadow-sm">
             <AssetImage legacyUrl={brand.logoUrl} sizes="44px" fit="contain" className="max-h-full max-w-full" />
           </span>
-        ) : null}
+        ) : (
+          // No logo: the Rewards present stands in the logo's place, as on the
+          // wallet pass, Paper on a dark card and Ink on a light one (the kit
+          // never tints it), by the same reading as the card's own text.
+          <img
+            src={brand.isDark ? presentPaper : presentInk}
+            alt=""
+            width={36}
+            height={36}
+            draggable={false}
+            className="size-9 shrink-0"
+          />
+        )}
         <div className="min-w-0 flex-1">
           {/* The shop's name is always here: whose card this is must be on
               it, however little else has been configured. */}

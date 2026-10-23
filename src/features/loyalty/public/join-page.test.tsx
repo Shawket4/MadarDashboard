@@ -206,6 +206,18 @@ describe("the sign-up", () => {
     expect(screen.getByText("6 more stamps to your next reward.")).toBeInTheDocument();
   });
 
+  it("sizes the card by the server's cheapest-reward card_size when it sends one, else by next_reward_cost", () => {
+    info = { ...baseInfo, next_reward_cost: 6, card_size: 5 } as JoinInfo;
+    const { unmount } = mount();
+    expect(screen.getByRole("img", { name: "0 of 5 orders" })).toBeInTheDocument();
+    expect(screen.getByText("5 more orders to your next reward.")).toBeInTheDocument();
+    expect(screen.getByText("A stamp for every order. Collect 5 for a reward.")).toBeInTheDocument();
+    unmount();
+    info = { ...baseInfo, next_reward_cost: 6 };
+    mount();
+    expect(screen.getByRole("img", { name: "0 of 6 orders" })).toBeInTheDocument();
+  });
+
   it("names the shop in the heading", () => {
     info = { ...baseInfo, brand: { ...brand, program_name: "Bean Club" } };
     mount();
@@ -218,7 +230,7 @@ describe("the sign-up", () => {
     mount();
     expect(screen.getByRole("heading", { name: "احصل على بطاقة Bean & Brew" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "احصل على بطاقتي" })).toBeInTheDocument();
-    expect(screen.getByText("ختم لكل طلب. اجمع 6 لتحصل على مكافأة.")).toBeInTheDocument();
-    expect(screen.getByText("بقي 6 طلبات حتى مكافأتك التالية.")).toBeInTheDocument();
+    expect(screen.getByText("ختم لكل طلب. اجمع 6 أختام لتحصل على مكافأة.")).toBeInTheDocument();
+    expect(screen.getByText("بقيت 6 طلبات لمكافأتك التالية.")).toBeInTheDocument();
   });
 });

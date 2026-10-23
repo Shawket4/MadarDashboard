@@ -20,7 +20,13 @@ interface CardDesignNext {
   stamp_unit?: string | null;
 }
 
-export type JoinInfoNext = JoinInfo & {
+/**
+ * The card's size by the cheapest reward (the till's rule), which the server is
+ * adding to both answers; absent, the card goes by `next_reward_cost`.
+ */
+type CardSizeNext = { card_size?: number | null };
+
+export type JoinInfoNext = JoinInfo & CardSizeNext & {
   /**
    * How many members the shop has, rounded down by the server (1,200 for
    * 1,234); absent or null at 100 or fewer, so a small shop shows nothing.
@@ -30,7 +36,7 @@ export type JoinInfoNext = JoinInfo & {
   card?: CardDesignNext | null;
 };
 
-export type CardViewNext = CardView & {
+export type CardViewNext = CardView & CardSizeNext & {
   stamp_unit?: StampUnitWire | null;
   card?: CardDesignNext | null;
 };

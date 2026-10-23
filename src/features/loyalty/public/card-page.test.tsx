@@ -24,7 +24,13 @@ vi.mock("./card-press", () => ({
   PressedCard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   PressRest: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
-vi.mock("@/components/loyalty-card/loyalty-card", () => ({ LoyaltyCard: () => null }));
+const drawn = vi.hoisted(() => ({ target: 0 }));
+vi.mock("@/components/loyalty-card/loyalty-card", () => ({
+  LoyaltyCard: (p: { target: number }) => {
+    drawn.target = p.target;
+    return null;
+  },
+}));
 vi.mock("./card-orders", () => ({ CardOrders: () => null }));
 vi.mock("./card-preferences", () => ({ CardPreferences: () => null }));
 vi.mock("./rewards-list", () => ({ RewardsList: () => null }));
@@ -43,9 +49,31 @@ beforeEach(async () => {
 });
 
 describe("CardPage", () => {
-  it("is headed by the card, named for a screen reader", () => {
+  it("says hello by first name over the card", async () => {
+    card = { ...base, name: "Sara Adel" };
+    render(<CardPage token="card-token" />);
+    expect(screen.getByRole("heading", { level: 1, name: "Hi Sara" })).toBeVisible();
+  });
+
+  it("still names the page for a screen reader when there is no name", () => {
+    card = { ...base, name: "  " };
     render(<CardPage token="card-token" />);
     expect(screen.getByRole("heading", { level: 1, name: "Your Test Shop card" })).toHaveClass("sr-only");
+  });
+
+  it("greets in Arabic", async () => {
+    await i18n.changeLanguage("ar");
+    render(<CardPage token="card-token" />);
+    expect(screen.getByRole("heading", { level: 1, name: "أهلاً Sara" })).toBeInTheDocument();
+  });
+
+  it("sizes the card by card_size when the server sends it", () => {
+    card = { ...base, mode: "visits", next_reward_cost: 10, card_size: 8 } as Partial<CardView>;
+    render(<CardPage token="card-token" />);
+    expect(drawn.target).toBe(8);
+    card = { ...base, mode: "visits", next_reward_cost: 10 };
+    render(<CardPage token="card-token" />);
+    expect(drawn.target).toBe(10);
   });
 });
 

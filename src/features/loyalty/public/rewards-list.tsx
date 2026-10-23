@@ -11,10 +11,10 @@
  * `"visits"`; the page says points, or what a stamp counts here (orders, items,
  * stamps: `wording.ts`), in the reader's language and plural.
  */
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Gift } from "lucide-react";
 
-import { unitNoun, type StampUnit } from "@/components/loyalty-card/wording";
+import { COST_KEY, type StampUnit } from "@/components/loyalty-card/wording";
 import type { PublicReward } from "@/data/api/generated/models/publicReward";
 import { fmtNumber } from "@/lib/format";
 
@@ -43,10 +43,15 @@ export function RewardsList({
               <span className="min-w-0 flex-1 text-[15px] font-medium leading-snug">
                 <bdi>{r.name}</bdi>
               </span>
-              {/* The figure in the mono cut, the word in the text's own. */}
+              {/* A price in its unit's grammar ("طلب واحد", "12 طلبًا"); the figure,
+                  where there is one, in the mono cut. */}
               <span className="shrink-0 text-[13px] text-muted-foreground">
-                <span className="font-mono tabular-nums">{fmtNumber(r.cost_amount)}</span>{" "}
-                {unitNoun(t, r.cost_currency === "points" ? "points" : unit === "points" ? "order" : unit, r.cost_amount)}
+                <Trans
+                  i18nKey={COST_KEY[r.cost_currency === "points" ? "points" : unit === "points" ? "order" : unit]}
+                  count={r.cost_amount}
+                  values={{ n: fmtNumber(r.cost_amount) }}
+                  components={{ n: <span className="font-mono tabular-nums" /> }}
+                />
               </span>
             </li>
           ))}

@@ -17,7 +17,7 @@
  * to find the shop. The card heads the page itself: it already says whose it
  * is, so a headline over it would only say it again.
  */
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
 import { ArrowRight, CreditCard } from "lucide-react";
 
@@ -90,13 +90,20 @@ function Card({
   const pass = usePassDownload(data.passes.apple_url);
   const orderNowHref = safeHttpUrl(data.order_now_url);
   const unit = stampUnit(data.mode, stampUnitOf(data));
+  const firstName = data.name?.trim().split(/\s+/)[0];
 
   return (
     <LoyaltyPage brand={brand}>
-      {/* The card is the headline; this names it for a screen reader. */}
-      <h1 className="sr-only">
-        {t("loyalty.cardTitle", { shop: brand.orgName, defaultValue: "Your {{shop}} card" })}
-      </h1>
+      {/* A small hello over the card, by first name; without one, the page is
+          still named for a screen reader. */}
+      {firstName ? (
+        // Half the page's rhythm away from the card it greets you over.
+        <h1 className="-mb-4 text-[17px] font-semibold leading-tight">
+          <Trans i18nKey="loyalty.hi" values={{ name: firstName }} defaults="Hi <bdi>{{name}}</bdi>" components={{ bdi: <bdi /> }} />
+        </h1>
+      ) : (
+        <h1 className="sr-only">{t("loyalty.cardTitle", { shop: brand.orgName, defaultValue: "Your {{shop}} card" })}</h1>
+      )}
       <PressStage phase={pass.phase}>
         <PressedCard brand={brand}>
           <LoyaltyCard
@@ -104,7 +111,7 @@ function Card({
             mode={data.mode}
             unit={unit}
             balance={data.balance}
-            target={data.next_reward_cost}
+            target={data.card_size ?? data.next_reward_cost}
             member={{ name: data.name, qrUrl: `/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png` }}
           />
         </PressedCard>

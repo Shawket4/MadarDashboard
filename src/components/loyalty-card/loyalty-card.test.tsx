@@ -12,13 +12,11 @@ import { resolveBrand } from "./card-brand";
 const i18n = (await import("@/i18n")).default;
 const { LoyaltyCard } = await import("./loyalty-card");
 
-const brand = resolveBrand(
-  {
-    org_name: "Bean & Brew", program_name: "Rewards", program_name_ar: "مكافآت", logo_url: null, logo_is_mark: false,
-    card_image_url: null, background_color: "#0D6273", foreground_color: "#EFF3F4", label_color: "#2E94A6", social_links: [],
-  },
-  "en",
-);
+const rawBrand = {
+  org_name: "Bean & Brew", program_name: "Rewards", program_name_ar: "مكافآت", logo_url: null, logo_is_mark: false,
+  card_image_url: null, background_color: "#0D6273", foreground_color: "#EFF3F4", label_color: "#2E94A6", social_links: [],
+};
+const brand = resolveBrand(rawBrand, "en");
 
 /** The member's code is an `AssetImage`, which reads the query cache. */
 const client = new QueryClient();
@@ -33,6 +31,16 @@ beforeEach(async () => {
 });
 
 describe("LoyaltyCard", () => {
+  it("puts the Rewards present where a shop has no logo, Paper on a dark card and Ink on a light one", () => {
+    const { container, unmount } = render(<LoyaltyCard brand={brand} mode="visits" balance={0} target={6} />);
+    // Small enough that the build inlines it: the kit's Paper (#EFF3F4) or Ink (#14181E) fill says which.
+    expect(container.querySelector("header img")?.getAttribute("src")).toMatch(/EFF3F4/i);
+    unmount();
+    const light = resolveBrand({ ...rawBrand, background_color: "#F4C542", foreground_color: "#1C1814" }, "en");
+    const again = render(<LoyaltyCard brand={light} mode="visits" balance={0} target={6} />);
+    expect(again.container.querySelector("header img")?.getAttribute("src")).toMatch(/14181E/i);
+  });
+
   it("leads with the shop, and its programme in plain words", () => {
     render(<LoyaltyCard brand={brand} mode="visits" balance={2} target={6} />);
     expect(screen.getByText("Bean & Brew")).toBeInTheDocument();
@@ -103,6 +111,6 @@ describe("LoyaltyCard", () => {
     await i18n.changeLanguage("ar");
     render(<LoyaltyCard brand={brand} mode="visits" unit="item" balance={3} target={8} />);
     expect(screen.getByRole("img", { name: "3 من 8 أصناف" })).toBeInTheDocument();
-    expect(screen.getByText("بقي 5 أصناف حتى مكافأتك التالية.")).toBeInTheDocument();
+    expect(screen.getByText("بقيت 5 أصناف لمكافأتك التالية.")).toBeInTheDocument();
   });
 });
