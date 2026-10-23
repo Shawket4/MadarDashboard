@@ -180,12 +180,41 @@ describe("the program form's validation mirrors the server", () => {
   });
 });
 
+describe("the birthday gift", () => {
+  it("reads an older server as today's amount gift, 30 days", () => {
+    const v = fromWire(saved);
+    expect(v.birthday_gift).toBe("amount");
+    expect(v.birthday_gift_days).toBe(30);
+    const out = toWire(v, scope, saved);
+    expect(out.birthday_gift).toBe("amount");
+    expect(out.birthday_reward_amount).toBe(2);
+  });
+
+  it("sends a free item with its days and no amount", () => {
+    const out = toWire({ ...fromWire(saved), birthday_gift: "item", birthday_gift_days: 14 }, scope, saved);
+    expect(out.birthday_gift).toBe("item");
+    expect(out.birthday_gift_days).toBe(14);
+    expect(out.birthday_reward_amount).toBeNull();
+    expect(toWire({ ...fromWire(saved), birthday_gift: "none" }, scope, saved).birthday_reward_amount).toBeNull();
+  });
+
+  it("refuses days outside 7 to 60, but only while shown", () => {
+    const v = { ...fromWire(saved), birthday_gift: "item" as const, birthday_gift_days: 61 };
+    expect(programSchema.safeParse(v).success).toBe(false);
+    expect(programSchema.safeParse({ ...v, birthday_gift_days: 7 }).success).toBe(true);
+    const hidden = visibleValues({ ...v, birthday_gift: "amount" }, { ...saved, birthday_gift_days: 21 });
+    expect(hidden.birthday_gift_days).toBe(21);
+  });
+});
+
 describe("visibleValues (W4, SET-LOY-083)", () => {
   const base = () => ({ ...fromWire(saved), balance_cap_enabled: false, birthday_enabled: false, winback_enabled: false });
 
   it("lists what the form hides", () => {
-    expect(hiddenFields(base())).toEqual(["earn_egp_per_point", "balance_cap", "birthday_reward_amount", "winback_reward_amount"]);
-    expect(hiddenFields({ ...base(), mode: "points", balance_cap_enabled: true, birthday_enabled: true, winback_enabled: true })).toEqual([]);
+    expect(hiddenFields(base())).toEqual(["earn_egp_per_point", "balance_cap", "birthday_reward_amount", "birthday_gift_days", "winback_reward_amount"]);
+    expect(hiddenFields({ ...base(), mode: "points", balance_cap_enabled: true, birthday_enabled: true, winback_enabled: true })).toEqual(["birthday_gift_days"]);
+    // A free-item gift shows its days and hides the amount.
+    expect(hiddenFields({ ...base(), mode: "points", balance_cap_enabled: true, birthday_enabled: true, birthday_gift: "item", winback_enabled: true })).toEqual(["birthday_reward_amount"]);
   });
 
   it("lets hidden invalid values through, and blanks the cap and gifts", () => {

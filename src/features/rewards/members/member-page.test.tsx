@@ -22,6 +22,7 @@ vi.mock("@/features/loyalty/admin/members/leave-programme-dialog", () => ({
 }));
 
 let held: string[] = ["loyalty.read"];
+let wallet: { data: unknown; isLoading: boolean } = { data: undefined, isLoading: true };
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
   const authz = () => real.authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [], capabilities: held as never, ask_manager: [], limits: {} });
@@ -46,7 +47,7 @@ const detail = {
 
 vi.mock("@/data/api/generated/api", () => ({
   useGetLoyaltyMember: () => ({ data: detail, isError: false, isFetching: false }),
-  useGetLoyaltyMemberWallet: () => ({ data: undefined, isLoading: true }),
+  useGetLoyaltyMemberWallet: () => wallet,
   useListBranches: () => ({ data: [] }),
   useGetLoyaltyTracks: () => ({ data: { mode: "visits", track_one_size: 8, stamp_unit: "stamp", tracks: [] }, isLoading: false }),
 }));
@@ -63,6 +64,7 @@ const mount = () =>
 
 beforeEach(async () => {
   held = ["loyalty.read"];
+  wallet = { data: undefined, isLoading: true };
   await i18n.changeLanguage("en");
 });
 
@@ -74,6 +76,18 @@ describe("RewardsMemberPage", () => {
     // "Croissants" is the card's title and the ledger row's track chip.
     expect(screen.getAllByText("Croissants")).toHaveLength(2);
     expect(screen.queryByRole("button", { name: /Adjust balance/ })).not.toBeInTheDocument();
+  });
+
+  it("shows the birthday gift's state", () => {
+    held = ["loyalty.read", "loyalty.members.list"];
+    const base = { apple_devices: 0, google_card: false, messages_received: 0, marketing_opt_out: false };
+    wallet = { data: { ...base, birthday_gift: { status: "open", valid_until: "2026-11-21T21:59:59Z" } }, isLoading: false };
+    const { unmount } = mount();
+    expect(screen.getByText(/Open until/)).toBeInTheDocument();
+    unmount();
+    wallet = { data: { ...base, birthday_gift: { status: "claimed", valid_until: "2026-11-21T21:59:59Z" } }, isLoading: false };
+    mount();
+    expect(screen.getByText("Claimed")).toBeInTheDocument();
   });
 
   it("offers adjust only with loyalty.points.adjust", () => {
