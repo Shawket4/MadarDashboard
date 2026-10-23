@@ -260,7 +260,11 @@ export function StorefrontShell({
   useBrandSkin(brand?.background);
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col bg-background text-foreground">
+    // `overflow-x-clip`: a step sliding in past the edge (in Arabic, past the
+    // left one) must not widen the page. With zoom allowed, a phone answers a
+    // page wider than the screen by re-fitting it, and everything on it jumps.
+    // `clip`, not `hidden`, so the sticky header keeps sticking.
+    <div className="relative flex min-h-[100dvh] flex-col overflow-x-clip bg-background text-foreground">
       <BrandWash brand={brand} />
 
       <header data-sticky-header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
