@@ -11,7 +11,7 @@ import { Link } from "@/components/app/link";
 import {
   CheckCircle2, ClipboardPaste, ExternalLink, FileSpreadsheet, LocateFixed, MapPin, MoonStar, Plus, TriangleAlert, UserRoundPlus,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { EmptyState } from "@/components/app/empty-state";
 import { Button } from "@/components/ui/button";

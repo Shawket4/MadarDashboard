@@ -13,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { todayIso } from "@/features/staff/util";
 import { addDays, weekStartOf } from "./week";
+import { toast } from "@/components/ui/toast";
 
 let held: string[] = [];
 /** `/authz/me` `everywhere`: unset = an older server that doesn't send it. */
@@ -41,8 +42,6 @@ const refetchSuggestions = vi.fn();
 const refetchCoverage = vi.fn();
 /** Holidays in the 45-day read from today. */
 let holidaysList: unknown[] = [];
-const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
-vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const calls = {
   putDay: vi.fn(async (_b: unknown) => ({ warnings: [] as unknown[] })),
   resetDay: vi.fn(async (_p: unknown) => ({ warnings: [] })),
@@ -155,8 +154,8 @@ beforeEach(() => {
   publishedWeeks = [];
   warnings = [];
   coverage = null;
-  toastMock.error.mockClear();
-  toastMock.warning.mockClear();
+  vi.mocked(toast.error).mockClear();
+  vi.mocked(toast.warning).mockClear();
   shiftsList = [{ employee_id: "e1", employee_name: "Sara Ahmed", date: week, branch_id: "b1", work_shift_id: "zM", shift_name: "Morning", start_at: "", end_at: "", start_time: "08:00:00", end_time: "16:00:00", crosses_midnight: false, times_edited: false, from_override: false, changed: false, on_leave: false }];
   elsewhereList = [];
   openShifts = [];
@@ -171,7 +170,7 @@ beforeEach(() => {
   weekHolidays = [];
   refetchSuggestions.mockClear();
   refetchCoverage.mockClear();
-  toastMock.success.mockClear();
+  vi.mocked(toast.success).mockClear();
   holidaysList = [{ on_date: addDays(todayIso(), 10), name_en: "Armed Forces Day", name_ar: "عيد القوات المسلحة", decision: null }];
   suggestionsList = [
     { id: "g1", date: addDays(week, 2), employee_id: "e4", employee_name: "Youssef Adel", shift_name: "Evening", work_shift_id: "zE", reason_key: "staff.sg_gap", reason_args: { shift: "Evening", short: 1 }, confidence: 72, by_default: true },
@@ -208,14 +207,14 @@ describe("SchedulePage: nothing fails in silence (H2)", () => {
     const { unmount } = wrap(<SchedulePage />);
     await user.click(screen.getAllByRole("button", { name: /Post an open shift on/ })[3]);
     await user.click(await screen.findByRole("menuitem", { name: /^Evening/ }));
-    await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith("Open shift posted. Staff see it once you publish this week."));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Open shift posted. Staff see it once you publish this week."));
     unmount();
-    toastMock.success.mockClear();
+    vi.mocked(toast.success).mockClear();
     publishedWeeks = [week];
     wrap(<SchedulePage />);
     await user.click(screen.getAllByRole("button", { name: /Post an open shift on/ })[3]);
     await user.click(await screen.findByRole("menuitem", { name: /^Evening/ }));
-    await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith("Open shift posted"));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Open shift posted"));
   });
 
   it("says the coverage grid didn't load, never a skeleton for ever (H2-D4)", async () => {
@@ -528,14 +527,14 @@ describe("SchedulePage", () => {
     await user.click(screen.getAllByRole("button", { name: /^Sara Ahmed, / })[0]);
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Day off" }));
     await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Day off" }));
-    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith("Those shifts would overlap (a night shift runs into the next morning)."));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Those shifts would overlap (a night shift runs into the next morning)."));
     // The dialog stays open on a refusal.
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
     calls.putDay.mockResolvedValueOnce({ warnings: [{ employee_id: "e1", date: week, kind: "day_hours", minutes: 600, limit_minutes: 480 }] });
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Day off" }));
     await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Day off" }));
-    await waitFor(() => expect(toastMock.warning).toHaveBeenCalledWith("Hours a day: 10h of 8h. Only a warning."));
+    await waitFor(() => expect(toast.warning).toHaveBeenCalledWith("Hours a day: 10h of 8h. Only a warning."));
   });
 
   it("takes back an open shift after confirming; its claimer is told by the server (SC-9)", async () => {

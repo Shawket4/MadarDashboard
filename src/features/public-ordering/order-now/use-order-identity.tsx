@@ -25,7 +25,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { useOrderNowCombine, useOrderNowReplaceIdentity } from "@/data/api/generated/api";
 import { clearDeviceToken, getDeviceToken, setDeviceToken, setGuestPhone } from "@/features/public-shell/guest";
 import { IdentityChangeChoice } from "@/features/public-shell/identity-change-choice";
-import { useErrorToast } from "@/features/public-shell/public-toaster";
+import { useErrorToast } from "@/components/ui/toast";
 import { classifyIdentityEdit, type IdentityChange, type IdentityEdit } from "@/features/public-shell/identity-edit";
 import { otpRefusal, useOtpTransport } from "@/features/public-shell/use-phone-otp";
 import { canonicalPhone, formatPhoneDisplay, ltrIsolate } from "@/lib/phone";

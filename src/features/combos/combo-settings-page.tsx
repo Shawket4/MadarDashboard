@@ -13,7 +13,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Globe, QrCode, Store, Truck, type LucideIcon } from "lucide-react";
 import { z } from "zod";
 

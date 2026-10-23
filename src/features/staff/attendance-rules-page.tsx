@@ -4,7 +4,7 @@ import type { TFunction } from "i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { ErrorState } from "@/components/app/empty-state";

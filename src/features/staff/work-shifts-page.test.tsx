@@ -12,12 +12,11 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { WorkShift } from "@/data/api/generated/models";
+import { toast } from "@/components/ui/toast";
 
 let shifts: WorkShift[] = [];
 let employees: { id: string; name: string; branch_ids: string[] }[] = [];
 let assignments: unknown[] = [];
-const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
-vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const calls = {
   createWorkShift: vi.fn(async (_b: unknown) => ({ over_presence_cap: false })),
   updateWorkShift: vi.fn(async (_id: string, _b: unknown) => ({ over_presence_cap: false })),
@@ -84,7 +83,7 @@ const evening: WorkShift = {
 
 beforeEach(() => {
   for (const f of Object.values(calls)) f.mockClear();
-  toastMock.warning.mockClear();
+  vi.mocked(toast.warning).mockClear();
   shifts = [];
   employees = [{ id: "e1", name: "Sara Ahmed", branch_ids: ["b1"] }];
   me = { owner: true, caps: OWNER_CAPS };
@@ -203,7 +202,7 @@ describe("WorkShiftsPage", () => {
     expect(id).toBe("w1");
     expect(body).toMatchObject({ ot_day_multiplier: 1.75, ot_night_multiplier: null, valid_days: [0, 1, 2, 3, 4, 5, 6] });
     // Saved, and warned — never refused.
-    await waitFor(() => expect(toastMock.warning).toHaveBeenCalled());
+    await waitFor(() => expect(toast.warning).toHaveBeenCalled());
   });
 
   it("offers a block in the standing pattern only on its days", async () => {
@@ -232,7 +231,7 @@ describe("WorkShiftsPage", () => {
     await user.click(within(row).getAllByRole("button")[1]);
     await user.click(await screen.findByRole("menuitem", { name: /^Brunch/ }));
     await waitFor(() => expect(calls.deleteAssignment).toHaveBeenCalledWith("a1"));
-    await waitFor(() => expect(toastMock.error).toHaveBeenCalled());
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
     // The old row is gone on the server: the grid must read it again, and so
     // must the Dawam roster that shows the pattern (H2-D12).
     expect(invalidateStaff).toHaveBeenCalled();

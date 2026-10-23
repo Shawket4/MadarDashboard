@@ -7,6 +7,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AxiosError, AxiosHeaders } from "axios";
 import { describe, expect, it, vi } from "vitest";
+import { toast } from "@/components/ui/toast";
 
 const conflict = () =>
   new AxiosError("Conflict", "ERR_BAD_REQUEST", undefined, undefined, {
@@ -17,12 +18,10 @@ const conflict = () =>
     data: { code: "CUSTOMER_PHONE_EXISTS", error: "phone exists" },
   });
 const createAsync = vi.fn();
-const toastError = vi.fn();
 vi.mock("@/data/api/generated/api", () => ({
   useCreateCustomer: () => ({ mutateAsync: createAsync, isPending: false }),
   useUpdateCustomer: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: toastError } }));
 
 const i18n = (await import("@/i18n")).default;
 const { CustomerDialog } = await import("./customer-dialog");
@@ -50,7 +49,7 @@ describe("CustomerDialog", () => {
   ])("maps CUSTOMER_PHONE_EXISTS onto the phone field (%s)", async (lang, message) => {
     await i18n.changeLanguage(lang);
     createAsync.mockReset().mockRejectedValue(conflict());
-    toastError.mockReset();
+    vi.mocked(toast.error).mockClear();
     renderDialog();
     await userEvent.type(screen.getByLabelText(/Name|الاسم/), "Sara");
     await userEvent.type(screen.getByLabelText(/Phone|الهاتف/), "01000000001");
@@ -61,7 +60,7 @@ describe("CustomerDialog", () => {
     const alert = await screen.findByText(message);
     expect(alert).toHaveAttribute("role", "alert");
     expect(screen.getByLabelText(/Phone|الهاتف/)).toHaveAttribute("aria-invalid", "true");
-    expect(toastError).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
     await i18n.changeLanguage("en");
   });
 

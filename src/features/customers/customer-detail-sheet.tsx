@@ -15,7 +15,7 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Eraser, GitMerge, Pencil, Receipt, Star } from "lucide-react";
 
 import { EmptyState } from "@/components/app/empty-state";

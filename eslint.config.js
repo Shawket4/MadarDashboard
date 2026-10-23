@@ -11,17 +11,28 @@ import tsPlugin from '@typescript-eslint/eslint-plugin'
 // an earlier one's for the files they share.
 const GSAP_MSG = 'GSAP is private to src/lib/motion (it loads lazily). Use a motion hook or component from @/lib/motion.'
 const OLD_MSG = 'The app animates with GSAP through @/lib/motion.'
+// Toasts have one home (CLAUDE.md, "Toasts"): only its implementation file
+// imports a toast library. Part of `motionPaths`, so every block below has it.
+const TOAST_MSG = 'Toasts go through @/components/ui/toast (toast.success/error/…, <Toaster>): it is the only place that imports a toast library.'
+const toastPaths = [
+  { name: 'sonner', message: TOAST_MSG },
+  { name: 'sileo', message: TOAST_MSG },
+  { name: 'react-hot-toast', message: TOAST_MSG },
+  { name: 'react-toastify', message: TOAST_MSG },
+  { name: '@radix-ui/react-toast', message: TOAST_MSG },
+]
 const motionPaths = [
   { name: 'gsap', message: GSAP_MSG },
   { name: '@gsap/react', message: GSAP_MSG },
   { name: 'motion', message: OLD_MSG },
   { name: 'framer-motion', message: OLD_MSG },
   { name: 'tw-animate-css', message: OLD_MSG },
+  ...toastPaths,
 ]
 // One component per job, so no page skips the motion or rolls its own:
 // overlays only through components/ui (their roots carry the enter and exit),
-// vaul only through components/ui/drawer, and sonner's Toaster only in the two
-// toaster components. Those files get `motionPaths` alone (blocks below).
+// vaul only through components/ui/drawer. Those files get `motionPaths` alone
+// (blocks below).
 const OVERLAY_MSG = 'Use the wrapper in @/components/ui (dialog, alert-dialog, popover, dropdown-menu, select, tooltip): it carries the motion.'
 const uiPaths = [
   { name: 'radix-ui', importNames: ['Dialog', 'AlertDialog', 'Popover', 'DropdownMenu', 'Select', 'Tooltip', 'HoverCard', 'ContextMenu', 'Menubar'], message: OVERLAY_MSG },
@@ -30,11 +41,6 @@ const uiPaths = [
     message: OVERLAY_MSG,
   })),
   { name: 'vaul', message: 'Use @/components/ui/drawer: vaul is used through that one component.' },
-  {
-    name: 'sonner',
-    importNames: ['Toaster'],
-    message: 'Mount <Toaster> from @/components/ui/sonner (dashboard) or <PublicToaster> (public bundles); call toast() from sonner anywhere.',
-  },
 ]
 // Dashboard links warm their destination's data on intent (lib/prefetch). The
 // public bundles have their own routers and no registry: they keep the router's.
@@ -120,7 +126,7 @@ export default [
   },
   // The wrappers themselves.
   {
-    files: ['src/components/ui/**', 'src/features/public-shell/public-toaster.tsx'],
+    files: ['src/components/ui/**'],
     rules: {
       'no-restricted-imports': ['error', { paths: motionPaths, patterns: motionImports }],
     },
@@ -181,6 +187,25 @@ export default [
           selector: "JSXOpeningElement[name.name='img'] > JSXAttribute[name.name='src'] MemberExpression[property.name=/^(image_url|logo_url)$/]",
           message: "Use <AssetImage> for entity images (TILLS_CONTRACT §11.10).",
         },
+      ],
+    },
+  },
+
+  // shared/ (plain TypeScript) raises no toasts of its own either.
+  {
+    files: ['shared/**/*.{ts,tsx,js,mjs}'],
+    rules: {
+      'no-restricted-imports': ['error', { paths: toastPaths }],
+    },
+  },
+  // The toast implementation itself: the one file that imports Sileo, and
+  // `motion` for Sileo's springs (MotionConfig reducedMotion). Last, so it wins.
+  {
+    files: ['src/components/ui/toast/sileo.tsx'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { paths: motionPaths.filter((p) => !['sileo', 'motion'].includes(p.name)), patterns: [{ group: ['gsap/*'], message: GSAP_MSG }] },
       ],
     },
   },

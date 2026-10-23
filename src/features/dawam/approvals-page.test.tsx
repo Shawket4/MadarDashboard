@@ -9,6 +9,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { toast } from "@/components/ui/toast";
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -16,8 +17,6 @@ vi.mock("@tanstack/react-router", async (importOriginal) => ({
 }));
 
 let held: string[] = [];
-const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() }));
-vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const LEAVE = { id: "q1", employee_id: "e1", employee_name: "Youssef Adel", kind: "leave", status: "pending", on_date: "2026-09-25", created_at: "2026-09-22T07:00:00Z", reason: "Family wedding" };
 let requestRows: Record<string, unknown>[] = [LEAVE];
 const ATTENDANCE = [
@@ -182,12 +181,12 @@ describe("ApprovalsPage", () => {
     calls.decideClaim.mockResolvedValueOnce({
       warnings: [{ employee_id: "e7", date: "2026-09-27", kind: "day_hours", minutes: 960, limit_minutes: 480 }],
     } as never);
-    toastMock.warning.mockClear();
+    vi.mocked(toast.warning).mockClear();
     const user = userEvent.setup();
     wrap(<ApprovalsPage />);
     await user.click(within(approveIn("Laila Hassan")).getByRole("button", { name: "Approve" }));
-    await waitFor(() => expect(toastMock.warning).toHaveBeenCalledWith("Hours a day: 16h of 8h. Only a warning."));
-    expect(toastMock.success).toHaveBeenCalled();
+    await waitFor(() => expect(toast.warning).toHaveBeenCalledWith("Hours a day: 16h of 8h. Only a warning."));
+    expect(toast.success).toHaveBeenCalled();
   });
 
   it("M16: approving a mission over a worked day warns first", async () => {
@@ -229,7 +228,7 @@ describe("ApprovalsPage", () => {
     const user = userEvent.setup();
     wrap(<ApprovalsPage />);
     await user.click(within(approveIn("Omar Khaled")).getByRole("button", { name: "Approve" }));
-    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith("Someone already decided this: Approved. The list is up to date now."));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Someone already decided this: Approved. The list is up to date now."));
     expect(invalidateStaff).toHaveBeenCalled();
   });
 
@@ -300,8 +299,8 @@ describe("ApprovalsPage", () => {
     expect(calls.decideSwap).toHaveBeenCalledWith("w1", { approve: true });
     expect(calls.decideCover).toHaveBeenCalledWith("r5", { approve: true });
     expect(calls.decideClaim).toHaveBeenCalledWith("o1", { approve: true });
-    expect(toastMock.success).toHaveBeenCalledWith("3 approved");
-    expect(toastMock.error).toHaveBeenCalledWith(expect.stringMatching(/^1 not approved\. Laila Hassan: /));
+    expect(toast.success).toHaveBeenCalledWith("3 approved");
+    expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/^1 not approved\. Laila Hassan: /));
   });
 
   it("asks for claims however far ahead the week is published (O-8; E2E, team: a claim 40 days out never showed)", () => {

@@ -17,7 +17,7 @@ import {
   Store,
   UtensilsCrossed,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Reveal, usePop } from "@/lib/motion";
 import { cn } from "@/lib/utils";

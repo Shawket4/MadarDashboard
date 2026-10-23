@@ -12,7 +12,6 @@ const unarchiveCatalogItem = vi.fn().mockResolvedValue({});
 const invalidateInventory = vi.fn().mockResolvedValue(undefined);
 let usage: unknown = null;
 
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@/data/api/generated/api", () => ({
   useGetCatalogItemUsage: () => ({ data: usage, isLoading: false, error: null, refetch: vi.fn() }),
   useListCatalog: () => ({ data: [] }),

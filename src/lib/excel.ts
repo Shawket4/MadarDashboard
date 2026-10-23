@@ -8,7 +8,7 @@
  */
 import type * as ExcelJSNS from "exceljs";
 import { rules } from "@/lib/rules";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import i18n from "@/i18n";
 import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";

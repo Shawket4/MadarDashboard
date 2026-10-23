@@ -1,0 +1,137 @@
+/*
+ * Sileo, in our tokens. Loaded with the toast chunk (./sileo.tsx), never at first
+ * paint. Every rule is scoped under [data-madar-toaster] so it outranks the
+ * stylesheet Sileo injects. The tokens flip with `.dark` on <html>, so there is
+ * no theme prop; the direction comes from <html dir>.
+ */
+[data-madar-toaster] {
+  /*
+   * Inverted: the toast is the page turned over, ink on a paper page and paper
+   * on an ink page, so it stands apart from what it reports on. The page's own
+   * pair swapped, so it follows whichever theme the page wears (the dashboard's,
+   * or a storefront's own through usePublicTheme): both put `.dark` on <html>.
+   */
+  --toast-surface: var(--color-foreground);
+  --toast-text: var(--color-background);
+  --toast-muted: color-mix(in oklab, var(--toast-text) 72%, var(--toast-surface));
+  /*
+   * A state colour pulled toward the toast's text colour: lighter on the ink
+   * toast, darker on the paper one. Each passes AA (4.5:1) for 13px text on the
+   * surface and on its own 20% badge tint (measured in both themes, see the
+   * commit message); warning needs the most pull.
+   */
+  --sileo-state-success: color-mix(in oklab, var(--color-success) 55%, var(--toast-text));
+  --sileo-state-error: color-mix(in oklab, var(--color-destructive) 55%, var(--toast-text));
+  --sileo-state-warning: color-mix(in oklab, var(--color-warning) 55%, var(--toast-text));
+  --sileo-state-info: color-mix(in oklab, var(--color-info) 55%, var(--toast-text));
+  --sileo-state-loading: var(--toast-muted);
+  --sileo-state-action: var(--toast-text);
+  /* Sileo's CSS enter, exit and header swap run on this (0.66 of it for enter
+     and exit, about DURATION.base); its morph spring is patched to the same. */
+  --sileo-duration: 320ms;
+}
+/* On the paper toast (a dark page) the light theme's state colours need more ink. */
+:is(.dark) [data-madar-toaster] {
+  --sileo-state-success: color-mix(in oklab, var(--color-success) 40%, var(--toast-text));
+  --sileo-state-error: color-mix(in oklab, var(--color-destructive) 45%, var(--toast-text));
+  --sileo-state-warning: color-mix(in oklab, var(--color-warning) 40%, var(--toast-text));
+  --sileo-state-info: color-mix(in oklab, var(--color-info) 45%, var(--toast-text));
+}
+
+/* Above dialogs and sheets: a toast often reports what a dialog just did. */
+[data-madar-toaster] [data-sileo-viewport] {
+  z-index: 2147483000;
+  font-family: inherit;
+}
+
+/* Below a phone page's sticky header (sileo.tsx measures it), else the safe area. */
+[data-madar-toaster] [data-sileo-viewport][data-position^="top"] {
+  top: max(env(safe-area-inset-top, 0px), var(--toast-header, 0px));
+}
+
+[data-madar-toaster] [data-sileo-pill],
+[data-madar-toaster] [data-sileo-body] {
+  fill: var(--toast-surface);
+}
+
+/*
+ * The gooey shape has no border. Inverted, it already contrasts with the page;
+ * a hairline in the page's own colour keeps its edge crisp where it overlaps
+ * content of its own tone, and a soft shadow lifts it.
+ */
+[data-madar-toaster] [data-sileo-svg] {
+  filter: drop-shadow(0 0 0.5px color-mix(in oklab, var(--color-background) 60%, transparent))
+    drop-shadow(0 6px 16px oklch(0 0 0 / 0.22));
+}
+:is(.dark) [data-madar-toaster] [data-sileo-svg] {
+  filter: drop-shadow(0 0 0.5px color-mix(in oklab, var(--color-background) 60%, transparent))
+    drop-shadow(0 8px 20px oklch(0 0 0 / 0.5));
+}
+
+[data-madar-toaster] [data-sileo-title] {
+  /* Sileo capitalises every word; our messages are sentences. */
+  text-transform: none;
+  font-weight: 600;
+}
+
+[data-madar-toaster] [data-sileo-description] {
+  color: var(--toast-text);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+[data-madar-toaster] [data-toast-message],
+[data-madar-toaster] [data-toast-detail] {
+  display: block;
+}
+[data-madar-toaster] [data-toast-detail] {
+  margin-block-start: 0.25rem;
+  color: var(--toast-muted);
+}
+
+[data-madar-toaster] [data-sileo-button] {
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/*
+ * The close button (patched in): for the keyboard, since a tap or click on the
+ * toast already dismisses it. Hidden until it has focus, then a small disc on
+ * the pill's end corner.
+ */
+[data-madar-toaster] [data-sileo-close] {
+  position: absolute;
+  z-index: 30;
+  top: -6px;
+  left: calc(var(--_px, 0px) + var(--_pw, 40px) - 14px);
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--toast-text);
+  color: var(--toast-surface);
+  opacity: 0;
+  pointer-events: none;
+}
+[dir="rtl"] [data-madar-toaster] [data-sileo-close] {
+  left: calc(var(--_px, 0px) - 6px);
+}
+[data-madar-toaster] [data-sileo-close] svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+[data-madar-toaster] [data-sileo-close]:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Focus rings sit on the page, outside the toast: the page's own ring colour. */
+[data-madar-toaster] [data-sileo-button]:focus-visible,
+[data-madar-toaster] [data-sileo-close]:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}

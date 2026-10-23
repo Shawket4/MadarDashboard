@@ -8272,5 +8272,15 @@
     "toGo_zero": "{{count}} ختم وتصبح المكافأة جاهزة",
     "trackStampsOf": "{{track}}: {{have}} من {{size}} أختام",
     "tryAgain": "حاول مرة أخرى"
+  },
+  "toast": {
+    "title": {
+      "success": "تم",
+      "error": "خطأ",
+      "warning": "تنبيه",
+      "info": "ملاحظة",
+      "loading": "جارٍ التنفيذ…"
+    },
+    "close": "إغلاق"
   }
 }

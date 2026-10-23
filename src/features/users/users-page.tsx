@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { BriefcaseBusiness, GitBranch, Pencil, Plus, Shield, Trash2, Users as UsersIcon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { StatusPill } from "@/components/app/status-pill";

@@ -518,8 +518,8 @@ describe("PayrollPage", () => {
         status: 409, statusText: "", headers: {}, config: { headers: new AxiosHeaders() }, data: { code: "PERIOD_CLOSED", error: "x", vars: { paid: true } },
       });
     });
-    const { toast } = await import("sonner");
-    const toastError = vi.spyOn(toast, "error");
+    const { toast } = await import("@/components/ui/toast");
+    const toastError = vi.mocked(toast.error);
     const user = userEvent.setup();
     wrap(<PayrollPage />);
     await user.click(screen.getAllByText("Youssef Adel")[0]);
@@ -531,7 +531,6 @@ describe("PayrollPage", () => {
     await waitFor(() => expect(toastError).toHaveBeenCalled());
     expect(toastError.mock.calls.at(-1)![0]).toMatch(/open month/);
     expect(toastError.mock.calls.at(-1)![0]).not.toMatch(/day/);
-    toastError.mockRestore();
   });
 
   it("marks everyone paid from the first page: unpaid payslips come first (A5)", () => {
@@ -661,12 +660,11 @@ describe("PayrollPage", () => {
     await user.click(screen.getByRole("tab", { name: /Bonuses & deductions/ }));
     await user.click(await screen.findByRole("button", { name: "Stop" }));
     const dialog = await screen.findByRole("dialog");
-    const { toast } = await import("sonner");
-    const toastError = vi.spyOn(toast, "error");
+    const { toast } = await import("@/components/ui/toast");
+    const toastError = vi.mocked(toast.error);
     await user.type(within(dialog).getByLabelText("Reason"), "x");
     await user.click(within(dialog).getByRole("button", { name: "Stop" }));
     await waitFor(() => expect(toastError).toHaveBeenCalledWith(expect.stringMatching(/Say why this monthly line stops/)));
-    toastError.mockRestore();
   });
 
   it("D6: Stop says this month keeps the line, and a stopped line stays active until its month ends", async () => {

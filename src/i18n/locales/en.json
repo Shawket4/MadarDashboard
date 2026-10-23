@@ -8011,5 +8011,15 @@
     "toGo_other": "{{count}} more stamps to a reward",
     "trackStampsOf": "{{track}}: {{have}} of {{size}} stamps",
     "tryAgain": "Try again"
+  },
+  "toast": {
+    "title": {
+      "success": "Done",
+      "error": "Error",
+      "warning": "Heads up",
+      "info": "Note",
+      "loading": "Working…"
+    },
+    "close": "Dismiss"
   }
 }

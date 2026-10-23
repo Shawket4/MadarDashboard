@@ -4,7 +4,7 @@ import { Link } from "@/components/app/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { z } from "zod";
 

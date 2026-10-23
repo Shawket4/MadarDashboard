@@ -64,7 +64,6 @@ vi.mock("@/data/authz/use-authz", async () => {
     real.authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: true, platform: false, role_kinds: [], capabilities: [], ask_manager: [], limits: {} });
   return { ...real, useAuthz: () => authz(), useCan: () => true };
 });
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");

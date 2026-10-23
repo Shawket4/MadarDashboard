@@ -12,7 +12,6 @@ const mutateAsync = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/data/api/generated/api", () => ({
   useDeleteLoyaltyMember: () => ({ mutateAsync, isPending: false }),
 }));
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const i18n = (await import("@/i18n")).default;
 const { LeaveProgrammeButton } = await import("./leave-programme-dialog");

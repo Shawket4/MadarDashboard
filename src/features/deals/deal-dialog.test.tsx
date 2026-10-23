@@ -11,6 +11,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { DealRule } from "@/features/combos/types";
 import type { MenuOptions } from "@/features/combos/use-menu-options";
+import { toast } from "@/components/ui/toast";
 
 // Radix Select and cmdk reach for layout APIs jsdom doesn't have.
 Element.prototype.scrollIntoView ??= () => {};
@@ -21,11 +22,8 @@ const createDeal = vi.fn();
 const updateDeal = vi.fn();
 const putDealBranch = vi.fn();
 const deleteDealBranch = vi.fn();
-const toastError = vi.fn();
-const toastSuccess = vi.fn();
 const onOpenChange = vi.fn();
 
-vi.mock("sonner", () => ({ toast: { error: (...a: unknown[]) => toastError(...a), success: (...a: unknown[]) => toastSuccess(...a) } }));
 vi.mock("@/features/combos/api", () => ({
   createDeal: (...a: unknown[]) => createDeal(...a),
   updateDeal: (...a: unknown[]) => updateDeal(...a),
@@ -97,7 +95,7 @@ async function pick(user: ReturnType<typeof userEvent.setup>, name: string, opti
 }
 
 beforeEach(() => {
-  for (const f of [createDeal, updateDeal, putDealBranch, deleteDealBranch, toastError, toastSuccess, onOpenChange]) f.mockReset();
+  for (const f of [createDeal, updateDeal, putDealBranch, deleteDealBranch, onOpenChange]) f.mockReset();
   putDealBranch.mockResolvedValue(undefined);
   deleteDealBranch.mockResolvedValue(undefined);
 });
@@ -137,7 +135,7 @@ describe("creating a deal", () => {
     // No branch set on or off: nothing else to send.
     expect(putDealBranch).not.toHaveBeenCalled();
     expect(deleteDealBranch).not.toHaveBeenCalled();
-    expect(toastSuccess).toHaveBeenCalledWith("Deal created");
+    expect(toast.success).toHaveBeenCalledWith("Deal created");
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
@@ -212,7 +210,7 @@ describe("editing a deal", () => {
     expect(putDealBranch).toHaveBeenCalledWith("d-1", "b-3", true);
     expect(deleteDealBranch).toHaveBeenCalledTimes(1);
     expect(deleteDealBranch).toHaveBeenCalledWith("d-1", "b-1");
-    expect(toastSuccess).toHaveBeenCalledWith("Changes saved");
+    expect(toast.success).toHaveBeenCalledWith("Changes saved");
   });
 
   it("surfaces a failed save as a toast and keeps the dialog open", async () => {
@@ -220,7 +218,7 @@ describe("editing a deal", () => {
     updateDeal.mockRejectedValue(new Error("boom"));
     mount(existing());
     await user.click(screen.getByRole("button", { name: "Save" }));
-    expect(toastError).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledTimes(1);
     expect(putDealBranch).not.toHaveBeenCalled();
     expect(onOpenChange).not.toHaveBeenCalledWith(false);
   });

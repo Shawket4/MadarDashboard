@@ -12,6 +12,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Combo, ComboEconomics } from "./types";
 import type { MenuOptions } from "./use-menu-options";
+import { toast } from "@/components/ui/toast";
 
 // cmdk scrolls the active option into view; jsdom has no layout to scroll.
 Element.prototype.scrollIntoView ??= () => {};
@@ -23,15 +24,12 @@ let econ: ComboEconomics | undefined;
 const createCombo = vi.fn();
 const updateCombo = vi.fn();
 const navigate = vi.fn();
-const toastError = vi.fn();
-const toastSuccess = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   Link: (p: { children: ReactNode }) => <a>{p.children}</a>,
   useNavigate: () => navigate,
   getRouteApi: () => ({ useParams: () => ({ comboId }) }),
 }));
-vi.mock("sonner", () => ({ toast: { error: (...a: unknown[]) => toastError(...a), success: (...a: unknown[]) => toastSuccess(...a) } }));
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
   return {
@@ -133,8 +131,8 @@ beforeEach(() => {
   econ = undefined;
   createCombo.mockReset();
   updateCombo.mockReset();
-  toastError.mockReset();
-  toastSuccess.mockReset();
+  vi.mocked(toast.error).mockClear();
+  vi.mocked(toast.success).mockClear();
 });
 
 describe("the combo editor's form", () => {
@@ -156,7 +154,7 @@ describe("the combo editor's form", () => {
 
     expect(await screen.findByText("\"At least\" can't be more than \"At most\".")).toBeInTheDocument();
     expect(screen.getByText("Add at least one choice to this slot.")).toBeInTheDocument();
-    expect(toastError).toHaveBeenCalledWith("Some fields need attention before saving.");
+    expect(toast.error).toHaveBeenCalledWith("Some fields need attention before saving.");
     expect(createCombo).not.toHaveBeenCalled();
   });
 
@@ -221,7 +219,7 @@ describe("the price check (C11)", () => {
     expect(updateCombo).toHaveBeenCalledWith("c-1", expect.objectContaining({ price: 16000 }));
     // The ids ride along, so the server diffs the slots in place.
     expect(updateCombo.mock.calls[0][1].slots.map((s: { id?: string }) => s.id)).toEqual(["s-main", "s-side"]);
-    expect(toastSuccess).toHaveBeenCalledWith("Changes saved");
+    expect(toast.success).toHaveBeenCalledWith("Changes saved");
   });
 });
 

@@ -27,7 +27,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, Clock, ShoppingBag, UtensilsCrossed } from "lucide-react";
+import { Clock, ShoppingBag, UtensilsCrossed } from "lucide-react";
 
 import {
   usePublicTable,
@@ -39,9 +39,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
-import { useErrorToast } from "@/features/public-shell/public-toaster";
+import { toast, useErrorToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
-import { AnimatedNumber, DISTANCE, Presence, recipes, type Recipe } from "@/lib/motion";
+import { AnimatedNumber, Presence, recipes } from "@/lib/motion";
 
 import { CartPanel, CartSheet } from "./components/cart-sheet";
 import { ItemCustomizer } from "./components/item-customizer";
@@ -57,13 +57,6 @@ import { fmtMoney } from "@/lib/format";
 import { CartCount } from "./components/cart-count";
 import { fmtMoneyFigure } from "./ordering-motion";
 
-/** "Sent to the kitchen" drops in from above with a little overshoot, and lifts away. */
-const SENT_BANNER: Recipe = {
-  from: { ...recipes.pop.from, y: -DISTANCE.lg },
-  to: recipes.pop.to,
-  exit: { ...recipes.pop.exit, y: -DISTANCE.md },
-};
-
 /** Re-read the bill on this beat, so a round somebody else sent turns up. */
 const BILL_POLL_MS = 20_000;
 
@@ -73,7 +66,6 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
   const [cartOpen, setCartOpen] = useState(false);
   const [editing, setEditing] = useState<CartLine | null>(null);
   const [menuQuery, setMenuQuery] = useState("");
-  const [sentAt, setSentAt] = useState<number | null>(null);
 
   const table = usePublicTable(tableId, {
     query: { refetchInterval: BILL_POLL_MS, retry: false },
@@ -133,20 +125,13 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
           cart.clear();
           setCartOpen(false);
           setSendKey(crypto.randomUUID());
-          setSentAt(Date.now());
+          // A receipt of the tap, not a state to dismiss: it clears itself.
+          toast.success(t("table.sent", "Sent to the kitchen"));
           void table.refetch();
         },
       },
     );
   };
-
-  // The "sent" confirmation clears itself; it is a receipt of the tap, not a
-  // state the customer has to dismiss.
-  useEffect(() => {
-    if (sentAt == null) return;
-    const id = setTimeout(() => setSentAt(null), 4000);
-    return () => clearTimeout(id);
-  }, [sentAt]);
 
   if (table.isPending) {
     return (
@@ -284,28 +269,6 @@ export function TableOrderingPage({ tableId }: { tableId: string }) {
           </Button>
         </div>
       </Presence>
-
-      {/* Sent. */}
-      <Presence show={sentAt != null} recipe={SENT_BANNER}>
-        <div className="fixed inset-x-0 top-16 z-30 mx-auto w-fit rounded-full bg-success px-4 py-2 text-sm font-medium text-success-foreground shadow-lg">
-          <span className="flex items-center gap-2">
-            <Check className="size-4" />
-            {t("table.sent", "Sent to the kitchen")}
-          </span>
-        </div>
-      </Presence>
-
-      {/* With the basket open the failure is shown inside it, next to the
-          button; closed, it floats above the basket button. Either way the
-          customer reads the server's reason, not a bare "try again". */}
-      {sendError && !cartOpen ? (
-        <div
-          role="alert"
-          className="fixed inset-x-0 bottom-24 z-30 mx-auto w-fit max-w-[90vw] rounded-2xl bg-destructive px-4 py-2 text-center text-sm text-destructive-foreground shadow-lg"
-        >
-          {sendError}
-        </div>
-      ) : null}
     </StorefrontShell>
   );
 }

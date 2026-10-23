@@ -30,7 +30,7 @@ import { canonicalPhone, formatPhoneInput, isValidPhone, samePhone } from "@/lib
 import { FIELD_LIMITS } from "./limits";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
-import { useErrorToast } from "@/features/public-shell/public-toaster";
+import { useErrorToast } from "@/components/ui/toast";
 import { StepShell } from "./components/step-shell";
 import { BranchStep } from "./components/branch-step";
 import { BranchSelector } from "./components/branch-selector";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { ArrowDownRight, ArrowUpRight, Building2, Info } from "lucide-react";
 
 import type { ColumnDef } from "@tanstack/react-table";

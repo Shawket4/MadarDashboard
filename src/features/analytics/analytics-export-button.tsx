@@ -13,7 +13,7 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { ExportButton } from "@/components/app/export-button";
 import {

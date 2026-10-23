@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { z } from "zod";
 import { Copy, ExternalLink, QrCode } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";

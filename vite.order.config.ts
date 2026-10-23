@@ -29,6 +29,8 @@ const mount = process.env.MADAR_MOUNT ?? "/";
 
 export default defineConfig({
   base: mount,
+  // The toast library loads on the first toast; pre-bundle it so dev does not reload then.
+  optimizeDeps: { include: ["sileo", "motion/react"] },
   plugins: [
     // `public/` is copied verbatim, so a README beside an asset ships with it.
     noDocsInTheBundle(),

@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import type { CustomerLinkControl } from "@/features/customers/customer-link";
 import { TableHistory } from "./table-history";
 import { RotateCcw, RotateCw } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

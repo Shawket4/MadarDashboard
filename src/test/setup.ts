@@ -4,7 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { afterEach } from "vitest";
+import { afterEach, beforeEach } from "vitest";
 
 import { initRules } from "@/lib/rules";
 import { urlSearch } from "@/test/url-search-mock";
@@ -56,3 +56,10 @@ globalThis.ResizeObserver ??= class {
 // URL-bound list filters (useListFilters) read a module-level search object in
 // tests that mock the router; start every test from an empty URL.
 afterEach(() => urlSearch.reset());
+
+// Toasts are spied and silent in every test; assert on `toast.error` etc. from
+// @/components/ui/toast (src/test/toast.ts). No test mocks a toast module itself.
+// Imported here, after the locales above: the toast module loads i18n.
+const { quietToasts } = await import("@/test/toast");
+quietToasts();
+beforeEach(() => quietToasts());

@@ -12,7 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { CheckCircle2, CircleAlert, Upload } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { Button } from "@/components/ui/button";

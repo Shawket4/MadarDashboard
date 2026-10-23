@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Outlet, createRootRoute, useLocation } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Direction } from "radix-ui";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toast";
 import { DevTools } from "@/components/app/dev-tools";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useSignedInTitle } from "@/hooks/use-signed-in-title";
@@ -30,7 +30,7 @@ function RootLayout() {
   return (
     <Direction.Provider dir={dir}>
       <Outlet />
-      <Toaster position="top-center" richColors closeButton />
+      <Toaster preload />
       <DevTools which="router" />
     </Direction.Provider>
   );
