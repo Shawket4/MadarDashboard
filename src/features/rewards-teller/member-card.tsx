@@ -20,6 +20,7 @@ import { Gift } from "lucide-react";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
+import { isolate, tNames } from "./bidi";
 import { MAX_SEGMENTS, type Track, type cardColors } from "./util";
 
 type Colors = ReturnType<typeof cardColors>;
@@ -47,14 +48,16 @@ export const MemberCard = forwardRef<HTMLElement, MemberCardProps>(function Memb
   return (
     <section
       ref={ref}
-      aria-label={t("rewardsTeller.cardOf", "{{name}}'s card", { name })}
+      aria-label={t("rewardsTeller.cardOf", "{{name}}'s card", { name: isolate(name) })}
       className="relative isolate overflow-hidden rounded-[28px] p-5 shadow-[0_18px_40px_-20px_rgb(0_0_0/0.45)] sm:p-6"
       style={style}
     >
       <header className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <img src={colors.dark ? "/symbol-paper.svg" : "/symbol-ink.svg"} alt="" className="size-8 shrink-0" />
-          <p className="truncate text-[15px] font-semibold">{shopName}</p>
+          <p className="truncate text-[15px] font-semibold">
+            <bdi>{shopName}</bdi>
+          </p>
         </div>
         {single ? (
           // The wallet's header field: the balance, top end.
@@ -68,7 +71,9 @@ export const MemberCard = forwardRef<HTMLElement, MemberCardProps>(function Memb
       </header>
 
       <div className="mt-6 min-w-0">
-        <h2 className="truncate text-[28px] font-semibold leading-tight tracking-[-0.01em]">{name}</h2>
+        <h2 className="truncate text-[28px] font-semibold leading-tight tracking-[-0.01em]">
+          <bdi>{name}</bdi>
+        </h2>
         <p className="mt-0.5 font-mono text-sm opacity-80" dir="ltr">
           <span className="sr-only">{t("rewardsTeller.phone", "Phone")}: </span>
           <bdi>{formatPhoneDisplay(phone)}</bdi>
@@ -88,7 +93,9 @@ export const MemberCard = forwardRef<HTMLElement, MemberCardProps>(function Memb
           {tracks.map((tr) => (
             <li key={tr.id} className="space-y-2">
               <div className="flex items-baseline justify-between gap-3">
-                <p className="truncate font-semibold">{tr.name}</p>
+                <p className="truncate font-semibold">
+                  <bdi>{tr.name}</bdi>
+                </p>
                 <p className="shrink-0 font-mono text-lg font-semibold tabular-nums" dir="ltr">
                   {tr.filled}/{tr.size}
                 </p>
@@ -97,7 +104,7 @@ export const MemberCard = forwardRef<HTMLElement, MemberCardProps>(function Memb
                 track={tr}
                 compact
                 label={t("rewardsTeller.trackStampsOf", "{{track}}: {{have}} of {{size}} stamps", {
-                  track: tr.name,
+                  track: isolate(tr.name),
                   have: tr.filled,
                   size: tr.size,
                 })}
@@ -113,13 +120,6 @@ export const MemberCard = forwardRef<HTMLElement, MemberCardProps>(function Memb
         </ul>
       )}
 
-      <footer className="mt-6 flex items-center justify-between gap-3 border-t pt-3" style={{ borderColor: "color-mix(in oklab, var(--card-fg) 22%, transparent)" }}>
-        <img
-          src={colors.dark ? "/rewards-by-madar-paper-16.svg" : "/rewards-by-madar-ink-16.svg"}
-          alt={t("rewardsTeller.productName", "Rewards by Madar")}
-          className="h-3 w-auto opacity-80"
-        />
-      </footer>
     </section>
   );
 });
@@ -206,7 +206,7 @@ function RedeemButton({
     >
       <Gift className="size-5" aria-hidden />
       {track.name
-        ? t("rewardsTeller.redeemTrack", "Complete {{track}}", { track: track.name })
+        ? tNames(t, "rewardsTeller.redeemTrack", { defaultValue: "Complete {{track}}", track: track.name }, ["track"])
         : t("rewardsTeller.redeem", "Complete card")}
     </button>
   );

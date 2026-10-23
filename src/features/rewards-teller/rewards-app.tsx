@@ -22,6 +22,7 @@ import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import i18n from "@/i18n";
 import { cn } from "@/lib/utils";
 
+import { isolate, tNames } from "./bidi";
 import { CounterConfirm } from "./counter-confirm";
 import { CounterScreen } from "./counter-screen";
 import { PinScreen } from "./pin-screen";
@@ -99,13 +100,15 @@ export function RewardsApp() {
               <Button
                 variant="outline"
                 className="h-11 gap-2 rounded-full ps-1.5 pe-3"
-                aria-label={t("rewardsTeller.menuFor", "{{name}}: device menu", { name: session.name })}
+                aria-label={t("rewardsTeller.menuFor", "{{name}}: device menu", { name: isolate(session.name) })}
                 onClick={() => setMenu(true)}
               >
                 <span aria-hidden className="grid size-8 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
                   {session.name.trim().charAt(0).toUpperCase()}
                 </span>
-                <span className="max-w-28 truncate text-sm font-semibold">{session.name}</span>
+                <span className="max-w-28 truncate text-sm font-semibold">
+                  <bdi>{session.name}</bdi>
+                </span>
                 <ChevronDown className="size-4 text-muted-foreground" aria-hidden />
               </Button>
             ) : (
@@ -188,9 +191,11 @@ function DeviceMenu({
           className="gap-0 rounded-t-[28px] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 sm:mx-auto sm:max-w-md"
         >
           <span aria-hidden className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-muted-foreground/30" />
-          <SheetTitle className="text-xl font-semibold">{name}</SheetTitle>
+          <SheetTitle className="text-xl font-semibold">
+            <bdi>{name}</bdi>
+          </SheetTitle>
           <SheetDescription className="text-base">
-            {t("rewardsTeller.menuSignedIn", "Signed in at {{branch}}", { branch })}
+            {tNames(t, "rewardsTeller.menuSignedIn", { defaultValue: "Signed in at {{branch}}", branch }, ["branch"])}
           </SheetDescription>
 
           <div className="mt-5 space-y-4">

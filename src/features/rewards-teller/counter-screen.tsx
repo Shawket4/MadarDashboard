@@ -47,6 +47,7 @@ import { fmtTime } from "@/lib/format";
 import { usePop, useShake } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
+import { tNames } from "./bidi";
 import { BirthdayGift } from "./birthday-gift";
 import { Camera } from "./camera";
 import { CounterConfirm, type ConfirmAsk } from "./counter-confirm";
@@ -70,8 +71,8 @@ import {
 } from "./util";
 
 type Notice =
-  | { tone: "ok"; title: string; body?: string }
-  | { tone: "fail"; icon: ReactNode; title: string; body: string; retry?: () => void };
+  | { tone: "ok"; title: ReactNode; body?: ReactNode }
+  | { tone: "fail"; icon: ReactNode; title: ReactNode; body: ReactNode; retry?: () => void };
 
 export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: () => void }) {
   const { t } = useTranslation();
@@ -256,7 +257,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
       !(await confirm({
         figure: items,
         title: t("rewardsTeller.confirmStampsTitle", "Stamp {{count}} items?", { count: items }),
-        body: t("rewardsTeller.confirmStampsBody", "{{name}} bought {{count}} items on this visit.", { name, count: items }),
+        body: tNames(t, "rewardsTeller.confirmStampsBody", { defaultValue: "{{name}} bought {{count}} items on this visit.", name, count: items }, ["name"]),
         yes: t("rewardsTeller.stampYes", "Yes, stamp {{count}}", { count: items }),
       }))
     )
@@ -279,7 +280,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
                 : t("rewardsTeller.stampedN", { count: r.stamps, defaultValue_one: "1 stamp added", defaultValue_other: "{{count}} stamps added" }),
               body: tr?.canRedeem
                 ? t("rewardsTeller.nowFull", "The card is full.")
-                : t("rewardsTeller.nowHas", "{{name}} now has {{have}} of {{size}}.", { name, have: tr?.filled ?? 0, size: tr?.size ?? 0 }),
+                : tNames(t, "rewardsTeller.nowHas", { defaultValue: "{{name}} now has {{have}} of {{size}}.", name, have: tr?.filled ?? 0, size: tr?.size ?? 0 }, ["name"]),
             });
           },
           onError: (e) => fail(e, run),
@@ -293,7 +294,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
     const name = member.name;
     const ok = await confirm({
       figure: <Gift className="mx-auto size-16" strokeWidth={1.5} />,
-      title: t("rewardsTeller.confirmRedeemTitle", "Complete {{name}}'s card?", { name }),
+      title: tNames(t, "rewardsTeller.confirmRedeemTitle", { defaultValue: "Complete {{name}}'s card?", name }, ["name"]),
       body: t("rewardsTeller.confirmRedeemBody", "Hand over the free item. {{size}} stamps come off the card.", { size: track.size }),
       yes: t("rewardsTeller.redeem", "Complete card"),
     });
@@ -326,7 +327,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
     const name = member.name;
     const ok = await confirm({
       figure: <Cake className="mx-auto size-16" strokeWidth={1.5} />,
-      title: t("rewardsTeller.giftConfirmTitle", "Give {{name}} their birthday gift?", { name }),
+      title: tNames(t, "rewardsTeller.giftConfirmTitle", { defaultValue: "Give {{name}} their birthday gift?", name }, ["name"]),
       body: t("rewardsTeller.giftConfirmBody", "Hand over one free item, the shop's pick. Their stamps don't change."),
       yes: t("rewardsTeller.giftGive", "Give the gift"),
     });
@@ -348,7 +349,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
                 : t("rewardsTeller.giftGiven", "Gift given"),
               body: r.already
                 ? t("rewardsTeller.giftAlreadyBody", "This gift was handed over a moment ago. Nothing new was recorded.")
-                : t("rewardsTeller.giftGivenBody", "Hand over one free item. Happy birthday, {{name}}!", { name }),
+                : tNames(t, "rewardsTeller.giftGivenBody", { defaultValue: "Hand over one free item. Happy birthday, {{name}}!", name }, ["name"]),
             });
           },
           onError: (e) => {
@@ -654,7 +655,9 @@ function RecentStrip({
                   {a.kind === "redeem" ? <Gift className="size-5" /> : a.kind === "gift" ? <Cake className="size-5" /> : <Stamp className="size-5" />}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block max-w-40 truncate font-semibold lg:max-w-none">{a.name}</span>
+                  <span className="block max-w-40 truncate font-semibold lg:max-w-none">
+                    <bdi>{a.name}</bdi>
+                  </span>
                   <span className="block text-sm text-muted-foreground">
                     {a.kind === "redeem"
                       ? t("rewardsTeller.recentRedeemed", "Card completed")

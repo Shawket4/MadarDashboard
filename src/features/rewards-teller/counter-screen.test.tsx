@@ -53,7 +53,7 @@ describe("CounterScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "One more" }));
     fireEvent.click(screen.getByRole("button", { name: "One more" }));
     fireEvent.click(screen.getByRole("button", { name: "Stamp 3 items" }));
-    expect(await screen.findByRole("alertdialog")).toBeTruthy();
+    expect((await screen.findByRole("alertdialog")).querySelector("bdi")?.textContent).toBe("Mariam");
     expect(stampCall).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Yes, stamp 3" }));
 
@@ -115,6 +115,7 @@ describe("CounterScreen", () => {
       expect(giftCall).not.toHaveBeenCalled();
       fireEvent.click(screen.getAllByRole("button", { name: "Give the gift" }).at(-1)!);
       expect(await screen.findByText("Gift given")).toBeTruthy();
+      expect(document.querySelector("[role=status] bdi")?.textContent).toBe("Mariam");
       expect(giftCall).toHaveBeenCalledWith(expect.objectContaining({ branch_id: "b", customer_id: "m1", idempotency_key: expect.any(String) }));
       expect(screen.getByRole("heading", { name: "Birthday gift given" })).toBeTruthy();
       expect(screen.queryByRole("button", { name: "Give the gift" })).toBeNull();

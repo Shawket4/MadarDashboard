@@ -48,8 +48,8 @@ describe("MemberCard", () => {
         onRedeem={onRedeem}
       />,
     );
-    expect(screen.getByRole("img", { name: "Pastry: 1 of 4 stamps" })).toBeTruthy();
-    expect(screen.getByRole("img", { name: "Beans: 20 of 30 stamps" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "\u2068Pastry\u2069: 1 of 4 stamps" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "\u2068Beans\u2069: 20 of 30 stamps" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Complete Coffee" }));
     expect(onRedeem).toHaveBeenCalledWith(expect.objectContaining({ id: "coffee" }));
     expect(screen.getAllByRole("button")).toHaveLength(1);

@@ -17,8 +17,8 @@ import {
 
 export interface ConfirmAsk {
   figure: ReactNode;
-  title: string;
-  body: string;
+  title: ReactNode;
+  body: ReactNode;
   yes: string;
 }
 
