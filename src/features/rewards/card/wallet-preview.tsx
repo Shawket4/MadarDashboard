@@ -18,7 +18,7 @@ import type { CardRules, CardState, Store } from "@/lib/rules/card";
 
 import { luminance } from "./design-state";
 import type { TrackInfo } from "./panels";
-import { StripSvg } from "./strip";
+import { StripSvg } from "@/components/loyalty-card/strip-svg";
 
 interface MockProps {
   rules: CardRules;

@@ -75,6 +75,26 @@ export function card_rules() {
 }
 
 /**
+ * What one unit of the card counts: `points`, `order`, `item` or `stamp`.
+ * @param {boolean} points
+ * @param {boolean} per_item
+ * @param {boolean} standalone
+ * @returns {string}
+ */
+export function card_stamp_unit(points, per_item, standalone) {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.card_stamp_unit(points, per_item, standalone);
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
  * A track's figures as the wallet fields print them.
  * @param {number} balance
  * @param {number} size

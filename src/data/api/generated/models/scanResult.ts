@@ -2,6 +2,7 @@
 // @ts-nocheck
 import type { LedgerEntry } from './ledgerEntry';
 import type { MemberView } from './memberView';
+import type { PublicCard } from './publicCard';
 import type { RewardItem } from './rewardItem';
 import type { TrackRewards } from './trackRewards';
 
@@ -20,6 +21,7 @@ export interface ScanResult {
   any_item: boolean;
   /** What one line costs when `any_item` is on, in the branch's currency. */
   any_item_cost: number;
+  card?: null | PublicCard;
   /**
      * The shop's ceiling on reward ITEMS per order, if it set one. The till
      * enforces it before Charge so the server's refusal is never the first

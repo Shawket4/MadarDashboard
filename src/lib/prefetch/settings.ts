@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 
 import {
+  getGetLoyaltyCardDesignQueryOptions,
   getGetAvailabilityQueryOptions,
   getGetBranchSettingsQueryOptions,
   getGetLinksPageQueryOptions,
@@ -95,6 +96,8 @@ export const routes: RoutePrefetchMap = {
   },
   "/settings/brand": (qc, { orgId }) => {
     if (orgId) void qc.prefetchQuery(orgBrandQueryOptions(orgId));
+    // The card preview wears the published design (Rewards › Card) when there is one.
+    if (orgId && can(qc, Cap.loyaltyRead)) void qc.prefetchQuery(getGetLoyaltyCardDesignQueryOptions());
   },
   "/settings/combos": (qc, { orgId }) => {
     if (!orgId || !can(qc, Cap.orgSettingsRead, Cap.menuCombosEdit)) return;

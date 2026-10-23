@@ -51,6 +51,7 @@ const makeView = (over: Partial<CardDesignView> = {}): CardDesignView => {
     colours,
     ctx,
     custom_branding: true,
+    stamp_unit: "order",
     default_design: d,
     draft: null,
     published: null,

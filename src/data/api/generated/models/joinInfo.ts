@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { CardBrand } from './cardBrand';
+import type { PublicCard } from './publicCard';
 import type { PublicReward } from './publicReward';
 
 /**
@@ -28,6 +29,7 @@ export interface JoinInfo {
   branch_name?: string | null;
   /** Whose programme this is, and how the page should look. */
   brand: CardBrand;
+  card?: null | PublicCard;
   /**
      * EGP that earns one point — the page's "a point for every N EGP" line.
      * Piastres on the wire, as everywhere; the page divides by 100. Only

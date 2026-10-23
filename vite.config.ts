@@ -47,11 +47,34 @@ function apexFiles(): Plugin {
   };
 }
 
+/**
+ * In dev, Vite answers `/rewards` with the root's `rewards.html` (the teller
+ * page, which has its own config and server: `npm run dev:rewards`). The
+ * dashboard's Rewards module lives at `/rewards/*`, so this server hands those
+ * routes to the SPA. The build ships only index.html; production is unaffected.
+ */
+export function rewardsRoutesToTheDashboard(): Plugin {
+  return {
+    name: "madar-rewards-routes",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        const url = req.url ?? "";
+        if (/^\/rewards(\/|\?|$)/.test(url) && (req.headers.accept ?? "").includes("text/html")) {
+          req.url = "/index.html";
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   define: {
     __SENTRY_RELEASE__: JSON.stringify(sentryRelease),
   },
   plugins: [
+    rewardsRoutesToTheDashboard(),
     // `public/` is copied verbatim, so a README beside an asset ships with it.
     noDocsInTheBundle(),
     // GSAP downloads with the HTML (still a lazy chunk): motion is ready at once.

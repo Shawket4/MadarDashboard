@@ -6,6 +6,7 @@
  * cells whole and inside the grid.
  */
 import type { CardDesign, Cell, Element, ElementKind, FieldSource } from "@/data/api/generated/models";
+import { footerIsPaper, luminance } from "@/components/loyalty-card/card-assets";
 
 export const COLS = 12;
 export const ROWS = 6;
@@ -131,15 +132,7 @@ export function keyAction(key: string, shift: boolean, index: number, mirrored: 
   return shift ? { type: "resize", index, dw: v[0], dh: v[1] } : { type: "move", index, dc: v[0], dr: v[1] };
 }
 
-/** WCAG relative luminance of `#RRGGBB` (madar-card's `luminance`). */
-export function luminance(hex: string): number | null {
-  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return null;
-  const ch = (i: number) => {
-    const v = parseInt(hex.slice(i, i + 2), 16) / 255;
-    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * ch(1) + 0.7152 * ch(3) + 0.0722 * ch(5);
-}
+export { footerIsPaper, luminance };
 
 export function contrast(a: string, b: string): number | null {
   const la = luminance(a);
@@ -148,5 +141,4 @@ export function contrast(a: string, b: string): number | null {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
-/** The server's footer choice: the paper (light) file when the foreground is light. */
-export const footerIsPaper = (foreground: string): boolean => (luminance(foreground) ?? 1) > 0.5;
+

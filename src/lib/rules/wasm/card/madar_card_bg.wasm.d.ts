@@ -6,6 +6,7 @@ export const card_default: (a: any, b: any, c: number, d: number) => [number, nu
 export const card_first_free: (a: any, b: number, c: number) => [number, number, number];
 export const card_layout: (a: any, b: any, c: number, d: number, e: number) => [number, number, number];
 export const card_rules: () => [number, number, number];
+export const card_stamp_unit: (a: number, b: number, c: number) => [number, number];
 export const card_stepper: (a: number, b: number) => [number, number, number];
 export const card_svg: (a: any, b: any, c: any, d: number, e: any) => [number, number, number, number];
 export const card_templates: (a: any, b: any, c: number, d: number) => [number, number, number];

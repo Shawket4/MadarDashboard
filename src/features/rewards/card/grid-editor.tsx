@@ -13,7 +13,7 @@ import type { CardRules, CardState } from "@/lib/rules/card";
 import { cn } from "@/lib/utils";
 
 import { COLS, ROWS, keyAction, type Action } from "./design-state";
-import { StripSvg } from "./strip";
+import { StripSvg } from "@/components/loyalty-card/strip-svg";
 
 const MX = (16 / 375) * 100;
 const MY = (8 / 144) * 100;

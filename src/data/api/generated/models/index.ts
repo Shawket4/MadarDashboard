@@ -839,6 +839,7 @@ export * from './publicBookingView';
 export * from './publicBranch';
 export * from './publicBranchesParams';
 export * from './publicBrand';
+export * from './publicCard';
 export * from './publicCartQuoteRequest';
 export * from './publicCombo';
 export * from './publicComboChoice';

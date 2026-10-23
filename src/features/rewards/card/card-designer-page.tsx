@@ -45,7 +45,7 @@ import { initEditor, isDirty, reducer } from "./design-state";
 import { GridEditor } from "./grid-editor";
 import { ElementPanel, FieldsPanel, Section, StylePanel, type TrackInfo } from "./panels";
 import { problemElement, problemText } from "./problems";
-import { StripSvg } from "./strip";
+import { StripSvg } from "@/components/loyalty-card/strip-svg";
 import { AppleMock, GoogleMock, ServerPreview } from "./wallet-preview";
 
 export function CardDesignerPage() {

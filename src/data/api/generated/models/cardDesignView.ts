@@ -35,6 +35,8 @@ export interface CardDesignView {
   /** @nullable */
   published_at?: string | null;
   revision: number;
+  /** What a unit of the card counts: `points`, `order`, `item` or `stamp`. */
+  stamp_unit: string;
   /** The tracks, for labels and colours in the preview. */
   tracks: Track[];
 }

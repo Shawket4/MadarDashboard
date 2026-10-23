@@ -1,7 +1,9 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { CardBrand } from './cardBrand';
+import type { MemberTrack } from './memberTrack';
 import type { PassLinks } from './passLinks';
+import type { PublicCard } from './publicCard';
 import type { PublicReward } from './publicReward';
 
 /**
@@ -16,6 +18,7 @@ export interface CardView {
   /** Whose card this is, and how it should look. */
   brand: CardBrand;
   can_redeem: boolean;
+  card?: null | PublicCard;
   /** They have asked this shop to stop sending them things. */
   marketing_opt_out: boolean;
   member_token: string;
@@ -36,4 +39,9 @@ export interface CardView {
   rewards: PublicReward[];
   /** Rewards the balance has already earned — a card does not stop at full. */
   rewards_ready: number;
+  /**
+     * Every stamp track of this member's card, when there is more than one.
+     * @nullable
+     */
+  tracks?: MemberTrack[] | null;
 }

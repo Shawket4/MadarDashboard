@@ -51,6 +51,11 @@ import { ShopAddressCard } from "./shop-address-card";
 
 import { resolveBrand } from "@/features/loyalty/shared/brand";
 import { CardFace } from "@/features/loyalty/public/card-face";
+import { LazyDesignedCard } from "@/components/loyalty-card";
+import { useGetLoyaltyCardDesign } from "@/data/api/generated/api";
+import type { PublicCard } from "@/data/api/generated/models";
+import { useCan } from "@/data/authz/use-authz";
+import { Cap } from "@/generated/capabilities";
 
 export function BrandPane() {
   const { t, i18n } = useTranslation();
@@ -61,6 +66,9 @@ export function BrandPane() {
   const queryClient = useQueryClient();
 
   const org = useQuery({ ...orgBrandQueryOptions(orgId), enabled: !!orgId });
+  // The published card design, which the preview below wears when there is one.
+  const canLoyalty = useCan(Cap.loyaltyRead);
+  const designQ = useGetLoyaltyCardDesign({ query: { enabled: canLoyalty && !!orgId } });
 
   if (org.isLoading)
     return (
@@ -96,6 +104,20 @@ export function BrandPane() {
       throw e;
     }
   };
+
+  // A published card design (Rewards › Card) is what every card wears, so the
+  // preview draws it; without one, the classic card below.
+  const published = designQ.data?.published;
+  const designedCard: PublicCard | null =
+    designQ.data && published
+      ? {
+          revision: designQ.data.revision,
+          design: published,
+          tracks: designQ.data.tracks,
+          track_one_size: designQ.data.ctx.tracks.find((x) => x.position === 1)?.size ?? 1,
+          stamp_unit: designQ.data.stamp_unit,
+        }
+      : null;
 
   // The preview is the REAL card component with the real derived colours, not a
   // mock-up: a preview that renders differently from the thing it previews is
@@ -204,14 +226,25 @@ export function BrandPane() {
           as="h3"
           title={t("settings.cardPreview", "How the loyalty card will look")}
         />
-        <CardFace
-          brand={brand}
-          mode="visits"
-          balance={3}
-          target={5}
-          toGo={2}
-          canRedeem={false}
+        <LazyDesignedCard
+          card={designedCard}
+          name={org.data?.name ?? ""}
+          logoUrl={designQ.data?.logo_url ?? null}
+          photoUrl={designQ.data?.photo_url ?? null}
+          balances={[{ position: 1, balance: 3 }]}
           memberName={t("settings.previewMember", "Member name")}
+          className="max-w-sm"
+          classic={
+            <CardFace
+              brand={brand}
+              mode="visits"
+              balance={3}
+              target={5}
+              toGo={2}
+              canRedeem={false}
+              memberName={t("settings.previewMember", "Member name")}
+            />
+          }
         />
         <p className="text-xs text-muted-foreground">
           {t(

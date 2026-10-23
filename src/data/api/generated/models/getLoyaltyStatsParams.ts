@@ -3,11 +3,13 @@
 
 export type GetLoyaltyStatsParams = {
 /**
- * `YYYY-MM-DD`, in the shop's time zone; default 30 days ago.
+ * Start of the range (an instant, like the other loyalty analytics); its
+ * day in the shop's time zone is the first day. Default: 29 days before `to`.
  */
 from?: string;
 /**
- * `YYYY-MM-DD`, inclusive; default today.
+ * End of the range (inclusive); its day in the shop's zone is the last.
+ * Default: today.
  */
 to?: string;
 };

@@ -8636,5 +8636,17 @@
         "cancelled": "أُلغيت"
       }
     }
+  },
+  "loyaltyCard": {
+    "label": "بطاقة {{name}}",
+    "member": "العضو",
+    "rewardReady": "مكافأة جاهزة",
+    "stripLabel": "تقدّمك على البطاقة",
+    "unit": {
+      "points": "نقاط",
+      "order": "طلبات",
+      "item": "أصناف",
+      "stamp": "أختام"
+    }
   }
 }

@@ -405,6 +405,11 @@ export function card_layout(design: CardDesign, store: Store, scale: number, ara
 export function card_rules(): CardRules;
 
 /**
+ * What one unit of the card counts: `points`, `order`, `item` or `stamp`.
+ */
+export function card_stamp_unit(points: boolean, per_item: boolean, standalone: boolean): string;
+
+/**
  * A track's figures as the wallet fields print them.
  */
 export function card_stepper(balance: number, size: number): Stepper;
@@ -453,6 +458,7 @@ export interface InitOutput {
     readonly card_first_free: (a: any, b: number, c: number) => [number, number, number];
     readonly card_layout: (a: any, b: any, c: number, d: number, e: number) => [number, number, number];
     readonly card_rules: () => [number, number, number];
+    readonly card_stamp_unit: (a: number, b: number, c: number) => [number, number];
     readonly card_stepper: (a: number, b: number) => [number, number, number];
     readonly card_svg: (a: any, b: any, c: any, d: number, e: any) => [number, number, number, number];
     readonly card_templates: (a: any, b: any, c: number, d: number) => [number, number, number];

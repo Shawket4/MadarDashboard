@@ -8382,5 +8382,17 @@
       "shape_gift": "Gift",
       "shape_check": "Tick"
     }
+  },
+  "loyaltyCard": {
+    "label": "{{name}} card",
+    "member": "Member",
+    "rewardReady": "Reward ready",
+    "stripLabel": "Your progress on the card",
+    "unit": {
+      "points": "Points",
+      "order": "Orders",
+      "item": "Items",
+      "stamp": "Stamps"
+    }
   }
 }
