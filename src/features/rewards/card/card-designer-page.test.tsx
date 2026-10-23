@@ -17,7 +17,6 @@ const confirm = vi.fn().mockResolvedValue(true);
 let held: string[] = ["loyalty.read", "loyalty.card.design"];
 let view: CardDesignView;
 
-vi.mock("@/components/ui/toast", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@/components/app/confirm-dialog", () => ({ useConfirm: () => confirm }));
 vi.mock("@/components/app/link", () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => <a href={to}>{children}</a>,
