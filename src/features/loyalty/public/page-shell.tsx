@@ -112,13 +112,20 @@ export function LoyaltyPage({
   eyebrow,
   title,
   intro,
+  headerMark = true,
+  footer = true,
   children,
 }: {
   brand: ResolvedBrand;
   /** Small line above the title — the branch, or the shop. */
   eyebrow?: string;
-  title: string;
+  /** Absent for a page that heads its own steps (the sign-up, under its card). */
+  title?: string;
   intro?: ReactNode;
+  /** False when the shop's card, logo and all, sits right under the header. */
+  headerMark?: boolean;
+  /** False when each step draws Madar's footer itself (see `StorefrontShell`). */
+  footer?: boolean;
   children: ReactNode;
 }) {
   const accent = usePageAccent(brand);
@@ -135,24 +142,26 @@ export function LoyaltyPage({
   }, [brand.programName, brand.orgName]);
 
   return (
-    <StorefrontShell brand={brand} product="loyalty">
+    <StorefrontShell brand={brand} product="loyalty" headerMark={headerMark} footer={footer}>
       <div className="flex flex-col gap-8 pb-2 pt-3">
-        <header className="flex flex-col gap-2.5">
-          {eyebrow ? (
-            <p
-              className="text-[11px] font-semibold uppercase tracking-[0.18em]"
-              style={{ color: accent }}
-            >
-              {eyebrow}
-            </p>
-          ) : null}
-          <h1 className="font-serif text-[32px] leading-[1.1] text-balance">{title}</h1>
-          {intro ? (
-            <div className="max-w-[38ch] text-[15px] leading-relaxed text-muted-foreground">
-              {intro}
-            </div>
-          ) : null}
-        </header>
+        {title ? (
+          <header className="flex flex-col gap-2.5">
+            {eyebrow ? (
+              <p
+                className="text-[11px] font-semibold uppercase tracking-[0.18em]"
+                style={{ color: accent }}
+              >
+                {eyebrow}
+              </p>
+            ) : null}
+            <h1 className="font-serif text-[32px] leading-[1.1] text-balance">{title}</h1>
+            {intro ? (
+              <div className="max-w-[38ch] text-[15px] leading-relaxed text-muted-foreground">
+                {intro}
+              </div>
+            ) : null}
+          </header>
+        ) : null}
         {children}
       </div>
     </StorefrontShell>
@@ -161,7 +170,7 @@ export function LoyaltyPage({
 
 /**
  * What the page looks like before it knows whose it is. The same shape as the
- * page it becomes — an eyebrow, a headline, a card, a panel — so the swap is a
+ * page it becomes — the card, a headline, the fields — so the swap is a
  * fill-in rather than a re-layout, and nothing jumps under a thumb already
  * reaching for the form.
  */
@@ -169,13 +178,15 @@ export function PageSkeleton() {
   return (
     <StorefrontShell product="loyalty">
       <div className="flex flex-col gap-8 pt-3" aria-busy>
+        <Skeleton className="h-[330px] w-full rounded-[28px]" />
         <div className="flex flex-col gap-3">
-          <Skeleton className="h-3 w-24 rounded-full" />
-          <Skeleton className="h-9 w-3/5 rounded-lg" />
+          <Skeleton className="h-8 w-3/4 rounded-lg" />
           <Skeleton className="h-4 w-4/5 rounded-full" />
         </div>
-        <Skeleton className="h-56 w-full rounded-[28px]" />
-        <Skeleton className="h-40 w-full rounded-2xl" />
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-4 w-28 rounded-full" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+        </div>
       </div>
     </StorefrontShell>
   );

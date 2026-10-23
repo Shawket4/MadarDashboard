@@ -20,9 +20,11 @@
  * notice as one.
  */
 import { useTranslation } from "react-i18next";
+import { QrCode } from "lucide-react";
 
 import { AssetImage } from "@/components/app/asset-image";
-import { AnimatedNumber } from "@/lib/motion";
+import { RewardsEndorsement } from "@/components/brand/rewards-endorsement";
+import { AnimatedNumber, Reveal, recipes } from "@/lib/motion";
 
 import type { ResolvedBrand } from "../shared/brand";
 import { StampRow, stampable } from "./stamp-row";
@@ -47,7 +49,9 @@ export function CardFace({
   toGo,
   canRedeem,
   memberName,
+  memberPlaceholder,
   qrUrl,
+  codePending = false,
   rewardsReady = 0,
   progress,
 }: {
@@ -58,8 +62,15 @@ export function CardFace({
   toGo: number;
   canRedeem: boolean;
   memberName?: string | null;
+  /** Shown, softened, where the name will go: the sign-up's card before anything is typed. */
+  memberPlaceholder?: string;
   /** The member's code. Omitted where there is no member — the settings preview. */
   qrUrl?: string | null;
+  /**
+   * The card is about to have a code (the sign-up preview): its place is kept,
+   * the same size, so the code lands in it without moving anything.
+   */
+  codePending?: boolean;
   /**
    * Rewards already earned and not yet claimed. A card does not stop at full:
    * six stamps against a five-stamp reward is one earned and one towards the
@@ -70,7 +81,7 @@ export function CardFace({
   /** Steps on the CURRENT card, after the earned ones are set aside. */
   progress?: number;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isVisits = mode === "visits";
   const isSteps = isVisits && stampable(target);
   // What the live card shows. `progress` is the server's remainder; falling back
@@ -268,50 +279,77 @@ export function CardFace({
         </p>
       </div>
 
-      {memberName || qrUrl ? (
-        // The embossed line and the code, in that order — the same order both
-        // wallet passes use, fields above and the barcode at the foot. The code
-        // used to live under the "add to wallet" buttons and only appear when
-        // NO wallet could be offered, which is backwards: it is the thing the
-        // till scans, and it works on every device. A card carries its own code.
-        <footer
-          className="mt-6 flex items-end justify-between gap-4 border-t pt-4"
-          style={{ borderColor: brand.muted }}
-        >
-          {memberName ? (
-            <div className="min-w-0 flex-1">
+      {/* The embossed line and the code, in that order — the same order both
+          wallet passes use, fields above and the barcode at the foot. The code
+          used to live under the "add to wallet" buttons and only appear when
+          NO wallet could be offered, which is backwards: it is the thing the
+          till scans, and it works on every device. A card carries its own code.
+
+          Under the name, where a payment card puts its network's mark: Rewards
+          by Madar, quietly, as both passes carry it at the foot of their strip.
+          The shop's name leads the card; this only says who runs the scheme. */}
+      <footer
+        className="mt-6 flex items-stretch justify-between gap-4 border-t pt-4"
+        style={{ borderColor: brand.muted }}
+      >
+        <div className="flex min-w-0 flex-1 flex-col justify-between gap-4">
+          {memberName || memberPlaceholder ? (
+            <div className="min-w-0">
               <p
                 className="text-[10px] font-medium uppercase tracking-[0.18em]"
                 style={{ color: brand.muted }}
               >
                 {t("loyalty.member", "Member")}
               </p>
-              <p className="mt-0.5 truncate text-[13px] font-semibold uppercase tracking-[0.08em]">
-                {memberName}
+              <p
+                className="mt-0.5 truncate text-[13px] font-semibold uppercase tracking-[0.08em]"
+                style={memberName ? undefined : { color: brand.muted }}
+              >
+                {memberName || memberPlaceholder}
               </p>
             </div>
           ) : null}
-          {qrUrl ? (
-            <div className="flex shrink-0 flex-col items-center gap-1.5">
-              {/* On white whatever the card's ground: a scanner needs the
-                  quiet zone and the contrast, and a QR tinted to match the
-                  card is a QR that does not read. */}
-              <AssetImage
-                legacyUrl={qrUrl}
-                alt={t("loyalty.memberCodeAlt", "Your membership code")}
-                fit="contain"
-                className="size-[92px] rounded-lg bg-white p-1.5"
-              />
+          <RewardsEndorsement
+            lang={(i18n.resolvedLanguage ?? "en").startsWith("ar") ? "ar" : "en"}
+            label={t("loyalty.rewardsByMadar", "Rewards by Madar")}
+            className="opacity-80"
+          />
+        </div>
+        {qrUrl || codePending ? (
+          <div className="flex shrink-0 flex-col items-center gap-1.5">
+            {qrUrl ? (
+              // On white whatever the card's ground: a scanner needs the quiet
+              // zone and the contrast, and a QR tinted to match the card is a
+              // QR that does not read. It lands with a pop where the sign-up
+              // kept its place.
+              <Reveal recipe={recipes.pop} className="size-[92px]">
+                <AssetImage
+                  legacyUrl={qrUrl}
+                  alt={t("loyalty.memberCodeAlt", "Your membership code")}
+                  fit="contain"
+                  className="size-[92px] rounded-lg bg-white p-1.5"
+                />
+              </Reveal>
+            ) : (
               <span
-                className="text-[9px] uppercase tracking-[0.14em]"
-                style={{ color: brand.muted }}
+                aria-hidden
+                className="grid size-[92px] place-items-center rounded-lg border border-dashed"
+                style={{ borderColor: brand.muted, color: brand.muted }}
               >
-                {t("loyalty.scanAtCounter", "Scan at the counter")}
+                <QrCode className="size-8" strokeWidth={1.5} />
               </span>
-            </div>
-          ) : null}
-        </footer>
-      ) : null}
+            )}
+            <span
+              className="text-[9px] uppercase tracking-[0.14em]"
+              style={{ color: brand.muted }}
+            >
+              {qrUrl
+                ? t("loyalty.scanAtCounter", "Scan at the counter")
+                : t("loyalty.codeComesNext", "Your code goes here")}
+            </span>
+          </div>
+        ) : null}
+      </footer>
     </section>
   );
 }

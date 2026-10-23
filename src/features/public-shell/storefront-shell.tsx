@@ -214,6 +214,7 @@ export function StorefrontShell({
   brand,
   product,
   headerMark = true,
+  footer = true,
 }: {
   children: ReactNode;
   /** Which product this page is, for the footer's signature. */
@@ -234,6 +235,13 @@ export function StorefrontShell({
    * rather than the same logo twice within a thumb's height.
    */
   headerMark?: boolean;
+  /**
+   * False when the page draws `MadarFooter` itself, inside content that swaps
+   * step by step (the loyalty sign-up): a footer left behind a swap jumps into
+   * view after the network answers, which is a layout shift; one that swaps
+   * with its step is simply new.
+   */
+  footer?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? i18n.language ?? "en";
@@ -276,7 +284,7 @@ export function StorefrontShell({
 
       <main className="relative z-10 mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-10 pt-5">
         <div className="flex-1">{children}</div>
-        <MadarFooter product={product} />
+        {footer ? <MadarFooter product={product} /> : null}
       </main>
     </div>
   );

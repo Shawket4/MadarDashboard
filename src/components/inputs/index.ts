@@ -13,5 +13,7 @@ export { MoneyField } from "./money-field";
 export { DateField, DateRangeField, quickRange, type DateRange } from "./date-field";
 export { WeekdayPicker, summarizeDays } from "./weekday-picker";
 export { PhoneField } from "./phone-field";
+export { BirthdayField } from "./birthday-field";
+export * from "./birthday";
 export { EmployeePicker } from "./pickers";
 export * from "./time";
