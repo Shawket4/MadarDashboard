@@ -249,6 +249,15 @@
     @apply border-border outline-ring;
   }
 
+  /* No double-tap zoom (owner decision: every entry blocks zoom; see CLAUDE.md
+     "Zoom"). The viewport meta blocks pinch-zoom where the browser honours it;
+     iOS Safari does not, but it does honour this, which also drops the tap
+     delay. Pinch and pan stay native wherever they are allowed. */
+  html,
+  body {
+    touch-action: manipulation;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
   }
@@ -333,7 +342,9 @@
   color: transparent;
 }
 
-/* Prevent iOS auto-zoom: inputs must be ≥16px on small viewports. */
+/* Prevent iOS auto-zoom: inputs must be ≥16px on small viewports. Unlayered and
+   `!important`, so no utility class on a field can take it under 16px; guarded
+   by src/lib/entry-html.test.ts. */
 @media screen and (max-width: 768px) {
   input,
   select,

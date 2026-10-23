@@ -32,7 +32,7 @@ export const contrast = (a: string, b: string): number => {
 };
 
 /** Mix two colours, `t` of the way from `a` to `b`. */
-const mix = (a: string, b: string, t: number): string => {
+export const mix = (a: string, b: string, t: number): string => {
   const ch = (h: string, i: number) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16);
   const c = (i: number) => Math.round(ch(a, i) + (ch(b, i) - ch(a, i)) * t);
   return `#${[0, 1, 2].map((i) => c(i).toString(16).padStart(2, "0")).join("")}`;
@@ -109,8 +109,15 @@ export function brandTokens(
   mode: "light" | "dark",
 ): Record<string, string> | null {
   if (!color || !HEX.test(color) || color.toUpperCase() === MADAR_TEAL) return null;
-  const fill = readableOn(color, PAGE_GROUND[mode]);
-  const label = labelOn(fill);
+  const walked = readableOn(color, PAGE_GROUND[mode]);
+  const label = labelOn(walked);
+  // The label has to clear the fill too. A colour walked just far enough to
+  // read on the dark page leaves about 4:1 for either label (an oxblood came
+  // out at 4.1), so keep walking it away from its label until both hold;
+  // that only ever adds contrast against the page as well.
+  const away = label === "#FFFFFF" ? "#000000" : "#FFFFFF";
+  let fill = walked;
+  for (let t = 0.04; contrast(label, fill) < AA && t <= 1.0001; t += 0.04) fill = mix(walked, away, t);
   return {
     "--primary": fill,
     "--primary-foreground": label,

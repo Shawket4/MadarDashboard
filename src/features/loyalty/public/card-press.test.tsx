@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import type { ResolvedBrand } from "../shared/brand";
+import type { ResolvedBrand } from "@/components/loyalty-card/card-brand";
 import { PressedCard, PressRest, PressStage } from "./card-press";
 
 const brand = { foreground: "oklch(0.98 0 0)" } as ResolvedBrand;

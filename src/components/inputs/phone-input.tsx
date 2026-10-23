@@ -13,7 +13,7 @@ import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { DIAL_CODES } from "./dial-codes";
-import { DEFAULT_REGION, dialCode, groupNational, nationalComplete, nationalDigits, nationalIssue, regionOf } from "./util";
+import { DEFAULT_REGION, dialCode, groupNational, nationalComplete, nationalDigits, nationalIssue, regionOf } from "./national-phone";
 
 /** A region's flag as an emoji (two regional-indicator letters). */
 const flagOf = (region: string): string =>
@@ -46,10 +46,12 @@ export interface PhoneInputProps {
   autoFocus?: boolean;
   /** A refusal from the server about this number (shown under the field). */
   invalid?: boolean;
+  /** Say what is wrong now, not only once the field is left (a form that was submitted short). */
+  showIssues?: boolean;
   "aria-describedby"?: string;
 }
 
-export function PhoneInput({ value, onChange, region, onRegionChange, id, disabled, autoFocus, invalid, "aria-describedby": describedBy }: PhoneInputProps) {
+export function PhoneInput({ value, onChange, region, onRegionChange, id, disabled, autoFocus, invalid, showIssues, "aria-describedby": describedBy }: PhoneInputProps) {
   const { t, i18n } = useTranslation();
   const regions = useRegions(i18n.resolvedLanguage ?? "en");
   const egypt = region === DEFAULT_REGION;
@@ -60,7 +62,7 @@ export function PhoneInput({ value, onChange, region, onRegionChange, id, disabl
   const noteId = `${id ?? "phone"}-note`;
 
   const shown = groupNational(value);
-  const issue = nationalIssue(value, touched, region);
+  const issue = nationalIssue(value, touched || !!showIssues, region) ?? (showIssues && !value ? "short" : null);
   const complete = nationalComplete(value, region) && !issue;
   const bad = invalid || !!issue;
 

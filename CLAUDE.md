@@ -47,7 +47,8 @@ explicit — see "Floor / tables" below. When you change a shared surface, check
   `src/routeTree.gen.ts`). *Not* React Router.
 - **State**: Zustand (client/global) + TanStack React Query (server state)
 - **API**: Orval-generated hooks over Axios (`src/data/api/`)
-- **Forms**: React Hook Form + Zod v4
+- **Forms**: React Hook Form + Zod v4 in the dashboard; customer-facing public forms are
+  Zod + local state (see "Forms in public bundles")
 - **Desktop**: Tauri (`@tauri-apps/api`, `src-tauri/`)
 - **Testing**: Vitest + Testing Library (jsdom), co-located `*.test.ts(x)`
 - **Mocking**: MSW (`src/data/api/mock/`), enabled by `VITE_MOCK=1`
@@ -99,12 +100,41 @@ scattering constants across components.
 1. **API integration** — never hand-write fetches. Use the generated hooks; regenerate
    via `npm run generate:api` when the backend changes.
 2. **Components** — build on Radix primitives (`components/ui`), styled with Tailwind.
-3. **Forms** — Zod schema + React Hook Form, always. Surface submit failures: a Save
-   button that silently does nothing is the worst outcome a form can have.
+3. **Forms** — in the authenticated dashboard, a Zod schema + React Hook Form, always.
+   A customer-facing public form takes Zod and its page's state, no React Hook Form
+   (see "Forms in public bundles").
+   Either way, surface submit failures: a Save button that silently does nothing is
+   the worst outcome a form can have.
 4. **Errors** — `toast.error(getErrorMessage(e))` (or `toast.apiError(e)`); never swallow a
    failed mutation. Toasts come from `@/components/ui/toast` only (see "Toasts").
 5. **Design tokens** — use the semantic CSS variables (`--color-success`, …). Never
    raw hex in components.
+
+### Forms in public bundles
+What the code does (audited 2026-10-23):
+- **The customer bundles carry no React Hook Form**: order (checkout, the order-now
+  identity, table ordering), reservations (reserve, manage) and loyalty (the sign-up).
+  It would add ~10 kB gzip (9.8 kB brotli with `@hookform/resolvers/zod`; zod itself is
+  already in every bundle) to pages opened on a phone at a counter, often on a shop's
+  wi-fi. Their state lives in the page (`useState`).
+- **The rule (owner, 2026-10-23):** a customer-facing public form is a Zod schema with
+  the page's own state, no React Hook Form; a staff tool served from a public bundle (the
+  Rewards teller) may use React Hook Form + `zodResolver`, as the dashboard does.
+  - the loyalty sign-up is the model: a Zod schema in a pure module beside the page
+    (`features/loyalty/public/join-form.ts`: what makes the details ready, and the
+    exact request body), unit-tested;
+  - the Rewards teller's owner sign-in (`features/rewards-teller/setup-screen.tsx`) is
+    the staff case, on React Hook Form + `zodResolver`;
+  - order and reservations predate the rule and still validate by hand (a `validate()`
+    returning a message per field, the phone through `@/lib/phone`'s `isValidPhone` /
+    `canonicalPhone`): move a form to a Zod schema when it is next reworked.
+- **The parts they share, which every new one uses:**
+  - errors under their field, with `aria-invalid` and `aria-describedby`;
+  - the server's refusal through `getErrorMessage`, toasted as well with
+    `useErrorToast` / `toastFormError` (`features/public-shell/public-toaster`),
+    because the field may be scrolled away;
+  - a phone and its WhatsApp code through `PhoneInput` / `OtpInput` (`components/inputs`)
+    and the OTP state machine `usePhoneOtp` (`features/public-shell/use-phone-otp`).
 
 ## Design Context
 Strategic intent lives in [`PRODUCT.md`](PRODUCT.md); the visual system in
@@ -119,6 +149,16 @@ Strategic intent lives in [`PRODUCT.md`](PRODUCT.md); the visual system in
   `prefers-reduced-motion` are correctness requirements, not extras.
 - **Anti-references (never):** generic SaaS-cream template, loud delivery-app neon,
   enterprise-grey snoozefest, consumer toy-like.
+
+### Zoom is blocked (owner decision, 2026-10-23)
+Every Vite entry (`index`, `order`, `reservations`, `loyalty`, `rewards`) blocks zoom:
+`maximum-scale=1, user-scalable=no` in its viewport meta, `touch-action: manipulation`
+on `html`/`body` (no double-tap zoom), and every `input`/`select`/`textarea` at 16px on
+phones (`globals.css`), so iOS never zooms in on a focused field. The trade-off is
+accessibility: it fails WCAG 1.4.4 (resize text) for anyone who pinches to read. iOS
+Safari ignores `user-scalable=no` for that reason, so iOS users can still pinch; Android
+browsers honour it. `src/lib/entry-html.test.ts` guards all three. The Astro site is
+not covered.
 
 ### Colour and contrast, concretely
 A state's colour token is fine for a 3px ring and useless for 12px text. Measured on

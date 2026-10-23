@@ -70,7 +70,7 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { useHostOrg } from "@/features/public-shell/use-brand";
 import { EASE_NAME, useTimeline } from "@/lib/motion";
 
-import { resolveBrand, type ResolvedBrand } from "../shared/brand";
+import { resolveBrand, type ResolvedBrand } from "@/components/loyalty-card/card-brand";
 import { Panel } from "./page-shell";
 
 /**

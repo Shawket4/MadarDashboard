@@ -25,10 +25,13 @@
  * phone and the card on the page never disagree.
  */
 import { useRef, type CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useGrowSignal } from "@/features/public-shell/motion";
 import { playIn, recipes, useGsap, type Recipe } from "@/lib/motion";
 import { rules } from "@/lib/rules";
+
+import { stampsOf, type StampUnit } from "./wording";
 
 /** A stamp landing on the card: it springs into its circle. */
 const STAMP_IN: Recipe = { ...recipes.pop, from: { opacity: 0, scale: 0.5 } };
@@ -45,18 +48,22 @@ export const stampable = (target: number): boolean => rules.loyalty_stamps(0, ta
 export function StampRow({
   earned,
   target,
+  unit,
   accent,
   onAccent,
   muted,
 }: {
   earned: number;
   target: number;
+  /** What a stamp counts, for the row's spoken label ("3 of 6 orders"). */
+  unit: StampUnit;
   /** Filled steps and the completed track. */
   accent: string;
   /** Ink ON a filled step — the card's ground, so the tick reads. */
   onAccent: string;
   muted: string;
 }) {
+  const { t } = useTranslation();
   // Clamped, not trusted: redemption leaves a remainder and an adjustment can
   // exceed the target; neither should render a broken row.
   const filled = rules.loyalty_stamps(earned, target) ?? 0;
@@ -106,7 +113,7 @@ export function StampRow({
       className="relative flex w-full items-center justify-between"
       style={{ gap: GAP, "--step": size } as CSSProperties}
       role="img"
-      aria-label={`${filled} of ${target} collected`}
+      aria-label={stampsOf(t, unit, filled, target)}
     >
       {/* The track, behind the steps. One element, so the line never breaks. */}
       <div

@@ -4,6 +4,7 @@ import { ArrowUpRight, Languages, Moon, Sun } from "lucide-react";
 
 import { MadarMark } from "@/components/brand/marks";
 import { MadarWordmark } from "@/components/brand/madar-wordmark";
+import { RewardsLockup } from "@/components/brand/rewards-lockup";
 import { LegalLinks } from "@/components/legal-links";
 
 import { currentYear } from "@shared/dates";
@@ -216,7 +217,11 @@ export function StorefrontShell({
   headerMark = true,
 }: {
   children: ReactNode;
-  /** Which product this page is, for the footer's signature. */
+  /**
+   * Which product this page is, for the footer's signature. A Rewards page
+   * (`"loyalty"`) also opens with Rewards by Madar's lockup in the header,
+   * where another page has the shop's mark: the shop's own is on its card.
+   */
   product?: MadarProduct;
   /**
    * Whose page this is.
@@ -252,12 +257,28 @@ export function StorefrontShell({
   useBrandSkin(brand?.background);
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col bg-background text-foreground">
+    // `overflow-x-clip`: a step sliding in past the edge (in Arabic, past the
+    // left one) must not widen the page, which would scroll sideways or be
+    // re-fitted by the phone, moving everything on it. `clip`, not `hidden`,
+    // so the sticky header keeps sticking.
+    <div className="relative flex min-h-[100dvh] flex-col overflow-x-clip bg-background text-foreground">
       <BrandWash brand={brand} />
 
       <header data-sticky-header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[480px] items-center gap-2 px-4 py-3">
-          {brand && headerMark ? (
+          {product === "loyalty" ? (
+            // The kit's compact lockup at its 28px minimum (`RewardsLockup`), at the
+            // start, going where the footer's badge goes.
+            <a
+              href={madarSiteHref(lang, signatureSource(typeof window === "undefined" ? "" : window.location.hostname), product)}
+              target="_blank"
+              rel="noopener"
+              aria-label={`${t("loyalty.rewardsByMadar", "Rewards by Madar")} ${t("common.opensInNewTab", "(opens in a new tab)")}`}
+              className="me-auto flex shrink-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <RewardsLockup lang={lang.startsWith("ar") ? "ar" : "en"} />
+            </a>
+          ) : brand && headerMark ? (
             <BrandMark brand={brand} />
           ) : (
             <>

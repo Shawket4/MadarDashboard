@@ -8,22 +8,27 @@
  * shop with an empty list to apologise for.
  *
  * The unit is the reader's, not the wire's. `cost_currency` says `"points"` or
- * `"visits"`; the page says "points" or "orders" in the reader's language, in
- * the words the counter uses back to them.
+ * `"visits"`; the page says points, or what a stamp counts here (orders, items,
+ * stamps: `wording.ts`), in the reader's language and plural.
  */
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Gift } from "lucide-react";
 
+import { COST_KEY, type StampUnit } from "@/components/loyalty-card/wording";
 import type { PublicReward } from "@/data/api/generated/models/publicReward";
+import { fmtNumber } from "@/lib/format";
 
 import { Panel, Section } from "./page-shell";
 
 export function RewardsList({
   rewards,
   accent,
+  unit,
 }: {
   rewards: PublicReward[];
   accent: string;
+  /** The programme's unit, for a reward priced in stamps. */
+  unit: StampUnit;
 }) {
   const { t } = useTranslation();
   if (rewards.length === 0) return null;
@@ -35,13 +40,18 @@ export function RewardsList({
           {rewards.map((r) => (
             <li key={`${r.name}-${r.cost_amount}`} className="flex items-center gap-3 px-5 py-3.5">
               <Gift className="size-[18px] shrink-0" style={{ color: accent }} aria-hidden />
-              <span className="min-w-0 flex-1 text-[15px] font-medium leading-snug">{r.name}</span>
-              <span className="shrink-0 font-mono text-[13px] tabular-nums text-muted-foreground">
-                {r.cost_amount}{" "}
-                {t(
-                  `loyalty.unit.${r.cost_currency === "visits" ? "orders" : "points"}`,
-                  r.cost_currency === "visits" ? "orders" : "points",
-                )}
+              <span className="min-w-0 flex-1 text-[15px] font-medium leading-snug">
+                <bdi>{r.name}</bdi>
+              </span>
+              {/* A price in its unit's grammar ("طلب واحد", "12 طلبًا"); the figure,
+                  where there is one, in the mono cut. */}
+              <span className="shrink-0 text-[13px] text-muted-foreground">
+                <Trans
+                  i18nKey={COST_KEY[r.cost_currency === "points" ? "points" : unit === "points" ? "order" : unit]}
+                  count={r.cost_amount}
+                  values={{ n: fmtNumber(r.cost_amount) }}
+                  components={{ n: <span className="font-mono tabular-nums" /> }}
+                />
               </span>
             </li>
           ))}
