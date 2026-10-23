@@ -4,6 +4,7 @@ import { routes as admin } from "@/lib/prefetch/admin";
 import { routes as inventory } from "@/lib/prefetch/inventory";
 import { routes as menu } from "@/lib/prefetch/menu";
 import { routes as reports } from "@/lib/prefetch/reports";
+import { routes as rewards } from "@/lib/prefetch/rewards";
 import { routes as sales } from "@/lib/prefetch/sales";
 import { routes as settings } from "@/lib/prefetch/settings";
 import { routes as staff } from "@/lib/prefetch/staff";
@@ -39,7 +40,7 @@ export type RoutePrefetchMap = Record<string, RoutePrefetch>;
  * without a trailing slash. `route-prefetch.test.ts` walks the route tree and
  * fails when a page route has neither an entry nor a place on `NOTHING_TO_WARM`.
  */
-export const ROUTE_PREFETCH: RoutePrefetchMap = { ...sales, ...menu, ...reports, ...inventory, ...staff, ...admin, ...settings };
+export const ROUTE_PREFETCH: RoutePrefetchMap = { ...sales, ...menu, ...reports, ...inventory, ...staff, ...admin, ...settings, ...rewards };
 
 /**
  * Routes whose `beforeLoad` only redirects (old URLs kept working): a link to
@@ -71,6 +72,8 @@ export const REDIRECTS: Record<string, string> = {
   "/reports/operations/profitability": "/reports/operations",
   "/reports/operations/tables": "/reports/operations",
   "/reports/sales": "/reports/operations",
+  // Settings › Loyalty moved into Rewards; its default tab lands on the programme.
+  "/settings/loyalty": "/rewards/programme",
   "/shifts": "/tills",
   "/users": "/access/users",
 };

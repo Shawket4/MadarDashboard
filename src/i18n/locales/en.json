@@ -226,7 +226,14 @@
     "deals": "Deals",
     "reportsBundles": "Bundles",
     "combosSettings": "Combos and deals",
-    "shopSetup": "Shop setup"
+    "shopSetup": "Shop setup",
+    "rewards": "Rewards",
+    "rewardsOverview": "Overview",
+    "rewardsMembers": "Members",
+    "rewardsProgramme": "Programme",
+    "rewardsCard": "Card design",
+    "rewardsNotifications": "Notifications",
+    "rewardsAutomations": "Automations"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -2542,7 +2549,17 @@
       "LOYALTY_PROGRAM_OFF": "The loyalty programme is switched off here.",
       "LOYALTY_KEY_REUSED": "That request was already used for something else. Try again.",
       "LOYALTY_CARD_AT_CAP": "This card is at the shop's limit. Complete it before stamping more.",
-      "ADDON_ON_PAID": "The paid plan already includes this."
+      "ADDON_ON_PAID": "The paid plan already includes this.",
+      "LOYALTY_MESSAGE_INVALID": "That message can't be sent: keep it to one line of up to 100 characters, with no links.",
+      "LOYALTY_AUDIENCE_INVALID": "That audience isn't valid. Check the filters and try again.",
+      "LOYALTY_MESSAGE_DAILY_LIMIT": "The shop has sent its 3 messages for today. Try again tomorrow, or schedule it.",
+      "LOYALTY_MESSAGE_SCHEDULE": "Schedule a message between 5 minutes and 30 days ahead.",
+      "LOYALTY_MESSAGE_NOBODY": "Nobody in that audience can be reached. Widen the filters.",
+      "LOYALTY_MESSAGE_NOT_CANCELLABLE": "Only a scheduled message can be cancelled; this one has already gone out.",
+      "LOYALTY_DESIGN_INVALID": "The card design has problems to fix before it can be saved or published.",
+      "LOYALTY_DESIGN_NO_DRAFT": "There is no draft to publish. Save the design first.",
+      "LOYALTY_TRACKS_INVALID": "The stamp tracks have problems to fix before they can be saved.",
+      "LOYALTY_TRACK_UNKNOWN": "That stamp track doesn't exist any more. Reload and try again."
     },
     "tooManyRequests": "Too many requests just now. Try again in a moment.",
     "contact": "Contact Madar",
@@ -7940,5 +7957,47 @@
     "stamp": "Stamp",
     "stamped": "{{count}} stamps added",
     "stampsOf": "{{have}} of {{size}} stamps"
+  },
+  "rewards": {
+    "audience": {
+      "track": "Stamp track",
+      "value": "Balance",
+      "days": "Days",
+      "daysUnit": "days",
+      "month": "Month",
+      "wallet": "Wallet",
+      "walletApple": "Apple Wallet",
+      "walletGoogle": "Google Wallet",
+      "walletNone": "Neither (no card)",
+      "segments": "Segments",
+      "everyone": "Every member",
+      "addFilter": "Add a filter",
+      "filters": "Filters",
+      "remove": "Remove filter",
+      "presetLapsed": "Lapsed 30 days",
+      "presetRewardWaiting": "Reward waiting",
+      "presetBirthday": "Birthday this month",
+      "presetNewWeek": "New this week",
+      "presetNoCard": "No card in a wallet",
+      "typeBalanceAtLeast": "Balance at least",
+      "typeBalanceAtMost": "Balance at most",
+      "typeRewardReady": "Has a reward waiting",
+      "typeVisitedWithin": "Visited in the last…",
+      "typeNotVisitedFor": "Not seen for…",
+      "typeJoinedWithin": "Joined in the last…",
+      "typeBirthdayMonth": "Birthday in…",
+      "typeHasWallet": "Card in a wallet",
+      "problemTooMany": "Use at most 6 filters.",
+      "problemTrack": "A filter names a stamp track the card no longer has.",
+      "problemBalance": "A balance must be between 0 and 1,000,000.",
+      "problemDays": "Days must be between 1 and 365.",
+      "problemMonth": "Pick a month.",
+      "problemContradict": "Two filters can never both be true, so nobody would match.",
+      "problemOther": "This segment isn't valid."
+    },
+    "common": {
+      "trackOne": "Main card",
+      "trackN": "Track {{n}}"
+    }
   }
 }

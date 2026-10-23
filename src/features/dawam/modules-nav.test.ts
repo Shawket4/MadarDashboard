@@ -38,7 +38,7 @@ describe("route module (the gate reads the same tags)", () => {
     for (const p of ["/staff/employees", "/staff/attendance", "/staff/shifts", "/staff/requests", "/staff/rules", "/staff/setup", "/staff/team", "/staff/schedule", "/staff/approvals", "/staff/payroll", "/staff/reports", "/reports/staff"]) {
       expect(moduleOfPath(p)).toBe("dawam");
     }
-    for (const p of ["/orders", "/tills", "/menu/items", "/menu/items/abc", "/inventory/today", "/reports/staff-pool", "/settings/loyalty", "/devices"]) {
+    for (const p of ["/orders", "/tills", "/menu/items", "/menu/items/abc", "/inventory/today", "/reports/staff-pool", "/rewards/card", "/rewards/members/m1", "/devices"]) {
       expect(moduleOfPath(p)).toBe("pos");
     }
     for (const p of ["/", "/branches", "/settings", "/access/users", "/reports/legal", "/orgs"]) {

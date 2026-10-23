@@ -2,9 +2,19 @@
 // tracks, audiences and messages answer exactly as the server's crate.
 import { describe, expect, it } from "vitest";
 
-import design from "../card_design_vectors.json";
-import rules from "../card_rules_vectors.json";
-import { cardRulesNow } from "./card";
+import designJson from "../card_design_vectors.json";
+import rulesJson from "../card_rules_vectors.json";
+import { cardRulesNow, type Audience, type CardDesign, type Ctx, type Message, type Mode, type Track } from "./card";
+
+// JSON imports widen enums to string; the vectors are the crate's own types.
+type Case<T> = T & { name: string; expected: unknown };
+const design = designJson as unknown as { validate: Case<{ design: CardDesign; ctx: Ctx }>[] };
+const rules = rulesJson as unknown as {
+  tracks: Case<{ tracks: Track[]; mode: Mode }>[];
+  audience: Case<{ audience: Audience; track_count: number }>[];
+  message: Case<{ message: Message }>[];
+  stepper: Case<{ balance: number; size: number }>[];
+};
 
 describe("card package", () => {
   const w = cardRulesNow()!;

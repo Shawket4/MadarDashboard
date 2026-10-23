@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 
 import { authzFrom } from "@/data/authz/use-authz";
 import { FEATURES } from "@/generated/plans";
+import { setOrgAddons } from "@/lib/plan-features";
 
 import { NAV, featureOfPath, isParent, leafVisible, type NavLeaf } from "./nav";
 
@@ -22,9 +23,26 @@ describe("nav features", () => {
 
   it("a Free org loses bookings, inventory, loyalty, Basira, kitchen setup and Dawam", () => {
     const free = shown("free");
-    for (const p of ["/bookings", "/inventory/today", "/inventory/ingredients", "/reports/loyalty", "/basira", "/branch-setup", "/staff/employees", "/menu/bases"]) {
+    for (const p of ["/bookings", "/inventory/today", "/inventory/ingredients", "/reports/loyalty", "/rewards", "/rewards/card", "/rewards/notifications", "/basira", "/branch-setup", "/staff/employees", "/menu/bases"]) {
       expect(free, p).not.toContain(p);
     }
+  });
+
+  it("a Free org with the Rewards add-on gets the Rewards module", () => {
+    setOrgAddons(["loyalty"]);
+    try {
+      const free = shown("free");
+      for (const p of ["/rewards", "/rewards/members", "/rewards/programme", "/rewards/card", "/rewards/notifications", "/rewards/automations", "/reports/loyalty"]) {
+        expect(free, p).toContain(p);
+      }
+      expect(featureOfPath("/rewards/members/m1")).toBe("loyalty");
+    } finally {
+      setOrgAddons([]);
+    }
+  });
+
+  it("Settings › Loyalty is no longer a sidebar entry (it redirects into Rewards)", () => {
+    expect(shown("paid")).not.toContain("/settings/loyalty");
   });
 
   it("a Free org keeps selling, the floor, the menu, tills, discounts, reports and settings", () => {

@@ -10,7 +10,6 @@ import {
 } from "@/data/api/generated/api";
 import type { MyAuthz } from "@/data/api/generated/models";
 import { useAuthStore } from "@/data/stores/auth.store";
-import { prefetchLoyaltySettings } from "@/features/loyalty/admin/queries";
 import { prefetchOrgs } from "@/features/orgs/queries";
 import { prefetchLoyaltyReport } from "@/features/reports/loyalty/queries";
 import { Cap, type Capability } from "@/generated/capabilities";
@@ -26,7 +25,6 @@ export const routes: RoutePrefetchMap = {
   "/branch-setup": (qc, { branchId }) => {
     if (branchId) void qc.prefetchQuery(getGetPlanQueryOptions({ branch_id: branchId }));
   },
-  "/settings/loyalty": prefetchLoyaltySettings,
   "/reports/loyalty": prefetchLoyaltyReport,
   "/orgs": prefetchOrgs,
   "/branches": (qc, { orgId }) => {

@@ -68,11 +68,15 @@ describe("visibleSettings on the Free plan", () => {
   it("drops brand, delivery, bookings, loyalty, QR, kitchen and integrations", () => {
     const shown = free(["pos"]);
     for (const p of [
-      "/settings/brand", "/settings/delivery", "/settings/bookings", "/settings/loyalty",
+      "/settings/brand", "/settings/delivery", "/settings/bookings",
       "/settings/qr", "/settings/kitchen-stations", "/settings/kitchen-routing", "/settings/integrations",
     ]) {
       expect(shown, p).not.toContain(p);
     }
+  });
+
+  it("has no Loyalty pane: the programme moved into the Rewards module", () => {
+    expect(SETTINGS_NAV.flatMap((g) => g.items.map((i) => i.to))).not.toContain("/settings/loyalty");
   });
 
   it("keeps the Links page: its menu without prices is on every plan", () => {

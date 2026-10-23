@@ -1,6 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ClipboardCheck,
+  BellRing,
+  CalendarHeart,
+  CreditCard,
+  Gauge,
+  Gift,
   Armchair,
   Network,
   Contact,
@@ -133,6 +138,21 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    // Rewards by Madar: the loyalty programme, its card, its members and the
+    // messages sent on the card. Settings › Loyalty moved here (it redirects).
+    // `loyalty` is on Paid plans and on Free with the Rewards add-on.
+    labelKey: "nav.rewards",
+    fallback: "Rewards",
+    entries: [
+      { caps: [Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/rewards", labelKey: "nav.rewardsOverview", fallback: "Overview", icon: Gauge },
+      { caps: [Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/rewards/members", labelKey: "nav.rewardsMembers", fallback: "Members", icon: Users },
+      { caps: [Cap.loyaltyRead, Cap.loyaltyUse], module: "pos", feature: "loyalty", to: "/rewards/programme", labelKey: "nav.rewardsProgramme", fallback: "Programme", icon: Gift },
+      { caps: [Cap.loyaltyRead], module: "pos", feature: "loyalty", to: "/rewards/card", labelKey: "nav.rewardsCard", fallback: "Card design", icon: CreditCard },
+      { caps: [Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/rewards/notifications", labelKey: "nav.rewardsNotifications", fallback: "Notifications", icon: BellRing },
+      { caps: [Cap.loyaltyRead, Cap.loyaltyUse], module: "pos", feature: "loyalty", to: "/rewards/automations", labelKey: "nav.rewardsAutomations", fallback: "Automations", icon: CalendarHeart },
+    ],
+  },
+  {
     labelKey: "nav.basira",
     fallback: "Basira",
     entries: [
@@ -198,7 +218,6 @@ export const NAV: NavGroup[] = [
       // The branch's hardware and how it talks: a canvas, so a page of its own
       // rather than a settings pane.
       { caps: [Cap.kitchenStationsEdit], module: "pos", feature: "kitchen", to: "/branch-setup", labelKey: "nav.branchSetup", fallback: "Branch setup", icon: Network },
-      { caps: [Cap.loyaltyUse, Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/settings/loyalty", labelKey: "nav.loyalty", fallback: "Loyalty", icon: Star },
       { caps: [Cap.orgSettingsRead, Cap.orgSettingsEdit], module: "pos", to: "/settings/staff-pool", labelKey: "nav.staffPool", fallback: "Staff drinks", icon: CupSoda },
     ],
   },

@@ -33,7 +33,11 @@ import { loyaltyAccess } from "../../shared/access";
 import { Spinner } from "@/components/ui/spinner";
 import { useIsStandaloneLoyalty } from "@/hooks/use-plan";
 
-export function ProgramPane({ scope }: { scope: ProgramScope }) {
+/** The form's cards. Rewards › Programme shows the rules, Rewards › Automations the rest; Save always sends the whole settings object. */
+export type ProgramCard = "basics" | "collecting" | "signup" | "passes";
+const ALL_CARDS: ProgramCard[] = ["basics", "collecting", "signup", "passes"];
+
+export function ProgramPane({ scope, cards = ALL_CARDS }: { scope: ProgramScope; cards?: ProgramCard[] }) {
   const { t } = useTranslation();
   const confirm = useConfirm();
   const { query, settings, inherited } = useProgram(scope);
@@ -133,6 +137,7 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
         </p>
       ) : null}
 
+      {cards.includes("basics") ? (
       <Card>
         <CardContent className="space-y-5 p-5">
           <ToggleRow
@@ -156,8 +161,9 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
           </div>
         </CardContent>
       </Card>
+      ) : null}
 
-      {standalone ? (
+      {!cards.includes("collecting") ? null : standalone ? (
         <Card>
           <CardContent className="space-y-3 p-5">
             <TextRow
@@ -176,12 +182,14 @@ export function ProgramPane({ scope }: { scope: ProgramScope }) {
       ) : (
         <CollectingCard form={form} derivedCap={settings?.effective_balance_cap ?? null} />
       )}
-      <SignupCard form={form} saved={settings} />
-      <PassesCard
-        form={form}
-        branchId={scope.branchId}
-        geofencedBranches={settings?.geofenced_branches ?? 0}
-      />
+      {cards.includes("signup") ? <SignupCard form={form} saved={settings} /> : null}
+      {cards.includes("passes") ? (
+        <PassesCard
+          form={form}
+          branchId={scope.branchId}
+          geofencedBranches={settings?.geofenced_branches ?? 0}
+        />
+      ) : null}
 
       </fieldset>
 

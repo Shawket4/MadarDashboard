@@ -37,6 +37,7 @@ import { Route as AppInventoryRouteRouteImport } from './routes/_app/inventory/r
 import { Route as AppDeliveryRouteRouteImport } from './routes/_app/delivery/route'
 import { Route as AppAccessRouteRouteImport } from './routes/_app/access/route'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
+import { Route as AppRewardsIndexRouteImport } from './routes/_app/rewards/index'
 import { Route as AppMenuIndexRouteImport } from './routes/_app/menu/index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app/inventory/index'
 import { Route as AppDeliveryIndexRouteImport } from './routes/_app/delivery/index'
@@ -67,6 +68,11 @@ import { Route as AppSettingsDeliveryRouteImport } from './routes/_app/settings/
 import { Route as AppSettingsCombosRouteImport } from './routes/_app/settings/combos'
 import { Route as AppSettingsBrandRouteImport } from './routes/_app/settings/brand'
 import { Route as AppSettingsBookingsRouteImport } from './routes/_app/settings/bookings'
+import { Route as AppRewardsProgrammeRouteImport } from './routes/_app/rewards/programme'
+import { Route as AppRewardsNotificationsRouteImport } from './routes/_app/rewards/notifications'
+import { Route as AppRewardsMembersRouteImport } from './routes/_app/rewards/members'
+import { Route as AppRewardsCardRouteImport } from './routes/_app/rewards/card'
+import { Route as AppRewardsAutomationsRouteImport } from './routes/_app/rewards/automations'
 import { Route as AppReportsTillsRouteImport } from './routes/_app/reports/tills'
 import { Route as AppReportsStaffPoolRouteImport } from './routes/_app/reports/staff-pool'
 import { Route as AppReportsStaffRouteImport } from './routes/_app/reports/staff'
@@ -107,6 +113,7 @@ import { Route as AppAccessUsersRouteImport } from './routes/_app/access/users'
 import { Route as AppAccessRolesRouteImport } from './routes/_app/access/roles'
 import { Route as AppAccessReviewRouteImport } from './routes/_app/access/review'
 import { Route as AppReportsOperationsIndexRouteImport } from './routes/_app/reports/operations/index'
+import { Route as AppRewardsMembersMemberIdRouteImport } from './routes/_app/rewards/members_.$memberId'
 import { Route as AppReportsOperationsTablesRouteImport } from './routes/_app/reports/operations/tables'
 import { Route as AppReportsOperationsProfitabilityRouteImport } from './routes/_app/reports/operations/profitability'
 import { Route as AppMenuItemsItemIdRouteImport } from './routes/_app/menu/items_.$itemId'
@@ -250,6 +257,11 @@ const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppRewardsIndexRoute = AppRewardsIndexRouteImport.update({
+  id: '/rewards/',
+  path: '/rewards/',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMenuIndexRoute = AppMenuIndexRouteImport.update({
   id: '/',
@@ -404,6 +416,31 @@ const AppSettingsBookingsRoute = AppSettingsBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
   getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+const AppRewardsProgrammeRoute = AppRewardsProgrammeRouteImport.update({
+  id: '/rewards/programme',
+  path: '/rewards/programme',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppRewardsNotificationsRoute = AppRewardsNotificationsRouteImport.update({
+  id: '/rewards/notifications',
+  path: '/rewards/notifications',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppRewardsMembersRoute = AppRewardsMembersRouteImport.update({
+  id: '/rewards/members',
+  path: '/rewards/members',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppRewardsCardRoute = AppRewardsCardRouteImport.update({
+  id: '/rewards/card',
+  path: '/rewards/card',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppRewardsAutomationsRoute = AppRewardsAutomationsRouteImport.update({
+  id: '/rewards/automations',
+  path: '/rewards/automations',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppReportsTillsRoute = AppReportsTillsRouteImport.update({
   id: '/reports/tills',
@@ -608,6 +645,12 @@ const AppReportsOperationsIndexRoute =
     path: '/reports/operations/',
     getParentRoute: () => AppRouteRoute,
   } as any)
+const AppRewardsMembersMemberIdRoute =
+  AppRewardsMembersMemberIdRouteImport.update({
+    id: '/rewards/members_/$memberId',
+    path: '/rewards/members/$memberId',
+    getParentRoute: () => AppRouteRoute,
+  } as any)
 const AppReportsOperationsTablesRoute =
   AppReportsOperationsTablesRouteImport.update({
     id: '/reports/operations/tables',
@@ -697,6 +740,11 @@ export interface FileRoutesByFullPath {
   '/reports/staff': typeof AppReportsStaffRoute
   '/reports/staff-pool': typeof AppReportsStaffPoolRoute
   '/reports/tills': typeof AppReportsTillsRoute
+  '/rewards/automations': typeof AppRewardsAutomationsRoute
+  '/rewards/card': typeof AppRewardsCardRoute
+  '/rewards/members': typeof AppRewardsMembersRoute
+  '/rewards/notifications': typeof AppRewardsNotificationsRoute
+  '/rewards/programme': typeof AppRewardsProgrammeRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/combos': typeof AppSettingsCombosRoute
@@ -727,11 +775,13 @@ export interface FileRoutesByFullPath {
   '/delivery/': typeof AppDeliveryIndexRoute
   '/inventory/': typeof AppInventoryIndexRoute
   '/menu/': typeof AppMenuIndexRoute
+  '/rewards/': typeof AppRewardsIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
   '/menu/combos/$comboId': typeof AppMenuCombosComboIdRoute
   '/menu/items/$itemId': typeof AppMenuItemsItemIdRoute
   '/reports/operations/profitability': typeof AppReportsOperationsProfitabilityRoute
   '/reports/operations/tables': typeof AppReportsOperationsTablesRoute
+  '/rewards/members/$memberId': typeof AppRewardsMembersMemberIdRoute
   '/reports/operations/': typeof AppReportsOperationsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -795,6 +845,11 @@ export interface FileRoutesByTo {
   '/reports/staff': typeof AppReportsStaffRoute
   '/reports/staff-pool': typeof AppReportsStaffPoolRoute
   '/reports/tills': typeof AppReportsTillsRoute
+  '/rewards/automations': typeof AppRewardsAutomationsRoute
+  '/rewards/card': typeof AppRewardsCardRoute
+  '/rewards/members': typeof AppRewardsMembersRoute
+  '/rewards/notifications': typeof AppRewardsNotificationsRoute
+  '/rewards/programme': typeof AppRewardsProgrammeRoute
   '/settings/bookings': typeof AppSettingsBookingsRoute
   '/settings/brand': typeof AppSettingsBrandRoute
   '/settings/combos': typeof AppSettingsCombosRoute
@@ -825,11 +880,13 @@ export interface FileRoutesByTo {
   '/delivery': typeof AppDeliveryIndexRoute
   '/inventory': typeof AppInventoryIndexRoute
   '/menu': typeof AppMenuIndexRoute
+  '/rewards': typeof AppRewardsIndexRoute
   '/settings': typeof AppSettingsIndexRoute
   '/menu/combos/$comboId': typeof AppMenuCombosComboIdRoute
   '/menu/items/$itemId': typeof AppMenuItemsItemIdRoute
   '/reports/operations/profitability': typeof AppReportsOperationsProfitabilityRoute
   '/reports/operations/tables': typeof AppReportsOperationsTablesRoute
+  '/rewards/members/$memberId': typeof AppRewardsMembersMemberIdRoute
   '/reports/operations': typeof AppReportsOperationsIndexRoute
 }
 export interface FileRoutesById {
@@ -900,6 +957,11 @@ export interface FileRoutesById {
   '/_app/reports/staff': typeof AppReportsStaffRoute
   '/_app/reports/staff-pool': typeof AppReportsStaffPoolRoute
   '/_app/reports/tills': typeof AppReportsTillsRoute
+  '/_app/rewards/automations': typeof AppRewardsAutomationsRoute
+  '/_app/rewards/card': typeof AppRewardsCardRoute
+  '/_app/rewards/members': typeof AppRewardsMembersRoute
+  '/_app/rewards/notifications': typeof AppRewardsNotificationsRoute
+  '/_app/rewards/programme': typeof AppRewardsProgrammeRoute
   '/_app/settings/bookings': typeof AppSettingsBookingsRoute
   '/_app/settings/brand': typeof AppSettingsBrandRoute
   '/_app/settings/combos': typeof AppSettingsCombosRoute
@@ -930,11 +992,13 @@ export interface FileRoutesById {
   '/_app/delivery/': typeof AppDeliveryIndexRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
   '/_app/menu/': typeof AppMenuIndexRoute
+  '/_app/rewards/': typeof AppRewardsIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
   '/_app/menu/combos_/$comboId': typeof AppMenuCombosComboIdRoute
   '/_app/menu/items_/$itemId': typeof AppMenuItemsItemIdRoute
   '/_app/reports/operations/profitability': typeof AppReportsOperationsProfitabilityRoute
   '/_app/reports/operations/tables': typeof AppReportsOperationsTablesRoute
+  '/_app/rewards/members_/$memberId': typeof AppRewardsMembersMemberIdRoute
   '/_app/reports/operations/': typeof AppReportsOperationsIndexRoute
 }
 export interface FileRouteTypes {
@@ -1005,6 +1069,11 @@ export interface FileRouteTypes {
     | '/reports/staff'
     | '/reports/staff-pool'
     | '/reports/tills'
+    | '/rewards/automations'
+    | '/rewards/card'
+    | '/rewards/members'
+    | '/rewards/notifications'
+    | '/rewards/programme'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/combos'
@@ -1035,11 +1104,13 @@ export interface FileRouteTypes {
     | '/delivery/'
     | '/inventory/'
     | '/menu/'
+    | '/rewards/'
     | '/settings/'
     | '/menu/combos/$comboId'
     | '/menu/items/$itemId'
     | '/reports/operations/profitability'
     | '/reports/operations/tables'
+    | '/rewards/members/$memberId'
     | '/reports/operations/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1103,6 +1174,11 @@ export interface FileRouteTypes {
     | '/reports/staff'
     | '/reports/staff-pool'
     | '/reports/tills'
+    | '/rewards/automations'
+    | '/rewards/card'
+    | '/rewards/members'
+    | '/rewards/notifications'
+    | '/rewards/programme'
     | '/settings/bookings'
     | '/settings/brand'
     | '/settings/combos'
@@ -1133,11 +1209,13 @@ export interface FileRouteTypes {
     | '/delivery'
     | '/inventory'
     | '/menu'
+    | '/rewards'
     | '/settings'
     | '/menu/combos/$comboId'
     | '/menu/items/$itemId'
     | '/reports/operations/profitability'
     | '/reports/operations/tables'
+    | '/rewards/members/$memberId'
     | '/reports/operations'
   id:
     | '__root__'
@@ -1207,6 +1285,11 @@ export interface FileRouteTypes {
     | '/_app/reports/staff'
     | '/_app/reports/staff-pool'
     | '/_app/reports/tills'
+    | '/_app/rewards/automations'
+    | '/_app/rewards/card'
+    | '/_app/rewards/members'
+    | '/_app/rewards/notifications'
+    | '/_app/rewards/programme'
     | '/_app/settings/bookings'
     | '/_app/settings/brand'
     | '/_app/settings/combos'
@@ -1237,11 +1320,13 @@ export interface FileRouteTypes {
     | '/_app/delivery/'
     | '/_app/inventory/'
     | '/_app/menu/'
+    | '/_app/rewards/'
     | '/_app/settings/'
     | '/_app/menu/combos_/$comboId'
     | '/_app/menu/items_/$itemId'
     | '/_app/reports/operations/profitability'
     | '/_app/reports/operations/tables'
+    | '/_app/rewards/members_/$memberId'
     | '/_app/reports/operations/'
   fileRoutesById: FileRoutesById
 }
@@ -1449,6 +1534,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/'
       preLoaderRoute: typeof AppSettingsIndexRouteImport
       parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/rewards/': {
+      id: '/_app/rewards/'
+      path: '/rewards'
+      fullPath: '/rewards/'
+      preLoaderRoute: typeof AppRewardsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/menu/': {
       id: '/_app/menu/'
@@ -1659,6 +1751,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/bookings'
       preLoaderRoute: typeof AppSettingsBookingsRouteImport
       parentRoute: typeof AppSettingsRouteRoute
+    }
+    '/_app/rewards/programme': {
+      id: '/_app/rewards/programme'
+      path: '/rewards/programme'
+      fullPath: '/rewards/programme'
+      preLoaderRoute: typeof AppRewardsProgrammeRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/rewards/notifications': {
+      id: '/_app/rewards/notifications'
+      path: '/rewards/notifications'
+      fullPath: '/rewards/notifications'
+      preLoaderRoute: typeof AppRewardsNotificationsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/rewards/members': {
+      id: '/_app/rewards/members'
+      path: '/rewards/members'
+      fullPath: '/rewards/members'
+      preLoaderRoute: typeof AppRewardsMembersRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/rewards/card': {
+      id: '/_app/rewards/card'
+      path: '/rewards/card'
+      fullPath: '/rewards/card'
+      preLoaderRoute: typeof AppRewardsCardRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/rewards/automations': {
+      id: '/_app/rewards/automations'
+      path: '/rewards/automations'
+      fullPath: '/rewards/automations'
+      preLoaderRoute: typeof AppRewardsAutomationsRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/_app/reports/tills': {
       id: '/_app/reports/tills'
@@ -1940,6 +2067,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsOperationsIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/rewards/members_/$memberId': {
+      id: '/_app/rewards/members_/$memberId'
+      path: '/rewards/members/$memberId'
+      fullPath: '/rewards/members/$memberId'
+      preLoaderRoute: typeof AppRewardsMembersMemberIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/reports/operations/tables': {
       id: '/_app/reports/operations/tables'
       path: '/reports/operations/tables'
@@ -2149,6 +2283,11 @@ interface AppRouteRouteChildren {
   AppReportsStaffRoute: typeof AppReportsStaffRoute
   AppReportsStaffPoolRoute: typeof AppReportsStaffPoolRoute
   AppReportsTillsRoute: typeof AppReportsTillsRoute
+  AppRewardsAutomationsRoute: typeof AppRewardsAutomationsRoute
+  AppRewardsCardRoute: typeof AppRewardsCardRoute
+  AppRewardsMembersRoute: typeof AppRewardsMembersRoute
+  AppRewardsNotificationsRoute: typeof AppRewardsNotificationsRoute
+  AppRewardsProgrammeRoute: typeof AppRewardsProgrammeRoute
   AppStaffApprovalsRoute: typeof AppStaffApprovalsRoute
   AppStaffAttendanceRoute: typeof AppStaffAttendanceRoute
   AppStaffEmployeesRoute: typeof AppStaffEmployeesRoute
@@ -2160,8 +2299,10 @@ interface AppRouteRouteChildren {
   AppStaffSetupRoute: typeof AppStaffSetupRoute
   AppStaffShiftsRoute: typeof AppStaffShiftsRoute
   AppStaffTeamRoute: typeof AppStaffTeamRoute
+  AppRewardsIndexRoute: typeof AppRewardsIndexRoute
   AppReportsOperationsProfitabilityRoute: typeof AppReportsOperationsProfitabilityRoute
   AppReportsOperationsTablesRoute: typeof AppReportsOperationsTablesRoute
+  AppRewardsMembersMemberIdRoute: typeof AppRewardsMembersMemberIdRoute
   AppReportsOperationsIndexRoute: typeof AppReportsOperationsIndexRoute
 }
 
@@ -2204,6 +2345,11 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppReportsStaffRoute: AppReportsStaffRoute,
   AppReportsStaffPoolRoute: AppReportsStaffPoolRoute,
   AppReportsTillsRoute: AppReportsTillsRoute,
+  AppRewardsAutomationsRoute: AppRewardsAutomationsRoute,
+  AppRewardsCardRoute: AppRewardsCardRoute,
+  AppRewardsMembersRoute: AppRewardsMembersRoute,
+  AppRewardsNotificationsRoute: AppRewardsNotificationsRoute,
+  AppRewardsProgrammeRoute: AppRewardsProgrammeRoute,
   AppStaffApprovalsRoute: AppStaffApprovalsRoute,
   AppStaffAttendanceRoute: AppStaffAttendanceRoute,
   AppStaffEmployeesRoute: AppStaffEmployeesRoute,
@@ -2215,9 +2361,11 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppStaffSetupRoute: AppStaffSetupRoute,
   AppStaffShiftsRoute: AppStaffShiftsRoute,
   AppStaffTeamRoute: AppStaffTeamRoute,
+  AppRewardsIndexRoute: AppRewardsIndexRoute,
   AppReportsOperationsProfitabilityRoute:
     AppReportsOperationsProfitabilityRoute,
   AppReportsOperationsTablesRoute: AppReportsOperationsTablesRoute,
+  AppRewardsMembersMemberIdRoute: AppRewardsMembersMemberIdRoute,
   AppReportsOperationsIndexRoute: AppReportsOperationsIndexRoute,
 }
 

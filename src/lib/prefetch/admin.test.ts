@@ -21,8 +21,4 @@ describe("admin prefetch", () => {
     expect(warmed("/devices")).toEqual(['["/devices",{"branch_id":"b1"}]']);
     expect(warmed("/devices", [Cap.branchesEdit])).toContain('["/devices/activation-codes",{"branch_id":"b1"}]');
   });
-
-  it("warms Settings › Loyalty on its default tab with the panes' branch params", () => {
-    expect(warmed("/settings/loyalty")).toEqual(['["/branches",{"org_id":"o1"}]', '["/loyalty/settings",{"branch_id":"b1"}]']);
-  });
 });

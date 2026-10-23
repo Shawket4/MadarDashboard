@@ -226,7 +226,14 @@
     "deals": "العروض",
     "reportsBundles": "الكومبو والعروض",
     "combosSettings": "الكومبو والعروض",
-    "shopSetup": "إعداد المتجر"
+    "shopSetup": "إعداد المتجر",
+    "rewards": "المكافآت",
+    "rewardsOverview": "نظرة عامة",
+    "rewardsMembers": "الأعضاء",
+    "rewardsProgramme": "البرنامج",
+    "rewardsCard": "تصميم البطاقة",
+    "rewardsNotifications": "الإشعارات",
+    "rewardsAutomations": "الرسائل التلقائية"
   },
   "auth": {
     "welcome": "مرحباً بعودتك",
@@ -2566,7 +2573,17 @@
       "LOYALTY_PROGRAM_OFF": "برنامج الولاء متوقف هنا.",
       "LOYALTY_KEY_REUSED": "هذا الطلب استُخدم لشيء آخر. حاول مرة أخرى.",
       "LOYALTY_CARD_AT_CAP": "هذه البطاقة وصلت إلى حد المحل. أكملها قبل إضافة أختام أخرى.",
-      "ADDON_ON_PAID": "الباقة المدفوعة تشمل هذا بالفعل."
+      "ADDON_ON_PAID": "الباقة المدفوعة تشمل هذا بالفعل.",
+      "LOYALTY_MESSAGE_INVALID": "تعذّر إرسال هذه الرسالة: اجعلها سطرًا واحدًا لا يتجاوز 100 حرف ولا يتضمن روابط.",
+      "LOYALTY_AUDIENCE_INVALID": "هذا الجمهور غير صالح. راجع عوامل التصفية وأعد المحاولة.",
+      "LOYALTY_MESSAGE_DAILY_LIMIT": "أرسل المتجر رسائله الثلاث لهذا اليوم. أعد المحاولة غدًا أو جدولها.",
+      "LOYALTY_MESSAGE_SCHEDULE": "جدول الرسالة بين 5 دقائق و30 يومًا من الآن.",
+      "LOYALTY_MESSAGE_NOBODY": "لا يمكن الوصول إلى أي عضو في هذا الجمهور. وسّع عوامل التصفية.",
+      "LOYALTY_MESSAGE_NOT_CANCELLABLE": "لا يمكن إلغاء إلا الرسالة المجدولة، وقد أُرسلت هذه الرسالة بالفعل.",
+      "LOYALTY_DESIGN_INVALID": "في تصميم البطاقة مشكلات يجب إصلاحها قبل حفظه أو نشره.",
+      "LOYALTY_DESIGN_NO_DRAFT": "لا توجد مسودة للنشر. احفظ التصميم أولًا.",
+      "LOYALTY_TRACKS_INVALID": "في مسارات الأختام مشكلات يجب إصلاحها قبل الحفظ.",
+      "LOYALTY_TRACK_UNKNOWN": "لم يعد مسار الأختام هذا موجودًا. أعد تحميل الصفحة وحاول مجددًا."
     },
     "tooManyRequests": "طلبات كثيرة في الوقت الحالي. حاول مرة أخرى بعد لحظات.",
     "contact": "تواصل مع مدار",
@@ -8185,5 +8202,47 @@
     "stamp": "ختم",
     "stamped": "أُضيف {{count}} ختم",
     "stampsOf": "{{have}} من {{size}} أختام"
+  },
+  "rewards": {
+    "common": {
+      "trackOne": "البطاقة الرئيسية",
+      "trackN": "المسار {{n}}"
+    },
+    "audience": {
+      "presetLapsed": "غائبون منذ 30 يومًا",
+      "presetRewardWaiting": "لديهم مكافأة",
+      "presetBirthday": "عيد ميلادهم هذا الشهر",
+      "presetNewWeek": "انضموا هذا الأسبوع",
+      "presetNoCard": "بلا بطاقة في محفظة",
+      "typeBalanceAtLeast": "الرصيد لا يقل عن",
+      "typeBalanceAtMost": "الرصيد لا يزيد على",
+      "typeRewardReady": "لديه مكافأة مستحقة",
+      "typeVisitedWithin": "زار خلال آخر…",
+      "typeNotVisitedFor": "لم يزر منذ…",
+      "typeJoinedWithin": "انضم خلال آخر…",
+      "typeBirthdayMonth": "عيد ميلاده في…",
+      "typeHasWallet": "البطاقة في محفظة",
+      "problemTooMany": "استخدم ستة عوامل تصفية على الأكثر.",
+      "problemTrack": "أحد عوامل التصفية يشير إلى مسار أختام لم يعد في البطاقة.",
+      "problemBalance": "يجب أن يكون الرصيد بين 0 و1,000,000.",
+      "problemDays": "يجب أن تكون الأيام بين 1 و365.",
+      "problemMonth": "اختر شهرًا.",
+      "problemContradict": "عاملا تصفية لا يمكن أن يتحققا معًا، فلن يطابقهما أي عضو.",
+      "problemOther": "هذه الشريحة غير صالحة.",
+      "track": "مسار الأختام",
+      "value": "الرصيد",
+      "days": "الأيام",
+      "daysUnit": "يومًا",
+      "month": "الشهر",
+      "wallet": "المحفظة",
+      "walletApple": "Apple Wallet",
+      "walletGoogle": "Google Wallet",
+      "walletNone": "لا هذه ولا تلك (بلا بطاقة)",
+      "segments": "الشرائح",
+      "everyone": "كل الأعضاء",
+      "addFilter": "إضافة عامل تصفية",
+      "filters": "عوامل التصفية",
+      "remove": "إزالة عامل التصفية"
+    }
   }
 }
