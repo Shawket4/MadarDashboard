@@ -19,7 +19,7 @@
  */
 import { Trans, useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
-import { ArrowRight, CreditCard } from "lucide-react";
+import { ArrowRight, CreditCard, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -27,8 +27,9 @@ import { resolveBrand, type ResolvedBrand } from "@/components/loyalty-card/card
 import { LoyaltyCard } from "@/components/loyalty-card/loyalty-card";
 import { stampUnit } from "@/components/loyalty-card/wording";
 import { useLoyaltyCard } from "@/data/api/generated/api";
+import { fmtDate } from "@/lib/format";
 
-import { stampUnitOf, type CardViewNext as CardView } from "./api-next";
+import { stampUnitOf, type BirthdayGiftView, type CardViewNext as CardView } from "./api-next";
 import { PressedCard, PressRest, PressStage } from "./card-press";
 import { CardOrders } from "./card-orders";
 import { CardPreferences } from "./card-preferences";
@@ -116,6 +117,8 @@ function Card({
           />
         </PressedCard>
 
+        <BirthdayGift gift={data.birthday_gift} accent={accent} />
+
         {/* Right under the card it saves, as on the sign-up's last step. */}
         {data.passes.any ? (
           <div className="flex flex-col items-center gap-3">
@@ -148,5 +151,39 @@ function Card({
         </PressRest>
       </PressStage>
     </LoyaltyPage>
+  );
+}
+
+/**
+ * The birthday gift, under the card: one free item waiting until a date, said
+ * calmly in the page's own surface with the shop's colour on the gift only; once
+ * claimed, a quiet line. It arrives with the card, so it moves nothing.
+ */
+function BirthdayGift({ gift, accent }: { gift: BirthdayGiftView | null | undefined; accent: string }) {
+  const { t } = useTranslation();
+  if (gift?.status === "claimed") {
+    return (
+      <p className="-mt-4 flex items-center gap-2 text-[13px] leading-snug text-muted-foreground">
+        <Gift aria-hidden className="size-4 shrink-0" />
+        {t("loyalty.birthdayGiftClaimed", "You've used your birthday gift.")}
+      </p>
+    );
+  }
+  if (gift?.status !== "open") return null;
+  // `valid_until` is the end of the gift's last day in shop time: a moment
+  // before it is that day, whichever way the server writes the boundary.
+  const until = fmtDate(new Date(Date.parse(gift.valid_until) - 1));
+  return (
+    <div className="flex items-center gap-3.5 rounded-2xl border border-border/70 bg-card px-4 py-3.5 shadow-sm">
+      <span className="grid size-10 shrink-0 place-items-center rounded-full" style={{ backgroundColor: `color-mix(in oklab, ${accent} 14%, transparent)` }}>
+        <Gift aria-hidden className="size-5" style={{ color: accent }} />
+      </span>
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <p className="text-[15px] font-semibold leading-tight">{t("loyalty.birthdayGift", "Birthday gift")}</p>
+        <p className="text-[13px] leading-snug text-muted-foreground">
+          {t("loyalty.birthdayGiftOpen", { date: until, defaultValue: "A free item is waiting for you until {{date}}." })}
+        </p>
+      </div>
+    </div>
   );
 }

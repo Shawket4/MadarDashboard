@@ -149,6 +149,23 @@ describe("the sign-up", () => {
     expect(screen.getByText(/add 2 stamps to your card\. We don't ask for the year\./)).toBeInTheDocument();
   });
 
+  it("names a free item when the birthday gives one, never a stamp", async () => {
+    info = { ...baseInfo, birthday_enabled: true, birthday_reward_amount: 2, birthday_gift: "item" } as JoinInfo;
+    const { unmount } = mount();
+    expect(screen.getByText("We'll wish you a happy birthday and give you a free item on us. We don't ask for the year.")).toBeInTheDocument();
+    expect(screen.queryByText(/birthday.*stamp/i)).not.toBeInTheDocument();
+    unmount();
+    await i18n.changeLanguage("ar");
+    mount();
+    expect(screen.getByText("سنهنئك بعيد ميلادك ونقدّم لك منتجًا مجانيًا على حسابنا. لا نسأل عن السنة.")).toBeInTheDocument();
+  });
+
+  it("keeps the stamps wording for an 'amount' birthday", () => {
+    info = { ...baseInfo, birthday_enabled: true, birthday_reward_amount: 2, birthday_gift: "amount" } as JoinInfo;
+    mount();
+    expect(screen.getByText(/add 2 stamps to your card\. We don't ask for the year\./)).toBeInTheDocument();
+  });
+
   it("states the small print before the button, with the way out", () => {
     info = { ...baseInfo, terms: "One stamp per order." };
     mount();

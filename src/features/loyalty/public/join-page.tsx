@@ -615,19 +615,21 @@ function Details({
               hintId="loyalty-birthday-hint"
               hint={
                 // Say what it is FOR, and what is not being asked.
-                gift <= 0
-                  ? t("loyalty.birthdayNoGift", "So we can wish you a happy birthday. We don't ask for the year.")
-                  : unit !== "points"
-                    ? t("loyalty.birthdayGiftStamps", {
-                        count: gift,
-                        defaultValue_one: "We'll wish you a happy birthday and add {{count}} stamp to your card. We don't ask for the year.",
-                        defaultValue_other: "We'll wish you a happy birthday and add {{count}} stamps to your card. We don't ask for the year.",
-                      })
-                    : t("loyalty.birthdayGiftPoints", {
-                        count: gift,
-                        defaultValue_one: "We'll wish you a happy birthday and add {{count}} point to your card. We don't ask for the year.",
-                        defaultValue_other: "We'll wish you a happy birthday and add {{count}} points to your card. We don't ask for the year.",
-                      })
+                data.birthday_gift === "item"
+                  ? t("loyalty.birthdayGiftItem", "We'll wish you a happy birthday and give you a free item on us. We don't ask for the year.")
+                  : gift <= 0
+                    ? t("loyalty.birthdayNoGift", "So we can wish you a happy birthday. We don't ask for the year.")
+                    : unit !== "points"
+                      ? t("loyalty.birthdayGiftStamps", {
+                          count: gift,
+                          defaultValue_one: "We'll wish you a happy birthday and add {{count}} stamp to your card. We don't ask for the year.",
+                          defaultValue_other: "We'll wish you a happy birthday and add {{count}} stamps to your card. We don't ask for the year.",
+                        })
+                      : t("loyalty.birthdayGiftPoints", {
+                          count: gift,
+                          defaultValue_one: "We'll wish you a happy birthday and add {{count}} point to your card. We don't ask for the year.",
+                          defaultValue_other: "We'll wish you a happy birthday and add {{count}} points to your card. We don't ask for the year.",
+                        })
               }
             >
               <BirthdayField

@@ -5,10 +5,10 @@
  * backend lands: regenerate, then delete this file and use `JoinInfo` /
  * `CardView` where these types are used.
  *
- * Two branches carry the stamp unit, in two places: wt-wafa-api puts
- * `stamp_unit` on the join info itself; wt-rewards-dash-api puts it inside the
- * optional `card` (the published design), on the join info and the card view.
- * The page reads either (`stampUnitOf`).
+ * MadarRust main (5b5396a8) sends `stamp_unit`, `card_size` and
+ * `birthday_gift` on the join info and the card view, and `member_count` on the
+ * join info; wt-rewards-dash-api also puts the stamp unit inside the optional
+ * `card` (the published design). The page reads either (`stampUnitOf`).
  */
 import type { CardView, JoinInfo } from "@/data/api/generated/models";
 
@@ -34,12 +34,25 @@ export type JoinInfoNext = JoinInfo & CardSizeNext & {
   member_count?: number | null;
   stamp_unit?: StampUnitWire | null;
   card?: CardDesignNext | null;
+  /**
+   * What a birthday gives here: `item` (one free item) or `amount`
+   * (`birthday_reward_amount` on the card); absent when birthdays give nothing.
+   */
+  birthday_gift?: "item" | "amount" | null;
 };
 
 export type CardViewNext = CardView & CardSizeNext & {
   stamp_unit?: StampUnitWire | null;
   card?: CardDesignNext | null;
+  /** The member's birthday gift while it is open, or claimed and still in its window. */
+  birthday_gift?: BirthdayGiftView | null;
 };
+
+/** `BirthdayGiftView`: `valid_until` is the end of the gift's last day, shop time. */
+export interface BirthdayGiftView {
+  status: "open" | "claimed" | string;
+  valid_until: string;
+}
 
 /** The server's word for a stamp, wherever this server put it. */
 export const stampUnitOf = (d: { stamp_unit?: string | null; card?: CardDesignNext | null }): string | null =>

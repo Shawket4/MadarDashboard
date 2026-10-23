@@ -77,6 +77,37 @@ describe("CardPage", () => {
   });
 });
 
+describe("CardPage — birthday gift", () => {
+  // The end of the gift's last day in Cairo, written as the next midnight: the
+  // page names the 21st, not the 22nd.
+  const valid_until = "2026-11-21T22:00:00Z";
+
+  it("says a free item is waiting, until its last day", () => {
+    card = { ...base, birthday_gift: { status: "open", valid_until } } as Partial<CardView>;
+    render(<CardPage token="card-token" />);
+    expect(screen.getByText("Birthday gift")).toBeInTheDocument();
+    expect(screen.getByText("A free item is waiting for you until 21 Nov 2026.")).toBeInTheDocument();
+  });
+
+  it("says it in Arabic", async () => {
+    await i18n.changeLanguage("ar");
+    card = { ...base, birthday_gift: { status: "open", valid_until } } as Partial<CardView>;
+    render(<CardPage token="card-token" />);
+    expect(screen.getByText("منتج مجاني بانتظارك حتى 21 نوفمبر 2026.")).toBeInTheDocument();
+  });
+
+  it("is a quiet line once claimed, and nothing when there is none", () => {
+    card = { ...base, birthday_gift: { status: "claimed", valid_until } } as Partial<CardView>;
+    const { unmount } = render(<CardPage token="card-token" />);
+    expect(screen.getByText("You've used your birthday gift.")).toBeInTheDocument();
+    expect(screen.queryByText(/free item is waiting/)).not.toBeInTheDocument();
+    unmount();
+    card = { ...base };
+    render(<CardPage token="card-token" />);
+    expect(screen.queryByText(/birthday gift/i)).not.toBeInTheDocument();
+  });
+});
+
 describe("CardPage — Order now", () => {
   it("is the primary link when the server sends one", () => {
     card = { ...base, order_now_url: "https://order.example.test/now/card-token" };
