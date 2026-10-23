@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { DealApplicationInput } from './dealApplicationInput';
+import type { LoyaltyGiftInput } from './loyaltyGiftInput';
 import type { LoyaltyRedemptionInput } from './loyaltyRedemptionInput';
 import type { OrderItemInput } from './orderItemInput';
 import type { PaymentSplitInput } from './paymentSplitInput';
@@ -74,6 +75,7 @@ export interface CreateOrderRequest {
   idempotency_key?: string | null;
   items: OrderItemInput[];
   live_approval?: null | ReplayApproval;
+  loyalty_birthday_gift?: null | LoyaltyGiftInput;
   /**
      * The loyalty member spending a balance on this sale. Required when
      * `loyalty_redemptions` is non-empty, and ONLY for that: earning is a

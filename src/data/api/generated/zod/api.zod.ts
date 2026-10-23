@@ -7312,6 +7312,8 @@ export const PreviewLoyaltyBirthdayMessageBody = zod.object({
   "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
   "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
+  "birthday_gift": zod.string().nullish().describe('What the birthday gives: `\"none\"` (a greeting only), `\"amount\"`\n(`birthday_reward_amount` on the balance) or `\"item\"` (one free item\nfrom the rewards, whatever it costs, valid `birthday_gift_days` days).\n`None` on the way IN keeps the stored value, so a dashboard that has\nnever heard of it cannot switch it; always `Some` on the way out.'),
+  "birthday_gift_days": zod.number().nullish().describe('How many days an `\"item\"` gift stays valid from the birthday, 7 to 60\n(30 by default). `None` on the way IN keeps the stored value.'),
   "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
   "birthday_message_ar": zod.string().nullish(),
   "birthday_reward_amount": zod.number().nullish().describe('Points or stamps given on the day. `None` is a greeting and nothing else,\nwhich is deliberately the default: plenty of shops want to say happy\nbirthday without giving away a drink.'),
@@ -7359,6 +7361,44 @@ export const GetLoyaltyCampaignEffectivenessResponse = zod.object({
 }).describe('One outreach campaign\'s return-on-nudge: did the member earn again within\n30 days of the message.')),
   "from": zod.iso.datetime({"offset":true}),
   "to": zod.iso.datetime({"offset":true})
+})
+
+
+/**
+ * @summary Hand over the member's birthday gift at the counter: one free item, the
+shop's pick. No balance moves.
+ */
+export const LoyaltyCounterBirthdayGiftBody = zod.object({
+  "branch_id": zod.uuid(),
+  "customer_id": zod.uuid().describe('The member, as `\/loyalty\/lookup` resolved them.'),
+  "idempotency_key": zod.string().describe('One per attempt, made by the page (a UUID). A retry with the same key\nclaims nothing new.')
+})
+
+export const LoyaltyCounterBirthdayGiftResponse = zod.object({
+  "already": zod.boolean().describe('True when this key had already claimed it: nothing new was written.'),
+  "birthday_gift": zod.object({
+  "status": zod.string().describe('`open` (ready to claim) or `claimed`.'),
+  "valid_until": zod.iso.datetime({"offset":true}).describe('The gift is usable until this instant (end of its last day, shop time).')
+}).describe('The gift, now `claimed`.'),
+  "member": zod.object({
+  "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "can_redeem": zod.boolean().describe('The balance affords at least one reward on offer here.'),
+  "enrolled_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "lifetime_points": zod.number(),
+  "lifetime_visits": zod.number(),
+  "locale": zod.string(),
+  "mode": zod.string().describe('`\"points\"` or `\"visits\"` — what the branch that asked collects.'),
+  "name": zod.string(),
+  "next_reward_cost": zod.number().describe('The cheapest reward on offer here, in `mode`\'s currency — what the\nprogress line counts towards. Falls back to the scope\'s default cost\nwhen no rewards have been curated.'),
+  "org_id": zod.uuid(),
+  "phone": zod.string(),
+  "points_balance": zod.number(),
+  "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
+  "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
+  "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
+  "visits_balance": zod.number()
+}).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')
 })
 
 
@@ -7505,6 +7545,10 @@ export const LoyaltyLookupBody = zod.object({
 export const LoyaltyLookupResponse = zod.object({
   "any_item": zod.boolean().describe('The whole menu is claimable, not just `rewards`.\n\nWhen on, `rewards` stops being the list of what MAY be claimed — it is\nonly what happens to be curated — and the till offers every line at\n`any_item_cost`. Sent rather than inferred, because a till cannot tell\n\"no catalogue\" apart from \"any item\" without being told.'),
   "any_item_cost": zod.number().describe('What one line costs when `any_item` is on, in the branch\'s currency.'),
+  "birthday_gift": zod.union([zod.null(),zod.object({
+  "status": zod.string().describe('`open` (ready to claim) or `claimed`.'),
+  "valid_until": zod.iso.datetime({"offset":true}).describe('The gift is usable until this instant (end of its last day, shop time).')
+}).describe('The member\'s birthday gift: `open` is one free item to hand over\n(`loyalty_birthday_gift` on the order, or the counter\'s\n`\/loyalty\/counter\/birthday-gift`); `claimed` was used this time. Absent\nwhen there is none or it expired.')]).optional(),
   "max_rewards_per_order": zod.number().nullish().describe('The shop\'s ceiling on reward ITEMS per order, if it set one. The till\nenforces it before Charge so the server\'s refusal is never the first\nthe teller hears of it.'),
   "member": zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
@@ -7790,6 +7834,8 @@ export const GetLoyaltySettingsResponse = zod.object({
   "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
   "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
+  "birthday_gift": zod.string().nullish().describe('What the birthday gives: `\"none\"` (a greeting only), `\"amount\"`\n(`birthday_reward_amount` on the balance) or `\"item\"` (one free item\nfrom the rewards, whatever it costs, valid `birthday_gift_days` days).\n`None` on the way IN keeps the stored value, so a dashboard that has\nnever heard of it cannot switch it; always `Some` on the way out.'),
+  "birthday_gift_days": zod.number().nullish().describe('How many days an `\"item\"` gift stays valid from the birthday, 7 to 60\n(30 by default). `None` on the way IN keeps the stored value.'),
   "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
   "birthday_message_ar": zod.string().nullish(),
   "birthday_reward_amount": zod.number().nullish().describe('Points or stamps given on the day. `None` is a greeting and nothing else,\nwhich is deliberately the default: plenty of shops want to say happy\nbirthday without giving away a drink.'),
@@ -7822,6 +7868,8 @@ export const PutLoyaltySettingsBody = zod.object({
   "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
   "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
+  "birthday_gift": zod.string().nullish().describe('What the birthday gives: `\"none\"` (a greeting only), `\"amount\"`\n(`birthday_reward_amount` on the balance) or `\"item\"` (one free item\nfrom the rewards, whatever it costs, valid `birthday_gift_days` days).\n`None` on the way IN keeps the stored value, so a dashboard that has\nnever heard of it cannot switch it; always `Some` on the way out.'),
+  "birthday_gift_days": zod.number().nullish().describe('How many days an `\"item\"` gift stays valid from the birthday, 7 to 60\n(30 by default). `None` on the way IN keeps the stored value.'),
   "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
   "birthday_message_ar": zod.string().nullish(),
   "birthday_reward_amount": zod.number().nullish().describe('Points or stamps given on the day. `None` is a greeting and nothing else,\nwhich is deliberately the default: plenty of shops want to say happy\nbirthday without giving away a drink.'),
@@ -7853,6 +7901,8 @@ export const PutLoyaltySettingsResponse = zod.object({
   "balance_cap": zod.number().nullish().describe('The ceiling, when `balance_cap_enabled`. `None` = derive it.\n\nA `None` here is NOT \"no cap\" — that is what the switch is for. It means\nthe most expensive reward on offer at this scope, read from the\ncatalogue at award time. Once a customer can claim anything in the\nprogramme, collecting more buys them nothing and leaves the shop\ncarrying a liability it never chose; and because it is derived, adding a\ndearer reward raises the ceiling without anyone retyping it.\n\nEarning at the cap is DROPPED, not refused: the sale is not the\ncustomer\'s doing and must not fail because their card is full.'),
   "balance_cap_enabled": zod.boolean().optional().describe('Whether a ceiling applies to what a member may hold at all.\n\nSeparate from the figure below, because \"no number\" has to be able to\nmean something. Off, a card collects without end.'),
   "birthday_enabled": zod.boolean().optional().describe('Ask for a birthday at signup, and greet them on the day.\n\nOff means the form does not ASK — not that it asks and ignores. A date of\nbirth is the most sensitive thing this feature collects, and a shop that\ndoes not run birthday rewards has no business holding one.'),
+  "birthday_gift": zod.string().nullish().describe('What the birthday gives: `\"none\"` (a greeting only), `\"amount\"`\n(`birthday_reward_amount` on the balance) or `\"item\"` (one free item\nfrom the rewards, whatever it costs, valid `birthday_gift_days` days).\n`None` on the way IN keeps the stored value, so a dashboard that has\nnever heard of it cannot switch it; always `Some` on the way out.'),
+  "birthday_gift_days": zod.number().nullish().describe('How many days an `\"item\"` gift stays valid from the birthday, 7 to 60\n(30 by default). `None` on the way IN keeps the stored value.'),
   "birthday_message": zod.string().nullish().describe('Overrides the built-in greeting. `{name}` is substituted; nothing else is.'),
   "birthday_message_ar": zod.string().nullish(),
   "birthday_reward_amount": zod.number().nullish().describe('Points or stamps given on the day. `None` is a greeting and nothing else,\nwhich is deliberately the default: plenty of shops want to say happy\nbirthday without giving away a drink.'),
@@ -10596,6 +10646,8 @@ export const SettleOpenTicketParams = zod.object({
   "id": zod.uuid().describe('Open ticket ID')
 })
 
+export const settleOpenTicketBodyLoyaltyBirthdayGiftTwoItemIndexMin = 0;
+
 export const settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin = 0;
 
 
@@ -10620,6 +10672,10 @@ export const SettleOpenTicketBody = zod.object({
   "percent_bps": zod.number().nullish().describe('Basis points, for an act capped by `max_percent` (a discount). Additive.'),
   "value_minor": zod.number().nullish().describe('The value an approval covered (`max_value` limits, e.g. a waste).')
 }).describe('A manager\'s one-time PIN approval for the LIVE settle route (owner,\n2026-09-17), same shape and same verification as the replay one.\nAdditive.')]).optional(),
+  "loyalty_birthday_gift": zod.union([zod.null(),zod.object({
+  "item_index": zod.number().min(settleOpenTicketBodyLoyaltyBirthdayGiftTwoItemIndexMin).nullish().describe('Index into `items`.'),
+  "ticket_line_id": zod.uuid().nullish().describe('A ticket settle names the line by `open_ticket_items.id` instead; the\nserver fills in `item_index`.')
+}).describe('The member\'s birthday gift on one line, named by `ticket_line_id`.')]).optional(),
   "loyalty_customer_id": zod.uuid().nullish().describe('The member spending a balance on this settle, when rewards are applied.'),
   "loyalty_redemptions": zod.array(zod.object({
   "item_index": zod.number().min(settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin).nullish().describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.\n\nOptional because a TICKET settle names its lines by id instead (see\n`ticket_line_id`) and the server fills this in — a till settling a ticket\ncannot see the order the server will flatten its rounds into, and a\nguessed index takes the wrong item off the bill.'),
@@ -10964,6 +11020,8 @@ export const ListOrdersResponse = zod.object({
 })
 
 
+export const createOrderBodyLoyaltyBirthdayGiftTwoItemIndexMin = 0;
+
 export const createOrderBodyLoyaltyRedemptionsItemItemIndexMin = 0;
 
 
@@ -11039,6 +11097,10 @@ export const CreateOrderBody = zod.object({
   "percent_bps": zod.number().nullish().describe('Basis points, for an act capped by `max_percent` (a discount). Additive.'),
   "value_minor": zod.number().nullish().describe('The value an approval covered (`max_value` limits, e.g. a waste).')
 }).describe('A manager\'s one-time PIN approval for the LIVE route (owner,\n2026-09-17): the offline queue has always carried an `approval` on the\nreplay envelope; this is the same object, sent with the live request\ninstead, so a live over-cap discount need not queue to be approved.\nVerified the same way replay verifies one; `discount_approval_id`\nabove is set from its `id` once verified. Additive.')]).optional(),
+  "loyalty_birthday_gift": zod.union([zod.null(),zod.object({
+  "item_index": zod.number().min(createOrderBodyLoyaltyBirthdayGiftTwoItemIndexMin).nullish().describe('Index into `items`.'),
+  "ticket_line_id": zod.uuid().nullish().describe('A ticket settle names the line by `open_ticket_items.id` instead; the\nserver fills in `item_index`.')
+}).describe('The member\'s birthday gift on ONE line: one unit of it free, whatever\nit costs, no balance spent (`loyalty::gifts`). Needs\n`loyalty_customer_id`. Refused live with `LOYALTY_GIFT_NONE`,\n`LOYALTY_GIFT_NOT_A_REWARD` or `LOYALTY_GIFT_LINE`. Additive.')]).optional(),
   "loyalty_customer_id": zod.uuid().nullish().describe('The loyalty member spending a balance on this sale. Required when\n`loyalty_redemptions` is non-empty, and ONLY for that: earning is a\nseparate, later act (`POST \/loyalty\/award`), so a sale that redeems\nnothing never names a member here.'),
   "loyalty_redemptions": zod.array(zod.object({
   "item_index": zod.number().min(createOrderBodyLoyaltyRedemptionsItemItemIndexMin).nullish().describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.\n\nOptional because a TICKET settle names its lines by id instead (see\n`ticket_line_id`) and the server fills this in — a till settling a ticket\ncannot see the order the server will flatten its rounds into, and a\nguessed index takes the wrong item off the bill.'),
@@ -13750,6 +13812,10 @@ export const LoyaltyCardParams = zod.object({
 
 export const LoyaltyCardResponse = zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
+  "birthday_gift": zod.union([zod.null(),zod.object({
+  "status": zod.string().describe('`open` (ready to claim) or `claimed`.'),
+  "valid_until": zod.iso.datetime({"offset":true}).describe('The gift is usable until this instant (end of its last day, shop time).')
+}).describe('The member\'s birthday gift while it is open, or claimed and still in\nits window. Absent otherwise.')]).optional(),
   "brand": zod.object({
   "background_color": zod.string().nullish().describe('`#RRGGBB`, validated on write.'),
   "card_image_url": zod.string().nullish().describe('The wide photograph across the card — Apple\'s strip, Google\'s hero\nimage, and the band at the top of the web card. Absent is a finished\ncard, not a broken one.'),
@@ -13767,6 +13833,7 @@ export const LoyaltyCardResponse = zod.object({
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('Whose card this is, and how it should look.'),
   "can_redeem": zod.boolean(),
+  "card_size": zod.number().nullish().describe('The card size: how many stamps (or points) fill one card, the cheapest\nreward on offer (`model::card_size`), the same figure the till and the\npasses count towards. Equal to `next_reward_cost`, under its own name.'),
   "marketing_opt_out": zod.boolean().describe('They have asked this shop to stop sending them things.'),
   "member_token": zod.string(),
   "mode": zod.string(),
@@ -13785,7 +13852,8 @@ export const LoyaltyCardResponse = zod.object({
   "cost_currency": zod.string(),
   "name": zod.string()
 }).describe('A reward as the signup page lists it: what it is, and what it costs.')),
-  "rewards_ready": zod.number().describe('Rewards the balance has already earned — a card does not stop at full.')
+  "rewards_ready": zod.number().describe('Rewards the balance has already earned — a card does not stop at full.'),
+  "stamp_unit": zod.string().nullish().describe('What one stamp stands for: `order`, `item` or `stamp` (a counter\nshop); absent for points. The join info\'s rule (`earn::StampUnit`).')
 }).describe('The member\'s own card page — what they see when they open the link again.\n\nThe token in the path is the member\'s secret, which is why this returns only\nwhat the pass already shows and never the phone number in full.')
 
 
@@ -13885,6 +13953,7 @@ export const LoyaltyJoinResponse = zod.object({
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('How a tenant\'s card should look.\n\nEvery field is optional and the site falls back to Madar\'s own palette, so a\ntenant who has set nothing still gets a finished card rather than an\nunstyled one. `org_name` is NOT optional: whose card this is must always be\non it, however little else has been configured.'),
   "card_link_sent": zod.boolean().describe('While `verify_required`: the card link was also sent to the number on\nfile, by WhatsApp — the one channel that proves possession without a\ncode. False when no gateway is configured or there is no public base to\nbuild a link on; the page then offers only the OTP.'),
+  "card_size": zod.number().nullish().describe('The card size: how many stamps (or points) fill one card, the cheapest\nreward on offer (`model::card_size`), the same figure the till and the\npasses count towards. Equal to `next_reward_cost`, under its own name.'),
   "member_token": zod.string().nullish().describe('Absent when `verify_required`: the page has nothing to show yet.'),
   "mode": zod.string(),
   "name": zod.string().describe('The name as the caller typed it. For a returning member the name ON FILE\nis not echoed until they have verified — it is a fact about the person\nwho owns the phone, not about the person typing it.'),
@@ -13894,6 +13963,7 @@ export const LoyaltyJoinResponse = zod.object({
   "apple_url": zod.string().nullish().describe('Downloads the signed `.pkpass`. Site-relative, because the signup page\nis served from the same origin as the API — so a pass needs a\nCERTIFICATE, not a configured base URL.'),
   "google_url": zod.string().nullish().describe('The Google Wallet save link: the signed JWT on pay.google.com\'s save path.')
 }).describe('Absent when `verify_required`.')]).optional(),
+  "stamp_unit": zod.string().nullish().describe('What one stamp stands for: `order`, `item` or `stamp` (a counter\nshop); absent for points. The join info\'s rule (`earn::StampUnit`).'),
   "verify_required": zod.boolean().describe('This phone already has a card and the device has not proved it owns the\nphone. The page should run the ordinary OTP flow (`\/public\/otp\/request`\nthen `\/public\/otp\/verify`) and POST here again with the `device_token`\nit is handed; the card comes back on that call.')
 }).describe('What the customer sees after signing up: their card, and the buttons — or,\nfor a phone that is already a member and has not been proved, an invitation\nto prove it.\n\nThe member token is a bearer credential: whoever holds it holds the card,\nthe balance, the purchase history and the wallet passes. So it is handed out\non exactly two occasions — to a NEW member, whose token nobody else could\nwant yet, and to an existing member whose device has verified THIS phone by\nOTP. Typing a phone number is not proof of owning it; anyone who knows a\ncustomer\'s number can type it.')
 
@@ -13909,6 +13979,7 @@ export const LoyaltyJoinInfoQueryParams = zod.object({
 
 export const LoyaltyJoinInfoResponse = zod.object({
   "birthday_enabled": zod.boolean().describe('Ask for a date of birth. False means the form does not show the field —\na shop that does not run birthday rewards is not given one to hold.'),
+  "birthday_gift": zod.string().nullish().describe('What the birthday gives here: `item` (one free item) or `amount`\n(`birthday_reward_amount` on the card). Absent when birthdays are off\nor give nothing.'),
   "birthday_reward_amount": zod.number().nullish().describe('What the birthday is worth here, so the page can say what it is FOR\nrather than asking for a date of birth and explaining nothing.'),
   "branch_id": zod.uuid().nullish().describe('Absent for an org-wide code — the customer has not told us where they\nare, and nothing in the programme needs to know.'),
   "branch_name": zod.string().nullish(),
@@ -13928,8 +13999,10 @@ export const LoyaltyJoinInfoResponse = zod.object({
   "url": zod.string().describe('An https address and nothing else — checked on write and again on read, see\n`orgs::social::links_of`.')
 }).describe('One place the shop can be found, as a page prints it.\n\nThe same three things the wallet passes render (`wallet::apple`,\n`wallet::google`), so the card in the phone and the card on the page list\nthe same links in the same order.')).describe('Where else to find the shop, in the order a card prints them. Empty is\nthe common case, and the page draws nothing for it — no row, no\nplaceholder.\n\nNOT gated on the branding tier, like `OrgBrand::social_links` it is read\nfrom: a shop\'s Instagram is a fact about the shop in the way its name\nis, so a Madar-coloured card carries the links too.')
 }).describe('Whose programme this is, and how the page should look.'),
+  "card_size": zod.number().nullish().describe('The card size: how many stamps (or points) fill one card, the cheapest\nreward on offer (`model::card_size`), the same figure the till and the\npasses count towards. Equal to `next_reward_cost`, under its own name.'),
   "earn_piastres_per_point": zod.number().describe('EGP that earns one point — the page\'s \"a point for every N EGP\" line.\nPiastres on the wire, as everywhere; the page divides by 100. Only\nmeaningful when `mode` is `\"points\"`.'),
   "enabled": zod.boolean().describe('False when the program is off here — the page says so instead of taking\na signup that would go nowhere.'),
+  "member_count": zod.number().nullish().describe('\"N+ people already have this card\": the programme\'s live members,\nfloored to a step (100, 150, 200, 250, 300, 400, 500, 750, 1000, ...;\n`loyalty::social`). Absent at 100 members or fewer, and never exact.'),
   "mode": zod.string().describe('`\"points\"` (earned on spend) or `\"visits\"` (a stamp per order) — which\nsentence the page writes.'),
   "next_reward_cost": zod.number().describe('The cheapest reward on offer, in `mode`\'s currency.'),
   "require_otp": zod.boolean().describe('The page collects an OTP only when the branch asks for one.'),
@@ -13938,6 +14011,7 @@ export const LoyaltyJoinInfoResponse = zod.object({
   "cost_currency": zod.string(),
   "name": zod.string()
 }).describe('A reward as the signup page lists it: what it is, and what it costs.')).describe('The rewards on offer, each with what it costs.'),
+  "stamp_unit": zod.string().nullish().describe('What one stamp stands for: `order` (one per sale), `item` (one per item\nbought) or `stamp` (a Rewards by Madar counter shop: the teller stamps\nthe card). Absent for a points programme. The same rule the passes and\nmessages use (`earn::StampUnit`).'),
   "terms": zod.string().nullish(),
   "terms_ar": zod.string().nullish()
 }).describe('What the signup page needs to render itself before anyone types anything.')

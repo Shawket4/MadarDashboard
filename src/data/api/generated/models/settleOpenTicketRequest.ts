@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { LoyaltyGiftInput } from './loyaltyGiftInput';
 import type { LoyaltyRedemptionInput } from './loyaltyRedemptionInput';
 import type { PaymentSplitInput } from './paymentSplitInput';
 import type { ReplayApproval } from './replayApproval';
@@ -70,6 +71,7 @@ export interface SettleOpenTicketRequest {
   /** @nullable */
   discount_value?: number | null;
   live_approval?: null | ReplayApproval;
+  loyalty_birthday_gift?: null | LoyaltyGiftInput;
   /**
      * The member spending a balance on this settle, when rewards are applied.
      * @nullable

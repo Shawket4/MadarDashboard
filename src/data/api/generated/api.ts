@@ -153,6 +153,8 @@ import type {
   ConversationDetail,
   ConversationList,
   CorrectRecordRequest,
+  CounterGiftRequest,
+  CounterGiftResult,
   CounterRedeemRequest,
   CounterResult,
   CounterStampRequest,
@@ -16308,6 +16310,73 @@ export function useGetLoyaltyCampaignEffectiveness<TData = Awaited<ReturnType<ty
 
 
 
+
+/**
+ * @summary Hand over the member's birthday gift at the counter: one free item, the
+shop's pick. No balance moves.
+ */
+export const loyaltyCounterBirthdayGift = (
+    counterGiftRequest: CounterGiftRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CounterGiftResult>(
+      {url: `/loyalty/counter/birthday-gift`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: counterGiftRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getLoyaltyCounterBirthdayGiftMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyCounterBirthdayGift>>, TError,{data: CounterGiftRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof loyaltyCounterBirthdayGift>>, TError,{data: CounterGiftRequest}, TContext> => {
+
+const mutationKey = ['loyaltyCounterBirthdayGift'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loyaltyCounterBirthdayGift>>, {data: CounterGiftRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  loyaltyCounterBirthdayGift(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoyaltyCounterBirthdayGiftMutationResult = NonNullable<Awaited<ReturnType<typeof loyaltyCounterBirthdayGift>>>
+    export type LoyaltyCounterBirthdayGiftMutationBody = CounterGiftRequest
+    export type LoyaltyCounterBirthdayGiftMutationError = ErrorBody
+
+    /**
+ * @summary Hand over the member's birthday gift at the counter: one free item, the
+shop's pick. No balance moves.
+ */
+export const useLoyaltyCounterBirthdayGift = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loyaltyCounterBirthdayGift>>, TError,{data: CounterGiftRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof loyaltyCounterBirthdayGift>>,
+        TError,
+        {data: CounterGiftRequest},
+        TContext
+      > => {
+      return useMutation(getLoyaltyCounterBirthdayGiftMutationOptions(options), queryClient);
+    }
 
 /**
  * @summary Complete a full card: deduct exactly the card's size; extra stamps stay.

@@ -13,6 +13,13 @@ export interface JoinInfo {
      */
   birthday_enabled: boolean;
   /**
+     * What the birthday gives here: `item` (one free item) or `amount`
+     * (`birthday_reward_amount` on the card). Absent when birthdays are off
+     * or give nothing.
+     * @nullable
+     */
+  birthday_gift?: string | null;
+  /**
      * What the birthday is worth here, so the page can say what it is FOR
      * rather than asking for a date of birth and explaining nothing.
      * @nullable
@@ -29,6 +36,13 @@ export interface JoinInfo {
   /** Whose programme this is, and how the page should look. */
   brand: CardBrand;
   /**
+     * The card size: how many stamps (or points) fill one card, the cheapest
+     * reward on offer (`model::card_size`), the same figure the till and the
+     * passes count towards. Equal to `next_reward_cost`, under its own name.
+     * @nullable
+     */
+  card_size?: number | null;
+  /**
      * EGP that earns one point — the page's "a point for every N EGP" line.
      * Piastres on the wire, as everywhere; the page divides by 100. Only
      * meaningful when `mode` is `"points"`.
@@ -40,6 +54,13 @@ export interface JoinInfo {
      */
   enabled: boolean;
   /**
+     * "N+ people already have this card": the programme's live members,
+     * floored to a step (100, 150, 200, 250, 300, 400, 500, 750, 1000, ...;
+     * `loyalty::social`). Absent at 100 members or fewer, and never exact.
+     * @nullable
+     */
+  member_count?: number | null;
+  /**
      * `"points"` (earned on spend) or `"visits"` (a stamp per order) — which
      * sentence the page writes.
      */
@@ -50,6 +71,14 @@ export interface JoinInfo {
   require_otp: boolean;
   /** The rewards on offer, each with what it costs. */
   rewards: PublicReward[];
+  /**
+     * What one stamp stands for: `order` (one per sale), `item` (one per item
+     * bought) or `stamp` (a Rewards by Madar counter shop: the teller stamps
+     * the card). Absent for a points programme. The same rule the passes and
+     * messages use (`earn::StampUnit`).
+     * @nullable
+     */
+  stamp_unit?: string | null;
   /** @nullable */
   terms?: string | null;
   /** @nullable */
