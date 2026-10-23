@@ -44,4 +44,13 @@ describe("a manual adjustment", () => {
     });
     expect(adjustToWire(base, "m-1").points).toBe(5);
   });
+
+  it("stamp tracks: the overdraw check reads the chosen track, and only tracks 2–4 are sent", () => {
+    const balanceOf = (t: number) => (t === 2 ? 3 : 10);
+    const r = adjustSchema(10, balanceOf).safeParse({ ...base, direction: "deduct", amount: 4, track: 2 });
+    expect(r.success).toBe(false);
+    expect(adjustSchema(10, balanceOf).safeParse({ ...base, direction: "deduct", amount: 4, track: 1 }).success).toBe(true);
+    expect(adjustToWire({ ...base, track: 2 }, "m-1")).toMatchObject({ track: 2 });
+    expect(adjustToWire({ ...base, track: 1 }, "m-1")).not.toHaveProperty("track");
+  });
 });

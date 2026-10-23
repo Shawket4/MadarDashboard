@@ -21,6 +21,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { ProgramPane } from "@/features/loyalty/admin/program/program-pane";
 import { RewardsPane } from "@/features/loyalty/admin/rewards/rewards-pane";
 import { SignUpCode } from "@/features/loyalty/admin/sign-up-code";
+import { TracksEditor } from "./tracks-editor";
 import { useIsStandaloneLoyalty } from "@/hooks/use-plan";
 import { useOrgId } from "@/hooks/use-org-id";
 
@@ -91,7 +92,3 @@ export function RewardsProgrammePage() {
   );
 }
 
-// TEMP until tracks-editor.tsx lands.
-function TracksEditor() {
-  return null;
-}

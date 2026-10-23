@@ -174,9 +174,12 @@ function MemberSummary({ member }: { member: MemberView }) {
 export function LedgerTable({
   entries,
   onOpenOrder,
+  trackName,
 }: {
   entries: LedgerEntry[];
   onOpenOrder: (orderId: string) => void;
+  /** Several stamp tracks: the name of the track a row moved (rows of tracks 2–4 carry `track`). */
+  trackName?: (position: number) => string;
 }) {
   const { t } = useTranslation();
   if (entries.length === 0) {
@@ -213,6 +216,11 @@ export function LedgerTable({
                     <StatusPill tone={TONE[tone]} size="sm">
                       {ledgerLabel(e, t)}
                     </StatusPill>
+                    {trackName && e.track ? (
+                      <StatusPill tone="info" size="sm">
+                        {trackName(e.track)}
+                      </StatusPill>
+                    ) : null}
                     {isUndone ? (
                       <span className="text-xs text-muted-foreground">
                         {t("loyalty.ledgerUndone", "reversed")}

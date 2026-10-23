@@ -90,4 +90,20 @@ describe("AdjustDialog", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/reason is required/);
     expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/reason is required/));
   });
+
+  it("offers a stamp track picker only when the card has several", () => {
+    open();
+    expect(screen.queryByRole("combobox", { name: "Stamp track" })).not.toBeInTheDocument();
+    wrap(
+      <AdjustDialog
+        member={member}
+        branches={[{ id: "b-1", name: "Maadi" }]}
+        defaultBranchId="b-1"
+        open
+        onOpenChange={() => {}}
+        tracks={[{ position: 1, name: "Coffee", balance: 4 }, { position: 2, name: "Croissants", balance: 1 }]}
+      />,
+    );
+    expect(screen.getByRole("combobox", { name: "Stamp track" })).toBeInTheDocument();
+  });
 });

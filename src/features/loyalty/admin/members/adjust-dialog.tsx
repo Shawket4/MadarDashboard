@@ -48,8 +48,11 @@ export function AdjustDialog({
   defaultBranchId,
   open,
   onOpenChange,
+  tracks,
 }: {
   member: MemberView;
+  /** The card's stamp tracks (track 1 first); a picker shows when there is more than one. */
+  tracks?: { position: number; name: string; balance: number }[];
   branches: { id: string; name: string }[];
   defaultBranchId: string | null;
   open: boolean;
@@ -64,11 +67,18 @@ export function AdjustDialog({
     direction: "add",
     amount: Number.NaN,
     reason: "",
+    track: 1,
   };
+  const multi = (tracks?.length ?? 0) > 1;
+  const balanceOf = (track: number) => tracks?.find((x) => x.position === track)?.balance ?? member.balance;
   const form = useForm<AdjustValues>({
-    resolver: zodResolver(adjustSchema(member.balance)),
+    resolver: zodResolver(adjustSchema(member.balance, multi ? balanceOf : undefined)),
     defaultValues: initial,
   });
+  const track = form.watch("track") ?? 1;
+  // Tracks 2–4 count stamps; track 1 the programme's own currency.
+  const unitMode = track > 1 ? "visits" : member.mode;
+  const held = multi ? balanceOf(track) : member.balance;
 
   useEffect(() => {
     if (open) form.reset(initial);
@@ -79,7 +89,7 @@ export function AdjustDialog({
   const err = (key?: string) =>
     key ? (
       <p role="alert" className="text-xs text-destructive">
-        {t(key, { balance: member.balance, unit: currencyLabel(member.mode, member.balance) })}
+        {t(key, { balance: held, unit: currencyLabel(unitMode, held) })}
       </p>
     ) : null;
 
@@ -133,9 +143,33 @@ export function AdjustDialog({
             )}
           />
 
+          {multi ? (
+            <div className="space-y-1.5">
+              <Label>{t("rewards.member.adjustTrack", "Stamp track")}</Label>
+              <Controller
+                control={form.control}
+                name="track"
+                render={({ field }) => (
+                  <Select value={String(field.value ?? 1)} onValueChange={(v) => field.onChange(Number(v))}>
+                    <SelectTrigger className="w-full" aria-label={t("rewards.member.adjustTrack", "Stamp track")}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tracks!.map((x) => (
+                        <SelectItem key={x.position} value={String(x.position)}>
+                          {x.name} ({x.balance})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+          ) : null}
+
           <div className="space-y-1.5">
             <Label htmlFor="adjust-amount">
-              {t("loyalty.adjustAmount", "Amount")} ({currencyLabel(member.mode)})
+              {t("loyalty.adjustAmount", "Amount")} ({currencyLabel(unitMode)})
             </Label>
             <Input
               id="adjust-amount"

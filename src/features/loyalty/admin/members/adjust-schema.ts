@@ -17,7 +17,8 @@ const ADJUST_LIMIT = 1_000_000;
 const REASON_MIN = 3;
 export const REASON_MAX = 500;
 
-export const adjustSchema = (balance: number) =>
+/** `balanceOf` (several stamp tracks): the chosen track's balance, for the overdraw check. */
+export const adjustSchema = (balance: number, balanceOf?: (track: number) => number) =>
   z.object({
     branch_id: z.string().min(1, { message: "loyalty.errors.adjustBranch" }),
     direction: z.enum(["add", "deduct"]),
@@ -31,9 +32,12 @@ export const adjustSchema = (balance: number) =>
       .trim()
       .min(REASON_MIN, { message: "loyalty.errors.adjustReason" })
       .max(REASON_MAX, { message: "loyalty.errors.adjustReasonLong" }),
+    /** The stamp track (1–4); 1 (or absent) is the card's own balance. */
+    track: z.number().int().min(1).max(4).optional(),
   })
   .superRefine((v, ctx) => {
-    if (v.direction === "deduct" && Number.isFinite(v.amount) && v.amount > balance) {
+    const held = balanceOf ? balanceOf(v.track ?? 1) : balance;
+    if (v.direction === "deduct" && Number.isFinite(v.amount) && v.amount > held) {
       ctx.addIssue({ code: "custom", path: ["amount"], message: "loyalty.errors.adjustOverdraw" });
     }
   });
@@ -46,4 +50,6 @@ export const adjustToWire = (v: AdjustValues, customerId: string) => ({
   customer_id: customerId,
   points: v.direction === "deduct" ? -v.amount : v.amount,
   note: v.reason.trim(),
+  // Track 1 is the balance above; the field is sent only for tracks 2–4.
+  ...(v.track && v.track > 1 ? { track: v.track } : {}),
 });
