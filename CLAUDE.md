@@ -119,6 +119,16 @@ Strategic intent lives in [`PRODUCT.md`](PRODUCT.md); the visual system in
 - **Anti-references (never):** generic SaaS-cream template, loud delivery-app neon,
   enterprise-grey snoozefest, consumer toy-like.
 
+### Zoom is blocked (owner decision, 2026-10-23)
+Every Vite entry (`index`, `order`, `reservations`, `loyalty`, `rewards`) blocks zoom:
+`maximum-scale=1, user-scalable=no` in its viewport meta, `touch-action: manipulation`
+on `html`/`body` (no double-tap zoom), and every `input`/`select`/`textarea` at 16px on
+phones (`globals.css`), so iOS never zooms in on a focused field. The trade-off is
+accessibility: it fails WCAG 1.4.4 (resize text) for anyone who pinches to read. iOS
+Safari ignores `user-scalable=no` for that reason, so iOS users can still pinch; Android
+browsers honour it. `src/lib/entry-html.test.ts` guards all three. The Astro site is
+not covered.
+
 ### Colour and contrast, concretely
 A state's colour token is fine for a 3px ring and useless for 12px text. Measured on
 their own tinted chips, the raw `--color-success/-warning/-destructive/-primary` tokens
