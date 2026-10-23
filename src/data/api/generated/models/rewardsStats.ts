@@ -12,6 +12,7 @@ export interface RewardsStats {
   /** Members holding the card in a wallet (Apple device or Google object). */
   members_with_card: number;
   messages_seen: number;
+  /** Messages that reached a card or WhatsApp (not "no card, no WhatsApp"). */
   messages_sent: number;
   /** `points` or `visits`. */
   mode: string;

@@ -11389,7 +11389,7 @@ export const GetLoyaltyStatsResponse = zod.object({
   "members_total": zod.number(),
   "members_with_card": zod.number().describe('Members holding the card in a wallet (Apple device or Google object).'),
   "messages_seen": zod.number(),
-  "messages_sent": zod.number(),
+  "messages_sent": zod.number().describe('Messages that reached a card or WhatsApp (not \"no card, no WhatsApp\").'),
   "mode": zod.string().describe('`points` or `visits`.'),
   "new_members": zod.number(),
   "per_track": zod.array(zod.object({
