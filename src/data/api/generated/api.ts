@@ -392,6 +392,7 @@ import type {
   ListRequestsParams,
   ListRoutesParams,
   ListSectionsParams,
+  ListSessionsParams,
   ListShiftsParams,
   ListSkuCostsParams,
   ListStaffDrinksParams,
@@ -627,6 +628,9 @@ import type {
   ResolvedShift,
   ReviewAdvance,
   ReviewedOut,
+  RevokeOrgRequest,
+  RevokeRequest,
+  RevokeResponse,
   RewardCatalogue,
   RewardsStats,
   RolePermission,
@@ -642,6 +646,9 @@ import type {
   ScheduleOverride,
   ScheduledDay,
   SeatBookingRequest,
+  SessionPage,
+  SessionRow,
+  SessionTokenResponse,
   SetAssignmentsRequest,
   SetGrantRequest,
   SetOverrideRequest,
@@ -1361,6 +1368,393 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUpdateAddonItemMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Sign out a whole org, or only its sessions of some kinds.
+ */
+export const revokeOrgSessions = (
+    id: string,
+    revokeOrgRequest: RevokeOrgRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RevokeResponse>(
+      {url: `/admin/orgs/${id}/revoke-sessions`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: revokeOrgRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getRevokeOrgSessionsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeOrgSessions>>, TError,{id: string;data: RevokeOrgRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeOrgSessions>>, TError,{id: string;data: RevokeOrgRequest}, TContext> => {
+
+const mutationKey = ['revokeOrgSessions'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeOrgSessions>>, {id: string;data: RevokeOrgRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  revokeOrgSessions(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeOrgSessionsMutationResult = NonNullable<Awaited<ReturnType<typeof revokeOrgSessions>>>
+    export type RevokeOrgSessionsMutationBody = RevokeOrgRequest
+    export type RevokeOrgSessionsMutationError = ErrorBody
+
+    /**
+ * @summary Sign out a whole org, or only its sessions of some kinds.
+ */
+export const useRevokeOrgSessions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeOrgSessions>>, TError,{id: string;data: RevokeOrgRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeOrgSessions>>,
+        TError,
+        {id: string;data: RevokeOrgRequest},
+        TContext
+      > => {
+      return useMutation(getRevokeOrgSessionsMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary List sessions, newest first.
+ */
+export const listSessions = (
+    params?: ListSessionsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SessionPage>(
+      {url: `/admin/sessions`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getListSessionsQueryKey = (params?: ListSessionsParams,) => {
+    return [
+    `/admin/sessions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListSessionsQueryOptions = <TData = Awaited<ReturnType<typeof listSessions>>, TError = ErrorBody>(params?: ListSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSessions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSessionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSessions>>> = ({ signal }) => listSessions(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSessions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSessionsQueryResult = NonNullable<Awaited<ReturnType<typeof listSessions>>>
+export type ListSessionsQueryError = ErrorBody
+
+
+export function useListSessions<TData = Awaited<ReturnType<typeof listSessions>>, TError = ErrorBody>(
+ params: undefined |  ListSessionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSessions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSessions>>,
+          TError,
+          Awaited<ReturnType<typeof listSessions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSessions<TData = Awaited<ReturnType<typeof listSessions>>, TError = ErrorBody>(
+ params?: ListSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSessions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSessions>>,
+          TError,
+          Awaited<ReturnType<typeof listSessions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSessions<TData = Awaited<ReturnType<typeof listSessions>>, TError = ErrorBody>(
+ params?: ListSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSessions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List sessions, newest first.
+ */
+
+export function useListSessions<TData = Awaited<ReturnType<typeof listSessions>>, TError = ErrorBody>(
+ params?: ListSessionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSessions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSessionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary One session.
+ */
+export const getSession = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SessionRow>(
+      {url: `/admin/sessions/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetSessionQueryKey = (id: string,) => {
+    return [
+    `/admin/sessions/${id}`
+    ] as const;
+    }
+
+
+export const getGetSessionQueryOptions = <TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorBody>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSessionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSession>>> = ({ signal }) => getSession(id, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getSession>>>
+export type GetSessionQueryError = ErrorBody
+
+
+export function useGetSession<TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorBody>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSession>>,
+          TError,
+          Awaited<ReturnType<typeof getSession>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSession<TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSession>>,
+          TError,
+          Awaited<ReturnType<typeof getSession>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSession<TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary One session.
+ */
+
+export function useGetSession<TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorBody>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSessionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary Revoke one session: its next request is refused (401 `SESSION_REVOKED`).
+ */
+export const revokeSession = (
+    id: string,
+    revokeRequest: RevokeRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RevokeResponse>(
+      {url: `/admin/sessions/${id}/revoke`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: revokeRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getRevokeSessionMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeSession>>, TError,{id: string;data: RevokeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeSession>>, TError,{id: string;data: RevokeRequest}, TContext> => {
+
+const mutationKey = ['revokeSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeSession>>, {id: string;data: RevokeRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  revokeSession(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeSessionMutationResult = NonNullable<Awaited<ReturnType<typeof revokeSession>>>
+    export type RevokeSessionMutationBody = RevokeRequest
+    export type RevokeSessionMutationError = ErrorBody
+
+    /**
+ * @summary Revoke one session: its next request is refused (401 `SESSION_REVOKED`).
+ */
+export const useRevokeSession = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeSession>>, TError,{id: string;data: RevokeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeSession>>,
+        TError,
+        {id: string;data: RevokeRequest},
+        TContext
+      > => {
+      return useMutation(getRevokeSessionMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Sign a person out everywhere, including tokens of theirs from before
+sessions existed.
+ */
+export const revokeUserSessions = (
+    id: string,
+    revokeRequest: RevokeRequest,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RevokeResponse>(
+      {url: `/admin/users/${id}/revoke-sessions`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: revokeRequest, signal
+    },
+      options);
+    }
+
+
+
+
+export const getRevokeUserSessionsMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeUserSessions>>, TError,{id: string;data: RevokeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeUserSessions>>, TError,{id: string;data: RevokeRequest}, TContext> => {
+
+const mutationKey = ['revokeUserSessions'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeUserSessions>>, {id: string;data: RevokeRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  revokeUserSessions(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeUserSessionsMutationResult = NonNullable<Awaited<ReturnType<typeof revokeUserSessions>>>
+    export type RevokeUserSessionsMutationBody = RevokeRequest
+    export type RevokeUserSessionsMutationError = ErrorBody
+
+    /**
+ * @summary Sign a person out everywhere, including tokens of theirs from before
+sessions existed.
+ */
+export const useRevokeUserSessions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeUserSessions>>, TError,{id: string;data: RevokeRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeUserSessions>>,
+        TError,
+        {id: string;data: RevokeRequest},
+        TContext
+      > => {
+      return useMutation(getRevokeUserSessionsMutationOptions(options), queryClient);
     }
 
 export const chat = (
@@ -2383,6 +2777,229 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getResolveBranchMutationOptions(options), queryClient);
+    }
+
+/**
+ * 401 `SESSION_NONE` when there is nothing live to share (the app shows its
+ * sign-in); a dead cookie is forgotten on the way.
+ * @summary The browser's shared session, for an app that has none of its own.
+ */
+export const adopt = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<SessionTokenResponse>(
+      {url: `/auth/session`, method: 'GET', signal
+    },
+      options);
+    }
+
+
+
+
+export const getAdoptQueryKey = () => {
+    return [
+    `/auth/session`
+    ] as const;
+    }
+
+
+export const getAdoptQueryOptions = <TData = Awaited<ReturnType<typeof adopt>>, TError = ErrorBody>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adopt>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdoptQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adopt>>> = ({ signal }) => adopt(requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adopt>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AdoptQueryResult = NonNullable<Awaited<ReturnType<typeof adopt>>>
+export type AdoptQueryError = ErrorBody
+
+
+export function useAdopt<TData = Awaited<ReturnType<typeof adopt>>, TError = ErrorBody>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof adopt>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adopt>>,
+          TError,
+          Awaited<ReturnType<typeof adopt>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdopt<TData = Awaited<ReturnType<typeof adopt>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adopt>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adopt>>,
+          TError,
+          Awaited<ReturnType<typeof adopt>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdopt<TData = Awaited<ReturnType<typeof adopt>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adopt>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The browser's shared session, for an app that has none of its own.
+ */
+
+export function useAdopt<TData = Awaited<ReturnType<typeof adopt>>, TError = ErrorBody>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adopt>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAdoptQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+/**
+ * @summary Share the caller's session with the other first-party apps.
+ */
+export const share = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/auth/session`, method: 'POST', signal
+    },
+      options);
+    }
+
+
+
+
+export const getShareMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof share>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof share>>, TError,void, TContext> => {
+
+const mutationKey = ['share'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof share>>, void> = () => {
+
+
+          return  share(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ShareMutationResult = NonNullable<Awaited<ReturnType<typeof share>>>
+
+    export type ShareMutationError = ErrorBody
+
+    /**
+ * @summary Share the caller's session with the other first-party apps.
+ */
+export const useShare = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof share>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof share>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getShareMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Sign this browser out of every first-party app: the session behind the
+cookie, and behind the bearer token when one is sent, end on the server.
+ */
+export const end = (
+
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/auth/session`, method: 'DELETE', signal
+    },
+      options);
+    }
+
+
+
+
+export const getEndMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof end>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof end>>, TError,void, TContext> => {
+
+const mutationKey = ['end'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof end>>, void> = () => {
+
+
+          return  end(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EndMutationResult = NonNullable<Awaited<ReturnType<typeof end>>>
+
+    export type EndMutationError = ErrorBody
+
+    /**
+ * @summary Sign this browser out of every first-party app: the session behind the
+cookie, and behind the bearer token when one is sent, end on the server.
+ */
+export const useEnd = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof end>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof end>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getEndMutationOptions(options), queryClient);
     }
 
 export const staffOtpRequest = (

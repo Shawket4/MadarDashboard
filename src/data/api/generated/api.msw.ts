@@ -308,6 +308,7 @@ import type {
   ResolveBranchResponse,
   ResolvedShift,
   ReviewedOut,
+  RevokeResponse,
   RewardCatalogue,
   RewardsStats,
   RolePermission,
@@ -319,6 +320,10 @@ import type {
   ScheduleAssignment,
   ScheduleOverride,
   ScheduledDay,
+  SessionCursor,
+  SessionPage,
+  SessionRow,
+  SessionTokenResponse,
   SetTicketCustomerResponse,
   Shift,
   ShiftPreFill,
@@ -394,6 +399,18 @@ export const getListAddonItemsResponseMock = (): AddonItem[] => (Array.from({ le
 
 export const getListAddonCatalogResponseMock = (overrideResponse: Partial<Extract<PaginatedAddonItems, object>> = {}): PaginatedAddonItems => ({data: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({addon_type: faker.string.alpha({length: {min: 10, max: 20}}), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', default_price: faker.number.int(), id: faker.string.uuid(), ingredients: faker.helpers.arrayElement([Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({category_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), category_slug: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), ingredient_name: faker.string.alpha({length: {min: 10, max: 20}}), ingredient_unit: faker.string.alpha({length: {min: 10, max: 20}}), org_ingredient_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), quantity_used: faker.number.float({fractionDigits: 2})})), undefined]), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, org_id: faker.string.uuid(), pricing: faker.helpers.arrayElement([faker.helpers.arrayElement([{}, null]), undefined]), primary_ingredient_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z'})), page: faker.number.int(), per_page: faker.number.int(), total: faker.number.int(), total_pages: faker.number.int(), ...overrideResponse})
 
+export const getRevokeOrgSessionsResponseMock = (overrideResponse: Partial<Extract<RevokeResponse, object>> = {}): RevokeResponse => ({revoked: faker.number.int({min: 0}), ...overrideResponse})
+
+export const getListSessionsResponseSessionCursorMock = (overrideResponse: Partial<SessionCursor> = {}): SessionCursor => ({...{before: faker.date.past().toISOString().slice(0, 19) + 'Z', before_id: faker.string.uuid()}, ...overrideResponse});
+
+export const getListSessionsResponseMock = (overrideResponse: Partial<Extract<SessionPage, object>> = {}): SessionPage => ({next: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getListSessionsResponseSessionCursorMock()},]), undefined]), sessions: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), client: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), expires_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), ip: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), last_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', org_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), org_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), revoke_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), revoked_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), revoked_by_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.string.alpha({length: {min: 10, max: 20}}), state: faker.string.alpha({length: {min: 10, max: 20}}), user_agent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), user_email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), user_id: faker.string.uuid(), user_name: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
+
+export const getGetSessionResponseMock = (overrideResponse: Partial<Extract<SessionRow, object>> = {}): SessionRow => ({branch_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), branch_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), client: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', device_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), expires_at: faker.date.past().toISOString().slice(0, 19) + 'Z', id: faker.string.uuid(), ip: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), kind: faker.string.alpha({length: {min: 10, max: 20}}), last_seen_at: faker.date.past().toISOString().slice(0, 19) + 'Z', org_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), org_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), revoke_reason: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), revoked_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), revoked_by_name: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), role: faker.string.alpha({length: {min: 10, max: 20}}), state: faker.string.alpha({length: {min: 10, max: 20}}), user_agent: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), user_email: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), user_id: faker.string.uuid(), user_name: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getRevokeSessionResponseMock = (overrideResponse: Partial<Extract<RevokeResponse, object>> = {}): RevokeResponse => ({revoked: faker.number.int({min: 0}), ...overrideResponse})
+
+export const getRevokeUserSessionsResponseMock = (overrideResponse: Partial<Extract<RevokeResponse, object>> = {}): RevokeResponse => ({revoked: faker.number.int({min: 0}), ...overrideResponse})
+
 export const getChatResponseSortMock = (overrideResponse: Partial<Sort> = {}): Sort => ({...{dir: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(Dir)), undefined]), measure: faker.string.alpha({length: {min: 10, max: 20}})}, ...overrideResponse});
 
 export const getChatResponseTopPerMock = (overrideResponse: Partial<TopPer> = {}): TopPer => ({...{dimension: faker.string.alpha({length: {min: 10, max: 20}}), n: faker.helpers.arrayElement([faker.number.int({min: 0}), undefined])}, ...overrideResponse});
@@ -435,6 +452,8 @@ export const getMeResponseMock = (overrideResponse: Partial<Extract<MeResponse, 
 export const getGetMyPermissionsResponseMock = (overrideResponse: Partial<Extract<AuthPermissionsResponse, object>> = {}): AuthPermissionsResponse => ({permissions: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({action: faker.string.alpha({length: {min: 10, max: 20}}), granted: faker.datatype.boolean(), resource: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
 
 export const getResolveBranchResponseMock = (overrideResponse: Partial<Extract<ResolveBranchResponse, object>> = {}): ResolveBranchResponse => ({branch_id: faker.string.uuid(), branch_name: faker.string.alpha({length: {min: 10, max: 20}}), distance_meters: faker.number.float({fractionDigits: 2}), ...overrideResponse})
+
+export const getAdoptResponseMock = (overrideResponse: Partial<Extract<SessionTokenResponse, object>> = {}): SessionTokenResponse => ({token: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 export const getStaffOtpRequestResponseMock = (overrideResponse: Partial<Extract<StaffOtpSent, object>> = {}): StaffOtpSent => ({dev_code: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), sent: faker.datatype.boolean(), ...overrideResponse})
 
@@ -1827,6 +1846,66 @@ export const getUpdateAddonItemMockHandler = (overrideResponse?: unknown | ((inf
   }, options)
 }
 
+export const getRevokeOrgSessionsMockHandler = (overrideResponse?: RevokeResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<RevokeResponse> | RevokeResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/admin/orgs/:id/revoke-sessions', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getRevokeOrgSessionsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getListSessionsMockHandler = (overrideResponse?: SessionPage | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SessionPage> | SessionPage), options?: RequestHandlerOptions) => {
+  return http.get('*/admin/sessions', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getListSessionsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getGetSessionMockHandler = (overrideResponse?: SessionRow | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SessionRow> | SessionRow), options?: RequestHandlerOptions) => {
+  return http.get('*/admin/sessions/:id', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getGetSessionResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getRevokeSessionMockHandler = (overrideResponse?: RevokeResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<RevokeResponse> | RevokeResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/admin/sessions/:id/revoke', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getRevokeSessionResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getRevokeUserSessionsMockHandler = (overrideResponse?: RevokeResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<RevokeResponse> | RevokeResponse), options?: RequestHandlerOptions) => {
+  return http.post('*/admin/users/:id/revoke-sessions', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getRevokeUserSessionsResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
 export const getChatMockHandler = (overrideResponse?: AiChatResponse | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<AiChatResponse> | AiChatResponse), options?: RequestHandlerOptions) => {
   return http.post('*/ai/chat', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
 
@@ -1985,6 +2064,38 @@ export const getResolveBranchMockHandler = (overrideResponse?: ResolveBranchResp
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getResolveBranchResponseMock(),
       { status: 200
+      })
+  }, options)
+}
+
+export const getAdoptMockHandler = (overrideResponse?: SessionTokenResponse | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SessionTokenResponse> | SessionTokenResponse), options?: RequestHandlerOptions) => {
+  return http.get('*/auth/session', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAdoptResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getShareMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.post('*/auth/session', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
+      })
+  }, options)
+}
+
+export const getEndMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+  return http.delete('*/auth/session', async (info: Parameters<Parameters<typeof http.delete>[1]>[0]) => {
+  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
+
+    return new HttpResponse(null,
+      { status: 204
       })
   }, options)
 }
@@ -9638,6 +9749,11 @@ export const getMadarAPIMock = () => [
   getListAddonCatalogMockHandler(),
   getDeleteAddonItemMockHandler(),
   getUpdateAddonItemMockHandler(),
+  getRevokeOrgSessionsMockHandler(),
+  getListSessionsMockHandler(),
+  getGetSessionMockHandler(),
+  getRevokeSessionMockHandler(),
+  getRevokeUserSessionsMockHandler(),
   getChatMockHandler(),
   getChatStreamMockHandler(),
   getListConversationsMockHandler(),
@@ -9652,6 +9768,9 @@ export const getMadarAPIMock = () => [
   getMeMockHandler(),
   getGetMyPermissionsMockHandler(),
   getResolveBranchMockHandler(),
+  getAdoptMockHandler(),
+  getShareMockHandler(),
+  getEndMockHandler(),
   getStaffOtpRequestMockHandler(),
   getStaffOtpVerifyMockHandler(),
   getStaffTokenRefreshMockHandler(),

@@ -135,6 +135,146 @@ export const UpdateAddonItemBody = zod.object({
 export const UpdateAddonItemResponse = zod.void()
 
 
+/**
+ * @summary Sign out a whole org, or only its sessions of some kinds.
+ */
+export const RevokeOrgSessionsParams = zod.object({
+  "id": zod.uuid().describe('Organization id')
+})
+
+export const RevokeOrgSessionsBody = zod.object({
+  "kinds": zod.array(zod.string()).nullish().describe('Only these kinds (e.g. `[\"pin\", \"device\"]` signs out every till). Absent:\nevery session of the org, and older tokens of its people too.'),
+  "reason": zod.string()
+})
+
+export const revokeOrgSessionsResponseRevokedMin = 0;
+
+
+
+export const RevokeOrgSessionsResponse = zod.object({
+  "revoked": zod.number().min(revokeOrgSessionsResponseRevokedMin).describe('Sessions that were live and are now revoked.')
+})
+
+
+/**
+ * @summary List sessions, newest first.
+ */
+export const ListSessionsQueryParams = zod.object({
+  "org_id": zod.uuid().nullish(),
+  "user_id": zod.uuid().nullish(),
+  "branch_id": zod.uuid().nullish(),
+  "kind": zod.string().nullish().describe('`password` | `pin` | `device` | `signup` | `demo` | `legacy`.'),
+  "q": zod.string().nullish().describe('Matches the person\'s name or email, the device id or the IP.'),
+  "state": zod.string().nullish().describe('`active` (default) | `revoked` | `expired` | `all`.'),
+  "limit": zod.number().nullish(),
+  "before": zod.iso.datetime({"offset":true}).nullish().describe('Keyset cursor: the `next` of the previous page.'),
+  "before_id": zod.uuid().nullish()
+})
+
+export const ListSessionsResponse = zod.object({
+  "next": zod.union([zod.null(),zod.object({
+  "before": zod.iso.datetime({"offset":true}),
+  "before_id": zod.uuid()
+}).describe('Present when there may be more: pass it back as `before` \/ `before_id`.')]).optional(),
+  "sessions": zod.array(zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "branch_name": zod.string().nullish(),
+  "client": zod.string().nullish().describe('`X-Madar-Client`: `<app>\/<version> (<platform>)`.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "device_id": zod.string().nullish(),
+  "expires_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "ip": zod.string().nullish(),
+  "kind": zod.string(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "org_id": zod.uuid().nullish(),
+  "org_name": zod.string().nullish(),
+  "revoke_reason": zod.string().nullish(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "revoked_by_name": zod.string().nullish(),
+  "role": zod.string(),
+  "state": zod.string().describe('`active` | `revoked` | `expired`.'),
+  "user_agent": zod.string().nullish(),
+  "user_email": zod.string().nullish(),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+}))
+})
+
+
+/**
+ * @summary One session.
+ */
+export const GetSessionParams = zod.object({
+  "id": zod.uuid().describe('Session id')
+})
+
+export const GetSessionResponse = zod.object({
+  "branch_id": zod.uuid().nullish(),
+  "branch_name": zod.string().nullish(),
+  "client": zod.string().nullish().describe('`X-Madar-Client`: `<app>\/<version> (<platform>)`.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "device_id": zod.string().nullish(),
+  "expires_at": zod.iso.datetime({"offset":true}),
+  "id": zod.uuid(),
+  "ip": zod.string().nullish(),
+  "kind": zod.string(),
+  "last_seen_at": zod.iso.datetime({"offset":true}),
+  "org_id": zod.uuid().nullish(),
+  "org_name": zod.string().nullish(),
+  "revoke_reason": zod.string().nullish(),
+  "revoked_at": zod.iso.datetime({"offset":true}).nullish(),
+  "revoked_by_name": zod.string().nullish(),
+  "role": zod.string(),
+  "state": zod.string().describe('`active` | `revoked` | `expired`.'),
+  "user_agent": zod.string().nullish(),
+  "user_email": zod.string().nullish(),
+  "user_id": zod.uuid(),
+  "user_name": zod.string()
+})
+
+
+/**
+ * @summary Revoke one session: its next request is refused (401 `SESSION_REVOKED`).
+ */
+export const RevokeSessionParams = zod.object({
+  "id": zod.uuid().describe('Session id')
+})
+
+export const RevokeSessionBody = zod.object({
+  "reason": zod.string().describe('Why, kept on the row (`revoke_reason`). Required.')
+})
+
+export const revokeSessionResponseRevokedMin = 0;
+
+
+
+export const RevokeSessionResponse = zod.object({
+  "revoked": zod.number().min(revokeSessionResponseRevokedMin).describe('Sessions that were live and are now revoked.')
+})
+
+
+/**
+ * @summary Sign a person out everywhere, including tokens of theirs from before
+sessions existed.
+ */
+export const RevokeUserSessionsParams = zod.object({
+  "id": zod.uuid().describe('User id')
+})
+
+export const RevokeUserSessionsBody = zod.object({
+  "reason": zod.string().describe('Why, kept on the row (`revoke_reason`). Required.')
+})
+
+export const revokeUserSessionsResponseRevokedMin = 0;
+
+
+
+export const RevokeUserSessionsResponse = zod.object({
+  "revoked": zod.number().min(revokeUserSessionsResponseRevokedMin).describe('Sessions that were live and are now revoked.')
+})
+
+
 export const chatBodyHistoryItemSpecTwoLimitMin = 0;
 
 export const chatBodyHistoryItemSpecTwoTransformTopPerTwoNMin = 0;
@@ -680,6 +820,29 @@ export const ResolveBranchResponse = zod.object({
   "branch_name": zod.string(),
   "distance_meters": zod.number().describe('Straight-line distance from the supplied coordinates to the branch, in metres.')
 })
+
+
+/**
+ * 401 `SESSION_NONE` when there is nothing live to share (the app shows its
+ * sign-in); a dead cookie is forgotten on the way.
+ * @summary The browser's shared session, for an app that has none of its own.
+ */
+export const AdoptResponse = zod.object({
+  "token": zod.string().describe('The JWT to send as `Authorization: Bearer <token>`.')
+})
+
+
+/**
+ * @summary Share the caller's session with the other first-party apps.
+ */
+export const ShareResponse = zod.void()
+
+
+/**
+ * @summary Sign this browser out of every first-party app: the session behind the
+cookie, and behind the bearer token when one is sent, end on the server.
+ */
+export const EndResponse = zod.void()
 
 
 export const StaffOtpRequestBody = zod.object({
