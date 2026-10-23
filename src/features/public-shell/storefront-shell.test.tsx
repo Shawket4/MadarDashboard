@@ -19,14 +19,13 @@ const renderShell = (brand: typeof shop | null) =>
 
 describe("StorefrontShell footer", () => {
   // One footer, whoever's page it is: a branded shop's customers see the same
-  // signature as everyone else's.
+  // signature as everyone else's. A Rewards page signs as Rewards by Madar.
   for (const [who, brand] of [["a branded shop", shop], ["Madar's own page", null]] as const) {
     it(`signs ${who} the same way`, () => {
       renderShell(brand);
       const footer = screen.getByRole("contentinfo");
-      expect(footer).toHaveTextContent("Rewards by"); // the product's name: Rewards by Madar
+      expect(within(footer).getByRole("img", { name: "Rewards by Madar" })).toBeInTheDocument();
       expect(footer).toHaveTextContent(/©/);
-      expect(screen.getByRole("img", { name: "Madar POS" })).toBeInTheDocument();
     });
   }
 });
@@ -55,6 +54,22 @@ describe("MadarFooter signature", () => {
   it("says Powered by where the page names no product (the links page, the menu)", () => {
     render(<MadarFooter />);
     expectSignature("Powered by Madar POS", "shop_page");
+  });
+
+  it("signs a Rewards page with the kit's endorsed lockup, quietly, sized before it loads", () => {
+    render(<MadarFooter product="loyalty" />);
+    const link = screen.getByRole("link", { name: "Rewards by Madar (opens in a new tab)" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://get.madar-pos.cloud/en/?utm_source=localhost&utm_medium=powered_by&utm_campaign=loyalty",
+    );
+    expect(link).toHaveAttribute("target", "_blank");
+    const lockup = within(link).getByRole("img", { name: "Rewards by Madar" });
+    expect(lockup.getAttribute("src")).toMatch(/rewards-endorsed-en-slate.*\.svg/);
+    expect(lockup).toHaveAttribute("height", "40"); // the kit's minimum for an endorsed lockup
+    expect(lockup).toHaveAttribute("width", "280");
+    // No badge: neither Madar POS's orbit nor its wordmark.
+    expect(screen.queryByRole("img", { name: "Madar POS" })).not.toBeInTheDocument();
   });
 });
 
