@@ -47,7 +47,8 @@ explicit — see "Floor / tables" below. When you change a shared surface, check
   `src/routeTree.gen.ts`). *Not* React Router.
 - **State**: Zustand (client/global) + TanStack React Query (server state)
 - **API**: Orval-generated hooks over Axios (`src/data/api/`)
-- **Forms**: React Hook Form + Zod v4
+- **Forms**: React Hook Form + Zod v4 in the dashboard; the public bundles differ (see
+  "Forms in public bundles")
 - **Desktop**: Tauri (`@tauri-apps/api`, `src-tauri/`)
 - **Testing**: Vitest + Testing Library (jsdom), co-located `*.test.ts(x)`
 - **Mocking**: MSW (`src/data/api/mock/`), enabled by `VITE_MOCK=1`
@@ -99,11 +100,39 @@ scattering constants across components.
 1. **API integration** — never hand-write fetches. Use the generated hooks; regenerate
    via `npm run generate:api` when the backend changes.
 2. **Components** — build on Radix primitives (`components/ui`), styled with Tailwind.
-3. **Forms** — Zod schema + React Hook Form, always. Surface submit failures: a Save
-   button that silently does nothing is the worst outcome a form can have.
+3. **Forms** — in the authenticated dashboard, a Zod schema + React Hook Form, always.
+   The public bundles do not carry React Hook Form (see "Forms in public bundles").
+   Either way, surface submit failures: a Save button that silently does nothing is
+   the worst outcome a form can have.
 4. **Errors** — `toast.error(getErrorMessage(e))`; never swallow a failed mutation.
 5. **Design tokens** — use the semantic CSS variables (`--color-success`, …). Never
    raw hex in components.
+
+### Forms in public bundles
+What the code does (audited 2026-10-23):
+- **The customer bundles carry no React Hook Form**: order (checkout, the order-now
+  identity, table ordering), reservations (reserve, manage) and loyalty (the sign-up).
+  It would add ~10 kB gzip (9.8 kB brotli with `@hookform/resolvers/zod`; zod itself is
+  already in every bundle) to pages opened on a phone at a counter, often on a shop's
+  wi-fi. Their state lives in the page (`useState`).
+- **Validation differs, and is an open owner decision.**
+  - order and reservations validate by hand: a `validate()` returning a message per
+    field, the phone through `@/lib/phone` (`isValidPhone`, `canonicalPhone`);
+  - the loyalty sign-up has a Zod schema in a pure module beside the page
+    (`features/loyalty/public/join-form.ts`: what makes the details ready, and the
+    exact request body), unit-tested;
+  - the Rewards teller's owner sign-in (`features/rewards-teller/setup-screen.tsx`) is
+    the one public form on React Hook Form + `zodResolver`.
+
+  Until the owner decides, a form keeps its own pattern, and a new public form takes no
+  React Hook Form.
+- **The parts they share, which every new one uses:**
+  - errors under their field, with `aria-invalid` and `aria-describedby`;
+  - the server's refusal through `getErrorMessage`, toasted as well with
+    `useErrorToast` / `toastFormError` (`features/public-shell/public-toaster`),
+    because the field may be scrolled away;
+  - a phone and its WhatsApp code through `PhoneInput` / `OtpInput` (`components/inputs`)
+    and the OTP state machine `usePhoneOtp` (`features/public-shell/use-phone-otp`).
 
 ## Design Context
 Strategic intent lives in [`PRODUCT.md`](PRODUCT.md); the visual system in
