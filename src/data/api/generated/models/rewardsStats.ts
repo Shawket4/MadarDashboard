@@ -18,5 +18,7 @@ export interface RewardsStats {
   new_members: number;
   per_track: StatsTrack[];
   redemptions: number;
+  /** What track 1 counts: `points`, `order`, `item` or `stamp` (tracks 2–4 count stamps). */
+  stamp_unit: string;
   to: string;
 }

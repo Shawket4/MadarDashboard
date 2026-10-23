@@ -5216,7 +5216,11 @@
     },
     "orderNow": "Order now",
     "stampsPerCard": "Stamps per card",
-    "stampsPerCardHint": "A full card is completed at the counter for a free item; extra stamps carry over to the next card."
+    "stampsPerCardHint": "A full card is completed at the counter for a free item; extra stamps carry over to the next card.",
+    "unitItems_one": "item",
+    "unitItems_other": "items",
+    "unitStamps_one": "stamp",
+    "unitStamps_other": "stamps"
   },
   "publicShell": {
     "signature": {

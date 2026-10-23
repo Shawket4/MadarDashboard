@@ -129,7 +129,15 @@ function Designer({ view, rules, canEdit }: { view: CardDesignView; rules: CardR
     [arabic, ctx.tracks, view.tracks, balances],
   );
 
-  const problems = useMemo(() => rules.card_validate(design as never, ctx), [rules, design, ctx]);
+  // A shop on Madar's palette cannot change its colours, so a colour warning
+  // would be one it can never act on: shown only to shops that can.
+  const problems = useMemo(
+    () =>
+      rules
+        .card_validate(design as never, ctx)
+        .filter((p) => view.custom_branding || !(p.severity === "warning" && p.path.startsWith("colours."))),
+    [rules, design, ctx, view.custom_branding],
+  );
   const errors = problems.filter((p) => p.severity === "error");
   const valid = errors.length === 0;
   const problemIndexes = useMemo(() => {

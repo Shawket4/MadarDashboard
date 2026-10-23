@@ -5283,7 +5283,19 @@
     },
     "orderNow": "اطلب الآن",
     "stampsPerCard": "عدد الأختام في البطاقة",
-    "stampsPerCardHint": "تُستبدل البطاقة المكتملة عند الكاشير بمنتج مجاني، والأختام الزائدة تنتقل إلى البطاقة التالية."
+    "stampsPerCardHint": "تُستبدل البطاقة المكتملة عند الكاشير بمنتج مجاني، والأختام الزائدة تنتقل إلى البطاقة التالية.",
+    "unitItems_zero": "صنف",
+    "unitItems_one": "صنف",
+    "unitItems_two": "صنف",
+    "unitItems_few": "أصناف",
+    "unitItems_many": "صنفًا",
+    "unitItems_other": "صنف",
+    "unitStamps_zero": "ختم",
+    "unitStamps_one": "ختم",
+    "unitStamps_two": "ختم",
+    "unitStamps_few": "أختام",
+    "unitStamps_many": "ختمًا",
+    "unitStamps_other": "ختم"
   },
   "publicShell": {
     "signature": {

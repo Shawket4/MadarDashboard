@@ -41,6 +41,7 @@ const stats: RewardsStats = {
   from: "2026-09-01",
   to: "2026-09-30",
   mode: "visits",
+  stamp_unit: "stamp",
   members_total: 42,
   new_members: 7,
   active_members: 19,

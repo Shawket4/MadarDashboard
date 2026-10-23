@@ -34,6 +34,22 @@ export const currencyLabel = (mode: string, count?: number): string => {
 };
 
 /**
+ * The word for what a card counts, by madar-card's `stamp_unit` (`points`,
+ * `order`, `item`, `stamp`; the API's `stamp_unit`), with its plural form.
+ * Tracks 2–4 always count stamps.
+ */
+export const unitLabel = (unit: string, count?: number): string => {
+  if (unit === "item" || unit === "stamp") {
+    const plural = count === 1 ? "" : "s";
+    return i18n.t(unit === "item" ? "loyalty.unitItems" : "loyalty.unitStamps", {
+      count: count ?? 2,
+      defaultValue: `${unit}${plural}`,
+    });
+  }
+  return currencyLabel(unit === "points" ? "points" : "visits", count);
+};
+
+/**
  * A scope's own row, or null when it inherits.
  *
  * A branch with no row of its own runs the org's program. The API answers a

@@ -11398,6 +11398,7 @@ export const GetLoyaltyStatsResponse = zod.object({
   "redemptions": zod.number()
 })),
   "redemptions": zod.number(),
+  "stamp_unit": zod.string().describe('What track 1 counts: `points`, `order`, `item` or `stamp` (tracks 2–4 count stamps).'),
   "to": zod.iso.date()
 })
 

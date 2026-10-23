@@ -35,7 +35,7 @@ import type { StatsDay } from "@/data/api/generated/models";
 import { useAuthz } from "@/data/authz/use-authz";
 import { useScope } from "@/data/scope/use-scope";
 import { OverviewPane } from "@/features/loyalty/admin/overview/overview-pane";
-import { currencyLabel } from "@/features/loyalty/shared/util";
+import { unitLabel } from "@/features/loyalty/shared/util";
 import { fmtDate, fmtDateTime, fmtNumber, fmtPercent } from "@/lib/format";
 import { Stagger, useChartMotion } from "@/lib/motion";
 
@@ -69,6 +69,7 @@ export function RewardsOverviewPage() {
   const stats = useGetLoyaltyStats(statsParams({ from, to }), { query: { enabled: access.canListMembers } });
   const s = stats.data;
   const mode = s?.mode ?? "visits";
+  const unit = s?.stamp_unit ?? (mode === "points" ? "points" : "order");
   const periodLabel = t(`scope.preset.${preset ?? "30d"}`, PRESET_FALLBACK[preset ?? "30d"] ?? "");
 
   if (authz.ready && !access.canListMembers) {
@@ -160,9 +161,9 @@ export function RewardsOverviewPage() {
       />
       <div className="space-y-6">
         {stats.isError ? <ErrorState onRetry={() => void stats.refetch()} /> : <LedgerStrip items={kpis} />}
-        <DailyChart days={s?.daily ?? []} loading={loading} mode={mode} />
+        <DailyChart days={s?.daily ?? []} loading={loading} mode={mode} unit={unit} />
         <div className="grid gap-6 lg:grid-cols-2">
-          {s && s.per_track.length > 1 ? <PerTrack rows={s.per_track} mode={mode} /> : null}
+          {s && s.per_track.length > 1 ? <PerTrack rows={s.per_track} unit={unit} /> : null}
           <Campaigns branchId={branchId} from={from} to={to} />
           <RecentMessages />
         </div>
@@ -175,7 +176,7 @@ export function RewardsOverviewPage() {
   );
 }
 
-function DailyChart({ days, loading, mode }: { days: StatsDay[]; loading: boolean; mode: string }) {
+function DailyChart({ days, loading, mode, unit }: { days: StatsDay[]; loading: boolean; mode: string; unit: string }) {
   const { t } = useTranslation();
   const [metric, setMetric] = useState<Metric>("new_members");
   const motion = useChartMotion();
@@ -213,7 +214,7 @@ function DailyChart({ days, loading, mode }: { days: StatsDay[]; loading: boolea
               <YAxis tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} width={40} allowDecimals={false} />
               <Tooltip
                 cursor={{ fill: "var(--muted)" }}
-                content={<ChartTooltipContent labelFormatter={(d) => fmtDate(String(d))} formatter={(v) => `${fmtNumber(Number(v))} ${metric === "earned" ? currencyLabel(mode, Number(v)) : ""}`.trim()} />}
+                content={<ChartTooltipContent labelFormatter={(d) => fmtDate(String(d))} formatter={(v) => `${fmtNumber(Number(v))} ${metric === "earned" ? unitLabel(unit, Number(v)) : ""}`.trim()} />}
               />
               <Bar dataKey="value" name={labels[metric]} fill={chartColor(0)} radius={[4, 4, 0, 0]} maxBarSize={28} {...motion} />
             </BarChart>
@@ -224,7 +225,7 @@ function DailyChart({ days, loading, mode }: { days: StatsDay[]; loading: boolea
   );
 }
 
-function PerTrack({ rows, mode }: { rows: { position: number; earned: number; redemptions: number }[]; mode: string }) {
+function PerTrack({ rows, unit }: { rows: { position: number; earned: number; redemptions: number }[]; unit: string }) {
   const { t } = useTranslation();
   const { tracks } = useTrackNames();
   const max = Math.max(1, ...rows.map((r) => r.earned));
@@ -241,7 +242,7 @@ function PerTrack({ rows, mode }: { rows: { position: number; earned: number; re
                 <span className="text-xs text-muted-foreground">
                   {t("rewards.overview.trackFigures", {
                     defaultValue: "{{earned}} earned · {{taken}} rewards taken",
-                    earned: `${fmtNumber(r.earned)} ${currencyLabel(mode, r.earned)}`,
+                    earned: `${fmtNumber(r.earned)} ${unitLabel(r.position === 1 ? unit : "stamp", r.earned)}`,
                     taken: fmtNumber(r.redemptions),
                   })}
                 </span>

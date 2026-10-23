@@ -34,7 +34,7 @@ interface MockProps {
 function useFieldText(rules: CardRules, state: CardState, tracks: TrackInfo[]) {
   const { i18n } = useTranslation();
   const tp = i18n.getFixedT(state.arabic ? "ar" : "en");
-  return (f: FieldSource): { label: string; value: string } => {
+  return (f: FieldSource): { label: string; value: string } | null => {
     if (f.type === "member") return { label: tp("rewards.card.labelMember", "Member"), value: tp("rewards.card.sampleMember", "Sara") };
     const tr = tracks.find((x) => x.position === f.track);
     const balance = state.tracks.find((x) => x.position === f.track)?.balance ?? 0;
@@ -43,7 +43,9 @@ function useFieldText(rules: CardRules, state: CardState, tracks: TrackInfo[]) {
     const step = rules.card_stepper(balance, size);
     if (f.type === "balance") return { label: name, value: String(balance) };
     if (f.type === "progress") return { label: name, value: step.progress };
-    return { label: tp("rewards.card.labelRewards", { defaultValue: "{{name}} · reward ready", name }), value: step.earned ?? "—" };
+    // No row while nothing is earned, as on the pass (wallet::design).
+    if (!step.earned) return null;
+    return { label: tp("rewards.card.labelRewards", { defaultValue: "{{name}} · reward ready", name }), value: step.earned };
   };
 }
 
@@ -68,7 +70,9 @@ export function AppleMock({ rules, design, state, tracks, programme, logoUrl, ph
   const header = design.apple.header ?? [];
   const below = [...(design.apple.secondary ?? []), ...(design.apple.auxiliary ?? [])];
   const field = (f: FieldSource, i: number, big = false) => {
-    const { label, value } = text(f);
+    const x = text(f);
+    if (!x) return null;
+    const { label, value } = x;
     return (
       <div key={i} className="min-w-0">
         <p className="truncate text-[10px] font-semibold tracking-wide uppercase" style={{ color: c.label }}>
@@ -126,8 +130,10 @@ export function GoogleMock({ rules, design, state, tracks, programme, logoUrl, p
         {logoUrl ? <span className="truncate text-sm">{programme}</span> : null}
       </div>
       <div className="grid grid-cols-2 gap-3 px-4 pt-4">
-        {slots.map((f, i) => {
-          const { label, value } = text(f);
+        {slots
+          .map((f) => text(f))
+          .filter((x): x is { label: string; value: string } => !!x)
+          .map(({ label, value }, i) => {
           return (
             <div key={i} className="min-w-0">
               <p className="truncate text-xs opacity-80">{label}</p>
