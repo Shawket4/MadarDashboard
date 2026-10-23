@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { BirthdayGiftView } from './birthdayGiftView';
 
 /**
  * How the member's card is held, and the last message it carried.
@@ -8,6 +9,7 @@ export interface MemberWallet {
   apple_devices: number;
   /** @nullable */
   apple_registered_at?: string | null;
+  birthday_gift?: null | BirthdayGiftView;
   google_card: boolean;
   marketing_opt_out: boolean;
   /** Dashboard messages this member was sent. */

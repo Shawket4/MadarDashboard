@@ -2559,7 +2559,10 @@
       "LOYALTY_DESIGN_INVALID": "The card design has problems to fix before it can be saved or published.",
       "LOYALTY_DESIGN_NO_DRAFT": "There is no draft to publish. Save the design first.",
       "LOYALTY_TRACKS_INVALID": "The stamp tracks have problems to fix before they can be saved.",
-      "LOYALTY_TRACK_UNKNOWN": "That stamp track doesn't exist any more. Reload and try again."
+      "LOYALTY_TRACK_UNKNOWN": "That stamp track doesn't exist any more. Reload and try again.",
+      "LOYALTY_GIFT_NONE": "This member has no birthday gift to use: none was given, it was already used, or it expired.",
+      "LOYALTY_GIFT_NOT_A_REWARD": "The birthday gift covers an item from the rewards. This item isn't one of them.",
+      "LOYALTY_GIFT_LINE": "The birthday gift can't go on that line: pick one item that isn't a staff drink, part of a combo, or already a reward."
     },
     "tooManyRequests": "Too many requests just now. Try again in a moment.",
     "contact": "Contact Madar",
@@ -5007,6 +5010,13 @@
     "birthdayGift": "Birthday gift",
     "birthdayGiftNone": "Leave empty for a greeting only",
     "birthdayGiftHint": "Points or stamps added on the day. Optional — plenty of shops greet without giving anything away.",
+    "birthdayGiftKind": "Birthday gift",
+    "birthdayGiftKindHint": "What the card gives on their birthday, beside the greeting.",
+    "birthdayGiftKindNone": "None",
+    "birthdayGiftKindAmount": "Stamps or points",
+    "birthdayGiftKindItem": "A free item",
+    "birthdayGiftDays": "Valid for (days)",
+    "birthdayGiftItemHint": "One whole free item from your rewards, whatever it costs. It is claimed once, does not touch their balance, and expires this many days after the birthday (7 to 60).",
     "birthdayMessage": "Message (English)",
     "birthdayMessagePlaceholder": "Leave empty to use ours. {name} becomes their name.",
     "birthdayMessageAr": "Message (Arabic)",
@@ -5144,6 +5154,7 @@
       "earnRate": "Enter an amount of at least 0.01 EGP.",
       "positiveInt": "Enter a whole number above zero.",
       "optionalPositiveInt": "Enter a whole number above zero, or leave it empty.",
+      "giftDays": "Enter a whole number of days from 7 to 60.",
       "adjustBranch": "Pick the branch this adjustment belongs to.",
       "adjustAmount": "Enter a whole number above zero.",
       "adjustReason": "Say why — at least 3 characters. It stays on the member's history.",
@@ -5167,7 +5178,8 @@
       "by": "by {{name}}",
       "bySystem": "automatic",
       "counterEarn": "Stamped at the counter",
-      "counterRedeem": "Card completed at the counter"
+      "counterRedeem": "Card completed at the counter",
+      "gift": "Birthday gift redeemed"
     },
     "statRedemptions": "Rewards redeemed",
     "statRedemptionsHint": "{{units}} items over the last 30 days",
@@ -8001,7 +8013,7 @@
     },
     "automations": {
       "title": "Automations",
-      "subtitle": "Birthday gifts, win-back nudges, the phone check at sign-up and what the pass says. They run by themselves once switched on."
+      "subtitle": "Birthday gifts (stamps, points or a free item), win-back nudges, the phone check at sign-up and what the pass says. They run by themselves once switched on."
     },
     "common": {
       "noAccess": "Your account can't open this page. The owner can give you access.",
@@ -8174,6 +8186,10 @@
       "added": "Added",
       "passUpdated": "Card last updated",
       "messages": "Messages received",
+      "birthdayGift": "Birthday gift",
+      "giftOpen": "Open until {{date}}",
+      "giftClaimed": "Claimed",
+      "giftNone": "None",
       "noticeUnseen": "not seen yet",
       "joined": "Joined {{date}}",
       "rewardsReady": "{{n}} ready",

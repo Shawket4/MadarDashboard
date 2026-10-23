@@ -17,6 +17,7 @@ describe("reading the ledger", () => {
     [{ kind: "redeem", source: "counter" }, "Card completed at the counter", "spend"],
     [{ kind: "adjust", source: "birthday" }, "Birthday gift", "gift"],
     [{ kind: "adjust", source: "winback" }, "Win-back gift", "gift"],
+    [{ kind: "redeem", source: "gift" }, "Birthday gift redeemed", "gift"],
   ])("labels %o", (row, label, tone) => {
     expect(ledgerLabel(row, t)).toBe(label);
     expect(ledgerTone(row)).toBe(tone);

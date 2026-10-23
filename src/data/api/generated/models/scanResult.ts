@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { BirthdayGiftView } from './birthdayGiftView';
 import type { LedgerEntry } from './ledgerEntry';
 import type { MemberView } from './memberView';
 import type { PublicCard } from './publicCard';
@@ -21,6 +22,7 @@ export interface ScanResult {
   any_item: boolean;
   /** What one line costs when `any_item` is on, in the branch's currency. */
   any_item_cost: number;
+  birthday_gift?: null | BirthdayGiftView;
   card?: null | PublicCard;
   /**
      * The shop's ceiling on reward ITEMS per order, if it set one. The till

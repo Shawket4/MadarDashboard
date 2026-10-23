@@ -35,6 +35,13 @@ export interface JoinResult {
      */
   card_link_sent: boolean;
   /**
+     * The card size: how many stamps (or points) fill one card, the cheapest
+     * reward on offer (`model::card_size`), the same figure the till and the
+     * passes count towards. Equal to `next_reward_cost`, under its own name.
+     * @nullable
+     */
+  card_size?: number | null;
+  /**
      * Absent when `verify_required`: the page has nothing to show yet.
      * @nullable
      */
@@ -48,6 +55,12 @@ export interface JoinResult {
   name: string;
   next_reward_cost: number;
   passes?: null | PassLinks;
+  /**
+     * What one stamp stands for: `order`, `item` or `stamp` (a counter
+     * shop); absent for points. The join info's rule (`earn::StampUnit`).
+     * @nullable
+     */
+  stamp_unit?: string | null;
   /**
      * This phone already has a card and the device has not proved it owns the
      * phone. The page should run the ordinary OTP flow (`/public/otp/request`

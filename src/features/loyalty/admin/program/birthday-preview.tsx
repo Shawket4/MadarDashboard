@@ -25,6 +25,8 @@ export function BirthdayPreview({ settings }: { settings: LoyaltySettings | null
         settings.birthday_message,
         settings.birthday_message_ar,
         settings.birthday_reward_amount,
+        settings.birthday_gift,
+        settings.birthday_gift_days,
         settings.mode,
         settings.program_name,
       ])

@@ -15,7 +15,7 @@ export type LedgerTone = "earn" | "spend" | "reversal" | "gift" | "manual";
 export function ledgerTone(e: Pick<LedgerEntry, "kind" | "source">): LedgerTone {
   if (e.kind.startsWith("reverse_")) return "reversal";
   if (e.source === "manual") return "manual";
-  if (e.source === "birthday" || e.source === "winback") return "gift";
+  if (e.source === "birthday" || e.source === "winback" || e.source === "gift") return "gift";
   if (e.kind === "redeem") return "spend";
   return "earn";
 }
@@ -53,6 +53,8 @@ export function ledgerLabel(e: Pick<LedgerEntry, "kind" | "source">, t: TFunctio
       return e.kind === "redeem"
         ? t("loyalty.ledger.counterRedeem", "Card completed at the counter")
         : t("loyalty.ledger.counterEarn", "Stamped at the counter");
+    case "gift":
+      return t("loyalty.ledger.gift", "Birthday gift redeemed");
     default:
       return e.kind;
   }

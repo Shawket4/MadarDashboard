@@ -287,6 +287,14 @@ function WalletCard({ wallet, loading, error }: { wallet: MemberWallet | undefin
           {row(t("rewards.member.google", "Google Wallet"), wallet.google_card ? t("rewards.member.added", "Added") : t("rewards.member.notAdded", "Not added"))}
           {row(t("rewards.member.passUpdated", "Card last updated"), wallet.pass_updated_at ? fmtDateTime(wallet.pass_updated_at) : never)}
           {row(t("rewards.member.messages", "Messages received"), fmtNumber(wallet.messages_received))}
+          {row(
+            t("rewards.member.birthdayGift", "Birthday gift"),
+            wallet.birthday_gift?.status === "open"
+              ? t("rewards.member.giftOpen", { defaultValue: "Open until {{date}}", date: fmtDate(wallet.birthday_gift.valid_until) })
+              : wallet.birthday_gift?.status === "claimed"
+                ? t("rewards.member.giftClaimed", "Claimed")
+                : t("rewards.member.giftNone", "None"),
+          )}
         </dl>
         {wallet.notice ? (
           <div className="rounded-lg bg-secondary/60 p-3 text-sm">

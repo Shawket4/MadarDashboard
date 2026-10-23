@@ -8,12 +8,13 @@
 import { useTranslation } from "react-i18next";
 import type { UseFormReturn } from "react-hook-form";
 
+import { SegmentedControl } from "@/components/app/segmented-control";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { BirthdayPreview } from "./birthday-preview";
 import type { ProgramValues } from "./form-schema";
 import { previewOf } from "./form-schema";
-import { TextRow, ToggleRow } from "./fields";
+import { Group, TextRow, ToggleRow } from "./fields";
 import type { LoyaltySettings } from "@/data/api/generated/models";
 
 export function SignupCard({
@@ -51,16 +52,49 @@ export function SignupCard({
 
         {values.birthday_enabled ? (
           <div className="space-y-4 rounded-lg border border-border/70 p-3">
-            <TextRow
-              form={form}
-              name="birthday_reward_amount"
-              label={t("loyalty.birthdayGift", "Birthday gift")}
-              placeholder={t("loyalty.birthdayGiftNone", "Leave empty for a greeting only")}
+            <Group
+              title={t("loyalty.birthdayGiftKind", "Birthday gift")}
               hint={t(
-                "loyalty.birthdayGiftHint",
-                "Points or stamps added on the day. Optional — plenty of shops greet without giving anything away.",
+                "loyalty.birthdayGiftKindHint",
+                "What the card gives on their birthday, beside the greeting.",
               )}
-            />
+            >
+              <SegmentedControl
+                value={values.birthday_gift}
+                onChange={(v) =>
+                  form.setValue("birthday_gift", v as ProgramValues["birthday_gift"], { shouldDirty: true })
+                }
+                options={[
+                  { value: "none", label: t("loyalty.birthdayGiftKindNone", "None") },
+                  { value: "amount", label: t("loyalty.birthdayGiftKindAmount", "Stamps or points") },
+                  { value: "item", label: t("loyalty.birthdayGiftKindItem", "A free item") },
+                ]}
+              />
+            </Group>
+            {values.birthday_gift === "amount" ? (
+              <TextRow
+                form={form}
+                name="birthday_reward_amount"
+                label={t("loyalty.birthdayGift", "Birthday gift")}
+                placeholder={t("loyalty.birthdayGiftNone", "Leave empty for a greeting only")}
+                hint={t(
+                  "loyalty.birthdayGiftHint",
+                  "Points or stamps added on the day. Optional — plenty of shops greet without giving anything away.",
+                )}
+              />
+            ) : null}
+            {values.birthday_gift === "item" ? (
+              <TextRow
+                form={form}
+                name="birthday_gift_days"
+                type="number"
+                label={t("loyalty.birthdayGiftDays", "Valid for (days)")}
+                hint={t(
+                  "loyalty.birthdayGiftItemHint",
+                  "One whole free item from your rewards, whatever it costs. It is claimed once, does not touch their balance, and expires this many days after the birthday (7 to 60).",
+                )}
+              />
+            ) : null}
             <TextRow
               form={form}
               name="birthday_message"

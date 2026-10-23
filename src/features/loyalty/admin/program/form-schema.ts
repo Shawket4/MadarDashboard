@@ -71,6 +71,18 @@ export const programSchema = z.object({
   max_rewards_per_order: optionalPositiveInt("loyalty.errors.optionalPositiveInt"),
   require_otp: z.boolean(),
   birthday_enabled: z.boolean(),
+  /**
+   * What a birthday gives: nothing (a greeting), `amount` (stamps or points on
+   * the card, today's behaviour) or `item` (one whole free item from the
+   * rewards, whatever it costs, claimed once within `birthday_gift_days`).
+   */
+  birthday_gift: z.enum(["none", "amount", "item"]),
+  /** How long an item gift stays valid; the server's 7–60 days. */
+  birthday_gift_days: z.coerce
+    .number<number>({ message: "loyalty.errors.giftDays" })
+    .int({ message: "loyalty.errors.giftDays" })
+    .min(7, { message: "loyalty.errors.giftDays" })
+    .max(60, { message: "loyalty.errors.giftDays" }),
   /** A string so "no gift" is expressible as an empty field, which is the common case. */
   birthday_reward_amount: optionalPositiveInt("loyalty.errors.optionalPositiveInt"),
   birthday_message: z.string(),
@@ -84,13 +96,19 @@ export const programSchema = z.object({
 
 export type ProgramValues = z.infer<typeof programSchema>;
 
-type Hideable = "earn_egp_per_point" | "balance_cap" | "birthday_reward_amount" | "winback_reward_amount";
+type Hideable =
+  | "earn_egp_per_point"
+  | "balance_cap"
+  | "birthday_reward_amount"
+  | "birthday_gift_days"
+  | "winback_reward_amount";
 
 /** The checked fields the form hides for these values (SET-LOY-083). */
 export const hiddenFields = (v: ProgramValues): Hideable[] => [
   ...(v.mode === "points" ? [] : (["earn_egp_per_point"] as const)),
   ...(v.balance_cap_enabled ? [] : (["balance_cap"] as const)),
-  ...(v.birthday_enabled ? [] : (["birthday_reward_amount"] as const)),
+  ...(v.birthday_enabled && v.birthday_gift === "amount" ? [] : (["birthday_reward_amount"] as const)),
+  ...(v.birthday_enabled && v.birthday_gift === "item" ? [] : (["birthday_gift_days"] as const)),
   ...(v.winback_enabled ? [] : (["winback_reward_amount"] as const)),
 ];
 
@@ -102,7 +120,10 @@ export const hiddenFields = (v: ProgramValues): Hideable[] => [
 export function visibleValues(v: ProgramValues, saved: LoyaltySettings | undefined): ProgramValues {
   const out = { ...v };
   for (const k of hiddenFields(v)) {
-    if (k !== "earn_egp_per_point") out[k] = "";
+    if (k === "birthday_gift_days") {
+      // Hidden days keep a valid value (the saved one, else the default).
+      if (!programSchema.shape.birthday_gift_days.safeParse(v[k]).success) out[k] = saved?.birthday_gift_days ?? 30;
+    } else if (k !== "earn_egp_per_point") out[k] = "";
     else if (saved && !programSchema.shape.earn_egp_per_point.safeParse(v[k]).success)
       out[k] = piastresToEgp(saved.earn_piastres_per_point);
   }
@@ -138,6 +159,9 @@ export function fromWire(s: LoyaltySettings): ProgramValues {
         : "",
     require_otp: s.require_otp,
     birthday_enabled: s.birthday_enabled ?? false,
+    // Absent from a server that predates the gift: today's behaviour.
+    birthday_gift: s.birthday_gift === "none" || s.birthday_gift === "item" ? s.birthday_gift : "amount",
+    birthday_gift_days: s.birthday_gift_days ?? 30,
     birthday_reward_amount: s.birthday_reward_amount
       ? String(s.birthday_reward_amount)
       : "",
@@ -193,7 +217,10 @@ export function toWire(
     max_rewards_per_order: intOrNull(v.max_rewards_per_order),
     require_otp: v.require_otp,
     birthday_enabled: birthday,
-    birthday_reward_amount: birthday ? intOrNull(v.birthday_reward_amount) : null,
+    birthday_gift: v.birthday_gift,
+    birthday_gift_days: v.birthday_gift_days,
+    // Only an `amount` gift credits anything; the figure goes with it.
+    birthday_reward_amount: birthday && v.birthday_gift === "amount" ? intOrNull(v.birthday_reward_amount) : null,
     birthday_message: birthday ? v.birthday_message || null : null,
     birthday_message_ar: birthday ? v.birthday_message_ar || null : null,
     winback_enabled: winback,
@@ -217,7 +244,9 @@ export function previewOf(
     ...saved,
     program_name: v.program_name || saved.program_name,
     mode: v.mode,
-    birthday_reward_amount: intOrNull(v.birthday_reward_amount),
+    birthday_gift: v.birthday_gift,
+    birthday_gift_days: v.birthday_gift_days,
+    birthday_reward_amount: v.birthday_gift === "amount" ? intOrNull(v.birthday_reward_amount) : null,
     birthday_message: v.birthday_message || null,
     birthday_message_ar: v.birthday_message_ar || null,
   };

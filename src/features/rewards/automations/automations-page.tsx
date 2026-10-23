@@ -38,7 +38,7 @@ export function AutomationsPage() {
           title={t("rewards.automations.title", "Automations")}
           subtitle={t(
             "rewards.automations.subtitle",
-            "Birthday gifts, win-back nudges, the phone check at sign-up and what the pass says. They run by themselves once switched on.",
+            "Birthday gifts (stamps, points or a free item), win-back nudges, the phone check at sign-up and what the pass says. They run by themselves once switched on.",
           )}
         />
         <ProgramPane key={branchId ?? "org"} scope={{ orgId, branchId }} cards={["signup", "passes"]} />

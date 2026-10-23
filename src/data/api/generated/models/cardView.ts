@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { BirthdayGiftView } from './birthdayGiftView';
 import type { CardBrand } from './cardBrand';
 import type { MemberTrack } from './memberTrack';
 import type { PassLinks } from './passLinks';
@@ -15,10 +16,18 @@ import type { PublicReward } from './publicReward';
 export interface CardView {
   /** The live balance, in `mode`'s currency. */
   balance: number;
+  birthday_gift?: null | BirthdayGiftView;
   /** Whose card this is, and how it should look. */
   brand: CardBrand;
   can_redeem: boolean;
   card?: null | PublicCard;
+  /**
+     * The card size: how many stamps (or points) fill one card, the cheapest
+     * reward on offer (`model::card_size`), the same figure the till and the
+     * passes count towards. Equal to `next_reward_cost`, under its own name.
+     * @nullable
+     */
+  card_size?: number | null;
   /** They have asked this shop to stop sending them things. */
   marketing_opt_out: boolean;
   member_token: string;
@@ -39,6 +48,12 @@ export interface CardView {
   rewards: PublicReward[];
   /** Rewards the balance has already earned — a card does not stop at full. */
   rewards_ready: number;
+  /**
+     * What one stamp stands for: `order`, `item` or `stamp` (a counter
+     * shop); absent for points. The join info's rule (`earn::StampUnit`).
+     * @nullable
+     */
+  stamp_unit?: string | null;
   /**
      * Every stamp track of this member's card, when there is more than one.
      * @nullable
