@@ -1,20 +1,21 @@
 /**
  * The toast implementation: the ONLY file that imports `sileo` (and, for it,
  * `motion`). Loaded lazily by `./index.tsx`; never import it directly.
+ * Sileo 0.1.6 itself is patched (patches/sileo+0.1.6.patch, CLAUDE.md "Toasts"):
+ * a plain container instead of a <button>, real buttons, Escape, focus, tempo.
  *
- * What it adds over Sileo 0.1.6 (CLAUDE.md, "Toasts", lists the why):
+ * What this file adds (CLAUDE.md, "Toasts", lists the why):
  * - our tokens (CSS in `./toast.css`), our icons, the reader's direction;
  * - a short severity title in the pill when the message is too long for it
  *   (the pill is one 40 px line), the message then reads in the body;
  * - the body stays open for the toast's whole life (Sileo's default folds it
  *   2 s before the end, and never opens it for a toast with no timeout);
- * - at most `MAX_VISIBLE` toasts; tapping or pressing a toast dismisses it;
+ * - at most `MAX_VISIBLE` toasts (`MAX_VISIBLE_PHONE` on a phone), below a
+ *   phone page's sticky header;
  * - the Contact Madar action on refusals that point at Madar;
- * - reduced motion for its springs (Sileo's CSS already stops its transitions);
- * - screen readers: the facade owns the live regions, so Sileo's own region is
- *   silenced and its decorative SVG (titled "sileo notification") hidden.
+ * - reduced motion for its springs (Sileo's CSS already stops its transitions).
  */
-import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { CircleCheckIcon, InfoIcon, OctagonXIcon, TriangleAlertIcon } from "lucide-react";
 import { MotionConfig } from "motion/react";
 import { Toaster as SileoToaster, sileo, type SileoOptions, type SileoState } from "sileo";
@@ -27,6 +28,27 @@ import type { ToastImpl, ToastItem, ToastKind } from "./index";
 import "./toast.css";
 
 export const MAX_VISIBLE = 3;
+export const MAX_VISIBLE_PHONE = 2;
+const PHONE = "(max-width: 639px)";
+const isPhone = () => typeof window !== "undefined" && window.matchMedia?.(PHONE).matches === true;
+
+/**
+ * On a phone the toasts sit just below the page's sticky header (the shop's
+ * name, back, language), never over it. The header's bottom already includes
+ * the safe area it pads for. Desktop: the top edge, as the header is short
+ * there and the toast lands over empty space beside the search.
+ */
+function placeBelowHeader(): void {
+  if (!root) return;
+  let bottom = 0;
+  if (isPhone())
+    for (const h of document.querySelectorAll("header")) {
+      const cs = getComputedStyle(h);
+      const r = h.getBoundingClientRect();
+      if ((cs.position === "sticky" || cs.position === "fixed") && r.top <= 0.5 && r.height > 0) bottom = Math.max(bottom, r.bottom);
+    }
+  root.style.setProperty("--toast-header", `${Math.round(bottom)}px`);
+}
 /** Top centre on every screen: clear of the phone's thumb zone and of the dashboard's side panels. */
 const POSITION = "top-center" as const;
 /** Longest message that still fits the pill on one line (350 px, 13 px type). */
@@ -84,6 +106,7 @@ export function toSileo(item: ToastItem): SileoOptions & { id: string } {
     description: description || undefined,
     duration: life,
     icon: ICONS[item.kind],
+    closeLabel: i18n.t("toast.close", "Dismiss"),
     // As sonner did: the action answers the toast, so it goes.
     button: action ? { title: action.label, onClick: () => (action.onClick(), sileo.dismiss(item.id)) } : undefined,
     // Open at once and stay open to the end (Sileo clamps collapse to the duration).
@@ -97,8 +120,9 @@ let order: string[] = [];
 export const impl: ToastImpl = {
   show(item) {
     order = [...order.filter((id) => id !== item.id), item.id];
-    while (order.length > MAX_VISIBLE) sileo.dismiss(order.shift()!);
-    // `id` is read by Sileo's store, though 0.1.6's types leave it out.
+    const max = isPhone() ? MAX_VISIBLE_PHONE : MAX_VISIBLE;
+    while (order.length > max) sileo.dismiss(order.shift()!);
+    placeBelowHeader();
     sileo.show(toSileo(item));
   },
   dismiss(id) {
@@ -113,45 +137,19 @@ export const impl: ToastImpl = {
   Toaster,
 };
 
-/** Sileo's toast id, from the id of its gooey filter (`sileo-gooey-<id>`). */
-const idOf = (toastEl: Element): string | undefined =>
-  toastEl.querySelector("filter[id^='sileo-gooey-']")?.id.slice("sileo-gooey-".length);
+let root: HTMLDivElement | null = null;
 
 function Toaster() {
-  const ref = useRef<HTMLDivElement>(null);
-
-  // Sileo renders an aria-live region of its own and an SVG titled
-  // "sileo notification"; the facade already announces each toast.
-  // ponytail: patched in the DOM because Sileo 0.1.6 has no props for these; drop when upstream does.
-  useEffect(() => {
-    const root = ref.current;
-    if (!root) return;
-    const quiet = () => {
-      for (const el of root.querySelectorAll("[data-sileo-viewport]:not([aria-live='off'])")) el.setAttribute("aria-live", "off");
-      for (const el of root.querySelectorAll("[data-sileo-svg]:not([aria-hidden])")) el.setAttribute("aria-hidden", "true");
-      // The action is an <a href="#"> that acts as a button: say so.
-      for (const el of root.querySelectorAll("a[data-sileo-button]:not([role])")) el.setAttribute("role", "button");
-    };
-    quiet();
-    const mo = new MutationObserver(quiet);
-    mo.observe(root, { childList: true, subtree: true });
-    return () => mo.disconnect();
-  }, []);
-
-  // A press on the toast (not its button) dismisses it, by mouse, touch or keyboard.
-  const onClick = (e: MouseEvent) => {
-    const t = e.target as Element;
-    if (t.closest("[data-sileo-button]")) return;
-    const el = t.closest("[data-sileo-toast]");
-    const id = el && idOf(el);
-    if (id) impl.dismiss(id);
-  };
-
   return (
-    // Each toast is a <button>, so Enter and Space arrive here as clicks.
-    <div ref={ref} data-madar-toaster onClick={onClick}>
+    <div
+      ref={(el) => {
+        root = el;
+        placeBelowHeader(); // the first toast, replayed from the queue, renders in this very commit
+      }}
+      data-madar-toaster
+    >
       <MotionConfig reducedMotion="user">
-        <SileoToaster position={POSITION} offset={{ top: "env(safe-area-inset-top, 0px)" }} />
+        <SileoToaster position={POSITION} />
       </MotionConfig>
     </div>
   );

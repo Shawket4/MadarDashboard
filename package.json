@@ -31,7 +31,8 @@
     "build:order:shop": "MADAR_MOUNT=/order/ vite build --config vite.order.config.ts",
     "build:reservations:shop": "MADAR_MOUNT=/book/ vite build --config vite.reservations.config.ts",
     "sync:rules": "node scripts/sync-rules.mjs",
-    "fallow": "npx -y fallow@3.33.1 dead-code -c .fallowrc.json"
+    "fallow": "npx -y fallow@3.33.1 dead-code -c .fallowrc.json",
+    "postinstall": "patch-package --error-on-fail"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
@@ -107,6 +108,7 @@
     "jsdom": "^29.1.1",
     "msw": "^2.14.6",
     "orval": "8.20.0",
+    "patch-package": "^8.0.0",
     "playwright": "^1.61.1",
     "prettier": "^3.9.4",
     "tailwindcss": "^4.3.2",

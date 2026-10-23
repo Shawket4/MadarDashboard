@@ -7948,6 +7948,7 @@
       "warning": "Heads up",
       "info": "Note",
       "loading": "Working…"
-    }
+    },
+    "close": "Dismiss"
   }
 }

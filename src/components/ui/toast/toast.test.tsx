@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { act, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { AxiosError, AxiosHeaders } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -18,7 +21,7 @@ import {
   useErrorToast,
   type ToastItem,
 } from "./index";
-import { MAX_VISIBLE, PILL_CHARS, impl, toSileo } from "./sileo";
+import { MAX_VISIBLE, MAX_VISIBLE_PHONE, PILL_CHARS, impl, toSileo } from "./sileo";
 
 // The real toast API here, not the silent spies every other test gets.
 beforeEach(() => {
@@ -181,17 +184,62 @@ describe("the facade", () => {
     await waitFor(() => expect(live()).toHaveLength(0));
   });
 
-  it("silences Sileo's own live region and hides its decorative SVG", async () => {
+  it("renders each toast as a plain container: no live region of Sileo's own, no decorative SVG read out", async () => {
     render(<Toaster />);
     toast.info("Hello");
-    await waitFor(() => expect(document.querySelector("[data-sileo-viewport]")).toHaveAttribute("aria-live", "off"));
+    await waitFor(() => expect(live()).toHaveLength(1));
+    expect(live()[0]!.tagName).toBe("DIV");
+    expect(document.querySelector("[data-sileo-viewport]")).not.toHaveAttribute("aria-live");
     expect(document.querySelector("[data-sileo-svg]")).toHaveAttribute("aria-hidden", "true");
+    expect(document.querySelector("[data-sileo-svg] title")).toBeNull();
+    // No interactive element inside another (axe nested-interactive).
+    expect(document.querySelector("[data-madar-toaster] button button, [data-madar-toaster] a button, [data-madar-toaster] button a")).toBeNull();
+  });
+
+  it("dismisses with its close button, in the reader's language", async () => {
+    render(<Toaster />);
+    toast.success("Saved");
+    const close = await screen.findByRole("button", { name: "Dismiss" });
+    act(() => close.click());
+    await waitFor(() => expect(live()).toHaveLength(0));
+  });
+
+  it("dismisses on Escape from inside the toast", async () => {
+    render(<Toaster />);
+    toast.success("Deleted", { action: { label: "Undo", onClick() {} } });
+    const undo = await screen.findByRole("button", { name: "Undo" });
+    act(() => undo.focus());
+    act(() => void undo.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+    await waitFor(() => expect(live()).toHaveLength(0));
+  });
+
+  it("shows at most two on a phone", async () => {
+    const mm = window.matchMedia;
+    window.matchMedia = ((q: string) => ({ ...mm(q), matches: q.includes("max-width: 639px") })) as typeof window.matchMedia;
+    try {
+      render(<Toaster />);
+      await loadToasts();
+      for (const m of ["a", "b", "c"]) act(() => void toast.success(m));
+      await waitFor(() => expect(live()).toHaveLength(MAX_VISIBLE_PHONE));
+    } finally {
+      window.matchMedia = mm;
+    }
   });
 
   it("exposes the action as a button", async () => {
     render(<Toaster />);
     toast.success("Deleted", { action: { label: "Undo", onClick() {} } });
     expect(await screen.findByRole("button", { name: "Undo" })).toHaveAttribute("data-sileo-button");
+  });
+});
+
+describe("the vendored Sileo patch (patches/sileo+0.1.6.patch)", () => {
+  it("is applied to the installed Sileo (npm ci runs patch-package on postinstall)", () => {
+    const installed = readFileSync(resolve(__dirname, "../../../../node_modules/sileo/dist/index.mjs"), "utf8");
+    expect(installed).toContain("// madar-patch: sileo 0.1.6");
+    expect(installed).toContain("const DURATION_MS = 320;");
+    expect(installed).not.toContain('jsxs("button", {\n        ref: buttonRef');
+    expect(installed).not.toContain("sileo notification");
   });
 });
 

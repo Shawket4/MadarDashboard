@@ -301,27 +301,55 @@ One module, `src/components/ui/toast/`, is the only place that knows a toast lib
   changed" (5 s). warning: it worked, but read this (6 s). error: it did not happen, say why
   (8 s). loading: work in progress; end it with the same `id`. An `action` keeps a toast at
   least 10 s and pressing it dismisses the toast. A Madar-pointing refusal gets "Contact Madar"
-  by itself (12 s). Same `id` = replace in place (dedupe). At most 3 on screen, newest wins.
-  Pressing a toast dismisses it. A floating `role="alert"` banner is a toast: raise one instead.
+  by itself (12 s). Same `id` = replace in place (dedupe). At most 3 on screen (2 on a phone),
+  newest wins. A floating `role="alert"` banner is a toast: raise one instead.
+- **Look: inverted.** A toast is the page turned over (the owner, 2026-10-23): ink on a paper
+  page, paper on an ink page, from the page's own `--color-foreground`/`--color-background`
+  swapped, so it follows whichever theme the page wears (the dashboard's, or a storefront's
+  own through `usePublicTheme`; both put `.dark` on `<html>`). The pill and the body (the gooey
+  SVG) and the text surface are the same fill. Each state colour is pulled toward the toast's
+  text colour in `oklab` (55% state on ink, 40–45% on paper); measured contrast on the toast,
+  13 px text and icons on their 20% tint, is 5.1:1 or more for every severity in both themes
+  (`toast.css`). Re-measure after touching a state token.
 - **Mount** `<Toaster />` once per entry (`<Toaster preload />` in the dashboard root: it loads
-  the library at idle, since most clicks there end in a toast). Top centre everywhere, under
-  the phone's safe area, above dialogs; a press on a toast never closes the dialog under it.
+  the library at idle, since most clicks there end in a toast). Top centre everywhere, above
+  dialogs; on a phone (< 640 px) just below the page's sticky header (measured when a toast
+  shows), so the shop name, back and language stay visible; else under the safe area. A press
+  on a toast never closes the dialog under it.
+- **Dismiss.** Tap or click the toast; Escape while focus is in it; or its close button
+  (hidden until keyboard focus, a disc on the pill's end corner). Focus or hover opens a
+  folded body and pauses the timer.
+- **Motion.** The morph spring runs 320 ms with bounce 0.1 (settles in ~220 ms, no visible
+  overshoot); enter and exit transitions are 0.66 of that (~210 ms) and an exited toast
+  leaves the DOM at 320 ms. Reduced motion: the morph snaps (`MotionConfig
+  reducedMotion="user"`) and Sileo's CSS lands transitions at once.
 - **Lazy by design.** `index.tsx` is a tiny facade in every bundle's first paint: it owns the
   screen-reader regions (`role="status"` / `role="alert"`, errors and warnings assertive) and
   queues calls until `sileo.tsx` (Sileo + `motion`, ~46 kB gz, its own chunk with
-  `toast.css`) loads on the first toast. Never import `sileo.tsx` directly.
-- **Sileo 0.1.6 quirks the module handles** (re-check them on an upgrade; the version is pinned):
-  one 40 px pill line, so a message over 36 characters goes to the body under a short severity
-  title; the body stays open for the toast's life (Sileo folds it early and never opens it
-  without a timeout); `position` is set per toast (Sileo reads the Toaster's only after it
-  mounts); its own `aria-live` region is silenced, its SVG (titled "sileo notification") hidden
-  and its `<a href="#">` action given `role="button"` (a MutationObserver; no props exist);
-  `MotionConfig reducedMotion="user"` stops its springs (its CSS already stops transitions);
-  colours, text alignment (RTL) and case come from `toast.css` in our tokens.
-  Known and accepted: the toast is a `<button>` that contains the action (nested interactive
-  content, axe `nested-interactive`), keyboard focus reaches it last in the tab order, a
-  toast's body opens on hover but not on focus, older stacked toasts fold to their pill, the
-  motion is a 600 ms spring (the product register's 220 ms does not apply to toasts), and the
+  `toast.css`) loads on the first toast. Never import `sileo.tsx` directly. `motion` is allowed
+  in that one file (the owner, 2026-10-23).
+- **Sileo is pinned (exactly 0.1.6) and patched.** `patches/sileo+0.1.6.patch` (patch-package,
+  applied by `postinstall` with `--error-on-fail`, so every `npm ci`/`npm install` in CI,
+  deploy and each worktree applies it, and a patch that no longer fits fails the install).
+  It edits `dist/index.mjs` (the ESM build every tool here resolves) and the types:
+  - the toast is a plain `<div>`, not a `<button>` holding the action (axe
+    `nested-interactive`); the action is a real `<button>` (was `<a href="#">`); a close
+    `<button>` with an i18n label (`closeLabel`, `toast.close`);
+  - pointer click dismisses, Escape dismisses, focus/blur open and fold like hover;
+  - Sileo's own `aria-live` is gone (the facade announces once), its SVG is `aria-hidden`
+    and loses its "sileo notification" title;
+  - the morph: 320 ms, bounce 0.1, exit removal at 320 ms (was 600 ms, 0.25, 600 ms);
+  - `closeLabel` and `id` in `SileoOptions`' types.
+  `toast.test.tsx` fails if the installed file lacks the patch. **Upgrading Sileo:** bump the
+  exact version, `npm install` (the old patch fails loudly), re-apply the same edits by hand in
+  `node_modules/sileo/dist/index.mjs` (+ `.d.ts`/`.d.mts`), `npx patch-package sileo`, delete
+  the old patch file, then re-check the quirks below and re-run axe on the toast scenes.
+- **Quirks this module still handles** in `sileo.tsx`: one 40 px pill line, so a message over
+  36 characters goes to the body under a short severity title; the body stays open for the
+  toast's life (Sileo folds it early and never opens it without a timeout); `position` is set
+  per toast (Sileo reads the Toaster's only after it mounts); colours, text alignment (RTL) and
+  case come from `toast.css`. Known and accepted: keyboard focus reaches the toasts last in
+  the tab order, older stacked toasts fold to their pill until focused or hovered, and the
   toast is 350 px wide (phones narrower than 374 px clip it).
 - **Tests.** Every test gets the toast API as silent spies (`src/test/toast.ts`, from
   `src/test/setup.ts`): assert with `expect(toast.error).toHaveBeenCalledWith(…)` or
