@@ -11409,6 +11409,7 @@ export const getLoyaltyTracksResponseTracksItemPositionMin = 0;
 
 export const GetLoyaltyTracksResponse = zod.object({
   "mode": zod.string().describe('`points` or `visits` (the org default\'s).'),
+  "stamp_unit": zod.string().describe('What track 1 counts: `points`, `order`, `item` or `stamp` (tracks 2–4\ncount stamps). madar-card `text::stamp_unit`.'),
   "track_one_size": zod.number().describe('Track 1\'s size: the programme\'s card size.'),
   "tracks": zod.array(zod.object({
   "cap": zod.number().nullish().describe('Tracks 2–4: the balance ceiling (a stamp past it is trimmed); at least\nthe track\'s size. `None` = no ceiling.'),
@@ -11448,6 +11449,7 @@ export const putLoyaltyTracksResponseTracksItemPositionMin = 0;
 
 export const PutLoyaltyTracksResponse = zod.object({
   "mode": zod.string().describe('`points` or `visits` (the org default\'s).'),
+  "stamp_unit": zod.string().describe('What track 1 counts: `points`, `order`, `item` or `stamp` (tracks 2–4\ncount stamps). madar-card `text::stamp_unit`.'),
   "track_one_size": zod.number().describe('Track 1\'s size: the programme\'s card size.'),
   "tracks": zod.array(zod.object({
   "cap": zod.number().nullish().describe('Tracks 2–4: the balance ceiling (a stamp past it is trimmed); at least\nthe track\'s size. `None` = no ceiling.'),

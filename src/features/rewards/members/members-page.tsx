@@ -24,7 +24,7 @@ import type { CrmMember, MemberSort } from "@/data/api/generated/models";
 import { useAuthz } from "@/data/authz/use-authz";
 import { keepScope } from "@/data/scope/list-search";
 import { paginationFrom, useListFilters, useSearchInput } from "@/data/scope/use-list-filters";
-import { currencyLabel } from "@/features/loyalty/shared/util";
+import { unitLabel } from "@/features/loyalty/shared/util";
 import { fmtDate, fmtNumber } from "@/lib/format";
 import { useWarmRoute } from "@/lib/prefetch/nav-context";
 
@@ -60,7 +60,7 @@ function MembersBody() {
   const filters = useListFilters(rewardsMembersSearch);
   const v = filters.values;
   const [search, setSearch] = useSearchInput(v.q, (q) => filters.set({ q }));
-  const { tracks, mode } = useTrackNames();
+  const { tracks, mode, unit: stampUnit } = useTrackNames();
   const rules = useMemo(() => parseRules(v.rules), [v.rules]);
   const valid = useAudienceValid(rules, tracks.length);
   const body = useMemo(() => membersBody(v), [v]);
@@ -68,7 +68,7 @@ function MembersBody() {
   const list = useQuery({ ...membersQueryOptions(body), enabled: valid, placeholderData: keepPreviousData });
   const { pagination, onPaginationChange } = paginationFrom(filters, MEMBERS_PAGE);
   const total = list.data?.total ?? 0;
-  const unit = mode ?? "visits";
+  const unit = stampUnit ?? (mode === "points" ? "points" : "order");
 
   const memberTarget = (id: string) => ({ to: "/rewards/members/$memberId", params: { memberId: id }, search: keepScope });
 
@@ -132,7 +132,7 @@ function MembersBody() {
           }
           return (
             <span className="font-mono tabular">
-              {fmtNumber(r.balance)} <span className="text-xs text-muted-foreground">{currencyLabel(unit, r.balance)}</span>
+              {fmtNumber(r.balance)} <span className="text-xs text-muted-foreground">{unitLabel(unit, r.balance)}</span>
             </span>
           );
         },

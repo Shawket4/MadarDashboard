@@ -18,7 +18,7 @@ export function trackLabel(track: Pick<Track, "name_en" | "name_ar"> | undefined
   return name?.trim() || fallback;
 }
 
-export function useTrackNames(): { tracks: TrackName[]; mode: string | undefined; loading: boolean } {
+export function useTrackNames(): { tracks: TrackName[]; mode: string | undefined; unit: string | undefined; loading: boolean } {
   const { t, i18n } = useTranslation();
   const canRead = useCan(Cap.loyaltyRead);
   const q = useGetLoyaltyTracks({ query: { enabled: canRead } });
@@ -35,5 +35,5 @@ export function useTrackNames(): { tracks: TrackName[]; mode: string | undefined
       ),
     }));
   }, [q.data, arabic, t]);
-  return { tracks, mode: q.data?.mode, loading: q.isLoading };
+  return { tracks, mode: q.data?.mode, unit: q.data?.stamp_unit, loading: q.isLoading };
 }

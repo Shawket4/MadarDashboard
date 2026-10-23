@@ -110,6 +110,7 @@ function warmMember(qc: QueryClient, ctx: PrefetchCtx): void {
   const id = ctx.params?.memberId;
   if (!id || !can(qc, Cap.loyaltyRead)) return;
   void qc.prefetchQuery(getGetLoyaltyMemberQueryOptions(id));
+  void qc.prefetchQuery(getGetLoyaltyTracksQueryOptions());
   if (can(qc, Cap.loyaltyMembersList)) void qc.prefetchQuery(getGetLoyaltyMemberWalletQueryOptions(id));
 }
 

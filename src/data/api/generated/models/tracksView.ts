@@ -8,6 +8,11 @@ import type { Track } from './track';
 export interface TracksView {
   /** `points` or `visits` (the org default's). */
   mode: string;
+  /**
+     * What track 1 counts: `points`, `order`, `item` or `stamp` (tracks 2–4
+     * count stamps). madar-card `text::stamp_unit`.
+     */
+  stamp_unit: string;
   /** Track 1's size: the programme's card size. */
   track_one_size: number;
   /**

@@ -43,7 +43,8 @@ beforeEach(async () => {
   mutateAsync.mockClear();
   view = {
     mode: "visits",
-    track_one_size: 8,
+    stamp_unit: "order",
+  track_one_size: 8,
     tracks: [
       { position: 1, name_en: "Coffee", name_ar: "", size: null, items: [], per_item: true, cap: null, shape: null, colour: null },
       { position: 2, name_en: "Croissants", name_ar: "", size: 5, items: ["i-1"], per_item: true, cap: null, shape: "star", colour: "#AA3300" },

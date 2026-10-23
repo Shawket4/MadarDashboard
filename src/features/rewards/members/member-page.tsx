@@ -27,7 +27,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { AdjustDialog } from "@/features/loyalty/admin/members/adjust-dialog";
 import { LeaveProgrammeButton } from "@/features/loyalty/admin/members/leave-programme-dialog";
 import { LedgerTable } from "@/features/loyalty/admin/members/member-section";
-import { currencyLabel } from "@/features/loyalty/shared/util";
+import { unitLabel } from "@/features/loyalty/shared/util";
 import { OrderDetailSheet } from "@/features/orders/order-detail-sheet";
 import { useOrgId } from "@/hooks/use-org-id";
 import { fmtDate, fmtDateTime, fmtNumber } from "@/lib/format";
@@ -35,7 +35,7 @@ import { Reveal } from "@/lib/motion";
 import { isSelling } from "@/lib/selling";
 
 import { rewardsAccess } from "../access";
-import { trackLabel } from "../use-track-names";
+import { trackLabel, useTrackNames } from "../use-track-names";
 
 const routeApi = getRouteApi("/_app/rewards/members_/$memberId");
 
@@ -71,6 +71,8 @@ function MemberBody() {
   const [adjusting, setAdjusting] = useState(false);
   const [openOrder, setOpenOrder] = useState<string | null>(null);
   const arabic = i18n.language.startsWith("ar");
+  // What track 1 counts (stamp_unit): the word under each balance.
+  const { unit: stampUnit } = useTrackNames();
 
   const member = q.data?.member;
   const tracks = useMemo(() => (member ? tracksOf(member) : []), [member]);
@@ -149,7 +151,7 @@ function MemberBody() {
       <Reveal className="space-y-4">
         <section aria-label={t("rewards.member.cardSection", "The card")} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {tracks.map((tr) => (
-            <TrackCard key={tr.position} track={tr} name={name(tr)} mode={tr.position === 1 ? member.mode : "visits"} />
+            <TrackCard key={tr.position} track={tr} name={name(tr)} mode={tr.position === 1 ? member.mode : "visits"} unit={tr.position === 1 ? (stampUnit ?? (member.mode === "points" ? "points" : "order")) : "stamp"} />
           ))}
         </section>
 
@@ -201,7 +203,7 @@ function tracksOf(m: MemberView): MemberTrack[] {
   ];
 }
 
-function TrackCard({ track, name, mode }: { track: MemberTrack; name: string; mode: string }) {
+function TrackCard({ track, name, mode, unit }: { track: MemberTrack; name: string; mode: string; unit: string }) {
   const { t } = useTranslation();
   const size = Math.max(1, track.size);
   const dots = mode === "visits" && size <= MAX_DOTS;
@@ -237,14 +239,14 @@ function TrackCard({ track, name, mode }: { track: MemberTrack; name: string; mo
           <ProgressBar value={track.progress_to_next} max={size} ariaLabel={name} className="h-2" />
         )}
         <p className="text-sm">
-          <span className="font-mono tabular" dir="ltr">
+          <span className="font-mono tabular">
             {t("rewards.member.progress", { defaultValue: "{{n}} of {{size}}", n: track.progress_to_next, size })}
           </span>{" "}
           <span className="text-xs text-muted-foreground">
             {t("rewards.member.balanceIs", {
               defaultValue: "Balance {{balance}} {{unit}}",
               balance: fmtNumber(track.balance),
-              unit: currencyLabel(mode, track.balance),
+              unit: unitLabel(unit, track.balance),
             })}
           </span>
         </p>

@@ -48,6 +48,7 @@ vi.mock("@/data/api/generated/api", () => ({
   useGetLoyaltyMember: () => ({ data: detail, isError: false, isFetching: false }),
   useGetLoyaltyMemberWallet: () => ({ data: undefined, isLoading: true }),
   useListBranches: () => ({ data: [] }),
+  useGetLoyaltyTracks: () => ({ data: { mode: "visits", track_one_size: 8, stamp_unit: "stamp", tracks: [] }, isLoading: false }),
 }));
 
 const i18n = (await import("@/i18n")).default;
