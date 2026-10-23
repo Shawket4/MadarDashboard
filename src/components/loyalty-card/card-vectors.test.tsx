@@ -9,7 +9,8 @@ import { describe, expect, it } from "vitest";
 import vectors from "@/lib/loyalty_card_vectors.json";
 import { rules } from "@/lib/rules";
 
-import { StampRow, stampable } from "./stamp-row";
+await import("@/i18n");
+const { StampRow, stampable } = await import("./stamp-row");
 
 describe("the join page's card is madar-loyalty's", () => {
   it.each(vectors.cards)("$name", (c) => {
@@ -21,7 +22,7 @@ describe("the stamp row fills what madar-loyalty's stamps says", () => {
   it.each(vectors.stamps)("$name", (c) => {
     expect(stampable(c.cost)).toBe(c.expected !== null);
     if (c.expected === null) return;
-    const { container } = render(<StampRow earned={c.earned} target={c.cost} accent="#000" onAccent="#fff" muted="#888" />);
-    expect(container.querySelector("ol")).toHaveAttribute("aria-label", `${c.expected} of ${c.cost} collected`);
+    const { container } = render(<StampRow earned={c.earned} target={c.cost} unit="stamp" accent="#000" onAccent="#fff" muted="#888" />);
+    expect(container.querySelector("ol")).toHaveAttribute("aria-label", `${c.expected} of ${c.cost} stamp${c.cost === 1 ? "" : "s"}`);
   });
 });

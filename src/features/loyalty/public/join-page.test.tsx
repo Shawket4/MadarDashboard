@@ -182,11 +182,43 @@ describe("the sign-up", () => {
     expect(screen.getByText("أكثر من 250 شخصًا يحملون هذه البطاقة")).toBeInTheDocument();
   });
 
+  it("speaks the programme's unit in every line that prints a figure", async () => {
+    // wt-wafa-api sends `stamp_unit` on the join info; wt-rewards-dash-api inside `card`.
+    info = {
+      ...baseInfo, stamp_unit: "item",
+      rewards: [{ name: "Any hot drink", cost_currency: "visits", cost_amount: 6 }, { name: "Cake", cost_currency: "visits", cost_amount: 1 }],
+    } as JoinInfo;
+    api.join.mockResolvedValue(member);
+    const { unmount } = mount();
+    expect(screen.getByText("A stamp for every item you buy. Collect 6 for a reward.")).toBeInTheDocument();
+    expect(screen.getByText("6 more items to your next reward.")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "0 of 6 items" })).toBeInTheDocument();
+    expect(screen.getByText("Any hot drink").parentElement).toHaveTextContent("6 items");
+    expect(screen.getByText("Cake").parentElement).toHaveTextContent("1 item");
+    await fill();
+    await getMyCard();
+    expect(await screen.findByText("Show it when you pay, and every item you buy adds a stamp.")).toBeInTheDocument();
+    unmount();
+
+    info = { ...baseInfo, card: { stamp_unit: "stamp" } } as JoinInfo;
+    mount();
+    expect(screen.getByText("Your card is stamped at the counter. Collect 6 for a reward.")).toBeInTheDocument();
+    expect(screen.getByText("6 more stamps to your next reward.")).toBeInTheDocument();
+  });
+
+  it("names the shop in the heading", () => {
+    info = { ...baseInfo, brand: { ...brand, program_name: "Bean Club" } };
+    mount();
+    expect(screen.getByRole("heading", { name: "Get your Bean & Brew card" })).toBeInTheDocument();
+    expect(screen.getByText("Bean Club")).toBeInTheDocument(); // the programme, on the card
+  });
+
   it("reads in Arabic", async () => {
     await i18n.changeLanguage("ar");
     mount();
-    expect(screen.getByRole("heading", { name: "احصل على بطاقة مكافآت" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "احصل على بطاقة Bean & Brew" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "احصل على بطاقتي" })).toBeInTheDocument();
     expect(screen.getByText("ختم لكل طلب. اجمع 6 لتحصل على مكافأة.")).toBeInTheDocument();
+    expect(screen.getByText("بقي 6 طلبات حتى مكافأتك التالية.")).toBeInTheDocument();
   });
 });

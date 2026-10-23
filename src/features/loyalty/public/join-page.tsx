@@ -20,6 +20,8 @@
  *   `require_otp`      whether a WhatsApp code is asked for before the card
  *   `mode`, `next_reward_cost`, `earn_piastres_per_point`   the card and the
  *                      sentence under the heading
+ *   `stamp_unit`       what a stamp counts (order, item, stamp), in every line
+ *                      that prints a figure
  *   `rewards[]`        what the stamps buy, under the form
  *   `birthday_enabled` / `birthday_reward_amount`   the birthday field, and its WHY
  *   `terms` / `terms_ar`   the programme's small print, in the reader's language
@@ -54,11 +56,11 @@ import { PhoneInput } from "@/components/inputs/phone-input";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 import { SwapPresence, prefersReducedMotion, usePop, useShake } from "@/lib/motion";
 import { formatPhoneDisplay } from "@/lib/phone";
-import { rules } from "@/lib/rules";
+import { resolveBrand, type ResolvedBrand } from "@/components/loyalty-card/card-brand";
+import { LoyaltyCard } from "@/components/loyalty-card/loyalty-card";
+import { stampUnit, type StampUnit } from "@/components/loyalty-card/wording";
 
-import { resolveBrand, type ResolvedBrand } from "../shared/brand";
-import type { JoinInfoNext as JoinInfo } from "./api-next";
-import { CardFace } from "./card-face";
+import { stampUnitOf, type JoinInfoNext as JoinInfo } from "./api-next";
 import { PressedCard, PressRest, PressStage } from "./card-press";
 import { NAME_MAX, detailsReady, joinPayload, ruleKind } from "./join-form";
 import { LoyaltyPage, PageNotice, PageSkeleton, Section, usePageAccent } from "./page-shell";
@@ -248,9 +250,10 @@ function JoinFlow({
   const stepDir = useStepDirection(phase, PHASES);
 
   // The card, as it is now: the preview at zero until there is a member.
+  const mode = joined?.mode ?? data.mode;
+  const unit = stampUnit(mode, stampUnitOf(data));
   const target = joined?.next_reward_cost ?? data.next_reward_cost;
   const balance = joined?.balance ?? 0;
-  const card = rules.loyalty_card(balance, target);
   const memberToken = joined?.member_token ?? "";
   // The Apple pass is made on demand; the page owns that wait (`card-press.tsx`).
   const pass = usePassDownload(joined?.passes?.apple_url);
@@ -281,19 +284,18 @@ function JoinFlow({
       <PressStage phase={pressPhase}>
         <div ref={cardRef}>
           <PressedCard brand={brand}>
-            <CardFace
+            <LoyaltyCard
               brand={brand}
-              mode={joined?.mode ?? data.mode}
+              mode={mode}
+              unit={unit}
               balance={balance}
               target={target}
-              toGo={card.points_to_next_reward}
-              canRedeem={card.can_redeem}
-              rewardsReady={card.rewards_ready}
-              progress={card.progress_to_next}
-              memberName={joined ? joined.name : name.trim() || null}
-              memberPlaceholder={t("loyalty.namePreview", "Your name")}
-              codePending
-              qrUrl={joined ? `/api/public/loyalty/card/${encodeURIComponent(memberToken)}/qr.png` : null}
+              member={{
+                name: joined ? joined.name : name.trim() || null,
+                placeholder: t("loyalty.namePreview", "Your name"),
+                codePending: true,
+                qrUrl: joined ? `/api/public/loyalty/card/${encodeURIComponent(memberToken)}/qr.png` : null,
+              }}
             />
           </PressedCard>
         </div>
@@ -315,6 +317,7 @@ function JoinFlow({
             <Details
               data={data}
               brand={brand}
+              unit={unit}
               accent={accent}
               name={name}
               setName={setName}
@@ -361,11 +364,11 @@ function JoinFlow({
               }}
             />
           ) : joined ? (
-            <Done joined={joined} data={data} accent={accent} pass={pass} memberToken={memberToken} />
+            <Done joined={joined} data={data} unit={unit} accent={accent} pass={pass} memberToken={memberToken} />
           ) : null}
           {phase === "details" ? (
             <>
-              <RewardsList rewards={data.rewards} accent={accent} />
+              <RewardsList rewards={data.rewards} accent={accent} unit={unit} />
               {shopTerms ? (
                 // The consent line's "programme terms" lands here.
                 <div id="loyalty-terms" className="scroll-mt-24">
@@ -453,14 +456,26 @@ function MemberCount({ count }: { count: number | null | undefined }) {
   );
 }
 
-/** The sentence under the heading: the programme in one line, from what the shop configured. */
-function ruleSentence(data: JoinInfo, t: ReturnType<typeof useTranslation>["t"]): string {
+/**
+ * The sentence under the heading: the programme in one line, from what the shop
+ * configured, and what earns a stamp here (an order, an item, or the counter's
+ * say-so). The target is a bare count: the first sentence has said what it counts.
+ */
+function ruleSentence(data: JoinInfo, unit: StampUnit, t: ReturnType<typeof useTranslation>["t"]): string {
   const count = data.next_reward_cost;
   switch (ruleKind(data)) {
     case "stampsWithTarget":
-      return t("loyalty.ruleStamps", { count, defaultValue: "A stamp for every order. Collect {{count}} for a reward." });
+      return unit === "item"
+        ? t("loyalty.ruleItems", { count, defaultValue: "A stamp for every item you buy. Collect {{count}} for a reward." })
+        : unit === "stamp"
+          ? t("loyalty.ruleCounter", { count, defaultValue: "Your card is stamped at the counter. Collect {{count}} for a reward." })
+          : t("loyalty.ruleStamps", { count, defaultValue: "A stamp for every order. Collect {{count}} for a reward." });
     case "stamps":
-      return t("loyalty.introVisits", "A stamp for every order, and a reward when the card is full.");
+      return unit === "item"
+        ? t("loyalty.introItems", "A stamp for every item you buy, and a reward when the card is full.")
+        : unit === "stamp"
+          ? t("loyalty.introCounter", "Your card is stamped at the counter, and a reward comes when it's full.")
+          : t("loyalty.introVisits", "A stamp for every order, and a reward when the card is full.");
     case "pointsWithTarget":
       return t("loyalty.rulePoints", {
         count,
@@ -478,11 +493,12 @@ function ruleSentence(data: JoinInfo, t: ReturnType<typeof useTranslation>["t"])
 }
 
 function Details({
-  data, brand, accent, name, setName, birthday, setBirthday, national, setNational, region, setRegion,
+  data, brand, unit, accent, name, setName, birthday, setBirthday, national, setNational, region, setRegion,
   ready, online, busy, joining, problem, hasTerms, onSubmit,
 }: {
   data: JoinInfo;
   brand: ResolvedBrand;
+  unit: StampUnit;
   accent: string;
   name: string;
   setName: (v: string) => void;
@@ -535,11 +551,12 @@ function Details({
               {data.branch_name}
             </p>
           ) : null}
+          {/* Whose card, by name: the shop first, its programme on the card. */}
           <h1 className="font-serif text-[28px] leading-[1.1] text-balance">
-            {t("loyalty.getYourCard", { program: brand.programName, defaultValue: "Get your {{program}} card" })}
+            {t("loyalty.getYourCard", { shop: brand.orgName, defaultValue: "Get your {{shop}} card" })}
           </h1>
           <p className="max-w-[40ch] text-[15px] leading-relaxed text-muted-foreground text-pretty">
-            {ruleSentence(data, t)}
+            {ruleSentence(data, unit, t)}
           </p>
           <MemberCount count={data.member_count} />
         </header>
@@ -580,7 +597,7 @@ function Details({
                 // Say what it is FOR, and what is not being asked.
                 gift <= 0
                   ? t("loyalty.birthdayNoGift", "So we can wish you a happy birthday. We don't ask for the year.")
-                  : data.mode === "visits"
+                  : unit !== "points"
                     ? t("loyalty.birthdayGiftStamps", {
                         count: gift,
                         defaultValue_one: "We'll wish you a happy birthday and add {{count}} stamp to your card. We don't ask for the year.",
@@ -844,12 +861,27 @@ function Code({
   );
 }
 
+/** What happens next, for someone who has just joined: how this card fills. */
+function joinedLine(unit: StampUnit, t: ReturnType<typeof useTranslation>["t"]): string {
+  switch (unit) {
+    case "points":
+      return t("loyalty.joinedPoints", "Show it when you pay, and every purchase earns points.");
+    case "item":
+      return t("loyalty.joinedItem", "Show it when you pay, and every item you buy adds a stamp.");
+    case "stamp":
+      return t("loyalty.joinedCounter", "Show it at the counter to collect your stamps.");
+    default:
+      return t("loyalty.joinedOrder", "Show it when you pay, and every order adds a stamp.");
+  }
+}
+
 /** Signing up ends by showing the thing they just got — already up there — and how to keep it. */
 function Done({
-  joined, data, accent, pass, memberToken,
+  joined, data, unit, accent, pass, memberToken,
 }: {
   joined: JoinResult;
   data: JoinInfo;
+  unit: StampUnit;
   accent: string;
   pass: ReturnType<typeof usePassDownload>;
   memberToken: string;
@@ -865,7 +897,7 @@ function Done({
         <p className="text-[15px] leading-relaxed text-muted-foreground text-pretty">
           {joined.already_member
             ? t("loyalty.alreadyMember", "You're already a member — here's your card again.")
-            : t("loyalty.joinedBody", "Show this when you pay, and it starts counting.")}
+            : joinedLine(unit, t)}
         </p>
       </header>
 

@@ -35,7 +35,7 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { PAGE_GROUND, readableOn } from "@/features/public-shell/brand-color";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 
-import type { ResolvedBrand } from "../shared/brand";
+import type { ResolvedBrand } from "@/components/loyalty-card/card-brand";
 
 /** The brand accent, made legible against the theme in force. */
 export function usePageAccent(brand: ResolvedBrand): string {
@@ -102,37 +102,27 @@ export function Panel({
 }
 
 /**
- * The page: the shop's identity, then whatever this page is, then Madar.
+ * The page: the shop's card, then whatever this page is, then Madar.
  *
- * `StorefrontShell` supplies the header chrome and the footer — the Madar mark
- * and "powered by" stay on every page at every tier.
+ * `StorefrontShell` supplies the header chrome and the footer — Madar's
+ * signature stays on every page at every tier. Each page heads itself: the
+ * card says whose page it is, so there is no headline over it.
  */
 export function LoyaltyPage({
   brand,
-  eyebrow,
-  title,
-  intro,
   headerMark = true,
   footer = true,
   children,
 }: {
   brand: ResolvedBrand;
-  /** Small line above the title — the branch, or the shop. */
-  eyebrow?: string;
-  /** Absent for a page that heads its own steps (the sign-up, under its card). */
-  title?: string;
-  intro?: ReactNode;
   /** False when the shop's card, logo and all, sits right under the header. */
   headerMark?: boolean;
   /** False when each step draws Madar's footer itself (see `StorefrontShell`). */
   footer?: boolean;
   children: ReactNode;
 }) {
-  const accent = usePageAccent(brand);
-
   // The shop's colour on the buttons is `StorefrontShell`'s job (`useBrandSkin`),
-  // on the page root so the phone step's sheets and dialogs wear it too. The
-  // accent here is the same colour walked the same way, for the eyebrow.
+  // on the page root so the phone step's sheets and dialogs wear it too.
 
   // The tab is the one surface of the branding tier that still said "Madar"
   // to a shop's customers. The programme and the shop, in that order, because
@@ -143,27 +133,7 @@ export function LoyaltyPage({
 
   return (
     <StorefrontShell brand={brand} product="loyalty" headerMark={headerMark} footer={footer}>
-      <div className="flex flex-col gap-8 pb-2 pt-3">
-        {title ? (
-          <header className="flex flex-col gap-2.5">
-            {eyebrow ? (
-              <p
-                className="text-[11px] font-semibold uppercase tracking-[0.18em]"
-                style={{ color: accent }}
-              >
-                {eyebrow}
-              </p>
-            ) : null}
-            <h1 className="font-serif text-[32px] leading-[1.1] text-balance">{title}</h1>
-            {intro ? (
-              <div className="max-w-[38ch] text-[15px] leading-relaxed text-muted-foreground">
-                {intro}
-              </div>
-            ) : null}
-          </header>
-        ) : null}
-        {children}
-      </div>
+      <div className="flex flex-col gap-8 pb-2 pt-3">{children}</div>
     </StorefrontShell>
   );
 }
@@ -178,7 +148,7 @@ export function PageSkeleton() {
   return (
     <StorefrontShell product="loyalty">
       <div className="flex flex-col gap-8 pt-3" aria-busy>
-        <Skeleton className="h-[330px] w-full rounded-[28px]" />
+        <Skeleton className="h-[312px] w-full rounded-[28px]" />
         <div className="flex flex-col gap-3">
           <Skeleton className="h-8 w-3/4 rounded-lg" />
           <Skeleton className="h-4 w-4/5 rounded-full" />

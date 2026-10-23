@@ -11,9 +11,11 @@
  * shop's NAME is always on it either way.
  *
  * The order of the page is the order of need at a counter: the card (code and
- * balance) first, "Order now" where the shop takes online orders, the wallet next, then what the balance buys, then the two
- * things a member can change, then the receipts — the least urgent block and
- * the longest — and where else to find the shop.
+ * balance) first, with the wallet right under it, then "Order now" where the
+ * shop takes online orders, what the balance buys, the one thing a member can
+ * change, the receipts (the least urgent block and the longest) and where else
+ * to find the shop. The card heads the page itself: it already says whose it
+ * is, so a headline over it would only say it again.
  */
 import { useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
@@ -21,15 +23,16 @@ import { ArrowRight, CreditCard } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
+import { resolveBrand, type ResolvedBrand } from "@/components/loyalty-card/card-brand";
+import { LoyaltyCard } from "@/components/loyalty-card/loyalty-card";
+import { stampUnit } from "@/components/loyalty-card/wording";
 import { useLoyaltyCard } from "@/data/api/generated/api";
-import type { CardView } from "@/data/api/generated/models";
 
-import { resolveBrand, type ResolvedBrand } from "../shared/brand";
-import { CardFace } from "./card-face";
+import { stampUnitOf, type CardViewNext as CardView } from "./api-next";
 import { PressedCard, PressRest, PressStage } from "./card-press";
 import { CardOrders } from "./card-orders";
 import { CardPreferences } from "./card-preferences";
-import { LoyaltyPage, PageNotice, PageSkeleton, Panel, Section, usePageAccent } from "./page-shell";
+import { LoyaltyPage, PageNotice, PageSkeleton, usePageAccent } from "./page-shell";
 import { RewardsList } from "./rewards-list";
 import { safeHttpUrl } from "./safe-url";
 import { SocialLinks } from "./social-links";
@@ -42,7 +45,7 @@ export function CardPage({ token }: { token: string }) {
 
   if (card.isLoading) return <PageSkeleton />;
 
-  const data = card.data;
+  const data = card.data as CardView | undefined;
   if (!data) {
     // A link that matches no card is a fact about the link; a request that
     // failed is a fact about the connection. Only the second is worth
@@ -86,53 +89,49 @@ function Card({
   // wait, because it is the CARD that is being made — see `card-press.tsx`.
   const pass = usePassDownload(data.passes.apple_url);
   const orderNowHref = safeHttpUrl(data.order_now_url);
+  const unit = stampUnit(data.mode, stampUnitOf(data));
 
   return (
-    <LoyaltyPage
-      brand={brand}
-      eyebrow={t("loyalty.yourCard", "Your card")}
-      title={brand.programName}
-    >
+    <LoyaltyPage brand={brand} headerMark={false}>
+      {/* The card is the headline; this names it for a screen reader. */}
+      <h1 className="sr-only">
+        {t("loyalty.cardTitle", { shop: brand.orgName, defaultValue: "Your {{shop}} card" })}
+      </h1>
       <PressStage phase={pass.phase}>
         <PressedCard brand={brand}>
-          <CardFace
+          <LoyaltyCard
             brand={brand}
             mode={data.mode}
+            unit={unit}
             balance={data.balance}
             target={data.next_reward_cost}
-            toGo={data.points_to_next_reward}
-            canRedeem={data.can_redeem}
-            rewardsReady={data.rewards_ready}
-            progress={data.progress_to_next}
-            memberName={data.name}
-            qrUrl={`/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png`}
+            member={{ name: data.name, qrUrl: `/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png` }}
           />
         </PressedCard>
 
-        {/* Present only when the shop takes online orders. The ordering page opens
-            knowing who this is — and proves it on that device before showing anything. */}
-        {orderNowHref ? (
-          <Button asChild size="lg" className="h-12 w-full rounded-xl text-base">
-            <a href={orderNowHref}>
-              {t("loyalty.orderNow", "Order now")}
-              <ArrowRight className="rtl:rotate-180" aria-hidden />
-            </a>
-          </Button>
-        ) : null}
-
+        {/* Right under the card it saves, as on the sign-up's last step. */}
         {data.passes.any ? (
-          <Section
-            title={t("loyalty.keepItHandy", "Keep it handy")}
-            hint={t("loyalty.walletHint", "It updates itself every time you earn, and it's there when you're back.")}
-          >
-            <Panel>
-              <WalletButtons passes={data.passes} pass={pass} />
-            </Panel>
-          </Section>
+          <div className="flex flex-col items-center gap-3">
+            <WalletButtons passes={data.passes} pass={pass} />
+            <p className="max-w-[34ch] text-center text-[13px] leading-snug text-muted-foreground">
+              {t("loyalty.walletHint", "It updates itself every time you earn, and it's there when you're back.")}
+            </p>
+          </div>
         ) : null}
 
         <PressRest>
-          <RewardsList rewards={data.rewards} accent={accent} />
+          {/* Present only when the shop takes online orders. The ordering page opens
+              knowing who this is — and proves it on that device before showing anything. */}
+          {orderNowHref ? (
+            <Button asChild size="lg" className="h-12 w-full rounded-xl text-base">
+              <a href={orderNowHref}>
+                {t("loyalty.orderNow", "Order now")}
+                <ArrowRight className="rtl:rotate-180" aria-hidden />
+              </a>
+            </Button>
+          ) : null}
+
+          <RewardsList rewards={data.rewards} accent={accent} unit={unit} />
 
           <CardPreferences token={token} optedOut={data.marketing_opt_out} />
 

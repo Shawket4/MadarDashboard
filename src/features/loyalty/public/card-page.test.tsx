@@ -12,13 +12,11 @@ let card: Partial<CardView> = {};
 vi.mock("@/data/api/generated/api", () => ({
   useLoyaltyCard: () => ({ data: card, isLoading: false, error: null, refetch: vi.fn() }),
 }));
-vi.mock("../shared/brand", () => ({ resolveBrand: () => ({ programName: "Test Rewards" }) }));
+vi.mock("@/components/loyalty-card/card-brand", () => ({ resolveBrand: () => ({ programName: "Test Rewards", orgName: "Test Shop" }) }));
 vi.mock("./page-shell", () => ({
   LoyaltyPage: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
   PageNotice: () => null,
   PageSkeleton: () => null,
-  Panel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Section: ({ children }: { children: React.ReactNode }) => <section>{children}</section>,
   usePageAccent: () => "#000",
 }));
 vi.mock("./card-press", () => ({
@@ -26,7 +24,7 @@ vi.mock("./card-press", () => ({
   PressedCard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   PressRest: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
-vi.mock("./card-face", () => ({ CardFace: () => null }));
+vi.mock("@/components/loyalty-card/loyalty-card", () => ({ LoyaltyCard: () => null }));
 vi.mock("./card-orders", () => ({ CardOrders: () => null }));
 vi.mock("./card-preferences", () => ({ CardPreferences: () => null }));
 vi.mock("./rewards-list", () => ({ RewardsList: () => null }));
@@ -42,6 +40,13 @@ const base = { name: "Sara", mode: "points", balance: 10, rewards: [], passes: {
 beforeEach(async () => {
   card = { ...base };
   await i18n.changeLanguage("en");
+});
+
+describe("CardPage", () => {
+  it("is headed by the card, named for a screen reader", () => {
+    render(<CardPage token="card-token" />);
+    expect(screen.getByRole("heading", { level: 1, name: "Your Test Shop card" })).toHaveClass("sr-only");
+  });
 });
 
 describe("CardPage — Order now", () => {

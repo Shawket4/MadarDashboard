@@ -1,13 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
 
-import { StampRow, stampable } from "./stamp-row";
+await import("@/i18n");
+const { StampRow, stampable } = await import("./stamp-row");
 
 const row = (earned: number, target: number) =>
   render(
     <StampRow
       earned={earned}
       target={target}
+      unit="order"
       accent="#C8607F"
       onAccent="#7B1E3A"
       muted="rgba(255,255,255,0.72)"

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readableOn, resolveBrand } from "./brand";
+import { readableOn, resolveBrand } from "./card-brand";
 
 /** The AA floor both sides of the wire hold to. */
 const AA = 4.5;
