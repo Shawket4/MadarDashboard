@@ -91,6 +91,14 @@ describe("LoyaltyCard", () => {
     expect(screen.queryByText(/scan/i)).not.toBeInTheDocument();
   });
 
+  it("keeps a Latin name whole on an Arabic card (its full stop at its own end)", async () => {
+    await i18n.changeLanguage("ar");
+    const latin = { ...brand, orgName: "Madar Coffee Co." };
+    render(<LoyaltyCard brand={latin} mode="visits" balance={0} target={6} member={{ name: "Salma A." }} />);
+    expect(screen.getByText("Madar Coffee Co.").tagName).toBe("BDI");
+    expect(screen.getByText("Salma A.").tagName).toBe("BDI");
+  });
+
   it("reads in Arabic", async () => {
     await i18n.changeLanguage("ar");
     render(<LoyaltyCard brand={brand} mode="visits" unit="item" balance={3} target={8} />);

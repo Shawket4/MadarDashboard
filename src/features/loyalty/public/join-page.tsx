@@ -553,7 +553,12 @@ function Details({
           ) : null}
           {/* Whose card, by name: the shop first, its programme on the card. */}
           <h1 className="font-serif text-[28px] leading-[1.1] text-balance">
-            {t("loyalty.getYourCard", { shop: brand.orgName, defaultValue: "Get your {{shop}} card" })}
+            <Trans
+              i18nKey="loyalty.getYourCard"
+              values={{ shop: brand.orgName }}
+              defaults="Get your <bdi>{{shop}}</bdi> card"
+              components={{ bdi: <bdi /> }}
+            />
           </h1>
           <p className="max-w-[40ch] text-[15px] leading-relaxed text-muted-foreground text-pretty">
             {ruleSentence(data, unit, t)}
@@ -689,15 +694,15 @@ function Consent({ shop, hasTerms }: { shop: string; hasTerms: boolean }) {
         <Trans
           i18nKey="loyalty.consentTerms"
           values={{ shop }}
-          defaults="By joining you agree to the <terms>programme terms</terms> and Madar's <privacy>Privacy Policy</privacy>. {{shop}} may send you WhatsApp messages about your card and rewards; you can turn them off from your card at any time."
-          components={{ terms: <a href="#loyalty-terms" className={LINK} />, privacy }}
+          defaults="By joining you agree to the <terms>programme terms</terms> and Madar's <privacy>Privacy Policy</privacy>. <bdi>{{shop}}</bdi> may send you WhatsApp messages about your card and rewards; you can turn them off from your card at any time."
+          components={{ terms: <a href="#loyalty-terms" className={LINK} />, privacy, bdi: <bdi /> }}
         />
       ) : (
         <Trans
           i18nKey="loyalty.consent"
           values={{ shop }}
-          defaults="By joining you agree to Madar's <privacy>Privacy Policy</privacy>. {{shop}} may send you WhatsApp messages about your card and rewards; you can turn them off from your card at any time."
-          components={{ privacy }}
+          defaults="By joining you agree to Madar's <privacy>Privacy Policy</privacy>. <bdi>{{shop}}</bdi> may send you WhatsApp messages about your card and rewards; you can turn them off from your card at any time."
+          components={{ privacy, bdi: <bdi /> }}
         />
       )}
     </p>
@@ -721,15 +726,21 @@ function Known({
       <header className="flex flex-col gap-2">
         <h1 className="font-serif text-[28px] leading-[1.1] text-balance">{t("loyalty.knownTitle", "This number already has a card")}</h1>
         <p className="text-[15px] leading-relaxed text-muted-foreground text-pretty">
-          {known.card_link_sent
-            ? t("loyalty.knownLinkSent", {
-                shop: brand.orgName,
-                defaultValue: "We've sent your {{shop}} card's link to this number on WhatsApp — open it there. Or confirm it's yours with a code, and we'll bring the card back here.",
-              })
-            : t("loyalty.knownCode", {
-                shop: brand.orgName,
-                defaultValue: "Confirm it's yours with a WhatsApp code, and we'll bring your {{shop}} card back here.",
-              })}
+          {known.card_link_sent ? (
+            <Trans
+              i18nKey="loyalty.knownLinkSent"
+              values={{ shop: brand.orgName }}
+              defaults="We've sent your <bdi>{{shop}}</bdi> card's link to this number on WhatsApp — open it there. Or confirm it's yours with a code, and we'll bring the card back here."
+              components={{ bdi: <bdi /> }}
+            />
+          ) : (
+            <Trans
+              i18nKey="loyalty.knownCode"
+              values={{ shop: brand.orgName }}
+              defaults="Confirm it's yours with a WhatsApp code, and we'll bring your <bdi>{{shop}}</bdi> card back here."
+              components={{ bdi: <bdi /> }}
+            />
+          )}
         </p>
       </header>
       {problem ? (

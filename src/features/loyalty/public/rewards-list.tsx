@@ -40,7 +40,9 @@ export function RewardsList({
           {rewards.map((r) => (
             <li key={`${r.name}-${r.cost_amount}`} className="flex items-center gap-3 px-5 py-3.5">
               <Gift className="size-[18px] shrink-0" style={{ color: accent }} aria-hidden />
-              <span className="min-w-0 flex-1 text-[15px] font-medium leading-snug">{r.name}</span>
+              <span className="min-w-0 flex-1 text-[15px] font-medium leading-snug">
+                <bdi>{r.name}</bdi>
+              </span>
               {/* The figure in the mono cut, the word in the text's own. */}
               <span className="shrink-0 text-[13px] text-muted-foreground">
                 <span className="font-mono tabular-nums">{fmtNumber(r.cost_amount)}</span>{" "}

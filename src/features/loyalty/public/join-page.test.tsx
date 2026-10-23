@@ -73,9 +73,9 @@ describe("the sign-up", () => {
 
   it("writes the name on the card as it is typed", async () => {
     mount();
-    expect(screen.getByText("Your name", { selector: "p" })).toBeInTheDocument(); // the card's placeholder
+    expect(screen.getByText("Your name", { selector: "bdi" })).toBeInTheDocument(); // the card's placeholder
     await userEvent.type(screen.getByLabelText("Your name"), "Salma Adel");
-    expect(screen.getByText("Salma Adel", { selector: "p" })).toBeInTheDocument();
+    expect(screen.getByText("Salma Adel", { selector: "bdi" })).toBeInTheDocument();
   });
 
   it("joins at once where the shop asks no code, and hands over the card", async () => {
@@ -103,7 +103,7 @@ describe("the sign-up", () => {
     await fill();
     await getMyCard();
     expect(await screen.findByRole("heading", { name: "This number already has a card" })).toBeInTheDocument();
-    expect(screen.getByText(/sent your Bean & Brew card's link/)).toBeInTheDocument();
+    expect(document.body).toHaveTextContent(/sent your Bean & Brew card's link/);
     await userEvent.click(screen.getByRole("button", { name: "Send me a code" }));
     expect(api.otpRequest).toHaveBeenCalledWith({ data: { phone: PHONE } });
     expect(await screen.findByRole("heading", { name: "Check your WhatsApp" })).toBeInTheDocument();
@@ -193,8 +193,8 @@ describe("the sign-up", () => {
     expect(screen.getByText("A stamp for every item you buy. Collect 6 for a reward.")).toBeInTheDocument();
     expect(screen.getByText("6 more items to your next reward.")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "0 of 6 items" })).toBeInTheDocument();
-    expect(screen.getByText("Any hot drink").parentElement).toHaveTextContent("6 items");
-    expect(screen.getByText("Cake").parentElement).toHaveTextContent("1 item");
+    expect(screen.getByText("Any hot drink").closest("li")).toHaveTextContent("6 items");
+    expect(screen.getByText("Cake").closest("li")).toHaveTextContent("1 item");
     await fill();
     await getMyCard();
     expect(await screen.findByText("Show it when you pay, and every item you buy adds a stamp.")).toBeInTheDocument();

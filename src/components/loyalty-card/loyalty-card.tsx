@@ -118,9 +118,13 @@ export function LoyaltyCard({ brand, mode, unit: given, balance, target, member 
         <div className="min-w-0 flex-1">
           {/* The shop's name is always here: whose card this is must be on
               it, however little else has been configured. */}
-          <p className="truncate text-[17px] font-semibold leading-tight tracking-[-0.01em]">{brand.orgName}</p>
+          {/* Names in <bdi>: a Latin name on an Arabic card ("Madar Coffee Co.")
+              keeps its full stop at its own end. */}
+          <p className="truncate text-[17px] font-semibold leading-tight tracking-[-0.01em]">
+            <bdi>{brand.orgName}</bdi>
+          </p>
           <p className="mt-0.5 truncate text-[13px] leading-tight" style={{ color: brand.muted }}>
-            {brand.programName}
+            <bdi>{brand.programName}</bdi>
           </p>
         </div>
       </header>
@@ -231,7 +235,7 @@ export function LoyaltyCard({ brand, mode, unit: given, balance, target, member 
             className="min-w-0 truncate pb-0.5 text-[17px] font-medium leading-tight"
             style={name ? undefined : { color: brand.muted }}
           >
-            {name || member.placeholder}
+            <bdi>{name || member.placeholder}</bdi>
           </p>
           {member.qrUrl ? (
             // On white whatever the card's ground: a scanner needs the quiet
