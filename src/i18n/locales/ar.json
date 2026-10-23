@@ -5291,7 +5291,13 @@
     "birthdayGiftPoints_few": "سنهنئك بعيد ميلادك ونضيف {{count}} نقاط إلى بطاقتك. لا نسأل عن السنة.",
     "birthdayGiftPoints_many": "سنهنئك بعيد ميلادك ونضيف {{count}} نقطة إلى بطاقتك. لا نسأل عن السنة.",
     "birthdayGiftPoints_other": "سنهنئك بعيد ميلادك ونضيف {{count}} نقطة إلى بطاقتك. لا نسأل عن السنة.",
-    "nameMissing": "أضف اسمك، فهو يُكتب على بطاقتك."
+    "nameMissing": "أضف اسمك، فهو يُكتب على بطاقتك.",
+    "memberCount_zero": "أكثر من {{n}} شخص يحملون هذه البطاقة",
+    "memberCount_one": "أكثر من {{n}} شخص يحملون هذه البطاقة",
+    "memberCount_two": "أكثر من {{n}} شخص يحملون هذه البطاقة",
+    "memberCount_few": "أكثر من {{n}} أشخاص يحملون هذه البطاقة",
+    "memberCount_many": "أكثر من {{n}} شخصًا يحملون هذه البطاقة",
+    "memberCount_other": "أكثر من {{n}} شخص يحملون هذه البطاقة"
   },
   "publicShell": {
     "signature": {

@@ -24,13 +24,14 @@
  *   `birthday_enabled` / `birthday_reward_amount`   the birthday field, and its WHY
  *   `terms` / `terms_ar`   the programme's small print, in the reader's language
  *   `branch_name`      where they are joining, over the heading
+ *   `member_count`     "1,200+ people already have this card", only past 100
  *   `brand`            the card, the controls' colour, the names, the links
  */
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
-import { AlertCircle, ArrowRight, MapPin, PenLine, WifiOff } from "lucide-react";
+import { AlertCircle, ArrowRight, MapPin, PenLine, Users, WifiOff } from "lucide-react";
 
 import { BirthdayField } from "@/components/inputs/birthday-field";
 import { EMPTY_BIRTHDAY, type Birthday } from "@/components/inputs/birthday";
@@ -40,7 +41,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { LEGAL_URLS } from "@/config/legal";
 import { getErrorMessage } from "@/data/api/errors";
 import { useLoyaltyJoin, useLoyaltyJoinInfo } from "@/data/api/generated/api";
-import type { JoinInfo, JoinResult } from "@/data/api/generated/models";
+import type { JoinResult } from "@/data/api/generated/models";
 import { clearDeviceToken } from "@/features/public-shell/guest";
 import { stepSwap, useStepDirection } from "@/features/public-shell/motion";
 import { MadarFooter } from "@/features/public-shell/storefront-shell";
@@ -49,12 +50,13 @@ import { useOtpTransport, usePhoneOtp, type PhoneOtpTransport } from "@/features
 import { OtpInput } from "@/features/signup/otp-input";
 import { PhoneInput } from "@/features/signup/phone-input";
 import { DEFAULT_REGION, clock, signupPhone, useCountdown } from "@/features/signup/util";
-import { fmtMoney } from "@/lib/format";
+import { fmtMoney, fmtNumber } from "@/lib/format";
 import { SwapPresence, prefersReducedMotion, usePop, useShake } from "@/lib/motion";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { rules } from "@/lib/rules";
 
 import { resolveBrand, type ResolvedBrand } from "../shared/brand";
+import type { JoinInfoNext as JoinInfo } from "./api-next";
 import { CardFace } from "./card-face";
 import { PressedCard, PressRest, PressStage } from "./card-press";
 import { NAME_MAX, detailsReady, joinPayload, ruleKind } from "./join-form";
@@ -98,7 +100,7 @@ export function JoinPage({
 
   if (info.isLoading) return <PageSkeleton />;
 
-  const data = info.data;
+  const data = info.data as JoinInfo | undefined;
   if (!data) {
     // A code that leads nowhere — a branch since closed, a link mistyped —
     // is not a network fault, and "try again" would be a lie. It gets the
@@ -428,6 +430,28 @@ function Field({
   );
 }
 
+/**
+ * How many people already hold the card, when it is worth saying: the server
+ * sends a figure only past 100 members, rounded DOWN, and this checks again,
+ * so a small shop shows nothing and no figure is ever made up here. Part of
+ * the page's first render (it arrives with the programme), so it moves nothing.
+ */
+function MemberCount({ count }: { count: number | null | undefined }) {
+  const { t } = useTranslation();
+  if (count == null || !(count > 100)) return null;
+  return (
+    <p className="flex items-center gap-2 text-[13px] leading-snug text-muted-foreground">
+      <Users aria-hidden className="size-4 shrink-0" />
+      {t("loyalty.memberCount", {
+        count,
+        n: fmtNumber(count),
+        defaultValue_one: "{{n}}+ person already has this card",
+        defaultValue_other: "{{n}}+ people already have this card",
+      })}
+    </p>
+  );
+}
+
 /** The sentence under the heading: the programme in one line, from what the shop configured. */
 function ruleSentence(data: JoinInfo, t: ReturnType<typeof useTranslation>["t"]): string {
   const count = data.next_reward_cost;
@@ -516,6 +540,7 @@ function Details({
           <p className="max-w-[40ch] text-[15px] leading-relaxed text-muted-foreground text-pretty">
             {ruleSentence(data, t)}
           </p>
+          <MemberCount count={data.member_count} />
         </header>
 
         <div className="flex flex-col gap-6">

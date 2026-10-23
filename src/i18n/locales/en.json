@@ -5216,7 +5216,9 @@
     "birthdayGiftStamps_other": "We'll wish you a happy birthday and add {{count}} stamps to your card. We don't ask for the year.",
     "birthdayGiftPoints_one": "We'll wish you a happy birthday and add {{count}} point to your card. We don't ask for the year.",
     "birthdayGiftPoints_other": "We'll wish you a happy birthday and add {{count}} points to your card. We don't ask for the year.",
-    "nameMissing": "Add your name — it goes on your card."
+    "nameMissing": "Add your name — it goes on your card.",
+    "memberCount_one": "{{n}}+ person already has this card",
+    "memberCount_other": "{{n}}+ people already have this card"
   },
   "publicShell": {
     "signature": {

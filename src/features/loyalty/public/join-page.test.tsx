@@ -159,6 +159,29 @@ describe("the sign-up", () => {
     expect(document.getElementById("loyalty-terms")).toHaveTextContent("One stamp per order.");
   });
 
+  it("says how many hold the card only when the server vouches for more than 100", async () => {
+    const { rerender } = mount();
+    expect(screen.queryByText(/already have this card/)).not.toBeInTheDocument();
+    for (const [member_count, shown] of [[null, null], [100, null], [250, "250+ people already have this card"], [1200, "1,200+ people already have this card"]] as const) {
+      info = { ...baseInfo, member_count } as JoinInfo;
+      rerender(
+        <QueryClientProvider client={new QueryClient()}>
+          <JoinPage branchId="b1" key={String(member_count)} />
+        </QueryClientProvider>,
+      );
+      if (shown) expect(screen.getByText(shown)).toBeInTheDocument();
+      else expect(screen.queryByText(/already have this card/)).not.toBeInTheDocument();
+    }
+    await i18n.changeLanguage("ar");
+    info = { ...baseInfo, member_count: 250 } as JoinInfo;
+    rerender(
+      <QueryClientProvider client={new QueryClient()}>
+        <JoinPage branchId="b1" key="ar" />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByText("أكثر من 250 شخصًا يحملون هذه البطاقة")).toBeInTheDocument();
+  });
+
   it("reads in Arabic", async () => {
     await i18n.changeLanguage("ar");
     mount();
