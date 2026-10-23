@@ -47,9 +47,10 @@ import { stepSwap, useStepDirection } from "@/features/public-shell/motion";
 import { MadarFooter } from "@/features/public-shell/storefront-shell";
 import { useErrorToast } from "@/features/public-shell/public-toaster";
 import { useOtpTransport, usePhoneOtp, type PhoneOtpTransport } from "@/features/public-shell/use-phone-otp";
-import { OtpInput } from "@/features/signup/otp-input";
-import { PhoneInput } from "@/features/signup/phone-input";
-import { DEFAULT_REGION, clock, signupPhone, useCountdown } from "@/features/signup/util";
+import { clock, useCountdown } from "@/components/inputs/countdown";
+import { DEFAULT_REGION, phoneFromNational } from "@/components/inputs/national-phone";
+import { OtpInput } from "@/components/inputs/otp-input";
+import { PhoneInput } from "@/components/inputs/phone-input";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 import { SwapPresence, prefersReducedMotion, usePop, useShake } from "@/lib/motion";
 import { formatPhoneDisplay } from "@/lib/phone";
@@ -174,7 +175,7 @@ function JoinFlow({
   const [birthday, setBirthday] = useState<Birthday>(EMPTY_BIRTHDAY);
   const [national, setNational] = useState("");
   const [region, setRegion] = useState(DEFAULT_REGION);
-  const phone = signupPhone(national, region);
+  const phone = phoneFromNational(national, region);
   const details = { name, phone, birthday };
 
   const [joined, setJoined] = useState<JoinResult | null>(null);

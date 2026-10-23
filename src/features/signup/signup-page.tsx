@@ -33,21 +33,18 @@ import { pixelPageView, pixelSignupDone } from "@/lib/meta-pixel";
 import { track } from "@/lib/umami";
 import { cn } from "@/lib/utils";
 
-import { OtpInput } from "./otp-input";
-import { PhoneInput } from "./phone-input";
+import { clock, useCountdown } from "@/components/inputs/countdown";
+import { DEFAULT_REGION, dialCode, phoneFromNational } from "@/components/inputs/national-phone";
+import { OtpInput } from "@/components/inputs/otp-input";
+import { PhoneInput } from "@/components/inputs/phone-input";
 import { SignupShell } from "./signup-shell";
 import { SIGNUP_STEPS, StepIndicator, type SignupStep } from "./step-indicator";
 import {
-  clock,
   failureStatus,
   passwordStrength,
   SIGNUP_CODE_LENGTH,
   signupAttribution,
-  signupPhone,
-  DEFAULT_REGION,
-  dialCode,
   signupProblem,
-  useCountdown,
   type SignupProblem,
 } from "./util";
 import { Spinner } from "@/components/ui/spinner";
@@ -146,7 +143,7 @@ export function SignupPage() {
     pixelPageView();
   }, []);
 
-  const canonical = signupPhone(national, region);
+  const canonical = phoneFromNational(national, region);
   const shown = formatPhoneDisplay(canonical ?? `${dialCode(region)}${national}`);
 
   const go = (s: SignupStep) => {

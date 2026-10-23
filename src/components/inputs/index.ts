@@ -12,7 +12,14 @@ export { DurationField } from "./duration-field";
 export { MoneyField } from "./money-field";
 export { DateField, DateRangeField, quickRange, type DateRange } from "./date-field";
 export { WeekdayPicker, summarizeDays } from "./weekday-picker";
+// Two phone fields: `PhoneField` takes one Egyptian number typed freely (staff
+// forms); `PhoneInput` is a country picker and the number after its code (the
+// public sign-ups), with `national-phone` turning it into the canonical number.
 export { PhoneField } from "./phone-field";
+export { PhoneInput } from "./phone-input";
+export * from "./national-phone";
+export { OtpInput } from "./otp-input";
+export { clock, useCountdown } from "./countdown";
 export { BirthdayField } from "./birthday-field";
 export * from "./birthday";
 export { EmployeePicker } from "./pickers";

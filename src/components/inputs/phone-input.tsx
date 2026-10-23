@@ -13,7 +13,7 @@ import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { DIAL_CODES } from "./dial-codes";
-import { DEFAULT_REGION, dialCode, groupNational, nationalComplete, nationalDigits, nationalIssue, regionOf } from "./util";
+import { DEFAULT_REGION, dialCode, groupNational, nationalComplete, nationalDigits, nationalIssue, regionOf } from "./national-phone";
 
 /** A region's flag as an emoji (two regional-indicator letters). */
 const flagOf = (region: string): string =>
