@@ -162,6 +162,7 @@ function MemberBody() {
           <LedgerTable
             entries={q.data.ledger}
             onOpenOrder={setOpenOrder}
+            unit={stampUnit ?? undefined}
             trackName={multi ? (p) => name(tracks.find((x) => x.position === p) ?? ({ position: p } as MemberTrack)) : undefined}
           />
           {q.data.ledger.length >= 200 ? (

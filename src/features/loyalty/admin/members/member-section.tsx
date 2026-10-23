@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { isSelling } from "@/lib/selling";
 
 import type { LoyaltyAccess } from "../../shared/access";
-import { currencyLabel } from "../../shared/util";
+import { currencyLabel, unitLabel } from "../../shared/util";
 import { AdjustDialog } from "./adjust-dialog";
 import { LeaveProgrammeButton } from "./leave-programme-dialog";
 import { GoogleObjectDialog } from "./google-object-dialog";
@@ -175,8 +175,11 @@ export function LedgerTable({
   entries,
   onOpenOrder,
   trackName,
+  unit,
 }: {
   entries: LedgerEntry[];
+  /** The card's unit word (`stamp_unit`) for track-1 rows; tracks 2–4 count stamps. Absent: by currency. */
+  unit?: string;
   onOpenOrder: (orderId: string) => void;
   /** Several stamp tracks: the name of the track a row moved (rows of tracks 2–4 carry `track`). */
   trackName?: (position: number) => string;
@@ -244,7 +247,7 @@ export function LedgerTable({
                   )}
                 >
                   <span dir="ltr">{signed(e.points)}</span>{" "}
-                  <span className="text-xs text-muted-foreground">{currencyLabel(e.currency, Math.abs(e.points))}</span>
+                  <span className="text-xs text-muted-foreground">{e.track ? unitLabel("stamp", Math.abs(e.points)) : unit && e.currency === "visits" ? unitLabel(unit, Math.abs(e.points)) : currencyLabel(e.currency, Math.abs(e.points))}</span>
                 </TableCell>
                 <TableCell className="text-xs">
                   <p>{e.branch_name ?? "—"}</p>
