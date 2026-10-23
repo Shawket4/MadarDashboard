@@ -10,10 +10,12 @@ import { describe, expect, it, vi } from "vitest";
 const lookupCall = vi.fn();
 const stampCall = vi.fn();
 const redeemCall = vi.fn();
+const giftCall = vi.fn();
 vi.mock("@/data/api/generated/api", () => ({
   useLoyaltyLookup: () => useMutation({ mutationFn: (v: { data: unknown }) => lookupCall(v.data) }),
   useLoyaltyCounterStamp: () => useMutation({ mutationFn: (v: { data: unknown }) => stampCall(v.data) }),
   useLoyaltyCounterRedeem: () => useMutation({ mutationFn: (v: { data: unknown }) => redeemCall(v.data) }),
+  useLoyaltyCounterBirthdayGift: () => useMutation({ mutationFn: (v: { data: unknown }) => giftCall(v.data) }),
   usePublicOrgBrand: () => ({ data: undefined }),
 }));
 
@@ -91,5 +93,76 @@ describe("CounterScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "Find" }));
     await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("Ask the shop owner."));
     expect(screen.getByRole("alert").textContent).not.toContain("paid plan");
+  });
+
+  describe("the birthday gift", () => {
+    const until = new Date(Date.now() + 5 * 86_400_000).toISOString();
+    const scan = (gift: unknown) => ({ member: member(3), recent: [], rewards: [], any_item: true, any_item_cost: 8, birthday_gift: gift });
+    const conflict = (code: string) => {
+      const e = new AxiosError("x");
+      e.response = { status: 409, data: { code, error: "Conflict: x" }, statusText: "", headers: {}, config: { headers: new AxiosHeaders() } };
+      return e;
+    };
+
+    it("gives an open gift after a confirm, with its own key, and keeps the stamps", async () => {
+      lookupCall.mockResolvedValueOnce(scan({ status: "open", valid_until: until }));
+      giftCall.mockResolvedValueOnce({ already: false, member: member(3), birthday_gift: { status: "claimed", valid_until: until } });
+      renderCounter();
+      await findMariam();
+      expect(screen.getByRole("heading", { name: "Birthday gift: one free item" })).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Give the gift" }));
+      expect(await screen.findByRole("alertdialog")).toBeTruthy();
+      expect(giftCall).not.toHaveBeenCalled();
+      fireEvent.click(screen.getAllByRole("button", { name: "Give the gift" }).at(-1)!);
+      expect(await screen.findByText("Gift given")).toBeTruthy();
+      expect(giftCall).toHaveBeenCalledWith(expect.objectContaining({ branch_id: "b", customer_id: "m1", idempotency_key: expect.any(String) }));
+      expect(screen.getByRole("heading", { name: "Birthday gift given" })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Give the gift" })).toBeNull();
+      expect(screen.getByRole("img", { name: "3 of 8 stamps" })).toBeTruthy();
+    });
+
+    it("says 'already given' when the key had claimed it", async () => {
+      lookupCall.mockResolvedValueOnce(scan({ status: "open", valid_until: until }));
+      giftCall.mockResolvedValueOnce({ already: true, member: member(3), birthday_gift: { status: "claimed", valid_until: until } });
+      renderCounter();
+      await findMariam();
+      fireEvent.click(screen.getByRole("button", { name: "Give the gift" }));
+      fireEvent.click((await screen.findAllByRole("button", { name: "Give the gift" })).at(-1)!);
+      expect(await screen.findByText("Already given")).toBeTruthy();
+    });
+
+    it("shows a gift gone since the lookup as expired, with no button", async () => {
+      lookupCall.mockResolvedValueOnce(scan({ status: "open", valid_until: until }));
+      giftCall.mockRejectedValueOnce(conflict("LOYALTY_GIFT_NONE"));
+      renderCounter();
+      await findMariam();
+      fireEvent.click(screen.getByRole("button", { name: "Give the gift" }));
+      fireEvent.click((await screen.findAllByRole("button", { name: "Give the gift" })).at(-1)!);
+      await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("No birthday gift to give"));
+      expect(screen.getByRole("heading", { name: "Birthday gift expired" })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Give the gift" })).toBeNull();
+    });
+
+    it("keeps the same key for a retry after a dropped connection", async () => {
+      lookupCall.mockResolvedValueOnce(scan({ status: "open", valid_until: until }));
+      giftCall
+        .mockRejectedValueOnce(new AxiosError("Network Error"))
+        .mockResolvedValueOnce({ already: false, member: member(3), birthday_gift: { status: "claimed", valid_until: until } });
+      renderCounter();
+      await findMariam();
+      fireEvent.click(screen.getByRole("button", { name: "Give the gift" }));
+      fireEvent.click((await screen.findAllByRole("button", { name: "Give the gift" })).at(-1)!);
+      await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("No connection"));
+      fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+      expect(await screen.findByText("Gift given")).toBeTruthy();
+      expect(giftCall.mock.calls.at(-2)![0].idempotency_key).toBe(giftCall.mock.calls.at(-1)![0].idempotency_key);
+    });
+
+    it("shows no gift panel when the member has none", async () => {
+      lookupCall.mockResolvedValueOnce(scan(undefined));
+      renderCounter();
+      await findMariam();
+      expect(screen.queryByRole("heading", { name: /birthday/i })).toBeNull();
+    });
   });
 });

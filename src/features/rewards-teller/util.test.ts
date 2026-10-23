@@ -37,7 +37,9 @@ import { AxiosError, AxiosHeaders } from "axios";
 
 import type { MemberView } from "@/data/api/generated/models";
 
-import { WEDGE_GAP_MS, cardColors, failureOf, feedWedge, tracksOf, type Wedge } from "./util";
+import { WEDGE_GAP_MS, cardColors, failureOf, feedWedge, giftState, tracksOf, type Wedge } from "./util";
+import { getErrorMessage } from "@/data/api/errors";
+import i18n from "@/i18n";
 
 const TOKEN = "MAAAAAAAAAAAAAAAAAAAAAA";
 
@@ -105,5 +107,31 @@ describe("cardColors", () => {
     });
     expect(cardColors(null)).toEqual({ bg: "#14181E", fg: "#EFF3F4", accent: "#EFF3F4", dark: true });
     expect(cardColors({ background_color: "red", foreground_color: "#fff" }).bg).toBe("#14181E");
+  });
+});
+
+describe("giftState", () => {
+  const now = Date.parse("2026-11-10T12:00:00Z");
+  it("is open until valid_until, and shows the day before it as the last day", () => {
+    const g = giftState({ status: "open", valid_until: "2026-11-21T22:00:00Z" }, now);
+    expect(g?.status).toBe("open");
+    expect(g?.lastDay.toISOString()).toBe("2026-11-21T21:59:59.999Z");
+  });
+  it("reads an open gift past its time as expired, and keeps claimed as claimed", () => {
+    expect(giftState({ status: "open", valid_until: "2026-11-01T22:00:00Z" }, now)?.status).toBe("expired");
+    expect(giftState({ status: "claimed", valid_until: "2026-11-01T22:00:00Z" }, now)?.status).toBe("claimed");
+    expect(giftState(null, now)).toBeNull();
+  });
+});
+
+describe("the birthday gift's refusals", () => {
+  it("map to their own kind and read in both languages", async () => {
+    const none = err(409, { code: "LOYALTY_GIFT_NONE", error: "Conflict: no gift" });
+    expect(failureOf(none)).toEqual({ kind: "giftNone" });
+    expect(getErrorMessage(none)).toBe("There's no birthday gift to give: it has expired or was already handed over.");
+    await i18n.changeLanguage("ar");
+    expect(getErrorMessage(none)).toBe("لا توجد هدية عيد ميلاد لتسليمها: انتهت صلاحيتها أو سُلّمت من قبل.");
+    expect(getErrorMessage(err(409, { code: "LOYALTY_KEY_REUSED", error: "Conflict: x" }))).not.toMatch(/[A-Za-z]{4}/);
+    await i18n.changeLanguage("en");
   });
 });

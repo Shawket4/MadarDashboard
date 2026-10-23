@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Ban,
+  Cake,
   Check,
   CircleAlert,
   Gift,
@@ -34,6 +35,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  useLoyaltyCounterBirthdayGift,
   useLoyaltyCounterRedeem,
   useLoyaltyCounterStamp,
   useLoyaltyLookup,
@@ -45,6 +47,7 @@ import { fmtTime } from "@/lib/format";
 import { usePop, useShake } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
+import { BirthdayGift } from "./birthday-gift";
 import { Camera } from "./camera";
 import { CounterConfirm, type ConfirmAsk } from "./counter-confirm";
 import { feedback } from "./feedback";
@@ -60,8 +63,10 @@ import {
   clampItems,
   failureOf,
   feedWedge,
+  giftState,
   readyToLookUp,
   tracksOf,
+  type GiftState,
 } from "./util";
 
 type Notice =
@@ -74,6 +79,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
   const [raw, setRaw] = useState("");
   const [camera, setCamera] = useState(false);
   const [member, setMember] = useState<MemberView | null>(null);
+  const [gift, setGift] = useState<GiftState | null>(null);
   const [items, setItems] = useState(1);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [ask, setAsk] = useState<ConfirmAsk | null>(null);
@@ -85,6 +91,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
   // One key per attempt; kept across a failed try so the retry is the same act.
   const stampKey = useRef(crypto.randomUUID());
   const redeemKey = useRef(crypto.randomUUID());
+  const giftKey = useRef(crypto.randomUUID());
   const cardRef = useRef<HTMLElement>(null);
   const noticeRef = useRef<HTMLDivElement>(null);
   const [okSignal, setOkSignal] = useState(0);
@@ -103,7 +110,8 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
   const lookup = useLoyaltyLookup();
   const stamp = useLoyaltyCounterStamp();
   const redeem = useLoyaltyCounterRedeem();
-  const busy = lookup.isPending || stamp.isPending || redeem.isPending;
+  const claimGift = useLoyaltyCounterBirthdayGift();
+  const busy = lookup.isPending || stamp.isPending || redeem.isPending || claimGift.isPending;
 
   const succeed = (n: Notice & { tone: "ok" }) => {
     setNotice(n);
@@ -127,6 +135,13 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
             body: t("rewardsTeller.offlineBody", "Nothing was saved. Check the Wi-Fi, then try again."),
             retry,
           }
+        : f.kind === "giftNone"
+          ? {
+              tone: "fail",
+              icon: <Cake className="size-6" />,
+              title: t("rewardsTeller.giftNoneTitle", "No birthday gift to give"),
+              body: t("rewardsTeller.giftNoneBody", "It has expired or was already handed over."),
+            }
         : f.kind === "notMember"
           ? {
               tone: "fail",
@@ -165,11 +180,13 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
         {
           onSuccess: (r) => {
             setMember(r.member);
+            setGift(giftState(r.birthday_gift));
             setFromCamera(viaCamera);
             setItems(1);
             setRaw("");
             stampKey.current = crypto.randomUUID();
             redeemKey.current = crypto.randomUUID();
+            giftKey.current = crypto.randomUUID();
             feedback("ok");
           },
           onError: (e) => fail(e, run),
@@ -217,6 +234,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
 
   const nextCustomer = () => {
     setMember(null);
+    setGift(null);
     setNotice(null);
     setRaw("");
     setCamera(fromCamera);
@@ -303,6 +321,46 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
     run();
   };
 
+  const doGift = async () => {
+    if (!member) return;
+    const name = member.name;
+    const ok = await confirm({
+      figure: <Cake className="mx-auto size-16" strokeWidth={1.5} />,
+      title: t("rewardsTeller.giftConfirmTitle", "Give {{name}} their birthday gift?", { name }),
+      body: t("rewardsTeller.giftConfirmBody", "Hand over one free item, the shop's pick. Their stamps don't change."),
+      yes: t("rewardsTeller.giftGive", "Give the gift"),
+    });
+    if (!ok) return;
+    setNotice(null);
+    const run = () =>
+      claimGift.mutate(
+        { data: { branch_id: setup.branchId, customer_id: member.id, idempotency_key: giftKey.current } },
+        {
+          onSuccess: (r) => {
+            setMember(r.member);
+            setGift(giftState(r.birthday_gift));
+            giftKey.current = crypto.randomUUID();
+            if (!r.already) remember({ memberId: r.member.id, name, kind: "gift", count: 0 });
+            succeed({
+              tone: "ok",
+              title: r.already
+                ? t("rewardsTeller.giftAlready", "Already given")
+                : t("rewardsTeller.giftGiven", "Gift given"),
+              body: r.already
+                ? t("rewardsTeller.giftAlreadyBody", "This gift was handed over a moment ago. Nothing new was recorded.")
+                : t("rewardsTeller.giftGivenBody", "Hand over one free item. Happy birthday, {{name}}!", { name }),
+            });
+          },
+          onError: (e) => {
+            // Gone since the lookup (expired, or claimed at another till): say so on the card too.
+            if (failureOf(e).kind === "giftNone") setGift((g) => (g ? { ...g, status: "expired" } : g));
+            fail(e, run);
+          },
+        },
+      );
+    run();
+  };
+
   const offlineBlock = !online;
 
   const banner = notice ? <NoticeBanner ref={noticeRef} notice={notice} onDismiss={() => setNotice(null)} /> : null;
@@ -327,6 +385,14 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
             <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden />
             {t("rewardsTeller.nextCustomer", "Next customer")}
           </Button>
+          {gift ? (
+            <BirthdayGift
+              gift={gift.status === "open" && gift.lastDay.getTime() < Date.now() ? { ...gift, status: "expired" } : gift}
+              busy={claimGift.isPending}
+              disabled={offlineBlock || busy}
+              onGive={() => void doGift()}
+            />
+          ) : null}
           <MemberCard
             ref={cardRef}
             shopName={shopName}
@@ -582,16 +648,18 @@ function RecentStrip({
                   aria-hidden
                   className={cn(
                     "grid size-10 shrink-0 place-items-center rounded-full",
-                    a.kind === "redeem" ? "bg-primary text-primary-foreground" : "bg-secondary",
+                    a.kind === "stamp" ? "bg-secondary" : "bg-primary text-primary-foreground",
                   )}
                 >
-                  {a.kind === "redeem" ? <Gift className="size-5" /> : <Stamp className="size-5" />}
+                  {a.kind === "redeem" ? <Gift className="size-5" /> : a.kind === "gift" ? <Cake className="size-5" /> : <Stamp className="size-5" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block max-w-40 truncate font-semibold lg:max-w-none">{a.name}</span>
                   <span className="block text-sm text-muted-foreground">
                     {a.kind === "redeem"
                       ? t("rewardsTeller.recentRedeemed", "Card completed")
+                      : a.kind === "gift"
+                        ? t("rewardsTeller.recentGift", "Birthday gift")
                       : t("rewardsTeller.recentStamped", { count: a.count, defaultValue_one: "+1 stamp", defaultValue_other: "+{{count}} stamps" })}
                     {" · "}
                     <time dateTime={a.at}>{fmtTime(a.at)}</time>

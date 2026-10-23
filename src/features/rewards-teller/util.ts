@@ -83,6 +83,7 @@ export type Failure =
   | { kind: "expired" }
   | { kind: "offline" }
   | { kind: "notMember" }
+  | { kind: "giftNone" }
   | { kind: "notAllowed"; plan: boolean }
   | { kind: "other" };
 
@@ -95,6 +96,7 @@ export function failureOf(e: unknown): Failure {
   const status = e.response.status;
   const code = (e.response.data as { code?: unknown } | undefined)?.code;
   if (status === 401) return { kind: "expired" };
+  if (code === "LOYALTY_GIFT_NONE") return { kind: "giftNone" };
   if (isPlanRefusal(code)) return { kind: "notAllowed", plan: true };
   if (typeof code === "string" && NOT_ALLOWED.has(code)) return { kind: "notAllowed", plan: false };
   if (status === 404) return { kind: "notMember" };
@@ -121,4 +123,22 @@ export function feedWedge(w: Wedge, key: string, now: number): { wedge: Wedge; l
   const next = buf + key;
   const lookup = readyToLookUp(next, false);
   return { wedge: { buf: lookup ? "" : next, at: now }, lookup };
+}
+
+/**
+ * The birthday gift as the counter shows it. The server sends it while it is
+ * open or was claimed this time, and drops it once it expires; a page left
+ * open past `valid_until` (or a claim refused with LOYALTY_GIFT_NONE) reads
+ * as expired.
+ */
+export type GiftState = { status: "open" | "claimed" | "expired"; lastDay: Date };
+
+export function giftState(g: { status: string; valid_until: string } | null | undefined, now = Date.now()): GiftState | null {
+  if (!g) return null;
+  const until = Date.parse(g.valid_until);
+  // `valid_until` is the instant it stops (midnight after the last day): the
+  // last usable day is the moment before it.
+  const lastDay = new Date(until - 1);
+  if (g.status === "claimed") return { status: "claimed", lastDay };
+  return { status: g.status === "open" && until > now ? "open" : "expired", lastDay };
 }

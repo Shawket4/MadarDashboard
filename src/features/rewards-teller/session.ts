@@ -37,8 +37,8 @@ export interface Session {
 export interface Activity {
   memberId: string;
   name: string;
-  kind: "stamp" | "redeem";
-  /** Stamps added, or taken off by a completed card. */
+  kind: "stamp" | "redeem" | "gift";
+  /** Stamps added, or taken off by a completed card (0 for a birthday gift). */
   count: number;
   at: string;
 }
