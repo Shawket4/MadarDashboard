@@ -8,4 +8,10 @@ export interface AdjustRequest {
   note?: string | null;
   /** Signed. Negative takes points away. */
   points: number;
+  /**
+     * The stamp track (2–4) to adjust; absent = track 1 (the balance above).
+     * @minimum 0
+     * @nullable
+     */
+  track?: number | null;
 }

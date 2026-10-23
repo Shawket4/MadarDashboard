@@ -4,7 +4,7 @@
 import type { Capability } from './capabilities';
 
 export const PLANS_SPEC_VERSION = 1;
-export const PLANS_SPEC_HASH = "f1e6e47ce5c40542";
+export const PLANS_SPEC_HASH = "2f9143884e3efa7a";
 
 export type Plan = 'free' | 'paid';
 export type Feature =
@@ -169,6 +169,8 @@ export const FEATURE_CAPABILITIES: Record<Feature, readonly Capability[]> = {
     "loyalty.members.list",
     "loyalty.points.adjust",
     "loyalty.members.delete",
+    "loyalty.card.design",
+    "loyalty.broadcast",
   ],
   online: [
     "legacy.delivery_orders.create",

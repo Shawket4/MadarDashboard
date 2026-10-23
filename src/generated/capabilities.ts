@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 export const SPEC_VERSION = 2;
-export const SPEC_HASH = "24c0f2b2c6520bbe";
+export const SPEC_HASH = "34b900ddeb4b05be";
 
 export type RoleKind = 'org_admin' | 'branch_manager' | 'teller' | 'waiter' | 'kitchen';
 export type CapabilityTier = 'core' | 'configurable' | 'advanced' | 'legacy';
@@ -214,6 +214,8 @@ export type Capability =
   | "menu.deals.edit"
   | "orders.deals.apply"
   | "reports.bundles"
+  | "loyalty.card.design"
+  | "loyalty.broadcast"
 ;
 
 /** Every capability key, for `Cap.X` style references. */
@@ -417,6 +419,8 @@ export const Cap = {
   menuDealsEdit: "menu.deals.edit" as Capability,
   ordersDealsApply: "orders.deals.apply" as Capability,
   reportsBundles: "reports.bundles" as Capability,
+  loyaltyCardDesign: "loyalty.card.design" as Capability,
+  loyaltyBroadcast: "loyalty.broadcast" as Capability,
 } as const;
 
 export interface CapabilityMeta {
@@ -638,6 +642,8 @@ export const CAPABILITIES: readonly CapabilityMeta[] = [
   { id: 251, key: "menu.deals.edit", legacy: null, group: "menu", tier: "configurable", risk: "money", defaults: ["org_admin"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Create and change deals (mix & match, buy X get Y)", ar: "إنشاء وتعديل العروض (اختر أي صنفين، اشترِ واحصل)", hintEn: null, hintAr: null },
   { id: 252, key: "orders.deals.apply", legacy: null, group: "selling", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager", "teller"], core: [], approval: true, limits: [], pos: true, protected: false, en: "Apply a deal the till suggests", ar: "تطبيق عرض يقترحه الكاشير", hintEn: null, hintAr: null },
   { id: 253, key: "reports.bundles", legacy: null, group: "reports", tier: "configurable", risk: "money", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "See the combos and deals report", ar: "عرض تقرير الكومبو والعروض", hintEn: null, hintAr: null },
+  { id: 254, key: "loyalty.card.design", legacy: null, group: "customers", tier: "configurable", risk: "normal", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Design the loyalty card and its stamp tracks", ar: "تصميم بطاقة الولاء ومسارات الطوابع", hintEn: "Changes what every member's wallet card shows; published designs reach the cards within minutes.", hintAr: "يغيّر ما تعرضه بطاقة كل عضو في المحفظة؛ يصل التصميم المنشور إلى البطاقات خلال دقائق." },
+  { id: 255, key: "loyalty.broadcast", legacy: null, group: "customers", tier: "configurable", risk: "pii", defaults: ["org_admin", "branch_manager"], core: [], approval: false, limits: [], pos: false, protected: false, en: "Send messages to members' loyalty cards", ar: "إرسال رسائل إلى بطاقات ولاء الأعضاء", hintEn: "A message lands on the lock screen of every member in the audience who has not opted out.", hintAr: "تظهر الرسالة على شاشة القفل لكل عضو في الجمهور لم يلغِ الاشتراك." },
 ];
 
 export const CAPABILITY_GROUPS: readonly { key: string; en: string; ar: string }[] = [

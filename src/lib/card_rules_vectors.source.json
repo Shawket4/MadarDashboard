@@ -1,0 +1,7 @@
+{
+  "about": "src/lib/card_rules_vectors.json is a byte-for-byte copy of madar-shared's file at this tag (the backend's madar-card and this app's `card` package share it). A change is made there, released with a tag, and copied here with the tag and hash below updated; scripts/check-shared-vectors.sh (CI) and shared_vectors.test.ts check it.",
+  "repo": "Shawket4/madar-shared",
+  "tag": "v0.12.0",
+  "path": "crates/madar-card/vectors/card_rules_vectors.json",
+  "sha256": "8352507a4b3b7f7b8a0f249bbfeeb303bdc19ebd1bb3fd3de0eae28cd1eda56d"
+}

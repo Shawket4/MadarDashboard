@@ -1,5 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
+import type { MemberTrack } from './memberTrack';
 
 /**
  * A member as the teller, the admin and the pass all see them.
@@ -50,5 +51,12 @@ export interface MemberView {
      * rewards, whether or not they claimed the first.
      */
   rewards_ready: number;
+  /**
+     * Every stamp track of the card (track 1 first, its figures equal to the
+     * fields above), present only when the shop runs more than one. The
+     * fields above stay track 1's for ever (released tills read them).
+     * @nullable
+     */
+  tracks?: MemberTrack[] | null;
   visits_balance: number;
 }

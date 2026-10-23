@@ -3,6 +3,7 @@
 import type { LedgerEntry } from './ledgerEntry';
 import type { MemberView } from './memberView';
 import type { RewardItem } from './rewardItem';
+import type { TrackRewards } from './trackRewards';
 
 /**
  * What the teller's scan screen shows.
@@ -35,4 +36,11 @@ export interface ScanResult {
      * handing over a reward that has not been earned.
      */
   rewards: RewardItem[];
+  /**
+     * Tracks 2–4's rewards (each of a track's items at its size), when the
+     * card has more than one track. `rewards` stays track 1's only: a
+     * released till offers what is in it against the track-1 balance.
+     * @nullable
+     */
+  track_rewards?: TrackRewards[] | null;
 }

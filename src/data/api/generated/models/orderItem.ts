@@ -76,6 +76,11 @@ export interface OrderItem {
   quantity: number;
   /** Minor units the reward took off this line (0 for a paid line). */
   reward_covered?: number;
+  /**
+     * The stamp track (2–4) whose reward covered it; absent for track 1.
+     * @nullable
+     */
+  reward_track?: number | null;
   /** How many of `quantity` the reward covered. */
   reward_units?: number;
   /** @nullable */

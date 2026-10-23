@@ -25,6 +25,13 @@ export interface LoyaltyRedemptionInput {
      */
   ticket_line_id?: string | null;
   /**
+     * The stamp track (2–4) that pays for it; absent = track 1 (the
+     * programme's own card, as every released till sends).
+     * @minimum 0
+     * @nullable
+     */
+  track?: number | null;
+  /**
      * How many of that line's units the reward covers. Defaults to one.
      * @nullable
      */

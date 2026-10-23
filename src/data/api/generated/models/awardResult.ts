@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { MemberView } from './memberView';
+import type { TrackAward } from './trackAward';
 
 export interface AwardResult {
   /**
@@ -13,4 +14,11 @@ export interface AwardResult {
   order_id: string;
   /** Points this sale earned. 0 when it was too small to reach one point. */
   points_awarded: number;
+  /**
+     * What each stamp track 2–4 earned on this press (0 for one already
+     * earned), when the card has more than one track. `points_awarded` and
+     * `member` stay track 1's.
+     * @nullable
+     */
+  tracks?: TrackAward[] | null;
 }

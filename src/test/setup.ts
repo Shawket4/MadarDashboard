@@ -11,12 +11,16 @@ import { urlSearch } from "@/test/url-search-mock";
 import * as fullRules from "@/lib/rules/wasm/full/madar_web.js";
 import { initMenuRules } from "@/lib/rules/menu";
 import * as menuRulesPkg from "@/lib/rules/wasm/menu/madar_menu.js";
+import { initCardRules } from "@/lib/rules/card";
+import * as cardRulesPkg from "@/lib/rules/wasm/card/madar_card.js";
 
 // The madar-shared rules (WebAssembly), as the dashboard's main.tsx loads them
 // before its first render; Node cannot fetch it, so it gets the bytes.
 await initRules(fullRules, readFileSync(resolve(__dirname, "../lib/rules/wasm/full/madar_web_bg.wasm")));
 // The menu import's own package (loaded on demand in the app).
 await initMenuRules(menuRulesPkg, readFileSync(resolve(__dirname, "../lib/rules/wasm/menu/madar_menu_bg.wasm")));
+// The Rewards card designer's package (loaded on demand in the app).
+await initCardRules(cardRulesPkg, readFileSync(resolve(__dirname, "../lib/rules/wasm/card/madar_card_bg.wasm")));
 
 // The locales load lazily in the app (src/i18n); a test renders synchronously,
 // so both are handed to its loader up front (also for a module re-imported

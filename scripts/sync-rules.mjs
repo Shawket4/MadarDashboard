@@ -30,7 +30,7 @@ const sums = Object.fromEntries(
     .map((line) => line.split(/\s+/).reverse()),
 );
 
-for (const pkg of ["full", "public", "menu"]) {
+for (const pkg of ["full", "public", "menu", "card"]) {
   const to = resolve(import.meta.dirname, "../src/lib/rules/wasm", pkg);
   rmSync(to, { recursive: true, force: true });
   cpSync(resolve(dist, pkg), to, { recursive: true });

@@ -49,4 +49,9 @@ export interface LedgerEntry {
      * reason, instead of guessing from the kind and the note.
      */
   source: string;
+  /**
+     * The stamp track this row moved (2–4); absent for track 1.
+     * @nullable
+     */
+  track?: number | null;
 }

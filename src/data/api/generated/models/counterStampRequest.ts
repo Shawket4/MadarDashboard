@@ -16,4 +16,11 @@ export interface CounterStampRequest {
      * @maximum 50
      */
   items: number;
+  /**
+     * The stamp track (1–4); absent = track 1. A track 2–4 stamps `items`
+     * stamps (or one with its "per sale" setting).
+     * @minimum 0
+     * @nullable
+     */
+  track?: number | null;
 }

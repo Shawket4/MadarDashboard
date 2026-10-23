@@ -7171,12 +7171,21 @@ export const UpdateStationResponse = zod.object({
 })
 
 
+export const loyaltyAdjustBodyTrackMin = 0;
+
+
+
 export const LoyaltyAdjustBody = zod.object({
   "branch_id": zod.uuid(),
   "customer_id": zod.uuid(),
   "note": zod.string().nullish(),
-  "points": zod.number().describe('Signed. Negative takes points away.')
+  "points": zod.number().describe('Signed. Negative takes points away.'),
+  "track": zod.number().min(loyaltyAdjustBodyTrackMin).nullish().describe('The stamp track (2–4) to adjust; absent = track 1 (the balance above).')
 })
+
+export const loyaltyAdjustResponseTracksItemPositionMin = 0;
+
+
 
 export const LoyaltyAdjustResponse = zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
@@ -7195,6 +7204,20 @@ export const LoyaltyAdjustResponse = zod.object({
   "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
   "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
   "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
+  "tracks": zod.array(zod.object({
+  "balance": zod.number(),
+  "can_redeem": zod.boolean(),
+  "colour": zod.string().nullish(),
+  "earns_from_sales": zod.boolean().optional().describe('The track is bound to menu items (a POS sale earns it); `false` = a\ncounter-only track.'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "points_to_next_reward": zod.number(),
+  "position": zod.number().min(loyaltyAdjustResponseTracksItemPositionMin),
+  "progress_to_next": zod.number(),
+  "rewards_ready": zod.number(),
+  "shape": zod.string().nullish(),
+  "size": zod.number()
+}).describe('One track on a member\'s card, with the card\'s figures (madar-card\'s\n`track_card`). Track 1\'s figures equal the member\'s top-level ones.')).nullish().describe('Every stamp track of the card (track 1 first, its figures equal to the\nfields above), present only when the shop runs more than one. The\nfields above stay track 1\'s for ever (released tills read them).'),
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')
 
@@ -7247,6 +7270,12 @@ export const LoyaltyAwardBody = zod.object({
   "token": zod.string().nullish().describe('Who. A scanned pass token, a typed phone, or an already-resolved member.')
 })
 
+export const loyaltyAwardResponseMemberTracksItemPositionMin = 0;
+
+export const loyaltyAwardResponseTracksItemPositionMin = 0;
+
+
+
 export const LoyaltyAwardResponse = zod.object({
   "already_awarded": zod.boolean().describe('True when this order had already earned — a double tap, a retry, or a\nreplayed offline op. Not an error: the outcome is the one that was asked\nfor, and the response carries the balance that resulted.'),
   "member": zod.object({
@@ -7266,10 +7295,28 @@ export const LoyaltyAwardResponse = zod.object({
   "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
   "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
   "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
+  "tracks": zod.array(zod.object({
+  "balance": zod.number(),
+  "can_redeem": zod.boolean(),
+  "colour": zod.string().nullish(),
+  "earns_from_sales": zod.boolean().optional().describe('The track is bound to menu items (a POS sale earns it); `false` = a\ncounter-only track.'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "points_to_next_reward": zod.number(),
+  "position": zod.number().min(loyaltyAwardResponseMemberTracksItemPositionMin),
+  "progress_to_next": zod.number(),
+  "rewards_ready": zod.number(),
+  "shape": zod.string().nullish(),
+  "size": zod.number()
+}).describe('One track on a member\'s card, with the card\'s figures (madar-card\'s\n`track_card`). Track 1\'s figures equal the member\'s top-level ones.')).nullish().describe('Every stamp track of the card (track 1 first, its figures equal to the\nfields above), present only when the shop runs more than one. The\nfields above stay track 1\'s for ever (released tills read them).'),
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.'),
   "order_id": zod.uuid(),
-  "points_awarded": zod.number().describe('Points this sale earned. 0 when it was too small to reach one point.')
+  "points_awarded": zod.number().describe('Points this sale earned. 0 when it was too small to reach one point.'),
+  "tracks": zod.array(zod.object({
+  "points_awarded": zod.number(),
+  "position": zod.number().min(loyaltyAwardResponseTracksItemPositionMin)
+}).describe('What one track earned on an award.')).nullish().describe('What each stamp track 2–4 earned on this press (0 for one already\nearned), when the card has more than one track. `points_awarded` and\n`member` stay track 1\'s.')
 })
 
 
@@ -7344,6 +7391,440 @@ export const PreviewLoyaltyBirthdayMessageResponse = zod.object({
 }).describe('The birthday greeting as it would actually be sent, in both languages.')
 
 
+export const ListLoyaltyBroadcastsQueryParams = zod.object({
+  "limit": zod.number().optional(),
+  "offset": zod.number().optional()
+})
+
+export const listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemOneTrackMin = 0;
+
+export const listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemTwoTrackMin = 0;
+
+export const listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemThreeTrackMin = 0;
+
+export const listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemFourDaysMin = 0;
+
+export const listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemFiveDaysMin = 0;
+
+export const listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemSixDaysMin = 0;
+
+export const listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemSevenMonthMin = 0;
+
+export const listLoyaltyBroadcastsResponseLimitsDailyLimitMin = 0;
+
+export const listLoyaltyBroadcastsResponseLimitsLineMaxMin = 0;
+
+export const listLoyaltyBroadcastsResponseLimitsMemberGapHoursMin = 0;
+
+export const listLoyaltyBroadcastsResponseLimitsScheduleMaxDaysMin = 0;
+
+export const listLoyaltyBroadcastsResponseLimitsScheduleMinMinutesMin = 0;
+
+
+
+export const ListLoyaltyBroadcastsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "apple": zod.number().describe('Reached an Apple card (pushed).'),
+  "audience": zod.object({
+  "rules": zod.array(zod.union([zod.object({
+  "track": zod.number().min(listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemOneTrackMin),
+  "type": zod.enum(['balance_at_least']),
+  "value": zod.number()
+}).describe('The track\'s balance is at least `value`.'),zod.object({
+  "track": zod.number().min(listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemTwoTrackMin),
+  "type": zod.enum(['balance_at_most']),
+  "value": zod.number()
+}).describe('The track\'s balance is at most `value`.'),zod.object({
+  "track": zod.number().min(listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemThreeTrackMin),
+  "type": zod.enum(['reward_ready'])
+}).describe('The track has a reward earned and not yet taken.'),zod.object({
+  "days": zod.number().min(listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemFourDaysMin),
+  "type": zod.enum(['visited_within'])
+}).describe('Seen (any stamp, point or reward) within the last `days`.'),zod.object({
+  "days": zod.number().min(listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemFiveDaysMin),
+  "type": zod.enum(['not_visited_for'])
+}).describe('Not seen for at least `days` (never seen counts from joining).'),zod.object({
+  "days": zod.number().min(listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemSixDaysMin),
+  "type": zod.enum(['joined_within'])
+}).describe('Joined within the last `days`.'),zod.object({
+  "month": zod.number().min(listLoyaltyBroadcastsResponseItemsItemAudienceRulesItemSevenMonthMin),
+  "type": zod.enum(['birthday_month'])
+}).describe('Born in `month` (1–12).'),zod.object({
+  "type": zod.enum(['has_wallet']),
+  "wallet": zod.enum(['apple', 'google', 'none']).describe('A wallet a member may hold the card in.')
+}).describe('Holds the card in this wallet.')]).describe('One rule.')).optional()
+}).describe('Every member (no rules), or those matching all of `rules`.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by_name": zod.string().nullish(),
+  "failed": zod.number(),
+  "finished_at": zod.iso.datetime({"offset":true}).nullish(),
+  "google": zod.number().describe('Accepted by Google (Google gives no delivery signal).'),
+  "id": zod.uuid(),
+  "line_ar": zod.string(),
+  "line_en": zod.string(),
+  "pending": zod.number(),
+  "recipients": zod.number(),
+  "scheduled_for": zod.iso.datetime({"offset":true}),
+  "seen": zod.number().describe('Apple devices that fetched the card after the push: delivered.'),
+  "sent": zod.number(),
+  "skipped_opted_out": zod.number(),
+  "skipped_recent": zod.number(),
+  "started_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`scheduled`, `sending`, `sent` or `cancelled`.'),
+  "unreachable": zod.number().describe('No card and no WhatsApp asked for.'),
+  "whatsapp": zod.number(),
+  "whatsapp_fallback": zod.boolean()
+}).describe('What the log can honestly say about a broadcast.')),
+  "limits": zod.object({
+  "daily_limit": zod.number().min(listLoyaltyBroadcastsResponseLimitsDailyLimitMin),
+  "line_max": zod.number().min(listLoyaltyBroadcastsResponseLimitsLineMaxMin),
+  "member_gap_hours": zod.number().min(listLoyaltyBroadcastsResponseLimitsMemberGapHoursMin),
+  "schedule_max_days": zod.number().min(listLoyaltyBroadcastsResponseLimitsScheduleMaxDaysMin),
+  "schedule_min_minutes": zod.number().min(listLoyaltyBroadcastsResponseLimitsScheduleMinMinutesMin)
+}).describe('The limits, for the composer to show.'),
+  "sent_last_24h": zod.number().describe('Broadcasts in the last 24 hours (cancelled ones excluded), against `limits.daily_limit`.'),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Send now, or schedule.
+ */
+export const createLoyaltyBroadcastBodyAudienceRulesItemOneTrackMin = 0;
+
+export const createLoyaltyBroadcastBodyAudienceRulesItemTwoTrackMin = 0;
+
+export const createLoyaltyBroadcastBodyAudienceRulesItemThreeTrackMin = 0;
+
+export const createLoyaltyBroadcastBodyAudienceRulesItemFourDaysMin = 0;
+
+export const createLoyaltyBroadcastBodyAudienceRulesItemFiveDaysMin = 0;
+
+export const createLoyaltyBroadcastBodyAudienceRulesItemSixDaysMin = 0;
+
+export const createLoyaltyBroadcastBodyAudienceRulesItemSevenMonthMin = 0;
+
+
+
+export const CreateLoyaltyBroadcastBody = zod.object({
+  "audience": zod.object({
+  "rules": zod.array(zod.union([zod.object({
+  "track": zod.number().min(createLoyaltyBroadcastBodyAudienceRulesItemOneTrackMin),
+  "type": zod.enum(['balance_at_least']),
+  "value": zod.number()
+}).describe('The track\'s balance is at least `value`.'),zod.object({
+  "track": zod.number().min(createLoyaltyBroadcastBodyAudienceRulesItemTwoTrackMin),
+  "type": zod.enum(['balance_at_most']),
+  "value": zod.number()
+}).describe('The track\'s balance is at most `value`.'),zod.object({
+  "track": zod.number().min(createLoyaltyBroadcastBodyAudienceRulesItemThreeTrackMin),
+  "type": zod.enum(['reward_ready'])
+}).describe('The track has a reward earned and not yet taken.'),zod.object({
+  "days": zod.number().min(createLoyaltyBroadcastBodyAudienceRulesItemFourDaysMin),
+  "type": zod.enum(['visited_within'])
+}).describe('Seen (any stamp, point or reward) within the last `days`.'),zod.object({
+  "days": zod.number().min(createLoyaltyBroadcastBodyAudienceRulesItemFiveDaysMin),
+  "type": zod.enum(['not_visited_for'])
+}).describe('Not seen for at least `days` (never seen counts from joining).'),zod.object({
+  "days": zod.number().min(createLoyaltyBroadcastBodyAudienceRulesItemSixDaysMin),
+  "type": zod.enum(['joined_within'])
+}).describe('Joined within the last `days`.'),zod.object({
+  "month": zod.number().min(createLoyaltyBroadcastBodyAudienceRulesItemSevenMonthMin),
+  "type": zod.enum(['birthday_month'])
+}).describe('Born in `month` (1–12).'),zod.object({
+  "type": zod.enum(['has_wallet']),
+  "wallet": zod.enum(['apple', 'google', 'none']).describe('A wallet a member may hold the card in.')
+}).describe('Holds the card in this wallet.')]).describe('One rule.')).optional()
+}).optional().describe('Every member (no rules), or those matching all of `rules`.'),
+  "message": zod.object({
+  "ar": zod.string().optional(),
+  "en": zod.string().optional()
+}).describe('The message, in either or both languages.'),
+  "scheduled_for": zod.iso.datetime({"offset":true}).nullish().describe('Absent = now. Otherwise 5 minutes to 30 days ahead.'),
+  "whatsapp_fallback": zod.boolean().optional().describe('Also WhatsApp members with no card in a wallet (costs the shop).')
+})
+
+export const createLoyaltyBroadcastResponseAudienceRulesItemOneTrackMin = 0;
+
+export const createLoyaltyBroadcastResponseAudienceRulesItemTwoTrackMin = 0;
+
+export const createLoyaltyBroadcastResponseAudienceRulesItemThreeTrackMin = 0;
+
+export const createLoyaltyBroadcastResponseAudienceRulesItemFourDaysMin = 0;
+
+export const createLoyaltyBroadcastResponseAudienceRulesItemFiveDaysMin = 0;
+
+export const createLoyaltyBroadcastResponseAudienceRulesItemSixDaysMin = 0;
+
+export const createLoyaltyBroadcastResponseAudienceRulesItemSevenMonthMin = 0;
+
+
+
+export const CreateLoyaltyBroadcastResponse = zod.object({
+  "apple": zod.number().describe('Reached an Apple card (pushed).'),
+  "audience": zod.object({
+  "rules": zod.array(zod.union([zod.object({
+  "track": zod.number().min(createLoyaltyBroadcastResponseAudienceRulesItemOneTrackMin),
+  "type": zod.enum(['balance_at_least']),
+  "value": zod.number()
+}).describe('The track\'s balance is at least `value`.'),zod.object({
+  "track": zod.number().min(createLoyaltyBroadcastResponseAudienceRulesItemTwoTrackMin),
+  "type": zod.enum(['balance_at_most']),
+  "value": zod.number()
+}).describe('The track\'s balance is at most `value`.'),zod.object({
+  "track": zod.number().min(createLoyaltyBroadcastResponseAudienceRulesItemThreeTrackMin),
+  "type": zod.enum(['reward_ready'])
+}).describe('The track has a reward earned and not yet taken.'),zod.object({
+  "days": zod.number().min(createLoyaltyBroadcastResponseAudienceRulesItemFourDaysMin),
+  "type": zod.enum(['visited_within'])
+}).describe('Seen (any stamp, point or reward) within the last `days`.'),zod.object({
+  "days": zod.number().min(createLoyaltyBroadcastResponseAudienceRulesItemFiveDaysMin),
+  "type": zod.enum(['not_visited_for'])
+}).describe('Not seen for at least `days` (never seen counts from joining).'),zod.object({
+  "days": zod.number().min(createLoyaltyBroadcastResponseAudienceRulesItemSixDaysMin),
+  "type": zod.enum(['joined_within'])
+}).describe('Joined within the last `days`.'),zod.object({
+  "month": zod.number().min(createLoyaltyBroadcastResponseAudienceRulesItemSevenMonthMin),
+  "type": zod.enum(['birthday_month'])
+}).describe('Born in `month` (1–12).'),zod.object({
+  "type": zod.enum(['has_wallet']),
+  "wallet": zod.enum(['apple', 'google', 'none']).describe('A wallet a member may hold the card in.')
+}).describe('Holds the card in this wallet.')]).describe('One rule.')).optional()
+}).describe('Every member (no rules), or those matching all of `rules`.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by_name": zod.string().nullish(),
+  "failed": zod.number(),
+  "finished_at": zod.iso.datetime({"offset":true}).nullish(),
+  "google": zod.number().describe('Accepted by Google (Google gives no delivery signal).'),
+  "id": zod.uuid(),
+  "line_ar": zod.string(),
+  "line_en": zod.string(),
+  "pending": zod.number(),
+  "recipients": zod.number(),
+  "scheduled_for": zod.iso.datetime({"offset":true}),
+  "seen": zod.number().describe('Apple devices that fetched the card after the push: delivered.'),
+  "sent": zod.number(),
+  "skipped_opted_out": zod.number(),
+  "skipped_recent": zod.number(),
+  "started_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`scheduled`, `sending`, `sent` or `cancelled`.'),
+  "unreachable": zod.number().describe('No card and no WhatsApp asked for.'),
+  "whatsapp": zod.number(),
+  "whatsapp_fallback": zod.boolean()
+}).describe('What the log can honestly say about a broadcast.')
+
+
+/**
+ * @summary How many members an audience reaches, before sending.
+ */
+export const countLoyaltyBroadcastAudienceBodyAudienceRulesItemOneTrackMin = 0;
+
+export const countLoyaltyBroadcastAudienceBodyAudienceRulesItemTwoTrackMin = 0;
+
+export const countLoyaltyBroadcastAudienceBodyAudienceRulesItemThreeTrackMin = 0;
+
+export const countLoyaltyBroadcastAudienceBodyAudienceRulesItemFourDaysMin = 0;
+
+export const countLoyaltyBroadcastAudienceBodyAudienceRulesItemFiveDaysMin = 0;
+
+export const countLoyaltyBroadcastAudienceBodyAudienceRulesItemSixDaysMin = 0;
+
+export const countLoyaltyBroadcastAudienceBodyAudienceRulesItemSevenMonthMin = 0;
+
+
+
+export const CountLoyaltyBroadcastAudienceBody = zod.object({
+  "audience": zod.object({
+  "rules": zod.array(zod.union([zod.object({
+  "track": zod.number().min(countLoyaltyBroadcastAudienceBodyAudienceRulesItemOneTrackMin),
+  "type": zod.enum(['balance_at_least']),
+  "value": zod.number()
+}).describe('The track\'s balance is at least `value`.'),zod.object({
+  "track": zod.number().min(countLoyaltyBroadcastAudienceBodyAudienceRulesItemTwoTrackMin),
+  "type": zod.enum(['balance_at_most']),
+  "value": zod.number()
+}).describe('The track\'s balance is at most `value`.'),zod.object({
+  "track": zod.number().min(countLoyaltyBroadcastAudienceBodyAudienceRulesItemThreeTrackMin),
+  "type": zod.enum(['reward_ready'])
+}).describe('The track has a reward earned and not yet taken.'),zod.object({
+  "days": zod.number().min(countLoyaltyBroadcastAudienceBodyAudienceRulesItemFourDaysMin),
+  "type": zod.enum(['visited_within'])
+}).describe('Seen (any stamp, point or reward) within the last `days`.'),zod.object({
+  "days": zod.number().min(countLoyaltyBroadcastAudienceBodyAudienceRulesItemFiveDaysMin),
+  "type": zod.enum(['not_visited_for'])
+}).describe('Not seen for at least `days` (never seen counts from joining).'),zod.object({
+  "days": zod.number().min(countLoyaltyBroadcastAudienceBodyAudienceRulesItemSixDaysMin),
+  "type": zod.enum(['joined_within'])
+}).describe('Joined within the last `days`.'),zod.object({
+  "month": zod.number().min(countLoyaltyBroadcastAudienceBodyAudienceRulesItemSevenMonthMin),
+  "type": zod.enum(['birthday_month'])
+}).describe('Born in `month` (1–12).'),zod.object({
+  "type": zod.enum(['has_wallet']),
+  "wallet": zod.enum(['apple', 'google', 'none']).describe('A wallet a member may hold the card in.')
+}).describe('Holds the card in this wallet.')]).describe('One rule.')).optional()
+}).optional().describe('Every member (no rules), or those matching all of `rules`.')
+})
+
+export const CountLoyaltyBroadcastAudienceResponse = zod.object({
+  "apple": zod.number().describe('Reachable: holding an Apple card \/ a Google card \/ neither (WhatsApp\nonly, and only if asked for).'),
+  "google": zod.number(),
+  "members": zod.number().describe('Members matching the rules (opted-out ones included in this figure).'),
+  "no_card": zod.number(),
+  "opted_out": zod.number().describe('Of those, opted out of marketing: never sent to.')
+}).describe('Who an audience reaches, and how.')
+
+
+export const GetLoyaltyBroadcastParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const getLoyaltyBroadcastResponseAudienceRulesItemOneTrackMin = 0;
+
+export const getLoyaltyBroadcastResponseAudienceRulesItemTwoTrackMin = 0;
+
+export const getLoyaltyBroadcastResponseAudienceRulesItemThreeTrackMin = 0;
+
+export const getLoyaltyBroadcastResponseAudienceRulesItemFourDaysMin = 0;
+
+export const getLoyaltyBroadcastResponseAudienceRulesItemFiveDaysMin = 0;
+
+export const getLoyaltyBroadcastResponseAudienceRulesItemSixDaysMin = 0;
+
+export const getLoyaltyBroadcastResponseAudienceRulesItemSevenMonthMin = 0;
+
+
+
+export const GetLoyaltyBroadcastResponse = zod.object({
+  "apple": zod.number().describe('Reached an Apple card (pushed).'),
+  "audience": zod.object({
+  "rules": zod.array(zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyBroadcastResponseAudienceRulesItemOneTrackMin),
+  "type": zod.enum(['balance_at_least']),
+  "value": zod.number()
+}).describe('The track\'s balance is at least `value`.'),zod.object({
+  "track": zod.number().min(getLoyaltyBroadcastResponseAudienceRulesItemTwoTrackMin),
+  "type": zod.enum(['balance_at_most']),
+  "value": zod.number()
+}).describe('The track\'s balance is at most `value`.'),zod.object({
+  "track": zod.number().min(getLoyaltyBroadcastResponseAudienceRulesItemThreeTrackMin),
+  "type": zod.enum(['reward_ready'])
+}).describe('The track has a reward earned and not yet taken.'),zod.object({
+  "days": zod.number().min(getLoyaltyBroadcastResponseAudienceRulesItemFourDaysMin),
+  "type": zod.enum(['visited_within'])
+}).describe('Seen (any stamp, point or reward) within the last `days`.'),zod.object({
+  "days": zod.number().min(getLoyaltyBroadcastResponseAudienceRulesItemFiveDaysMin),
+  "type": zod.enum(['not_visited_for'])
+}).describe('Not seen for at least `days` (never seen counts from joining).'),zod.object({
+  "days": zod.number().min(getLoyaltyBroadcastResponseAudienceRulesItemSixDaysMin),
+  "type": zod.enum(['joined_within'])
+}).describe('Joined within the last `days`.'),zod.object({
+  "month": zod.number().min(getLoyaltyBroadcastResponseAudienceRulesItemSevenMonthMin),
+  "type": zod.enum(['birthday_month'])
+}).describe('Born in `month` (1–12).'),zod.object({
+  "type": zod.enum(['has_wallet']),
+  "wallet": zod.enum(['apple', 'google', 'none']).describe('A wallet a member may hold the card in.')
+}).describe('Holds the card in this wallet.')]).describe('One rule.')).optional()
+}).describe('Every member (no rules), or those matching all of `rules`.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by_name": zod.string().nullish(),
+  "failed": zod.number(),
+  "finished_at": zod.iso.datetime({"offset":true}).nullish(),
+  "google": zod.number().describe('Accepted by Google (Google gives no delivery signal).'),
+  "id": zod.uuid(),
+  "line_ar": zod.string(),
+  "line_en": zod.string(),
+  "pending": zod.number(),
+  "recipients": zod.number(),
+  "scheduled_for": zod.iso.datetime({"offset":true}),
+  "seen": zod.number().describe('Apple devices that fetched the card after the push: delivered.'),
+  "sent": zod.number(),
+  "skipped_opted_out": zod.number(),
+  "skipped_recent": zod.number(),
+  "started_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`scheduled`, `sending`, `sent` or `cancelled`.'),
+  "unreachable": zod.number().describe('No card and no WhatsApp asked for.'),
+  "whatsapp": zod.number(),
+  "whatsapp_fallback": zod.boolean()
+}).describe('What the log can honestly say about a broadcast.')
+
+
+/**
+ * @summary Cancel a scheduled message (one already sending finishes).
+ */
+export const CancelLoyaltyBroadcastParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const cancelLoyaltyBroadcastResponseAudienceRulesItemOneTrackMin = 0;
+
+export const cancelLoyaltyBroadcastResponseAudienceRulesItemTwoTrackMin = 0;
+
+export const cancelLoyaltyBroadcastResponseAudienceRulesItemThreeTrackMin = 0;
+
+export const cancelLoyaltyBroadcastResponseAudienceRulesItemFourDaysMin = 0;
+
+export const cancelLoyaltyBroadcastResponseAudienceRulesItemFiveDaysMin = 0;
+
+export const cancelLoyaltyBroadcastResponseAudienceRulesItemSixDaysMin = 0;
+
+export const cancelLoyaltyBroadcastResponseAudienceRulesItemSevenMonthMin = 0;
+
+
+
+export const CancelLoyaltyBroadcastResponse = zod.object({
+  "apple": zod.number().describe('Reached an Apple card (pushed).'),
+  "audience": zod.object({
+  "rules": zod.array(zod.union([zod.object({
+  "track": zod.number().min(cancelLoyaltyBroadcastResponseAudienceRulesItemOneTrackMin),
+  "type": zod.enum(['balance_at_least']),
+  "value": zod.number()
+}).describe('The track\'s balance is at least `value`.'),zod.object({
+  "track": zod.number().min(cancelLoyaltyBroadcastResponseAudienceRulesItemTwoTrackMin),
+  "type": zod.enum(['balance_at_most']),
+  "value": zod.number()
+}).describe('The track\'s balance is at most `value`.'),zod.object({
+  "track": zod.number().min(cancelLoyaltyBroadcastResponseAudienceRulesItemThreeTrackMin),
+  "type": zod.enum(['reward_ready'])
+}).describe('The track has a reward earned and not yet taken.'),zod.object({
+  "days": zod.number().min(cancelLoyaltyBroadcastResponseAudienceRulesItemFourDaysMin),
+  "type": zod.enum(['visited_within'])
+}).describe('Seen (any stamp, point or reward) within the last `days`.'),zod.object({
+  "days": zod.number().min(cancelLoyaltyBroadcastResponseAudienceRulesItemFiveDaysMin),
+  "type": zod.enum(['not_visited_for'])
+}).describe('Not seen for at least `days` (never seen counts from joining).'),zod.object({
+  "days": zod.number().min(cancelLoyaltyBroadcastResponseAudienceRulesItemSixDaysMin),
+  "type": zod.enum(['joined_within'])
+}).describe('Joined within the last `days`.'),zod.object({
+  "month": zod.number().min(cancelLoyaltyBroadcastResponseAudienceRulesItemSevenMonthMin),
+  "type": zod.enum(['birthday_month'])
+}).describe('Born in `month` (1–12).'),zod.object({
+  "type": zod.enum(['has_wallet']),
+  "wallet": zod.enum(['apple', 'google', 'none']).describe('A wallet a member may hold the card in.')
+}).describe('Holds the card in this wallet.')]).describe('One rule.')).optional()
+}).describe('Every member (no rules), or those matching all of `rules`.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "created_by_name": zod.string().nullish(),
+  "failed": zod.number(),
+  "finished_at": zod.iso.datetime({"offset":true}).nullish(),
+  "google": zod.number().describe('Accepted by Google (Google gives no delivery signal).'),
+  "id": zod.uuid(),
+  "line_ar": zod.string(),
+  "line_en": zod.string(),
+  "pending": zod.number(),
+  "recipients": zod.number(),
+  "scheduled_for": zod.iso.datetime({"offset":true}),
+  "seen": zod.number().describe('Apple devices that fetched the card after the push: delivered.'),
+  "sent": zod.number(),
+  "skipped_opted_out": zod.number(),
+  "skipped_recent": zod.number(),
+  "started_at": zod.iso.datetime({"offset":true}).nullish(),
+  "status": zod.string().describe('`scheduled`, `sending`, `sent` or `cancelled`.'),
+  "unreachable": zod.number().describe('No card and no WhatsApp asked for.'),
+  "whatsapp": zod.number(),
+  "whatsapp_fallback": zod.boolean()
+}).describe('What the log can honestly say about a broadcast.')
+
+
 export const GetLoyaltyCampaignEffectivenessQueryParams = zod.object({
   "branch_id": zod.uuid().nullish().describe('Omit for the whole organisation; supply a branch to narrow the\nredemption figures to it (the liability is org-wide either way — a\nbalance can be spent at any branch).'),
   "from": zod.iso.datetime({"offset":true}).nullish().describe('Inclusive start of the range. Defaults to 30 days before `to`.'),
@@ -7362,14 +7843,2606 @@ export const GetLoyaltyCampaignEffectivenessResponse = zod.object({
 })
 
 
+export const getLoyaltyCardDesignResponseCtxTracksItemPositionMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignElementsItemCellColMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignElementsItemCellHMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignElementsItemCellRowMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignElementsItemCellWMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignElementsItemKindOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignElementsItemKindTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignElementsItemKindThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignGooglePointsOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignGooglePointsTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignGooglePointsThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDefaultDesignVersionMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoAppleHeaderItemOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoAppleHeaderItemTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoAppleHeaderItemThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoElementsItemCellColMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoElementsItemCellHMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoElementsItemCellRowMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoElementsItemCellWMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoElementsItemKindOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoElementsItemKindTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoElementsItemKindThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoGooglePointsOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoGooglePointsTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoGooglePointsThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponseDraftTwoVersionMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoElementsItemCellColMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoElementsItemCellHMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoElementsItemCellRowMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoElementsItemCellWMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoElementsItemKindOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoElementsItemKindTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoElementsItemKindThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoGooglePointsOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoGooglePointsTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoGooglePointsThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoOneTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const getLoyaltyCardDesignResponsePublishedTwoVersionMin = 0;
+
+export const getLoyaltyCardDesignResponseTracksItemPositionMin = 0;
+
+
+
+export const GetLoyaltyCardDesignResponse = zod.object({
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass colours the shop has today.'),
+  "ctx": zod.object({
+  "has_photo": zod.boolean().describe('The shop has a card photograph uploaded.'),
+  "mode": zod.enum(['points', 'visits']).describe('What a programme collects. One track only for points.'),
+  "tracks": zod.array(zod.object({
+  "position": zod.number().min(getLoyaltyCardDesignResponseCtxTracksItemPositionMin),
+  "size": zod.number()
+}).describe('What rendering and validation need of a track: where it is and how big a\ncard it fills.')).describe('Every track with its card size (track 1\'s is the programme\'s).')
+}).describe('What designs are checked against: mode, tracks, photo.'),
+  "custom_branding": zod.boolean().describe('False: the shop wears Madar\'s palette (custom branding is a super\nadmin\'s switch) — the designer locks the colours and the photograph.'),
+  "default_design": zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignElementsItemCellColMin),
+  "h": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignElementsItemCellHMin),
+  "row": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignElementsItemCellRowMin),
+  "w": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(getLoyaltyCardDesignResponseDefaultDesignVersionMin)
+}).describe('The design a shop starts from (madar-card\'s default for it).'),
+  "draft": zod.union([zod.null(),zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(getLoyaltyCardDesignResponseDraftTwoElementsItemCellColMin),
+  "h": zod.number().min(getLoyaltyCardDesignResponseDraftTwoElementsItemCellHMin),
+  "row": zod.number().min(getLoyaltyCardDesignResponseDraftTwoElementsItemCellRowMin),
+  "w": zod.number().min(getLoyaltyCardDesignResponseDraftTwoElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(getLoyaltyCardDesignResponseDraftTwoVersionMin)
+}).describe('The design being edited, if one was saved.')]).optional(),
+  "logo_url": zod.string().nullish(),
+  "photo_url": zod.string().nullish().describe('The shop\'s card photograph and logo (upload URLs) for the live preview.'),
+  "programme_name": zod.string(),
+  "programme_name_ar": zod.string().nullish(),
+  "published": zod.union([zod.null(),zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoElementsItemCellColMin),
+  "h": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoElementsItemCellHMin),
+  "row": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoElementsItemCellRowMin),
+  "w": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(getLoyaltyCardDesignResponsePublishedTwoVersionMin)
+}).describe('The design the passes wear; `None` = the classic look (or, with\nseveral tracks, the automatic one).')]).optional(),
+  "published_at": zod.iso.datetime({"offset":true}).nullish(),
+  "revision": zod.number(),
+  "tracks": zod.array(zod.object({
+  "cap": zod.number().nullish().describe('Tracks 2–4: the balance ceiling (a stamp past it is trimmed); at least\nthe track\'s size. `None` = no ceiling.'),
+  "colour": zod.string().nullish().describe('This track\'s colour (`#RRGGBB`), else the pass\'s foreground.'),
+  "items": zod.array(zod.string()).optional().describe('Tracks 2–4: the menu items (ids) a sale earns on and a completed card\ncovers. Empty = a counter-only track. Always empty on track 1, whose\nitems are the programme\'s earning list and reward catalogue.'),
+  "name_ar": zod.string().optional(),
+  "name_en": zod.string().optional().describe('Shown on the pass and the teller page; required from track 2 on.'),
+  "per_item": zod.boolean().optional().describe('Tracks 2–4: a stamp per unit of its items (default), or one per sale\nholding any. Track 1 follows the programme\'s own setting.'),
+  "position": zod.number().min(getLoyaltyCardDesignResponseTracksItemPositionMin).describe('1 to 4, in order. Track 1 is the programme\'s own counter.'),
+  "shape": zod.union([zod.null(),zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('This track\'s stamp, else the design\'s.')]).optional(),
+  "size": zod.number().nullish().describe('Stamps that fill this track\'s card. `None` on track 1, whose size is\nthe programme\'s card size (one number, one place).')
+}).describe('A track as the owner defines it.')).describe('The tracks, for labels and colours in the preview.')
+}).describe('Everything the designer needs to open.')
+
+
+export const putLoyaltyCardDesignBodyDesignAppleAuxiliaryItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignAppleHeaderItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignAppleHeaderItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignAppleHeaderItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignApplePrimaryTwoOneTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignApplePrimaryTwoTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignApplePrimaryTwoThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignAppleSecondaryItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignAppleSecondaryItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignAppleSecondaryItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignElementsItemCellColMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignElementsItemCellHMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignElementsItemCellRowMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignElementsItemCellWMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignElementsItemKindOneTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignElementsItemKindTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignElementsItemKindThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignGooglePointsOneTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignGooglePointsTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignGooglePointsThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignGoogleSecondaryTwoOneTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignBodyDesignVersionMin = 0;
+
+
+
+export const PutLoyaltyCardDesignBody = zod.object({
+  "design": zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(putLoyaltyCardDesignBodyDesignElementsItemCellColMin),
+  "h": zod.number().min(putLoyaltyCardDesignBodyDesignElementsItemCellHMin),
+  "row": zod.number().min(putLoyaltyCardDesignBodyDesignElementsItemCellRowMin),
+  "w": zod.number().min(putLoyaltyCardDesignBodyDesignElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignBodyDesignGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(putLoyaltyCardDesignBodyDesignVersionMin)
+}).describe('The whole design.')
+})
+
+export const putLoyaltyCardDesignResponseCtxTracksItemPositionMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignElementsItemCellColMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignElementsItemCellHMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignElementsItemCellRowMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignElementsItemCellWMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignElementsItemKindOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignElementsItemKindTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignElementsItemKindThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignGooglePointsOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignGooglePointsTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignGooglePointsThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDefaultDesignVersionMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoAppleHeaderItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoAppleHeaderItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoAppleHeaderItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoElementsItemCellColMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoElementsItemCellHMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoElementsItemCellRowMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoElementsItemCellWMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoElementsItemKindOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoElementsItemKindTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoElementsItemKindThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoGooglePointsOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoGooglePointsTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoGooglePointsThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponseDraftTwoVersionMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoElementsItemCellColMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoElementsItemCellHMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoElementsItemCellRowMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoElementsItemCellWMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoElementsItemKindOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoElementsItemKindTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoElementsItemKindThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoGooglePointsOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoGooglePointsTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoGooglePointsThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoOneTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const putLoyaltyCardDesignResponsePublishedTwoVersionMin = 0;
+
+export const putLoyaltyCardDesignResponseTracksItemPositionMin = 0;
+
+
+
+export const PutLoyaltyCardDesignResponse = zod.object({
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass colours the shop has today.'),
+  "ctx": zod.object({
+  "has_photo": zod.boolean().describe('The shop has a card photograph uploaded.'),
+  "mode": zod.enum(['points', 'visits']).describe('What a programme collects. One track only for points.'),
+  "tracks": zod.array(zod.object({
+  "position": zod.number().min(putLoyaltyCardDesignResponseCtxTracksItemPositionMin),
+  "size": zod.number()
+}).describe('What rendering and validation need of a track: where it is and how big a\ncard it fills.')).describe('Every track with its card size (track 1\'s is the programme\'s).')
+}).describe('What designs are checked against: mode, tracks, photo.'),
+  "custom_branding": zod.boolean().describe('False: the shop wears Madar\'s palette (custom branding is a super\nadmin\'s switch) — the designer locks the colours and the photograph.'),
+  "default_design": zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignElementsItemCellColMin),
+  "h": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignElementsItemCellHMin),
+  "row": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignElementsItemCellRowMin),
+  "w": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(putLoyaltyCardDesignResponseDefaultDesignVersionMin)
+}).describe('The design a shop starts from (madar-card\'s default for it).'),
+  "draft": zod.union([zod.null(),zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(putLoyaltyCardDesignResponseDraftTwoElementsItemCellColMin),
+  "h": zod.number().min(putLoyaltyCardDesignResponseDraftTwoElementsItemCellHMin),
+  "row": zod.number().min(putLoyaltyCardDesignResponseDraftTwoElementsItemCellRowMin),
+  "w": zod.number().min(putLoyaltyCardDesignResponseDraftTwoElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(putLoyaltyCardDesignResponseDraftTwoVersionMin)
+}).describe('The design being edited, if one was saved.')]).optional(),
+  "logo_url": zod.string().nullish(),
+  "photo_url": zod.string().nullish().describe('The shop\'s card photograph and logo (upload URLs) for the live preview.'),
+  "programme_name": zod.string(),
+  "programme_name_ar": zod.string().nullish(),
+  "published": zod.union([zod.null(),zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoElementsItemCellColMin),
+  "h": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoElementsItemCellHMin),
+  "row": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoElementsItemCellRowMin),
+  "w": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(putLoyaltyCardDesignResponsePublishedTwoVersionMin)
+}).describe('The design the passes wear; `None` = the classic look (or, with\nseveral tracks, the automatic one).')]).optional(),
+  "published_at": zod.iso.datetime({"offset":true}).nullish(),
+  "revision": zod.number(),
+  "tracks": zod.array(zod.object({
+  "cap": zod.number().nullish().describe('Tracks 2–4: the balance ceiling (a stamp past it is trimmed); at least\nthe track\'s size. `None` = no ceiling.'),
+  "colour": zod.string().nullish().describe('This track\'s colour (`#RRGGBB`), else the pass\'s foreground.'),
+  "items": zod.array(zod.string()).optional().describe('Tracks 2–4: the menu items (ids) a sale earns on and a completed card\ncovers. Empty = a counter-only track. Always empty on track 1, whose\nitems are the programme\'s earning list and reward catalogue.'),
+  "name_ar": zod.string().optional(),
+  "name_en": zod.string().optional().describe('Shown on the pass and the teller page; required from track 2 on.'),
+  "per_item": zod.boolean().optional().describe('Tracks 2–4: a stamp per unit of its items (default), or one per sale\nholding any. Track 1 follows the programme\'s own setting.'),
+  "position": zod.number().min(putLoyaltyCardDesignResponseTracksItemPositionMin).describe('1 to 4, in order. Track 1 is the programme\'s own counter.'),
+  "shape": zod.union([zod.null(),zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('This track\'s stamp, else the design\'s.')]).optional(),
+  "size": zod.number().nullish().describe('Stamps that fill this track\'s card. `None` on track 1, whose size is\nthe programme\'s card size (one number, one place).')
+}).describe('A track as the owner defines it.')).describe('The tracks, for labels and colours in the preview.')
+}).describe('Everything the designer needs to open.')
+
+
+/**
+ * @summary The strip (Apple @2x) or the hero (Google) exactly as the wallet will get
+it, for the designer's "as the wallet renders it" view. Not saved.
+ */
+export const previewLoyaltyCardDesignBodyBalancesItemPositionMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignAppleAuxiliaryItemOneTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignAppleHeaderItemOneTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignAppleHeaderItemTwoTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignAppleHeaderItemThreeTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignApplePrimaryTwoOneTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignApplePrimaryTwoTwoTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignApplePrimaryTwoThreeTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignAppleSecondaryItemOneTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignAppleSecondaryItemTwoTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignAppleSecondaryItemThreeTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignElementsItemCellColMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignElementsItemCellHMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignElementsItemCellRowMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignElementsItemCellWMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignElementsItemKindOneTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignElementsItemKindTwoTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignElementsItemKindThreeTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignGooglePointsOneTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignGooglePointsTwoTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignGooglePointsThreeTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignGoogleSecondaryTwoOneTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const previewLoyaltyCardDesignBodyDesignVersionMin = 0;
+
+
+
+export const PreviewLoyaltyCardDesignBody = zod.object({
+  "arabic": zod.boolean().optional(),
+  "balances": zod.array(zod.object({
+  "balance": zod.number(),
+  "position": zod.number().min(previewLoyaltyCardDesignBodyBalancesItemPositionMin)
+})).optional().describe('Sample balances per track (`{position, balance}`); absent = half full.'),
+  "design": zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(previewLoyaltyCardDesignBodyDesignElementsItemCellColMin),
+  "h": zod.number().min(previewLoyaltyCardDesignBodyDesignElementsItemCellHMin),
+  "row": zod.number().min(previewLoyaltyCardDesignBodyDesignElementsItemCellRowMin),
+  "w": zod.number().min(previewLoyaltyCardDesignBodyDesignElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(previewLoyaltyCardDesignBodyDesignGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(previewLoyaltyCardDesignBodyDesignVersionMin)
+}).describe('The whole design.'),
+  "store": zod.enum(['apple', 'google']).describe('A wallet.')
+}).describe('Render a design as the wallet will get it.')
+
+export const PreviewLoyaltyCardDesignResponse = zod.unknown()
+
+
+export const publishLoyaltyCardDesignResponseCtxTracksItemPositionMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignElementsItemCellColMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignElementsItemCellHMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignElementsItemCellRowMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignElementsItemCellWMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignElementsItemKindOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignElementsItemKindTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignElementsItemKindThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignGooglePointsOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignGooglePointsTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignGooglePointsThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDefaultDesignVersionMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoElementsItemCellColMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoElementsItemCellHMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoElementsItemCellRowMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoElementsItemCellWMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoElementsItemKindOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoElementsItemKindTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoElementsItemKindThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoGooglePointsOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoGooglePointsTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoGooglePointsThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponseDraftTwoVersionMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoElementsItemCellColMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoElementsItemCellHMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoElementsItemCellRowMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoElementsItemCellWMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoElementsItemKindOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoElementsItemKindTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoElementsItemKindThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoGooglePointsOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoGooglePointsTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoGooglePointsThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoOneTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const publishLoyaltyCardDesignResponsePublishedTwoVersionMin = 0;
+
+export const publishLoyaltyCardDesignResponseTracksItemPositionMin = 0;
+
+
+
+export const PublishLoyaltyCardDesignResponse = zod.object({
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass colours the shop has today.'),
+  "ctx": zod.object({
+  "has_photo": zod.boolean().describe('The shop has a card photograph uploaded.'),
+  "mode": zod.enum(['points', 'visits']).describe('What a programme collects. One track only for points.'),
+  "tracks": zod.array(zod.object({
+  "position": zod.number().min(publishLoyaltyCardDesignResponseCtxTracksItemPositionMin),
+  "size": zod.number()
+}).describe('What rendering and validation need of a track: where it is and how big a\ncard it fills.')).describe('Every track with its card size (track 1\'s is the programme\'s).')
+}).describe('What designs are checked against: mode, tracks, photo.'),
+  "custom_branding": zod.boolean().describe('False: the shop wears Madar\'s palette (custom branding is a super\nadmin\'s switch) — the designer locks the colours and the photograph.'),
+  "default_design": zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignElementsItemCellColMin),
+  "h": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignElementsItemCellHMin),
+  "row": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignElementsItemCellRowMin),
+  "w": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(publishLoyaltyCardDesignResponseDefaultDesignVersionMin)
+}).describe('The design a shop starts from (madar-card\'s default for it).'),
+  "draft": zod.union([zod.null(),zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoElementsItemCellColMin),
+  "h": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoElementsItemCellHMin),
+  "row": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoElementsItemCellRowMin),
+  "w": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(publishLoyaltyCardDesignResponseDraftTwoVersionMin)
+}).describe('The design being edited, if one was saved.')]).optional(),
+  "logo_url": zod.string().nullish(),
+  "photo_url": zod.string().nullish().describe('The shop\'s card photograph and logo (upload URLs) for the live preview.'),
+  "programme_name": zod.string(),
+  "programme_name_ar": zod.string().nullish(),
+  "published": zod.union([zod.null(),zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoElementsItemCellColMin),
+  "h": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoElementsItemCellHMin),
+  "row": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoElementsItemCellRowMin),
+  "w": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(publishLoyaltyCardDesignResponsePublishedTwoVersionMin)
+}).describe('The design the passes wear; `None` = the classic look (or, with\nseveral tracks, the automatic one).')]).optional(),
+  "published_at": zod.iso.datetime({"offset":true}).nullish(),
+  "revision": zod.number(),
+  "tracks": zod.array(zod.object({
+  "cap": zod.number().nullish().describe('Tracks 2–4: the balance ceiling (a stamp past it is trimmed); at least\nthe track\'s size. `None` = no ceiling.'),
+  "colour": zod.string().nullish().describe('This track\'s colour (`#RRGGBB`), else the pass\'s foreground.'),
+  "items": zod.array(zod.string()).optional().describe('Tracks 2–4: the menu items (ids) a sale earns on and a completed card\ncovers. Empty = a counter-only track. Always empty on track 1, whose\nitems are the programme\'s earning list and reward catalogue.'),
+  "name_ar": zod.string().optional(),
+  "name_en": zod.string().optional().describe('Shown on the pass and the teller page; required from track 2 on.'),
+  "per_item": zod.boolean().optional().describe('Tracks 2–4: a stamp per unit of its items (default), or one per sale\nholding any. Track 1 follows the programme\'s own setting.'),
+  "position": zod.number().min(publishLoyaltyCardDesignResponseTracksItemPositionMin).describe('1 to 4, in order. Track 1 is the programme\'s own counter.'),
+  "shape": zod.union([zod.null(),zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('This track\'s stamp, else the design\'s.')]).optional(),
+  "size": zod.number().nullish().describe('Stamps that fill this track\'s card. `None` on track 1, whose size is\nthe programme\'s card size (one number, one place).')
+}).describe('A track as the owner defines it.')).describe('The tracks, for labels and colours in the preview.')
+}).describe('Everything the designer needs to open.')
+
+
+export const unpublishLoyaltyCardDesignResponseCtxTracksItemPositionMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemCellColMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemCellHMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemCellRowMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemCellWMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemKindOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemKindTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemKindThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignGooglePointsOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignGooglePointsTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignGooglePointsThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDefaultDesignVersionMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoElementsItemCellColMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoElementsItemCellHMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoElementsItemCellRowMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoElementsItemCellWMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoElementsItemKindOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoElementsItemKindTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoElementsItemKindThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoGooglePointsOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoGooglePointsTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoGooglePointsThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseDraftTwoVersionMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemCellColMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemCellHMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemCellRowMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemCellWMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemKindOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemKindTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemKindThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoGooglePointsOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoGooglePointsTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoGooglePointsThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoOneTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoTwoTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoThreeTrackMin = 0;
+
+export const unpublishLoyaltyCardDesignResponsePublishedTwoVersionMin = 0;
+
+export const unpublishLoyaltyCardDesignResponseTracksItemPositionMin = 0;
+
+
+
+export const UnpublishLoyaltyCardDesignResponse = zod.object({
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass colours the shop has today.'),
+  "ctx": zod.object({
+  "has_photo": zod.boolean().describe('The shop has a card photograph uploaded.'),
+  "mode": zod.enum(['points', 'visits']).describe('What a programme collects. One track only for points.'),
+  "tracks": zod.array(zod.object({
+  "position": zod.number().min(unpublishLoyaltyCardDesignResponseCtxTracksItemPositionMin),
+  "size": zod.number()
+}).describe('What rendering and validation need of a track: where it is and how big a\ncard it fills.')).describe('Every track with its card size (track 1\'s is the programme\'s).')
+}).describe('What designs are checked against: mode, tracks, photo.'),
+  "custom_branding": zod.boolean().describe('False: the shop wears Madar\'s palette (custom branding is a super\nadmin\'s switch) — the designer locks the colours and the photograph.'),
+  "default_design": zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemCellColMin),
+  "h": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemCellHMin),
+  "row": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemCellRowMin),
+  "w": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(unpublishLoyaltyCardDesignResponseDefaultDesignVersionMin)
+}).describe('The design a shop starts from (madar-card\'s default for it).'),
+  "draft": zod.union([zod.null(),zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoElementsItemCellColMin),
+  "h": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoElementsItemCellHMin),
+  "row": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoElementsItemCellRowMin),
+  "w": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(unpublishLoyaltyCardDesignResponseDraftTwoVersionMin)
+}).describe('The design being edited, if one was saved.')]).optional(),
+  "logo_url": zod.string().nullish(),
+  "photo_url": zod.string().nullish().describe('The shop\'s card photograph and logo (upload URLs) for the live preview.'),
+  "programme_name": zod.string(),
+  "programme_name_ar": zod.string().nullish(),
+  "published": zod.union([zod.null(),zod.object({
+  "apple": zod.object({
+  "auxiliary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoAppleAuxiliaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional(),
+  "header": zod.array(zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoAppleHeaderItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional().describe('Top right beside the logo, and the only thing a stacked wallet shows.'),
+  "primary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoApplePrimaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('Written over the strip\'s leading top two thirds.')]).optional(),
+  "secondary": zod.array(zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoAppleSecondaryItemThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('What an OS-drawn field shows.')).optional()
+}).describe('Apple\'s store-card field groups. The back of the card is not designed: it\ncarries how it works, branches, terms and links, as today.'),
+  "colours": zod.object({
+  "background": zod.string(),
+  "foreground": zod.string(),
+  "label": zod.string()
+}).describe('The pass\'s colours, `#RRGGBB`. Apple writes field values in `foreground`\nand labels in `label` on `background`; Google takes `background` only.'),
+  "elements": zod.array(zod.object({
+  "cell": zod.object({
+  "col": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemCellColMin),
+  "h": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemCellHMin),
+  "row": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemCellRowMin),
+  "w": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemCellWMin)
+}).describe('A rectangle of whole cells: `col`\/`row` from the leading top corner,\n`w`×`h` cells.'),
+  "kind": zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemKindOneTrackMin),
+  "type": zod.enum(['stamps'])
+}).describe('A track\'s stamps, filled up to its progress on the current card.'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemKindTwoTrackMin),
+  "type": zod.enum(['bar'])
+}).describe('A track\'s progress as a bar (segmented up to 12 steps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoElementsItemKindThreeTrackMin),
+  "type": zod.enum(['count'])
+}).describe('A track\'s progress as figures, \"3\/8\", baked with the bundled font.'),zod.object({
+  "align": zod.enum(['start', 'centre', 'end']).describe('Alignment in reading order (`start` is the right edge on an Arabic pass).'),
+  "ar": zod.string().optional(),
+  "en": zod.string().optional(),
+  "size": zod.enum(['small', 'medium', 'large']),
+  "type": zod.enum(['text'])
+}).describe('Static words, EN and AR, baked with the bundled font. The Arabic is\ndrawn on the Arabic strip, the English on every other; one of them may\nbe empty (the other is used).'),zod.object({
+  "type": zod.enum(['logo'])
+}).describe('The shop\'s logo (Settings › Brand), else the Rewards present.')]).describe('The kinds of thing a strip can hold. Each is drawn by [`crate::render`].')
+}).describe('One thing on the strip, and where.')).optional().describe('What the strip (Apple) and the hero (Google) show, on the grid.'),
+  "google": zod.object({
+  "points": zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoGooglePointsOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoGooglePointsTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoGooglePointsThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`loyaltyPoints`, the largest text on the card.'),
+  "secondary": zod.union([zod.null(),zod.union([zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoOneTrackMin),
+  "type": zod.enum(['balance'])
+}).describe('The track\'s balance, as a number (track 1: points or stamps).'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoTwoTrackMin),
+  "type": zod.enum(['progress'])
+}).describe('Where the track is on its current card: the stamp row, or \"3 \/ 8\".'),zod.object({
+  "track": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoGoogleSecondaryTwoThreeTrackMin),
+  "type": zod.enum(['rewards'])
+}).describe('The rewards the track has earned (no row while there are none).'),zod.object({
+  "type": zod.enum(['member'])
+}).describe('The member\'s name.')]).describe('`secondaryLoyaltyPoints`.')]).optional()
+}).describe('Google\'s two slots on the face of the card.'),
+  "ground": zod.object({
+  "kind": zod.enum(['colour', 'photo', 'pattern']).describe('What lies under the elements.'),
+  "pattern": zod.union([zod.null(),zod.enum(['dots', 'lines', 'grid']).describe('Which pattern, when `kind` is `pattern`.')]).optional()
+}),
+  "stamp": zod.object({
+  "empty": zod.enum(['outline', 'faint']).describe('How a stamp not yet earned looks.'),
+  "shape": zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('The stamp\'s shape.')
+}),
+  "template": zod.string().optional().describe('The template it started from (informational: `classic`, `stamps`, …).'),
+  "version": zod.number().min(unpublishLoyaltyCardDesignResponsePublishedTwoVersionMin)
+}).describe('The design the passes wear; `None` = the classic look (or, with\nseveral tracks, the automatic one).')]).optional(),
+  "published_at": zod.iso.datetime({"offset":true}).nullish(),
+  "revision": zod.number(),
+  "tracks": zod.array(zod.object({
+  "cap": zod.number().nullish().describe('Tracks 2–4: the balance ceiling (a stamp past it is trimmed); at least\nthe track\'s size. `None` = no ceiling.'),
+  "colour": zod.string().nullish().describe('This track\'s colour (`#RRGGBB`), else the pass\'s foreground.'),
+  "items": zod.array(zod.string()).optional().describe('Tracks 2–4: the menu items (ids) a sale earns on and a completed card\ncovers. Empty = a counter-only track. Always empty on track 1, whose\nitems are the programme\'s earning list and reward catalogue.'),
+  "name_ar": zod.string().optional(),
+  "name_en": zod.string().optional().describe('Shown on the pass and the teller page; required from track 2 on.'),
+  "per_item": zod.boolean().optional().describe('Tracks 2–4: a stamp per unit of its items (default), or one per sale\nholding any. Track 1 follows the programme\'s own setting.'),
+  "position": zod.number().min(unpublishLoyaltyCardDesignResponseTracksItemPositionMin).describe('1 to 4, in order. Track 1 is the programme\'s own counter.'),
+  "shape": zod.union([zod.null(),zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('This track\'s stamp, else the design\'s.')]).optional(),
+  "size": zod.number().nullish().describe('Stamps that fill this track\'s card. `None` on track 1, whose size is\nthe programme\'s card size (one number, one place).')
+}).describe('A track as the owner defines it.')).describe('The tracks, for labels and colours in the preview.')
+}).describe('Everything the designer needs to open.')
+
+
 /**
  * @summary Complete a full card: deduct exactly the card's size; extra stamps stay.
  */
+export const loyaltyCounterRedeemBodyTrackMin = 0;
+
+
+
 export const LoyaltyCounterRedeemBody = zod.object({
   "branch_id": zod.uuid(),
   "customer_id": zod.uuid(),
-  "idempotency_key": zod.string().describe('One per attempt, made by the page (a UUID).')
+  "idempotency_key": zod.string().describe('One per attempt, made by the page (a UUID).'),
+  "track": zod.number().min(loyaltyCounterRedeemBodyTrackMin).nullish().describe('The stamp track (1–4) to complete; absent = track 1.')
 })
+
+export const loyaltyCounterRedeemResponseMemberTracksItemPositionMin = 0;
+
+
 
 export const LoyaltyCounterRedeemResponse = zod.object({
   "already": zod.boolean().describe('True when this key had already been used: nothing new was written.'),
@@ -7390,6 +10463,20 @@ export const LoyaltyCounterRedeemResponse = zod.object({
   "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
   "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
   "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
+  "tracks": zod.array(zod.object({
+  "balance": zod.number(),
+  "can_redeem": zod.boolean(),
+  "colour": zod.string().nullish(),
+  "earns_from_sales": zod.boolean().optional().describe('The track is bound to menu items (a POS sale earns it); `false` = a\ncounter-only track.'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "points_to_next_reward": zod.number(),
+  "position": zod.number().min(loyaltyCounterRedeemResponseMemberTracksItemPositionMin),
+  "progress_to_next": zod.number(),
+  "rewards_ready": zod.number(),
+  "shape": zod.string().nullish(),
+  "size": zod.number()
+}).describe('One track on a member\'s card, with the card\'s figures (madar-card\'s\n`track_card`). Track 1\'s figures equal the member\'s top-level ones.')).nullish().describe('Every stamp track of the card (track 1 first, its figures equal to the\nfields above), present only when the shop runs more than one. The\nfields above stay track 1\'s for ever (released tills read them).'),
   "visits_balance": zod.number()
 }).describe('The member after the change, with the card\'s figures.'),
   "stamps": zod.number().describe('Stamps this call moved: positive for a stamp, negative for a completed\ncard. On a retry, what the first call moved.')
@@ -7401,14 +10488,21 @@ export const LoyaltyCounterRedeemResponse = zod.object({
  */
 export const loyaltyCounterStampBodyItemsMax = 50;
 
+export const loyaltyCounterStampBodyTrackMin = 0;
+
 
 
 export const LoyaltyCounterStampBody = zod.object({
   "branch_id": zod.uuid(),
   "customer_id": zod.uuid().describe('The member, as `\/loyalty\/lookup` resolved them.'),
   "idempotency_key": zod.string().describe('One per attempt, made by the page (a UUID). A retry with the same key\nstamps nothing new.'),
-  "items": zod.number().min(1).max(loyaltyCounterStampBodyItemsMax).describe('Items bought on this visit, 1 to 50.')
+  "items": zod.number().min(1).max(loyaltyCounterStampBodyItemsMax).describe('Items bought on this visit, 1 to 50.'),
+  "track": zod.number().min(loyaltyCounterStampBodyTrackMin).nullish().describe('The stamp track (1–4); absent = track 1. A track 2–4 stamps `items`\nstamps (or one with its \"per sale\" setting).')
 })
+
+export const loyaltyCounterStampResponseMemberTracksItemPositionMin = 0;
+
+
 
 export const LoyaltyCounterStampResponse = zod.object({
   "already": zod.boolean().describe('True when this key had already been used: nothing new was written.'),
@@ -7429,6 +10523,20 @@ export const LoyaltyCounterStampResponse = zod.object({
   "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
   "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
   "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
+  "tracks": zod.array(zod.object({
+  "balance": zod.number(),
+  "can_redeem": zod.boolean(),
+  "colour": zod.string().nullish(),
+  "earns_from_sales": zod.boolean().optional().describe('The track is bound to menu items (a POS sale earns it); `false` = a\ncounter-only track.'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "points_to_next_reward": zod.number(),
+  "position": zod.number().min(loyaltyCounterStampResponseMemberTracksItemPositionMin),
+  "progress_to_next": zod.number(),
+  "rewards_ready": zod.number(),
+  "shape": zod.string().nullish(),
+  "size": zod.number()
+}).describe('One track on a member\'s card, with the card\'s figures (madar-card\'s\n`track_card`). Track 1\'s figures equal the member\'s top-level ones.')).nullish().describe('Every stamp track of the card (track 1 first, its figures equal to the\nfields above), present only when the shop runs more than one. The\nfields above stay track 1\'s for ever (released tills read them).'),
   "visits_balance": zod.number()
 }).describe('The member after the change, with the card\'s figures.'),
   "stamps": zod.number().describe('Stamps this call moved: positive for a stamp, negative for a completed\ncard. On a retry, what the first call moved.')
@@ -7502,6 +10610,12 @@ export const LoyaltyLookupBody = zod.object({
   "token": zod.string().nullish().describe('The token from the scanned pass barcode. Preferred.')
 })
 
+export const loyaltyLookupResponseMemberTracksItemPositionMin = 0;
+
+export const loyaltyLookupResponseTrackRewardsItemPositionMin = 0;
+
+
+
 export const LoyaltyLookupResponse = zod.object({
   "any_item": zod.boolean().describe('The whole menu is claimable, not just `rewards`.\n\nWhen on, `rewards` stops being the list of what MAY be claimed — it is\nonly what happens to be curated — and the till offers every line at\n`any_item_cost`. Sent rather than inferred, because a till cannot tell\n\"no catalogue\" apart from \"any item\" without being told.'),
   "any_item_cost": zod.number().describe('What one line costs when `any_item` is on, in the branch\'s currency.'),
@@ -7523,6 +10637,20 @@ export const LoyaltyLookupResponse = zod.object({
   "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
   "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
   "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
+  "tracks": zod.array(zod.object({
+  "balance": zod.number(),
+  "can_redeem": zod.boolean(),
+  "colour": zod.string().nullish(),
+  "earns_from_sales": zod.boolean().optional().describe('The track is bound to menu items (a POS sale earns it); `false` = a\ncounter-only track.'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "points_to_next_reward": zod.number(),
+  "position": zod.number().min(loyaltyLookupResponseMemberTracksItemPositionMin),
+  "progress_to_next": zod.number(),
+  "rewards_ready": zod.number(),
+  "shape": zod.string().nullish(),
+  "size": zod.number()
+}).describe('One track on a member\'s card, with the card\'s figures (madar-card\'s\n`track_card`). Track 1\'s figures equal the member\'s top-level ones.')).nullish().describe('Every stamp track of the card (track 1 first, its figures equal to the\nfields above), present only when the shop runs more than one. The\nfields above stay track 1\'s for ever (released tills read them).'),
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.'),
   "recent": zod.array(zod.object({
@@ -7540,7 +10668,8 @@ export const LoyaltyLookupResponse = zod.object({
   "points": zod.number(),
   "reverses_id": zod.uuid().nullish().describe('For a reversal, the row it undoes.'),
   "reward_name": zod.string().nullish(),
-  "source": zod.string().describe('Why the row exists: `sale`, `redemption`, `void`, `refund`, `birthday`,\n`winback`, `manual`, `merge` or `counter` (no order: the Rewards teller page). What a till or a dashboard should print as the\nreason, instead of guessing from the kind and the note.')
+  "source": zod.string().describe('Why the row exists: `sale`, `redemption`, `void`, `refund`, `birthday`,\n`winback`, `manual`, `merge` or `counter` (no order: the Rewards teller page). What a till or a dashboard should print as the\nreason, instead of guessing from the kind and the note.'),
+  "track": zod.number().nullish().describe('The stamp track this row moved (2–4); absent for track 1.')
 }).describe('One line of a member\'s history.')).describe('Recent history, so a teller can answer \"where did my points go?\".'),
   "rewards": zod.array(zod.object({
   "base_price": zod.number().describe('Menu price in piastres — what the reward is worth, for the admin\'s sake.'),
@@ -7550,7 +10679,19 @@ export const LoyaltyLookupResponse = zod.object({
   "menu_item_id": zod.uuid(),
   "name": zod.string().describe('Denormalised for display so the teller and the pass need no menu join.'),
   "sort_order": zod.number()
-})).describe('What this member could claim at this branch right now. Empty until the\nbalance reaches the threshold, so the screen cannot tempt a teller into\nhanding over a reward that has not been earned.')
+})).describe('What this member could claim at this branch right now. Empty until the\nbalance reaches the threshold, so the screen cannot tempt a teller into\nhanding over a reward that has not been earned.'),
+  "track_rewards": zod.array(zod.object({
+  "position": zod.number().min(loyaltyLookupResponseTrackRewardsItemPositionMin),
+  "rewards": zod.array(zod.object({
+  "base_price": zod.number().describe('Menu price in piastres — what the reward is worth, for the admin\'s sake.'),
+  "cost_amount": zod.number().describe('How much of that currency it costs. Per item, so one catalogue holds\n\"espresso, 5 visits\" beside \"cake, 10 visits\".'),
+  "cost_currency": zod.string().describe('`\"points\"` or `\"visits\"` — what this reward is bought with.\n\nAlways the currency of the scope this was READ through, never whatever\nthe row happened to be written with. A program has one mode\n([`LoyaltySettings::mode`]) and a reward is priced in it; the stored\ncolumn is a record of intent, not an independent fact, and letting the\ntwo disagree is what made a whole catalogue vanish from the till while\nthe dashboard still listed it.'),
+  "image_url": zod.string().nullish(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string().describe('Denormalised for display so the teller and the pass need no menu join.'),
+  "sort_order": zod.number()
+})).describe('Only what the member\'s balance on this track can buy now (as\n`ScanResult.rewards` is for track 1).')
+}).describe('What a track 2–4 offers at the till: each of its items at the track\'s size.')).nullish().describe('Tracks 2–4\'s rewards (each of a track\'s items at its size), when the\ncard has more than one track. `rewards` stays track 1\'s only: a\nreleased till offers what is in it against the track-1 balance.')
 }).describe('What the teller\'s scan screen shows.')
 
 
@@ -7560,6 +10701,10 @@ export const ListLoyaltyMembersQueryParams = zod.object({
   "limit": zod.number().optional(),
   "offset": zod.number().optional()
 })
+
+export const listLoyaltyMembersResponseMembersItemTracksItemPositionMin = 0;
+
+
 
 export const ListLoyaltyMembersResponse = zod.object({
   "members": zod.array(zod.object({
@@ -7579,8 +10724,116 @@ export const ListLoyaltyMembersResponse = zod.object({
   "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
   "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
   "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
+  "tracks": zod.array(zod.object({
+  "balance": zod.number(),
+  "can_redeem": zod.boolean(),
+  "colour": zod.string().nullish(),
+  "earns_from_sales": zod.boolean().optional().describe('The track is bound to menu items (a POS sale earns it); `false` = a\ncounter-only track.'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "points_to_next_reward": zod.number(),
+  "position": zod.number().min(listLoyaltyMembersResponseMembersItemTracksItemPositionMin),
+  "progress_to_next": zod.number(),
+  "rewards_ready": zod.number(),
+  "shape": zod.string().nullish(),
+  "size": zod.number()
+}).describe('One track on a member\'s card, with the card\'s figures (madar-card\'s\n`track_card`). Track 1\'s figures equal the member\'s top-level ones.')).nullish().describe('Every stamp track of the card (track 1 first, its figures equal to the\nfields above), present only when the shop runs more than one. The\nfields above stay track 1\'s for ever (released tills read them).'),
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Search, filter by a segment, sort and page the members.
+ */
+export const queryLoyaltyMembersBodyAudienceRulesItemOneTrackMin = 0;
+
+export const queryLoyaltyMembersBodyAudienceRulesItemTwoTrackMin = 0;
+
+export const queryLoyaltyMembersBodyAudienceRulesItemThreeTrackMin = 0;
+
+export const queryLoyaltyMembersBodyAudienceRulesItemFourDaysMin = 0;
+
+export const queryLoyaltyMembersBodyAudienceRulesItemFiveDaysMin = 0;
+
+export const queryLoyaltyMembersBodyAudienceRulesItemSixDaysMin = 0;
+
+export const queryLoyaltyMembersBodyAudienceRulesItemSevenMonthMin = 0;
+
+
+
+export const QueryLoyaltyMembersBody = zod.object({
+  "audience": zod.object({
+  "rules": zod.array(zod.union([zod.object({
+  "track": zod.number().min(queryLoyaltyMembersBodyAudienceRulesItemOneTrackMin),
+  "type": zod.enum(['balance_at_least']),
+  "value": zod.number()
+}).describe('The track\'s balance is at least `value`.'),zod.object({
+  "track": zod.number().min(queryLoyaltyMembersBodyAudienceRulesItemTwoTrackMin),
+  "type": zod.enum(['balance_at_most']),
+  "value": zod.number()
+}).describe('The track\'s balance is at most `value`.'),zod.object({
+  "track": zod.number().min(queryLoyaltyMembersBodyAudienceRulesItemThreeTrackMin),
+  "type": zod.enum(['reward_ready'])
+}).describe('The track has a reward earned and not yet taken.'),zod.object({
+  "days": zod.number().min(queryLoyaltyMembersBodyAudienceRulesItemFourDaysMin),
+  "type": zod.enum(['visited_within'])
+}).describe('Seen (any stamp, point or reward) within the last `days`.'),zod.object({
+  "days": zod.number().min(queryLoyaltyMembersBodyAudienceRulesItemFiveDaysMin),
+  "type": zod.enum(['not_visited_for'])
+}).describe('Not seen for at least `days` (never seen counts from joining).'),zod.object({
+  "days": zod.number().min(queryLoyaltyMembersBodyAudienceRulesItemSixDaysMin),
+  "type": zod.enum(['joined_within'])
+}).describe('Joined within the last `days`.'),zod.object({
+  "month": zod.number().min(queryLoyaltyMembersBodyAudienceRulesItemSevenMonthMin),
+  "type": zod.enum(['birthday_month'])
+}).describe('Born in `month` (1–12).'),zod.object({
+  "type": zod.enum(['has_wallet']),
+  "wallet": zod.enum(['apple', 'google', 'none']).describe('A wallet a member may hold the card in.')
+}).describe('Holds the card in this wallet.')]).describe('One rule.')).optional()
+}).optional().describe('A segment (madar-card\'s audience rules); empty = every member.'),
+  "desc": zod.boolean().optional().describe('Newest \/ most \/ latest first when true (the default).'),
+  "limit": zod.number().nullish(),
+  "offset": zod.number().nullish(),
+  "q": zod.string().nullish().describe('Name or phone fragment.'),
+  "sort": zod.enum(['joined', 'last_visit', 'balance', 'name']).optional()
+})
+
+export const queryLoyaltyMembersResponseRowsItemTracksItemPositionMin = 0;
+
+
+
+export const QueryLoyaltyMembersResponse = zod.object({
+  "rows": zod.array(zod.object({
+  "apple_devices": zod.number().describe('Apple devices holding the card.'),
+  "balance": zod.number().describe('Track 1\'s balance in the programme\'s currency.'),
+  "birth_month": zod.number().nullish(),
+  "enrolled_at": zod.iso.datetime({"offset":true}),
+  "google_card": zod.boolean().describe('A Google Wallet object was created for them.'),
+  "id": zod.uuid(),
+  "last_visit_at": zod.iso.datetime({"offset":true}).describe('Their latest stamp, point or reward (or when they joined).'),
+  "lifetime": zod.number(),
+  "locale": zod.string(),
+  "marketing_opt_out": zod.boolean(),
+  "name": zod.string(),
+  "phone": zod.string(),
+  "rewards_ready": zod.number().describe('Rewards earned on track 1, not yet taken.'),
+  "tracks": zod.array(zod.object({
+  "balance": zod.number(),
+  "can_redeem": zod.boolean(),
+  "colour": zod.string().nullish(),
+  "earns_from_sales": zod.boolean().optional().describe('The track is bound to menu items (a POS sale earns it); `false` = a\ncounter-only track.'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "points_to_next_reward": zod.number(),
+  "position": zod.number().min(queryLoyaltyMembersResponseRowsItemTracksItemPositionMin),
+  "progress_to_next": zod.number(),
+  "rewards_ready": zod.number(),
+  "shape": zod.string().nullish(),
+  "size": zod.number()
+}).describe('One track on a member\'s card, with the card\'s figures (madar-card\'s\n`track_card`). Track 1\'s figures equal the member\'s top-level ones.')).nullish().describe('Every track, when the card has more than one.')
+}).describe('One row of the CRM table.')),
   "total": zod.number()
 })
 
@@ -7595,6 +10848,10 @@ export const GetLoyaltyMemberQueryParams = zod.object({
   "limit": zod.number().optional(),
   "offset": zod.number().optional()
 })
+
+export const getLoyaltyMemberResponseMemberTracksItemPositionMin = 0;
+
+
 
 export const GetLoyaltyMemberResponse = zod.object({
   "ledger": zod.array(zod.object({
@@ -7612,7 +10869,8 @@ export const GetLoyaltyMemberResponse = zod.object({
   "points": zod.number(),
   "reverses_id": zod.uuid().nullish().describe('For a reversal, the row it undoes.'),
   "reward_name": zod.string().nullish(),
-  "source": zod.string().describe('Why the row exists: `sale`, `redemption`, `void`, `refund`, `birthday`,\n`winback`, `manual`, `merge` or `counter` (no order: the Rewards teller page). What a till or a dashboard should print as the\nreason, instead of guessing from the kind and the note.')
+  "source": zod.string().describe('Why the row exists: `sale`, `redemption`, `void`, `refund`, `birthday`,\n`winback`, `manual`, `merge` or `counter` (no order: the Rewards teller page). What a till or a dashboard should print as the\nreason, instead of guessing from the kind and the note.'),
+  "track": zod.number().nullish().describe('The stamp track this row moved (2–4); absent for track 1.')
 }).describe('One line of a member\'s history.')),
   "member": zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
@@ -7631,6 +10889,20 @@ export const GetLoyaltyMemberResponse = zod.object({
   "points_to_next_reward": zod.number().describe('What that next reward still needs. Equals `next_reward_cost` on an exact\nmultiple, because a fresh card is the honest thing to show there.'),
   "progress_to_next": zod.number().describe('Progress towards the NEXT reward, after the earned ones are set aside.\n`balance % next_reward_cost`.'),
   "rewards_ready": zod.number().describe('How many rewards the balance has ALREADY earned.\n\nA card does not stop at full. Six stamps against a five-stamp reward is\none reward earned and one stamp towards the next, not \"five and a bit\nwasted\" — and a customer who has been in eleven times is owed two\nrewards, whether or not they claimed the first.'),
+  "tracks": zod.array(zod.object({
+  "balance": zod.number(),
+  "can_redeem": zod.boolean(),
+  "colour": zod.string().nullish(),
+  "earns_from_sales": zod.boolean().optional().describe('The track is bound to menu items (a POS sale earns it); `false` = a\ncounter-only track.'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "points_to_next_reward": zod.number(),
+  "position": zod.number().min(getLoyaltyMemberResponseMemberTracksItemPositionMin),
+  "progress_to_next": zod.number(),
+  "rewards_ready": zod.number(),
+  "shape": zod.string().nullish(),
+  "size": zod.number()
+}).describe('One track on a member\'s card, with the card\'s figures (madar-card\'s\n`track_card`). Track 1\'s figures equal the member\'s top-level ones.')).nullish().describe('Every stamp track of the card (track 1 first, its figures equal to the\nfields above), present only when the shop runs more than one. The\nfields above stay track 1\'s for ever (released tills read them).'),
   "visits_balance": zod.number()
 }).describe('A member as the teller, the admin and the pass all see them.\n\nBoth balances travel, because an org may switch mode (or run points at one\nbranch and stamps at another) and what a customer earned under the old rules\nis still theirs. `mode` says which one is LIVE where the question was asked,\nand `balance` is that one — so a caller never has to pick.')
 })
@@ -7734,6 +11006,24 @@ export const RefreshLoyaltyGooglePassResponse = zod.object({
   "step": zod.string().describe('What was attempted, in words: \"insert the class\", \"update the object\".')
 }).describe('One request to Google and what it answered, kept verbatim.\n\nProvisioning is four requests deep and every one of them can fail in a way\nthe customer never sees: a refused class, an image Google will not fetch, a\nfield it silently drops. A failed REFRESH is deliberately only a warning —\nthe customer keeps the card they have — which means the reason lands in a\nlog nobody is reading at the moment it matters.\n\nSo the same code path can be asked to keep a transcript. `save_url` throws\nit away; the super-admin diagnostic returns it. One path, so what the\ndiagnostic reports is what actually happens, rather than a second\nimplementation that agrees with the first until it doesn\'t.')).describe('Every request and Google\'s answer, in order.')
 }).describe('A provisioning run, in full.')
+
+
+export const GetLoyaltyMemberWalletParams = zod.object({
+  "id": zod.uuid().describe('Member ID')
+})
+
+export const GetLoyaltyMemberWalletResponse = zod.object({
+  "apple_devices": zod.number(),
+  "apple_registered_at": zod.iso.datetime({"offset":true}).nullish(),
+  "google_card": zod.boolean(),
+  "marketing_opt_out": zod.boolean(),
+  "messages_received": zod.number().describe('Dashboard messages this member was sent.'),
+  "notice": zod.string().nullish(),
+  "notice_at": zod.iso.datetime({"offset":true}).nullish(),
+  "notice_seen_at": zod.iso.datetime({"offset":true}).nullish().describe('Apple\'s device fetched the pass after the push.'),
+  "notice_wallets": zod.string().nullish(),
+  "pass_updated_at": zod.iso.datetime({"offset":true}).nullish().describe('When the pass was last rebuilt for them.')
+}).describe('How the member\'s card is held, and the last message it carried.')
 
 
 export const GetLoyaltyRewardItemsQueryParams = zod.object({
@@ -7885,6 +11175,98 @@ export const DeleteLoyaltySettingsQueryParams = zod.object({
 })
 
 export const DeleteLoyaltySettingsResponse = zod.void()
+
+
+export const GetLoyaltyStatsQueryParams = zod.object({
+  "from": zod.iso.date().optional().describe('`YYYY-MM-DD`, in the shop\'s time zone; default 30 days ago.'),
+  "to": zod.iso.date().optional().describe('`YYYY-MM-DD`, inclusive; default today.')
+})
+
+export const GetLoyaltyStatsResponse = zod.object({
+  "active_members": zod.number(),
+  "daily": zod.array(zod.object({
+  "active": zod.number().describe('Members with any ledger row that day.'),
+  "date": zod.iso.date(),
+  "earned": zod.number().describe('Stamps (or points) earned, every track.'),
+  "new_members": zod.number(),
+  "redemptions": zod.number().describe('Rewards taken (redemption rows), every track.')
+})),
+  "earned": zod.number(),
+  "from": zod.iso.date(),
+  "members_total": zod.number(),
+  "members_with_card": zod.number().describe('Members holding the card in a wallet (Apple device or Google object).'),
+  "messages_seen": zod.number(),
+  "messages_sent": zod.number(),
+  "mode": zod.string().describe('`points` or `visits`.'),
+  "new_members": zod.number(),
+  "per_track": zod.array(zod.object({
+  "earned": zod.number(),
+  "position": zod.number(),
+  "redemptions": zod.number()
+})),
+  "redemptions": zod.number(),
+  "to": zod.iso.date()
+})
+
+
+export const getLoyaltyTracksResponseTracksItemPositionMin = 0;
+
+
+
+export const GetLoyaltyTracksResponse = zod.object({
+  "mode": zod.string().describe('`points` or `visits` (the org default\'s).'),
+  "track_one_size": zod.number().describe('Track 1\'s size: the programme\'s card size.'),
+  "tracks": zod.array(zod.object({
+  "cap": zod.number().nullish().describe('Tracks 2–4: the balance ceiling (a stamp past it is trimmed); at least\nthe track\'s size. `None` = no ceiling.'),
+  "colour": zod.string().nullish().describe('This track\'s colour (`#RRGGBB`), else the pass\'s foreground.'),
+  "items": zod.array(zod.string()).optional().describe('Tracks 2–4: the menu items (ids) a sale earns on and a completed card\ncovers. Empty = a counter-only track. Always empty on track 1, whose\nitems are the programme\'s earning list and reward catalogue.'),
+  "name_ar": zod.string().optional(),
+  "name_en": zod.string().optional().describe('Shown on the pass and the teller page; required from track 2 on.'),
+  "per_item": zod.boolean().optional().describe('Tracks 2–4: a stamp per unit of its items (default), or one per sale\nholding any. Track 1 follows the programme\'s own setting.'),
+  "position": zod.number().min(getLoyaltyTracksResponseTracksItemPositionMin).describe('1 to 4, in order. Track 1 is the programme\'s own counter.'),
+  "shape": zod.union([zod.null(),zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('This track\'s stamp, else the design\'s.')]).optional(),
+  "size": zod.number().nullish().describe('Stamps that fill this track\'s card. `None` on track 1, whose size is\nthe programme\'s card size (one number, one place).')
+}).describe('A track as the owner defines it.')).describe('Every track in position order; track 1 always first. In a points\nprogramme only track 1 (tracks 2–4 are kept but inactive).')
+}).describe('The shop\'s tracks, for the dashboard (and anyone setting up a till).')
+
+
+export const putLoyaltyTracksBodyTracksItemPositionMin = 0;
+
+
+
+export const PutLoyaltyTracksBody = zod.object({
+  "tracks": zod.array(zod.object({
+  "cap": zod.number().nullish().describe('Tracks 2–4: the balance ceiling (a stamp past it is trimmed); at least\nthe track\'s size. `None` = no ceiling.'),
+  "colour": zod.string().nullish().describe('This track\'s colour (`#RRGGBB`), else the pass\'s foreground.'),
+  "items": zod.array(zod.string()).optional().describe('Tracks 2–4: the menu items (ids) a sale earns on and a completed card\ncovers. Empty = a counter-only track. Always empty on track 1, whose\nitems are the programme\'s earning list and reward catalogue.'),
+  "name_ar": zod.string().optional(),
+  "name_en": zod.string().optional().describe('Shown on the pass and the teller page; required from track 2 on.'),
+  "per_item": zod.boolean().optional().describe('Tracks 2–4: a stamp per unit of its items (default), or one per sale\nholding any. Track 1 follows the programme\'s own setting.'),
+  "position": zod.number().min(putLoyaltyTracksBodyTracksItemPositionMin).describe('1 to 4, in order. Track 1 is the programme\'s own counter.'),
+  "shape": zod.union([zod.null(),zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('This track\'s stamp, else the design\'s.')]).optional(),
+  "size": zod.number().nullish().describe('Stamps that fill this track\'s card. `None` on track 1, whose size is\nthe programme\'s card size (one number, one place).')
+}).describe('A track as the owner defines it.')).describe('The complete list, in position order, track 1 first. A track left out\nis removed (its members\' balances are kept, and come back with it).')
+})
+
+export const putLoyaltyTracksResponseTracksItemPositionMin = 0;
+
+
+
+export const PutLoyaltyTracksResponse = zod.object({
+  "mode": zod.string().describe('`points` or `visits` (the org default\'s).'),
+  "track_one_size": zod.number().describe('Track 1\'s size: the programme\'s card size.'),
+  "tracks": zod.array(zod.object({
+  "cap": zod.number().nullish().describe('Tracks 2–4: the balance ceiling (a stamp past it is trimmed); at least\nthe track\'s size. `None` = no ceiling.'),
+  "colour": zod.string().nullish().describe('This track\'s colour (`#RRGGBB`), else the pass\'s foreground.'),
+  "items": zod.array(zod.string()).optional().describe('Tracks 2–4: the menu items (ids) a sale earns on and a completed card\ncovers. Empty = a counter-only track. Always empty on track 1, whose\nitems are the programme\'s earning list and reward catalogue.'),
+  "name_ar": zod.string().optional(),
+  "name_en": zod.string().optional().describe('Shown on the pass and the teller page; required from track 2 on.'),
+  "per_item": zod.boolean().optional().describe('Tracks 2–4: a stamp per unit of its items (default), or one per sale\nholding any. Track 1 follows the programme\'s own setting.'),
+  "position": zod.number().min(putLoyaltyTracksResponseTracksItemPositionMin).describe('1 to 4, in order. Track 1 is the programme\'s own counter.'),
+  "shape": zod.union([zod.null(),zod.enum(['circle', 'square', 'star', 'heart', 'cup', 'gift', 'check']).describe('This track\'s stamp, else the design\'s.')]).optional(),
+  "size": zod.number().nullish().describe('Stamps that fill this track\'s card. `None` on track 1, whose size is\nthe programme\'s card size (one number, one place).')
+}).describe('A track as the owner defines it.')).describe('Every track in position order; track 1 always first. In a points\nprogramme only track 1 (tracks 2–4 are kept but inactive).')
+}).describe('The shop\'s tracks, for the dashboard (and anyone setting up a till).')
 
 
 /**
@@ -10598,6 +13980,8 @@ export const SettleOpenTicketParams = zod.object({
 
 export const settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin = 0;
 
+export const settleOpenTicketBodyLoyaltyRedemptionsItemTrackMin = 0;
+
 
 
 export const SettleOpenTicketBody = zod.object({
@@ -10624,6 +14008,7 @@ export const SettleOpenTicketBody = zod.object({
   "loyalty_redemptions": zod.array(zod.object({
   "item_index": zod.number().min(settleOpenTicketBodyLoyaltyRedemptionsItemItemIndexMin).nullish().describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.\n\nOptional because a TICKET settle names its lines by id instead (see\n`ticket_line_id`) and the server fills this in — a till settling a ticket\ncannot see the order the server will flatten its rounds into, and a\nguessed index takes the wrong item off the bill.'),
   "ticket_line_id": zod.uuid().nullish().describe('`open_ticket_items.id` — how a ticket settle names the line to cover.\nResolved to `item_index` by `settle_open_ticket` before pricing.'),
+  "track": zod.number().min(settleOpenTicketBodyLoyaltyRedemptionsItemTrackMin).nullish().describe('The stamp track (2–4) that pays for it; absent = track 1 (the\nprogramme\'s own card, as every released till sends).'),
   "units": zod.number().nullish().describe('How many of that line\'s units the reward covers. Defaults to one.')
 }).describe('One reward applied to one line of the cart.')).optional().describe('Rewards covering lines of the ticket. A table-service bill redeems\nexactly like a counter one — the cashier scans at settle either way.'),
   "payment_method": zod.string(),
@@ -10966,6 +14351,8 @@ export const ListOrdersResponse = zod.object({
 
 export const createOrderBodyLoyaltyRedemptionsItemItemIndexMin = 0;
 
+export const createOrderBodyLoyaltyRedemptionsItemTrackMin = 0;
+
 
 
 export const CreateOrderBody = zod.object({
@@ -11043,6 +14430,7 @@ export const CreateOrderBody = zod.object({
   "loyalty_redemptions": zod.array(zod.object({
   "item_index": zod.number().min(createOrderBodyLoyaltyRedemptionsItemItemIndexMin).nullish().describe('Index into `items`. An index rather than an id because a cart may hold\nthe same menu item on two lines with different modifiers, and only the\nposition tells them apart.\n\nOptional because a TICKET settle names its lines by id instead (see\n`ticket_line_id`) and the server fills this in — a till settling a ticket\ncannot see the order the server will flatten its rounds into, and a\nguessed index takes the wrong item off the bill.'),
   "ticket_line_id": zod.uuid().nullish().describe('`open_ticket_items.id` — how a ticket settle names the line to cover.\nResolved to `item_index` by `settle_open_ticket` before pricing.'),
+  "track": zod.number().min(createOrderBodyLoyaltyRedemptionsItemTrackMin).nullish().describe('The stamp track (2–4) that pays for it; absent = track 1 (the\nprogramme\'s own card, as every released till sends).'),
   "units": zod.number().nullish().describe('How many of that line\'s units the reward covers. Defaults to one.')
 }).describe('One reward applied to one line of the cart.')).optional().describe('Rewards covering lines of this cart. Each names a line by its index in\n`items` and how many of that line\'s units the reward pays for, so a\nmixed basket can have one free coffee among four paid ones.'),
   "notes": zod.string().nullish(),
@@ -11196,6 +14584,7 @@ export const CreateOrderResponse = zod.object({
   "order_id": zod.uuid(),
   "quantity": zod.number(),
   "reward_covered": zod.number().optional().describe('Minor units the reward took off this line (0 for a paid line).'),
+  "reward_track": zod.number().nullish().describe('The stamp track (2–4) whose reward covered it; absent for track 1.'),
   "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
   "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
@@ -11351,6 +14740,7 @@ export const ExportOrdersResponse = zod.object({
   "order_id": zod.uuid(),
   "quantity": zod.number(),
   "reward_covered": zod.number().optional().describe('Minor units the reward took off this line (0 for a paid line).'),
+  "reward_track": zod.number().nullish().describe('The stamp track (2–4) whose reward covered it; absent for track 1.'),
   "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
   "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
@@ -11575,6 +14965,7 @@ export const GetOrderResponse = zod.object({
   "order_id": zod.uuid(),
   "quantity": zod.number(),
   "reward_covered": zod.number().optional().describe('Minor units the reward took off this line (0 for a paid line).'),
+  "reward_track": zod.number().nullish().describe('The stamp track (2–4) whose reward covered it; absent for track 1.'),
   "reward_units": zod.number().optional().describe('How many of `quantity` the reward covered.'),
   "size_label": zod.string().nullish(),
   "staff_comp_minor": zod.number().optional().describe('A staff drink: what the branch\'s pool comped on this line, in minor\nunits, size part and required-choice part together. ALREADY taken off\n`line_total` (the size part) and the add-ons\' `line_total` (their part):\nprint it as a line discount, never subtract it again. 0 on a paid line.'),
@@ -13738,6 +17129,20 @@ export const TrackDeliveryOrderResponse = zod.object({
   "total": zod.number(),
   "unit_number": zod.string().nullish()
 }).describe('Customer-safe tracking view of a delivery order, keyed by its opaque UUID\n(same capability-URL trust model as the device-token flow). No phone number\nis exposed; the destination fields are the customer\'s own inputs. Powers the\npublic `\/track\/{id}` page (polled, since the public surface has no SSE).')
+
+
+/**
+ * @summary The designed Google hero at one progress state (public: Google fetches it).
+No member data: the org, the revision and each track's progress, every
+number checked against the shop's tracks.
+ */
+export const PublicLoyaltyCardHeroParams = zod.object({
+  "org_id": zod.uuid(),
+  "revision": zod.number(),
+  "state": zod.string().describe('e.g. `3-0-en.png`')
+})
+
+export const PublicLoyaltyCardHeroResponse = zod.unknown()
 
 
 /**
