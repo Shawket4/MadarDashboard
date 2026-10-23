@@ -24,7 +24,7 @@ import { getErrorMessage } from "@/data/api/errors";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
-import { useErrorToast } from "@/features/public-shell/public-toaster";
+import { useErrorToast } from "@/components/ui/toast";
 import { getGuestPhone, setGuestPhone } from "@/features/public-shell/guest";
 import { stepSwap, successBadge, useStepDirection } from "@/features/public-shell/motion";
 import { DISTANCE, Reveal, recipes, Stagger, SwapPresence } from "@/lib/motion";

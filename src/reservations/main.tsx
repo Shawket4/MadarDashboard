@@ -70,7 +70,7 @@ import { bootMotion } from "@/lib/motion";
 // Customer surface: the brand register, where the primary is Madar teal.
 document.documentElement.classList.add("brand-surface");
 import { initPublicTheme } from "@/features/public-shell/use-public-theme";
-import { PublicToaster } from "@/features/public-shell/public-toaster";
+import { Toaster } from "@/components/ui/toast";
 
 import { queryClient } from "@/data/api/query";
 import { initRules } from "@/lib/rules";
@@ -158,7 +158,7 @@ void Promise.all([initRules(rulesWasm), i18nReady]).then(() =>
     <StrictMode>
       <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
-          <PublicToaster />
+          <Toaster />
       </QueryClientProvider>
     </StrictMode>,
   ),

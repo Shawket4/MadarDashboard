@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { MapPin, Printer, Store, Warehouse } from "lucide-react";
 
 import { useAuthStore } from "@/data/stores/auth.store";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { z } from "zod";
 
 import {

@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { BundlesReport, ComboMix } from "@/data/api/generated/models";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
+import { toast } from "@/components/ui/toast";
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -30,11 +31,9 @@ let mix: ComboMix | undefined;
 const reportCalls: { params: Record<string, unknown>; enabled: boolean | undefined }[] = [];
 const mixCalls: { comboId: string; params: unknown }[] = [];
 const exportToExcel = vi.fn();
-const toastError = vi.fn();
 
 // The KPI figures count up only once GSAP has loaded (bootMotion, which no
 // test calls), so the final figure is on screen at once and a test can read it.
-vi.mock("sonner", () => ({ toast: { error: (...a: unknown[]) => toastError(...a), success: vi.fn() } }));
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
   return {
@@ -138,7 +137,7 @@ beforeEach(async () => {
   reportCalls.length = 0;
   mixCalls.length = 0;
   exportToExcel.mockReset().mockResolvedValue(undefined);
-  toastError.mockReset();
+  vi.mocked(toast.error).mockClear();
 });
 
 describe("Bundles report · access", () => {
@@ -249,14 +248,14 @@ describe("Bundles report · export", () => {
     // 3 orders summed to 4). Sold, money and cost do add up.
     const totalled = (sheet.columns as { header: string; total?: boolean }[]).filter((c) => c.total).map((c) => c.header);
     expect(totalled).toEqual(["Sold", "Revenue", "Separately", "Saving given", "Cost"]);
-    expect(toastError).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("says why when the export fails", async () => {
     exportToExcel.mockRejectedValueOnce(new Error("disk full"));
     render(<BundlesReportPage />);
     fireEvent.click(screen.getByRole("button", { name: /Export/ }));
-    await waitFor(() => expect(toastError).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
   });
 });
 

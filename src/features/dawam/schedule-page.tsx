@@ -13,7 +13,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@/components/app/link";
 import { CalendarCheck, CalendarPlus, Grid3x3, Info, MapPin, PartyPopper, Repeat, SlidersHorizontal, Sparkles, TriangleAlert, UsersRound, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";

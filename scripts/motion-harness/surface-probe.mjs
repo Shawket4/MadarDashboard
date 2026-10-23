@@ -62,7 +62,7 @@ const SURFACES = [
     open: (p) => p.locator("[data-sidebar=menu-button]").filter({ visible: true }).nth(2).hover(),
     close: (p) => p.mouse.move(1300, 880, { steps: 8 }),
   },
-  { name: "toast", target: "[data-sonner-toast]", start: "/inventory/items", vps: ["desktop"], open: click('button:has-text("Export")'), close: async (p) => p.waitForTimeout(4500) },
+  { name: "toast", target: "[data-sileo-toast]", start: "/inventory/items", vps: ["desktop"], open: click('button:has-text("Export")'), close: async (p) => p.waitForTimeout(4500) },
 ];
 
 function sampler() {

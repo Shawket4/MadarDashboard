@@ -7940,5 +7940,14 @@
     "stamp": "Stamp",
     "stamped": "{{count}} stamps added",
     "stampsOf": "{{have}} of {{size}} stamps"
+  },
+  "toast": {
+    "title": {
+      "success": "Done",
+      "error": "Error",
+      "warning": "Heads up",
+      "info": "Note",
+      "loading": "Working…"
+    }
   }
 }

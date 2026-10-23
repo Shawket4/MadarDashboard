@@ -106,8 +106,8 @@ describe("CheckoutStep with tax: the total is what the order is booked at", () =
 
 describe("CheckoutStep validation", () => {
   it("toasts the first problem, so a customer at the bottom of the form sees it", async () => {
-    const sonner = await import("sonner");
-    const spy = vi.spyOn(sonner.toast, "error");
+    const { toast } = await import("@/components/ui/toast");
+    const spy = vi.mocked(toast.error);
     const onSubmit = vi.fn();
     render(
       <CheckoutStep

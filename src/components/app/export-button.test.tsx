@@ -9,12 +9,8 @@ vi.mock("@/lib/motion", async (importOriginal) => ({
 
 // A workbook that cannot be built: exceljs without a Workbook constructor.
 vi.mock("exceljs", () => ({ default: {} }));
-const toasts = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn(), loading: vi.fn(() => "t1") }));
-vi.mock("sonner", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("sonner")>()),
-  toast: Object.assign(vi.fn(), toasts),
-}));
 
+import { toast } from "@/components/ui/toast";
 import { exportToExcel, toastExportError } from "@/lib/excel";
 
 import { ExportButton } from "./export-button";
@@ -41,7 +37,7 @@ describe("ExportButton", () => {
 
   it("a workbook that fails to build shakes the button, with exactly one toast", async () => {
     shakes.length = 0;
-    toasts.error.mockClear();
+    vi.mocked(toast.error).mockClear();
     // The shape of every export handler: toast once, rethrow for the shake.
     const onExport = async () => {
       try {
@@ -57,13 +53,13 @@ describe("ExportButton", () => {
     render(<ExportButton onExport={onExport} />);
     fireEvent.click(screen.getByRole("button", { name: /Export/ }));
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
-    expect(toasts.error).toHaveBeenCalledTimes(1);
-    expect(toasts.error.mock.calls[0][0]).toMatch(/Export failed/);
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(toast.error).mock.calls[0][0]).toMatch(/Export failed/);
   });
 
   it("a failed fetch before the workbook toasts its own message once", async () => {
     shakes.length = 0;
-    toasts.error.mockClear();
+    vi.mocked(toast.error).mockClear();
     const onExport = async () => {
       try {
         throw new Error("network down");
@@ -75,6 +71,6 @@ describe("ExportButton", () => {
     render(<ExportButton onExport={onExport} />);
     fireEvent.click(screen.getByRole("button", { name: /Export/ }));
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
-    expect(toasts.error).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledTimes(1);
   });
 });

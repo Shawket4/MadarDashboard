@@ -8185,5 +8185,14 @@
     "stamp": "ختم",
     "stamped": "أُضيف {{count}} ختم",
     "stampsOf": "{{have}} من {{size}} أختام"
+  },
+  "toast": {
+    "title": {
+      "success": "تم",
+      "error": "خطأ",
+      "warning": "تنبيه",
+      "info": "ملاحظة",
+      "loading": "جارٍ التنفيذ…"
+    }
   }
 }

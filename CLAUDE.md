@@ -101,7 +101,8 @@ scattering constants across components.
 2. **Components** — build on Radix primitives (`components/ui`), styled with Tailwind.
 3. **Forms** — Zod schema + React Hook Form, always. Surface submit failures: a Save
    button that silently does nothing is the worst outcome a form can have.
-4. **Errors** — `toast.error(getErrorMessage(e))`; never swallow a failed mutation.
+4. **Errors** — `toast.error(getErrorMessage(e))` (or `toast.apiError(e)`); never swallow a
+   failed mutation. Toasts come from `@/components/ui/toast` only (see "Toasts").
 5. **Design tokens** — use the semantic CSS variables (`--color-success`, …). Never
    raw hex in components.
 
@@ -210,10 +211,9 @@ named enter/exit shapes; hooks take a recipe, nothing writes raw tween values.
 - `Skeleton` shimmers in the reading direction.
 - `Button` presses.
 
-Vaul (the public drawer), sonner (toasts) and Recharts keep their own engines, each
-through one component: vaul through `components/ui/drawer`, sonner's `Toaster` through
-`components/ui/sonner` (dashboard) or `features/public-shell/public-toaster` (public
-bundles; `toast()` is called from anywhere), Recharts series with `useChartMotion()`.
+Vaul (the public drawer), Sileo (toasts, on `motion`) and Recharts keep their own engines, each
+through one place: vaul through `components/ui/drawer`, Sileo through `components/ui/toast`
+(see "Toasts"), Recharts series with `useChartMotion()`.
 
 **Rules (correctness, not taste):**
 - **Reduced motion.** `media.ts` reads it once. Every hook drops travel and scale, keeps
@@ -271,7 +271,8 @@ Everything one-shot or state-driven is GSAP.
 - ESLint refuses `gsap`, `motion`, `framer-motion` and `tw-animate-css` imports outside
   `src/lib/motion`; Radix overlay primitives (`Dialog`, `AlertDialog`, `Popover`,
   `DropdownMenu`, `Select`, `Tooltip`, …) outside `components/ui`; `vaul` outside
-  `components/ui/drawer`; and sonner's `Toaster` outside the two toaster components.
+  `components/ui/drawer`; and every toast library (`sonner`, `sileo`, …) outside
+  `components/ui/toast/sileo.tsx` (see "Toasts").
 - `scripts/motion-check.mjs` (part of `npm run lint`) refuses:
   - `@keyframes` outside `motion.css`;
   - `animate-[…]`, pulse, bounce and the old tw-animate classes;
@@ -284,6 +285,52 @@ Everything one-shot or state-driven is GSAP.
   - in a Recharts file, a series without `{...useChartMotion()}`, or a
     `ResponsiveContainer` outside a `ChartCard` or `ChartEntrance` (a small JSX scanner,
     `scripts/jsx-tags.mjs`, reads the tags, since their attributes hold `=>`).
+
+## Toasts
+One module, `src/components/ui/toast/`, is the only place that knows a toast library.
+- **Use** `import { toast } from "@/components/ui/toast"`. The API is sonner's call shape:
+  `toast.success(msg)`, `toast.error(msg, { description, action: { label, onClick }, id, duration })`,
+  `toast.warning`, `toast.info` (`toast.message` = info), `toast.loading(msg)` (stays until
+  replaced by id or dismissed), `toast.promise(p, { loading, success, error })` (one toast,
+  morphs in place; returns `p`), `toast.apiError(e)` (`getErrorMessage`'s words),
+  `toast.dismiss(id?)`. Messages arrive translated (`t()` at the call site); the module's own
+  words (the severity titles, "Other fields need attention too.", "Contact Madar") are i18n keys.
+  Guest forms: `toastFormError(msg, more?)` / `useErrorToast(msg)` (one form toast at a time,
+  id `public-form-error`). `features/public-shell/public-toaster` only re-exports these.
+- **Severity.** success: a thing the user did worked (4 s). info: neutral news, "nothing
+  changed" (5 s). warning: it worked, but read this (6 s). error: it did not happen, say why
+  (8 s). loading: work in progress; end it with the same `id`. An `action` keeps a toast at
+  least 10 s and pressing it dismisses the toast. A Madar-pointing refusal gets "Contact Madar"
+  by itself (12 s). Same `id` = replace in place (dedupe). At most 3 on screen, newest wins.
+  Pressing a toast dismisses it. A floating `role="alert"` banner is a toast: raise one instead.
+- **Mount** `<Toaster />` once per entry (`<Toaster preload />` in the dashboard root: it loads
+  the library at idle, since most clicks there end in a toast). Top centre everywhere, under
+  the phone's safe area, above dialogs; a press on a toast never closes the dialog under it.
+- **Lazy by design.** `index.tsx` is a tiny facade in every bundle's first paint: it owns the
+  screen-reader regions (`role="status"` / `role="alert"`, errors and warnings assertive) and
+  queues calls until `sileo.tsx` (Sileo + `motion`, ~46 kB gz, its own chunk with
+  `toast.css`) loads on the first toast. Never import `sileo.tsx` directly.
+- **Sileo 0.1.6 quirks the module handles** (re-check them on an upgrade; the version is pinned):
+  one 40 px pill line, so a message over 36 characters goes to the body under a short severity
+  title; the body stays open for the toast's life (Sileo folds it early and never opens it
+  without a timeout); `position` is set per toast (Sileo reads the Toaster's only after it
+  mounts); its own `aria-live` region is silenced, its SVG (titled "sileo notification") hidden
+  and its `<a href="#">` action given `role="button"` (a MutationObserver; no props exist);
+  `MotionConfig reducedMotion="user"` stops its springs (its CSS already stops transitions);
+  colours, text alignment (RTL) and case come from `toast.css` in our tokens.
+  Known and accepted: the toast is a `<button>` that contains the action (nested interactive
+  content, axe `nested-interactive`), keyboard focus reaches it last in the tab order, a
+  toast's body opens on hover but not on focus, older stacked toasts fold to their pill, the
+  motion is a 600 ms spring (the product register's 220 ms does not apply to toasts), and the
+  toast is 350 px wide (phones narrower than 374 px clip it).
+- **Tests.** Every test gets the toast API as silent spies (`src/test/toast.ts`, from
+  `src/test/setup.ts`): assert with `expect(toast.error).toHaveBeenCalledWith(…)` or
+  `vi.mocked(toast.success).mock.calls`. Never `vi.mock` a toast module.
+- **Enforced.** ESLint refuses `sonner`, `sileo`, `react-hot-toast`, `react-toastify` and
+  `@radix-ui/react-toast` everywhere but `sileo.tsx`; `toast/no-direct-toasts.test.ts` also
+  refuses mocks of them or of the toast module, hand-built toasters, floating alert banners
+  and `alert()`. A branch that still imports sonner: `node scripts/codemod-toast.mjs`
+  (idempotent; `--check` lists what it would change).
 
 ## Permissions (architecture E — PERMISSIONS_ARCHITECTURE.md)
 - **Gate by capability, never by role name.** The UI reads the signed-in person's

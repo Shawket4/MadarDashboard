@@ -7,6 +7,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { AxiosError, AxiosHeaders } from "axios";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { toast } from "@/components/ui/toast";
 
 const publicTable = vi.fn();
 const publicTableMenu = vi.fn();
@@ -386,6 +387,7 @@ describe("TableOrderingPage — combos", () => {
     });
     tableOrder.mockReturnValue({ mutate: vi.fn(), reset: vi.fn(), isPending: false, isError: true, error });
     wrap(<TableOrderingPage tableId="t-7" />);
-    expect(screen.getByRole("alert")).toHaveTextContent("Choose the items for this combo.");
+    // With the basket closed the reason arrives as a toast (it once floated above the basket button).
+    expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Choose the items for this combo."), expect.anything());
   });
 });

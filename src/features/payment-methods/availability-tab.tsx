@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Store, Tablet, Users } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { SectionHeader } from "@/components/app/section-header";

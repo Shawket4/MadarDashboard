@@ -18,7 +18,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Printer, QrCode, Table2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { tableQr, useListTables } from "@/data/api/generated/api";
 import type { QrResponse } from "@/data/api/generated/models/qrResponse";

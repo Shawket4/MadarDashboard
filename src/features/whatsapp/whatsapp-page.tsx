@@ -10,7 +10,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { PaneHeader } from "@/features/settings/pane-header";
 import { StatusPill } from "@/components/app/status-pill";

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AlertTriangle, Clock, MoreHorizontal, PlusCircle, ReceiptText, Trash2, Wallet, XCircle } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";

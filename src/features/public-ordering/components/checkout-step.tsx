@@ -16,7 +16,7 @@ import type { CartQuote } from "@/data/api/generated/models/cartQuote";
 import type { OnlineTaxPolicy } from "@/data/api/generated/models/onlineTaxPolicy";
 import { isValidPhone } from "@/lib/phone";
 import { FIELD_LIMITS } from "../limits";
-import { toastFormError } from "@/features/public-shell/public-toaster";
+import { toastFormError } from "@/components/ui/toast";
 
 export interface CheckoutForm {
   name: string;

@@ -8,9 +8,8 @@
  */
 import { AxiosError, AxiosHeaders } from "axios";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { toast } from "@/components/ui/toast";
 
-const toastError = vi.fn();
-vi.mock("sonner", () => ({ toast: { error: (m: string, o?: unknown) => toastError(m, o) } }));
 
 const { default: i18n } = await import("@/i18n");
 const { getErrorMessage } = await import("./errors");
@@ -28,7 +27,7 @@ const limited = (data: Record<string, unknown> = { error: "Too many requests jus
 
 afterEach(async () => {
   await i18n.changeLanguage("en");
-  toastError.mockClear();
+  vi.mocked(toast.error).mockClear();
 });
 
 describe("a rate-limited answer (429)", () => {
@@ -91,13 +90,13 @@ describe("a rate-limited answer (429)", () => {
 
   it("says a Dawam refresh failed while the old data stays on screen", async () => {
     onQueryError(limited(), { queryKey: ["/staff/payroll/current"], state: { data: { period: {} } } } as never);
-    await vi.waitFor(() => expect(toastError).toHaveBeenCalledTimes(1));
-    expect(toastError.mock.calls[0][0]).toMatch(/too many requests/i);
+    await vi.waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(toast.error).mock.calls[0][0]).toMatch(/too many requests/i);
     // A first load that fails is the page's own error state, not a toast.
     onQueryError(limited(), { queryKey: ["/staff/payroll/current"], state: { data: undefined } } as never);
     // And other pages keep their own behaviour.
     onQueryError(limited(), { queryKey: ["/orders"], state: { data: [] } } as never);
     await new Promise((r) => setTimeout(r, 20));
-    expect(toastError).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledTimes(1);
   });
 });

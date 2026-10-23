@@ -13,7 +13,7 @@ import {
   BadgeCheck, Banknote, CircleDollarSign, FileDown, HandCoins, History, PencilLine, Plus, ReceiptText, RotateCcw, Trash2, Undo2,
   UsersRound, Wallet, X,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { DataTable } from "@/components/app/data-table";

@@ -24,7 +24,6 @@ let rows: DealRule[] = [];
 const update = vi.fn();
 const useDeals = vi.fn();
 
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
   return {

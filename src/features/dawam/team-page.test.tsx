@@ -9,6 +9,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { toast } from "@/components/ui/toast";
 
 globalThis.IntersectionObserver ??= class {
   observe() {}
@@ -22,8 +23,6 @@ globalThis.IntersectionObserver ??= class {
 let held: string[] = [];
 /** `/authz/me` limits (a manager's deduction limit, AD-5). */
 let limits: Record<string, unknown> = {};
-const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() }));
-vi.mock("sonner", () => ({ toast: toastMock, Toaster: () => null }));
 const enabledSeen: Record<string, boolean[]> = {};
 const querySeen: Record<string, Record<string, unknown> | undefined> = {};
 const resolveFlag = vi.fn(async () => ({}));
@@ -109,8 +108,8 @@ beforeEach(() => {
   extraRows = [];
   onlyRows = null;
   limits = {};
-  toastMock.success.mockClear();
-  toastMock.info.mockClear();
+  vi.mocked(toast.success).mockClear();
+  vi.mocked(toast.info).mockClear();
   held = [
     "hr.attendance.read", "hr.attendance.edit", "hr.attendance.punch_others",
     "hr.deductions.create", "hr.staff.edit", "hr.shift_cover.confirm",
@@ -213,8 +212,8 @@ describe("TeamPage", () => {
     await user.clear(amount);
     await user.type(amount, "1500");
     await user.click(within(dialog).getByRole("button", { name: "Deduct" }));
-    await waitFor(() => expect(toastMock.info).toHaveBeenCalledWith("Over your limit: it waits for the owner before it counts."));
-    expect(toastMock.success).not.toHaveBeenCalledWith("Flag handled");
+    await waitFor(() => expect(toast.info).toHaveBeenCalledWith("Over your limit: it waits for the owner before it counts."));
+    expect(toast.success).not.toHaveBeenCalledWith("Flag handled");
   });
 
   it("M33: a deduction within the limit is just handled", async () => {
@@ -223,8 +222,8 @@ describe("TeamPage", () => {
     wrap(<TeamPage />);
     await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Deduct" }));
-    await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith("Flag handled"));
-    expect(toastMock.info).not.toHaveBeenCalled();
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Flag handled"));
+    expect(toast.info).not.toHaveBeenCalled();
   });
 
   it("M33: the server's deduction_status wins over the limit when it is sent", async () => {
@@ -234,17 +233,17 @@ describe("TeamPage", () => {
     const { unmount } = wrap(<TeamPage />);
     await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Deduct" }));
-    await waitFor(() => expect(toastMock.info).toHaveBeenCalledWith("Over your limit: it waits for the owner before it counts."));
+    await waitFor(() => expect(toast.info).toHaveBeenCalledWith("Over your limit: it waits for the owner before it counts."));
     unmount();
     // Over the limit by /authz/me, but the server counted it (the owner raised it since).
-    toastMock.info.mockClear();
+    vi.mocked(toast.info).mockClear();
     limits = { "hr.deductions.create": { max_amount: 100 } };
     resolveFlag.mockResolvedValueOnce({ deduction_status: "approved" } as never);
     wrap(<TeamPage />);
     await user.click(screen.getByText("Youssef Adel · Left mid-shift"));
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Deduct" }));
-    await waitFor(() => expect(toastMock.success).toHaveBeenCalledWith("Flag handled"));
-    expect(toastMock.info).not.toHaveBeenCalled();
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Flag handled"));
+    expect(toast.info).not.toHaveBeenCalled();
   });
 
   it("refuses a deduction of nothing, and sends nothing", async () => {
@@ -341,14 +340,14 @@ describe("TeamPage", () => {
         status: 400, statusText: "", headers: {}, config: { headers: new AxiosHeaders() }, data: { code: "REASON_REQUIRED", error: "A reason is required." },
       });
     });
-    toastMock.error.mockClear();
+    vi.mocked(toast.error).mockClear();
     const user = userEvent.setup();
     wrap(<TeamPage />);
     await user.click(screen.getByRole("button", { name: /Punch in/ }));
     const dialog = await screen.findByRole("dialog");
     await user.type(within(dialog).getByLabelText("Reason"), " x");
     await user.click(within(dialog).getByRole("button", { name: "Punch in" }));
-    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith(expect.stringMatching(/punching for them/)));
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/punching for them/)));
   });
 
   it("D1: a shift a colleague is covering can't be punched, and says who covers it", () => {

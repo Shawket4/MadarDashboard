@@ -10,7 +10,7 @@
 import { useState } from "react";
 import { Check, Copy, ExternalLink, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

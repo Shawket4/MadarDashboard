@@ -21,7 +21,7 @@ import { useOtpRequest, useOtpVerify } from "@/data/api/generated/api";
 import { canonicalPhone } from "@/lib/phone";
 
 import { getDeviceToken, setDeviceToken } from "./guest";
-import { useErrorToast } from "./public-toaster";
+import { useErrorToast } from "@/components/ui/toast";
 
 export interface PhoneOtpTransport {
   /** Send a code to a canonical phone. Rejects when it could not be sent. */

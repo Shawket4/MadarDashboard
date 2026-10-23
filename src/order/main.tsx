@@ -66,7 +66,7 @@ document.documentElement.classList.add("brand-surface");
 // intentionally NOT imported — this origin never holds a session.
 import { i18nReady } from "@/i18n";
 import { initPublicTheme } from "@/features/public-shell/use-public-theme";
-import { PublicToaster } from "@/features/public-shell/public-toaster";
+import { Toaster } from "@/components/ui/toast";
 
 import { queryClient } from "@/data/api/query";
 import { initRules } from "@/lib/rules";
@@ -258,7 +258,7 @@ function render() {
     <StrictMode>
       <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
-          <PublicToaster />
+          <Toaster />
       </QueryClientProvider>
     </StrictMode>,
   );

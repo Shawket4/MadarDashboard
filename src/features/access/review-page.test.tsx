@@ -52,14 +52,7 @@ vi.mock("@/data/authz/use-authz", async () => {
   };
 });
 
-const toasts: { kind: string; msg: string; desc?: string }[] = [];
-vi.mock("sonner", () => ({
-  toast: {
-    success: (msg: string) => toasts.push({ kind: "success", msg }),
-    warning: (msg: string, o?: { description?: string }) => toasts.push({ kind: "warning", msg, desc: o?.description }),
-    error: (msg: string) => toasts.push({ kind: "error", msg }),
-  },
-}));
+const { toast } = await import("@/components/ui/toast");
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");
@@ -77,7 +70,6 @@ beforeEach(() => {
   rows = [flag(1), flag(2), flag(3, { reviewed_at: "2026-09-17T12:00:00Z", reviewed_by: "u-9" })];
   bulkResult = { resolved: [], pending: [] };
   bulkMutate.mockClear();
-  toasts.length = 0;
 });
 
 describe("ReviewPage bulk select", () => {
@@ -98,7 +90,9 @@ describe("ReviewPage bulk select", () => {
     await userEvent.type(screen.getByTestId("flag-bulk-note"), "checked with the manager");
     await userEvent.click(screen.getByTestId("flag-bulk-resolve"));
     expect(bulkMutate).toHaveBeenCalledWith({ data: { flag_ids: [1, 2], note: "checked with the manager" } });
-    expect(toasts).toEqual([{ kind: "success", msg: "Resolved 2" }]);
+    expect(vi.mocked(toast.success).mock.calls).toEqual([["Resolved 2"]]);
+    expect(toast.warning).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
     expect(screen.queryByTestId("flag-bulk-bar")).not.toBeInTheDocument();
   });
 
@@ -116,9 +110,9 @@ describe("ReviewPage bulk select", () => {
     renderPage();
     await userEvent.click(screen.getByTestId("flag-select-all"));
     await userEvent.click(screen.getByTestId("flag-bulk-resolve"));
-    expect(toasts[0].kind).toBe("warning");
-    expect(toasts[0].msg).toBe("Resolved 1, 1 could not be resolved");
-    expect(toasts[0].desc).toContain("#2: no such open flag in this org");
+    const [msg, o] = vi.mocked(toast.warning).mock.calls[0]!;
+    expect(msg).toBe("Resolved 1, 1 could not be resolved");
+    expect(String(o?.description)).toContain("#2: no such open flag in this org");
   });
 
   it("speaks Arabic too", async () => {

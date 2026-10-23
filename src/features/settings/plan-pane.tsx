@@ -7,7 +7,7 @@
  */
 import { Gem, Store, Tablet } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";

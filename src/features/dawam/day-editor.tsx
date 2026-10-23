@@ -11,7 +11,7 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRightLeft, Clock, Moon, Plus, RotateCcw, Trash2, TriangleAlert } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

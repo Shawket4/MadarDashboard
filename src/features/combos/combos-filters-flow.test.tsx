@@ -27,7 +27,6 @@ Element.prototype.hasPointerCapture ??= () => false;
 Element.prototype.releasePointerCapture ??= () => {};
 
 const useCombos = vi.fn();
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@/data/authz/use-authz", async () => {
   const real = await vi.importActual<typeof import("@/data/authz/use-authz")>("@/data/authz/use-authz");
   return { ...real, useAuthz: () => real.authzFrom({ user_id: "u", epoch: 0, spec_version: 0, owner: false, platform: false, role_kinds: [], capabilities: ["menu.items.read"] as never, ask_manager: [], limits: {} }) };

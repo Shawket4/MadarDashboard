@@ -1,0 +1,63 @@
+/*
+ * Sileo, in our tokens. Loaded with the toast chunk (./sileo.tsx), never at first
+ * paint. Every rule is scoped under [data-madar-toaster] so it outranks the
+ * stylesheet Sileo injects. The tokens flip with `.dark` on <html>, so there is
+ * no theme prop; the direction comes from <html dir>.
+ */
+[data-madar-toaster] {
+  /* The pill: the popover surface, one shade off the page so it reads on both themes. */
+  --toast-surface: var(--color-popover);
+  --toast-text: var(--color-popover-foreground);
+  /* A state colour is too light for 13px text on its own (CLAUDE.md, "Colour and contrast"). */
+  --sileo-state-success: color-mix(in oklab, var(--color-success) 70%, var(--color-popover-foreground));
+  --sileo-state-error: color-mix(in oklab, var(--color-destructive) 70%, var(--color-popover-foreground));
+  --sileo-state-warning: color-mix(in oklab, var(--color-warning) 60%, var(--color-popover-foreground));
+  --sileo-state-info: color-mix(in oklab, var(--color-info) 70%, var(--color-popover-foreground));
+  --sileo-state-loading: var(--color-muted-foreground);
+  --sileo-state-action: var(--color-primary);
+}
+
+/* Above dialogs and sheets: a toast often reports what a dialog just did. */
+[data-madar-toaster] [data-sileo-viewport] {
+  z-index: 2147483000;
+  font-family: inherit;
+}
+
+[data-madar-toaster] [data-sileo-pill],
+[data-madar-toaster] [data-sileo-body] {
+  fill: var(--toast-surface);
+}
+
+/* The gooey shape has no border; a soft shadow lifts it off a matching surface. */
+[data-madar-toaster] [data-sileo-svg] {
+  filter: drop-shadow(0 1px 1px oklch(0 0 0 / 0.08)) drop-shadow(0 6px 16px oklch(0 0 0 / 0.14));
+}
+:is(.dark) [data-madar-toaster] [data-sileo-svg] {
+  filter: drop-shadow(0 0 0.5px oklch(1 0 0 / 0.25)) drop-shadow(0 8px 20px oklch(0 0 0 / 0.45));
+}
+
+[data-madar-toaster] [data-sileo-title] {
+  /* Sileo capitalises every word; our messages are sentences. */
+  text-transform: none;
+  font-weight: 600;
+}
+
+[data-madar-toaster] [data-sileo-description] {
+  color: var(--toast-text);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+[data-madar-toaster] [data-toast-message],
+[data-madar-toaster] [data-toast-detail] {
+  display: block;
+}
+[data-madar-toaster] [data-toast-detail] {
+  margin-block-start: 0.25rem;
+  color: var(--color-muted-foreground);
+}
+
+[data-madar-toaster] [data-sileo-button]:focus-visible,
+[data-madar-toaster] [data-sileo-toast]:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}

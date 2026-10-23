@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { ArrowRight, Ban, Check, PackageCheck, Pencil, Send, Warehouse, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import {
   Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle,

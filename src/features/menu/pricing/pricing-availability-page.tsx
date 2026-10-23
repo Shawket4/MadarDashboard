@@ -16,7 +16,7 @@ import {
   UtensilsCrossed,
   X,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";

@@ -8,7 +8,7 @@
  */
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { Camera as CameraIcon, Minus, Plus, X } from "lucide-react";
 import { AxiosError } from "axios";
 
