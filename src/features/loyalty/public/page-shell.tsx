@@ -35,7 +35,7 @@ import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { PAGE_GROUND, readableOn } from "@/features/public-shell/brand-color";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
 
-import type { ResolvedBrand } from "../shared/brand";
+import type { ResolvedBrand } from "@/components/loyalty-card/card-brand";
 
 /** The brand accent, made legible against the theme in force. */
 export function usePageAccent(brand: ResolvedBrand): string {
@@ -102,30 +102,22 @@ export function Panel({
 }
 
 /**
- * The page: the shop's identity, then whatever this page is, then Madar.
+ * The page: Rewards by Madar at the top, the shop's card, whatever this page
+ * is, then Madar's footer.
  *
- * `StorefrontShell` supplies the header chrome and the footer — the Madar mark
- * and "powered by" stay on every page at every tier.
+ * `StorefrontShell` supplies the header (the product's lockup on every loyalty
+ * page) and the footer, Madar's signature on every page at every tier. Each
+ * page heads itself: the card says whose page it is.
  */
 export function LoyaltyPage({
   brand,
-  eyebrow,
-  title,
-  intro,
   children,
 }: {
   brand: ResolvedBrand;
-  /** Small line above the title — the branch, or the shop. */
-  eyebrow?: string;
-  title: string;
-  intro?: ReactNode;
   children: ReactNode;
 }) {
-  const accent = usePageAccent(brand);
-
   // The shop's colour on the buttons is `StorefrontShell`'s job (`useBrandSkin`),
-  // on the page root so the phone step's sheets and dialogs wear it too. The
-  // accent here is the same colour walked the same way, for the eyebrow.
+  // on the page root so the phone step's sheets and dialogs wear it too.
 
   // The tab is the one surface of the branding tier that still said "Madar"
   // to a shop's customers. The programme and the shop, in that order, because
@@ -136,32 +128,14 @@ export function LoyaltyPage({
 
   return (
     <StorefrontShell brand={brand} product="loyalty">
-      <div className="flex flex-col gap-8 pb-2 pt-3">
-        <header className="flex flex-col gap-2.5">
-          {eyebrow ? (
-            <p
-              className="text-[11px] font-semibold uppercase tracking-[0.18em]"
-              style={{ color: accent }}
-            >
-              {eyebrow}
-            </p>
-          ) : null}
-          <h1 className="font-serif text-[32px] leading-[1.1] text-balance">{title}</h1>
-          {intro ? (
-            <div className="max-w-[38ch] text-[15px] leading-relaxed text-muted-foreground">
-              {intro}
-            </div>
-          ) : null}
-        </header>
-        {children}
-      </div>
+      <div className="flex flex-col gap-8 pb-2 pt-3">{children}</div>
     </StorefrontShell>
   );
 }
 
 /**
  * What the page looks like before it knows whose it is. The same shape as the
- * page it becomes — an eyebrow, a headline, a card, a panel — so the swap is a
+ * page it becomes — the card, a headline, the fields — so the swap is a
  * fill-in rather than a re-layout, and nothing jumps under a thumb already
  * reaching for the form.
  */
@@ -169,13 +143,15 @@ export function PageSkeleton() {
   return (
     <StorefrontShell product="loyalty">
       <div className="flex flex-col gap-8 pt-3" aria-busy>
+        <Skeleton className="h-[312px] w-full rounded-[28px]" />
         <div className="flex flex-col gap-3">
-          <Skeleton className="h-3 w-24 rounded-full" />
-          <Skeleton className="h-9 w-3/5 rounded-lg" />
+          <Skeleton className="h-8 w-3/4 rounded-lg" />
           <Skeleton className="h-4 w-4/5 rounded-full" />
         </div>
-        <Skeleton className="h-56 w-full rounded-[28px]" />
-        <Skeleton className="h-40 w-full rounded-2xl" />
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-4 w-28 rounded-full" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+        </div>
       </div>
     </StorefrontShell>
   );

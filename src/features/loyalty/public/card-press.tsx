@@ -41,7 +41,7 @@ import { Check } from "lucide-react";
 import { EASE_NAME, useTimeline } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-import type { ResolvedBrand } from "../shared/brand";
+import type { ResolvedBrand } from "@/components/loyalty-card/card-brand";
 import type { PassPhase } from "./use-pass-download";
 
 /** One pass of the press, in seconds. */

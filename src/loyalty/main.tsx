@@ -275,9 +275,20 @@ function render() {
 // Dev-only mock harness (VITE_MOCK=1), as the ordering app has: curated public
 // data so these pages can be previewed without a backend. Tree-shaken from prod.
 const mockFlag = (import.meta.env as Record<string, string | undefined>).VITE_MOCK;
+// The faces the first screen sets, fetched beside the rules and the strings,
+// so the card and the form are drawn once in their own type instead of in a
+// fallback that IBM Plex then reflows (on a tablet, a whole form of lines
+// moved). Waited for 400 ms at most: a slow font still swaps, just later.
+const fontsReady = Promise.race([
+  Promise.all([
+    ...["400", "500", "600"].map((w) => document.fonts?.load(`${w} 16px "IBM Plex Sans Arabic"`, "Aب")),
+    document.fonts?.load('600 16px "IBM Plex Mono"', "0"),
+  ]),
+  new Promise((done) => setTimeout(done, 400)),
+]).catch(() => undefined);
 // The madar-shared rules (WebAssembly, the public package) and the active
 // language's strings load, in parallel, before the first render.
-void Promise.all([initRules(rulesWasm), i18nReady]).then(() => {
+void Promise.all([initRules(rulesWasm), i18nReady, fontsReady]).then(() => {
   if (import.meta.env.DEV && (mockFlag === "1" || mockFlag === "true")) {
     void import("@/data/api/mock/enable-public").then(({ enablePublicMocks }) =>
       enablePublicMocks().then(render),

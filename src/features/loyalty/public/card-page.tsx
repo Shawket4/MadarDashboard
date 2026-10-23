@@ -11,25 +11,29 @@
  * shop's NAME is always on it either way.
  *
  * The order of the page is the order of need at a counter: the card (code and
- * balance) first, "Order now" where the shop takes online orders, the wallet next, then what the balance buys, then the two
- * things a member can change, then the receipts — the least urgent block and
- * the longest — and where else to find the shop.
+ * balance) first, with the wallet right under it, then "Order now" where the
+ * shop takes online orders, what the balance buys, the one thing a member can
+ * change, the receipts (the least urgent block and the longest) and where else
+ * to find the shop. The card heads the page itself: it already says whose it
+ * is, so a headline over it would only say it again.
  */
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { AxiosError } from "axios";
-import { ArrowRight, CreditCard } from "lucide-react";
+import { ArrowRight, CreditCard, Gift } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
+import { resolveBrand, type ResolvedBrand } from "@/components/loyalty-card/card-brand";
+import { LoyaltyCard } from "@/components/loyalty-card/loyalty-card";
+import { stampUnit } from "@/components/loyalty-card/wording";
 import { useLoyaltyCard } from "@/data/api/generated/api";
-import type { CardView } from "@/data/api/generated/models";
+import { fmtDate } from "@/lib/format";
 
-import { resolveBrand, type ResolvedBrand } from "../shared/brand";
-import { CardFace } from "./card-face";
+import { stampUnitOf, type BirthdayGiftView, type CardViewNext as CardView } from "./api-next";
 import { PressedCard, PressRest, PressStage } from "./card-press";
 import { CardOrders } from "./card-orders";
 import { CardPreferences } from "./card-preferences";
-import { LoyaltyPage, PageNotice, PageSkeleton, Panel, Section, usePageAccent } from "./page-shell";
+import { LoyaltyPage, PageNotice, PageSkeleton, usePageAccent } from "./page-shell";
 import { RewardsList } from "./rewards-list";
 import { safeHttpUrl } from "./safe-url";
 import { SocialLinks } from "./social-links";
@@ -42,7 +46,7 @@ export function CardPage({ token }: { token: string }) {
 
   if (card.isLoading) return <PageSkeleton />;
 
-  const data = card.data;
+  const data = card.data as CardView | undefined;
   if (!data) {
     // A link that matches no card is a fact about the link; a request that
     // failed is a fact about the connection. Only the second is worth
@@ -86,53 +90,58 @@ function Card({
   // wait, because it is the CARD that is being made — see `card-press.tsx`.
   const pass = usePassDownload(data.passes.apple_url);
   const orderNowHref = safeHttpUrl(data.order_now_url);
+  const unit = stampUnit(data.mode, stampUnitOf(data));
+  const firstName = data.name?.trim().split(/\s+/)[0];
 
   return (
-    <LoyaltyPage
-      brand={brand}
-      eyebrow={t("loyalty.yourCard", "Your card")}
-      title={brand.programName}
-    >
+    <LoyaltyPage brand={brand}>
+      {/* A small hello over the card, by first name; without one, the page is
+          still named for a screen reader. */}
+      {firstName ? (
+        // Half the page's rhythm away from the card it greets you over.
+        <h1 className="-mb-4 text-[17px] font-semibold leading-tight">
+          <Trans i18nKey="loyalty.hi" values={{ name: firstName }} defaults="Hi <bdi>{{name}}</bdi>" components={{ bdi: <bdi /> }} />
+        </h1>
+      ) : (
+        <h1 className="sr-only">{t("loyalty.cardTitle", { shop: brand.orgName, defaultValue: "Your {{shop}} card" })}</h1>
+      )}
       <PressStage phase={pass.phase}>
         <PressedCard brand={brand}>
-          <CardFace
+          <LoyaltyCard
             brand={brand}
             mode={data.mode}
+            unit={unit}
             balance={data.balance}
-            target={data.next_reward_cost}
-            toGo={data.points_to_next_reward}
-            canRedeem={data.can_redeem}
-            rewardsReady={data.rewards_ready}
-            progress={data.progress_to_next}
-            memberName={data.name}
-            qrUrl={`/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png`}
+            target={data.card_size ?? data.next_reward_cost}
+            member={{ name: data.name, qrUrl: `/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png` }}
           />
         </PressedCard>
 
-        {/* Present only when the shop takes online orders. The ordering page opens
-            knowing who this is — and proves it on that device before showing anything. */}
-        {orderNowHref ? (
-          <Button asChild size="lg" className="h-12 w-full rounded-xl text-base">
-            <a href={orderNowHref}>
-              {t("loyalty.orderNow", "Order now")}
-              <ArrowRight className="rtl:rotate-180" aria-hidden />
-            </a>
-          </Button>
-        ) : null}
+        <BirthdayGift gift={data.birthday_gift} accent={accent} />
 
+        {/* Right under the card it saves, as on the sign-up's last step. */}
         {data.passes.any ? (
-          <Section
-            title={t("loyalty.keepItHandy", "Keep it handy")}
-            hint={t("loyalty.walletHint", "It updates itself every time you earn, and it's there when you're back.")}
-          >
-            <Panel>
-              <WalletButtons passes={data.passes} pass={pass} />
-            </Panel>
-          </Section>
+          <div className="flex flex-col items-center gap-3">
+            <WalletButtons passes={data.passes} pass={pass} />
+            <p className="max-w-[34ch] text-center text-[13px] leading-snug text-muted-foreground">
+              {t("loyalty.walletHint", "It updates itself every time you earn, and it's there when you're back.")}
+            </p>
+          </div>
         ) : null}
 
         <PressRest>
-          <RewardsList rewards={data.rewards} accent={accent} />
+          {/* Present only when the shop takes online orders. The ordering page opens
+              knowing who this is — and proves it on that device before showing anything. */}
+          {orderNowHref ? (
+            <Button asChild size="lg" className="h-12 w-full rounded-xl text-base">
+              <a href={orderNowHref}>
+                {t("loyalty.orderNow", "Order now")}
+                <ArrowRight className="rtl:rotate-180" aria-hidden />
+              </a>
+            </Button>
+          ) : null}
+
+          <RewardsList rewards={data.rewards} accent={accent} unit={unit} />
 
           <CardPreferences token={token} optedOut={data.marketing_opt_out} />
 
@@ -142,5 +151,39 @@ function Card({
         </PressRest>
       </PressStage>
     </LoyaltyPage>
+  );
+}
+
+/**
+ * The birthday gift, under the card: one free item waiting until a date, said
+ * calmly in the page's own surface with the shop's colour on the gift only; once
+ * claimed, a quiet line. It arrives with the card, so it moves nothing.
+ */
+function BirthdayGift({ gift, accent }: { gift: BirthdayGiftView | null | undefined; accent: string }) {
+  const { t } = useTranslation();
+  if (gift?.status === "claimed") {
+    return (
+      <p className="-mt-4 flex items-center gap-2 text-[13px] leading-snug text-muted-foreground">
+        <Gift aria-hidden className="size-4 shrink-0" />
+        {t("loyalty.birthdayGiftClaimed", "You've used your birthday gift.")}
+      </p>
+    );
+  }
+  if (gift?.status !== "open") return null;
+  // `valid_until` is the end of the gift's last day in shop time: a moment
+  // before it is that day, whichever way the server writes the boundary.
+  const until = fmtDate(new Date(Date.parse(gift.valid_until) - 1));
+  return (
+    <div className="flex items-center gap-3.5 rounded-2xl border border-border/70 bg-card px-4 py-3.5 shadow-sm">
+      <span className="grid size-10 shrink-0 place-items-center rounded-full" style={{ backgroundColor: `color-mix(in oklab, ${accent} 14%, transparent)` }}>
+        <Gift aria-hidden className="size-5" style={{ color: accent }} />
+      </span>
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <p className="text-[15px] font-semibold leading-tight">{t("loyalty.birthdayGift", "Birthday gift")}</p>
+        <p className="text-[13px] leading-snug text-muted-foreground">
+          {t("loyalty.birthdayGiftOpen", { date: until, defaultValue: "A free item is waiting for you until {{date}}." })}
+        </p>
+      </div>
+    </div>
   );
 }

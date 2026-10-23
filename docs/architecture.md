@@ -9,7 +9,8 @@ contract**. This doc explains the structure and conventions.
 - **TanStack Router** (file-based, typed search params) — replaces React Router
 - **TanStack Query** + **Orval** (generated hooks) + **Axios** — the data layer
 - **Zustand** (auth / app / scope stores)
-- **Motion** (animation), **react-hook-form + zod** (forms), **i18next** (en/ar, RTL)
+- **Motion** (animation), **react-hook-form + zod** (dashboard and staff forms; customer-facing
+  public forms are zod + local state, see CLAUDE.md "Forms in public bundles"), **i18next** (en/ar, RTL)
 - **Recharts**, **lucide-react**, **sileo** (toasts, only through `components/ui/toast`), **cmdk**, **exceljs**
 
 ## Folder layout
