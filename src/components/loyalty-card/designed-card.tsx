@@ -14,11 +14,15 @@
  * then pays for the wasm.
  */
 import { useTranslation } from "react-i18next";
+import { QrCode } from "lucide-react";
+
+import { AssetImage } from "@/components/app/asset-image";
 
 import type { FieldSource, PublicCard } from "@/data/api/generated/models";
 import type { CardRules, CardState } from "@/lib/rules/card";
 import { cn } from "@/lib/utils";
 
+import type { LoyaltyCardMember } from "./loyalty-card";
 import { StripSvg } from "./strip-svg";
 
 export interface DesignedCardProps {
@@ -33,6 +37,12 @@ export interface DesignedCardProps {
   logoUrl?: string | null;
   photoUrl?: string | null;
   memberName?: string | null;
+  /**
+   * Whose card, as the classic card takes it: the name along the bottom edge
+   * (live as it is typed on the sign-up, softened placeholder before) and the
+   * code beside it, or its kept place while it is on its way. Absent, no foot.
+   */
+  member?: LoyaltyCardMember;
   className?: string;
 }
 
@@ -50,10 +60,11 @@ function unitLabel(t: (k: string, d: string) => string, unit: string): string {
   }
 }
 
-export function DesignedCard({ rules, card, balances, arabic, name, logoUrl, photoUrl, memberName, className }: DesignedCardProps) {
+export function DesignedCard({ rules, card, balances, arabic, name, logoUrl, photoUrl, memberName: given, member, className }: DesignedCardProps) {
   const { t, i18n } = useTranslation();
   const ar = arabic ?? i18n.language.startsWith("ar");
   const tt = i18n.getFixedT(ar ? "ar" : "en") as unknown as (k: string, d: string) => string;
+  const memberName = member ? member.name?.trim() || null : given;
   const design = card.design;
   const c = design.colours;
   const size = (p: number) => (p === 1 ? card.track_one_size : (card.tracks.find((x) => x.position === p)?.size ?? 1));
@@ -133,6 +144,33 @@ export function DesignedCard({ rules, card, balances, arabic, name, logoUrl, pho
         {design.apple.primary ? <div className="absolute start-0 top-0 max-w-[66%] p-3">{field(design.apple.primary, 0, true)}</div> : null}
       </div>
       {below.length ? <div className="flex justify-between gap-3 px-3 py-2.5">{below.map((f, i) => field(f, i))}</div> : null}
+      {member ? (
+        // The classic card's foot in the design's colours: the till scans this code.
+        <div
+          className="flex items-end justify-between gap-4 border-t px-3 pt-3 pb-3"
+          style={{ borderColor: `color-mix(in srgb, ${c.label} 45%, transparent)` }}
+        >
+          <p className="min-w-0 truncate pb-0.5 text-[17px] leading-tight font-medium" style={memberName ? undefined : { color: c.label }}>
+            <bdi>{memberName || member.placeholder}</bdi>
+          </p>
+          {member.qrUrl ? (
+            <AssetImage
+              legacyUrl={member.qrUrl}
+              alt={t("loyalty.memberCodeAlt", "Your membership code")}
+              fit="contain"
+              className="size-[92px] shrink-0 rounded-lg bg-white p-1.5"
+            />
+          ) : member.codePending ? (
+            <span
+              aria-hidden
+              className="grid size-[92px] shrink-0 place-items-center rounded-lg border border-dashed"
+              style={{ borderColor: c.label, color: c.label }}
+            >
+              <QrCode className="size-8" strokeWidth={1.5} />
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
