@@ -8023,6 +8023,7 @@
     "cardOf": "{{name}}'s card",
     "confirmRedeemBody": "Hand over the free item. {{size}} stamps come off the card.",
     "confirmRedeemTitle": "Complete {{name}}'s card?",
+    "confirmRedeemTrackTitle": "Complete {{name}}'s {{track}}?",
     "confirmStampsBody": "{{name}} bought {{count}} items on this visit.",
     "confirmStampsTitle": "Stamp {{count}} items?",
     "dismiss": "Dismiss",

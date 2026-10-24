@@ -45,8 +45,8 @@ describe("names inside sentences", () => {
         name="Omar Adel"
         phone="201001234567"
         tracks={[
-          { id: "a", name: "Coffee", filled: 2, size: 6, extra: 0, canRedeem: true },
-          { id: "b", name: "Pastry", filled: 1, size: 4, extra: 0, canRedeem: false },
+          { id: "a", position: 1, name: "Coffee", filled: 2, size: 6, extra: 0, canRedeem: true },
+          { id: "b", position: 2, name: "Pastry", filled: 1, size: 4, extra: 0, canRedeem: false },
         ]}
         colors={cardColors(null)}
         onRedeem={() => {}}

@@ -95,7 +95,7 @@ describe("failureOf", () => {
 describe("tracksOf", () => {
   it("draws today's card as one track, with the carry-over", () => {
     const m = { balance: 11, next_reward_cost: 10, can_redeem: true } as MemberView;
-    expect(tracksOf(m)).toEqual([{ id: "card", name: null, filled: 10, size: 10, extra: 1, canRedeem: true }]);
+    expect(tracksOf(m)).toEqual([{ id: "card", position: 1, name: null, filled: 10, size: 10, extra: 1, canRedeem: true }]);
   });
 });
 

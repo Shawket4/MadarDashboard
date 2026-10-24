@@ -5,7 +5,7 @@ import { MemberCard } from "./member-card";
 import { cardColors, type Track } from "./util";
 
 const colors = cardColors(null);
-const track = (o: Partial<Track>): Track => ({ id: "card", name: null, filled: 3, size: 8, extra: 0, canRedeem: false, ...o });
+const track = (o: Partial<Track>): Track => ({ id: "card", position: 1, name: null, filled: 3, size: 8, extra: 0, canRedeem: false, ...o });
 
 describe("MemberCard", () => {
   it("draws the shop's published design, with Complete under it and no second strip", async () => {

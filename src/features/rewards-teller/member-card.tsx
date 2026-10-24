@@ -79,6 +79,23 @@ export const MemberCard = forwardRef<HTMLElement, MemberCardProps>(function Memb
             <RedeemButton track={single} big busy={redeeming === single.id} disabled={disabled} onRedeem={onRedeem} />
           ) : null}
         </div>
+      ) : showDesign ? (
+        // The designed card above shows every track; here, each one ready to complete.
+        tracks.some((tr) => tr.canRedeem) ? (
+          <ul className="mt-6 space-y-3">
+            {tracks
+              .filter((tr) => tr.canRedeem)
+              .map((tr) => (
+                <li key={tr.id} className="flex min-h-11 items-center justify-between gap-3">
+                  <p className="inline-flex min-w-0 items-center gap-1.5 font-semibold">
+                    <Gift className="size-4 shrink-0" aria-hidden />
+                    <bdi className="truncate">{tr.name}</bdi>
+                  </p>
+                  <RedeemButton track={tr} busy={redeeming === tr.id} disabled={disabled} onRedeem={onRedeem} />
+                </li>
+              ))}
+          </ul>
+        ) : null
       ) : (
         <ul className="mt-6 space-y-4">
           {tracks.map((tr) => (

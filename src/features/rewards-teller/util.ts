@@ -48,6 +48,8 @@ export const clampItems = (n: number): number => Math.min(MAX_ITEMS, Math.max(1,
  */
 export interface Track {
   id: string;
+  /** The stamp track (1–4); the counter's redeem takes it for 2–4. */
+  position: number;
   /** Null for the card's only track: the card's own name says it. */
   name: string | null;
   filled: number;
@@ -57,9 +59,21 @@ export interface Track {
   canRedeem: boolean;
 }
 
-/** The member's tracks, as the server's view describes them (one today). */
-export function tracksOf(m: MemberView): Track[] {
-  return [{ id: "card", name: null, ...cardDots(m.balance, m.next_reward_cost), canRedeem: m.can_redeem }];
+/**
+ * The member's tracks, as the server's view describes them: one (the card's
+ * balance) unless `MemberView.tracks` names several, each with its own size.
+ */
+export function tracksOf(m: MemberView, arabic = false): Track[] {
+  if (!m.tracks || m.tracks.length < 2) {
+    return [{ id: "card", position: 1, name: null, ...cardDots(m.balance, m.next_reward_cost), canRedeem: m.can_redeem }];
+  }
+  return m.tracks.map((tr) => ({
+    id: tr.position === 1 ? "card" : `track-${tr.position}`,
+    position: tr.position,
+    name: (arabic ? tr.name_ar || tr.name_en : tr.name_en || tr.name_ar) || null,
+    ...cardDots(tr.balance, tr.size),
+    canRedeem: tr.can_redeem,
+  }));
 }
 
 /** Past this many steps a card is drawn as a bar (the wallet strip's own cap). */

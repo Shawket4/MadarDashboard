@@ -75,7 +75,8 @@ type Notice =
   | { tone: "fail"; icon: ReactNode; title: ReactNode; body: ReactNode; retry?: () => void };
 
 export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const arabic = (i18n.resolvedLanguage ?? "en").startsWith("ar");
   const online = useOnline();
   const [raw, setRaw] = useState("");
   const [camera, setCamera] = useState(false);
@@ -93,7 +94,9 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
   const answer = useRef<((yes: boolean) => void) | null>(null);
   // One key per attempt; kept across a failed try so the retry is the same act.
   const stampKey = useRef(crypto.randomUUID());
-  const redeemKey = useRef(crypto.randomUUID());
+  // One per track: a retry of track 2 must not reuse track 3's key.
+  const redeemKeys = useRef<Record<number, string>>({});
+  const redeemKey = (position: number) => (redeemKeys.current[position] ??= crypto.randomUUID());
   const giftKey = useRef(crypto.randomUUID());
   const cardRef = useRef<HTMLElement>(null);
   const noticeRef = useRef<HTMLDivElement>(null);
@@ -189,7 +192,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
             setItems(1);
             setRaw("");
             stampKey.current = crypto.randomUUID();
-            redeemKey.current = crypto.randomUUID();
+            redeemKeys.current = {};
             giftKey.current = crypto.randomUUID();
             feedback("ok");
           },
@@ -298,7 +301,9 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
     const name = member.name;
     const ok = await confirm({
       figure: <Gift className="mx-auto size-16" strokeWidth={1.5} />,
-      title: tNames(t, "rewardsTeller.confirmRedeemTitle", { defaultValue: "Complete {{name}}'s card?", name }, ["name"]),
+      title: track.name
+        ? tNames(t, "rewardsTeller.confirmRedeemTrackTitle", { defaultValue: "Complete {{name}}'s {{track}}?", name, track: track.name }, ["name", "track"])
+        : tNames(t, "rewardsTeller.confirmRedeemTitle", { defaultValue: "Complete {{name}}'s card?", name }, ["name"]),
       body: t("rewardsTeller.confirmRedeemBody", "Hand over the free item. {{size}} stamps come off the card.", { size: track.size }),
       yes: t("rewardsTeller.redeem", "Complete card"),
     });
@@ -307,11 +312,19 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
     setRedeeming(track.id);
     const run = () =>
       redeem.mutate(
-        { data: { branch_id: setup.branchId, customer_id: member.id, idempotency_key: redeemKey.current } },
+        {
+          data: {
+            branch_id: setup.branchId,
+            customer_id: member.id,
+            idempotency_key: redeemKey(track.position),
+            // Track 1 is the card itself: the body old servers know, unchanged.
+            ...(track.position > 1 ? { track: track.position } : {}),
+          },
+        },
         {
           onSuccess: (r) => {
             setMember(r.member);
-            redeemKey.current = crypto.randomUUID();
+            delete redeemKeys.current[track.position];
             if (!r.already) remember({ memberId: r.member.id, name, kind: "redeem", count: track.size });
             succeed({
               tone: "ok",
@@ -382,7 +395,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
   );
 
   if (member) {
-    const tracks = tracksOf(member);
+    const tracks = tracksOf(member, arabic);
     return (
       <div className="mx-auto grid w-full max-w-xl md:max-w-2xl grid-cols-[minmax(0,1fr)] gap-4 lg:max-w-5xl lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-start lg:gap-6">
         <div className="space-y-4">

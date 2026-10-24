@@ -8356,6 +8356,7 @@
     "cardOf": "بطاقة {{name}}",
     "confirmRedeemBody": "سلّم المنتج المجاني. سيُخصم {{size}} ختمًا من البطاقة.",
     "confirmRedeemTitle": "إكمال بطاقة {{name}}؟",
+    "confirmRedeemTrackTitle": "إكمال {{track}} لدى {{name}}؟",
     "confirmStampsBody": "اشترى {{name}} عدد {{count}} من المنتجات في هذه الزيارة.",
     "confirmStampsTitle": "ختم {{count}} منتجات؟",
     "dismiss": "إغلاق",
