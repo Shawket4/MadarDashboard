@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { LogOut, UserRound } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -16,7 +17,8 @@ import { endServerSession } from "@/data/api/server-session";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { initials } from "@/lib/format";
 
-export function UserMenu() {
+/** `children`: more items above Sign out (Rewards by Madar adds its links). */
+export function UserMenu({ children }: { children?: ReactNode }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
@@ -50,6 +52,12 @@ export function UserMenu() {
           ) : null}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {children ? (
+          <>
+            {children}
+            <DropdownMenuSeparator />
+          </>
+        ) : null}
         <DropdownMenuItem
           onClick={onSignOut}
           className="text-destructive focus:bg-destructive/10 focus:text-destructive"

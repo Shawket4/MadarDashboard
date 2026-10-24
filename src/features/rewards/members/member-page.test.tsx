@@ -12,7 +12,7 @@ import type { MemberDetail } from "@/data/api/generated/models";
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
   ...(await importOriginal<object>()),
   ...(await import("@/test/url-search-mock")).routerMock(),
-  getRouteApi: () => ({ useParams: () => ({ memberId: "m-1" }) }),
+  useParams: () => ({ memberId: "m-1" }),
 }));
 vi.mock("@/components/app/link", () => ({ Link: ({ children }: { children: ReactNode }) => <a href="#customer">{children}</a> }));
 vi.mock("@/features/orders/order-detail-sheet", () => ({ OrderDetailSheet: () => null }));

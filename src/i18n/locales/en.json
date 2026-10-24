@@ -233,7 +233,8 @@
     "rewardsProgramme": "Programme",
     "rewardsCard": "Card design",
     "rewardsNotifications": "Notifications",
-    "rewardsAutomations": "Automations"
+    "rewardsAutomations": "Automations",
+    "rewardsOpen": "Rewards by Madar"
   },
   "auth": {
     "welcome": "Welcome back",
@@ -8567,6 +8568,29 @@
       "order": "Orders",
       "item": "Items",
       "stamp": "Stamps"
+    }
+  },
+  "rewardsApp": {
+    "productName": "Rewards by Madar",
+    "wordmark": "Rewards",
+    "byMadar": "by Madar",
+    "counter": "Counter",
+    "openDashboard": "Madar dashboard",
+    "nav": {
+      "label": "Rewards",
+      "overview": "Overview",
+      "members": "Members",
+      "messages": "Messages",
+      "card": "Card",
+      "more": "More",
+      "moreHint": "The rest of Rewards by Madar"
+    },
+    "login": {
+      "title": "Sign in to Rewards",
+      "subtitle": "Use your Madar account: the same email and password as the dashboard.",
+      "pitch": "Your regulars, on a card in their phone.",
+      "pitchSub": "Stamps and points, the card's design, and messages that land on it.",
+      "sameAccount": "One account with the Madar dashboard."
     }
   }
 }

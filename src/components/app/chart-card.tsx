@@ -32,11 +32,18 @@ export function ChartCard({ title, description, actions, children, className, co
   return (
     <ChartEntrance asChild>
       <Card className={cn("gap-4 py-5 shadow-none", className)}>
+        {/* Narrow (a phone, a half-width card): the actions go under the title
+            at full width, where a segmented control can scroll, instead of
+            squeezing the title into a word per line. */}
         {(title || description || actions) && (
-          <CardHeader className="px-5">
+          <CardHeader className="px-5 has-data-[slot=card-action]:grid-cols-1 @md/card-header:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
             {title ? <CardTitle className="text-base tracking-[-0.005em]">{title}</CardTitle> : null}
             {description ? <CardDescription>{description}</CardDescription> : null}
-            {actions ? <CardAction>{actions}</CardAction> : null}
+            {actions ? (
+              <CardAction className="col-start-1 row-span-1 row-start-auto min-w-0 max-w-full justify-self-start @md/card-header:col-start-2 @md/card-header:row-span-2 @md/card-header:row-start-1 @md/card-header:justify-self-end">
+                {actions}
+              </CardAction>
+            ) : null}
           </CardHeader>
         )}
         {/* SVG text anchors break under dir=rtl: plots stay LTR, surrounding copy stays RTL. */}

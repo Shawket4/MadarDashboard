@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import { useLocation } from "@tanstack/react-router";
 import { Link } from "@/components/app/link";
 import { useTranslation } from "react-i18next";
@@ -32,6 +32,7 @@ import { useOrgModules } from "@/hooks/use-org-modules";
 import { useSetupProgress } from "@/features/dawam/setup";
 import { useNavIntent } from "@/lib/prefetch/nav-context";
 import { useOrgId } from "@/hooks/use-org-id";
+import { rewardsHref } from "@/lib/rewards-host";
 import { usePublicBrand } from "@/features/public-shell/use-brand";
 import { Presence } from "@/lib/motion";
 
@@ -127,6 +128,29 @@ function NavRow({ entry, isActive, visible, pathname, close, keepScope }: NavRow
           </CollapsibleContent>
         </SidebarMenuItem>
       </Collapsible>
+    );
+  }
+
+  if (entry.href) {
+    // Another site (Rewards by Madar): a new tab, signed in by the shared session.
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip={t(entry.labelKey, entry.fallback)}>
+          <a
+            href={entry.href}
+            target="_blank"
+            rel="noopener"
+            onClick={(e) => {
+              e.currentTarget.href = rewardsHref() ?? entry.href!;
+              close();
+            }}
+          >
+            <entry.icon />
+            <span>{t(entry.labelKey, entry.fallback)}</span>
+            <ExternalLink className="ms-auto opacity-60 rtl:-scale-x-100" aria-hidden />
+          </a>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
     );
   }
 

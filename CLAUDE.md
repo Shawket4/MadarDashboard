@@ -497,6 +497,29 @@ these rules:
   - Back up first, run `nginx -t`, then reload.
   - Only with the owner's go-ahead.
 
+## Rewards by Madar: its own product on its own host
+`rewards.madar-pos.cloud` is one bundle (`rewards.html` → `src/rewards-app/`,
+`npm run dev:rewards`, `build:rewards`):
+- **`/counter`** is the teller page (`features/rewards-teller`), unchanged. A tablet set up
+  for a branch that opens `/` goes there.
+- **Everything else** is the owner's dashboard: its own sign-in (`login-page.tsx`, the
+  shared `features/auth/login-form`), shell (header, desktop tabs, a phone bottom bar
+  and More), brand (`brand.tsx`, the files in `public-rewards/`). The pages are the
+  dashboard's own `src/features/rewards`, at the same internal paths: its code-based
+  router (`router.tsx`) rewrites `/members` ↔ `/rewards/members` (`paths.ts`), so their
+  links work unchanged. Pages both products share must not hard-link a dashboard-only
+  route: use `DashboardLink` (`currentProduct()` from `lib/product`).
+- **One sign-in for both.** The browser session lives on the Rewards host's `/api/auth/session`
+  (an HttpOnly cookie, MadarRust `docs/sessions.md`). Each app adopts it at boot when
+  signed out and shares its own after a sign-in (`data/api/shared-session.ts`); signing
+  out of either ends it on the server. The dashboard reaches it cross-origin
+  (`VITE_SESSION_URL`); Rewards same-origin.
+- **The dashboard links there** when built with `VITE_REWARDS_URL` (production): the
+  sidebar's Rewards group is one link, and `/rewards/*` redirects to the same page on
+  the host (`routes/_app/rewards/route.tsx`). Without it (demo, desktop, local) the pages
+  stay in the dashboard.
+- The public CSP applies (connect-src 'self'): Rewards calls only its own `/api/`.
+
 ## Boot and the network
 - **Boot waits for three things, in parallel** (`src/main.tsx`): the rules' wasm
   (preloaded from the HTML by `vite/preload-rules.ts`; the date scope and formatters call

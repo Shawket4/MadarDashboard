@@ -32,6 +32,7 @@ import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
 import { Route as AppBasiraRouteImport } from './routes/_app/basira'
 import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
 import { Route as AppSettingsRouteRouteImport } from './routes/_app/settings/route'
+import { Route as AppRewardsRouteRouteImport } from './routes/_app/rewards/route'
 import { Route as AppMenuRouteRouteImport } from './routes/_app/menu/route'
 import { Route as AppInventoryRouteRouteImport } from './routes/_app/inventory/route'
 import { Route as AppDeliveryRouteRouteImport } from './routes/_app/delivery/route'
@@ -233,6 +234,11 @@ const AppSettingsRouteRoute = AppSettingsRouteRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppRewardsRouteRoute = AppRewardsRouteRouteImport.update({
+  id: '/rewards',
+  path: '/rewards',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppMenuRouteRoute = AppMenuRouteRouteImport.update({
   id: '/menu',
   path: '/menu',
@@ -259,9 +265,9 @@ const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
 const AppRewardsIndexRoute = AppRewardsIndexRouteImport.update({
-  id: '/rewards/',
-  path: '/rewards/',
-  getParentRoute: () => AppRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRewardsRouteRoute,
 } as any)
 const AppMenuIndexRoute = AppMenuIndexRouteImport.update({
   id: '/',
@@ -418,29 +424,29 @@ const AppSettingsBookingsRoute = AppSettingsBookingsRouteImport.update({
   getParentRoute: () => AppSettingsRouteRoute,
 } as any)
 const AppRewardsProgrammeRoute = AppRewardsProgrammeRouteImport.update({
-  id: '/rewards/programme',
-  path: '/rewards/programme',
-  getParentRoute: () => AppRouteRoute,
+  id: '/programme',
+  path: '/programme',
+  getParentRoute: () => AppRewardsRouteRoute,
 } as any)
 const AppRewardsNotificationsRoute = AppRewardsNotificationsRouteImport.update({
-  id: '/rewards/notifications',
-  path: '/rewards/notifications',
-  getParentRoute: () => AppRouteRoute,
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRewardsRouteRoute,
 } as any)
 const AppRewardsMembersRoute = AppRewardsMembersRouteImport.update({
-  id: '/rewards/members',
-  path: '/rewards/members',
-  getParentRoute: () => AppRouteRoute,
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => AppRewardsRouteRoute,
 } as any)
 const AppRewardsCardRoute = AppRewardsCardRouteImport.update({
-  id: '/rewards/card',
-  path: '/rewards/card',
-  getParentRoute: () => AppRouteRoute,
+  id: '/card',
+  path: '/card',
+  getParentRoute: () => AppRewardsRouteRoute,
 } as any)
 const AppRewardsAutomationsRoute = AppRewardsAutomationsRouteImport.update({
-  id: '/rewards/automations',
-  path: '/rewards/automations',
-  getParentRoute: () => AppRouteRoute,
+  id: '/automations',
+  path: '/automations',
+  getParentRoute: () => AppRewardsRouteRoute,
 } as any)
 const AppReportsTillsRoute = AppReportsTillsRouteImport.update({
   id: '/reports/tills',
@@ -647,9 +653,9 @@ const AppReportsOperationsIndexRoute =
   } as any)
 const AppRewardsMembersMemberIdRoute =
   AppRewardsMembersMemberIdRouteImport.update({
-    id: '/rewards/members_/$memberId',
-    path: '/rewards/members/$memberId',
-    getParentRoute: () => AppRouteRoute,
+    id: '/members_/$memberId',
+    path: '/members/$memberId',
+    getParentRoute: () => AppRewardsRouteRoute,
   } as any)
 const AppReportsOperationsTablesRoute =
   AppReportsOperationsTablesRouteImport.update({
@@ -683,6 +689,7 @@ export interface FileRoutesByFullPath {
   '/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/inventory': typeof AppInventoryRouteRouteWithChildren
   '/menu': typeof AppMenuRouteRouteWithChildren
+  '/rewards': typeof AppRewardsRouteRouteWithChildren
   '/settings': typeof AppSettingsRouteRouteWithChildren
   '/analytics': typeof AppAnalyticsRoute
   '/basira': typeof AppBasiraRoute
@@ -899,6 +906,7 @@ export interface FileRoutesById {
   '/_app/delivery': typeof AppDeliveryRouteRouteWithChildren
   '/_app/inventory': typeof AppInventoryRouteRouteWithChildren
   '/_app/menu': typeof AppMenuRouteRouteWithChildren
+  '/_app/rewards': typeof AppRewardsRouteRouteWithChildren
   '/_app/settings': typeof AppSettingsRouteRouteWithChildren
   '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/basira': typeof AppBasiraRoute
@@ -1012,6 +1020,7 @@ export interface FileRouteTypes {
     | '/delivery'
     | '/inventory'
     | '/menu'
+    | '/rewards'
     | '/settings'
     | '/analytics'
     | '/basira'
@@ -1227,6 +1236,7 @@ export interface FileRouteTypes {
     | '/_app/delivery'
     | '/_app/inventory'
     | '/_app/menu'
+    | '/_app/rewards'
     | '/_app/settings'
     | '/_app/analytics'
     | '/_app/basira'
@@ -1500,6 +1510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/rewards': {
+      id: '/_app/rewards'
+      path: '/rewards'
+      fullPath: '/rewards'
+      preLoaderRoute: typeof AppRewardsRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/menu': {
       id: '/_app/menu'
       path: '/menu'
@@ -1537,10 +1554,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/rewards/': {
       id: '/_app/rewards/'
-      path: '/rewards'
+      path: '/'
       fullPath: '/rewards/'
       preLoaderRoute: typeof AppRewardsIndexRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppRewardsRouteRoute
     }
     '/_app/menu/': {
       id: '/_app/menu/'
@@ -1754,38 +1771,38 @@ declare module '@tanstack/react-router' {
     }
     '/_app/rewards/programme': {
       id: '/_app/rewards/programme'
-      path: '/rewards/programme'
+      path: '/programme'
       fullPath: '/rewards/programme'
       preLoaderRoute: typeof AppRewardsProgrammeRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppRewardsRouteRoute
     }
     '/_app/rewards/notifications': {
       id: '/_app/rewards/notifications'
-      path: '/rewards/notifications'
+      path: '/notifications'
       fullPath: '/rewards/notifications'
       preLoaderRoute: typeof AppRewardsNotificationsRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppRewardsRouteRoute
     }
     '/_app/rewards/members': {
       id: '/_app/rewards/members'
-      path: '/rewards/members'
+      path: '/members'
       fullPath: '/rewards/members'
       preLoaderRoute: typeof AppRewardsMembersRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppRewardsRouteRoute
     }
     '/_app/rewards/card': {
       id: '/_app/rewards/card'
-      path: '/rewards/card'
+      path: '/card'
       fullPath: '/rewards/card'
       preLoaderRoute: typeof AppRewardsCardRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppRewardsRouteRoute
     }
     '/_app/rewards/automations': {
       id: '/_app/rewards/automations'
-      path: '/rewards/automations'
+      path: '/automations'
       fullPath: '/rewards/automations'
       preLoaderRoute: typeof AppRewardsAutomationsRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppRewardsRouteRoute
     }
     '/_app/reports/tills': {
       id: '/_app/reports/tills'
@@ -2069,10 +2086,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/rewards/members_/$memberId': {
       id: '/_app/rewards/members_/$memberId'
-      path: '/rewards/members/$memberId'
+      path: '/members/$memberId'
       fullPath: '/rewards/members/$memberId'
       preLoaderRoute: typeof AppRewardsMembersMemberIdRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppRewardsRouteRoute
     }
     '/_app/reports/operations/tables': {
       id: '/_app/reports/operations/tables'
@@ -2203,6 +2220,30 @@ const AppMenuRouteRouteWithChildren = AppMenuRouteRoute._addFileChildren(
   AppMenuRouteRouteChildren,
 )
 
+interface AppRewardsRouteRouteChildren {
+  AppRewardsAutomationsRoute: typeof AppRewardsAutomationsRoute
+  AppRewardsCardRoute: typeof AppRewardsCardRoute
+  AppRewardsMembersRoute: typeof AppRewardsMembersRoute
+  AppRewardsNotificationsRoute: typeof AppRewardsNotificationsRoute
+  AppRewardsProgrammeRoute: typeof AppRewardsProgrammeRoute
+  AppRewardsIndexRoute: typeof AppRewardsIndexRoute
+  AppRewardsMembersMemberIdRoute: typeof AppRewardsMembersMemberIdRoute
+}
+
+const AppRewardsRouteRouteChildren: AppRewardsRouteRouteChildren = {
+  AppRewardsAutomationsRoute: AppRewardsAutomationsRoute,
+  AppRewardsCardRoute: AppRewardsCardRoute,
+  AppRewardsMembersRoute: AppRewardsMembersRoute,
+  AppRewardsNotificationsRoute: AppRewardsNotificationsRoute,
+  AppRewardsProgrammeRoute: AppRewardsProgrammeRoute,
+  AppRewardsIndexRoute: AppRewardsIndexRoute,
+  AppRewardsMembersMemberIdRoute: AppRewardsMembersMemberIdRoute,
+}
+
+const AppRewardsRouteRouteWithChildren = AppRewardsRouteRoute._addFileChildren(
+  AppRewardsRouteRouteChildren,
+)
+
 interface AppSettingsRouteRouteChildren {
   AppSettingsBookingsRoute: typeof AppSettingsBookingsRoute
   AppSettingsBrandRoute: typeof AppSettingsBrandRoute
@@ -2249,6 +2290,7 @@ interface AppRouteRouteChildren {
   AppDeliveryRouteRoute: typeof AppDeliveryRouteRouteWithChildren
   AppInventoryRouteRoute: typeof AppInventoryRouteRouteWithChildren
   AppMenuRouteRoute: typeof AppMenuRouteRouteWithChildren
+  AppRewardsRouteRoute: typeof AppRewardsRouteRouteWithChildren
   AppSettingsRouteRoute: typeof AppSettingsRouteRouteWithChildren
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppBasiraRoute: typeof AppBasiraRoute
@@ -2283,11 +2325,6 @@ interface AppRouteRouteChildren {
   AppReportsStaffRoute: typeof AppReportsStaffRoute
   AppReportsStaffPoolRoute: typeof AppReportsStaffPoolRoute
   AppReportsTillsRoute: typeof AppReportsTillsRoute
-  AppRewardsAutomationsRoute: typeof AppRewardsAutomationsRoute
-  AppRewardsCardRoute: typeof AppRewardsCardRoute
-  AppRewardsMembersRoute: typeof AppRewardsMembersRoute
-  AppRewardsNotificationsRoute: typeof AppRewardsNotificationsRoute
-  AppRewardsProgrammeRoute: typeof AppRewardsProgrammeRoute
   AppStaffApprovalsRoute: typeof AppStaffApprovalsRoute
   AppStaffAttendanceRoute: typeof AppStaffAttendanceRoute
   AppStaffEmployeesRoute: typeof AppStaffEmployeesRoute
@@ -2299,10 +2336,8 @@ interface AppRouteRouteChildren {
   AppStaffSetupRoute: typeof AppStaffSetupRoute
   AppStaffShiftsRoute: typeof AppStaffShiftsRoute
   AppStaffTeamRoute: typeof AppStaffTeamRoute
-  AppRewardsIndexRoute: typeof AppRewardsIndexRoute
   AppReportsOperationsProfitabilityRoute: typeof AppReportsOperationsProfitabilityRoute
   AppReportsOperationsTablesRoute: typeof AppReportsOperationsTablesRoute
-  AppRewardsMembersMemberIdRoute: typeof AppRewardsMembersMemberIdRoute
   AppReportsOperationsIndexRoute: typeof AppReportsOperationsIndexRoute
 }
 
@@ -2311,6 +2346,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppDeliveryRouteRoute: AppDeliveryRouteRouteWithChildren,
   AppInventoryRouteRoute: AppInventoryRouteRouteWithChildren,
   AppMenuRouteRoute: AppMenuRouteRouteWithChildren,
+  AppRewardsRouteRoute: AppRewardsRouteRouteWithChildren,
   AppSettingsRouteRoute: AppSettingsRouteRouteWithChildren,
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppBasiraRoute: AppBasiraRoute,
@@ -2345,11 +2381,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppReportsStaffRoute: AppReportsStaffRoute,
   AppReportsStaffPoolRoute: AppReportsStaffPoolRoute,
   AppReportsTillsRoute: AppReportsTillsRoute,
-  AppRewardsAutomationsRoute: AppRewardsAutomationsRoute,
-  AppRewardsCardRoute: AppRewardsCardRoute,
-  AppRewardsMembersRoute: AppRewardsMembersRoute,
-  AppRewardsNotificationsRoute: AppRewardsNotificationsRoute,
-  AppRewardsProgrammeRoute: AppRewardsProgrammeRoute,
   AppStaffApprovalsRoute: AppStaffApprovalsRoute,
   AppStaffAttendanceRoute: AppStaffAttendanceRoute,
   AppStaffEmployeesRoute: AppStaffEmployeesRoute,
@@ -2361,11 +2392,9 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppStaffSetupRoute: AppStaffSetupRoute,
   AppStaffShiftsRoute: AppStaffShiftsRoute,
   AppStaffTeamRoute: AppStaffTeamRoute,
-  AppRewardsIndexRoute: AppRewardsIndexRoute,
   AppReportsOperationsProfitabilityRoute:
     AppReportsOperationsProfitabilityRoute,
   AppReportsOperationsTablesRoute: AppReportsOperationsTablesRoute,
-  AppRewardsMembersMemberIdRoute: AppRewardsMembersMemberIdRoute,
   AppReportsOperationsIndexRoute: AppReportsOperationsIndexRoute,
 }
 

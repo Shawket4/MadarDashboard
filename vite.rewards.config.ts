@@ -1,7 +1,9 @@
-// Separate build for The Rewards teller page (rewards.madar-pos.cloud): loyalty sold on
-// its own. A copy of the loyalty app's config (REWARDS_DESIGN.md §7), with its own
-// public dir (public-rewards: the manifest, the service worker and the placeholder
-// icons), so no other bundle ships them.
+// Separate build for Rewards by Madar (rewards.madar-pos.cloud): loyalty sold on
+// its own. One entry (rewards.html, src/rewards-app): the owner's dashboard at
+// the root and the counter at /counter. Its own public dir (public-rewards: the
+// manifest, the service worker and the brand files), so no other bundle ships
+// them. The API is the host's /api/ (proxied to a local backend in dev:
+// REWARDS_API_TARGET, default http://localhost:8081).
 //
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
@@ -52,6 +54,15 @@ export default defineConfig({
     }),
     compression({ algorithm: "gzip", ext: ".gz", threshold: 1024, deleteOriginFile: false, filter: /\.(js|mjs|json|css|html|wasm)$/i, compressionOptions: { level: 9 } }),
   ],
+  server: {
+    proxy: {
+      "/api": {
+        target: process.env.REWARDS_API_TARGET ?? "http://localhost:8081",
+        changeOrigin: false,
+        rewrite: (p) => p.replace(/^\/api/, ""),
+      },
+    },
+  },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src"), "@shared": path.resolve(__dirname, "./shared") },
   },

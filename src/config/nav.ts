@@ -50,6 +50,7 @@ import type { Authz } from "@/data/authz/use-authz";
 import { Cap, type Capability } from "@/generated/capabilities";
 import { type Feature } from "@/generated/plans";
 import { orgHasFeature } from "@/lib/plan-features";
+import { env } from "@/data/config/env";
 
 export interface NavLeaf {
   to: string;
@@ -72,6 +73,8 @@ export interface NavLeaf {
   feature?: Feature;
   /** The set-up checklist (SA-4): shown, to whoever holds `caps`, only while it is incomplete. */
   setup?: boolean;
+  /** Another site (Rewards by Madar's host): the row opens it in a new tab; `to` still tags the paths. */
+  href?: string;
 }
 
 /** `pos` = selling, catalog, stock and their reports; `dawam` = attendance, roster, payroll. */
@@ -95,6 +98,22 @@ export interface NavGroup {
 }
 
 export const isParent = (e: NavEntry): e is NavParent => "children" in e;
+
+/** Rewards by Madar's own host, when this build has one (the production dashboard). */
+export const REWARDS_URL = env.VITE_REWARDS_URL?.replace(/\/+$/, "");
+
+/**
+ * The Rewards pages: in the dashboard's sidebar when Rewards has no host of its
+ * own, and Rewards by Madar's own navigation (src/rewards-app) always.
+ */
+export const REWARDS_LEAVES: NavLeaf[] = [
+  { caps: [Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/rewards", labelKey: "nav.rewardsOverview", fallback: "Overview", icon: Gauge },
+  { caps: [Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/rewards/members", labelKey: "nav.rewardsMembers", fallback: "Members", icon: Users },
+  { caps: [Cap.loyaltyRead, Cap.loyaltyUse], module: "pos", feature: "loyalty", to: "/rewards/programme", labelKey: "nav.rewardsProgramme", fallback: "Programme", icon: Gift },
+  { caps: [Cap.loyaltyRead], module: "pos", feature: "loyalty", to: "/rewards/card", labelKey: "nav.rewardsCard", fallback: "Card design", icon: CreditCard },
+  { caps: [Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/rewards/notifications", labelKey: "nav.rewardsNotifications", fallback: "Notifications", icon: BellRing },
+  { caps: [Cap.loyaltyRead, Cap.loyaltyUse], module: "pos", feature: "loyalty", to: "/rewards/automations", labelKey: "nav.rewardsAutomations", fallback: "Automations", icon: CalendarHeart },
+];
 
 export const NAV: NavGroup[] = [
   {
@@ -140,17 +159,24 @@ export const NAV: NavGroup[] = [
   {
     // Rewards by Madar: the loyalty programme, its card, its members and the
     // messages sent on the card. Settings › Loyalty moved here (it redirects).
-    // `loyalty` is on Paid plans and on Free with the Rewards add-on.
+    // `loyalty` is on Paid plans and on Free with the Rewards add-on. With its
+    // own host configured (VITE_REWARDS_URL) the group is one link there.
     labelKey: "nav.rewards",
     fallback: "Rewards",
-    entries: [
-      { caps: [Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/rewards", labelKey: "nav.rewardsOverview", fallback: "Overview", icon: Gauge },
-      { caps: [Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/rewards/members", labelKey: "nav.rewardsMembers", fallback: "Members", icon: Users },
-      { caps: [Cap.loyaltyRead, Cap.loyaltyUse], module: "pos", feature: "loyalty", to: "/rewards/programme", labelKey: "nav.rewardsProgramme", fallback: "Programme", icon: Gift },
-      { caps: [Cap.loyaltyRead], module: "pos", feature: "loyalty", to: "/rewards/card", labelKey: "nav.rewardsCard", fallback: "Card design", icon: CreditCard },
-      { caps: [Cap.loyaltyMembersList], module: "pos", feature: "loyalty", to: "/rewards/notifications", labelKey: "nav.rewardsNotifications", fallback: "Notifications", icon: BellRing },
-      { caps: [Cap.loyaltyRead, Cap.loyaltyUse], module: "pos", feature: "loyalty", to: "/rewards/automations", labelKey: "nav.rewardsAutomations", fallback: "Automations", icon: CalendarHeart },
-    ],
+    entries: REWARDS_URL
+      ? [
+          {
+            caps: [Cap.loyaltyMembersList, Cap.loyaltyRead],
+            module: "pos",
+            feature: "loyalty",
+            to: "/rewards",
+            href: REWARDS_URL,
+            labelKey: "nav.rewardsOpen",
+            fallback: "Rewards by Madar",
+            icon: Gift,
+          },
+        ]
+      : REWARDS_LEAVES,
   },
   {
     labelKey: "nav.basira",

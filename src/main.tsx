@@ -53,6 +53,7 @@ import { initRules } from "@/lib/rules";
 import * as rulesWasm from "@/lib/rules/wasm/full/madar_web.js";
 import { NotFound } from "@/components/app/not-found";
 import { listScrollKey } from "@/data/scope/list-search";
+import { adoptSharedSession, keepSessionShared } from "@/data/api/shared-session";
 import { routeTree } from "./routeTree.gen";
 
 initDeviceTheme();
@@ -66,7 +67,7 @@ const router = createRouter({
   // Filtered lists restore scroll by URL, so "Back" to the same view lands
   // where the reader left it (data/scope/list-search.ts).
   getScrollRestorationKey: listScrollKey,
-  defaultNotFoundComponent: NotFound,
+  defaultNotFoundComponent: () => <NotFound />,
 });
 
 // Error/performance monitoring + masked session replay. No-op without a DSN.
@@ -165,7 +166,12 @@ function boot() {
       .then(({ enableMocks }) => enableMocks().then(safeRender))
       .catch(renderFatal);
   } else {
-    safeRender();
+    // Signed out here but signed in to Rewards by Madar in this browser: take
+    // that session (bounded, see shared-session.ts), then keep sharing ours.
+    void adoptSharedSession().finally(() => {
+      keepSessionShared();
+      safeRender();
+    });
   }
 }
 

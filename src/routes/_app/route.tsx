@@ -1,6 +1,4 @@
-import { useEffect, useRef } from "react";
-import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { z } from "zod";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
@@ -9,25 +7,12 @@ import { DemoBanner } from "@/components/app/demo-banner";
 import { ModuleGate } from "@/components/app/module-gate";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { requireAuth } from "@/lib/auth-guard";
-import { useAppStore } from "@/data/stores/app.store";
 import { useSyncTimezone } from "@/data/scope/use-timezone";
-import { DEFAULT_PRESET } from "@/data/scope/presets";
+import { scopeSearchSchema, useUrlScope } from "@/data/scope/use-url-scope";
 import { useBranchRealtime } from "@/data/realtime/use-branch-realtime";
 import { useSyncPlan } from "@/hooks/use-plan";
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch";
 import { NavPrefetchProvider } from "@/lib/prefetch/nav-context";
-
-/**
- * Scope as typed, validated URL search params on the app shell — the single
- * source of truth for branch + period. Declared here so every `/_app` child
- * inherits them and deep links are first-class. See `data/scope/use-scope.ts`.
- */
-const scopeSearchSchema = z.object({
-  branchId: z.string().optional(),
-  preset: z.enum(["today", "yesterday", "7d", "30d", "mtd", "custom"]).optional(),
-  from: z.string().optional(),
-  to: z.string().optional(),
-});
 
 export const Route = createFileRoute("/_app")({
   validateSearch: scopeSearchSchema,
@@ -37,8 +22,6 @@ export const Route = createFileRoute("/_app")({
 
 function AppLayout() {
   const search = Route.useSearch();
-  const navigate = useNavigate();
-  const restored = useRef(false);
   // Every link, tab and row in the app warms its destination's data on intent through this.
   const warmRoute = useRoutePrefetch();
 
@@ -52,34 +35,8 @@ function AppLayout() {
   // bookings, tickets, delivery). Mounted here so navigation never reconnects.
   useBranchRealtime(search.branchId);
 
-  // On a bare entry (no scope in the URL), hydrate it from the persisted
-  // last-used scope so every URL is complete and shareable. Runs once.
-  useEffect(() => {
-    if (restored.current) return;
-    restored.current = true;
-    if (search.branchId === undefined && search.preset === undefined) {
-      const { selectedBranchId, scopePreset } = useAppStore.getState();
-      // Only a preset that can resolve itself. The hand-picked range is not
-      // persisted, so replaying "custom" would write a period with no dates —
-      // a URL that says one thing and shows another. `useScope` now falls back
-      // for anyone who still holds such a link; this stops minting new ones.
-      const preset = scopePreset && scopePreset !== "custom" ? scopePreset : DEFAULT_PRESET;
-      void navigate({
-        to: ".",
-        replace: true,
-        search: (p: Record<string, unknown>) => ({ ...p, branchId: selectedBranchId ?? undefined, preset: preset as never }),
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Mirror the URL scope into the app store: branch → X-Branch header +
-  // persistence, preset → persisted default. Covers shared/deep links.
-  useEffect(() => {
-    const urlBranch = search.branchId ?? null;
-    if (urlBranch !== useAppStore.getState().selectedBranchId) useAppStore.getState().setSelectedBranch(urlBranch);
-    if (search.preset) useAppStore.getState().setScopePreset(search.preset);
-  }, [search.branchId, search.preset]);
+  // Branch + period live in the URL, mirrored into the app store.
+  useUrlScope(search);
 
   return (
     <NavPrefetchProvider warm={warmRoute}>

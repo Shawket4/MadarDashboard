@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 
 import { EmptyState } from "./empty-state";
 
-/** An address that leads nowhere: a page with a way back (TanStack's default is a bare "Not Found"). */
-export function NotFound() {
+/**
+ * An address that leads nowhere: a page with a way back (TanStack's default is
+ * a bare "Not Found"). `home` is where back is (Rewards by Madar's is not "/").
+ */
+export function NotFound({ home = "/" }: { home?: string }) {
   const { t } = useTranslation();
   return (
     <div className="flex min-h-[50vh] items-center justify-center p-6">
@@ -17,7 +20,7 @@ export function NotFound() {
         description={t("notFound.body", "This page doesn't exist or has moved. Check the address, or go back to the dashboard.")}
         action={
           <Button variant="outline" asChild>
-            <Link to="/">{t("notFound.home", "Back to the dashboard")}</Link>
+            <Link to={home as "/"}>{t("notFound.home", "Back to the dashboard")}</Link>
           </Button>
         }
       />

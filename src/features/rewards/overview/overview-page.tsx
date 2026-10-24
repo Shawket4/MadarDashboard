@@ -19,6 +19,7 @@ import { ChartTooltipContent } from "@/components/app/chart-tooltip";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { LedgerStrip, type LedgerItem } from "@/components/app/ledger-strip";
 import { Link } from "@/components/app/link";
+import { DashboardLink } from "@/components/app/dashboard-link";
 import { Page, PageHeader } from "@/components/app/page";
 import { ProgressBar } from "@/components/app/progress-bar";
 import { Restricted } from "@/components/app/restricted";
@@ -154,9 +155,9 @@ export function RewardsOverviewPage() {
           </span>
         }
         actions={
-          <Link to="/reports/loyalty" className="text-sm font-medium underline underline-offset-4 hover:text-muted-foreground">
+          <DashboardLink to="/reports/loyalty" className="text-sm font-medium underline underline-offset-4 hover:text-muted-foreground">
             {t("rewards.overview.toReport", "Open the loyalty report")}
-          </Link>
+          </DashboardLink>
         }
       />
       <div className="space-y-6">

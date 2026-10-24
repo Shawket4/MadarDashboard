@@ -54,7 +54,7 @@ server {
     # as the fallback below: every top-level file (icons, robots.txt) is
     # served here now, and so is the shell itself, because `try_files ... /rewards.html`
     # re-runs location matching and /rewards.html matches this regex. The page has
-    # one route, "/".
+    # client routes (/, /members, /counter, …), none ending like a file.
     location ~ \.[A-Za-z0-9]+$ {
         include snippets/madar-security-headers.conf;
         include snippets/madar-csp-public.conf;
