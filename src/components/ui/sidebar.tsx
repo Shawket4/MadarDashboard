@@ -137,8 +137,11 @@ function SidebarProvider({
               ...style,
             } as React.CSSProperties
           }
+          // A workspace page (Basira) scrolls inside its own panes, so the
+          // shell must be exactly the viewport tall: with only min-h-svh
+          // nothing bounds the column and the document scrolls instead.
           className={cn(
-            "group/sidebar-wrapper flex min-h-svh w-full overflow-x-clip has-data-[variant=inset]:bg-sidebar",
+            "group/sidebar-wrapper flex min-h-svh w-full overflow-x-clip has-data-[variant=inset]:bg-sidebar has-[[data-workspace]]:h-dvh",
             className
           )}
           {...props}
