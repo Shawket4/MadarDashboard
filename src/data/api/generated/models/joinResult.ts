@@ -1,6 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 import type { CardBrand } from './cardBrand';
+import type { MemberTrack } from './memberTrack';
 import type { PassLinks } from './passLinks';
 
 /**
@@ -61,6 +62,13 @@ export interface JoinResult {
      * @nullable
      */
   stamp_unit?: string | null;
+  /**
+     * Every stamp track of the member's card, when there is more than one:
+     * the card page's `CardView.tracks`, the same loader. Absent for a
+     * one-track card or points, and while `verify_required`.
+     * @nullable
+     */
+  tracks?: MemberTrack[] | null;
   /**
      * This phone already has a card and the device has not proved it owns the
      * phone. The page should run the ordinary OTP flow (`/public/otp/request`

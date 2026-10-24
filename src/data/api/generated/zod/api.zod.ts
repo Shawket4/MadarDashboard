@@ -10612,6 +10612,8 @@ export const loyaltyCounterBirthdayGiftResponseMemberTracksItemPositionMin = 0;
 export const LoyaltyCounterBirthdayGiftResponse = zod.object({
   "already": zod.boolean().describe('True when this key had already claimed it: nothing new was written.'),
   "birthday_gift": zod.object({
+  "any_item": zod.boolean().nullish().describe('The till\'s lookup only, while `open`: every line may be the gift\n(\"any item\" is a reward here). Absent elsewhere.'),
+  "reward_item_ids": zod.array(zod.uuid()).nullish().describe('The till\'s lookup only, while `open`: the reward items the gift may be\ntaken as, whatever each costs (the whole catalogue, not only what the\nbalance affords). The till runs `madar_loyalty::gift_eligible` over\nthese and `any_item`, the server\'s own claim rule. Absent elsewhere.'),
   "status": zod.string().describe('`open` (ready to claim) or `claimed`.'),
   "valid_until": zod.iso.datetime({"offset":true}).describe('The gift is usable until this instant (end of its last day, shop time).')
 }).describe('The gift, now `claimed`.'),
@@ -10899,6 +10901,8 @@ export const LoyaltyLookupResponse = zod.object({
   "any_item": zod.boolean().describe('The whole menu is claimable, not just `rewards`.\n\nWhen on, `rewards` stops being the list of what MAY be claimed — it is\nonly what happens to be curated — and the till offers every line at\n`any_item_cost`. Sent rather than inferred, because a till cannot tell\n\"no catalogue\" apart from \"any item\" without being told.'),
   "any_item_cost": zod.number().describe('What one line costs when `any_item` is on, in the branch\'s currency.'),
   "birthday_gift": zod.union([zod.null(),zod.object({
+  "any_item": zod.boolean().nullish().describe('The till\'s lookup only, while `open`: every line may be the gift\n(\"any item\" is a reward here). Absent elsewhere.'),
+  "reward_item_ids": zod.array(zod.uuid()).nullish().describe('The till\'s lookup only, while `open`: the reward items the gift may be\ntaken as, whatever each costs (the whole catalogue, not only what the\nbalance affords). The till runs `madar_loyalty::gift_eligible` over\nthese and `any_item`, the server\'s own claim rule. Absent elsewhere.'),
   "status": zod.string().describe('`open` (ready to claim) or `claimed`.'),
   "valid_until": zod.iso.datetime({"offset":true}).describe('The gift is usable until this instant (end of its last day, shop time).')
 }).describe('The member\'s birthday gift: `open` is one free item to hand over\n(`loyalty_birthday_gift` on the order, or the counter\'s\n`\/loyalty\/counter\/birthday-gift`); `claimed` was used this time. Absent\nwhen there is none or it expired.')]).optional(),
@@ -11434,6 +11438,8 @@ export const GetLoyaltyMemberWalletResponse = zod.object({
   "apple_devices": zod.number(),
   "apple_registered_at": zod.iso.datetime({"offset":true}).nullish(),
   "birthday_gift": zod.union([zod.null(),zod.object({
+  "any_item": zod.boolean().nullish().describe('The till\'s lookup only, while `open`: every line may be the gift\n(\"any item\" is a reward here). Absent elsewhere.'),
+  "reward_item_ids": zod.array(zod.uuid()).nullish().describe('The till\'s lookup only, while `open`: the reward items the gift may be\ntaken as, whatever each costs (the whole catalogue, not only what the\nbalance affords). The till runs `madar_loyalty::gift_eligible` over\nthese and `any_item`, the server\'s own claim rule. Absent elsewhere.'),
   "status": zod.string().describe('`open` (ready to claim) or `claimed`.'),
   "valid_until": zod.iso.datetime({"offset":true}).describe('The gift is usable until this instant (end of its last day, shop time).')
 }).describe('Their birthday gift while open, or claimed and still in its window;\nabsent otherwise (`gifts::current`).')]).optional(),
@@ -15063,7 +15069,8 @@ export const CreateOrderResponse = zod.object({
   "org_ingredient_id": zod.uuid().nullish(),
   "price": zod.number(),
   "quantity_deducted": zod.number().nullish()
-}))
+})),
+  "reward_source": zod.string().nullish().describe('Why a covered line was free: `reward` (paid for with points or stamps)\nor `gift` (the member\'s birthday gift), so a reprint and history can\nsay which. Absent on a line nothing covered. Additive.')
 }))),
   "loyalty_redemption_refused": zod.string().nullish().describe('Set only on the response to a REPLAYED sale whose rewards the points\ncould not pay for: the covered lines stayed covered, no points moved,\nthe order is flagged. The till shows this sentence to the teller.'),
   "warnings": zod.array(zod.string()).optional().describe('Non-fatal warnings raised while placing the order — currently used to\nflag ingredients that were oversold (stock driven below zero). Empty\nfor reads\/refunds.')
@@ -15219,7 +15226,8 @@ export const ExportOrdersResponse = zod.object({
   "org_ingredient_id": zod.uuid().nullish(),
   "price": zod.number(),
   "quantity_deducted": zod.number().nullish()
-}))
+})),
+  "reward_source": zod.string().nullish().describe('Why a covered line was free: `reward` (paid for with points or stamps)\nor `gift` (the member\'s birthday gift), so a reprint and history can\nsay which. Absent on a line nothing covered. Additive.')
 }))),
   "payments": zod.array(zod.object({
   "amount": zod.number(),
@@ -15444,7 +15452,8 @@ export const GetOrderResponse = zod.object({
   "org_ingredient_id": zod.uuid().nullish(),
   "price": zod.number(),
   "quantity_deducted": zod.number().nullish()
-}))
+})),
+  "reward_source": zod.string().nullish().describe('Why a covered line was free: `reward` (paid for with points or stamps)\nor `gift` (the member\'s birthday gift), so a reprint and history can\nsay which. Absent on a line nothing covered. Additive.')
 }))),
   "loyalty_redemption_refused": zod.string().nullish().describe('Set only on the response to a REPLAYED sale whose rewards the points\ncould not pay for: the covered lines stayed covered, no points moved,\nthe order is flagged. The till shows this sentence to the teller.'),
   "warnings": zod.array(zod.string()).optional().describe('Non-fatal warnings raised while placing the order — currently used to\nflag ingredients that were oversold (stock driven below zero). Empty\nfor reads\/refunds.')
@@ -17657,6 +17666,8 @@ export const loyaltyCardResponseTracksItemPositionMin = 0;
 export const LoyaltyCardResponse = zod.object({
   "balance": zod.number().describe('The live balance, in `mode`\'s currency.'),
   "birthday_gift": zod.union([zod.null(),zod.object({
+  "any_item": zod.boolean().nullish().describe('The till\'s lookup only, while `open`: every line may be the gift\n(\"any item\" is a reward here). Absent elsewhere.'),
+  "reward_item_ids": zod.array(zod.uuid()).nullish().describe('The till\'s lookup only, while `open`: the reward items the gift may be\ntaken as, whatever each costs (the whole catalogue, not only what the\nbalance affords). The till runs `madar_loyalty::gift_eligible` over\nthese and `any_item`, the server\'s own claim rule. Absent elsewhere.'),
   "status": zod.string().describe('`open` (ready to claim) or `claimed`.'),
   "valid_until": zod.iso.datetime({"offset":true}).describe('The gift is usable until this instant (end of its last day, shop time).')
 }).describe('The member\'s birthday gift while it is open, or claimed and still in\nits window. Absent otherwise.')]).optional(),
@@ -17926,6 +17937,10 @@ export const LoyaltyJoinBody = zod.object({
   "phone": zod.string()
 })
 
+export const loyaltyJoinResponseTracksItemPositionMin = 0;
+
+
+
 export const LoyaltyJoinResponse = zod.object({
   "already_member": zod.boolean().describe('True when this phone was already a member — the page says \"welcome back\"\nrather than pretending to have made a new card.'),
   "balance": zod.number().describe('The live balance, in `mode`\'s currency. Zero for a fresh member, and zero\n(not the real figure) while `verify_required`.'),
@@ -17957,6 +17972,20 @@ export const LoyaltyJoinResponse = zod.object({
   "google_url": zod.string().nullish().describe('The Google Wallet save link: the signed JWT on pay.google.com\'s save path.')
 }).describe('Absent when `verify_required`.')]).optional(),
   "stamp_unit": zod.string().nullish().describe('What one stamp stands for: `order`, `item` or `stamp` (a counter\nshop); absent for points. The join info\'s rule (`earn::StampUnit`).'),
+  "tracks": zod.array(zod.object({
+  "balance": zod.number(),
+  "can_redeem": zod.boolean(),
+  "colour": zod.string().nullish(),
+  "earns_from_sales": zod.boolean().optional().describe('The track is bound to menu items (a POS sale earns it); `false` = a\ncounter-only track.'),
+  "name_ar": zod.string(),
+  "name_en": zod.string(),
+  "points_to_next_reward": zod.number(),
+  "position": zod.number().min(loyaltyJoinResponseTracksItemPositionMin),
+  "progress_to_next": zod.number(),
+  "rewards_ready": zod.number(),
+  "shape": zod.string().nullish(),
+  "size": zod.number()
+}).describe('One track on a member\'s card, with the card\'s figures (madar-card\'s\n`track_card`). Track 1\'s figures equal the member\'s top-level ones.')).nullish().describe('Every stamp track of the member\'s card, when there is more than one:\nthe card page\'s `CardView.tracks`, the same loader. Absent for a\none-track card or points, and while `verify_required`.'),
   "verify_required": zod.boolean().describe('This phone already has a card and the device has not proved it owns the\nphone. The page should run the ordinary OTP flow (`\/public\/otp\/request`\nthen `\/public\/otp\/verify`) and POST here again with the `device_token`\nit is handed; the card comes back on that call.')
 }).describe('What the customer sees after signing up: their card, and the buttons — or,\nfor a phone that is already a member and has not been proved, an invitation\nto prove it.\n\nThe member token is a bearer credential: whoever holds it holds the card,\nthe balance, the purchase history and the wallet passes. So it is handed out\non exactly two occasions — to a NEW member, whose token nobody else could\nwant yet, and to an existing member whose device has verified THIS phone by\nOTP. Typing a phone number is not proof of owning it; anyone who knows a\ncustomer\'s number can type it.')
 

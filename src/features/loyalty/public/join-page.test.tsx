@@ -87,6 +87,40 @@ describe("the sign-up", () => {
     expect(within(card).getByText("Salma", { selector: "bdi" })).toBeInTheDocument();
   });
 
+  it("draws a returning member's every track when the answer carries them, and track 1 alone when not", async () => {
+    const { cardRulesNow } = await import("@/lib/rules/card");
+    const w = cardRulesNow()!;
+    const tracks = [
+      { position: 1, name_en: "Coffee", name_ar: "قهوة", size: null, shape: "cup", colour: null, items: [], per_item: true, cap: null },
+      { position: 2, name_en: "Sandwich", name_ar: "ساندوتش", size: 6, shape: "heart", colour: "#F2B33D", items: [], per_item: true, cap: null },
+    ];
+    const ctx = { mode: "visits" as const, tracks: [{ position: 1, size: 6 }, { position: 2, size: 6 }], has_photo: false };
+    const design = w.card_default({ background: "#0D6273", foreground: "#EFF3F4", label: "#B9DCE3" }, ctx, tracks as never);
+    info = { ...baseInfo, card: { revision: 1, design, tracks, track_one_size: 6, stamp_unit: "order" } } as JoinInfo;
+    const mt = (position: number, name_en: string, balance: number) => ({
+      position, name_en, name_ar: "", size: 6, balance, rewards_ready: Math.floor(balance / 6), progress_to_next: balance % 6,
+      points_to_next_reward: 6 - (balance % 6), can_redeem: balance >= 6,
+    });
+    api.join.mockResolvedValueOnce({ ...member, balance: 4, already_member: true, tracks: [mt(1, "Coffee", 4), mt(2, "Sandwich", 7)] });
+    const { unmount } = mount();
+    await screen.findByRole("group", { name: "Bean & Brew card" });
+    expect(screen.queryByText(/Sandwich · Reward ready/)).toBeNull();
+    await fill();
+    await getMyCard();
+    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+    expect(screen.getByText(/Sandwich · Reward ready/)).toBeInTheDocument(); // 7 of 6 on track 2
+    unmount();
+
+    // No tracks on the answer (an unproven retry, or one track): track 1 only, as before.
+    api.join.mockResolvedValueOnce({ ...member, balance: 4, already_member: true });
+    mount();
+    await screen.findByRole("group", { name: "Bean & Brew card" });
+    await fill();
+    await getMyCard();
+    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+    expect(screen.queryByText(/Sandwich · Reward ready/)).toBeNull();
+  });
+
   it("writes the name on the card as it is typed", async () => {
     mount();
     expect(screen.getByText("Your name", { selector: "bdi" })).toBeInTheDocument(); // the card's placeholder

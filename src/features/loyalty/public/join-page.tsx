@@ -257,6 +257,8 @@ function JoinFlow({
   // The card's size: the server's cheapest-reward figure when it sends one.
   const target = data.card_size ?? joined?.next_reward_cost ?? data.next_reward_cost;
   const balance = joined?.balance ?? 0;
+  // A returning member's every track (proven phone only), as the card page draws them.
+  const balances = joined?.tracks?.map((tr) => ({ position: tr.position, balance: tr.balance })) ?? [{ position: 1, balance }];
   const memberToken = joined?.member_token ?? "";
   const cardMember: LoyaltyCardMember = {
     name: joined ? joined.name : name.trim() || null,
@@ -312,7 +314,7 @@ function JoinFlow({
               name={brand.orgName}
               logoUrl={brand.logoUrl}
               photoUrl={brand.cardImageUrl}
-              balances={[{ position: 1, balance }]}
+              balances={balances}
               member={cardMember}
               classic={<LoyaltyCard brand={brand} mode={mode} unit={unit} balance={balance} target={target} member={cardMember} />}
             />
