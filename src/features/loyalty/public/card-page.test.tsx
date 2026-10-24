@@ -75,7 +75,7 @@ describe("CardPage", () => {
       { position: 1, name_en: "Coffee", name_ar: "قهوة", size: null, shape: "cup", colour: null, items: [], per_item: true, cap: null },
       { position: 2, name_en: "Sandwich", name_ar: "ساندوتش", size: 6, shape: "heart", colour: "#F2B33D", items: [], per_item: true, cap: null },
     ];
-    const ctx = { mode: "visits", tracks: [{ position: 1, size: 8 }, { position: 2, size: 6 }], has_photo: false };
+    const ctx = { mode: "visits" as const, tracks: [{ position: 1, size: 8 }, { position: 2, size: 6 }], has_photo: false };
     card = {
       ...base,
       mode: "visits",
