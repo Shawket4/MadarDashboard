@@ -6,11 +6,11 @@
  */
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { BellOff, SlidersHorizontal, UserRound } from "lucide-react";
 
 import { ErrorState } from "@/components/app/empty-state";
-import { Link } from "@/components/app/link";
+import { DashboardLink } from "@/components/app/dashboard-link";
 import { Page, PageHeader } from "@/components/app/page";
 import { ProgressBar } from "@/components/app/progress-bar";
 import { Restricted } from "@/components/app/restricted";
@@ -37,7 +37,6 @@ import { isSelling } from "@/lib/selling";
 import { rewardsAccess } from "../access";
 import { trackLabel, useTrackNames } from "../use-track-names";
 
-const routeApi = getRouteApi("/_app/rewards/members_/$memberId");
 
 /** More stamps than this read as a bar, not a row of dots. */
 const MAX_DOTS = 20;
@@ -59,7 +58,9 @@ export function RewardsMemberPage() {
 
 function MemberBody() {
   const { t, i18n } = useTranslation();
-  const { memberId } = routeApi.useParams();
+  // Not strict: the page also lives in Rewards by Madar's own router
+  // (src/rewards-app), where the route has another id.
+  const { memberId } = useParams({ strict: false }) as { memberId: string };
   const navigate = useNavigate();
   const authz = useAuthz();
   const access = rewardsAccess(authz);
@@ -130,10 +131,10 @@ function MemberBody() {
         actions={
           <>
             <Button variant="outline" size="sm" asChild>
-              <Link to="/customers" search={{ q: member.phone }}>
+              <DashboardLink to="/customers" search={{ q: member.phone }}>
                 <UserRound className="size-4" />
                 {t("rewards.member.customer", "Customer record")}
-              </Link>
+              </DashboardLink>
             </Button>
             {access.canAdjust ? (
               <Button variant="outline" size="sm" onClick={() => setAdjusting(true)}>

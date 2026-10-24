@@ -7,7 +7,7 @@ import type { Dispatch, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Lock, Plus, Trash2 } from "lucide-react";
 
-import { Link } from "@/components/app/link";
+import { DashboardLink } from "@/components/app/dashboard-link";
 import { SegmentedControl } from "@/components/app/segmented-control";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -262,9 +262,9 @@ export function StylePanel({
               "rewards.card.coloursLocked",
               "Your card wears Madar's colours: custom colours and the card photo come with custom branding, which Madar switches on. Your logo and photo are set in",
             )}{" "}
-            <Link to="/settings/brand" className="font-medium text-foreground underline underline-offset-2">
+            <DashboardLink to="/settings/brand" className="font-medium text-foreground underline underline-offset-2">
               {t("rewards.card.brandLink", "Settings › Brand")}
-            </Link>
+            </DashboardLink>
             .
           </span>
         </p>

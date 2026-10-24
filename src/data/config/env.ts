@@ -28,6 +28,17 @@ const apiBase = z.union([
 const envSchema = z.object({
   VITE_API_URL: apiBase.default("http://localhost:8080"),
   VITE_APP_NAME: z.string().default("Madar"),
+  /**
+   * Where the browser session the dashboard and Rewards by Madar share is kept
+   * (`/auth/session`, an HttpOnly cookie): the Rewards host's `/api`
+   * (`https://rewards.madar-pos.cloud/api`) in the dashboard's production
+   * build. Unset = `VITE_API_URL` (the Rewards app itself, local development).
+   */
+  VITE_SESSION_URL: apiBase.optional(),
+  /** Rewards by Madar's own host. Set, the dashboard's Rewards pages live there. */
+  VITE_REWARDS_URL: z.string().url().optional(),
+  /** The Madar dashboard, linked from Rewards by Madar. */
+  VITE_DASHBOARD_URL: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(import.meta.env);
