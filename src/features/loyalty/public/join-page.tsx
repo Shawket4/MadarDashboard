@@ -43,7 +43,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { LEGAL_URLS } from "@/config/legal";
 import { getErrorMessage } from "@/data/api/errors";
 import { useLoyaltyJoin, useLoyaltyJoinInfo } from "@/data/api/generated/api";
-import type { JoinResult } from "@/data/api/generated/models";
+import type { JoinInfo, JoinResult } from "@/data/api/generated/models";
 import { clearDeviceToken } from "@/features/public-shell/guest";
 import { stepSwap, useStepDirection } from "@/features/public-shell/motion";
 import { useHeaderHeight } from "@/features/public-shell/use-header-height";
@@ -56,10 +56,10 @@ import { fmtMoney, fmtNumber } from "@/lib/format";
 import { SwapPresence, prefersReducedMotion, usePop, useShake } from "@/lib/motion";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { resolveBrand, type ResolvedBrand } from "@/components/loyalty-card/card-brand";
-import { LoyaltyCard } from "@/components/loyalty-card/loyalty-card";
+import { LazyDesignedCard, useDesignedCard } from "@/components/loyalty-card/lazy-designed-card";
+import { LoyaltyCard, type LoyaltyCardMember } from "@/components/loyalty-card/loyalty-card";
 import { stampUnit, type StampUnit } from "@/components/loyalty-card/wording";
 
-import { stampUnitOf, type JoinInfoNext as JoinInfo } from "./api-next";
 import { PressedCard, PressRest, PressStage } from "./card-press";
 import { NAME_MAX, detailsReady, joinPayload, ruleKind } from "./join-form";
 import { LoyaltyPage, PageNotice, PageSkeleton, Section, usePageAccent } from "./page-shell";
@@ -99,10 +99,13 @@ export function JoinPage({
   const { t, i18n } = useTranslation();
   const info = useLoyaltyJoinInfo(branchId ? { branch_id: branchId } : { org_id: orgId });
   const online = useOnline();
+  // A shop with a published design: its card's code loads with the page, so
+  // the card is drawn once, in its final shape (nothing moves when it lands).
+  const designed = useDesignedCard(!!info.data?.card);
 
-  if (info.isLoading) return <PageSkeleton />;
+  if (info.isLoading || designed.pending) return <PageSkeleton />;
 
-  const data = info.data as JoinInfo | undefined;
+  const data = info.data;
   if (!data) {
     // A code that leads nowhere — a branch since closed, a link mistyped —
     // is not a network fault, and "try again" would be a lie. It gets the
@@ -250,11 +253,17 @@ function JoinFlow({
 
   // The card, as it is now: the preview at zero until there is a member.
   const mode = joined?.mode ?? data.mode;
-  const unit = stampUnit(mode, stampUnitOf(data));
+  const unit = stampUnit(mode, data.stamp_unit ?? data.card?.stamp_unit);
   // The card's size: the server's cheapest-reward figure when it sends one.
   const target = data.card_size ?? joined?.next_reward_cost ?? data.next_reward_cost;
   const balance = joined?.balance ?? 0;
   const memberToken = joined?.member_token ?? "";
+  const cardMember: LoyaltyCardMember = {
+    name: joined ? joined.name : name.trim() || null,
+    placeholder: t("loyalty.namePreview", "Your name"),
+    codePending: true,
+    qrUrl: joined ? `/api/public/loyalty/card/${encodeURIComponent(memberToken)}/qr.png` : null,
+  };
   // The Apple pass is made on demand; the page owns that wait (`card-press.tsx`).
   const pass = usePassDownload(joined?.passes?.apple_url);
   // While the membership itself is being made, the card shows it being pressed.
@@ -298,18 +307,14 @@ function JoinFlow({
       <PressStage phase={pressPhase}>
         <div ref={cardRef}>
           <PressedCard brand={brand}>
-            <LoyaltyCard
-              brand={brand}
-              mode={mode}
-              unit={unit}
-              balance={balance}
-              target={target}
-              member={{
-                name: joined ? joined.name : name.trim() || null,
-                placeholder: t("loyalty.namePreview", "Your name"),
-                codePending: true,
-                qrUrl: joined ? `/api/public/loyalty/card/${encodeURIComponent(memberToken)}/qr.png` : null,
-              }}
+            <LazyDesignedCard
+              card={data.card}
+              name={brand.orgName}
+              logoUrl={brand.logoUrl}
+              photoUrl={brand.cardImageUrl}
+              balances={[{ position: 1, balance }]}
+              member={cardMember}
+              classic={<LoyaltyCard brand={brand} mode={mode} unit={unit} balance={balance} target={target} member={cardMember} />}
             />
           </PressedCard>
         </div>

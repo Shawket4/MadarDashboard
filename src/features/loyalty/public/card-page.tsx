@@ -24,12 +24,13 @@ import { ArrowRight, CreditCard, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { resolveBrand, type ResolvedBrand } from "@/components/loyalty-card/card-brand";
-import { LoyaltyCard } from "@/components/loyalty-card/loyalty-card";
+import { LazyDesignedCard, useDesignedCard } from "@/components/loyalty-card/lazy-designed-card";
+import { LoyaltyCard, type LoyaltyCardMember } from "@/components/loyalty-card/loyalty-card";
 import { stampUnit } from "@/components/loyalty-card/wording";
 import { useLoyaltyCard } from "@/data/api/generated/api";
+import type { BirthdayGiftView, CardView } from "@/data/api/generated/models";
 import { fmtDate } from "@/lib/format";
 
-import { stampUnitOf, type BirthdayGiftView, type CardViewNext as CardView } from "./api-next";
 import { PressedCard, PressRest, PressStage } from "./card-press";
 import { CardOrders } from "./card-orders";
 import { CardPreferences } from "./card-preferences";
@@ -43,10 +44,12 @@ import { WalletButtons } from "./wallet-buttons";
 export function CardPage({ token }: { token: string }) {
   const { t, i18n } = useTranslation();
   const card = useLoyaltyCard(token);
+  // A published design: its card's code loads with the page (see the join page).
+  const designed = useDesignedCard(!!card.data?.card);
 
-  if (card.isLoading) return <PageSkeleton />;
+  if (card.isLoading || designed.pending) return <PageSkeleton />;
 
-  const data = card.data as CardView | undefined;
+  const data = card.data;
   if (!data) {
     // A link that matches no card is a fact about the link; a request that
     // failed is a fact about the connection. Only the second is worth
@@ -90,7 +93,10 @@ function Card({
   // wait, because it is the CARD that is being made — see `card-press.tsx`.
   const pass = usePassDownload(data.passes.apple_url);
   const orderNowHref = safeHttpUrl(data.order_now_url);
-  const unit = stampUnit(data.mode, stampUnitOf(data));
+  const unit = stampUnit(data.mode, data.stamp_unit ?? data.card?.stamp_unit);
+  const member: LoyaltyCardMember = { name: data.name, qrUrl: `/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png` };
+  // Every track's balance for the designed card; one track is the balance.
+  const balances = data.tracks?.map((tr) => ({ position: tr.position, balance: tr.balance })) ?? [{ position: 1, balance: data.balance }];
   const firstName = data.name?.trim().split(/\s+/)[0];
 
   return (
@@ -107,13 +113,23 @@ function Card({
       )}
       <PressStage phase={pass.phase}>
         <PressedCard brand={brand}>
-          <LoyaltyCard
-            brand={brand}
-            mode={data.mode}
-            unit={unit}
-            balance={data.balance}
-            target={data.card_size ?? data.next_reward_cost}
-            member={{ name: data.name, qrUrl: `/api/public/loyalty/card/${encodeURIComponent(token)}/qr.png` }}
+          <LazyDesignedCard
+            card={data.card}
+            name={brand.orgName}
+            logoUrl={brand.logoUrl}
+            photoUrl={brand.cardImageUrl}
+            balances={balances}
+            member={member}
+            classic={
+              <LoyaltyCard
+                brand={brand}
+                mode={data.mode}
+                unit={unit}
+                balance={data.balance}
+                target={data.card_size ?? data.next_reward_cost}
+                member={member}
+              />
+            }
           />
         </PressedCard>
 

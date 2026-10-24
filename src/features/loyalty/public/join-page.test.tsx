@@ -71,6 +71,22 @@ describe("the sign-up", () => {
     expect(api.join).not.toHaveBeenCalled();
   });
 
+  it("draws the shop's published design, live with the name and the code's kept place", async () => {
+    const { cardRulesNow } = await import("@/lib/rules/card");
+    const w = cardRulesNow()!;
+    const colours = { background: "#0D6273", foreground: "#EFF3F4", label: "#B9DCE3" };
+    const tracks = [{ position: 1, name_en: "Coffee", name_ar: "قهوة", size: null, shape: "cup", colour: null, items: [], per_item: true, cap: null }];
+    const design = w.card_default(colours, { mode: "visits", tracks: [{ position: 1, size: 6 }], has_photo: false }, tracks as never);
+    info = { ...baseInfo, card: { revision: 1, design, tracks, track_one_size: 6, stamp_unit: "order" } } as JoinInfo;
+    mount();
+    // The page holds its skeleton until the design's code is there, then draws it once.
+    const card = await screen.findByRole("group", { name: "Bean & Brew card" });
+    expect(card.querySelector("svg")).not.toBeNull();
+    expect(within(card).getByText("Your name", { selector: "bdi" })).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("Your name"), "Salma");
+    expect(within(card).getByText("Salma", { selector: "bdi" })).toBeInTheDocument();
+  });
+
   it("writes the name on the card as it is typed", async () => {
     mount();
     expect(screen.getByText("Your name", { selector: "bdi" })).toBeInTheDocument(); // the card's placeholder
@@ -200,7 +216,6 @@ describe("the sign-up", () => {
   });
 
   it("speaks the programme's unit in every line that prints a figure", async () => {
-    // wt-wafa-api sends `stamp_unit` on the join info; wt-rewards-dash-api inside `card`.
     info = {
       ...baseInfo, stamp_unit: "item",
       rewards: [{ name: "Any hot drink", cost_currency: "visits", cost_amount: 6 }, { name: "Cake", cost_currency: "visits", cost_amount: 1 }],
@@ -217,7 +232,7 @@ describe("the sign-up", () => {
     expect(await screen.findByText("Show it when you pay, and every item you buy adds a stamp.")).toBeInTheDocument();
     unmount();
 
-    info = { ...baseInfo, card: { stamp_unit: "stamp" } } as JoinInfo;
+    info = { ...baseInfo, stamp_unit: "stamp" } as JoinInfo;
     mount();
     expect(screen.getByText("Your card is stamped at the counter. Collect 6 for a reward.")).toBeInTheDocument();
     expect(screen.getByText("6 more stamps to your next reward.")).toBeInTheDocument();

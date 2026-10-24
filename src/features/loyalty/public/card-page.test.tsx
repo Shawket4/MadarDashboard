@@ -67,6 +67,35 @@ describe("CardPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "أهلاً Sara" })).toBeInTheDocument();
   });
 
+  it("draws the published design with every track's balance and the member's code", async () => {
+    const { cardRulesNow } = await import("@/lib/rules/card");
+    const w = cardRulesNow()!;
+    const colours = { background: "#0D6273", foreground: "#EFF3F4", label: "#B9DCE3" };
+    const tracks = [
+      { position: 1, name_en: "Coffee", name_ar: "قهوة", size: null, shape: "cup", colour: null, items: [], per_item: true, cap: null },
+      { position: 2, name_en: "Sandwich", name_ar: "ساندوتش", size: 6, shape: "heart", colour: "#F2B33D", items: [], per_item: true, cap: null },
+    ];
+    const ctx = { mode: "visits", tracks: [{ position: 1, size: 8 }, { position: 2, size: 6 }], has_photo: false };
+    card = {
+      ...base,
+      mode: "visits",
+      card: { revision: 2, design: w.card_default(colours, ctx, tracks as never), tracks, track_one_size: 8, stamp_unit: "stamp" },
+      tracks: [{ position: 1, balance: 3 }, { position: 2, balance: 7 }],
+    } as unknown as Partial<CardView>;
+    drawn.target = 0;
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <CardPage token="card-token" />
+      </QueryClientProvider>,
+    );
+    const designed = await screen.findByRole("group", { name: "Test Shop card" });
+    expect(designed.querySelector("svg")!.textContent).toContain("Coffee");
+    expect(screen.getByText(/Sandwich · Reward ready/)).toBeTruthy(); // 7 of 6 on track 2
+    expect(screen.getByRole("img", { name: "Your membership code" })).toBeTruthy();
+    expect(drawn.target).toBe(0); // the classic card was never drawn
+  });
+
   it("sizes the card by card_size when the server sends it", () => {
     card = { ...base, mode: "visits", next_reward_cost: 10, card_size: 8 } as Partial<CardView>;
     render(<CardPage token="card-token" />);

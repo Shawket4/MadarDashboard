@@ -17,6 +17,9 @@ import { forwardRef, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { Gift } from "lucide-react";
 
+import { useDesignedCard } from "@/components/loyalty-card/lazy-designed-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { PublicCard } from "@/data/api/generated/models";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
@@ -35,42 +38,29 @@ export interface MemberCardProps {
   redeeming?: string | null;
   disabled?: boolean;
   onRedeem: (track: Track) => void;
+  /**
+   * The shop's published design (`ScanResult.card`): the card is drawn as the
+   * member's wallet pass shows it, with the name and Complete under it. Absent:
+   * the classic card, unchanged.
+   */
+  design?: PublicCard | null;
+  /** Each track's balance, for the designed card (track 1 = the balance). */
+  balances?: { position: number; balance: number }[];
 }
 
 export const MemberCard = forwardRef<HTMLElement, MemberCardProps>(function MemberCard(
-  { shopName, name, phone, tracks, colors, redeeming, disabled, onRedeem },
+  { shopName, name, phone, tracks, colors, redeeming, disabled, onRedeem, design, balances },
   ref,
 ) {
   const { t } = useTranslation();
+  const { designed, failed } = useDesignedCard(!!design);
+  const showDesign = !!design && !failed;
   const single = tracks.length === 1 ? tracks[0] : null;
   const style = { "--card-bg": colors.bg, "--card-fg": colors.fg, backgroundColor: colors.bg, color: colors.fg } as CSSProperties;
 
-  return (
-    <section
-      ref={ref}
-      aria-label={t("rewardsTeller.cardOf", "{{name}}'s card", { name: isolate(name) })}
-      className="relative isolate overflow-hidden rounded-[28px] p-5 shadow-[0_18px_40px_-20px_rgb(0_0_0/0.45)] sm:p-6"
-      style={style}
-    >
-      <header className="flex items-start justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <img src={colors.dark ? "/symbol-paper.svg" : "/symbol-ink.svg"} alt="" className="size-8 shrink-0" />
-          <p className="truncate text-[15px] font-semibold">
-            <bdi>{shopName}</bdi>
-          </p>
-        </div>
-        {single ? (
-          // The wallet's header field: the balance, top end.
-          <div className="shrink-0 text-end leading-none">
-            <p className="text-xs opacity-75">{t("rewardsTeller.stampsLabel", "Stamps")}</p>
-            <p className="mt-1 font-mono text-2xl font-semibold tabular-nums" dir="ltr">
-              {single.filled}/{single.size}
-            </p>
-          </div>
-        ) : null}
-      </header>
-
-      <div className="mt-6 min-w-0">
+  const content = (
+    <>
+      <div className={showDesign ? "min-w-0" : "mt-6 min-w-0"}>
         <h2 className="truncate text-[28px] font-semibold leading-tight tracking-[-0.01em]">
           <bdi>{name}</bdi>
         </h2>
@@ -82,7 +72,8 @@ export const MemberCard = forwardRef<HTMLElement, MemberCardProps>(function Memb
 
       {single ? (
         <div className="mt-6 space-y-3">
-          <Strip track={single} label={t("rewardsTeller.stampsOf", "{{have}} of {{size}} stamps", { have: single.filled, size: single.size })} />
+          {/* The designed card above already draws the strip. */}
+          {showDesign ? null : <Strip track={single} label={t("rewardsTeller.stampsOf", "{{have}} of {{size}} stamps", { have: single.filled, size: single.size })} />}
           <TrackLine track={single} />
           {single.canRedeem ? (
             <RedeemButton track={single} big busy={redeeming === single.id} disabled={disabled} onRedeem={onRedeem} />
@@ -120,6 +111,54 @@ export const MemberCard = forwardRef<HTMLElement, MemberCardProps>(function Memb
         </ul>
       )}
 
+    </>
+  );
+  if (showDesign) {
+    return (
+      <div className="space-y-4">
+        {designed && design ? (
+          <designed.Card rules={designed.rules} card={design} name={shopName} memberName={name} balances={balances} />
+        ) : (
+          <Skeleton className="aspect-[375/200] w-full rounded-2xl" />
+        )}
+        <section
+          ref={ref}
+          aria-label={t("rewardsTeller.cardOf", "{{name}}'s card", { name: isolate(name) })}
+          className="relative isolate overflow-hidden rounded-[28px] p-5 shadow-[0_18px_40px_-20px_rgb(0_0_0/0.45)] sm:p-6"
+          style={style}
+        >
+          {content}
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <section
+      ref={ref}
+      aria-label={t("rewardsTeller.cardOf", "{{name}}'s card", { name: isolate(name) })}
+      className="relative isolate overflow-hidden rounded-[28px] p-5 shadow-[0_18px_40px_-20px_rgb(0_0_0/0.45)] sm:p-6"
+      style={style}
+    >
+      <header className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <img src={colors.dark ? "/symbol-paper.svg" : "/symbol-ink.svg"} alt="" className="size-8 shrink-0" />
+          <p className="truncate text-[15px] font-semibold">
+            <bdi>{shopName}</bdi>
+          </p>
+        </div>
+        {single ? (
+          // The wallet's header field: the balance, top end.
+          <div className="shrink-0 text-end leading-none">
+            <p className="text-xs opacity-75">{t("rewardsTeller.stampsLabel", "Stamps")}</p>
+            <p className="mt-1 font-mono text-2xl font-semibold tabular-nums" dir="ltr">
+              {single.filled}/{single.size}
+            </p>
+          </div>
+        ) : null}
+      </header>
+
+      {content}
     </section>
   );
 });

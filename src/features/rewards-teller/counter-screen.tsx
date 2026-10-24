@@ -41,7 +41,7 @@ import {
   useLoyaltyLookup,
   usePublicOrgBrand,
 } from "@/data/api/generated/api";
-import type { MemberView } from "@/data/api/generated/models";
+import type { MemberView, PublicCard } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { fmtTime } from "@/lib/format";
 import { usePop, useShake } from "@/lib/motion";
@@ -80,6 +80,8 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
   const [raw, setRaw] = useState("");
   const [camera, setCamera] = useState(false);
   const [member, setMember] = useState<MemberView | null>(null);
+  // The shop's published card design, from the lookup (absent: the classic card).
+  const [design, setDesign] = useState<PublicCard | null>(null);
   const [gift, setGift] = useState<GiftState | null>(null);
   const [items, setItems] = useState(1);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -182,6 +184,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
           onSuccess: (r) => {
             setMember(r.member);
             setGift(giftState(r.birthday_gift));
+            setDesign(r.card ?? null);
             setFromCamera(viaCamera);
             setItems(1);
             setRaw("");
@@ -235,6 +238,7 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
 
   const nextCustomer = () => {
     setMember(null);
+    setDesign(null);
     setGift(null);
     setNotice(null);
     setRaw("");
@@ -404,6 +408,8 @@ export function CounterScreen({ setup, onExpired }: { setup: Setup; onExpired: (
             redeeming={redeeming}
             disabled={offlineBlock || busy}
             onRedeem={(tr) => void doRedeem(tr)}
+            design={design}
+            balances={member.tracks?.map((tr) => ({ position: tr.position, balance: tr.balance })) ?? [{ position: 1, balance: member.balance }]}
           />
         </div>
 
