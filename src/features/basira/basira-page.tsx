@@ -304,8 +304,12 @@ export function BasiraPage() {
        pane. A flex item defaults to `min-height: auto`, which refuses to shrink
        below its content; the panes then grow to fit and the scrolling silently
        moves to the document -- taking the composer with it, exactly when the
-       transcript is longest and the input matters most. */
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
+       transcript is longest and the input matters most.
+
+       None of that holds unless something above has a definite height:
+       `data-workspace` makes the shell exactly the viewport tall
+       (components/ui/sidebar.tsx). */
+    <div data-workspace className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
       <div className="shrink-0 border-b border-border/70 px-4 pt-3 pb-3 sm:px-6 lg:px-8 lg:pt-4">
         <PageHeader
           title={activeTitle ?? t("basira.title", "Basira")}
@@ -348,7 +352,7 @@ export function BasiraPage() {
         </Sheet>
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div data-basira-transcript className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div className="w-full max-w-3xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
               {loadingThread ? (
                 <div className="space-y-4">
