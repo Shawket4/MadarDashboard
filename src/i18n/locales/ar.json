@@ -4799,7 +4799,13 @@
     "turnCount_many": "{{count}} سؤالًا",
     "turnCount_other": "{{count}} سؤال",
     "asAt": "أرقام بتاريخ {{when}}",
-    "stored": "محفوظ"
+    "stored": "محفوظ",
+    "slice": {
+      "hint": "اضغط على شريحة لترى أرقامها",
+      "share": "{{share}} من الإجمالي",
+      "aria": "{{label}}: {{value}}، {{share}} من الإجمالي",
+      "legend": "شرائح {{measure}}"
+    }
   },
   "reservations": {
     "notOpenTitle": "الحجز أونلاين لسه مش متاح",

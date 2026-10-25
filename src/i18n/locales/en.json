@@ -4740,7 +4740,13 @@
     "turnCount_one": "{{count}} question",
     "turnCount_other": "{{count}} questions",
     "asAt": "Figures as at {{when}}",
-    "stored": "stored"
+    "stored": "stored",
+    "slice": {
+      "hint": "Tap a slice to see its figures",
+      "share": "{{share}} of the total",
+      "aria": "{{label}}: {{value}}, {{share}} of the total",
+      "legend": "Slices of {{measure}}"
+    }
   },
   "reservations": {
     "notOpenTitle": "Online booking isn’t available yet",
