@@ -15,10 +15,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -33,50 +29,14 @@ import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { fmtMoney, fmtMoneyCompact, fmtNumber } from "@/lib/format";
+import { fmtNumber } from "@/lib/format";
 import { ChartEntrance, CountUp, useChartMotion } from "@/lib/motion";
+import { dimensionsOf, formatCell, isNumeric, measuresOf } from "./result-format";
+import { PieView } from "./result-pie";
 import type { Column, ColumnKind, ResultBlock } from "./types";
 
 /** The chart palette, in the order series are assigned. */
 const SERIES = CHART_COLORS;
-
-/**
- * Format one cell by its declared kind.
- *
- * `null` renders as an em dash, never as zero. The backend returns null for a
- * cost or margin it genuinely does not know — a missing cost snapshot — and
- * showing 0 there would read as "this item costs nothing", which is a different
- * and much worse claim than "we do not know".
- */
-function formatCell(value: unknown, kind: ColumnKind, compact = false): string {
-  if (value === null || value === undefined) return "—";
-  switch (kind) {
-    case "money":
-      return compact ? fmtMoneyCompact(Number(value)) : fmtMoney(Number(value));
-    case "count":
-      return fmtNumber(Number(value));
-    case "number":
-      return `${fmtNumber(Number(value), { maximumFractionDigits: 1 })}`;
-    case "minutes": {
-      const mins = Number(value);
-      if (mins < 60) return `${fmtNumber(Math.round(mins))}m`;
-      const h = Math.floor(mins / 60);
-      const m = Math.round(mins % 60);
-      return m === 0 ? `${h}h` : `${h}h ${m}m`;
-    }
-    case "date":
-    case "label":
-    default:
-      return String(value);
-  }
-}
-
-const dimensionsOf = (columns: Column[]) => columns.filter((c) => !isNumeric(c.kind));
-const measuresOf = (columns: Column[]) => columns.filter((c) => isNumeric(c.kind));
-
-function isNumeric(kind: ColumnKind): boolean {
-  return kind === "money" || kind === "count" || kind === "number" || kind === "minutes";
-}
 
 /** Money arrives as integer piastres; charts plot pounds so the axis reads right. */
 const plotValue = (raw: unknown, kind: ColumnKind): number | null => {
@@ -215,31 +175,16 @@ export function ResultView({ block, className }: { block: ResultBlock; className
           </ChartFrame>
         );
       case "pie":
-      case "donut": {
-        const m = measures[0];
-        if (!m) return <TableView block={block} />;
+      case "donut":
+        if (!measures[0] || !axisKey) return <TableView block={block} />;
         return (
-          <ChartFrame>
-            <PieChart>
-              <Pie
-                data={chartData}
-                dataKey={m.key}
-                nameKey={axisKey}
-                innerRadius={block.viz === "donut" ? "55%" : 0}
-                outerRadius="80%"
-                paddingAngle={1}
-                {...chartMotion}
-              >
-                {chartData.map((_, i) => (
-                  <Cell key={i} fill={SERIES[i % SERIES.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<ChartTip measures={measures} />} />
-              <Legend wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }} iconType="circle" iconSize={8} />
-            </PieChart>
-          </ChartFrame>
+          <PieView
+            block={block}
+            measure={measures[0]}
+            labelKey={axisKey}
+            donut={block.viz === "donut"}
+          />
         );
-      }
       case "heatmap":
         return <HeatmapView block={block} />;
       case "table":
