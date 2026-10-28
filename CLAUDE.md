@@ -66,6 +66,11 @@ explicit — see "Floor / tables" below. When you change a shared surface, check
 - `npm run dev:order` / `dev:demo` — the other bundles; `dev:get` / `build:get` run the
   marketing site in `site/` (`npm ci --prefix site` once first)
 - `npm run build` — typecheck (`tsc --noEmit`) then Vite build
+- **TypeScript is two packages** (here, in `site/` and in `downloads/`). `tsc` is
+  TypeScript 7, the native compiler (`@typescript/native`), and every type-check runs on
+  it. `typescript` itself stays the 6.0 API (`@typescript/typescript6`, with `tsc6`),
+  because ESLint's parser, Orval, TypeDoc and `astro check` load TypeScript as a library
+  and 7.0 ships no API. Keep both until those tools support 7.1's API.
 - `npm run test` — Vitest; `npm run lint` — ESLint (`--max-warnings 0`)
 - `npm run generate:api` — regenerate the API client (Orval)
 - `npm run tauri:dev` / `tauri:build` — desktop

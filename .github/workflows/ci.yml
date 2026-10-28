@@ -5,9 +5,10 @@ name: CI
 # only workflows were deploy.yml and release.yml, which run on a version tag
 # and run no tests at all.
 #
-#   tests  the whole Vitest suite (every *.test.ts(x) under src/, shared/ and
-#          vite/: one config, vitest.config.ts) + the madar-shared vector
-#          copies checked against the tag each one names.
+#   tests  the type-check (`tsc --noEmit`, TypeScript 7), the whole Vitest
+#          suite (every *.test.ts(x) under src/, shared/ and vite/: one config,
+#          vitest.config.ts) + the madar-shared vector copies checked against
+#          the tag each one names.
 #   site   the marketing site (site/, its own Astro package): built, then
 #          site/scripts/verify.mjs drives every page in Chrome.
 
@@ -39,6 +40,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
+
+      # The same check the deploy's `npm run build` runs, so a type error fails
+      # the pull request instead of the tag. TypeScript 7: a few seconds.
+      - name: Type-check
+        run: npx tsc --noEmit
 
       # `npm test` is `vitest run`: every test file, no filter. The
       # "byte-identical to the madar-shared checkout beside it" cases skip here
