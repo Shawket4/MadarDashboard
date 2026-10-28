@@ -4,7 +4,9 @@
   "type": "module",
   "version": "1.0.0",
   "description": "Madar downloads (downloads.madar-pos.cloud): Astro, EN/AR, baked from manifest.json",
-  "engines": { "node": ">=22.12.0" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "node scripts/prebuild.mjs && astro dev --port 5185",
     "prebuild": "node scripts/prebuild.mjs",
@@ -24,8 +26,9 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@typescript/native": "npm:typescript@^7.0.2",
     "playwright-core": "^1.63.0",
-    "typescript": "^6.0.3",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vite": "^7.3.7"
   }
 }

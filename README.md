@@ -4,7 +4,7 @@ Internal management dashboard for Madar. React + TypeScript + Vite, built around
 
 ## Stack (locked versions in `package.json`)
 
-Vite 6 · React 19 · TypeScript 5.6 · Tailwind 3.4 · shadcn/Radix · TanStack Query v5 · TanStack Table v8 · Zustand v5 · RHF v7 · Zod 3.24 · react-i18next v15 · date-fns v4 · ExcelJS · Recharts · Lucide · Sileo (toasts, via components/ui/toast) · react-router v7.
+Vite 6 · React 19 · TypeScript 7 · Tailwind 3.4 · shadcn/Radix · TanStack Query v5 · TanStack Table v8 · Zustand v5 · RHF v7 · Zod 3.24 · react-i18next v15 · date-fns v4 · ExcelJS · Recharts · Lucide · Sileo (toasts, via components/ui/toast) · react-router v7.
 
 ## Setup
 
