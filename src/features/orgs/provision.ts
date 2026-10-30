@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import { AxiosError } from "axios";
 import { z } from "zod";
 
+import { APP_TZ } from "@/data/config/constants";
 import type { ProvisionOrgRequest } from "@/data/api/generated/models";
 import { MAX_PERCENT, percentToFraction } from "./tax-rate";
 
@@ -56,7 +57,7 @@ export const STEP_FIELD: Record<StepIndex, keyof ProvisionFormValues> = {
 };
 
 export const emptyProvisionForm = (): ProvisionFormInput => ({
-  business: { name: "", slug: "", template: "", currency_code: "EGP", timezone: "Africa/Cairo", tax_rate: 0, modules: ["pos"] },
+  business: { name: "", slug: "", template: "", currency_code: "EGP", timezone: APP_TZ, tax_rate: 0, modules: ["pos"] },
   branch: { name: "", address: "", phone: "" },
   owner: { name: "", email: "", password: "", pin: "" },
 });

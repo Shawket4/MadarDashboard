@@ -101,6 +101,22 @@ describe("BranchDialog: ask who's serving at checkout", () => {
     );
   });
 
+  it("a new branch starts on the business's own zone (the scope's), not Cairo's", async () => {
+    const { useAppStore } = await import("@/data/stores/app.store");
+    const { APP_TZ } = await import("@/data/config/constants");
+    useAppStore.getState().setActiveTimezone("Asia/Dubai");
+    try {
+      const user = userEvent.setup();
+      render(<BranchDialog orgId="o1" branch={null} open onOpenChange={vi.fn()} />);
+      await user.type(screen.getByRole("textbox", { name: "Branch Name" }), "Jumeirah");
+      await user.click(screen.getByRole("button", { name: "Create" }));
+      await waitFor(() => expect(createBranch).toHaveBeenCalled());
+      expect(createBranch.mock.calls[0][0]).toMatchObject({ timezone: "Asia/Dubai" });
+    } finally {
+      useAppStore.getState().setActiveTimezone(APP_TZ);
+    }
+  });
+
   it("a warehouse never sells: no switch", async () => {
     render(<BranchDialog orgId="o1" branch={branch({ kind: "warehouse" })} open onOpenChange={vi.fn()} />);
     expect(screen.queryByRole("switch", { name: LABEL })).toBeNull();

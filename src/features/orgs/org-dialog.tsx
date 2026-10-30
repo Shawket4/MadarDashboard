@@ -22,6 +22,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import type { Org } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { APP_TZ } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { MAX_PERCENT, fractionToPercent, percentToFraction } from "./tax-rate";
@@ -94,7 +95,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
 
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: "Africa/Cairo", is_active: true, custom_branding: false, modules: ["pos"], plan: "paid", tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, require_table_for_orders: false, social: socialLinksToForm(null) },
+    defaultValues: { name: "", slug: "", currency_code: "EGP", tax_rate: 0, receipt_footer: "", timezone: APP_TZ, is_active: true, custom_branding: false, modules: ["pos"], plan: "paid", tax_inclusive: false, service_charge_rate: 0, service_charge_taxable: true, require_table_for_orders: false, social: socialLinksToForm(null) },
   });
 
   useEffect(() => {
@@ -108,7 +109,7 @@ export function OrgDialog({ org, open, onOpenChange }: Props) {
         currency_code: org?.currency_code ?? "EGP",
         tax_rate: fractionToPercent(org?.tax_rate),
         receipt_footer: org?.receipt_footer ?? "",
-        timezone: org?.timezone ?? "Africa/Cairo",
+        timezone: org?.timezone ?? APP_TZ,
         is_active: org?.is_active ?? true,
         custom_branding: org?.custom_branding ?? false,
         plan: org?.plan === "free" ? "free" : "paid",

@@ -4,6 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { MapPin, Printer, Store, Warehouse } from "lucide-react";
 
+import { APP_TZ } from "@/data/config/constants";
+import { useAppStore } from "@/data/stores/app.store";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { useOrgModules } from "@/hooks/use-org-modules";
 import { useHasFeature } from "@/hooks/use-plan";
@@ -28,6 +30,13 @@ import { invalidateBranches } from "./util";
 
 import { MAX_PERCENT, fractionToPercent, percentToFraction } from "@/features/orgs/tax-rate";
 const numOrNull = (v: number | undefined) => (v === undefined || Number.isNaN(v) ? null : v);
+
+/**
+ * A new branch starts on the business's own zone: the scope's (the org's on
+ * "All branches"; `useSyncTimezone`), else Madar's default. Never a zone written
+ * here: a second branch of a Dubai business is in Dubai until the owner says not.
+ */
+const newBranchZone = () => useAppStore.getState().activeTimezone || APP_TZ;
 
 interface Props {
   orgId: string;
@@ -80,7 +89,7 @@ export function BranchDialog({ orgId, branch, defaultKind = "branch", open, onOp
   const form = useForm<z.input<typeof schema>, unknown, Values>({
     resolver: zodResolver(schema),
     defaultValues: {
-      kind: "branch", name: "", phone: "", address: "", timezone: "Africa/Cairo", is_active: true,
+      kind: "branch", name: "", phone: "", address: "", timezone: newBranchZone(), is_active: true,
       printer_brand: "none", printer_ip: "", printer_port: 9100,
       latitude: undefined, longitude: undefined, geo_radius_meters: 200,
       tax_override: false, tax_rate: 0, tax_inclusive: false,
@@ -105,7 +114,7 @@ export function BranchDialog({ orgId, branch, defaultKind = "branch", open, onOp
         name: branch?.name ?? "",
         phone: branch?.phone ?? "",
         address: branch?.address ?? "",
-        timezone: branch?.timezone ?? "Africa/Cairo",
+        timezone: branch?.timezone ?? newBranchZone(),
         is_active: branch?.is_active ?? true,
         printer_brand: (branch?.printer_brand as "star" | "epson") ?? "none",
         printer_ip: branch?.printer_ip ?? "",
