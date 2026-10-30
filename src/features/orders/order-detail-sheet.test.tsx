@@ -4,7 +4,7 @@
  * stays plain text otherwise, and a deleted member is never a link.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -149,5 +149,58 @@ describe("OrderDetailSheet — the customer", () => {
     expect(screen.queryByRole("note")).not.toBeInTheDocument();
     const opts = useGetCustomer.mock.calls[useGetCustomer.mock.calls.length - 1][1] as { query: { enabled: boolean } };
     expect(opts.query.enabled).toBe(false);
+  });
+});
+
+describe("OrderDetailSheet — who sold it (TELLER_PICK)", () => {
+  /** The value beside a row's label. */
+  const rowValue = (label: string) => screen.getByText(label, { selector: "span" }).nextElementSibling?.textContent;
+  const people = { teller_id: "u-mona", teller_name: "Mona Adel", started_by: null, started_by_name: null };
+
+  beforeEach(() => {
+    held = [];
+  });
+
+  it("the Teller is the person picked at checkout, and Signed in names who was signed in", () => {
+    order = { ...baseOrder, ...people, sold_by: "u-karim", sold_by_name: "Karim Saleh" } as never;
+    mount();
+    expect(rowValue("Teller")).toBe("Karim Saleh");
+    expect(rowValue("Signed in")).toBe("Mona Adel");
+  });
+
+  it("says Signed in in formal Arabic, beside the Teller's own word (الصراف)", async () => {
+    order = { ...baseOrder, ...people, sold_by: "u-karim", sold_by_name: "Karim Saleh" } as never;
+    await i18n.changeLanguage("ar");
+    try {
+      mount();
+      expect(rowValue("الصراف")).toBe("Karim Saleh");
+      expect(rowValue("مسجّل الدخول")).toBe("Mona Adel");
+    } finally {
+      await i18n.changeLanguage("en");
+    }
+  });
+
+  it("no Signed in row when the signed-in person picked themselves", () => {
+    order = { ...baseOrder, ...people, sold_by: "u-mona", sold_by_name: "Mona Adel" } as never;
+    mount();
+    expect(rowValue("Teller")).toBe("Mona Adel");
+    expect(screen.queryByText("Signed in")).not.toBeInTheDocument();
+  });
+
+  it("with nobody picked it reads as before: the signed-in person, no Signed in row", () => {
+    order = { ...baseOrder, ...people, sold_by: null, sold_by_name: null } as never;
+    mount();
+    expect(rowValue("Teller")).toBe("Mona Adel");
+    expect(screen.queryByText("Signed in")).not.toBeInTheDocument();
+  });
+
+  it("Started by still compares against the signed-in person", () => {
+    order = { ...baseOrder, ...people, sold_by: "u-karim", sold_by_name: "Karim Saleh", started_by: "u-karim", started_by_name: "Karim Saleh" } as never;
+    mount();
+    expect(rowValue("Started by")).toBe("Karim Saleh");
+    order = { ...baseOrder, ...people, sold_by: "u-karim", sold_by_name: "Karim Saleh", started_by: "u-mona", started_by_name: "Mona Adel" } as never;
+    cleanup();
+    mount();
+    expect(screen.queryByText("Started by")).not.toBeInTheDocument();
   });
 });

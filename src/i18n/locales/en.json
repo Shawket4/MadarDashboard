@@ -495,6 +495,9 @@
     "taxOverrideHint": "Off, it follows the organisation's tax settings and changes to them apply here automatically.",
     "oldBillHours": "Flag open bills as old after (hours)",
     "standardFloat": "Standard drawer float",
+    "pickTeller": "Ask who's serving at checkout",
+    "pickTellerHint": "Tills on POS 0.18 or newer ask who is serving before taking payment.",
+    "pickTellerHintDawam": "People clocked in on Dawam come first.",
     "deleteTitle": "Delete {{name}}?",
     "deleteDescription": "Its tills, printer settings and stock levels go with it. Past orders stay in reports.",
     "empty": "Branches you add appear here",
@@ -2033,6 +2036,7 @@
     "emptyBody": "Sales rung on the POS for this branch and period appear here.",
     "takeaway": "Takeaway",
     "startedBy": "Started by",
+    "signedIn": "Signed in",
     "staffDrink": "Staff drink",
     "staffCompAddon": "given free {{amount}}",
     "staffLineNormal": "Normal price, with extras",
@@ -3940,6 +3944,10 @@
     "branch": "Branch",
     "tips": "Tips",
     "tipsCash": "of which cash",
+    "byPerson": {
+      "title": "By person",
+      "hint": "Who served each sale: the person picked at checkout, or whoever was signed in when nobody was picked."
+    },
     "openTill": "Open till",
     "closeTill": "Close till",
     "cashRequired": "Enter the counted cash.",

@@ -97,6 +97,13 @@ export interface SettleOpenTicketRequest {
      * @nullable
      */
   settled_at?: string | null;
+  /**
+     * Who was picked as serving at checkout, on a branch that asks
+     * (`branches.pick_teller_at_checkout`). Same rule as `sold_by` on an
+     * order: attribution only, never a reason to refuse the settle. Additive.
+     * @nullable
+     */
+  sold_by?: string | null;
   till_id: string;
   /** @nullable */
   tip_amount?: number | null;

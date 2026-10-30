@@ -126,6 +126,16 @@ export interface CreateOrderRequest {
      */
   service_mode?: string | null;
   /**
+     * Who was picked as serving at checkout, on a branch that asks
+     * (`branches.pick_teller_at_checkout`). Attribution only: `teller_id`
+     * stays the signed-in person. Recorded when it names someone who can
+     * ring sales at the branch (on replay: someone of the org); anything else
+     * is recorded as nobody with a warning, never refused. Additive; older
+     * tills omit it.
+     * @nullable
+     */
+  sold_by?: string | null;
+  /**
      * The person who started this sale's cart, when the till says it was not
      * the person ringing it (a held order resumed after a teller switch).
      * Recorded when it names someone of the same org; anything else is

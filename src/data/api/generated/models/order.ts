@@ -227,6 +227,19 @@ export interface Order {
   /** DEPRECATED: same value as `till_id` (required by POS v0.5.1/v0.6.0). */
   shift_id: string;
   /**
+     * Who was picked as serving at checkout, on a branch that asks
+     * (`branches.pick_teller_at_checkout`). Attribution only: `teller_id`
+     * stays the signed-in person (the drawer, the money permissions).
+     * `null` when nobody was picked. Additive.
+     * @nullable
+     */
+  sold_by?: string | null;
+  /**
+     * That person's name. Additive.
+     * @nullable
+     */
+  sold_by_name?: string | null;
+  /**
      * Who started this sale's cart when it is not the person who rang it: a
      * held order resumed after a teller switch on the till. `null` otherwise.
      * Additive.

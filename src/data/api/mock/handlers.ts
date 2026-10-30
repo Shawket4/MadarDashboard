@@ -37,6 +37,7 @@ import {
   MOCK_MENU_CATALOG,
   MOCK_MENU_ITEMS,
   MOCK_ORDERS_PAGE,
+  mockOrderDetail,
   MOCK_ORG,
   MOCK_ORG_ID,
   MOCK_PO_LINES,
@@ -421,9 +422,12 @@ export const handlers = [
   http.get("*/authz/me", () =>
     HttpResponse.json(defaultsFor(MOCK_USER.role, MOCK_USER.id)),
   ),
-  http.get("*/me", () =>
-    HttpResponse.json({ user: MOCK_USER, currency_code: "EGP", tax_rate: 0.14 }),
-  ),
+  // The plan the session already has (`?mock_plan=free` previews Free): without
+  // it, the shell's plan sync read this answer as "unknown" and undid the preview.
+  http.get("*/me", () => {
+    const { plan, addons } = useAuthStore.getState();
+    return HttpResponse.json({ user: MOCK_USER, currency_code: "EGP", tax_rate: 0.14, plan, addons });
+  }),
   // The current user's permission list (auth bootstrap). Scoped to the real API
   // path so it can't shadow Vite's "/src/routes/_app/permissions.tsx" module URL.
   http.get("*/permissions/user/*", () => HttpResponse.json({ permissions: [] })),
@@ -640,10 +644,10 @@ export const handlers = [
 
   // ── Orders ────────────────────────────────────────────────────────────────
   http.get("*/orders", () => HttpResponse.json(MOCK_ORDERS_PAGE)),
-  // One order, for the sheet. Only the sales behind the seeded staff drinks
-  // exist in full; anything else falls through as it did before this handler.
+  // One order, for the sheet: the sales behind the seeded staff drinks, and
+  // every seeded list row; anything else falls through as it did before.
   http.get("*/orders/:id", ({ params }) => {
-    const found = mockStaffOrder(params.id as string);
+    const found = mockStaffOrder(params.id as string) ?? mockOrderDetail(params.id as string);
     return found ? HttpResponse.json(found) : undefined;
   }),
 

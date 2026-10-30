@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTillReport, useTillSummary } from "./api";
 import { FlagBadge, VerificationBadge } from "./till-badges";
 import { ReconciliationTable } from "./reconciliation-table";
+import { TillByPerson } from "./till-by-person";
 import { TillDeductions } from "./till-deductions";
 import { TillSpotViews } from "./till-spot-views";
 import { fmtDateTime, fmtMoney, fmtMoneySigned } from "@/lib/format";
@@ -157,6 +158,9 @@ export function TillReportSheet({ tillId, open, onOpenChange, onOpenTill }: Prop
                   ) : null}
                 </CardContent>
               </Card>
+
+              {/* Only when someone on this till was picked at checkout; absent otherwise. */}
+              <TillByPerson lines={report.by_person} />
 
               <ReconciliationTable lines={report.reconciliation ?? []} />
 

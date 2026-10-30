@@ -12,6 +12,7 @@ import type { TillSessionRow } from "@/data/api/generated/models/tillSessionRow"
 import type { BranchSalesReport } from "@/data/api/generated/models/branchSalesReport";
 import type { DeliverySalesReport } from "@/data/api/generated/models/deliverySalesReport";
 import type { Order } from "@/data/api/generated/models/order";
+import type { OrderFull } from "@/data/api/generated/models/orderFull";
 import type { OrderSummary } from "@/data/api/generated/models/orderSummary";
 import type { PaginatedOrders } from "@/data/api/generated/models/paginatedOrders";
 import type { PeakHourPoint } from "@/data/api/generated/models/peakHourPoint";
@@ -104,6 +105,8 @@ export const MOCK_BRANCHES: Branch[] = BRANCH_SEEDS.map((b) => ({
   printer_port: null,
   old_bill_hours: 3,
   standard_float: null,
+  // Zamalek runs one shared till: it asks who is serving at checkout.
+  pick_teller_at_checkout: b.id === "br_zamalek",
   created_at: "2026-01-04T08:00:00Z",
   updated_at: NOW_ISO,
 }));
@@ -474,6 +477,8 @@ interface OrderSeed {
   ref: string;
   num: number;
   teller: string;
+  /** Picked at checkout on Zamalek's shared till (`sold_by`); absent = nobody was picked. */
+  soldBy?: string;
   status: "completed" | "voided";
   method: string;
   type: "dine_in" | "delivery";
@@ -483,17 +488,18 @@ interface OrderSeed {
 }
 
 const ORDER_SEEDS: OrderSeed[] = [
-  { ref: "ZM-260616-0042", num: 42, teller: "Mona Adel", status: "completed", method: "cash", type: "dine_in", total: 14_500, minsAgo: 6 },
+  { ref: "ZM-260616-0042", num: 42, teller: "Mona Adel", soldBy: "Karim Saleh", status: "completed", method: "cash", type: "dine_in", total: 14_500, minsAgo: 6 },
   { ref: "ZM-260616-0041", num: 41, teller: "Karim Saleh", status: "completed", method: "card", type: "delivery", channel: "outside", total: 21_900, minsAgo: 18 },
-  { ref: "ZM-260616-0040", num: 40, teller: "Mona Adel", status: "completed", method: "talabat_online", type: "delivery", channel: "in_mall", total: 18_750, minsAgo: 35 },
+  { ref: "ZM-260616-0040", num: 40, teller: "Mona Adel", soldBy: "Mona Adel", status: "completed", method: "talabat_online", type: "delivery", channel: "in_mall", total: 18_750, minsAgo: 35 },
   { ref: "ZM-260616-0039", num: 39, teller: "Youssef Nabil", status: "voided", method: "cash", type: "dine_in", total: 9_200, minsAgo: 52 },
-  { ref: "ZM-260616-0038", num: 38, teller: "Karim Saleh", status: "completed", method: "digital_wallet", type: "dine_in", total: 27_300, minsAgo: 74 },
+  { ref: "ZM-260616-0038", num: 38, teller: "Karim Saleh", soldBy: "Youssef Nabil", status: "completed", method: "digital_wallet", type: "dine_in", total: 27_300, minsAgo: 74 },
   { ref: "ZM-260616-0037", num: 37, teller: "Mona Adel", status: "completed", method: "talabat_cash", type: "delivery", channel: "outside", total: 16_400, minsAgo: 96 },
   { ref: "ZM-260616-0036", num: 36, teller: "Youssef Nabil", status: "completed", method: "card", type: "dine_in", total: 11_850, minsAgo: 121 },
   { ref: "ZM-260616-0035", num: 35, teller: "Karim Saleh", status: "completed", method: "cash", type: "dine_in", total: 8_600, minsAgo: 158 },
 ];
 
 const BASE_MS = Date.UTC(2026, 5, 16, 9, 24, 0);
+const tellerIdOf = (name: string) => `tel_${name.split(" ")[0].toLowerCase()}`;
 
 const MOCK_ORDERS = ORDER_SEEDS.map((o) => {
   const subtotal = Math.round(o.total / 1.14);
@@ -503,8 +509,10 @@ const MOCK_ORDERS = ORDER_SEEDS.map((o) => {
     id: `ord_${o.num}`,
     branch_id: "br_zamalek",
     shift_id: "shift_demo",
-    teller_id: `tel_${o.teller.split(" ")[0].toLowerCase()}`,
+    teller_id: tellerIdOf(o.teller),
     teller_name: o.teller,
+    sold_by: o.soldBy ? tellerIdOf(o.soldBy) : null,
+    sold_by_name: o.soldBy ?? null,
     order_number: o.num,
     order_ref: o.ref,
     status: o.status,
@@ -521,6 +529,27 @@ const MOCK_ORDERS = ORDER_SEEDS.map((o) => {
     updated_at: created,
   } as unknown as Order;
 });
+
+/**
+ * `GET /orders/{id}` for a seeded list order: the list row with one line, so
+ * the detail sheet opens on every row (who sold it, who was signed in).
+ */
+export function mockOrderDetail(orderId: string): OrderFull | null {
+  const o = MOCK_ORDERS.find((x) => x.id === orderId);
+  if (!o) return null;
+  return {
+    ...o,
+    payment_legs: [],
+    payments: [],
+    items: [
+      {
+        id: `oi_${o.id}`, order_id: o.id, menu_item_id: "mi_latte", item_name: "Latte", name_translations: { ar: "لاتيه" },
+        size_label: null, quantity: 1, unit_price: o.subtotal, line_total: o.subtotal, line_cost: null,
+        addons: [], optionals: [], deductions_snapshot: [],
+      },
+    ],
+  } as unknown as OrderFull;
+}
 
 export const MOCK_ORDERS_PAGE: PaginatedOrders = {
   data: MOCK_ORDERS,
@@ -860,6 +889,23 @@ export const MOCK_CURRENT_TILL = {
   suggested_opening_cash: 100_000,
 };
 
+/**
+ * TillPersonLine[]: the till's sales by who served them, largest first, adding
+ * up to the payment summary (one line for sales nobody was picked or named for).
+ */
+function byPerson(total: number, summary: { order_count: number }[]) {
+  const orders = summary.reduce((s, p) => s + p.order_count, 0);
+  const karim = Math.round(total * 0.46);
+  const mona = Math.round(total * 0.33);
+  const youssef = Math.round(total * 0.19);
+  return [
+    { person_id: "tel_karim", name: "Karim Saleh", order_count: Math.round(orders * 0.45), total: karim, tips: 0 },
+    { person_id: "tel_mona", name: "Mona Adel", order_count: Math.round(orders * 0.34), total: mona, tips: 0 },
+    { person_id: "tel_youssef", name: "Youssef Nabil", order_count: Math.round(orders * 0.19), total: youssef, tips: 0 },
+    { person_id: null, name: null, order_count: orders - Math.round(orders * 0.45) - Math.round(orders * 0.34) - Math.round(orders * 0.19), total: total - karim - mona - youssef, tips: 0 },
+  ];
+}
+
 /** ShiftReportResponse keyed by shift id (settlement / payment breakdown). */
 function shiftReport(shiftId: string) {
   const shift = MOCK_SHIFTS.find((s) => s.id === shiftId) ?? MOCK_SHIFTS[1];
@@ -896,6 +942,8 @@ function shiftReport(shiftId: string) {
     cash_movements_in,
     cash_movements_out,
     cash_movements_net: cash_movements_in - cash_movements_out,
+    // Only Zamalek asks who is serving; another till's report has no key at all.
+    ...(shift.branch_id === "br_zamalek" ? { by_person: byPerson(total_payments, payment_summary) } : {}),
     spot_views: MOCK_TILL_SPOT_VIEWS(shift.id),
     printed_at: NOW_ISO,
   };
