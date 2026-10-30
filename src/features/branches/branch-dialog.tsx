@@ -17,7 +17,7 @@ import { egpToPiastres, piastresToEgp } from "@/lib/format";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TimezoneSelect } from "@/components/app/timezone-select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { createBranch, patchBranch } from "@/data/api/generated/api";
 import type { Branch, BranchKind, UpdateBranchRequest } from "@/data/api/generated/models";
 import { SegmentedControl } from "@/components/app/segmented-control";
@@ -68,6 +68,8 @@ export function BranchDialog({ orgId, branch, defaultKind = "branch", open, onOp
         // Tills (TILLS_CONTRACT §2.5): open bills turn "old" after N hours; the drawer float the Z report suggests keeping.
         old_bill_hours: z.coerce.number<number>().int().min(1).max(168),
         standard_float: z.coerce.number<number>().min(0).optional(),
+        // Tills ask who is serving before payment and record them as the order's `sold_by` (attribution only).
+        pick_teller_at_checkout: z.boolean(),
       }),
     [t],
   );
@@ -81,7 +83,7 @@ export function BranchDialog({ orgId, branch, defaultKind = "branch", open, onOp
       latitude: undefined, longitude: undefined, geo_radius_meters: 200,
       tax_override: false, tax_rate: 0, tax_inclusive: false,
       service_charge_rate: 0, service_charge_taxable: true,
-      old_bill_hours: 3, standard_float: undefined,
+      old_bill_hours: 3, standard_float: undefined, pick_teller_at_checkout: false,
     },
   });
   const printerBrand = form.watch("printer_brand");
@@ -118,6 +120,7 @@ export function BranchDialog({ orgId, branch, defaultKind = "branch", open, onOp
         service_charge_taxable: branch?.service_charge_taxable ?? true,
         old_bill_hours: branch?.old_bill_hours ?? 3,
         standard_float: branch?.standard_float == null ? undefined : piastresToEgp(branch.standard_float),
+        pick_teller_at_checkout: branch?.pick_teller_at_checkout ?? false,
       });
     }
   }, [open, branch, defaultKind, form]);
@@ -143,7 +146,11 @@ export function BranchDialog({ orgId, branch, defaultKind = "branch", open, onOp
       service_charge_rate: v.tax_override ? percentToFraction(v.service_charge_rate) : null,
       service_charge_taxable: v.tax_override ? v.service_charge_taxable : null,
     };
-    const tills: Pick<UpdateBranchRequest, "old_bill_hours" | "standard_float"> = { old_bill_hours: v.old_bill_hours, standard_float: v.standard_float == null || Number.isNaN(v.standard_float) ? null : egpToPiastres(v.standard_float) };
+    const tills: Pick<UpdateBranchRequest, "old_bill_hours" | "standard_float" | "pick_teller_at_checkout"> = {
+      old_bill_hours: v.old_bill_hours,
+      standard_float: v.standard_float == null || Number.isNaN(v.standard_float) ? null : egpToPiastres(v.standard_float),
+      pick_teller_at_checkout: v.pick_teller_at_checkout,
+    };
     setBusy(true);
     try {
       if (branch) await patchBranch(branch.id, { ...base, ...tills, is_active: v.is_active, ...(v.kind !== branch.kind ? { kind: v.kind } : {}) });
@@ -223,6 +230,19 @@ export function BranchDialog({ orgId, branch, defaultKind = "branch", open, onOp
                 <FormItem><FormLabel>{t("branches.standardFloat", "Standard drawer float")}</FormLabel><FormControl><Input type="number" min={0} step="0.01" {...field} value={(field.value as number | undefined) ?? ""} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>}
+            {isWarehouse ? null : (
+              <FormField control={form.control} name="pick_teller_at_checkout" render={({ field }) => (
+                <FormItem className="rounded-lg bg-muted p-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <FormLabel className="font-normal">{t("branches.pickTeller", "Ask who's serving at checkout")}</FormLabel>
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                  </div>
+                  <FormDescription className="text-xs">
+                    {t("branches.pickTellerHint", "Tills ask who is serving before taking payment. With Dawam on, people clocked in come first.")}
+                  </FormDescription>
+                </FormItem>
+              )} />
+            )}
             <FormField control={form.control} name="address" render={({ field }) => (
               <FormItem><FormLabel>{t("branches.address", "Address")}</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
             )} />

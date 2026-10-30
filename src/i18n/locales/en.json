@@ -495,6 +495,8 @@
     "taxOverrideHint": "Off, it follows the organisation's tax settings and changes to them apply here automatically.",
     "oldBillHours": "Flag open bills as old after (hours)",
     "standardFloat": "Standard drawer float",
+    "pickTeller": "Ask who's serving at checkout",
+    "pickTellerHint": "Tills ask who is serving before taking payment. With Dawam on, people clocked in come first.",
     "deleteTitle": "Delete {{name}}?",
     "deleteDescription": "Its tills, printer settings and stock levels go with it. Past orders stay in reports.",
     "empty": "Branches you add appear here",
