@@ -66,6 +66,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_SIGNING_IDENTITY: "-"
+          # The web build (tsc + vite) outgrew Node's default heap on the 7 GB
+          # Apple Silicon runner (v1.14.0: "JavaScript heap out of memory").
+          NODE_OPTIONS: --max-old-space-size=6144
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Madar Dashboard ${{ github.ref_name }}"
