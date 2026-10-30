@@ -422,9 +422,12 @@ export const handlers = [
   http.get("*/authz/me", () =>
     HttpResponse.json(defaultsFor(MOCK_USER.role, MOCK_USER.id)),
   ),
-  http.get("*/me", () =>
-    HttpResponse.json({ user: MOCK_USER, currency_code: "EGP", tax_rate: 0.14 }),
-  ),
+  // The plan the session already has (`?mock_plan=free` previews Free): without
+  // it, the shell's plan sync read this answer as "unknown" and undid the preview.
+  http.get("*/me", () => {
+    const { plan, addons } = useAuthStore.getState();
+    return HttpResponse.json({ user: MOCK_USER, currency_code: "EGP", tax_rate: 0.14, plan, addons });
+  }),
   // The current user's permission list (auth bootstrap). Scoped to the real API
   // path so it can't shadow Vite's "/src/routes/_app/permissions.tsx" module URL.
   http.get("*/permissions/user/*", () => HttpResponse.json({ permissions: [] })),
