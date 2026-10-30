@@ -22,6 +22,7 @@
  * thing a person can act on; a hung tab is not.
  */
 import i18n from "@/i18n";
+import { fmtNumber } from "@/lib/format";
 
 /**
  * The most rows one file may carry. Roughly a 5–10 MB workbook and under a
@@ -51,8 +52,8 @@ class ExportTooLargeError extends Error {
   constructor(public readonly rows: number) {
     super(
       i18n.t("export.tooLarge", {
-        rows: rows.toLocaleString(),
-        max: EXPORT_ROW_CEILING.toLocaleString(),
+        rows: fmtNumber(rows),
+        max: fmtNumber(EXPORT_ROW_CEILING),
         defaultValue:
           "That is about {{rows}} rows, and a spreadsheet built in the browser tops out around {{max}}. Narrow the dates or the branch and try again.",
       }),

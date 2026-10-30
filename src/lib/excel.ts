@@ -12,7 +12,7 @@ import { toast } from "@/components/ui/toast";
 import i18n from "@/i18n";
 import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";
-import { fmtDateTimeFull, getActiveTz } from "@/lib/format";
+import { businessDate, fmtDateTimeFull, getActiveTz } from "@/lib/format";
 
 export type ColumnType = "text" | "money" | "moneyRaw" | "number" | "integer" | "percent" | "date" | "dateTime" | "bool";
 
@@ -341,7 +341,7 @@ export async function exportToCsv(config: CsvConfig): Promise<void> {
     sheet.columns.map((c) => csvValue(c.accessor(row), c.type)).join(","),
   );
   const blob = new Blob([[header, ...lines].join("\r\n")], { type: "text/csv;charset=utf-8" });
-  downloadBlob(blob, `${config.filename}-${new Date().toISOString().slice(0, 10)}.csv`);
+  downloadBlob(blob, `${config.filename}-${businessDate()}.csv`); // the shop's today, not UTC's
   toast.success(t("excel.done", { count: sheet.rows.length, defaultValue: `Exported ${sheet.rows.length} rows` }));
 }
 
@@ -382,7 +382,7 @@ export async function exportToExcel(config: ExcelConfig): Promise<void> {
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
-    downloadBlob(blob, `${config.filename}-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    downloadBlob(blob, `${config.filename}-${businessDate()}.xlsx`); // the shop's today, not UTC's
 
     const total = config.sheets.reduce((s, sh) => s + sh.rows.length, 0);
     toast.success(t("excel.done", { count: total, defaultValue: `Exported ${total} rows` }), { id: toastId });
