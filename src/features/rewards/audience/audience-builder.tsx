@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, X } from "lucide-react";
 
+import { monthNames } from "@/components/inputs/birthday";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,7 +22,7 @@ import type { Rule } from "@/data/api/generated/models";
 import { cn } from "@/lib/utils";
 
 import { useCardRules } from "../use-card-rules";
-import { PRESETS, RULE_TYPES, audienceProblemText, newRule, presetLabel, ruleTypeLabel, sameRules } from "./rules";
+import { PRESETS, RULE_TYPES, audienceProblemText, newRule, presetLabel, ruleTypeLabel, sameRules, thisMonth } from "./rules";
 
 export interface TrackName {
   position: number;
@@ -45,16 +46,13 @@ export function AudienceBuilder({
   className?: string;
 }) {
   const { t, i18n } = useTranslation();
-  const month = new Date().getMonth() + 1;
+  const month = thisMonth();
   const { rules: card } = useCardRules();
   const problems = useMemo(
     () => (card ? card.audience_validate({ rules }, Math.max(1, tracks.length)) : []),
     [card, rules, tracks.length],
   );
-  const months = useMemo(() => {
-    const fmt = new Intl.DateTimeFormat(i18n.language, { month: "long" });
-    return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(2024, i, 15)));
-  }, [i18n.language]);
+  const months = useMemo(() => monthNames(i18n.language), [i18n.language]);
 
   const set = (i: number, r: Rule) => onChange(rules.map((x, j) => (j === i ? r : x)));
   const remove = (i: number) => onChange(rules.filter((_, j) => j !== i));

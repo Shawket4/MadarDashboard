@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/toast";
 import { Ban, MessageSquare } from "lucide-react";
 
+import { monthNames } from "@/components/inputs/birthday";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
 import { StatusPill } from "@/components/app/status-pill";
@@ -38,10 +39,7 @@ export function BroadcastLog({
 }) {
   const { t, i18n } = useTranslation();
   const { tracks } = useTrackNames();
-  const months = useMemo(() => {
-    const fmt = new Intl.DateTimeFormat(i18n.language, { month: "long" });
-    return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(2024, i, 15)));
-  }, [i18n.language]);
+  const months = useMemo(() => monthNames(i18n.language), [i18n.language]);
 
   return (
     <section className="space-y-3">

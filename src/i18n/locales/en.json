@@ -8439,6 +8439,7 @@
       "now": "Send now",
       "later": "Schedule",
       "at": "Send at",
+      "atZone": "On the shop's clock ({{tz}}).",
       "scheduleAction": "Schedule message",
       "sendAction": "Send message",
       "counting": "Counting…",

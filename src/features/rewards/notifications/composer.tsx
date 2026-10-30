@@ -29,7 +29,10 @@ import {
 } from "@/data/api/generated/api";
 import type { Limits, Rule } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
+import { APP_TZ } from "@/data/config/constants";
+import { useAppStore } from "@/data/stores/app.store";
 import { fmtDateTime, fmtNumber } from "@/lib/format";
+import { fromZonedInput, toZonedInput } from "@/lib/zoned-input";
 import type { CardRules } from "@/lib/rules/card";
 
 import { AudienceBuilder } from "../audience/audience-builder";
@@ -37,11 +40,12 @@ import { useAudienceValid } from "../audience/use-audience-valid";
 import { useCardRules } from "../use-card-rules";
 import { useTrackNames } from "../use-track-names";
 import { MessagePreview } from "./message-preview";
-import { messageProblemText, minutesAhead, scheduleOk, toLocalInput } from "./util";
+import { messageProblemText, minutesAhead, scheduleOk } from "./util";
 
 const DEBOUNCE_MS = 400;
 
-const composerSchema = (card: CardRules | undefined, limits: Limits) =>
+/** `tz`: the shop's zone (the scope's), which the schedule is typed and read in. */
+const composerSchema = (card: CardRules | undefined, limits: Limits, tz: string) =>
   z
     .object({
       en: z.string(),
@@ -55,7 +59,7 @@ const composerSchema = (card: CardRules | undefined, limits: Limits) =>
         if (p.severity !== "error") continue;
         ctx.addIssue({ code: "custom", path: [p.path === "message.ar" ? "ar" : "en"], message: p.code });
       }
-      if (v.when === "later" && !scheduleOk(minutesAhead(v.at), limits)) {
+      if (v.when === "later" && !scheduleOk(minutesAhead(v.at, tz), limits)) {
         ctx.addIssue({ code: "custom", path: ["at"], message: "schedule" });
       }
     });
@@ -74,10 +78,13 @@ export function Composer({ limits, atLimit }: { limits: Limits; atLimit: boolean
   const audienceValid = useAudienceValid(rules, tracks.length);
   const count = useCountLoyaltyBroadcastAudience();
   const create = useCreateLoyaltyBroadcast();
-  const ids = { en: useId(), ar: useId(), at: useId(), wa: useId() };
+  const ids = { en: useId(), ar: useId(), at: useId(), atZone: useId(), wa: useId() };
+  // The schedule is on the shop's clock (branch → org, `useSyncTimezone`), not
+  // the laptop's: an owner abroad types the shop's time.
+  const tz = useAppStore((s) => s.activeTimezone) || APP_TZ;
 
   const form = useForm<ComposerValues>({
-    resolver: (values, context, options) => zodResolver(composerSchema(card, limits))(values, context, options),
+    resolver: (values, context, options) => zodResolver(composerSchema(card, limits, tz))(values, context, options),
     defaultValues: { en: "", ar: "", when: "now", at: "", whatsapp: false },
   });
   const v = form.watch();
@@ -89,7 +96,7 @@ export function Composer({ limits, atLimit }: { limits: Limits; atLimit: boolean
   );
   const untouched = !v.en.trim() && !v.ar.trim();
   const shown = untouched ? [] : problems;
-  const scheduleBad = v.when === "later" && !scheduleOk(minutesAhead(v.at), limits);
+  const scheduleBad = v.when === "later" && !scheduleOk(minutesAhead(v.at, tz), limits);
 
   // Who can be reached, recounted shortly after the segment settles.
   const rulesKey = JSON.stringify(rules);
@@ -108,6 +115,7 @@ export function Composer({ limits, atLimit }: { limits: Limits; atLimit: boolean
 
   const submit = async (values: ComposerValues) => {
     const later = values.when === "later";
+    const at = later ? fromZonedInput(values.at, tz) : null;
     const n = reach ?? 0;
     const ok = await confirm({
       title: later
@@ -116,7 +124,7 @@ export function Composer({ limits, atLimit }: { limits: Limits; atLimit: boolean
       description: later
         ? t("rewards.notifications.confirmScheduleBody", {
             defaultValue: "It goes out at {{at}}. It reaches their phones and can't be taken back once sent.",
-            at: fmtDateTime(new Date(values.at)),
+            at: fmtDateTime(at, tz),
           })
         : t("rewards.notifications.confirmSendBody", "It reaches their phones within minutes and can't be taken back."),
       confirmLabel: later ? t("rewards.notifications.schedule", "Schedule") : t("rewards.notifications.send", "Send"),
@@ -128,7 +136,7 @@ export function Composer({ limits, atLimit }: { limits: Limits; atLimit: boolean
           message: { en: values.en.trim(), ar: values.ar.trim() },
           audience: { rules },
           whatsapp_fallback: values.whatsapp,
-          ...(later ? { scheduled_for: new Date(values.at).toISOString() } : {}),
+          ...(at ? { scheduled_for: at } : {}),
         },
       });
       toast.success(later ? t("rewards.notifications.scheduled", "Message scheduled") : t("rewards.notifications.sent", "Message on its way"));
@@ -208,7 +216,8 @@ export function Composer({ limits, atLimit }: { limits: Limits; atLimit: boolean
             value={v.when}
             onChange={(w) => {
               form.setValue("when", w, { shouldDirty: true });
-              if (w === "later" && !form.getValues("at")) form.setValue("at", toLocalInput(new Date(Date.now() + 60 * 60_000)));
+              // First offer: an hour from now, on the shop's clock.
+              if (w === "later" && !form.getValues("at")) form.setValue("at", toZonedInput(new Date(Date.now() + 60 * 60_000).toISOString(), tz));
             }}
             options={[
               { value: "now", label: t("rewards.notifications.now", "Send now") },
@@ -218,7 +227,18 @@ export function Composer({ limits, atLimit }: { limits: Limits; atLimit: boolean
           {v.when === "later" ? (
             <div className="space-y-1.5">
               <Label htmlFor={ids.at}>{t("rewards.notifications.at", "Send at")}</Label>
-              <Input id={ids.at} type="datetime-local" className="w-auto font-mono" dir="ltr" aria-invalid={scheduleBad || undefined} {...form.register("at")} />
+              <Input
+                id={ids.at}
+                type="datetime-local"
+                className="w-auto font-mono"
+                dir="ltr"
+                aria-invalid={scheduleBad || undefined}
+                aria-describedby={ids.atZone}
+                {...form.register("at")}
+              />
+              <p id={ids.atZone} className="text-xs text-muted-foreground">
+                {t("rewards.notifications.atZone", { defaultValue: "On the shop's clock ({{tz}}).", tz })}
+              </p>
               {scheduleBad ? (
                 <p role="alert" className="text-xs text-[color-mix(in_oklab,var(--color-destructive)_50%,var(--color-foreground))]">
                   {t("rewards.notifications.scheduleWindow", {
