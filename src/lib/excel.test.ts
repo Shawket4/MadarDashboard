@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { toExcelDateSerial } from "@/lib/excel";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { APP_TZ } from "@/data/config/constants";
+import { useAppStore } from "@/data/stores/app.store";
+import { exportToCsv, exportToExcel, toExcelDateSerial } from "@/lib/excel";
+
+const downloadBlob = vi.fn();
+vi.mock("@/lib/download", () => ({ downloadBlob: (...a: unknown[]) => downloadBlob(...a) }));
 
 /** Decode an Excel serial the way ExcelJS/Excel does, then read it with getUTC*
  *  to recover the wall-clock digits the cell will display. */
@@ -47,5 +52,32 @@ describe("toExcelDateSerial", () => {
     const offsetHours = (cairo - naiveUtcSerial) * 24;
     // Cairo is +2 (standard) or +3 (DST); the fix shifts the serial forward by that.
     expect([2, 3]).toContain(Math.round(offsetHours));
+  });
+});
+
+describe("an export's file name", () => {
+  // 00:30 on 1 November in Dubai (the shop), still 31 October in UTC.
+  const shopsToday = () => {
+    useAppStore.getState().setActiveTimezone("Asia/Dubai");
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-31T20:30:00Z"));
+  };
+  afterEach(() => {
+    vi.useRealTimers();
+    useAppStore.getState().setActiveTimezone(APP_TZ);
+    downloadBlob.mockClear();
+  });
+  const sheets = [{ name: "Orders", title: "Orders", columns: [{ header: "No", accessor: (r: Record<string, unknown>) => r.n as number, type: "integer" as const }], rows: [{ n: 1 }] }];
+
+  it("carries the shop's today, not UTC's (CSV)", async () => {
+    shopsToday();
+    await exportToCsv({ filename: "orders", sheets });
+    expect(downloadBlob.mock.calls[0][1]).toBe("orders-2026-11-01.csv");
+  });
+
+  it("carries the shop's today, not UTC's (Excel)", async () => {
+    shopsToday();
+    await exportToExcel({ filename: "orders", sheets });
+    expect(downloadBlob.mock.calls[0][1]).toBe("orders-2026-11-01.xlsx");
   });
 });

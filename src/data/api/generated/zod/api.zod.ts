@@ -17026,6 +17026,7 @@ export const PublicBranchesResponseItem = zod.object({
   "tax_inclusive": zod.boolean().describe('`true` = menu prices already contain the tax; the total will not grow.'),
   "tax_rate": zod.number().describe('Fraction, NOT a percentage: `0.14` is 14%.')
 }).describe('The tax this branch prices online orders under. The storefront renders\na tax line from it (exclusive) or an \"includes VAT\" note (inclusive) —\nthe same policy intake will freeze onto the order.'),
+  "timezone": zod.string().describe('The branch\'s effective IANA zone — its own, else its org\'s, else\n`Africa\/Cairo` (`effective_timezone`). The storefront writes dates and\ntimes on this clock, never the device\'s.'),
   "umbrella_enabled": zod.boolean(),
   "umbrella_open_now": zod.boolean()
 })
@@ -17600,6 +17601,7 @@ export const TrackDeliveryOrderResponse = zod.object({
   "tax_amount": zod.number().describe('The tax line, frozen at intake. Inside `total` when `tax_inclusive`\n(render \"includes VAT\"), added to it otherwise (render a tax line).'),
   "tax_inclusive": zod.boolean(),
   "tax_rate_applied": zod.number(),
+  "timezone": zod.string().describe('The order\'s branch\'s effective IANA zone — its own, else its org\'s,\nelse `Africa\/Cairo` (`effective_timezone`). The page writes the step\ntimes on this clock, never the device\'s.'),
   "total": zod.number(),
   "unit_number": zod.string().nullish()
 }).describe('Customer-safe tracking view of a delivery order, keyed by its opaque UUID\n(same capability-URL trust model as the device-token flow). No phone number\nis exposed; the destination fields are the customer\'s own inputs. Powers the\npublic `\/track\/{id}` page (polled, since the public surface has no SSE).')

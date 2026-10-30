@@ -6,7 +6,7 @@
  */
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GuestSavedLocation } from "@/data/api/generated/models/guestSavedLocation";
 
@@ -46,7 +46,7 @@ const denyGeolocation = () => {
   return getCurrentPosition;
 };
 
-const mount = (channel: "in_mall" | "outside", locations: GuestSavedLocation[]) => {
+const mount = (channel: "in_mall" | "outside", locations: GuestSavedLocation[], zoneOf?: (branchId: string) => string) => {
   const onPointChange = vi.fn();
   const onApplySavedAddress = vi.fn();
   const onContinue = vi.fn();
@@ -61,6 +61,7 @@ const mount = (channel: "in_mall" | "outside", locations: GuestSavedLocation[]) 
       onApplySavedAddress={onApplySavedAddress}
       onQuoteChange={vi.fn()}
       onContinue={onContinue}
+      zoneOf={zoneOf}
     />,
   );
   return { onPointChange, onApplySavedAddress, onContinue };
@@ -92,5 +93,25 @@ describe("the outside location step", () => {
   it("a saved delivery pin is still the point", () => {
     const { onPointChange } = mount("outside", [saved({ channel: "outside", address_line: "Test Street" })]);
     expect(onPointChange).toHaveBeenCalledWith({ lat: 30.0444, lng: 31.2357 });
+  });
+});
+
+describe("a saved address's date", () => {
+  // 21:00Z on 31 October is already 1 November in Dubai, still 31 October in
+  // Cairo (+02:00 after summer time) and in New York (the guest's phone).
+  const lastUsed = "2026-10-31T21:00:00Z";
+  beforeEach(() => vi.stubEnv("TZ", "America/New_York"));
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("reads on its own branch's clock", async () => {
+    mount("in_mall", [saved({ branch_id: "b-dxb", last_used_at: lastUsed })], (id) => (id === "b-dxb" ? "Asia/Dubai" : "Africa/Cairo"));
+    await userEvent.click(screen.getByRole("button", { name: /Use a saved address/ }));
+    expect(screen.getByRole("button", { name: /Test Shop/ })).toHaveTextContent("Nov 1");
+  });
+
+  it("reads on Madar's default clock when the branch's zone is not known (an older backend)", async () => {
+    mount("in_mall", [saved({ branch_id: "b-dxb", last_used_at: lastUsed })]);
+    await userEvent.click(screen.getByRole("button", { name: /Use a saved address/ }));
+    expect(screen.getByRole("button", { name: /Test Shop/ })).toHaveTextContent("Oct 31");
   });
 });

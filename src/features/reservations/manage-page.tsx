@@ -14,6 +14,7 @@ import {
   getGetPublicBookingQueryKey, useBookingSlots, useCancelPublicBooking, useGetPublicBooking, useUpdatePublicBooking,
 } from "@/data/api/generated/api";
 import { queryClient } from "@/data/api/query";
+import { APP_TZ } from "@/data/config/constants";
 import { getErrorMessage } from "@/data/api/errors";
 import { StorefrontShell } from "@/features/public-shell/storefront-shell";
 import { usePublicTheme } from "@/features/public-shell/use-public-theme";
@@ -63,7 +64,7 @@ export function ManagePage({ token }: { token: string }) {
   // than failing the page. Add its zone to scripts/tz-filter.txt if one ever appears.
   const today = useMemo(() => {
     try {
-      return rules.business_date(b?.timezone ?? "Africa/Cairo", Date.now());
+      return rules.business_date(b?.timezone ?? APP_TZ, Date.now());
     } catch {
       return new Date().toISOString().slice(0, 10);
     }

@@ -9,6 +9,8 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Broadcast, BroadcastsPage } from "@/data/api/generated/models";
+import { APP_TZ } from "@/data/config/constants";
+import { useAppStore } from "@/data/stores/app.store";
 
 let held: string[] = ["loyalty.members.list", "loyalty.read", "loyalty.broadcast"];
 const confirm = vi.fn().mockResolvedValue(true);
@@ -67,7 +69,11 @@ beforeEach(async () => {
   page = { items: [scheduled], total: 1, sent_last_24h: 1, limits };
   for (const f of [confirm, create, cancel, count]) f.mockClear();
 });
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllEnvs();
+  useAppStore.getState().setActiveTimezone(APP_TZ);
+});
 
 describe("NotificationsPage", () => {
   it("renders in English with the quota and the honest delivery note", () => {
@@ -117,6 +123,27 @@ describe("NotificationsPage", () => {
     expect(create.mock.calls[0][0]).toEqual({
       data: { message: { en: "Double stamps on Friday", ar: "" }, audience: { rules: [] }, whatsapp_fallback: false },
     });
+  });
+
+  it("schedules on the shop's clock, not the laptop's (an owner abroad)", async () => {
+    // The owner's laptop is in New York; the shop (the scope's zone) is in Dubai, +04:00 all year.
+    vi.stubEnv("TZ", "America/New_York");
+    useAppStore.getState().setActiveTimezone("Asia/Dubai");
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-05T06:00:00Z")); // 10:00 in Dubai, 01:00 in New York
+    mount();
+    fireEvent.change(enInput(), { target: { value: "Double stamps on Friday" } });
+    fireEvent.click(screen.getByRole("radio", { name: "Schedule" }));
+
+    const at = screen.getByLabelText("Send at");
+    expect(at).toHaveValue("2026-11-05T11:00"); // an hour from now, on Dubai's clock
+    expect(screen.getByText("On the shop's clock (Asia/Dubai).")).toBeInTheDocument();
+
+    fireEvent.change(at, { target: { value: "2026-11-05T12:30" } });
+    fireEvent.click(screen.getByRole("button", { name: /Schedule message/ }));
+    await waitFor(() => expect(create).toHaveBeenCalledOnce());
+    expect(confirm.mock.calls[0][0].description).toContain("05 Nov, 12:30 PM");
+    expect(create.mock.calls[0][0].data.scheduled_for).toBe("2026-11-05T08:30:00.000Z"); // 12:30 in Dubai
   });
 
   it("stops at the daily limit", () => {

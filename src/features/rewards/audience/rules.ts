@@ -8,6 +8,7 @@
 import type { TFunction } from "i18next";
 
 import type { Rule } from "@/data/api/generated/models";
+import { businessDate, dateParts } from "@/lib/format";
 
 export type RuleType = Rule["type"];
 
@@ -22,8 +23,14 @@ export const RULE_TYPES: RuleType[] = [
   "has_wallet",
 ];
 
+/**
+ * This month (1–12) on the shop's clock (the active zone), not the laptop's: at
+ * the turn of a month the two disagree for an owner abroad.
+ */
+export const thisMonth = (now: Date | number = Date.now()): number => dateParts(businessDate(now)).m + 1;
+
 /** A rule as it is first added, before the owner edits its figure. */
-export function newRule(type: RuleType, month = new Date().getMonth() + 1): Rule {
+export function newRule(type: RuleType, month = thisMonth()): Rule {
   switch (type) {
     case "balance_at_least":
     case "balance_at_most":

@@ -5,8 +5,9 @@
 import type { TFunction } from "i18next";
 
 import type { Broadcast, Limits, Rule } from "@/data/api/generated/models";
+import { fromZonedInput } from "@/lib/zoned-input";
 
-import { PRESETS, presetLabel, ruleTypeLabel, sameRules } from "../audience/rules";
+import { PRESETS, presetLabel, ruleTypeLabel, sameRules, thisMonth } from "../audience/rules";
 import type { TrackName } from "../audience/audience-builder";
 
 export function messageProblemText(code: string, t: TFunction, max: number): string {
@@ -24,24 +25,21 @@ export function messageProblemText(code: string, t: TFunction, max: number): str
   }
 }
 
-/** Minutes from `now` to a `datetime-local` value (local time), or null when it isn't a date. */
-export function minutesAhead(local: string, now = Date.now()): number | null {
-  const at = new Date(local).getTime();
-  return Number.isFinite(at) ? (at - now) / 60_000 : null;
+/**
+ * Minutes from `now` to a `datetime-local` value read on `tz`'s wall clock (the
+ * shop's, not the laptop's), or null when it isn't a date.
+ */
+export function minutesAhead(local: string, tz: string, now = Date.now()): number | null {
+  const at = fromZonedInput(local, tz);
+  return at === null ? null : (Date.parse(at) - now) / 60_000;
 }
 
 /** The server's window: `schedule_min_minutes` to `schedule_max_days` ahead. */
 export const scheduleOk = (mins: number | null, limits: Pick<Limits, "schedule_min_minutes" | "schedule_max_days">): boolean =>
   mins !== null && mins >= limits.schedule_min_minutes && mins <= limits.schedule_max_days * 24 * 60;
 
-/** A `datetime-local` value for a Date, in local time. */
-export function toLocalInput(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-
 /** A segment in one line: a preset's name, else each filter with its figure. */
-export function audienceSummary(rules: Rule[], t: TFunction, months: string[], tracks: TrackName[], month = new Date().getMonth() + 1): string {
+export function audienceSummary(rules: Rule[], t: TFunction, months: string[], tracks: TrackName[], month = thisMonth()): string {
   if (rules.length === 0) return t("rewards.audience.everyone", "Every member");
   const preset = PRESETS.find((p) => sameRules(rules, p.rules(month)));
   if (preset) return presetLabel(preset.id, t);

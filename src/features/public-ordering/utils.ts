@@ -1,5 +1,7 @@
+import { APP_TZ } from "@/data/config/constants";
 import type { CartLineInput } from "@/data/api/generated/models/cartLineInput";
 import type { DeliveryMenuDiscount } from "@/data/api/generated/models/deliveryMenuDiscount";
+import type { PublicBranch } from "@/data/api/generated/models/publicBranch";
 
 import { storefrontItem, unitPrice } from "./pricing";
 import type { CartLine, CatalogItem, Channel } from "./types";
@@ -176,3 +178,13 @@ export const newUid = (): string => {
  */
 export const trackHref = (orderId: string, base: string = import.meta.env.BASE_URL): string =>
   `${base.endsWith("/") ? base : `${base}/`}track/${encodeURIComponent(orderId)}`;
+
+/**
+ * The clock a branch's dates and times read on: its effective zone
+ * (`PublicBranch.timezone`). A backend from before that field, or a branch not
+ * in the list, gives Madar's default.
+ */
+export const branchZone = (
+  branches: ReadonlyArray<Pick<PublicBranch, "id" | "timezone">> | undefined,
+  branchId: string | null | undefined,
+): string => branches?.find((b) => b.id === branchId)?.timezone || APP_TZ;

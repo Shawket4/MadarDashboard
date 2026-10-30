@@ -24,7 +24,7 @@ import { isFlatChannel, type CartLine, type Channel, type Step } from "./types";
 import { locationStepRequired } from "./location-rules";
 import { stepSwap, useStepDirection } from "@/features/public-shell/motion";
 import { STEP_ORDER } from "./ordering-motion";
-import { asChannel, calcDiscount, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
+import { asChannel, branchZone, calcDiscount, clearCart, loadCart, newUid, saveCart, toCartLineInput } from "./utils";
 import { getDeviceToken, setDeviceToken } from "@/features/public-shell/guest";
 import { canonicalPhone, formatPhoneInput, isValidPhone, samePhone } from "@/lib/phone";
 import { FIELD_LIMITS } from "./limits";
@@ -258,6 +258,8 @@ export function PublicOrderingPage({
     () => branches?.find((b) => b.id === branchId) ?? null,
     [branches, branchId],
   );
+  // A saved address's or a past order's date reads on its own branch's clock.
+  const zoneOf = useCallback((id: string) => branchZone(branches, id), [branches]);
 
   // Recover from a stale/invalid ?branch= id: once branches have loaded, if the
   // id isn't one of them, drop it and fall back to the branch picker. Without
@@ -1051,6 +1053,7 @@ export function PublicOrderingPage({
                 onQuoteChange={setQuote}
                 onApplySavedAddress={handleApplySavedAddress}
                 onContinue={() => setLocationDone(true)}
+                zoneOf={zoneOf}
               />
             )}
 
@@ -1205,6 +1208,7 @@ export function PublicOrderingPage({
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         orders={orders}
+        zoneOf={zoneOf}
       />
     </>
   );
