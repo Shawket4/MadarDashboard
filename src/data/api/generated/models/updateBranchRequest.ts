@@ -37,6 +37,12 @@ export interface UpdateBranchRequest {
   old_bill_hours?: number | null;
   /** @nullable */
   phone?: string | null;
+  /**
+     * Ask who is serving at checkout (see [`Branch`]). Absent (or `null`)
+     * leaves it as it is.
+     * @nullable
+     */
+  pick_teller_at_checkout?: boolean | null;
   printer_brand?: null | PrinterBrand;
   /** @nullable */
   printer_ip?: string | null;

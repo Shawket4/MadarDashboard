@@ -55,6 +55,12 @@ export interface Branch {
   org_receipt_footer?: string | null;
   /** @nullable */
   phone?: string | null;
+  /**
+     * Ask who is serving at checkout: a till on this branch (POS builds that
+     * know it) requires picking a person before taking payment and sends
+     * them as `sold_by` on the sale. Off by default; not plan-gated. Additive.
+     */
+  pick_teller_at_checkout?: boolean;
   printer_brand?: null | PrinterBrand;
   /** @nullable */
   printer_ip?: string | null;

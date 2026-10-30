@@ -1114,6 +1114,7 @@ export * from './textSize';
 export * from './ticketBill';
 export * from './till';
 export * from './tillBrief';
+export * from './tillPersonLine';
 export * from './tillPreFill';
 export * from './tillPunch';
 export * from './tillPunchResult';

@@ -2,6 +2,7 @@
 // @ts-nocheck
 import type { CashMovementSummaryRow } from './cashMovementSummaryRow';
 import type { PaymentSummaryRow } from './paymentSummaryRow';
+import type { TillPersonLine } from './tillPersonLine';
 import type { TillSpotView } from './tillSpotView';
 
 /**
@@ -9,6 +10,15 @@ import type { TillSpotView } from './tillSpotView';
  * `ShiftReportResponse` (flattened into both).
  */
 export interface TillReportFigures {
+  /**
+     * The till's sold sales by who served them: the person picked at
+     * checkout (`orders.sold_by`), else whoever was signed in. Largest first;
+     * the lines add up to `total_payments` and `total_tips` (the drawer is
+     * shared and is not split). OMITTED unless someone on this till was
+     * picked, so a till that never asked reports exactly as before.
+     * `madar_till::report::by_person`. Additive.
+     */
+  by_person?: TillPersonLine[];
   cash_adjustments: number;
   cash_in_refunded_sales?: number;
   cash_movements: CashMovementSummaryRow[];

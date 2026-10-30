@@ -2131,6 +2131,7 @@ export const ListBranchesResponseItem = zod.object({
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
   "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
+  "pick_teller_at_checkout": zod.boolean().optional().describe('Ask who is serving at checkout: a till on this branch (POS builds that\nknow it) requires picking a person before taking payment and sends\nthem as `sold_by` on the sale. Off by default; not plan-gated. Additive.'),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
@@ -2183,6 +2184,7 @@ export const CreateBranchResponse = zod.object({
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
   "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
+  "pick_teller_at_checkout": zod.boolean().optional().describe('Ask who is serving at checkout: a till on this branch (POS builds that\nknow it) requires picking a person before taking payment and sends\nthem as `sold_by` on the sale. Off by default; not plan-gated. Additive.'),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
@@ -2223,6 +2225,7 @@ export const GetBranchResponse = zod.object({
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
   "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
+  "pick_teller_at_checkout": zod.boolean().optional().describe('Ask who is serving at checkout: a till on this branch (POS builds that\nknow it) requires picking a person before taking payment and sends\nthem as `sold_by` on the sale. Off by default; not plan-gated. Additive.'),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
@@ -2257,6 +2260,7 @@ export const UpdateBranchBody = zod.object({
   "name": zod.string().nullish(),
   "old_bill_hours": zod.number().min(1).max(updateBranchBodyOldBillHoursMax).nullish().describe('Hours after which an open bill counts as old (1..168).'),
   "phone": zod.string().nullish(),
+  "pick_teller_at_checkout": zod.boolean().nullish().describe('Ask who is serving at checkout (see [`Branch`]). Absent (or `null`)\nleaves it as it is.'),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
@@ -2291,6 +2295,7 @@ export const UpdateBranchResponse = zod.object({
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
   "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
+  "pick_teller_at_checkout": zod.boolean().optional().describe('Ask who is serving at checkout: a till on this branch (POS builds that\nknow it) requires picking a person before taking payment and sends\nthem as `sold_by` on the sale. Off by default; not plan-gated. Additive.'),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
@@ -2336,6 +2341,7 @@ export const PatchBranchBody = zod.object({
   "name": zod.string().nullish(),
   "old_bill_hours": zod.number().min(1).max(patchBranchBodyOldBillHoursMax).nullish().describe('Hours after which an open bill counts as old (1..168).'),
   "phone": zod.string().nullish(),
+  "pick_teller_at_checkout": zod.boolean().nullish().describe('Ask who is serving at checkout (see [`Branch`]). Absent (or `null`)\nleaves it as it is.'),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
@@ -2370,6 +2376,7 @@ export const PatchBranchResponse = zod.object({
   "org_logo_url": zod.string().nullish().describe('Convenience field — populated from the parent org\'s `logo_url`.'),
   "org_receipt_footer": zod.string().nullish().describe('Convenience field — the parent org\'s receipt footer text (dashboard\norg settings). `None` → the POS prints its default footer.'),
   "phone": zod.string().nullish(),
+  "pick_teller_at_checkout": zod.boolean().optional().describe('Ask who is serving at checkout: a till on this branch (POS builds that\nknow it) requires picking a person before taking payment and sends\nthem as `sold_by` on the sale. Off by default; not plan-gated. Additive.'),
   "printer_brand": zod.union([zod.null(),zod.enum(['star', 'epson'])]).optional(),
   "printer_ip": zod.string().nullish(),
   "printer_port": zod.number().nullish(),
@@ -4283,6 +4290,7 @@ export const FinalizeDeliveryOrderParams = zod.object({
 
 export const FinalizeDeliveryOrderBody = zod.object({
   "payment_method": zod.string().describe('The actual method the customer paid (overrides the hint). Must be an org method.'),
+  "sold_by": zod.uuid().nullish().describe('Who was picked as serving at checkout, on a branch that asks\n(`branches.pick_teller_at_checkout`). Same rule as `sold_by` on an\norder: attribution only; someone who cannot ring sales at the branch is\nrecorded as nobody, never refused. Additive.'),
   "till_id": zod.uuid()
 })
 
@@ -14461,6 +14469,7 @@ export const SettleOpenTicketBody = zod.object({
   "reference": zod.string().nullish()
 })).nullish().describe('Split tenders, when the party paid with more than one. Carried to the\norder\'s payment legs like a counter sale\'s; they must sum to the total.'),
   "settled_at": zod.iso.datetime({"offset":true}).nullish().describe('When the bill was paid, as the till says. An offline settle replayed\nlater keeps its real time — it becomes the order\'s `created_at` and the\nticket\'s `settled_at`, one instant on both rows. Absent means now; a\nfuture clock is refused.'),
+  "sold_by": zod.uuid().nullish().describe('Who was picked as serving at checkout, on a branch that asks\n(`branches.pick_teller_at_checkout`). Same rule as `sold_by` on an\norder: attribution only, never a reason to refuse the settle. Additive.'),
   "till_id": zod.uuid(),
   "tip_amount": zod.number().nullish(),
   "tip_payment_method": zod.string().nullish(),
@@ -14520,6 +14529,8 @@ export const SettleOpenTicketResponse = zod.object({
   "service_charge_waived_by_name": zod.string().nullish(),
   "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
+  "sold_by": zod.uuid().nullish().describe('Who was picked as serving at checkout, on a branch that asks\n(`branches.pick_teller_at_checkout`). Attribution only: `teller_id`\nstays the signed-in person (the drawer, the money permissions).\n`null` when nobody was picked. Additive.'),
+  "sold_by_name": zod.string().nullish().describe('That person\'s name. Additive.'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
   "status": zod.string(),
@@ -14746,6 +14757,8 @@ export const ListOrdersResponse = zod.object({
   "service_charge_waived_by_name": zod.string().nullish(),
   "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
+  "sold_by": zod.uuid().nullish().describe('Who was picked as serving at checkout, on a branch that asks\n(`branches.pick_teller_at_checkout`). Attribution only: `teller_id`\nstays the signed-in person (the drawer, the money permissions).\n`null` when nobody was picked. Additive.'),
+  "sold_by_name": zod.string().nullish().describe('That person\'s name. Additive.'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
   "status": zod.string(),
@@ -14892,6 +14905,7 @@ export const CreateOrderBody = zod.object({
   "reference": zod.string().nullish()
 })).nullish(),
   "service_mode": zod.string().nullish().describe('Where the drink is going: `\"takeaway\"` (default) or `\"dine_in\"`. NOT\n`order_type`: that is derived from whether a waiter\'s ticket was settled\nand decides the service charge. This says only whether the customer is\ndrinking in — so a counter shop with no floor can say it — and its only\neffect is that packaging (cups, lids, straws) is not deducted from\nstock. Absent ⇒ takeaway, which is what every client before this did.'),
+  "sold_by": zod.uuid().nullish().describe('Who was picked as serving at checkout, on a branch that asks\n(`branches.pick_teller_at_checkout`). Attribution only: `teller_id`\nstays the signed-in person. Recorded when it names someone who can\nring sales at the branch (on replay: someone of the org); anything else\nis recorded as nobody with a warning, never refused. Additive; older\ntills omit it.'),
   "started_by": zod.uuid().nullish().describe('The person who started this sale\'s cart, when the till says it was not\nthe person ringing it (a held order resumed after a teller switch).\nRecorded when it names someone of the same org; anything else is\ndropped with a warning, never refused. Additive; older tills omit it.'),
   "subtotal": zod.number().nullish(),
   "tax_amount": zod.number().nullish(),
@@ -14954,6 +14968,8 @@ export const CreateOrderResponse = zod.object({
   "service_charge_waived_by_name": zod.string().nullish(),
   "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
+  "sold_by": zod.uuid().nullish().describe('Who was picked as serving at checkout, on a branch that asks\n(`branches.pick_teller_at_checkout`). Attribution only: `teller_id`\nstays the signed-in person (the drawer, the money permissions).\n`null` when nobody was picked. Additive.'),
+  "sold_by_name": zod.string().nullish().describe('That person\'s name. Additive.'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
   "status": zod.string(),
@@ -15141,6 +15157,8 @@ export const ExportOrdersResponse = zod.object({
   "service_charge_waived_by_name": zod.string().nullish(),
   "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
+  "sold_by": zod.uuid().nullish().describe('Who was picked as serving at checkout, on a branch that asks\n(`branches.pick_teller_at_checkout`). Attribution only: `teller_id`\nstays the signed-in person (the drawer, the money permissions).\n`null` when nobody was picked. Additive.'),
+  "sold_by_name": zod.string().nullish().describe('That person\'s name. Additive.'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
   "status": zod.string(),
@@ -15337,6 +15355,8 @@ export const GetOrderResponse = zod.object({
   "service_charge_waived_by_name": zod.string().nullish(),
   "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
+  "sold_by": zod.uuid().nullish().describe('Who was picked as serving at checkout, on a branch that asks\n(`branches.pick_teller_at_checkout`). Attribution only: `teller_id`\nstays the signed-in person (the drawer, the money permissions).\n`null` when nobody was picked. Additive.'),
+  "sold_by_name": zod.string().nullish().describe('That person\'s name. Additive.'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
   "status": zod.string(),
@@ -15531,6 +15551,8 @@ export const VoidOrderResponse = zod.object({
   "service_charge_waived_by_name": zod.string().nullish(),
   "service_mode": zod.string().optional().describe('How the customer takes the order: `takeaway` (Pickup) | `dine_in`. The\ncart\'s Pickup \/ Dine in toggle, stored on every order of every plan; a\nsale made on a till that never sent it is `takeaway`. Sales reports split\nby it (`GET \/reports\/sales` → `by_service_mode`).'),
   "shift_id": zod.uuid().describe('DEPRECATED: same value as `till_id` (required by POS v0.5.1\/v0.6.0).'),
+  "sold_by": zod.uuid().nullish().describe('Who was picked as serving at checkout, on a branch that asks\n(`branches.pick_teller_at_checkout`). Attribution only: `teller_id`\nstays the signed-in person (the drawer, the money permissions).\n`null` when nobody was picked. Additive.'),
+  "sold_by_name": zod.string().nullish().describe('That person\'s name. Additive.'),
   "started_by": zod.uuid().nullish().describe('Who started this sale\'s cart when it is not the person who rang it: a\nheld order resumed after a teller switch on the till. `null` otherwise.\nAdditive.'),
   "started_by_name": zod.string().nullish(),
   "status": zod.string(),
@@ -22149,6 +22171,13 @@ export const GetShiftReportParams = zod.object({
 })
 
 export const GetShiftReportResponse = zod.object({
+  "by_person": zod.array(zod.object({
+  "name": zod.string().nullish().describe('Their name (`users.name`); `null` when there is no such person.'),
+  "order_count": zod.number(),
+  "person_id": zod.uuid().nullish().describe('The person picked at checkout, else whoever was signed in; `null` for\nsales with nobody on them.'),
+  "tips": zod.number(),
+  "total": zod.number().describe('The sales\' tenders (the payment summary\'s figure), minor units.')
+}).describe('One person\'s share of a till\'s sold sales (`madar_till::report::PersonLine`),\nnamed.')).optional().describe('The till\'s sold sales by who served them: the person picked at\ncheckout (`orders.sold_by`), else whoever was signed in. Largest first;\nthe lines add up to `total_payments` and `total_tips` (the drawer is\nshared and is not split). OMITTED unless someone on this till was\npicked, so a till that never asked reports exactly as before.\n`madar_till::report::by_person`. Additive.'),
   "cash_adjustments": zod.number(),
   "cash_in_refunded_sales": zod.number().optional(),
   "cash_movements": zod.array(zod.object({
@@ -27709,6 +27738,13 @@ export const GetTillReportHeader = zod.object({
 })
 
 export const GetTillReportResponse = zod.object({
+  "by_person": zod.array(zod.object({
+  "name": zod.string().nullish().describe('Their name (`users.name`); `null` when there is no such person.'),
+  "order_count": zod.number(),
+  "person_id": zod.uuid().nullish().describe('The person picked at checkout, else whoever was signed in; `null` for\nsales with nobody on them.'),
+  "tips": zod.number(),
+  "total": zod.number().describe('The sales\' tenders (the payment summary\'s figure), minor units.')
+}).describe('One person\'s share of a till\'s sold sales (`madar_till::report::PersonLine`),\nnamed.')).optional().describe('The till\'s sold sales by who served them: the person picked at\ncheckout (`orders.sold_by`), else whoever was signed in. Largest first;\nthe lines add up to `total_payments` and `total_tips` (the drawer is\nshared and is not split). OMITTED unless someone on this till was\npicked, so a till that never asked reports exactly as before.\n`madar_till::report::by_person`. Additive.'),
   "cash_adjustments": zod.number(),
   "cash_in_refunded_sales": zod.number().optional(),
   "cash_movements": zod.array(zod.object({
