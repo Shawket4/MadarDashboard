@@ -109,3 +109,17 @@ describe("a staff drink in the orders export", () => {
     expect(headers).toContain("المدفوع في مشروب الموظفين (بالإضافات)");
   });
 });
+
+describe("the Teller column in the orders export (TELLER_PICK)", () => {
+  const sale = (over: Record<string, unknown>) => ({ ...split, teller_id: "u-mona", teller_name: "Mona Adel", ...over }) as unknown as OrderExport;
+  const teller = () => orderColumns(t).find((c) => c.key === "teller")!;
+
+  it("is who sold the order: the person picked at checkout", () => {
+    expect(teller().accessor(sale({ sold_by: "u-karim", sold_by_name: "Karim Saleh" }))).toBe("Karim Saleh");
+  });
+
+  it("is the signed-in person when nobody was picked, as before", () => {
+    expect(teller().accessor(sale({ sold_by: null, sold_by_name: null }))).toBe("Mona Adel");
+    expect(teller().accessor(sale({}))).toBe("Mona Adel");
+  });
+});

@@ -36,6 +36,7 @@ import { dealsOf, orderDealsTotal, orderRows } from "@/features/combos/order-lin
 import { ComboHeaderRow, ComboPartNote, DealLineNote } from "@/features/combos/combo-order-lines";
 import { orderRewards } from "./reward-lines";
 import { serviceModeOf } from "./service-mode";
+import { sellerName, signedInOther } from "./seller";
 import { OrderStatusBadge } from "./order-status-badge";
 import { addonNormalTotal, orderStaffComp, staffDrinkLine } from "./staff-drink-lines";
 import { ONE_SIZE } from "@/features/menu/util";
@@ -112,6 +113,8 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
   };
 
   const voided = order?.status === "voided";
+  // Someone else was picked as serving: name who was signed in (the drawer's person) too.
+  const signedIn = order ? signedInOther(order) : null;
   const rewards = orderRewards(order);
   const items = order?.items ?? [];
   // What the staff pool gave free on this sale. Already off every stored total.
@@ -245,7 +248,8 @@ export function OrderDetailSheet({ orderId, open, onOpenChange, onVoid, onSwitch
                   ) : null}
                   <Row label={t("common.date", "Date")} value={fmtDateTimeFull(order.created_at)} />
                   <Row label={t("orders.service", "Service")} value={t(`orders.serviceMode.${serviceModeOf(order)}`)} />
-                  <Row label={t("tills.teller", "Teller")} value={order.teller_name} />
+                  <Row label={t("tills.teller", "Teller")} value={sellerName(order)} />
+                  {signedIn ? <Row label={t("orders.signedIn", "Signed in")} value={signedIn} /> : null}
                   {order.started_by_name && order.started_by !== order.teller_id ? (
                     <Row label={t("orders.startedBy", "Started by")} value={order.started_by_name} />
                   ) : null}

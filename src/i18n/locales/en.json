@@ -2035,6 +2035,7 @@
     "emptyBody": "Sales rung on the POS for this branch and period appear here.",
     "takeaway": "Takeaway",
     "startedBy": "Started by",
+    "signedIn": "Signed in",
     "staffDrink": "Staff drink",
     "staffCompAddon": "given free {{amount}}",
     "staffLineNormal": "Normal price, with extras",

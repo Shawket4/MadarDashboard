@@ -32,6 +32,7 @@ import { OrderExportDialog } from "./order-export-dialog";
 import { ServiceModeBadge } from "./service-mode-badge";
 import { OrderStatusBadge } from "./order-status-badge";
 import { serviceModeOf } from "./service-mode";
+import { tellerColumn } from "./seller";
 import { getGetOrderQueryOptions, getListOrdersQueryKey, getListOrdersQueryOptions, useBranchDeliverySales, useListOrders } from "@/data/api/generated/api";
 import { keepWhilePaging } from "@/data/api/keep-while-paging";
 import { queryClient } from "@/data/api/query";
@@ -249,7 +250,7 @@ export function OrdersPage() {
         meta: { label: t("orders.service", "Service") },
         cell: ({ row }) => <ServiceModeBadge order={row.original} />,
       },
-      { accessorKey: "teller_name", header: t("tills.teller", "Teller"), meta: { label: t("tills.teller", "Teller") } },
+      tellerColumn(t),
       {
         accessorKey: "waiter_name",
         header: t("tills.waiter", "Waiter"),

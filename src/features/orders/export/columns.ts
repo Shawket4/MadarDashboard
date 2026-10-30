@@ -5,6 +5,7 @@ import { fmtMoney } from "@/lib/format";
 
 import { orderStaffComp } from "../staff-drink-lines";
 import { serviceModeOf } from "../service-mode";
+import { sellerName } from "../seller";
 
 /** What was paid, as a cell. A split sale's `payment_method` is the nominal
  *  "mixed", which states no amount; its legs are what every money report
@@ -17,7 +18,8 @@ export const paymentText = (t: TFunction, method: string, legs: PaymentLeg[] | u
 export const orderColumns = (t: TFunction): ExcelColumn<OrderExport>[] => [
   { key: "order_ref", header: t("orders.orderRef", "Ref"), accessor: (o) => o.order_ref ?? `#${o.order_number}`, type: "text", width: 16 },
   { key: "created_at", header: t("orders.date", "Date"), accessor: (o) => new Date(o.created_at), type: "dateTime", width: 20 },
-  { key: "teller", header: t("tills.teller", "Teller"), accessor: (o) => o.teller_name, type: "text", width: 18 },
+  // Who sold it: the person picked at checkout, else whoever was signed in.
+  { key: "teller", header: t("tills.teller", "Teller"), accessor: sellerName, type: "text", width: 18 },
   { key: "waiter", header: t("tills.waiter", "Waiter"), accessor: (o) => o.waiter_name || "—", type: "text", width: 18 },
   { key: "customer", header: t("orders.customer", "Customer"), accessor: (o) => o.customer_name || "—", type: "text", width: 18 },
   {
