@@ -37,6 +37,7 @@ import {
   MOCK_MENU_CATALOG,
   MOCK_MENU_ITEMS,
   MOCK_ORDERS_PAGE,
+  mockOrderDetail,
   MOCK_ORG,
   MOCK_ORG_ID,
   MOCK_PO_LINES,
@@ -640,10 +641,10 @@ export const handlers = [
 
   // ── Orders ────────────────────────────────────────────────────────────────
   http.get("*/orders", () => HttpResponse.json(MOCK_ORDERS_PAGE)),
-  // One order, for the sheet. Only the sales behind the seeded staff drinks
-  // exist in full; anything else falls through as it did before this handler.
+  // One order, for the sheet: the sales behind the seeded staff drinks, and
+  // every seeded list row; anything else falls through as it did before.
   http.get("*/orders/:id", ({ params }) => {
-    const found = mockStaffOrder(params.id as string);
+    const found = mockStaffOrder(params.id as string) ?? mockOrderDetail(params.id as string);
     return found ? HttpResponse.json(found) : undefined;
   }),
 
