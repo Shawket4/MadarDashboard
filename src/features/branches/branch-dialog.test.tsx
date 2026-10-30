@@ -1,7 +1,9 @@
 /**
  * "Ask who's serving at checkout" (TELLER_PICK §3.2): a per-branch till
  * setting, off by default, sent on every save with the other till settings and
- * PATCHed onto a new branch right after it is created.
+ * PATCHed onto a new branch right after it is created. Its hint names the POS
+ * release that honours it, and mentions Dawam only to an org that has Dawam
+ * (the plan's feature or an add-on) with the module switched on.
  */
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -24,6 +26,8 @@ vi.mock("@/data/api/generated/api", () => ({
 }));
 vi.mock("./util", () => ({ invalidateBranches: vi.fn() }));
 vi.mock("@/components/app/timezone-select", () => ({ TimezoneSelect: () => null }));
+let modules: string[] = ["pos", "dawam"];
+vi.mock("@/hooks/use-org-modules", () => ({ useOrgModules: () => modules }));
 
 const i18n = (await import("@/i18n")).default;
 await i18n.changeLanguage("en");
@@ -31,6 +35,8 @@ const { useAuthStore } = await import("@/data/stores/auth.store");
 const { BranchDialog } = await import("./branch-dialog");
 
 const LABEL = "Ask who's serving at checkout";
+const HINT = "Tills on POS 0.18 or newer ask who is serving before taking payment.";
+const HINT_DAWAM = "People clocked in on Dawam come first.";
 
 const BRANCH = {
   id: "b1", org_id: "o1", name: "Zamalek", kind: "branch", is_active: true, timezone: "Africa/Cairo",
@@ -44,6 +50,8 @@ beforeEach(() => {
   patchBranch.mockClear();
   createBranch.mockClear();
   useAuthStore.setState({ user: { id: "u", name: "Owner", role: "org_admin", org_id: "o1" } as never });
+  useAuthStore.getState().setPlan("paid", []);
+  modules = ["pos", "dawam"];
 });
 
 describe("BranchDialog: ask who's serving at checkout", () => {
@@ -51,7 +59,7 @@ describe("BranchDialog: ask who's serving at checkout", () => {
     render(<BranchDialog orgId="o1" branch={branch({ pick_teller_at_checkout: true })} open onOpenChange={vi.fn()} />);
     const sw = screen.getByRole("switch", { name: LABEL });
     expect(sw).toBeChecked();
-    expect(sw).toHaveAccessibleDescription(/Tills ask who is serving before taking payment\. With Dawam on, people clocked in come first\./);
+    expect(sw).toHaveAccessibleDescription(new RegExp(HINT.replace(/\./g, "\\.")));
   });
 
   it("loads off for a branch that doesn't, and for one from before the setting", () => {
@@ -96,5 +104,39 @@ describe("BranchDialog: ask who's serving at checkout", () => {
   it("a warehouse never sells: no switch", async () => {
     render(<BranchDialog orgId="o1" branch={branch({ kind: "warehouse" })} open onOpenChange={vi.fn()} />);
     expect(screen.queryByRole("switch", { name: LABEL })).toBeNull();
+  });
+});
+
+describe("BranchDialog: the switch's hint", () => {
+  const open = () => render(<BranchDialog orgId="o1" branch={branch({ pick_teller_at_checkout: true })} open onOpenChange={vi.fn()} />);
+
+  it("a Free org (no Dawam on its plan) gets the POS sentence only, even with a stale module list", () => {
+    useAuthStore.getState().setPlan("free", []);
+    open();
+    expect(screen.getByRole("switch", { name: LABEL })).toHaveAccessibleDescription(HINT);
+    expect(screen.queryByText(new RegExp(HINT_DAWAM))).toBeNull();
+  });
+
+  it("a paid org with the Dawam module off gets the POS sentence only", () => {
+    modules = ["pos"];
+    open();
+    expect(screen.getByRole("switch", { name: LABEL })).toHaveAccessibleDescription(HINT);
+    expect(screen.queryByText(new RegExp(HINT_DAWAM))).toBeNull();
+  });
+
+  it("a paid org with Dawam on gets both sentences, as the switch's description", () => {
+    open();
+    expect(screen.getByRole("switch", { name: LABEL })).toHaveAccessibleDescription(`${HINT} ${HINT_DAWAM}`);
+  });
+
+  it("both sentences in formal Arabic", async () => {
+    await i18n.changeLanguage("ar");
+    try {
+      open();
+      const sw = screen.getByRole("switch", { name: "السؤال عمّن يخدم العميل عند الدفع" });
+      expect(sw).toHaveAccessibleDescription(/0\.18.*دوام/);
+    } finally {
+      await i18n.changeLanguage("en");
+    }
   });
 });

@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { MapPin, Printer, Store, Warehouse } from "lucide-react";
 
 import { useAuthStore } from "@/data/stores/auth.store";
+import { useOrgModules } from "@/hooks/use-org-modules";
+import { useHasFeature } from "@/hooks/use-plan";
 import { toast } from "@/components/ui/toast";
 import { z } from "zod";
 
@@ -91,6 +93,10 @@ export function BranchDialog({ orgId, branch, defaultKind = "branch", open, onOp
   // A warehouse holds stock and never sells: no till, printer or tax settings.
   const isWarehouse = form.watch("kind") === "warehouse";
   const isSuperAdmin = useAuthStore((s) => s.user?.role) === "super_admin";
+  // Dawam is on as its pages are (nav: module + feature): the plan has it (or an add-on) AND the module is switched on.
+  const hasDawam = useHasFeature("dawam");
+  const modules = useOrgModules();
+  const dawamOn = hasDawam && modules.includes("dawam");
 
   useEffect(() => {
     if (open) {
@@ -238,7 +244,8 @@ export function BranchDialog({ orgId, branch, defaultKind = "branch", open, onOp
                     <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                   </div>
                   <FormDescription className="text-xs">
-                    {t("branches.pickTellerHint", "Tills ask who is serving before taking payment. With Dawam on, people clocked in come first.")}
+                    {t("branches.pickTellerHint", "Tills on POS 0.18 or newer ask who is serving before taking payment.")}
+                    {dawamOn ? ` ${t("branches.pickTellerHintDawam", "People clocked in on Dawam come first.")}` : null}
                   </FormDescription>
                 </FormItem>
               )} />
