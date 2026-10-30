@@ -151,21 +151,6 @@ function* files(dir: string): Generator<string> {
  * so the entry follows the line when the file around it changes.
  */
 const ALLOWED: { file: string; rule: Rule; has: string; why: string }[] = [
-  // ── Until PublicBranch.timezone ships (the backend is adding it): the public
-  //    ordering payloads name no zone yet, so these read Cairo's clock.
-  {
-    file: "src/features/public-ordering/components/location-step.tsx",
-    rule: "zone-literal",
-    has: 'timeZone: "Africa/Cairo"',
-    why: "until PublicBranch.timezone ships: then the saved location's date reads on the branch's zone",
-  },
-  {
-    file: "src/features/public-ordering/components/order-history-drawer.tsx",
-    rule: "zone-literal",
-    has: 'timeZone: "Africa/Cairo"',
-    why: "until PublicBranch.timezone ships: then a past order's date reads on the branch's zone",
-  },
-
   // ── Not a shop's clock.
   {
     file: "shared/dates.ts",

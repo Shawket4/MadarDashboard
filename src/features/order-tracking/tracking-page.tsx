@@ -47,12 +47,6 @@ const STEPS = [
 
 const TERMINAL = new Set(["delivered", "cancelled", "rejected"]);
 
-/**
- * The clock the step times are read on: the shop's, never the guest's phone's.
- * `DeliveryTracking` names no zone yet, so it is Madar's default, as on the
- * other ordering pages; read the branch's from the payload once it carries it.
- */
-const TRACKING_TZ = APP_TZ;
 
 /**
  * Public, live order tracking page (the dynamic link sent in WhatsApp and routed
@@ -117,6 +111,9 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
   }
 
   const order = data;
+  // The step times read on the order's branch's clock, never the guest's phone's;
+  // a backend from before `DeliveryTracking.timezone` gives Madar's default.
+  const tz = order.timezone || APP_TZ;
   const cancelled = order.status === "cancelled" || order.status === "rejected";
   const delivered = order.status === "delivered";
   const currentIdx = STEPS.findIndex((s) => s.key === order.status);
@@ -200,7 +197,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
                     <p className={`text-sm font-medium ${done ? "text-foreground" : "text-muted-foreground"}`}>
                       {t(`order.track.step.${stepDef.key}`, stepFallback(stepDef.key))}
                     </p>
-                    {ts && <p className="text-xs tabular-nums text-muted-foreground">{fmtTime(ts, TRACKING_TZ)}</p>}
+                    {ts && <p className="text-xs tabular-nums text-muted-foreground">{fmtTime(ts, tz)}</p>}
                   </div>
                 </li>
               );

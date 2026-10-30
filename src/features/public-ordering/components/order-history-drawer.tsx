@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronDown, ExternalLink, MapPin, Package, ReceiptText } from "lucide-react";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { APP_TZ } from "@/data/config/constants";
 import { fmtMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +15,11 @@ interface OrderHistoryDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   orders: OrderHistorySummary[];
+  /** A branch's zone (`branchZone`), for an order's date; Madar's default without it. */
+  zoneOf?: (branchId: string) => string;
 }
+
+const madarZone = () => APP_TZ;
 
 function statusTone(status: string): "ok" | "warn" | "neutral" {
   if (status === "delivered") return "ok";
@@ -22,7 +27,7 @@ function statusTone(status: string): "ok" | "warn" | "neutral" {
   return "neutral";
 }
 
-export function OrderHistoryDrawer({ open, onOpenChange, orders }: OrderHistoryDrawerProps) {
+export function OrderHistoryDrawer({ open, onOpenChange, orders, zoneOf = madarZone }: OrderHistoryDrawerProps) {
   const { t } = useTranslation();
 
   return (
@@ -47,7 +52,7 @@ export function OrderHistoryDrawer({ open, onOpenChange, orders }: OrderHistoryD
         ) : (
           <ul className="space-y-3 pb-6">
             {orders.map((order) => (
-              <OrderCard key={order.id} order={order} />
+              <OrderCard key={order.id} order={order} tz={zoneOf(order.branch_id)} />
             ))}
           </ul>
         )}
@@ -56,7 +61,8 @@ export function OrderHistoryDrawer({ open, onOpenChange, orders }: OrderHistoryD
   );
 }
 
-function OrderCard({ order }: { order: OrderHistorySummary }) {
+/** `tz`: the order's branch's zone; its date reads on that clock, not the phone's. */
+function OrderCard({ order, tz }: { order: OrderHistorySummary; tz: string }) {
   const { t, i18n } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
@@ -75,7 +81,7 @@ function OrderCard({ order }: { order: OrderHistorySummary }) {
     month: "short",
     day: "numeric",
     year: "numeric",
-    timeZone: "Africa/Cairo",
+    timeZone: tz,
   });
 
   const destination = (() => {

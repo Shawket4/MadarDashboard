@@ -8,7 +8,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import type { DeliveryMenuItem } from "@/data/api/generated/models/deliveryMenuItem";
 
 import type { CartLine } from "./types";
-import { displaySize, lineTotal, lineUnitPrice, loadCart, saveCart, toCartLineInput, trackHref } from "./utils";
+import { APP_TZ } from "@/data/config/constants";
+
+import { branchZone, displaySize, lineTotal, lineUnitPrice, loadCart, saveCart, toCartLineInput, trackHref } from "./utils";
 
 const comboItem = {
   id: "combo-1",
@@ -117,5 +119,23 @@ describe("trackHref", () => {
     expect(trackHref("ord_1", "/")).toBe("/track/ord_1");
     expect(trackHref("ord_1", "/order/")).toBe("/order/track/ord_1");
     expect(trackHref("ord_1", "/order")).toBe("/order/track/ord_1");
+  });
+});
+
+describe("branchZone", () => {
+  const branches = [
+    { id: "b-dxb", timezone: "Asia/Dubai" },
+    // An older backend sends no zone yet: Madar's default.
+    { id: "b-old" } as { id: string; timezone: string },
+  ];
+
+  it("is the branch's own zone", () => {
+    expect(branchZone(branches, "b-dxb")).toBe("Asia/Dubai");
+  });
+
+  it("falls back to APP_TZ when the backend sends no zone, or the branch is not listed", () => {
+    expect(branchZone(branches, "b-old")).toBe(APP_TZ);
+    expect(branchZone(branches, "b-gone")).toBe(APP_TZ);
+    expect(branchZone(undefined, "b-dxb")).toBe(APP_TZ);
   });
 });

@@ -7,6 +7,7 @@ import { useDeliveryQuote } from "@/data/api/generated/api";
 import type { QuoteResponse } from "@/data/api/generated/models/quoteResponse";
 import type { GuestSavedLocation } from "@/data/api/generated/models/guestSavedLocation";
 import { Button } from "@/components/ui/button";
+import { APP_TZ } from "@/data/config/constants";
 import { cn } from "@/lib/utils";
 import { DISTANCE, Reveal, recipes } from "@/lib/motion";
 import { fmtMoney } from "@/lib/format";
@@ -36,7 +37,11 @@ interface LocationStepProps {
   /** Surfaces the resolved quote up to the page so checkout can gate on it. */
   onQuoteChange: (q: QuoteResponse | null) => void;
   onContinue: () => void;
+  /** A branch's zone (`branchZone`), for a saved address's date; Madar's default without it. */
+  zoneOf?: (branchId: string) => string;
 }
+
+const madarZone = () => APP_TZ;
 
 export function LocationStep({
   branchId,
@@ -48,6 +53,7 @@ export function LocationStep({
   onApplySavedAddress,
   onQuoteChange,
   onContinue,
+  zoneOf = madarZone,
 }: LocationStepProps) {
   const { t } = useTranslation();
   const [locating, setLocating] = useState(false);
@@ -147,6 +153,7 @@ export function LocationStep({
             otherLocations={otherLocations}
             labelOf={locationLabel}
             onSelect={applyLocation}
+            zoneOf={zoneOf}
           />
         )}
         <div className="rounded-2xl border border-border/70 bg-card p-6 text-center shadow-sm">
@@ -216,6 +223,7 @@ export function LocationStep({
           otherLocations={otherLocations}
           labelOf={locationLabel}
           onSelect={applyLocation}
+          zoneOf={zoneOf}
         />
       )}
 
@@ -255,6 +263,7 @@ function SavedAddresses({
   otherLocations,
   labelOf,
   onSelect,
+  zoneOf,
 }: {
   open: boolean;
   onToggle: () => void;
@@ -262,6 +271,7 @@ function SavedAddresses({
   otherLocations: GuestSavedLocation[];
   labelOf: (loc: GuestSavedLocation) => string;
   onSelect: (loc: GuestSavedLocation) => void;
+  zoneOf: (branchId: string) => string;
 }) {
   const { t } = useTranslation();
   const group = (title: string, locs: GuestSavedLocation[]) =>
@@ -269,7 +279,7 @@ function SavedAddresses({
       <>
         <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
         {locs.map((loc, i) => (
-          <SavedLocationRow key={i} label={labelOf(loc)} date={loc.last_used_at} onSelect={() => onSelect(loc)} />
+          <SavedLocationRow key={i} label={labelOf(loc)} date={loc.last_used_at} tz={zoneOf(loc.branch_id)} onSelect={() => onSelect(loc)} />
         ))}
       </>
     );
@@ -301,17 +311,20 @@ function SavedAddresses({
 function SavedLocationRow({
   label,
   date,
+  tz,
   onSelect,
 }: {
   label: string;
   date: string;
+  /** The saved address's branch's zone: the date reads on its clock, not the phone's. */
+  tz: string;
   onSelect: () => void;
 }) {
   const { i18n } = useTranslation();
   const ago = new Date(date).toLocaleDateString(i18n.language, {
     month: "short",
     day: "numeric",
-    timeZone: "Africa/Cairo",
+    timeZone: tz,
   });
   return (
     <button
