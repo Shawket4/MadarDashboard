@@ -1,10 +1,21 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import type { TillReconciliationLine } from "./api";
+import type { TillReconciliationLine, TillReport } from "./api";
+import { till } from "./fixtures.test-util";
 
-await import("@/i18n");
+let report: Partial<TillReport> | undefined;
+vi.mock("./api", () => ({
+  useTillReport: () => ({ data: report, isLoading: false, isError: false, refetch: vi.fn() }),
+  useTillSummary: () => ({ data: undefined }),
+}));
+vi.mock("./till-spot-views", () => ({ TillSpotViews: () => null }));
+vi.mock("./till-deductions", () => ({ TillDeductions: () => null }));
+
+const i18n = (await import("@/i18n")).default;
+await i18n.changeLanguage("en");
 const { ReconciliationTable } = await import("./reconciliation-table");
+const { TillReportSheet } = await import("./till-report-sheet");
 
 const line = (over: Partial<TillReconciliationLine>): TillReconciliationLine => ({
   method: "cash",
@@ -40,5 +51,41 @@ describe("ReconciliationTable", () => {
     expect(within(rows[1]).getByText(/Doesn't match|غير مطابق/)).toBeInTheDocument();
     expect(within(rows[1]).getByText(/Changed after close|تغيّر بعد الإغلاق/)).toBeInTheDocument();
     expect(within(rows[2]).getByText(/Not reviewed|لم تتم المراجعة/)).toBeInTheDocument();
+  });
+});
+
+describe("TillReportSheet — By person (TELLER_PICK)", () => {
+  const figures = {
+    till: till(),
+    payment_summary: [{ payment_method: "cash", is_cash: true, order_count: 3, total: 30_000 }],
+    reconciliation: [],
+    cash_movements: [],
+    cash_movements_in: 0,
+    cash_movements_out: 0,
+    net_payments: 30_000,
+    total_payments: 30_000,
+    total_tips: 0,
+    voided_amount: 0,
+  } as unknown as TillReport;
+
+  it("shows the section when the report carries by_person", () => {
+    report = {
+      ...figures,
+      by_person: [
+        { person_id: "u-karim", name: "Karim Saleh", order_count: 2, total: 20_000, tips: 0 },
+        { person_id: "u1", name: "Mona Adel", order_count: 1, total: 10_000, tips: 0 },
+      ],
+    };
+    render(<TillReportSheet tillId="t1" open onOpenChange={() => {}} />);
+    expect(screen.getByRole("heading", { name: "By person" })).toBeInTheDocument();
+    expect(screen.getAllByTestId("till-person-line")).toHaveLength(2);
+  });
+
+  it("has no section, and no empty header, when the key is absent (nobody was picked)", () => {
+    report = { ...figures };
+    render(<TillReportSheet tillId="t1" open onOpenChange={() => {}} />);
+    expect(screen.getByText("Payment summary")).toBeInTheDocument();
+    expect(screen.queryByText("By person")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("till-person-line")).not.toBeInTheDocument();
   });
 });

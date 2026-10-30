@@ -3943,6 +3943,10 @@
     "branch": "Branch",
     "tips": "Tips",
     "tipsCash": "of which cash",
+    "byPerson": {
+      "title": "By person",
+      "hint": "Who served each sale: the person picked at checkout, or whoever was signed in when nobody was picked."
+    },
     "openTill": "Open till",
     "closeTill": "Close till",
     "cashRequired": "Enter the counted cash.",
