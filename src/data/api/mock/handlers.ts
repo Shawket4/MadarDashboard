@@ -7,6 +7,7 @@ import {
   mockStaffPoolToday,
 } from "./staff-pool";
 import { defaultsFor } from "@/data/authz/use-authz";
+import { APP_TZ } from "@/data/config/constants";
 import { useAuthStore } from "@/data/stores/auth.store";
 import { rules } from "@/lib/rules";
 import { comboHandlers } from "./combos";
@@ -104,6 +105,7 @@ const PUBLIC_BRANCHES = [
     pickup_open_now: true,
     otp_required: false,
     in_mall_require_location: false,
+    timezone: APP_TZ,
   },
   {
     // Everything enabled but closed right now — exercises the menu preview +
@@ -121,6 +123,7 @@ const PUBLIC_BRANCHES = [
     pickup_open_now: false,
     otp_required: false,
     in_mall_require_location: true,
+    timezone: APP_TZ,
   },
 ];
 
@@ -227,6 +230,7 @@ const MOCK_TRACKING = {
   cancelled_at: null,
   rejected_at: null,
   items: MOCK_ORDER_ITEMS,
+  timezone: APP_TZ,
 };
 
 /** The Setup page's answer. A fresh shop (the `empty` demo, or
