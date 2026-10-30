@@ -18,7 +18,8 @@ import {
 import { useTrackDeliveryOrder } from "@/data/api/generated/api";
 import type { DeliveryTracking } from "@/data/api/generated/models/deliveryTracking";
 import { Button } from "@/components/ui/button";
-import { fmtMoney } from "@/lib/format";
+import { APP_TZ } from "@/data/config/constants";
+import { fmtMoney, fmtTime } from "@/lib/format";
 import { DISTANCE, recipes, Stagger, SwapPresence, usePop } from "@/lib/motion";
 
 import { Totals } from "../public-ordering/components/cart-sheet";
@@ -47,12 +48,19 @@ const STEPS = [
 const TERMINAL = new Set(["delivered", "cancelled", "rejected"]);
 
 /**
+ * The clock the step times are read on: the shop's, never the guest's phone's.
+ * `DeliveryTracking` names no zone yet, so it is Madar's default, as on the
+ * other ordering pages; read the branch's from the payload once it carries it.
+ */
+const TRACKING_TZ = APP_TZ;
+
+/**
  * Public, live order tracking page (the dynamic link sent in WhatsApp and routed
  * to right after placement). Polls the public tracking endpoint — the public
  * surface has no SSE — and stops once the order reaches a terminal state.
  */
 export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   // Scope the storefront (light-by-default) theme to this page, like the ordering
   // flow, restoring the dashboard theme on unmount.
@@ -192,7 +200,7 @@ export function OrderTrackingPage({ id, estimate = null }: OrderTrackingPageProp
                     <p className={`text-sm font-medium ${done ? "text-foreground" : "text-muted-foreground"}`}>
                       {t(`order.track.step.${stepDef.key}`, stepFallback(stepDef.key))}
                     </p>
-                    {ts && <p className="text-xs tabular-nums text-muted-foreground">{fmtTime(ts, i18n.language)}</p>}
+                    {ts && <p className="text-xs tabular-nums text-muted-foreground">{fmtTime(ts, TRACKING_TZ)}</p>}
                   </div>
                 </li>
               );
@@ -277,20 +285,6 @@ function destination(o: DeliveryTracking, t: TFunction): string {
     .join(" · ");
 }
 
-function fmtTime(iso: string, lang: string): string {
-  try {
-    // 12-hour, like every time the app shows. Western digits so a mixed
-    // Arabic line reads as one clock.
-    return new Date(iso).toLocaleTimeString(lang, {
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h12",
-      numberingSystem: "latn",
-    });
-  } catch {
-    return "";
-  }
-}
 
 function statusFallback(status: string): string {
   switch (status) {
