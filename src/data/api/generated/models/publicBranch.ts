@@ -23,6 +23,12 @@ export interface PublicBranch {
      * the same policy intake will freeze onto the order.
      */
   tax_policy: OnlineTaxPolicy;
+  /**
+     * The branch's effective IANA zone — its own, else its org's, else
+     * `Africa/Cairo` (`effective_timezone`). The storefront writes dates and
+     * times on this clock, never the device's.
+     */
+  timezone: string;
   umbrella_enabled: boolean;
   umbrella_open_now: boolean;
 }

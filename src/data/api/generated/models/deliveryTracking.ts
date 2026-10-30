@@ -53,6 +53,12 @@ export interface DeliveryTracking {
   tax_amount: number;
   tax_inclusive: boolean;
   tax_rate_applied: number;
+  /**
+     * The order's branch's effective IANA zone — its own, else its org's,
+     * else `Africa/Cairo` (`effective_timezone`). The page writes the step
+     * times on this clock, never the device's.
+     */
+  timezone: string;
   total: number;
   /** @nullable */
   unit_number?: string | null;
