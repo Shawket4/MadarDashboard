@@ -61,6 +61,7 @@ import {
   orgBookingQr,
   orgLinksQr,
   orgQr,
+  useGetLinksPage,
 } from "@/data/api/generated/api";
 import type { QrResponse } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
@@ -475,7 +476,14 @@ export function QrCodesSection({ orgId }: { orgId: string }) {
     },
   ];
 
-  const held = (k: QrKind) => !k.feature || has[k.feature as keyof typeof has];
+  // The links page's code exists only where the page has an address: the
+  // shop's own host, which takes custom branding and a slug on top of the plan
+  // (the server answers 409 otherwise). The links editor offered its code on
+  // the same condition, and so does this list.
+  const links = useGetLinksPage(orgId, { query: { enabled: !!orgId && has.branding } });
+  const hasAddress = !!links.data?.public_url;
+  const held = (k: QrKind) =>
+    (!k.feature || has[k.feature as keyof typeof has]) && (k.id !== "org_links" || hasAddress);
   const locked = kinds.filter((k) => !held(k) && k.feature !== "branding");
   const card = (k: QrKind) => (
     <KindCard key={k.id} kind={k} orgId={orgId} branchId={branchId ?? null} isAllBranches={isAllBranches} />

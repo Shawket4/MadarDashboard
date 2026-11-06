@@ -3,17 +3,22 @@
  *
  * Nothing on the page has been generated when someone first flips Unbranded,
  * so without a sample the switch would appear to do nothing. The sample is the
- * shop's main code — its links page, or on Free the menu without prices —
- * rendered small (150 DPI is plenty for a thumbnail) and re-rendered on every
- * flip. Pressing it opens the real code at the chosen resolution, with
- * Download, Print and Share.
+ * shop's main code — its links page when it has one, else the menu without
+ * prices — rendered small (150 DPI is plenty for a thumbnail) and re-rendered
+ * on every flip. Pressing it opens the real code at the chosen resolution,
+ * with Download, Print and Share.
+ *
+ * "When it has one" is the links page's own `public_url`, not the plan: the
+ * links page lives at the shop's own address, which needs custom branding and
+ * a slug on top of the paid plan. A paid shop without them is refused that
+ * code (409), and its sample would never appear — so it gets the menu's.
  */
 import { useTranslation } from "react-i18next";
 import { RefreshCw } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { orgLinksQr } from "@/data/api/generated/api";
+import { orgLinksQr, useGetLinksPage } from "@/data/api/generated/api";
 import { useHasFeature } from "@/hooks/use-plan";
 import { cn } from "@/lib/utils";
 
@@ -28,14 +33,24 @@ const SAMPLE_DPI = 150;
 export function QrOutputPanel({ orgId }: { orgId: string }) {
   const { t } = useTranslation();
   const hasBranding = useHasFeature("branding");
-  const id = hasBranding ? "org_links" : "org_menu_display";
+  // The same read the links editor makes (one request, one cache entry).
+  const links = useGetLinksPage(orgId, { query: { enabled: !!orgId && hasBranding } });
+  const decided = !hasBranding || !links.isPending;
+  const linksCode = hasBranding && !!links.data?.public_url;
+  const id = linksCode ? "org_links" : "org_menu_display";
   const fetch = (p: QrRenderParams) =>
-    orgLinksQr(orgId, hasBranding ? p : { ...p, target: "menu_display" }, {});
-  const title = hasBranding
+    orgLinksQr(orgId, linksCode ? p : { ...p, target: "menu_display" }, {});
+  const title = linksCode
     ? t("links.editor.qrTitle", "Links page code")
     : t("menuDisplay.editor.qrTitle", "Menu (no prices) code");
 
-  const sample = useLiveQr({ id, scope: [orgId], fetch, enabled: !!orgId, override: { dpi: SAMPLE_DPI } });
+  const sample = useLiveQr({
+    id,
+    scope: [orgId],
+    fetch,
+    enabled: !!orgId && decided,
+    override: { dpi: SAMPLE_DPI },
+  });
   const full = useQrDialog({ id, scope: [orgId], fetch, title });
 
   return (
