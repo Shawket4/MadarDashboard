@@ -130,10 +130,14 @@ export const routes: RoutePrefetchMap = {
     void qc.prefetchQuery(getListStationsQueryOptions({ branch_id: branchId }));
     void qc.prefetchQuery(getGetRoutingModeQueryOptions({ branch_id: branchId }));
   },
-  "/settings/links": (qc, { orgId }) => {
+  // Links & QR codes: the editors' reads, and the branch's tables for the
+  // table codes. The codes themselves are never warmed: each one mints a
+  // short link, which only a person asking for it should do.
+  "/settings/links-qr": (qc, { orgId, branchId }) => {
     if (!orgId) return;
     void qc.prefetchQuery(getGetMenuDisplayQueryOptions(orgId));
     if (planHas("branding")) void qc.prefetchQuery(getGetLinksPageQueryOptions(orgId));
+    if (branchId && planHas("online")) void qc.prefetchQuery(getListTablesQueryOptions(branchId));
   },
   "/settings/payment-methods": (qc, { orgId, branchId, search }) => {
     if (!orgId) return;
@@ -147,9 +151,6 @@ export const routes: RoutePrefetchMap = {
   },
   "/settings/plan": (qc, { orgId }) => {
     if (orgId) void qc.prefetchQuery(getGetOrgPlanQueryOptions(orgId));
-  },
-  "/settings/qr": (qc, { branchId }) => {
-    if (branchId) void qc.prefetchQuery(getListTablesQueryOptions(branchId));
   },
   // Polled every 2.5 s while open, for the platform only.
   "/settings/whatsapp": (qc) => {

@@ -68,12 +68,15 @@ export const REDIRECTS: Record<string, string> = {
   "/menu/overrides": "/menu/pricing",
   "/menu/recipes": "/menu/items",
   "/permissions": "/access/roles",
-  "/qr": "/settings/qr",
+  "/qr": "/settings/links-qr",
   "/reports/operations/profitability": "/reports/operations",
   "/reports/operations/tables": "/reports/operations",
   "/reports/sales": "/reports/operations",
   // Settings › Loyalty moved into Rewards; its default tab lands on the programme.
   "/settings/loyalty": "/rewards/programme",
+  // Links page and QR codes are one page (2026-11-06).
+  "/settings/links": "/settings/links-qr",
+  "/settings/qr": "/settings/links-qr",
   "/shifts": "/tills",
   "/users": "/access/users",
 };

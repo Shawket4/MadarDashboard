@@ -1,11 +1,12 @@
 /**
  * "Menu (no prices)" — the settings of the shop's menu without prices.
  *
- * Self-contained (its own query, form and save), so it can sit on the Links
- * page for every plan: a Free shop has no links page, but it has this. It is
- * NOT one of the links page's buttons and has no switch to become one; the
- * page lives at its own address, shown here with Copy, Open and its QR code
- * (the links page's own code endpoint, `target=menu_display`).
+ * Self-contained (its own query, form and save), so it can sit on the Links &
+ * QR codes page for every plan: a Free shop has no links page, but it has
+ * this. It is NOT one of the links page's buttons and has no switch to become
+ * one; the page lives at its own address, shown here with Copy, Open and its
+ * QR code (the links page's own code endpoint, `target=menu_display`), live
+ * under the page's output switches like every other code there.
  */
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -36,10 +37,10 @@ import {
   useGetMenuDisplay,
   usePutMenuDisplay,
 } from "@/data/api/generated/api";
-import type { MenuDisplaySettings, QrResponse } from "@/data/api/generated/models";
+import type { MenuDisplaySettings } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { usePop, useShake } from "@/lib/motion";
-import { QrPreviewDialog } from "@/features/qr/qr-preview-dialog";
+import { useQrDialog } from "@/features/qr/qr-dialog";
 
 /** Matches the server's limit (`orgs::menu_display::MAX_TITLE_CHARS`). */
 export const MAX_MENU_TITLE = 60;
@@ -76,8 +77,12 @@ function MenuDisplayForm({ orgId, saved }: { orgId: string; saved: MenuDisplaySe
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: toForm(saved) });
   useEffect(() => form.reset(toForm(saved)), [form, saved]);
 
-  const [qr, setQr] = useState<QrResponse | null>(null);
-  const [qrBusy, setQrBusy] = useState(false);
+  const qr = useQrDialog({
+    id: "org_menu_display",
+    scope: [orgId],
+    fetch: (p) => orgLinksQr(orgId, { ...p, target: "menu_display" }, {}),
+    title: t("menuDisplay.editor.qrTitle", "Menu (no prices) code"),
+  });
   // Save answers "did it save?" itself, as the links page's Save does.
   const saveRef = useRef<HTMLButtonElement>(null);
   const [savedN, setSavedN] = useState(0);
@@ -109,17 +114,6 @@ function MenuDisplayForm({ orgId, saved }: { orgId: string; saved: MenuDisplaySe
     },
     () => setFailed((n) => n + 1),
   );
-
-  const showQr = async () => {
-    setQrBusy(true);
-    try {
-      setQr(await orgLinksQr(orgId, { target: "menu_display" }, {}));
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-    } finally {
-      setQrBusy(false);
-    }
-  };
 
   const url = saved.public_url;
   const live = saved.enabled;
@@ -259,8 +253,8 @@ function MenuDisplayForm({ orgId, saved }: { orgId: string; saved: MenuDisplaySe
                   <Copy className="size-4" />
                   {t("links.editor.copy", "Copy")}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => void showQr()} disabled={qrBusy}>
-                  {qrBusy ? <Spinner /> : <QrCode className="size-4" />}
+                <Button type="button" variant="outline" onClick={qr.show} disabled={qr.loading}>
+                  {qr.loading ? <Spinner /> : <QrCode className="size-4" />}
                   {t("links.editor.qr", "QR code")}
                 </Button>
                 {live ? (
@@ -281,12 +275,7 @@ function MenuDisplayForm({ orgId, saved }: { orgId: string; saved: MenuDisplaySe
         </div>
       </CardContent>
 
-      <QrPreviewDialog
-        qr={qr}
-        open={!!qr}
-        onOpenChange={(o) => !o && setQr(null)}
-        title={t("menuDisplay.editor.qrTitle", "Menu (no prices) code")}
-      />
+      {qr.dialog}
     </Card>
   );
 }

@@ -33,6 +33,23 @@ svg?: boolean;
  */
 module_px?: number;
 /**
+ * `true` → the code and nothing else: a square QR, black on a white quiet
+ * zone, 70 mm a side at `dpi` (PNG, or SVG with `svg=true`). No card, no
+ * frame, no purpose line or caption, no "Powered by", no Madar mark and no
+ * shop name. Overrides `card`; `caption`, `bleed_mm`, `crop_marks` and
+ * `module_px` are ignored. Default false.
+ */
+unbranded?: boolean;
+/**
+ * With `unbranded=true` only: put the shop's logo in the middle of the
+ * code (default true). Only a shop on the branding tier with a printable
+ * logo has one to put there; otherwise the code comes out plain, and the
+ * response's `centre_logo` says so. `false` → always a plain QR, at a
+ * lower error-correction level (bigger modules). The branded card ignores
+ * it.
+ */
+centre_logo?: boolean;
+/**
  * Omitted: the links page itself (the paid `branding` feature).
  * `menu_display`: the menu without prices, which every plan has.
  */
