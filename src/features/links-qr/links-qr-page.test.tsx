@@ -10,7 +10,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { MenuDisplaySettings, QrResponse } from "@/data/api/generated/models";
+import type { LinksPageSettings, MenuDisplaySettings, QrResponse } from "@/data/api/generated/models";
 
 const api = {
   getMenuDisplay: vi.fn(),
@@ -80,6 +80,20 @@ const MENU: MenuDisplaySettings = {
   public_url: "https://drops.madar-pos.cloud/menu",
 };
 
+/** A paid shop with its own address (custom branding and a slug). */
+const LINKS: LinksPageSettings = {
+  branches: [],
+  custom_branding: true,
+  items: [],
+  modules: [],
+  public_url: "https://drops.madar-pos.cloud/",
+  show_branches: false,
+  show_cover: false,
+  social_links: {},
+  tagline_ar: null,
+  tagline_en: null,
+};
+
 /** A code whose image says what was asked for, so a test can read it back. */
 const code =
   (kind: string, opts: { logo?: boolean } = {}) =>
@@ -104,7 +118,7 @@ beforeEach(() => {
   resetQrOutputMemory();
   for (const f of Object.values(api)) f.mockReset();
   api.getMenuDisplay.mockReturnValue({ data: MENU, isPending: false });
-  api.getLinksPage.mockReturnValue({ data: undefined, isPending: true });
+  api.getLinksPage.mockReturnValue({ data: LINKS, isPending: false });
   api.listTables.mockReturnValue({ data: [], isPending: false });
   api.orgLinksQr.mockImplementation(code("org_links"));
   api.orgQr.mockImplementation(code("org_order"));
@@ -137,6 +151,17 @@ describe("one page for links and codes", () => {
     expect(document.querySelector("[data-paid-lock]")).toBeNull();
   });
 
+  it("paid without its own address: no links page code (the server refuses it), the sample is the menu's", async () => {
+    api.getLinksPage.mockReturnValue({ data: { ...LINKS, custom_branding: false, public_url: null }, isPending: false });
+    wrap(<LinksQrPage />);
+    expect(screen.queryByTestId("qr-kind-org_links")).toBeNull();
+    expect(screen.getByTestId("qr-kind-org_menu_display")).toBeInTheDocument();
+    expect(screen.getByTestId("qr-kind-org_order")).toBeInTheDocument();
+    await screen.findByTestId("qr-sample");
+    expect(api.orgLinksQr).toHaveBeenCalledWith("o-1", { card: true, dpi: 150, target: "menu_display" }, {});
+    expect(api.orgLinksQr).not.toHaveBeenCalledWith("o-1", { card: true, dpi: 150 }, {});
+  });
+
   it("Free: the menu and its code are usable; the links page and the paid codes are locked, unfetched", () => {
     plan = "free";
     wrap(<LinksQrPage />);
@@ -147,7 +172,11 @@ describe("one page for links and codes", () => {
     expect(screen.queryByTestId("qr-kind-branch_order")).toBeNull();
     expect(document.querySelector('[data-paid-lock="branding"]')).not.toBeNull();
     expect(document.querySelector('[data-paid-lock="online"]')).not.toBeNull();
-    expect(api.getLinksPage).not.toHaveBeenCalled();
+    // The links page's read never runs on Free (the server would refuse it):
+    // whoever asks for it asks with `enabled: false`.
+    for (const [, opts] of api.getLinksPage.mock.calls) {
+      expect((opts as { query?: { enabled?: boolean } }).query?.enabled).toBe(false);
+    }
     expect(api.listTables).not.toHaveBeenCalled();
     expect(api.orgQr).not.toHaveBeenCalled();
   });
@@ -155,6 +184,7 @@ describe("one page for links and codes", () => {
   it("the old QR address lands on the codes, once the section above has its height", async () => {
     // Paid: the links editor is still loading, so the page waits rather than
     // scrolling to a spot the editor is about to push down.
+    api.getLinksPage.mockReturnValue({ data: undefined, isPending: true });
     const { unmount } = wrap(<LinksQrPage section="codes" />);
     await new Promise((r) => setTimeout(r, 30));
     expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
