@@ -333,6 +333,7 @@ const EXTRA_MODULE_ROUTES: Array<[string, OrgModule]> = [
   ["/settings/bookings", "pos"],
   ["/settings/brand", "pos"],
   ["/settings/links", "pos"],
+  ["/settings/links-qr", "pos"],
   ["/settings/combos", "pos"],
   ["/settings/integrations", "pos"],
   ["/settings/delivery", "pos"],
@@ -379,16 +380,15 @@ const EXTRA_FEATURE_ROUTES: Array<[string, Feature]> = [
   ["/insights/inventory-reports", "inventory"],
   ["/menu/recipes", "inventory"],
   ["/delivery", "online"],
-  ["/qr", "online"],
   ["/kitchen", "kitchen"],
   ["/settings/bookings", "bookings"],
   ["/settings/brand", "branding"],
-  // NOT "/settings/links": every plan opens it, for its "Menu (no prices)"
-  // section; the links page's own sections lock themselves on Free.
+  // NOT "/settings/links-qr" (nor its old addresses "/settings/links",
+  // "/settings/qr" and "/qr"): every plan opens it, for its "Menu (no prices)"
+  // section and code; the links page and the paid codes lock themselves on Free.
   ["/settings/delivery", "online"],
   ["/settings/delivery-zones", "online"],
   ["/settings/integrations", "online"],
-  ["/settings/qr", "online"],
   ["/settings/kitchen-routing", "kitchen"],
   ["/settings/kitchen-stations", "kitchen"],
 ];

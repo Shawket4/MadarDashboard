@@ -95,11 +95,11 @@ const SCENARIOS = [
     start: "/settings",
     setup: async (page) => {
       await page.getByRole("combobox", { name: "Settings section" }).tap();
-      await page.getByRole("option", { name: "Links page", exact: true }).waitFor({ timeout: 5000 });
+      await page.getByRole("option", { name: "Links & QR codes", exact: true }).waitFor({ timeout: 5000 });
       await page.waitForTimeout(400);
     },
-    target: (page) => page.getByRole("option", { name: "Links page", exact: true }),
-    done: () => location.pathname === "/settings/links" && !!document.querySelector("[data-page-width] h2") && window.__tap.ready(document.querySelector("[data-page-width]")),
+    target: (page) => page.getByRole("option", { name: "Links & QR codes", exact: true }),
+    done: () => location.pathname === "/settings/links-qr" && !!document.querySelector("[data-page-width] h2") && window.__tap.ready(document.querySelector("[data-page-width]")),
   },
   {
     name: "home-tile",

@@ -65,11 +65,11 @@ describe("visibleSettings", () => {
 describe("visibleSettings on the Free plan", () => {
   const free = (modules: string[]) => visibleSettings(owner, modules, "free").flatMap((g) => g.items.map((i) => i.to));
 
-  it("drops brand, delivery, bookings, loyalty, QR, kitchen and integrations", () => {
+  it("drops brand, delivery, bookings, loyalty, kitchen and integrations", () => {
     const shown = free(["pos"]);
     for (const p of [
       "/settings/brand", "/settings/delivery", "/settings/bookings",
-      "/settings/qr", "/settings/kitchen-stations", "/settings/kitchen-routing", "/settings/integrations",
+      "/settings/kitchen-stations", "/settings/kitchen-routing", "/settings/integrations",
     ]) {
       expect(shown, p).not.toContain(p);
     }
@@ -79,9 +79,18 @@ describe("visibleSettings on the Free plan", () => {
     expect(SETTINGS_NAV.flatMap((g) => g.items.map((i) => i.to))).not.toContain("/settings/loyalty");
   });
 
-  it("keeps the Links page: its menu without prices is on every plan", () => {
-    expect(free(["pos"])).toContain("/settings/links");
-    expect(featureOfPath("/settings/links")).toBeUndefined();
+  it("keeps Links & QR codes: its menu without prices, and that menu's code, are on every plan", () => {
+    expect(free(["pos"])).toContain("/settings/links-qr");
+    expect(featureOfPath("/settings/links-qr")).toBeUndefined();
+    // Its old addresses redirect to it, so none of them may be gated either.
+    for (const old of ["/settings/links", "/settings/qr", "/qr"]) expect(featureOfPath(old), old).toBeUndefined();
+  });
+
+  it("lists the merged page once, and neither page it replaced", () => {
+    const all = SETTINGS_NAV.flatMap((g) => g.items.map((i) => i.to));
+    expect(all.filter((p) => p === "/settings/links-qr")).toHaveLength(1);
+    expect(all).not.toContain("/settings/links");
+    expect(all).not.toContain("/settings/qr");
   });
 
   it("opens no other branding page to Free", () => {

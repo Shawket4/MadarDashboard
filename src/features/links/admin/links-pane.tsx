@@ -11,6 +11,10 @@
  *
  * The preview beside the form is the public page itself (`LinksPage`), reading
  * what is saved: the same component a customer gets, so it cannot drift.
+ *
+ * It is the first section of Settings › Links & QR codes
+ * (`features/links-qr/links-qr-page.tsx`); the address's "QR code" button opens
+ * the same live code, under the same output switches, as the codes section.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -47,7 +51,6 @@ import type {
   LinksPageBranchInput,
   LinksPageItem,
   LinksPageSettings,
-  QrResponse,
 } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
 import { Presence, useFlip, usePop, useShake } from "@/lib/motion";
@@ -60,12 +63,11 @@ import {
   isHttpsUrl,
 } from "@/features/orgs/social-links";
 import { PaneHeader } from "@/features/settings/pane-header";
-import { QrPreviewDialog } from "@/features/qr/qr-preview-dialog";
+import { useQrDialog } from "@/features/qr/qr-dialog";
 import { LinksPage } from "@/features/links/public/links-page";
 import { Spinner } from "@/components/ui/spinner";
 import { PaidFeatureLock } from "@/components/app/paid-feature-lock";
 import { useHasFeature } from "@/hooks/use-plan";
-import { MenuDisplaySection } from "./menu-display-section";
 
 const MAX_TAGLINE = 160;
 const MAX_TITLE = 60;
@@ -90,28 +92,31 @@ const newId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined;
 
 /**
- * Every plan opens this pane. A paid shop gets the links page editor and, under
- * it, the menu without prices. A Free shop has no links page (the paid
- * `branding` feature) but has the menu without prices: it gets that section,
- * usable, and the links page's sections shown locked — nothing behind them is
- * fetched, and the server refuses the links page's own reads and writes.
+ * The links page section. A paid shop gets the editor. A Free shop has no
+ * links page (the paid `branding` feature): it sees the editor's sections
+ * locked — nothing behind them is fetched, and the server refuses the links
+ * page's own reads and writes. (The menu without prices, which every plan
+ * has, is its own section on the same page.)
  */
-export function LinksPane() {
+export function LinksPageSection({ onReady }: { onReady?: () => void }) {
   const orgId = useOrgId() ?? "";
   const hasBranding = useHasFeature("branding");
-  if (!hasBranding) return <FreeLinksPane orgId={orgId} />;
-  return (
-    <div className="space-y-6">
-      <PaidLinksPane orgId={orgId} />
-      <MenuDisplaySection orgId={orgId} />
-    </div>
-  );
+  if (!hasBranding) return <FreeLinksSection onReady={onReady} />;
+  return <PaidLinksPane orgId={orgId} onReady={onReady} />;
 }
 
-function FreeLinksPane({ orgId }: { orgId: string }) {
+/** Calls `onReady` once the section has its final height (the page scrolls past it). */
+function useReady(ready: boolean, onReady?: () => void) {
+  useEffect(() => {
+    if (ready) onReady?.();
+  }, [ready, onReady]);
+}
+
+function FreeLinksSection({ onReady }: { onReady?: () => void }) {
   const { t } = useTranslation();
+  useReady(true, onReady);
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PaneHeader
         title={t("links.editor.title", "Links page")}
         description={t(
@@ -119,7 +124,6 @@ function FreeLinksPane({ orgId }: { orgId: string }) {
           "The page your address opens on — for your Instagram bio, a QR on the counter, or a receipt.",
         )}
       />
-      <MenuDisplaySection orgId={orgId} />
       <PaidFeatureLock
         feature="branding"
         title={t("links.editor.lockedTitle", "Your links page")}
@@ -150,9 +154,10 @@ function LockedSections() {
   );
 }
 
-function PaidLinksPane({ orgId }: { orgId: string }) {
+function PaidLinksPane({ orgId, onReady }: { orgId: string; onReady?: () => void }) {
   const { t } = useTranslation();
   const q = useGetLinksPage(orgId, { query: { enabled: !!orgId } });
+  useReady(!q.isPending, onReady);
 
   if (q.isPending || !q.data) {
     return (
@@ -186,8 +191,12 @@ function LinksEditor({
       address: b.address,
     })),
   );
-  const [qr, setQr] = useState<QrResponse | null>(null);
-  const [qrBusy, setQrBusy] = useState(false);
+  const qr = useQrDialog({
+    id: "org_links",
+    scope: [orgId],
+    fetch: (p) => orgLinksQr(orgId, p, {}),
+    title: t("links.editor.qrTitle", "Links page code"),
+  });
   // Bumped after a save so the preview re-reads the public page.
   const [previewKey, setPreviewKey] = useState(0);
 
@@ -294,17 +303,6 @@ function LinksEditor({
     }
   });
 
-  const showQr = async () => {
-    setQrBusy(true);
-    try {
-      setQr(await orgLinksQr(orgId, {}, {}));
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-    } finally {
-      setQrBusy(false);
-    }
-  };
-
   const title = (it: LinksPageItem) =>
     it.kind === "custom"
       ? it.title_en?.trim() || t("links.editor.newLink", "New link")
@@ -357,8 +355,8 @@ function LinksEditor({
                         <Copy className="size-4" />
                         {t("links.editor.copy", "Copy")}
                       </Button>
-                      <Button type="button" variant="outline" onClick={() => void showQr()} disabled={qrBusy}>
-                        {qrBusy ? <Spinner /> : <QrCode className="size-4" />}
+                      <Button type="button" variant="outline" onClick={qr.show} disabled={qr.loading}>
+                        {qr.loading ? <Spinner /> : <QrCode className="size-4" />}
                         {t("links.editor.qr", "QR code")}
                       </Button>
                       <Button type="button" variant="outline" asChild>
@@ -626,12 +624,7 @@ function LinksEditor({
         </aside>
       </div>
 
-      <QrPreviewDialog
-        qr={qr}
-        open={!!qr}
-        onOpenChange={(o) => !o && setQr(null)}
-        title={t("links.editor.qrTitle", "Links page code")}
-      />
+      {qr.dialog}
     </div>
   );
 }

@@ -17,7 +17,6 @@ import {
   Image as ImageIcon,
   CreditCard,
   Layers,
-  Link2,
   MessageCircle,
   Palette,
   Plug,
@@ -94,19 +93,6 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         desc: "Your mark and your links, on receipts and on your customers' loyalty cards.",
         icon: ImageIcon,
       },
-      {
-        // The page the shop's own address opens on. Same rule as Brand: the
-        // shop's own face, edited by its manager. Every plan opens it: its
-        // "Menu (no prices)" section is on Free too, and the links page's own
-        // sections lock themselves there (the paid `branding` feature).
-        to: "/settings/links",
-        module: "pos",
-        labelKey: "settings.linksPage",
-        fallback: "Links page",
-        descKey: "settings.linksPageDesc",
-        desc: "The page your address opens on: order, menu, rewards, your socials.",
-        icon: Link2,
-      },
     ],
   },
   {
@@ -136,13 +122,17 @@ export const SETTINGS_NAV: SettingsGroup[] = [
         icon: Utensils,
       },
       {
-        to: "/settings/qr",
+        // The shop's addresses and every code that opens them, on one page
+        // (it replaced Links page and QR codes, 2026-11-06). Every plan opens
+        // it: its "Menu (no prices)" section and code are on Free too, and the
+        // links page and the ordering, booking and table codes lock themselves
+        // there (the paid `branding` and `online` features).
+        to: "/settings/links-qr",
         module: "pos",
-        feature: "online",
-        labelKey: "nav.qr",
-        fallback: "QR codes",
-        descKey: "settings.qrDesc",
-        desc: "The codes on your tables, counters and receipts.",
+        labelKey: "settings.linksAndQr",
+        fallback: "Links & QR codes",
+        descKey: "settings.linksAndQrDesc",
+        desc: "Your links page, your menu and every QR code: tables, counters, posters, receipts.",
         icon: QrCode,
       },
     ],

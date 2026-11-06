@@ -2695,7 +2695,9 @@
     "linksPage": "Links page",
     "linksPageDesc": "The page your address opens on: order, menu, rewards, your socials.",
     "plan": "Plan",
-    "planDesc": "Your Free plan, and which till each branch sells on."
+    "planDesc": "Your Free plan, and which till each branch sells on.",
+    "linksAndQr": "Links & QR codes",
+    "linksAndQrDesc": "Your links page, your menu and every QR code: tables, counters, posters, receipts."
   },
   "meta": {
     "publication": "Capability Portfolio",
@@ -3747,7 +3749,8 @@
       "floor": "Floor",
       "floorPlaceholder": "Ground Floor",
       "unit": "Unit / office",
-      "unitPlaceholder": "Unit 42"
+      "unitPlaceholder": "Unit 42",
+      "unitNumber": "Unit number"
     },
     "opts": {
       "brandedCard": "Branded card",
@@ -3790,7 +3793,64 @@
       "standard": "Standard menu",
       "inMall": "In-mall delivery"
     },
-    "title": "QR Codes"
+    "title": "QR Codes",
+    "output": {
+      "title": "How your codes come out",
+      "hint": "Every code on this page follows these switches, and so does every download and print. Remembered on this device.",
+      "unbranded": "Unbranded",
+      "unbrandedHint": "Just the QR code: no card, no text, no frame, no Madar logo.",
+      "centreLogo": "Logo in the middle",
+      "centreLogoHint": "Your shop's logo in the centre of the code. Off: a plain QR.",
+      "centreLogoOff": "Turn on Unbranded to choose.",
+      "noLogo": "Your shop has no logo for codes yet, so the code comes out plain.",
+      "addLogo": "Add one under Brand",
+      "card": "A6 card",
+      "cardOff": "A small plain code, for receipts.",
+      "preview": "Preview: changes as you switch",
+      "openSample": "Open this code"
+    },
+    "print": "Print",
+    "share": "Share",
+    "shareFailed": "Could not share the code",
+    "updating": "Updating the code…",
+    "copied": "Copied",
+    "copyFailed": "Could not copy the link",
+    "copyLink": "Copy link",
+    "needsAllBranches": "Switch the scope bar to All branches to make this code.",
+    "needsBranch": "Select a branch in the scope bar to make this code.",
+    "links": {
+      "title": "Links page",
+      "description": "Your shop's own address, where everything else is one tap away. For your bio, the counter and your receipts."
+    },
+    "menuDisplay": {
+      "title": "Menu (no prices)",
+      "description": "Your menu with no prices, at its own address: for a screen, a table card or your bio."
+    },
+    "locked": {
+      "title": "Ordering, booking and table codes"
+    },
+    "orgBooking": {
+      "title": "All-branches bookings",
+      "description": "Guests pick a branch, then a time. Needs at least one branch with bookings switched on."
+    },
+    "branchBooking": {
+      "title": "Branch bookings",
+      "description": "Straight to this branch's free times — for the table tent or the door. Bookings must be switched on for the branch."
+    }
+  },
+  "linksQr": {
+    "title": "Links & QR codes",
+    "desc": "Your shop's addresses, and the codes that open them: for your bio, your tables, your counter and your posters.",
+    "jump": {
+      "label": "On this page",
+      "links": "Links page",
+      "menu": "Menu (no prices)",
+      "codes": "QR codes"
+    },
+    "codes": {
+      "title": "QR codes",
+      "desc": "A code for every address: download it, print it or share it, branded or unbranded."
+    }
   },
   "ui": {
     "sidebar": {

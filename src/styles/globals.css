@@ -402,3 +402,75 @@
   background: color-mix(in oklab, var(--primary) 45%, transparent);
 }
 /* The pin drops in and pulses through src/lib/motion (delivery-map.tsx). */
+
+/* ── Printing codes (src/features/qr/print.ts) ──────────────────────────────
+ * The codes are copied into #qr-print-root at the end of <body>; while
+ * html.qr-printing is set, the printer sees that root and nothing else.
+ * Sizes are physical so a code prints true: one code at its real size, a
+ * sheet of many on A4. An unbranded code prints as the image alone: no
+ * label, no cut line (the image carries its own white quiet zone). */
+#qr-print-root {
+  display: none;
+}
+@media print {
+  html.qr-printing body > :not(#qr-print-root) {
+    display: none !important;
+  }
+  html.qr-printing,
+  html.qr-printing body {
+    background: #fff !important;
+  }
+  html.qr-printing #qr-print-root {
+    display: grid;
+    grid-template-columns: repeat(var(--qr-cols), var(--qr-cell));
+    justify-content: center;
+    gap: 8mm 6mm;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  #qr-print-root[data-count="one"] {
+    --qr-cols: 1;
+  }
+  #qr-print-root[data-shape="plain"] {
+    --qr-cols: 3;
+    --qr-cell: 60mm;
+  }
+  #qr-print-root[data-shape="plain"][data-count="one"] {
+    --qr-cols: 1;
+    --qr-cell: 70mm;
+  }
+  #qr-print-root[data-shape="card"] {
+    --qr-cols: 2;
+    --qr-cell: 92mm;
+  }
+  #qr-print-root[data-shape="card"][data-count="one"] {
+    --qr-cols: 1;
+    --qr-cell: 105mm;
+  }
+  #qr-print-root[data-shape="receipt"] {
+    --qr-cols: 3;
+    --qr-cell: 50mm;
+  }
+  #qr-print-root[data-shape="receipt"][data-count="one"] {
+    --qr-cols: 1;
+  }
+  #qr-print-root .qr-print-cell {
+    margin: 0;
+    break-inside: avoid;
+  }
+  #qr-print-root .qr-print-cell[data-cut] {
+    border: 0.3mm dashed #9ca3af;
+    padding: 2mm;
+  }
+  #qr-print-root .qr-print-cell img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  #qr-print-root figcaption {
+    margin-top: 2mm;
+    color: #000;
+    font: 600 14pt/1.1 system-ui, sans-serif;
+    text-align: center;
+  }
+}

@@ -45,7 +45,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
   await settle();
   ls = await page.evaluate(() => Object.fromEntries(Object.entries(localStorage)));
   const targets = await page.evaluate(() => [...new Set([...document.querySelectorAll('a[href^="/"]')].map((a) => new URL(a.href).pathname))]);
-  const settings = ["/settings/brand", "/settings/plan", "/settings/links", "/settings/payment-methods", "/settings/qr", "/settings/delivery", "/settings/delivery-zones", "/settings/kitchen-stations", "/settings/kitchen-routing", "/settings/bookings", "/settings/combos", "/settings/integrations", "/settings/loyalty", "/settings/staff-pool"];
+  const settings = ["/settings/brand", "/settings/plan", "/settings/links-qr", "/settings/payment-methods", "/settings/delivery", "/settings/delivery-zones", "/settings/kitchen-stations", "/settings/kitchen-routing", "/settings/bookings", "/settings/combos", "/settings/integrations", "/settings/loyalty", "/settings/staff-pool"];
   const ops = ["tables", "overview", "items", "tellers", "waiters", "branches"].map((t) => `/reports/operations?tab=${t}`);
   // With and without the branch: the scope is in the URL, and a request is keyed by it.
   const branch = await page.evaluate(() => new URL(location.href).searchParams.get("branchId"));

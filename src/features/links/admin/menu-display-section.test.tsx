@@ -1,8 +1,8 @@
 /**
- * Settings › Links page: the "Menu (no prices)" section, and how the pane
- * reads on each plan — a Free shop gets that section usable and the links
- * page's own sections locked (nothing behind them fetched); a paid shop gets
- * the editor exactly as before, plus the section.
+ * Settings › Links & QR codes: the "Menu (no prices)" section, and how the
+ * links page section reads on each plan — a Free shop gets the menu section
+ * usable and the links page's own sections locked (nothing behind them
+ * fetched); a paid shop gets the editor exactly as before.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -43,7 +43,7 @@ vi.mock("@/hooks/use-plan", async () => {
 
 await import("@/i18n");
 const { MenuDisplaySection } = await import("./menu-display-section");
-const { LinksPane } = await import("./links-pane");
+const { LinksPageSection } = await import("./links-pane");
 
 function wrap(node: ReactNode) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -97,7 +97,10 @@ describe("MenuDisplaySection", () => {
   it("gets its code from the links page's QR endpoint, for this page", async () => {
     wrap(<MenuDisplaySection orgId="o-1" />);
     fireEvent.click(screen.getByRole("button", { name: "QR code" }));
-    await waitFor(() => expect(orgLinksQr).toHaveBeenCalledWith("o-1", { target: "menu_display" }, {}));
+    // The page's output switches ride along (today's card by default).
+    await waitFor(() =>
+      expect(orgLinksQr).toHaveBeenCalledWith("o-1", { card: true, dpi: 600, target: "menu_display" }, {}),
+    );
     expect(await screen.findByText("Menu (no prices) code")).toBeInTheDocument();
   });
 
@@ -123,10 +126,15 @@ describe("MenuDisplaySection", () => {
   });
 });
 
-describe("LinksPane by plan", () => {
-  it("Free: the menu section is usable, the links page's sections are locked and never fetched", () => {
+describe("LinksPageSection by plan", () => {
+  it("Free: the links page's sections are locked and never fetched; the menu section stays usable", () => {
     plan = "free";
-    wrap(<LinksPane />);
+    wrap(
+      <>
+        <LinksPageSection />
+        <MenuDisplaySection orgId="o-1" />
+      </>,
+    );
     expect(screen.getByTestId("menu-display-section")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
     const lock = document.querySelector('[data-paid-lock="branding"]');
@@ -139,11 +147,10 @@ describe("LinksPane by plan", () => {
     expect(screen.queryByText("Line under your name (English)")).toBeNull();
   });
 
-  it("Paid: the links page editor as before, and the menu section under it", () => {
+  it("Paid: the links page editor as before", () => {
     plan = "paid";
-    wrap(<LinksPane />);
+    wrap(<LinksPageSection />);
     expect(getLinksPage).toHaveBeenCalledWith("o-1", expect.anything());
-    expect(screen.getByTestId("menu-display-section")).toBeInTheDocument();
     expect(document.querySelector("[data-paid-lock]")).toBeNull();
   });
 });

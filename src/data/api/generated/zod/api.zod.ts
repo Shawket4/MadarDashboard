@@ -2409,10 +2409,13 @@ export const BranchBookingQrQueryParams = zod.object({
   "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
   "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
   "module_px": zod.number().min(branchBookingQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "unbranded": zod.boolean().optional().describe('`true` → the code and nothing else: a square QR, black on a white quiet\nzone, 70 mm a side at `dpi` (PNG, or SVG with `svg=true`). No card, no\nframe, no purpose line or caption, no \"Powered by\", no Madar mark and no\nshop name. Overrides `card`; `caption`, `bleed_mm`, `crop_marks` and\n`module_px` are ignored. Default false.'),
+  "centre_logo": zod.boolean().optional().describe('With `unbranded=true` only: put the shop\'s logo in the middle of the\ncode (default true). Only a shop on the branding tier with a printable\nlogo has one to put there; otherwise the code comes out plain, and the\nresponse\'s `centre_logo` says so. `false` → always a plain QR, at a\nlower error-correction level (bigger modules). The branded card ignores\nit.'),
   "slug": zod.string().optional()
 })
 
 export const BranchBookingQrResponse = zod.object({
+  "centre_logo": zod.boolean().optional().describe('Whether anything sits in the middle of the code: always on the card (the\nshop\'s logo, or Madar\'s mark), never on the receipt QR, and on the\nunbranded code only when `centre_logo` was asked for AND the shop has a\nprintable logo on the branding tier. `false` with `unbranded=true` and\n`centre_logo=true` is how a client learns there was no logo to put there.'),
   "kind": zod.string(),
   "long_url": zod.string(),
   "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
@@ -2445,10 +2448,13 @@ export const BranchLoyaltyQrQueryParams = zod.object({
   "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
   "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
   "module_px": zod.number().min(branchLoyaltyQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "unbranded": zod.boolean().optional().describe('`true` → the code and nothing else: a square QR, black on a white quiet\nzone, 70 mm a side at `dpi` (PNG, or SVG with `svg=true`). No card, no\nframe, no purpose line or caption, no \"Powered by\", no Madar mark and no\nshop name. Overrides `card`; `caption`, `bleed_mm`, `crop_marks` and\n`module_px` are ignored. Default false.'),
+  "centre_logo": zod.boolean().optional().describe('With `unbranded=true` only: put the shop\'s logo in the middle of the\ncode (default true). Only a shop on the branding tier with a printable\nlogo has one to put there; otherwise the code comes out plain, and the\nresponse\'s `centre_logo` says so. `false` → always a plain QR, at a\nlower error-correction level (bigger modules). The branded card ignores\nit.'),
   "slug": zod.string().optional()
 })
 
 export const BranchLoyaltyQrResponse = zod.object({
+  "centre_logo": zod.boolean().optional().describe('Whether anything sits in the middle of the code: always on the card (the\nshop\'s logo, or Madar\'s mark), never on the receipt QR, and on the\nunbranded code only when `centre_logo` was asked for AND the shop has a\nprintable logo on the branding tier. `false` with `unbranded=true` and\n`centre_logo=true` is how a client learns there was no logo to put there.'),
   "kind": zod.string(),
   "long_url": zod.string(),
   "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
@@ -2475,6 +2481,8 @@ export const BranchQrQueryParams = zod.object({
   "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
   "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
   "module_px": zod.number().min(branchQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "unbranded": zod.boolean().optional().describe('`true` → the code and nothing else: a square QR, black on a white quiet\nzone, 70 mm a side at `dpi` (PNG, or SVG with `svg=true`). No card, no\nframe, no purpose line or caption, no \"Powered by\", no Madar mark and no\nshop name. Overrides `card`; `caption`, `bleed_mm`, `crop_marks` and\n`module_px` are ignored. Default false.'),
+  "centre_logo": zod.boolean().optional().describe('With `unbranded=true` only: put the shop\'s logo in the middle of the\ncode (default true). Only a shop on the branding tier with a printable\nlogo has one to put there; otherwise the code comes out plain, and the\nresponse\'s `centre_logo` says so. `false` → always a plain QR, at a\nlower error-correction level (bigger modules). The branded card ignores\nit.'),
   "slug": zod.string().optional(),
   "place_name": zod.string().optional().describe('Shop or company name inside the mall (e.g. \"Starbucks Kiosk 3\").'),
   "floor": zod.string().optional().describe('Floor (e.g. \"Ground Floor\").'),
@@ -2482,6 +2490,7 @@ export const BranchQrQueryParams = zod.object({
 })
 
 export const BranchQrResponse = zod.object({
+  "centre_logo": zod.boolean().optional().describe('Whether anything sits in the middle of the code: always on the card (the\nshop\'s logo, or Madar\'s mark), never on the receipt QR, and on the\nunbranded code only when `centre_logo` was asked for AND the shop has a\nprintable logo on the branding tier. `false` with `unbranded=true` and\n`centre_logo=true` is how a client learns there was no logo to put there.'),
   "kind": zod.string(),
   "long_url": zod.string(),
   "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
@@ -2551,10 +2560,13 @@ export const TableQrQueryParams = zod.object({
   "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
   "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
   "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
-  "module_px": zod.number().min(tableQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+  "module_px": zod.number().min(tableQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "unbranded": zod.boolean().optional().describe('`true` → the code and nothing else: a square QR, black on a white quiet\nzone, 70 mm a side at `dpi` (PNG, or SVG with `svg=true`). No card, no\nframe, no purpose line or caption, no \"Powered by\", no Madar mark and no\nshop name. Overrides `card`; `caption`, `bleed_mm`, `crop_marks` and\n`module_px` are ignored. Default false.'),
+  "centre_logo": zod.boolean().optional().describe('With `unbranded=true` only: put the shop\'s logo in the middle of the\ncode (default true). Only a shop on the branding tier with a printable\nlogo has one to put there; otherwise the code comes out plain, and the\nresponse\'s `centre_logo` says so. `false` → always a plain QR, at a\nlower error-correction level (bigger modules). The branded card ignores\nit.')
 })
 
 export const TableQrResponse = zod.object({
+  "centre_logo": zod.boolean().optional().describe('Whether anything sits in the middle of the code: always on the card (the\nshop\'s logo, or Madar\'s mark), never on the receipt QR, and on the\nunbranded code only when `centre_logo` was asked for AND the shop has a\nprintable logo on the branding tier. `false` with `unbranded=true` and\n`centre_logo=true` is how a client learns there was no logo to put there.'),
   "kind": zod.string(),
   "long_url": zod.string(),
   "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
@@ -4442,10 +4454,13 @@ export const DeliveryOrderQrQueryParams = zod.object({
   "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
   "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
   "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
-  "module_px": zod.number().min(deliveryOrderQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+  "module_px": zod.number().min(deliveryOrderQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "unbranded": zod.boolean().optional().describe('`true` → the code and nothing else: a square QR, black on a white quiet\nzone, 70 mm a side at `dpi` (PNG, or SVG with `svg=true`). No card, no\nframe, no purpose line or caption, no \"Powered by\", no Madar mark and no\nshop name. Overrides `card`; `caption`, `bleed_mm`, `crop_marks` and\n`module_px` are ignored. Default false.'),
+  "centre_logo": zod.boolean().optional().describe('With `unbranded=true` only: put the shop\'s logo in the middle of the\ncode (default true). Only a shop on the branding tier with a printable\nlogo has one to put there; otherwise the code comes out plain, and the\nresponse\'s `centre_logo` says so. `false` → always a plain QR, at a\nlower error-correction level (bigger modules). The branded card ignores\nit.')
 })
 
 export const DeliveryOrderQrResponse = zod.object({
+  "centre_logo": zod.boolean().optional().describe('Whether anything sits in the middle of the code: always on the card (the\nshop\'s logo, or Madar\'s mark), never on the receipt QR, and on the\nunbranded code only when `centre_logo` was asked for AND the shop has a\nprintable logo on the branding tier. `false` with `unbranded=true` and\n`centre_logo=true` is how a client learns there was no logo to put there.'),
   "kind": zod.string(),
   "long_url": zod.string(),
   "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
@@ -15934,10 +15949,13 @@ export const OrgBookingQrQueryParams = zod.object({
   "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
   "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
   "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
-  "module_px": zod.number().min(orgBookingQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+  "module_px": zod.number().min(orgBookingQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "unbranded": zod.boolean().optional().describe('`true` → the code and nothing else: a square QR, black on a white quiet\nzone, 70 mm a side at `dpi` (PNG, or SVG with `svg=true`). No card, no\nframe, no purpose line or caption, no \"Powered by\", no Madar mark and no\nshop name. Overrides `card`; `caption`, `bleed_mm`, `crop_marks` and\n`module_px` are ignored. Default false.'),
+  "centre_logo": zod.boolean().optional().describe('With `unbranded=true` only: put the shop\'s logo in the middle of the\ncode (default true). Only a shop on the branding tier with a printable\nlogo has one to put there; otherwise the code comes out plain, and the\nresponse\'s `centre_logo` says so. `false` → always a plain QR, at a\nlower error-correction level (bigger modules). The branded card ignores\nit.')
 })
 
 export const OrgBookingQrResponse = zod.object({
+  "centre_logo": zod.boolean().optional().describe('Whether anything sits in the middle of the code: always on the card (the\nshop\'s logo, or Madar\'s mark), never on the receipt QR, and on the\nunbranded code only when `centre_logo` was asked for AND the shop has a\nprintable logo on the branding tier. `false` with `unbranded=true` and\n`centre_logo=true` is how a client learns there was no logo to put there.'),
   "kind": zod.string(),
   "long_url": zod.string(),
   "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
@@ -16186,10 +16204,13 @@ export const OrgLinksQrQueryParams = zod.object({
   "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
   "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
   "module_px": zod.number().min(orgLinksQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "unbranded": zod.boolean().optional().describe('`true` → the code and nothing else: a square QR, black on a white quiet\nzone, 70 mm a side at `dpi` (PNG, or SVG with `svg=true`). No card, no\nframe, no purpose line or caption, no \"Powered by\", no Madar mark and no\nshop name. Overrides `card`; `caption`, `bleed_mm`, `crop_marks` and\n`module_px` are ignored. Default false.'),
+  "centre_logo": zod.boolean().optional().describe('With `unbranded=true` only: put the shop\'s logo in the middle of the\ncode (default true). Only a shop on the branding tier with a printable\nlogo has one to put there; otherwise the code comes out plain, and the\nresponse\'s `centre_logo` says so. `false` → always a plain QR, at a\nlower error-correction level (bigger modules). The branded card ignores\nit.'),
   "target": zod.string().optional().describe('Omitted: the links page itself (the paid `branding` feature).\n`menu_display`: the menu without prices, which every plan has.')
 })
 
 export const OrgLinksQrResponse = zod.object({
+  "centre_logo": zod.boolean().optional().describe('Whether anything sits in the middle of the code: always on the card (the\nshop\'s logo, or Madar\'s mark), never on the receipt QR, and on the\nunbranded code only when `centre_logo` was asked for AND the shop has a\nprintable logo on the branding tier. `false` with `unbranded=true` and\n`centre_logo=true` is how a client learns there was no logo to put there.'),
   "kind": zod.string(),
   "long_url": zod.string(),
   "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
@@ -16261,10 +16282,13 @@ export const OrgLoyaltyQrQueryParams = zod.object({
   "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
   "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
   "module_px": zod.number().min(orgLoyaltyQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "unbranded": zod.boolean().optional().describe('`true` → the code and nothing else: a square QR, black on a white quiet\nzone, 70 mm a side at `dpi` (PNG, or SVG with `svg=true`). No card, no\nframe, no purpose line or caption, no \"Powered by\", no Madar mark and no\nshop name. Overrides `card`; `caption`, `bleed_mm`, `crop_marks` and\n`module_px` are ignored. Default false.'),
+  "centre_logo": zod.boolean().optional().describe('With `unbranded=true` only: put the shop\'s logo in the middle of the\ncode (default true). Only a shop on the branding tier with a printable\nlogo has one to put there; otherwise the code comes out plain, and the\nresponse\'s `centre_logo` says so. `false` → always a plain QR, at a\nlower error-correction level (bigger modules). The branded card ignores\nit.'),
   "slug": zod.string().optional()
 })
 
 export const OrgLoyaltyQrResponse = zod.object({
+  "centre_logo": zod.boolean().optional().describe('Whether anything sits in the middle of the code: always on the card (the\nshop\'s logo, or Madar\'s mark), never on the receipt QR, and on the\nunbranded code only when `centre_logo` was asked for AND the shop has a\nprintable logo on the branding tier. `false` with `unbranded=true` and\n`centre_logo=true` is how a client learns there was no logo to put there.'),
   "kind": zod.string(),
   "long_url": zod.string(),
   "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
@@ -16445,10 +16469,13 @@ export const OrgQrQueryParams = zod.object({
   "bleed_mm": zod.number().optional().describe('Print bleed in mm (A6 card only). Default 0.'),
   "crop_marks": zod.boolean().optional().describe('Draw crop marks (A6 card, only meaningful when `bleed_mm > 0`).'),
   "svg": zod.boolean().optional().describe('Return the A6 card as SVG (`data:image\/svg+xml;base64,…`). Default false.'),
-  "module_px": zod.number().min(orgQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.')
+  "module_px": zod.number().min(orgQrQueryModulePxMin).optional().describe('Pixels per module for the plain receipt QR (1–40). Default 16.'),
+  "unbranded": zod.boolean().optional().describe('`true` → the code and nothing else: a square QR, black on a white quiet\nzone, 70 mm a side at `dpi` (PNG, or SVG with `svg=true`). No card, no\nframe, no purpose line or caption, no \"Powered by\", no Madar mark and no\nshop name. Overrides `card`; `caption`, `bleed_mm`, `crop_marks` and\n`module_px` are ignored. Default false.'),
+  "centre_logo": zod.boolean().optional().describe('With `unbranded=true` only: put the shop\'s logo in the middle of the\ncode (default true). Only a shop on the branding tier with a printable\nlogo has one to put there; otherwise the code comes out plain, and the\nresponse\'s `centre_logo` says so. `false` → always a plain QR, at a\nlower error-correction level (bigger modules). The branded card ignores\nit.')
 })
 
 export const OrgQrResponse = zod.object({
+  "centre_logo": zod.boolean().optional().describe('Whether anything sits in the middle of the code: always on the card (the\nshop\'s logo, or Madar\'s mark), never on the receipt QR, and on the\nunbranded code only when `centre_logo` was asked for AND the shop has a\nprintable logo on the branding tier. `false` with `unbranded=true` and\n`centre_logo=true` is how a client learns there was no logo to put there.'),
   "kind": zod.string(),
   "long_url": zod.string(),
   "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
@@ -19657,6 +19684,7 @@ export const CreateMarketingLinkBody = zod.object({
 })
 
 export const CreateMarketingLinkResponse = zod.object({
+  "centre_logo": zod.boolean().optional().describe('Whether anything sits in the middle of the code: always on the card (the\nshop\'s logo, or Madar\'s mark), never on the receipt QR, and on the\nunbranded code only when `centre_logo` was asked for AND the shop has a\nprintable logo on the branding tier. `false` with `unbranded=true` and\n`centre_logo=true` is how a client learns there was no logo to put there.'),
   "kind": zod.string(),
   "long_url": zod.string(),
   "qr_data_url": zod.string().describe('`data:image\/png;base64,…` (or `data:image\/svg+xml;base64,…` when\n`svg=true`).  Paste into a browser `<img src=\"…\">` to verify.'),
