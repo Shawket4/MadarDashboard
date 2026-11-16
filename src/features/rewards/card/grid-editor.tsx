@@ -46,6 +46,7 @@ export function GridEditor({
   photoUrl,
   logoUrl,
   problemIndexes,
+  endorsed = true,
 }: {
   rules: CardRules;
   design: CardDesign;
@@ -58,6 +59,8 @@ export function GridEditor({
   logoUrl?: string | null;
   /** Elements a problem points at: drawn in the error colour. */
   problemIndexes: Set<number>;
+  /** The "rewards by madar" footer is on the card; off, its cell is still kept (hatched). */
+  endorsed?: boolean;
 }) {
   const { t } = useTranslation();
   const arabic = state.arabic;
@@ -121,7 +124,7 @@ export function GridEditor({
         onPointerCancel={end}
         onPointerDown={() => !disabled && dispatch({ type: "select", index: null })}
       >
-        <StripSvg rules={rules} design={design} state={state} store="apple" scale={2} photoUrl={photoUrl} logoUrl={logoUrl} primaryField={primary} />
+        <StripSvg rules={rules} design={design} state={state} store="apple" scale={2} photoUrl={photoUrl} logoUrl={logoUrl} primaryField={primary} endorsed={endorsed} />
         {/* The grid lines. */}
         <div aria-hidden className="pointer-events-none absolute inset-0">
           {Array.from({ length: COLS + 1 }, (_, i) => (

@@ -9,6 +9,10 @@
  *
  * Reading needs `loyalty.read`; saving, publishing and going back to the
  * classic look need `loyalty.card.design`.
+ *
+ * One switch here is not part of the design: "rewards by madar" on the card.
+ * It is the shop's, takes effect at once (no draft, no publish), and covers
+ * the classic look as well as a published design.
  */
 import { useMemo, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,11 +28,13 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { StatusPill } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   getGetLoyaltyCardDesignQueryKey,
   useGetLoyaltyCardDesign,
   usePublishLoyaltyCardDesign,
   usePutLoyaltyCardDesign,
+  usePutLoyaltyCardEndorsement,
   useUnpublishLoyaltyCardDesign,
 } from "@/data/api/generated/api";
 import type { CardDesign, CardDesignView, Element, ElementKind } from "@/data/api/generated/models";
@@ -92,6 +98,11 @@ function Designer({ view, rules, canEdit }: { view: CardDesignView; rules: CardR
   const save = usePutLoyaltyCardDesign();
   const publish = usePublishLoyaltyCardDesign();
   const unpublish = useUnpublishLoyaltyCardDesign();
+  const endorse = usePutLoyaltyCardEndorsement();
+  // What the server answered to a change made here: it outranks the cached view while this page is open.
+  const [answered, setAnswered] = useState<boolean | null>(null);
+  // Absent (an older API) = on, as every card was.
+  const endorsed = answered ?? view.endorsement !== false;
   const [s, dispatch] = useReducer(reducer, view, (v) => initEditor(v.draft ?? v.published ?? v.default_design));
   const design = s.design;
   const ctx = view.ctx as Ctx;
@@ -222,6 +233,32 @@ function Designer({ view, rules, canEdit }: { view: CardDesignView; rules: CardR
     }
   };
 
+  const onEndorsement = async (shown: boolean) => {
+    const ok = await confirm({
+      title: shown
+        ? t("rewards.card.endorsementOnTitle", "Put “rewards by madar” back on the card?")
+        : t("rewards.card.endorsementOffTitle", "Take “rewards by madar” off the card?"),
+      description: t(
+        "rewards.card.endorsementBody",
+        "Every member's card updates within minutes, in Apple Wallet and Google Wallet, cards already added included. You can change this back at any time.",
+      ),
+      confirmLabel: shown ? t("rewards.card.endorsementConfirmOn", "Put it back") : t("rewards.card.endorsementConfirmOff", "Take it off"),
+    });
+    if (!ok) return;
+    try {
+      const next = await endorse.mutateAsync({ data: { shown } });
+      setAnswered(next.endorsement !== false);
+      toast.success(
+        shown
+          ? t("rewards.card.endorsementOnDone", "Back on the card. Members' cards are updating.")
+          : t("rewards.card.endorsementOffDone", "Taken off the card. Members' cards are updating."),
+      );
+      void refresh();
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
   const busy = save.isPending || publish.isPending || unpublish.isPending;
 
   return (
@@ -291,7 +328,7 @@ function Designer({ view, rules, canEdit }: { view: CardDesignView; rules: CardR
                   on ? "border-primary ring-1 ring-primary" : "hover:bg-accent",
                 )}
               >
-                <StripSvg rules={rules} design={tpl} state={state} store="apple" scale={1} photoUrl={view.photo_url} logoUrl={view.logo_url} primaryField={tpl.apple.primary != null} className="overflow-hidden rounded-md" />
+                <StripSvg rules={rules} design={tpl} state={state} store="apple" scale={1} photoUrl={view.photo_url} logoUrl={view.logo_url} primaryField={tpl.apple.primary != null} endorsed={endorsed} className="overflow-hidden rounded-md" />
                 <span className="block px-1 text-sm font-medium">{t(`rewards.card.template.${id}`, id)}</span>
               </button>
             );
@@ -316,6 +353,7 @@ function Designer({ view, rules, canEdit }: { view: CardDesignView; rules: CardR
               photoUrl={view.photo_url}
               logoUrl={view.logo_url}
               problemIndexes={problemIndexes}
+              endorsed={endorsed}
             />
           </Section>
 
@@ -358,6 +396,30 @@ function Designer({ view, rules, canEdit }: { view: CardDesignView; rules: CardR
           <ElementPanel rules={rules} design={design} ctx={ctx} tracks={uiTracks} selected={s.selected} dispatch={dispatch} disabled={disabled} kindLabel={kindLabel} />
           <StylePanel design={design} ctx={ctx} customBranding={view.custom_branding} dispatch={dispatch} disabled={disabled} problems={problems} />
           <FieldsPanel design={design} tracks={uiTracks} dispatch={dispatch} disabled={disabled} rules={rules} />
+
+          <Section title={t("rewards.card.endorsementTitle", "“rewards by madar” on the card")}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 space-y-1">
+                <label htmlFor="card-endorsement" className="block text-sm font-medium">
+                  {t("rewards.card.endorsementLabel", "Show “rewards by madar” on the card")}
+                </label>
+                <p id="card-endorsement-hint" className="text-xs text-muted-foreground">
+                  {t(
+                    "rewards.card.endorsementHint",
+                    "The small line at the bottom of the card's picture in Apple Wallet and Google Wallet. Off, the picture carries your card alone, and its corner of the strip stays empty. It covers the classic look and your own design, and nothing else changes: your pages keep theirs.",
+                  )}
+                </p>
+              </div>
+              <Switch
+                id="card-endorsement"
+                aria-describedby="card-endorsement-hint"
+                className="mt-0.5"
+                checked={endorsed}
+                disabled={disabled || endorse.isPending}
+                onCheckedChange={(v) => void onEndorsement(v)}
+              />
+            </div>
+          </Section>
         </div>
 
         <aside className="min-w-0 space-y-4 self-start lg:sticky lg:top-4">
@@ -405,13 +467,13 @@ function Designer({ view, rules, canEdit }: { view: CardDesignView; rules: CardR
               );
             })}
             {store === "apple" ? (
-              <AppleMock rules={rules} design={design} state={state} tracks={previewTracks} programme={(arabic && view.programme_name_ar) || view.programme_name} logoUrl={view.logo_url} photoUrl={view.photo_url} />
+              <AppleMock rules={rules} design={design} state={state} tracks={previewTracks} programme={(arabic && view.programme_name_ar) || view.programme_name} logoUrl={view.logo_url} photoUrl={view.photo_url} endorsed={endorsed} />
             ) : (
-              <GoogleMock rules={rules} design={design} state={state} tracks={previewTracks} programme={(arabic && view.programme_name_ar) || view.programme_name} logoUrl={view.logo_url} photoUrl={view.photo_url} />
+              <GoogleMock rules={rules} design={design} state={state} tracks={previewTracks} programme={(arabic && view.programme_name_ar) || view.programme_name} logoUrl={view.logo_url} photoUrl={view.photo_url} endorsed={endorsed} />
             )}
           </Section>
           <section className="rounded-2xl border bg-card p-4">
-            <ServerPreview design={design} store={store} state={state} valid={valid} />
+            <ServerPreview design={design} store={store} state={state} valid={valid} endorsed={endorsed} />
           </section>
         </aside>
       </div>

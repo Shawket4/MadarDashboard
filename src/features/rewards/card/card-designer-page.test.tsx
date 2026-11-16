@@ -1,7 +1,8 @@
 /**
  * The card designer: template pick, keyboard move/resize on the grid, the
  * crate's problems shown, colours locked without custom branding, publish
- * behind a confirm, and the capability gates (read, design).
+ * behind a confirm, the capability gates (read, design), and the
+ * "rewards by madar" switch.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
@@ -13,6 +14,7 @@ import { cardRulesNow } from "@/lib/rules/card";
 const put = vi.fn().mockResolvedValue({});
 const publish = vi.fn().mockResolvedValue({});
 const unpublish = vi.fn().mockResolvedValue({});
+const endorse = vi.fn(({ data }: { data: { shown: boolean } }) => Promise.resolve({ endorsement: data.shown }));
 const confirm = vi.fn().mockResolvedValue(true);
 let held: string[] = ["loyalty.read", "loyalty.card.design"];
 let view: CardDesignView;
@@ -35,6 +37,7 @@ vi.mock("@/data/api/generated/api", () => ({
   usePutLoyaltyCardDesign: () => ({ mutateAsync: put, isPending: false }),
   usePublishLoyaltyCardDesign: () => ({ mutateAsync: publish, isPending: false }),
   useUnpublishLoyaltyCardDesign: () => ({ mutateAsync: unpublish, isPending: false }),
+  usePutLoyaltyCardEndorsement: () => ({ mutateAsync: endorse, isPending: false }),
   previewLoyaltyCardDesign: () => new Promise(() => {}),
 }));
 
@@ -61,6 +64,7 @@ const makeView = (over: Partial<CardDesignView> = {}): CardDesignView => {
     programme_name_ar: null,
     photo_url: null,
     logo_url: null,
+    endorsement: true,
     ...over,
   };
 };
@@ -72,13 +76,18 @@ const mount = () =>
     </QueryClientProvider>,
   );
 const boxes = () => screen.getAllByTestId("grid-element");
+/** The footers drawn on the page: the templates, the grid and the wallet mock (no logo, no photo here). */
+const footers = () => document.querySelectorAll("svg image").length;
+const endorsement = () => screen.getByRole("switch", { name: "Show “rewards by madar” on the card" });
 
 beforeEach(async () => {
   held = ["loyalty.read", "loyalty.card.design"];
   view = makeView();
   put.mockClear();
   publish.mockClear();
+  endorse.mockClear();
   confirm.mockClear();
+  confirm.mockResolvedValue(true);
   await i18n.changeLanguage("en");
 });
 
@@ -143,9 +152,43 @@ describe("CardDesignerPage", () => {
     expect(put).toHaveBeenCalledWith({ data: { design: view.default_design } });
   });
 
+  it("takes “rewards by madar” off the card after the confirm, on every picture of it", async () => {
+    mount();
+    expect(endorsement()).toBeChecked();
+    const before = footers();
+    expect(before).toBeGreaterThan(2);
+    fireEvent.click(endorsement());
+    await waitFor(() => expect(endorse).toHaveBeenCalledWith({ data: { shown: false } }));
+    expect(confirm.mock.calls[0][0].title).toMatch(/Take “rewards by madar” off/);
+    expect(confirm.mock.calls[0][0].description).toMatch(/cards already added included/);
+    await waitFor(() => expect(endorsement()).not.toBeChecked());
+    expect(footers()).toBe(0);
+    // The design itself is not touched: nothing saved, nothing published.
+    expect(put).not.toHaveBeenCalled();
+    expect(publish).not.toHaveBeenCalled();
+  });
+
+  it("puts it back, and leaves it alone when the confirm is declined", async () => {
+    view = makeView({ endorsement: false });
+    mount();
+    expect(endorsement()).not.toBeChecked();
+    expect(footers()).toBe(0);
+    confirm.mockResolvedValueOnce(false);
+    fireEvent.click(endorsement());
+    await waitFor(() => expect(confirm).toHaveBeenCalledOnce());
+    expect(endorse).not.toHaveBeenCalled();
+    expect(endorsement()).not.toBeChecked();
+    fireEvent.click(endorsement());
+    await waitFor(() => expect(endorse).toHaveBeenCalledWith({ data: { shown: true } }));
+    expect(confirm.mock.calls[1][0].title).toMatch(/back on the card/);
+    await waitFor(() => expect(endorsement()).toBeChecked());
+    expect(footers()).toBeGreaterThan(2);
+  });
+
   it("is read-only without loyalty.card.design", () => {
     held = ["loyalty.read"];
     mount();
+    expect(endorsement()).toBeDisabled();
     expect(screen.getByTestId("read-only")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Publish" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save draft" })).not.toBeInTheDocument();
