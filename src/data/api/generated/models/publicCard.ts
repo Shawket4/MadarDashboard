@@ -10,6 +10,11 @@ import type { Track } from './track';
  */
 export interface PublicCard {
   design: CardDesign;
+  /**
+     * The card carries the "rewards by madar" footer. False when the shop
+     * took it off: draw the card without it (madar-card: no `footer_href`).
+     */
+  endorsement: boolean;
   /** The published revision (0: the automatic multi-track design). */
   revision: number;
   /** `points`, `order`, `item` or `stamp` (madar-card `text::stamp_unit`). */

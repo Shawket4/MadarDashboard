@@ -567,6 +567,7 @@ import type {
   PutAllowedAddonsRequest,
   PutAttendanceSettingsRequest,
   PutCardDesign,
+  PutCardEndorsement,
   PutCoverage,
   PutDayRequest,
   PutEarningItems,
@@ -17456,6 +17457,77 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getPutLoyaltyCardDesignMutationOptions(options), queryClient);
+    }
+
+/**
+ * The card only (Apple's strip, Google's hero, the designed card on the
+ * web), classic or designed, and effective at once: no draft, no publish.
+ * A card already in a wallet is a copy, so a change clears the stored passes
+ * and marks every installed card stale, exactly as publishing a design does;
+ * the refresh sweep then re-sends them (200 per tick). Sending the value the
+ * shop already has changes nothing and re-sends nothing.
+ * @summary Show or leave out the "rewards by madar" footer on the shop's card.
+ */
+export const putLoyaltyCardEndorsement = (
+    putCardEndorsement: PutCardEndorsement,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<CardDesignView>(
+      {url: `/loyalty/card-design/endorsement`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: putCardEndorsement, signal
+    },
+      options);
+    }
+
+
+
+
+export const getPutLoyaltyCardEndorsementMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLoyaltyCardEndorsement>>, TError,{data: PutCardEndorsement}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof putLoyaltyCardEndorsement>>, TError,{data: PutCardEndorsement}, TContext> => {
+
+const mutationKey = ['putLoyaltyCardEndorsement'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putLoyaltyCardEndorsement>>, {data: PutCardEndorsement}> = (props) => {
+          const {data} = props ?? {};
+
+          return  putLoyaltyCardEndorsement(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutLoyaltyCardEndorsementMutationResult = NonNullable<Awaited<ReturnType<typeof putLoyaltyCardEndorsement>>>
+    export type PutLoyaltyCardEndorsementMutationBody = PutCardEndorsement
+    export type PutLoyaltyCardEndorsementMutationError = ErrorBody
+
+    /**
+ * @summary Show or leave out the "rewards by madar" footer on the shop's card.
+ */
+export const usePutLoyaltyCardEndorsement = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putLoyaltyCardEndorsement>>, TError,{data: PutCardEndorsement}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putLoyaltyCardEndorsement>>,
+        TError,
+        {data: PutCardEndorsement},
+        TContext
+      > => {
+      return useMutation(getPutLoyaltyCardEndorsementMutationOptions(options), queryClient);
     }
 
 /**

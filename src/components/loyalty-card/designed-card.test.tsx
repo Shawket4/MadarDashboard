@@ -24,7 +24,10 @@ const card: PublicCard = {
   tracks,
   track_one_size: 8,
   stamp_unit: "stamp",
+  endorsement: true,
 };
+/** The footer the strip composites: the one `<image>` a card with no logo and no photo holds. */
+const footer = (c: HTMLElement) => c.querySelector("svg image");
 
 describe("DesignedCard", () => {
   it("draws the strip and the fields with the member's figures", () => {
@@ -43,6 +46,23 @@ describe("DesignedCard", () => {
     const { container } = render(<DesignedCard rules={w} card={card} name="دروبس" arabic balances={[]} />);
     expect(container.firstElementChild!.getAttribute("dir")).toBe("rtl");
     expect(container.querySelector("svg")!.textContent).toContain("قهوة");
+  });
+
+  it("carries “rewards by madar” unless the shop took it off its card", () => {
+    const on = render(<DesignedCard rules={w} card={card} name="Drops" arabic={false} />);
+    expect(footer(on.container)?.getAttribute("href")).toMatch(/rewards-by-madar/);
+    on.unmount();
+    const ar = render(<DesignedCard rules={w} card={card} name="دروبس" arabic />);
+    expect(footer(ar.container)?.getAttribute("href")).toMatch(/mukafaat-min-madar/);
+    ar.unmount();
+    const off = render(<DesignedCard rules={w} card={{ ...card, endorsement: false }} name="Drops" arabic={false} />);
+    expect(off.container.querySelector("svg")).toBeTruthy();
+    expect(footer(off.container)).toBeNull();
+    off.unmount();
+    // An API that predates the switch says nothing: the footer stays.
+    const { endorsement: _, ...older } = card;
+    const old = render(<DesignedCard rules={w} card={older as PublicCard} name="Drops" arabic={false} />);
+    expect(footer(old.container)).not.toBeNull();
   });
 
   it("keeps the classic card when the shop has no design", () => {

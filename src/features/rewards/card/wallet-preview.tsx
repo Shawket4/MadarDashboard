@@ -28,6 +28,8 @@ interface MockProps {
   programme: string;
   logoUrl?: string | null;
   photoUrl?: string | null;
+  /** The "rewards by madar" footer is on the card (the shop's switch). */
+  endorsed?: boolean;
 }
 
 /** A field's label and value as the wallet would print them for the sample balances. */
@@ -63,7 +65,7 @@ function Logo({ url, programme, round }: { url?: string | null; programme: strin
   );
 }
 
-export function AppleMock({ rules, design, state, tracks, programme, logoUrl, photoUrl }: MockProps) {
+export function AppleMock({ rules, design, state, tracks, programme, logoUrl, photoUrl, endorsed = true }: MockProps) {
   const { t } = useTranslation();
   const text = useFieldText(rules, state, tracks);
   const c = design.colours;
@@ -98,7 +100,7 @@ export function AppleMock({ rules, design, state, tracks, programme, logoUrl, ph
         <div className="flex gap-3 text-end">{header.map((f, i) => field(f, i))}</div>
       </div>
       <div className="relative">
-        <StripSvg rules={rules} design={design} state={state} store="apple" scale={2} photoUrl={photoUrl} logoUrl={logoUrl} primaryField={design.apple.primary != null} />
+        <StripSvg rules={rules} design={design} state={state} store="apple" scale={2} photoUrl={photoUrl} logoUrl={logoUrl} primaryField={design.apple.primary != null} endorsed={endorsed} />
         {design.apple.primary ? <div className="absolute start-0 top-0 max-w-[66%] p-3">{field(design.apple.primary, 0, true)}</div> : null}
       </div>
       {below.length ? <div className="flex justify-between gap-3 px-3 pt-2.5">{below.map((f, i) => field(f, i))}</div> : null}
@@ -109,7 +111,7 @@ export function AppleMock({ rules, design, state, tracks, programme, logoUrl, ph
   );
 }
 
-export function GoogleMock({ rules, design, state, tracks, programme, logoUrl, photoUrl }: MockProps) {
+export function GoogleMock({ rules, design, state, tracks, programme, logoUrl, photoUrl, endorsed = true }: MockProps) {
   const { t } = useTranslation();
   const text = useFieldText(rules, state, tracks);
   const bg = design.colours.background;
@@ -145,19 +147,23 @@ export function GoogleMock({ rules, design, state, tracks, programme, logoUrl, p
       <div className="p-5">
         <Qr />
       </div>
-      <StripSvg rules={rules} design={design} state={state} store="google" scale={1} photoUrl={photoUrl} logoUrl={logoUrl} />
+      <StripSvg rules={rules} design={design} state={state} store="google" scale={1} photoUrl={photoUrl} logoUrl={logoUrl} endorsed={endorsed} />
     </div>
   );
 }
 
-/** The server's own PNG for this design, fetched ~600 ms after the last change, only for a valid design. */
-export function ServerPreview({ design, store, state, valid }: { design: CardDesign; store: Store; state: CardState; valid: boolean }) {
+/**
+ * The server's own PNG for this design, fetched ~600 ms after the last change, only for a valid design.
+ * The server draws the footer by the shop's stored switch, so `endorsed` only says when to ask again.
+ */
+export function ServerPreview({ design, store, state, valid, endorsed = true }: { design: CardDesign; store: Store; state: CardState; valid: boolean; endorsed?: boolean }) {
   const { t } = useTranslation();
   const body = useMemo(
     () => JSON.stringify({ design, store, arabic: state.arabic, balances: state.tracks.map((x) => ({ position: x.position, balance: x.balance })) }),
     [design, store, state],
   );
-  const [result, setResult] = useState<{ body: string; url?: string; error?: string } | null>(null);
+  const key = `${endorsed ? "e" : "p"}${body}`;
+  const [result, setResult] = useState<{ key: string; url?: string; error?: string } | null>(null);
   const [retry, setRetry] = useState(0);
 
   useEffect(() => {
@@ -169,9 +175,9 @@ export function ServerPreview({ design, store, state, valid }: { design: CardDes
         (blob) => {
           if (!live) return;
           url = URL.createObjectURL(blob);
-          setResult({ body, url });
+          setResult({ key, url });
         },
-        (e: unknown) => live && setResult({ body, error: getErrorMessage(e) }),
+        (e: unknown) => live && setResult({ key, error: getErrorMessage(e) }),
       );
     }, 600);
     return () => {
@@ -179,9 +185,9 @@ export function ServerPreview({ design, store, state, valid }: { design: CardDes
       clearTimeout(timer);
       if (url) URL.revokeObjectURL(url);
     };
-  }, [body, valid, retry]);
+  }, [body, key, valid, retry]);
 
-  const current = result?.body === body ? result : null;
+  const current = result?.key === key ? result : null;
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-semibold">{t("rewards.card.serverTitle", "As the wallet renders it")}</h3>

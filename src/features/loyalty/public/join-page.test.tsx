@@ -77,7 +77,7 @@ describe("the sign-up", () => {
     const colours = { background: "#0D6273", foreground: "#EFF3F4", label: "#B9DCE3" };
     const tracks = [{ position: 1, name_en: "Coffee", name_ar: "قهوة", size: null, shape: "cup", colour: null, items: [], per_item: true, cap: null }];
     const design = w.card_default(colours, { mode: "visits", tracks: [{ position: 1, size: 6 }], has_photo: false }, tracks as never);
-    info = { ...baseInfo, card: { revision: 1, design, tracks, track_one_size: 6, stamp_unit: "order" } } as JoinInfo;
+    info = { ...baseInfo, card: { revision: 1, design, tracks, track_one_size: 6, stamp_unit: "order", endorsement: true } } as JoinInfo;
     mount();
     // The page holds its skeleton until the design's code is there, then draws it once.
     const card = await screen.findByRole("group", { name: "Bean & Brew card" });
@@ -96,7 +96,7 @@ describe("the sign-up", () => {
     ];
     const ctx = { mode: "visits" as const, tracks: [{ position: 1, size: 6 }, { position: 2, size: 6 }], has_photo: false };
     const design = w.card_default({ background: "#0D6273", foreground: "#EFF3F4", label: "#B9DCE3" }, ctx, tracks as never);
-    info = { ...baseInfo, card: { revision: 1, design, tracks, track_one_size: 6, stamp_unit: "order" } } as JoinInfo;
+    info = { ...baseInfo, card: { revision: 1, design, tracks, track_one_size: 6, stamp_unit: "order", endorsement: true } } as JoinInfo;
     const mt = (position: number, name_en: string, balance: number) => ({
       position, name_en, name_ar: "", size: 6, balance, rewards_ready: Math.floor(balance / 6), progress_to_next: balance % 6,
       points_to_next_reward: 6 - (balance % 6), can_redeem: balance >= 6,

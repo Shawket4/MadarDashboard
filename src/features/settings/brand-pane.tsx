@@ -116,6 +116,7 @@ export function BrandPane() {
           tracks: designQ.data.tracks,
           track_one_size: designQ.data.ctx.tracks.find((x) => x.position === 1)?.size ?? 1,
           stamp_unit: designQ.data.stamp_unit,
+          endorsement: designQ.data.endorsement,
         }
       : null;
 

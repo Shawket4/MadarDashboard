@@ -21,6 +21,12 @@ export interface CardDesignView {
   /** The design a shop starts from (madar-card's default for it). */
   default_design: CardDesign;
   draft?: null | CardDesign;
+  /**
+     * The card carries the "rewards by madar" footer (true unless the shop
+     * took it off with `PUT /loyalty/card-design/endorsement`). The card
+     * only, classic or designed; nothing else on any page reads it.
+     */
+  endorsement: boolean;
   /** @nullable */
   logo_url?: string | null;
   /**

@@ -139,6 +139,8 @@ export function DesignedCard({ rules, card, balances, arabic, name, logoUrl, pho
           photoUrl={photoUrl}
           logoUrl={logoUrl}
           primaryField={design.apple.primary != null}
+          // Absent (an older API) = on, as every card was.
+          endorsed={card.endorsement !== false}
           label={t("loyaltyCard.stripLabel", "Your progress on the card")}
         />
         {design.apple.primary ? <div className="absolute start-0 top-0 max-w-[66%] p-3">{field(design.apple.primary, 0, true)}</div> : null}

@@ -20,6 +20,7 @@ export function StripSvg({
   photoUrl,
   logoUrl,
   primaryField = false,
+  endorsed = true,
   className,
   label,
 }: {
@@ -31,6 +32,8 @@ export function StripSvg({
   photoUrl?: string | null;
   logoUrl?: string | null;
   primaryField?: boolean;
+  /** The "rewards by madar" footer: the shop can take it off its card (`PublicCard.endorsement`). */
+  endorsed?: boolean;
   className?: string;
   /** Accessible name of the picture; omitted = decorative. */
   label?: string;
@@ -50,7 +53,8 @@ export function StripSvg({
       const raw = rules.card_svg(design, state, store, scale, {
         photo_href: design.ground.kind === "photo" ? (photoUrl ?? null) : null,
         logo_href: logoUrl ?? null,
-        footer_href: footerHref(design.colours.foreground, state.arabic),
+        // No href, no footer: the crate draws it only when given one, as the server does.
+        footer_href: endorsed ? footerHref(design.colours.foreground, state.arabic) : null,
         scrim_preview: store === "apple" && primaryField,
         primary_field: store === "apple" && primaryField,
       });
@@ -59,7 +63,7 @@ export function StripSvg({
     } catch {
       return "";
     }
-  }, [rules, design, state, store, scale, photoUrl, logoUrl, primaryField, uid]);
+  }, [rules, design, state, store, scale, photoUrl, logoUrl, primaryField, endorsed, uid]);
 
   return (
     <div
