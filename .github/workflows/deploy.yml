@@ -13,6 +13,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      # The dashboard's typecheck + build sits at Node's default ~2 GB heap:
+      # v1.17.0 passed, v1.17.1 died at 51 s with "JavaScript heap out of
+      # memory" in Build dashboard. release.yml already gives its builds 6 GB.
+      NODE_OPTIONS: --max-old-space-size=6144
     steps:
       - uses: actions/checkout@v4
 
