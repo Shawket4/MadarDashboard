@@ -123,7 +123,15 @@
     "searchTimezone": "دوّر على منطقة زمنية…",
     "selectTimezone": "اختر المنطقة الزمنية…",
     "listSeparator": "، ",
-    "atMostChars": "{{n}} حرفًا على الأكثر"
+    "atMostChars": "{{n}} حرفًا على الأكثر",
+    "exportMenu": "تصدير",
+    "exportFile": "تصدير",
+    "exportFormat": {
+      "label": "الصيغة",
+      "as": "تصدير بصيغة",
+      "excel": "Excel",
+      "pdf": "PDF"
+    }
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -1215,9 +1223,9 @@
     "title": "الوصفات",
     "cardsTitle": "بطاقات الوصفات",
     "exportMenu": "تصدير",
-    "menuExcel": "القائمة (Excel)",
-    "exportRecipes": "الوصفات مع التكاليف (Excel)",
-    "exportCards": "بطاقات الوصفات بدون تكاليف (Excel)",
+    "menuExcel": "القائمة",
+    "exportRecipes": "الوصفات مع التكاليف",
+    "exportCards": "بطاقات الوصفات بدون تكاليف",
     "exportCsv": "سطور الوصفات (CSV)",
     "done_zero": "لم يتم تصدير أي وصفة",
     "done_one": "تم تصدير وصفة واحدة",
@@ -2384,7 +2392,8 @@
     "failed": "فشل التصدير",
     "nothingToExport": "لا شيء للتصدير",
     "generated": "تم الإنشاء",
-    "totals": "الإجماليات"
+    "totals": "الإجماليات",
+    "generatingPdf": "جارٍ إنشاء ملف PDF…"
   },
   "errors": {
     "sessionExpired": "انتهت جلستك. الرجاء تسجيل الدخول مجدداً.",

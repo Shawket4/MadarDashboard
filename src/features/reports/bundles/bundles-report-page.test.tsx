@@ -223,7 +223,8 @@ describe("Bundles report · Combos / Deals", () => {
 describe("Bundles report · export", () => {
   it("hands the rows and columns to the Excel export with headers and units", async () => {
     render(<BundlesReportPage />);
-    fireEvent.click(screen.getByRole("button", { name: /Export/ }));
+    fireEvent.pointerDown(screen.getByRole("button", { name: /Export/ }), { button: 0, pointerType: "mouse" });
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Excel" }));
     await waitFor(() => expect(exportToExcel).toHaveBeenCalledTimes(1));
 
     const arg = exportToExcel.mock.calls[0][0] as {
@@ -254,7 +255,8 @@ describe("Bundles report · export", () => {
   it("says why when the export fails", async () => {
     exportToExcel.mockRejectedValueOnce(new Error("disk full"));
     render(<BundlesReportPage />);
-    fireEvent.click(screen.getByRole("button", { name: /Export/ }));
+    fireEvent.pointerDown(screen.getByRole("button", { name: /Export/ }), { button: 0, pointerType: "mouse" });
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Excel" }));
     await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
   });
 });

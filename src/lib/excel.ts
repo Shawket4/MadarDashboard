@@ -12,7 +12,10 @@ import { toast } from "@/components/ui/toast";
 import i18n from "@/i18n";
 import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";
-import { businessDate, fmtDateTimeFull, getActiveTz } from "@/lib/format";
+import { businessDate, fmtDate, fmtDateTimeFull, fmtMoney, fmtNumber, fmtPercent, getActiveTz } from "@/lib/format";
+import { getExportFormat } from "@/lib/export-format";
+import { renderPdf } from "@/data/api/generated/api";
+import type { PrintBlock, PrintDoc, PrintSheet } from "@/data/api/generated/models";
 
 export type ColumnType =
   | "text"
@@ -591,7 +594,142 @@ export async function exportToCsv(config: CsvConfig): Promise<void> {
   toast.success(t("excel.done", { count: sheet.rows.length, defaultValue: `Exported ${sheet.rows.length} rows` }));
 }
 
+// ── The PDF of the same sheets ───────────────────────────────────────────────
+//
+// A spreadsheet cannot carry its typeface; a PDF can. The backend draws the
+// pages (`POST /exports/pdf`, MadarRust src/exports/pdf.rs) for both
+// dashboards, in IBM Plex Sans Arabic, embedded. This side turns the very
+// sheets a workbook is built from into that document, every value written
+// out the way the dashboard shows it, so a PDF and a workbook of one export
+// always agree.
+
+/** A cell as the person reads it. */
+export const displayValue = (raw: unknown, type: ColumnType | undefined): string => {
+  if (raw == null || raw === "") return "";
+  switch (type) {
+    case "money":
+      return typeof raw === "number" ? fmtMoney(raw) : String(raw);
+    case "moneyRaw":
+      return typeof raw === "number" ? fmtMoney(Math.round(raw * 100)) : String(raw);
+    case "number":
+      return fmtNumber(Number(raw), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    case "integer":
+      return fmtNumber(Number(raw), { maximumFractionDigits: 0 });
+    case "percent":
+      return fmtPercent(Number(raw));
+    case "quantity":
+      return fmtNumber(Number(raw), { maximumFractionDigits: 3 });
+    case "date":
+      return fmtDate(raw instanceof Date ? raw : String(raw));
+    case "dateTime":
+      return fmtDateTimeFull(raw instanceof Date ? raw : String(raw));
+    case "bool":
+      return raw ? "✓" : "—";
+    default:
+      return String(raw);
+  }
+};
+
+const statValue = (s: ExcelStat): string =>
+  typeof s.value === "number" && s.type === "money"
+    ? fmtMoney(s.value * 100)
+    : typeof s.value === "number" && s.type === "number"
+      ? fmtNumber(s.value, { maximumFractionDigits: 0 })
+      : String(s.value);
+
+/** The line under every sheet's banner: its subtitle, the export's meta, when. */
+const subtitleLine = (subtitle: string | undefined, meta: string | undefined): string =>
+  [subtitle, meta, `${i18n.t("excel.generated", "Generated")}: ${fmtDateTimeFull(new Date())}`].filter(Boolean).join("  ·  ");
+
+const cellText = (c: ExcelCell): string => {
+  const { value, type } = cellOf(c);
+  return displayValue(value, type);
+};
+
+/** One sheet, as the document the backend prints. */
+const printSheet = (sheet: AnySheet, meta: string | undefined): PrintSheet => {
+  const head = {
+    title: sheet.title,
+    subtitle: subtitleLine(sheet.subtitle, meta),
+    stats: (sheet.stats ?? []).map((s) => ({ label: s.label, value: statValue(s) })),
+  };
+  if (isBlockSheet(sheet)) {
+    const blocks: PrintBlock[] = [];
+    for (const group of sheet.groups) {
+      blocks.push({ kind: "group", text: group.group });
+      for (const b of group.blocks) {
+        blocks.push({
+          kind: "table",
+          title: b.title,
+          note: b.note ?? null,
+          // The first column is the row's label: it reads from the start.
+          columns: b.header.map((header, i) => ({ header, width: sheet.widths[i] ?? 15, align: i === 0 ? "start" : "center" })),
+          rows: b.rows.map((r) => b.header.map((_, i) => cellText(r[i] ?? null))),
+          footer: (b.footer ?? []).map((r) => b.header.map((_, i) => cellText(r[i] ?? null))),
+          caption: b.caption ?? null,
+        });
+      }
+    }
+    return { ...head, landscape: false, blocks };
+  }
+  const totals = sheet.totals && sheet.rows.length > 0
+    ? sheet.columns.map((c, i) => {
+        if (!c.total) return i === 0 ? i18n.t("excel.totals", "TOTALS") : "";
+        const sum = sheet.rows.reduce((acc, r) => acc + (Number(c.accessor(r)) || 0), 0);
+        return displayValue(sum, c.type);
+      })
+    : null;
+  return {
+    ...head,
+    landscape: true,
+    blocks: [
+      {
+        kind: "table",
+        columns: sheet.columns.map((c) => ({ header: c.header, width: c.width ?? 20, align: "center" })),
+        rows: sheet.rows.map((r) => sheet.columns.map((c) => displayValue(c.accessor(r), c.type))),
+        totals,
+      },
+    ],
+  };
+};
+
+/** The whole export, as the document the backend prints. */
+export const toPrintDoc = (config: ExcelConfig): PrintDoc => ({
+  filename: `${config.filename}-${businessDate()}`,
+  rtl: (i18n.resolvedLanguage ?? i18n.language ?? "en").startsWith("ar"),
+  sheets: config.sheets.map((s) => printSheet(s, config.meta)),
+});
+
+/** The PDF of `config`'s sheets: toasts and failures exactly as the workbook's. */
+export async function exportToPdf(config: ExcelConfig): Promise<void> {
+  const t = i18n.getFixedT(null, "translation");
+  if (config.sheets.every((s) => sheetSize(s) === 0)) {
+    toast.error(t("excel.nothingToExport", "Nothing to export"));
+    return;
+  }
+  const toastId = toast.loading(t("excel.generatingPdf", "Generating PDF…"));
+  try {
+    const doc = toPrintDoc(config);
+    const pdf = await renderPdf(doc);
+    downloadBlob(new Blob([pdf], { type: "application/pdf" }), `${doc.filename}.pdf`);
+    const total = config.sheets.reduce((s, sh) => s + sheetSize(sh), 0);
+    toast.success(config.doneMessage ?? t("excel.done", { count: total, defaultValue: `Exported ${total} rows` }), {
+      id: toastId,
+    });
+  } catch (err) {
+    console.error("PDF export failed", err);
+    // The server's own words when it refused (a document too large to print).
+    toast.error(getErrorMessage(err) || t("excel.failed", "Export failed"), { id: toastId });
+    throw new ExportFailed(err);
+  }
+}
+
+/**
+ * The export, in the format chosen at the top of the Export menu
+ * (`lib/export-format`): the workbook, or a PDF of the same sheets.
+ */
 export async function exportToExcel(config: ExcelConfig): Promise<void> {
+  if (getExportFormat() === "pdf") return exportToPdf(config);
   const t = i18n.getFixedT(null, "translation");
   if (config.sheets.every((s) => sheetSize(s) === 0)) {
     toast.error(t("excel.nothingToExport", "Nothing to export"));

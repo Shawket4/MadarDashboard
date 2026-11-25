@@ -847,6 +847,8 @@ describe("PayrollPage", () => {
     excel.mockClear();
     wrap(<PayrollPage />);
     await user.click(screen.getByRole("button", { name: /Pay lists/ }));
+    // The Export menu: Excel or PDF of the same lists.
+    await user.click(await screen.findByRole("menuitem", { name: "Excel" }));
     await waitFor(() => expect(excel).toHaveBeenCalled());
     const cfg = excel.mock.calls[0][0] as { sheets: { name: string; rows: { employee_id: string }[]; columns: { header: string }[] }[] };
     // Sara is paid by bank but has nothing to receive; Youssef is paid in cash.

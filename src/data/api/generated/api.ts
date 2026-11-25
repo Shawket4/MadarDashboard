@@ -535,6 +535,7 @@ import type {
   PriceOverrideOut,
   PriceOverrideRequest,
   PriceOverridesParams,
+  PrintDoc,
   PrivacyAccepted,
   ProvisionOrgRequest,
   ProvisionedOrg,
@@ -11075,6 +11076,72 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getUpdateDiscountMutationOptions(options), queryClient);
+    }
+
+/**
+ * @summary Print a dashboard's export as a PDF.
+ */
+export const renderPdf = (
+    printDoc: PrintDoc,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<Blob>(
+      {url: `/exports/pdf`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: printDoc,
+        responseType: 'blob', signal
+    },
+      options);
+    }
+
+
+
+
+export const getRenderPdfMutationOptions = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renderPdf>>, TError,{data: PrintDoc}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof renderPdf>>, TError,{data: PrintDoc}, TContext> => {
+
+const mutationKey = ['renderPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof renderPdf>>, {data: PrintDoc}> = (props) => {
+          const {data} = props ?? {};
+
+          return  renderPdf(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RenderPdfMutationResult = NonNullable<Awaited<ReturnType<typeof renderPdf>>>
+    export type RenderPdfMutationBody = PrintDoc
+    export type RenderPdfMutationError = ErrorBody
+
+    /**
+ * @summary Print a dashboard's export as a PDF.
+ */
+export const useRenderPdf = <TError = ErrorBody,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renderPdf>>, TError,{data: PrintDoc}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof renderPdf>>,
+        TError,
+        {data: PrintDoc},
+        TContext
+      > => {
+      return useMutation(getRenderPdfMutationOptions(options), queryClient);
     }
 
 export const saveLayout = (
