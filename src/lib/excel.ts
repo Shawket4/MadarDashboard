@@ -126,6 +126,13 @@ export interface ExcelConfig {
  * carry the same values.
  */
 const INK = "FF14181E";
+
+/**
+ * The one typeface every workbook is set in: the dashboard's own (owner,
+ * 2026-11-25). A spreadsheet cannot embed a font, so a viewer without it
+ * installed sees their app's default instead; the PDF export embeds it.
+ */
+export const EXPORT_FONT = "IBM Plex Sans Arabic";
 const PALETTE = {
   brand: INK, // the banner title, the header and totals bands
   accent: INK, // group bands and stat figures
@@ -283,7 +290,7 @@ function drawHead(
   ws.getRow(1).height = 60;
   const title = ws.getCell("A1");
   title.value = head.title;
-  title.font = { name: "Calibri", size: 16, bold: true, color: { argb: PALETTE.brand } };
+  title.font = { name: EXPORT_FONT, size: 16, bold: true, color: { argb: PALETTE.brand } };
   title.alignment = { horizontal: "right", vertical: "middle", indent: 2 };
   if (logoId !== undefined) {
     ws.addImage(logoId, { tl: { col: 0.2, row: 0.3 }, ext: logoExt, editAs: "oneCell" });
@@ -294,25 +301,29 @@ function drawHead(
   sub.value = [head.subtitle, meta, `${i18n.t("excel.generated", "Generated")}: ${fmtDateTimeFull(new Date())}`]
     .filter(Boolean)
     .join("  ·  ");
-  sub.font = { name: "Calibri", size: 9, color: { argb: PALETTE.muted } };
+  sub.font = { name: EXPORT_FONT, size: 9, color: { argb: PALETTE.muted } };
   sub.alignment = { horizontal: "center", vertical: "middle" };
   ws.getRow(3).height = 6;
 
-  // Stat pills (rows 4–5)
+  // Stat pills (rows 4–5). They share out the sheet's columns, and never
+  // fewer columns than there are pills: a recipe book whose widest drink has
+  // one size is three columns and four pills, and sharing three among four
+  // merged two pills over one cell, which fails the whole workbook.
   if (head.stats?.length) {
-    const span = Math.max(1, Math.floor(statColumns / head.stats.length));
+    const across = Math.max(statColumns, head.stats.length);
+    const span = Math.max(1, Math.floor(across / head.stats.length));
     head.stats.forEach((stat, i) => {
       const a = colLetter(i * span);
-      const b = colLetter(Math.min(i * span + span - 1, statColumns - 1));
+      const b = colLetter(Math.min(i * span + span - 1, across - 1));
       ws.mergeCells(`${a}4:${b}4`);
       const lc = ws.getCell(`${a}4`);
       lc.value = stat.label;
-      lc.font = { name: "Calibri", size: 8, color: { argb: PALETTE.muted } };
+      lc.font = { name: EXPORT_FONT, size: 8, color: { argb: PALETTE.muted } };
       lc.alignment = { horizontal: "center" };
       ws.mergeCells(`${a}5:${b}5`);
       const vc = ws.getCell(`${a}5`);
       vc.value = stat.value;
-      vc.font = { name: "Calibri", size: 12, bold: true, color: { argb: PALETTE.accent } };
+      vc.font = { name: EXPORT_FONT, size: 12, bold: true, color: { argb: PALETTE.accent } };
       vc.alignment = { horizontal: "center" };
       if (stat.type === "money") vc.numFmt = '#,##0.00 "EGP"';
       else if (stat.type === "number") vc.numFmt = "#,##0";
@@ -344,7 +355,7 @@ function buildSheet(
   const header = ws.addRow(sheet.columns.map((c) => c.header));
   header.height = 26;
   header.eachCell((cell) => {
-    cell.font = { name: "Calibri", size: 10, bold: true, color: { argb: PALETTE.white } };
+    cell.font = { name: EXPORT_FONT, size: 10, bold: true, color: { argb: PALETTE.white } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: PALETTE.brand } };
     cell.alignment = { horizontal: "center", vertical: "middle" };
   });
@@ -356,7 +367,7 @@ function buildSheet(
     r.height = 20;
     r.eachCell({ includeEmpty: true }, (cell, colNum) => {
       const def = sheet.columns[colNum - 1];
-      cell.font = { name: "Calibri", size: 10, color: { argb: PALETTE.text } };
+      cell.font = { name: EXPORT_FONT, size: 10, color: { argb: PALETTE.text } };
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: idx % 2 === 0 ? PALETTE.zebra : PALETTE.white } };
       cell.alignment = { vertical: "middle", horizontal: "center" };
       const fmt = numFmt(def?.type);
@@ -377,7 +388,7 @@ function buildSheet(
     );
     totals.height = 24;
     totals.eachCell({ includeEmpty: true }, (cell, colNum) => {
-      cell.font = { name: "Calibri", size: 10, bold: true, color: { argb: PALETTE.white } };
+      cell.font = { name: EXPORT_FONT, size: 10, bold: true, color: { argb: PALETTE.white } };
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: PALETTE.brand } };
       cell.alignment = { vertical: "middle", horizontal: "center" };
       const fmt = numFmt(sheet.columns[colNum - 1]?.type);
@@ -426,7 +437,7 @@ function buildBlockSheet(
   drawHead(ws, sheet, sheet.widths.length, lastPadded, meta, logoId, logoExt);
 
   const font = (extra: Partial<ExcelJSNS.Font> = {}): Partial<ExcelJSNS.Font> => ({
-    name: "Calibri",
+    name: EXPORT_FONT,
     size: 10,
     color: { argb: PALETTE.text },
     ...extra,
