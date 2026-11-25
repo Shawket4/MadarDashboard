@@ -25,6 +25,8 @@ import { MenuItemDialog } from "./menu-item-dialog";
 import { BranchAddonAvailabilitySwitch, BranchMenuItemAvailabilitySwitch } from "./branch-availability-switch";
 import { invalidateCatalog } from "./util";
 import { useAddonCostMap } from "./costing";
+import { exportRecipeBook, type RecipeExportKind } from "./recipe-book-export";
+import { recipeBookMeta } from "./recipe-book";
 import {
   createMenuItem,
   duplicateItem,
@@ -353,6 +355,30 @@ export function MenuItemsPage() {
     }
   };
 
+  /**
+   * The recipe files: the book follows the grid's own filters (category,
+   * search, recipe) and is read whole in one request, so there is no walk.
+   */
+  const handleRecipeExport = async (kind: RecipeExportKind) => {
+    setExporting(true);
+    try {
+      await exportRecipeBook(kind, {
+        params: {
+          org_id: itemsParams.org_id,
+          category_id: itemsParams.category_id,
+          search: itemsParams.search,
+          has_recipe: itemsParams.has_recipe,
+        },
+        meta: recipeBookMeta({ category: f.cat ? catName(f.cat) : undefined, search: f.q, recipe: recipeFilter }, t),
+        logoUrl,
+        lang,
+        t,
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (!enabled) {
     return (
       <Page>
@@ -456,7 +482,24 @@ export function MenuItemsPage() {
                     whole catalog takes long enough that a button which looks
                     ignored is a real complaint. */}
                 <ClearFiltersButton filters={filters} keep={["tab", "type", "aq", "cq"]} />
-                <ExportButton onExport={handleExport} loading={exporting} />
+                <ExportButton
+                  onExport={handleExport}
+                  loading={exporting}
+                  // Recipes are recipes.read (the plan ceiling included): the
+                  // section is offered only to those who may open a recipe.
+                  {...(canFilterRecipes
+                    ? {
+                        label: t("recipeBook.exportMenu", "Export"),
+                        excelLabel: t("recipeBook.menuExcel", "Menu (Excel)"),
+                        moreHeading: t("nav.recipes", "Recipes"),
+                        more: [
+                          { key: "recipes", label: t("recipeBook.exportRecipes", "Recipes with costs (Excel)"), onSelect: () => handleRecipeExport("recipes") },
+                          { key: "cards", label: t("recipeBook.exportCards", "Recipe cards, no costs (Excel)"), onSelect: () => handleRecipeExport("cards") },
+                          { key: "csv", label: t("recipeBook.exportCsv", "Recipe lines (CSV)"), onSelect: () => handleRecipeExport("csv") },
+                        ],
+                      }
+                    : {})}
+                />
               </>
             }
             onPasteRows={createFromPaste}

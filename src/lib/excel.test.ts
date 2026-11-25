@@ -81,3 +81,93 @@ describe("an export's file name", () => {
     expect(downloadBlob.mock.calls[0][1]).toBe("orders-2026-11-01.xlsx");
   });
 });
+
+describe("a sheet of tables", () => {
+  afterEach(() => downloadBlob.mockClear());
+
+  /** The workbook the last export downloaded, read back with ExcelJS. */
+  const lastWorkbook = async () => {
+    const blob = downloadBlob.mock.calls.at(-1)?.[0] as Blob;
+    const mod = await import("exceljs");
+    const ExcelJS = (mod as unknown as { default?: typeof mod }).default ?? mod;
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(await blob.arrayBuffer());
+    return wb;
+  };
+
+  const sheet = {
+    kind: "blocks" as const,
+    name: "Recipes",
+    title: "Recipes",
+    stats: [{ label: "Items", value: 1, type: "number" as const }],
+    widths: [30, 8, 14, 14],
+    groups: [
+      {
+        group: "Coffee",
+        blocks: [
+          {
+            title: "Latte",
+            note: "Follows Flat white",
+            header: ["Ingredient", "Unit", "Small", "Large"],
+            rows: [
+              ["Espresso beans", "g", { value: 18, type: "quantity" as const }, { value: 18.5, type: "quantity" as const }],
+              ["Vanilla syrup", "ml", null, { value: 20, type: "quantity" as const }],
+            ],
+            footer: [["Cost", null, { value: 205, type: "money" as const }, { value: 285, type: "money" as const }]],
+            caption: "How it's made: 1. Pull a double shot",
+          },
+        ],
+      },
+    ],
+  };
+
+  it("draws every sheet's head, then the group band and each table in order", async () => {
+    await exportToExcel({ filename: "recipes", sheets: [sheet], doneMessage: "Exported 1 recipe" });
+    const ws = (await lastWorkbook()).getWorksheet("Recipes")!;
+
+    expect(ws.getCell("A1").value).toBe("Recipes"); // the banner, as on every sheet
+    expect(String(ws.getCell("A2").value)).toMatch(/Generated/);
+    expect(ws.getCell("A4").value).toBe("Items");
+    expect(ws.getCell("A7").value).toBe("Coffee"); // the group band
+    expect(ws.getCell("A7").fill).toMatchObject({ fgColor: { argb: "FF2E94A6" } });
+    expect(ws.getCell("A9").value).toMatchObject({
+      richText: [{ text: "Latte" }, { text: "   Follows Flat white" }],
+    });
+    expect([1, 2, 3, 4].map((c) => ws.getCell(10, c).value)).toEqual(["Ingredient", "Unit", "Small", "Large"]);
+    expect(ws.getCell(10, 1).fill).toMatchObject({ fgColor: { argb: "FF0D6273" } });
+    expect([1, 2, 3, 4].map((c) => ws.getCell(11, c).value)).toEqual(["Espresso beans", "g", 18, 18.5]);
+    expect(ws.getCell(11, 3).numFmt ?? "General").toBe("General"); // no fixed decimals
+    expect(ws.getCell(12, 3).value).toBeNull(); // a size without the line is a blank, still striped
+    expect(ws.getCell(12, 3).fill).toMatchObject({ fgColor: { argb: "FFFFFFFF" } });
+    expect(ws.getCell(11, 3).fill).toMatchObject({ fgColor: { argb: "FFEDF2F3" } });
+    expect(ws.getCell(13, 1).value).toBe("Cost");
+    expect(ws.getCell(13, 3).value).toBe(2.05); // money is piastres ÷ 100
+    expect(ws.getCell(13, 3).numFmt).toBe('#,##0.00 "EGP"');
+    expect(ws.getCell(13, 3).border?.top).toMatchObject({ style: "thin" });
+    expect(ws.getCell(13, 1).font?.bold).toBe(true);
+    expect(ws.getCell("A14").value).toBe("How it's made: 1. Pull a double shot");
+    expect(ws.getCell("A14").alignment?.wrapText).toBe(true);
+    expect(ws.getCell(11, 1).alignment?.horizontal).toBe("left"); // the label column reads from the start
+    expect(ws.getCell(11, 3).alignment?.horizontal).toBe("center");
+  });
+
+  it("counts tables, not rows, and says what it was told to", async () => {
+    const { toast } = await import("@/components/ui/toast");
+    await exportToExcel({ filename: "recipes", sheets: [sheet], doneMessage: "Exported 1 recipe" });
+    expect(vi.mocked(toast.success).mock.calls.at(-1)?.[0]).toBe("Exported 1 recipe");
+    vi.mocked(toast.error).mockClear();
+    await exportToExcel({ filename: "recipes", sheets: [{ ...sheet, groups: [] }] });
+    expect(toast.error).toHaveBeenCalledWith("Nothing to export");
+  });
+
+  it("leaves an ordinary sheet exactly where it was: header on row 7, data from row 8", async () => {
+    await exportToExcel({
+      filename: "orders",
+      sheets: [{ name: "Orders", title: "Orders", columns: [{ header: "No", accessor: (r: Record<string, unknown>) => r.n as number, type: "integer" }], rows: [{ n: 4 }] }],
+    });
+    const ws = (await lastWorkbook()).getWorksheet("Orders")!;
+    expect(ws.getCell("A7").value).toBe("No");
+    expect(ws.getCell("A8").value).toBe(4);
+    expect(ws.views[0]).toMatchObject({ state: "frozen", ySplit: 7 });
+  });
+});

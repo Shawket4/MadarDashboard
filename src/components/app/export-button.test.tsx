@@ -73,4 +73,28 @@ describe("ExportButton", () => {
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
     expect(toast.error).toHaveBeenCalledTimes(1);
   });
+
+  it("offers more files under their own heading, and each one runs (and shakes) like the main export", async () => {
+    shakes.length = 0;
+    const onExport = vi.fn().mockResolvedValue(undefined);
+    const recipes = vi.fn().mockRejectedValue(new Error("no"));
+    render(
+      <ExportButton
+        onExport={onExport}
+        label="Export"
+        excelLabel="Menu (Excel)"
+        moreHeading="Recipes"
+        more={[{ key: "r", label: "Recipes with costs (Excel)", onSelect: recipes }]}
+      />,
+    );
+    const trigger = screen.getByRole("button", { name: /Export/ });
+    fireEvent.pointerDown(trigger, { button: 0, pointerType: "mouse" });
+    const items = await screen.findAllByRole("menuitem");
+    expect(items.map((i) => i.textContent)).toEqual(["Menu (Excel)", "Recipes with costs (Excel)"]);
+    expect(screen.getByText("Recipes")).toBeTruthy();
+    fireEvent.click(items[1]);
+    await waitFor(() => expect(recipes).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(shakes.at(-1)).toBe(1));
+    expect(onExport).not.toHaveBeenCalled();
+  });
 });

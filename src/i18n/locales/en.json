@@ -1199,6 +1199,47 @@
       "emptyStudioHint": "Add priced options from the Menu Studio."
     }
   },
+  "recipeBook": {
+    "title": "Recipes",
+    "cardsTitle": "Recipe cards",
+    "exportMenu": "Export",
+    "menuExcel": "Menu (Excel)",
+    "exportRecipes": "Recipes with costs (Excel)",
+    "exportCards": "Recipe cards, no costs (Excel)",
+    "exportCsv": "Recipe lines (CSV)",
+    "done_one": "Exported {{count}} recipe",
+    "done_other": "Exported {{count}} recipes",
+    "ingredient": "Ingredient",
+    "unit": "Unit",
+    "item": "Item",
+    "size": "Size",
+    "quantity": "Quantity",
+    "lineCost": "Line cost",
+    "fromHeader": "From",
+    "from": {
+      "own": "This item",
+      "linked": "Linked recipe",
+      "base": "Recipe base",
+      "rule": "Packaging rule"
+    },
+    "off": "off",
+    "follows": "Follows {{name}}",
+    "howItsMade": "How it's made",
+    "cost": "Cost",
+    "foodCost": "Food cost",
+    "missingCosts": "Missing costs",
+    "noRecipe": "No recipe yet",
+    "noRecipeTitle_one": "{{count}} item",
+    "noRecipeTitle_other": "{{count}} items",
+    "linesSheet": "Ingredient lines",
+    "linesTitle": "Ingredient lines",
+    "stats": {
+      "items": "Items",
+      "withRecipe": "With a recipe",
+      "noRecipe": "No recipe yet",
+      "missingCosts": "Sizes missing costs"
+    }
+  },
   "inventory": {
     "title": "Inventory",
     "subtitle": "Ingredients, stock, purchasing and reports",

@@ -14,7 +14,18 @@ import { getErrorMessage } from "@/data/api/errors";
 import { downloadBlob } from "@/lib/download";
 import { businessDate, fmtDateTimeFull, getActiveTz } from "@/lib/format";
 
-export type ColumnType = "text" | "money" | "moneyRaw" | "number" | "integer" | "percent" | "date" | "dateTime" | "bool";
+export type ColumnType =
+  | "text"
+  | "money"
+  | "moneyRaw"
+  | "number"
+  | "integer"
+  | "percent"
+  | "date"
+  | "dateTime"
+  | "bool"
+  /** An amount as it is (18, 0.5, 12.25): no fixed decimals. */
+  | "quantity";
 
 export interface ExcelColumn<T> {
   /** Optional stable id (unused by the engine; handy for column specs). */
@@ -43,12 +54,68 @@ export interface ExcelSheet<T> {
   totals?: boolean;
 }
 
+/** One cell of a table in a sheet of tables: a value, or a value and its type. */
+export type ExcelCell =
+  | string
+  | number
+  | null
+  | { value: string | number | Date | boolean | null | undefined; type?: ColumnType };
+
+/**
+ * One titled table inside a sheet of several (a drink's recipe). Its first
+ * column is the row's label; the rest are values.
+ */
+export interface ExcelBlock {
+  title: string;
+  /** Muted words after the title (what it follows, that it is off the menu). */
+  note?: string;
+  /** Column headers. */
+  header: string[];
+  /** Body rows, zebra-striped like every sheet's. */
+  rows: ExcelCell[][];
+  /** Summary rows under the body (cost, price, food cost): bold, ruled above. */
+  footer?: ExcelCell[][];
+  /** A wrapped line under the table (how it's made). */
+  caption?: string;
+}
+
+/** A band naming what the tables under it belong to (a category). */
+export interface ExcelGroup {
+  group: string;
+  blocks: ExcelBlock[];
+}
+
+/**
+ * A sheet of tables rather than one: the same banner, subtitle and stat pills
+ * as every sheet, then groups of titled tables, one after another.
+ */
+export interface ExcelBlockSheet {
+  kind: "blocks";
+  name: string;
+  title: string;
+  subtitle?: string;
+  stats?: ExcelStat[];
+  /** One width per column, shared by every table (a sheet has one set of columns). */
+  widths: number[];
+  groups: ExcelGroup[];
+}
+
+export type AnySheet = ExcelSheet<Record<string, unknown>> | ExcelBlockSheet;
+
+export const isBlockSheet = (s: AnySheet): s is ExcelBlockSheet => (s as ExcelBlockSheet).kind === "blocks";
+
+/** What a sheet holds, for "nothing to export" and the done toast: rows, or tables. */
+const sheetSize = (s: AnySheet): number =>
+  isBlockSheet(s) ? s.groups.reduce((n, g) => n + g.blocks.length, 0) : s.rows.length;
+
 export interface ExcelConfig {
   filename: string;
   meta?: string;
   logoUrl?: string;
   // Sheets may have heterogeneous row types.
-  sheets: ExcelSheet<Record<string, unknown>>[];
+  sheets: AnySheet[];
+  /** The success toast's words, when "Exported N rows" would miscount (a sheet of tables). */
+  doneMessage?: string;
 }
 
 const PALETTE = {
@@ -76,6 +143,8 @@ const numFmt = (type: ColumnType | undefined): string | undefined => {
       return "dd mmm yyyy";
     case "dateTime":
       return "dd mmm yyyy hh:mm AM/PM";
+    // Excel's own General format: 18, 0.5, 12.25, never "18.00".
+    case "quantity":
     default:
       return undefined;
   }
@@ -109,6 +178,7 @@ const coerce = (raw: unknown, type: ColumnType | undefined): string | number | D
     case "number":
     case "integer":
     case "percent":
+    case "quantity":
       return typeof raw === "number" ? raw : Number(raw) || 0;
     case "date":
     case "dateTime": {
@@ -186,6 +256,63 @@ async function loadLogo(url: string): Promise<{ buffer: ArrayBuffer; width: numb
   }
 }
 
+/**
+ * Rows 1–6 of every sheet, whichever kind: the banner (the title, with the logo
+ * at its start), the subtitle line, and the stat pills, which share out the
+ * first `statColumns` columns.
+ */
+function drawHead(
+  ws: ExcelJSNS.Worksheet,
+  head: { title: string; subtitle?: string; stats?: ExcelStat[] },
+  statColumns: number,
+  lastPadded: string,
+  meta: string | undefined,
+  logoId: number | undefined,
+  logoExt: { width: number; height: number },
+): void {
+  // Banner
+  ws.mergeCells(`A1:${lastPadded}1`);
+  ws.getRow(1).height = 60;
+  const title = ws.getCell("A1");
+  title.value = head.title;
+  title.font = { name: "Calibri", size: 16, bold: true, color: { argb: PALETTE.brand } };
+  title.alignment = { horizontal: "right", vertical: "middle", indent: 2 };
+  if (logoId !== undefined) {
+    ws.addImage(logoId, { tl: { col: 0.2, row: 0.3 }, ext: logoExt, editAs: "oneCell" });
+  }
+
+  ws.mergeCells(`A2:${lastPadded}2`);
+  const sub = ws.getCell("A2");
+  sub.value = [head.subtitle, meta, `${i18n.t("excel.generated", "Generated")}: ${fmtDateTimeFull(new Date())}`]
+    .filter(Boolean)
+    .join("  ·  ");
+  sub.font = { name: "Calibri", size: 9, color: { argb: PALETTE.muted } };
+  sub.alignment = { horizontal: "center", vertical: "middle" };
+  ws.getRow(3).height = 6;
+
+  // Stat pills (rows 4–5)
+  if (head.stats?.length) {
+    const span = Math.max(1, Math.floor(statColumns / head.stats.length));
+    head.stats.forEach((stat, i) => {
+      const a = colLetter(i * span);
+      const b = colLetter(Math.min(i * span + span - 1, statColumns - 1));
+      ws.mergeCells(`${a}4:${b}4`);
+      const lc = ws.getCell(`${a}4`);
+      lc.value = stat.label;
+      lc.font = { name: "Calibri", size: 8, color: { argb: PALETTE.muted } };
+      lc.alignment = { horizontal: "center" };
+      ws.mergeCells(`${a}5:${b}5`);
+      const vc = ws.getCell(`${a}5`);
+      vc.value = stat.value;
+      vc.font = { name: "Calibri", size: 12, bold: true, color: { argb: PALETTE.accent } };
+      vc.alignment = { horizontal: "center" };
+      if (stat.type === "money") vc.numFmt = '#,##0.00 "EGP"';
+      else if (stat.type === "number") vc.numFmt = "#,##0";
+    });
+  }
+  ws.getRow(6).height = 6;
+}
+
 function buildSheet(
   wb: ExcelJSNS.Workbook,
   sheet: ExcelSheet<Record<string, unknown>>,
@@ -202,50 +329,8 @@ function buildSheet(
   while (cols.length < 6) cols.push({ key: `_pad${cols.length}`, width: 18 });
   ws.columns = cols;
 
-  const lastCol = colLetter(sheet.columns.length - 1);
   const lastPadded = colLetter(cols.length - 1);
-
-  // Banner
-  ws.mergeCells(`A1:${lastPadded}1`);
-  ws.getRow(1).height = 60;
-  const title = ws.getCell("A1");
-  title.value = sheet.title;
-  title.font = { name: "Calibri", size: 16, bold: true, color: { argb: PALETTE.brand } };
-  title.alignment = { horizontal: "right", vertical: "middle", indent: 2 };
-  if (logoId !== undefined) {
-    ws.addImage(logoId, { tl: { col: 0.2, row: 0.3 }, ext: logoExt, editAs: "oneCell" });
-  }
-
-  ws.mergeCells(`A2:${lastPadded}2`);
-  const sub = ws.getCell("A2");
-  sub.value = [sheet.subtitle, meta, `${i18n.t("excel.generated", "Generated")}: ${fmtDateTimeFull(new Date())}`]
-    .filter(Boolean)
-    .join("  ·  ");
-  sub.font = { name: "Calibri", size: 9, color: { argb: PALETTE.muted } };
-  sub.alignment = { horizontal: "center", vertical: "middle" };
-  ws.getRow(3).height = 6;
-
-  // Stat pills (rows 4–5)
-  if (sheet.stats?.length) {
-    const span = Math.max(1, Math.floor(sheet.columns.length / sheet.stats.length));
-    sheet.stats.forEach((stat, i) => {
-      const a = colLetter(i * span);
-      const b = colLetter(Math.min(i * span + span - 1, sheet.columns.length - 1));
-      ws.mergeCells(`${a}4:${b}4`);
-      const lc = ws.getCell(`${a}4`);
-      lc.value = stat.label;
-      lc.font = { name: "Calibri", size: 8, color: { argb: PALETTE.muted } };
-      lc.alignment = { horizontal: "center" };
-      ws.mergeCells(`${a}5:${b}5`);
-      const vc = ws.getCell(`${a}5`);
-      vc.value = stat.value;
-      vc.font = { name: "Calibri", size: 12, bold: true, color: { argb: PALETTE.accent } };
-      vc.alignment = { horizontal: "center" };
-      if (stat.type === "money") vc.numFmt = '#,##0.00 "EGP"';
-      else if (stat.type === "number") vc.numFmt = "#,##0";
-    });
-  }
-  ws.getRow(6).height = 6;
+  drawHead(ws, sheet, sheet.columns.length, lastPadded, meta, logoId, logoExt);
 
   // Header (row 7)
   const header = ws.addRow(sheet.columns.map((c) => c.header));
@@ -291,8 +376,150 @@ function buildSheet(
       if (fmt) cell.numFmt = fmt;
     });
   }
+}
 
-  void lastCol;
+/** A block cell's value and type, whichever way it was given. */
+const cellOf = (c: ExcelCell): { value: unknown; type: ColumnType | undefined } =>
+  c !== null && typeof c === "object" ? { value: c.value, type: c.type } : { value: c, type: undefined };
+
+/**
+ * How tall a merged, wrapped line of `text` must be across columns of these
+ * widths. Excel never grows a merged row to fit, so the height is set: about
+ * one character per width unit at 9 pt, 12 pt a line.
+ */
+export const captionHeight = (text: string, widths: number[]): number => {
+  const perLine = Math.max(20, Math.floor(widths.reduce((a, w) => a + w, 0) * 1.1));
+  const lines = text.split("\n").reduce((n, l) => n + Math.max(1, Math.ceil(l.length / perLine)), 0);
+  return Math.max(18, lines * 12 + 6);
+};
+
+/**
+ * A sheet of tables (`ExcelBlockSheet`). Rows 1–6 are every sheet's head; then,
+ * per group, a band in the accent colour, and per table: its title (bold, brand
+ * ink, the note muted after it), the header band, zebra body rows, bold footer
+ * rows ruled off above, the caption wrapped across the sheet, and a gap.
+ * The first column of a table is its row labels, so it reads from the start;
+ * the rest are centred like every sheet's values. Portrait, one page wide.
+ */
+function buildBlockSheet(
+  wb: ExcelJSNS.Workbook,
+  sheet: ExcelBlockSheet,
+  meta: string | undefined,
+  logoId: number | undefined,
+  logoExt: { width: number; height: number },
+): void {
+  const ws = wb.addWorksheet(cleanSheetName(sheet.name), {
+    pageSetup: { fitToPage: true, fitToWidth: 1, fitToHeight: 0, orientation: "portrait" },
+  });
+  const widths = [...sheet.widths];
+  while (widths.length < 6) widths.push(18);
+  ws.columns = widths.map((width, i) => ({ key: String(i), width }));
+  const lastPadded = colLetter(widths.length - 1);
+  drawHead(ws, sheet, sheet.widths.length, lastPadded, meta, logoId, logoExt);
+
+  const font = (extra: Partial<ExcelJSNS.Font> = {}): Partial<ExcelJSNS.Font> => ({
+    name: "Calibri",
+    size: 10,
+    color: { argb: PALETTE.text },
+    ...extra,
+  });
+  const fill = (argb: string): ExcelJSNS.Fill => ({ type: "pattern", pattern: "solid", fgColor: { argb } });
+  const align = (col: number): Partial<ExcelJSNS.Alignment> =>
+    col === 0 ? { vertical: "middle", horizontal: "left", indent: 1 } : { vertical: "middle", horizontal: "center" };
+
+  let r = 7;
+  const writeCells = (row: number, cells: ExcelCell[], style: (col: number, cell: ExcelJSNS.Cell) => void) => {
+    cells.forEach((c, col) => {
+      const { value, type } = cellOf(c);
+      const cell = ws.getCell(row, col + 1);
+      cell.value = coerce(value, type) as ExcelJSNS.CellValue;
+      const fmt = numFmt(type);
+      if (fmt) cell.numFmt = fmt;
+      style(col, cell);
+    });
+  };
+
+  for (const group of sheet.groups) {
+    ws.mergeCells(`A${r}:${lastPadded}${r}`);
+    const band = ws.getCell(`A${r}`);
+    band.value = group.group;
+    band.font = font({ size: 12, bold: true, color: { argb: PALETTE.white } });
+    band.fill = fill(PALETTE.accent);
+    band.alignment = { vertical: "middle", horizontal: "left", indent: 1 };
+    ws.getRow(r).height = 24;
+    ws.getRow(r + 1).height = 6;
+    r += 2;
+
+    for (const block of group.blocks) {
+      const ncols = Math.max(1, block.header.length);
+
+      // Title, the note muted after it.
+      ws.mergeCells(`A${r}:${lastPadded}${r}`);
+      const title = ws.getCell(`A${r}`);
+      title.value = block.note
+        ? {
+            richText: [
+              { text: block.title, font: font({ size: 12, bold: true, color: { argb: PALETTE.brand } }) },
+              { text: `   ${block.note}`, font: font({ size: 9, color: { argb: PALETTE.muted } }) },
+            ],
+          }
+        : block.title;
+      title.font = font({ size: 12, bold: true, color: { argb: PALETTE.brand } });
+      title.alignment = { vertical: "bottom", horizontal: "left" };
+      ws.getRow(r).height = 22;
+      r += 1;
+
+      if (block.header.length) {
+        block.header.forEach((h, col) => {
+          const cell = ws.getCell(r, col + 1);
+          cell.value = h;
+          cell.font = font({ bold: true, color: { argb: PALETTE.white } });
+          cell.fill = fill(PALETTE.brand);
+          cell.alignment = { ...align(col), wrapText: true };
+        });
+        ws.getRow(r).height = 22;
+        r += 1;
+      }
+
+      block.rows.forEach((cells, idx) => {
+        const zebra = idx % 2 === 0 ? PALETTE.zebra : PALETTE.white;
+        // Every column of the table is filled, a cell left blank included.
+        const padded = [...cells, ...Array<ExcelCell>(Math.max(0, ncols - cells.length)).fill(null)];
+        writeCells(r, padded, (col, cell) => {
+          cell.font = font();
+          cell.fill = fill(zebra);
+          cell.alignment = align(col);
+        });
+        ws.getRow(r).height = 20;
+        r += 1;
+      });
+
+      (block.footer ?? []).forEach((cells, idx) => {
+        const padded = [...cells, ...Array<ExcelCell>(Math.max(0, ncols - cells.length)).fill(null)];
+        writeCells(r, padded, (col, cell) => {
+          cell.font = font({ bold: true });
+          cell.fill = fill(PALETTE.white);
+          cell.alignment = align(col);
+          if (idx === 0) cell.border = { top: { style: "thin", color: { argb: PALETTE.brand } } };
+        });
+        ws.getRow(r).height = 20;
+        r += 1;
+      });
+
+      if (block.caption) {
+        ws.mergeCells(`A${r}:${lastPadded}${r}`);
+        const cap = ws.getCell(`A${r}`);
+        cap.value = block.caption;
+        cap.font = font({ size: 9, color: { argb: PALETTE.muted } });
+        cap.alignment = { vertical: "top", horizontal: "left", wrapText: true, indent: 1 };
+        ws.getRow(r).height = captionHeight(block.caption, widths);
+        r += 1;
+      }
+
+      ws.getRow(r).height = 10;
+      r += 1;
+    }
+  }
 }
 
 const csvCell = (v: string): string => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
@@ -347,7 +574,7 @@ export async function exportToCsv(config: CsvConfig): Promise<void> {
 
 export async function exportToExcel(config: ExcelConfig): Promise<void> {
   const t = i18n.getFixedT(null, "translation");
-  if (config.sheets.every((s) => s.rows.length === 0)) {
+  if (config.sheets.every((s) => sheetSize(s) === 0)) {
     toast.error(t("excel.nothingToExport", "Nothing to export"));
     return;
   }
@@ -376,7 +603,10 @@ export async function exportToExcel(config: ExcelConfig): Promise<void> {
       logoExt = { width: logo.width, height: logo.height };
     }
 
-    for (const sheet of config.sheets) buildSheet(wb, sheet, config.meta, logoId, logoExt);
+    for (const sheet of config.sheets) {
+      if (isBlockSheet(sheet)) buildBlockSheet(wb, sheet, config.meta, logoId, logoExt);
+      else buildSheet(wb, sheet, config.meta, logoId, logoExt);
+    }
 
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
@@ -384,8 +614,10 @@ export async function exportToExcel(config: ExcelConfig): Promise<void> {
     });
     downloadBlob(blob, `${config.filename}-${businessDate()}.xlsx`); // the shop's today, not UTC's
 
-    const total = config.sheets.reduce((s, sh) => s + sh.rows.length, 0);
-    toast.success(t("excel.done", { count: total, defaultValue: `Exported ${total} rows` }), { id: toastId });
+    const total = config.sheets.reduce((s, sh) => s + sheetSize(sh), 0);
+    toast.success(config.doneMessage ?? t("excel.done", { count: total, defaultValue: `Exported ${total} rows` }), {
+      id: toastId,
+    });
   } catch (err) {
     console.error("Excel export failed", err);
     toast.error(t("excel.failed", "Export failed"), { id: toastId });

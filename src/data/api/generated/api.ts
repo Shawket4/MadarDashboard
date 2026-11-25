@@ -302,6 +302,7 @@ import type {
   GetMenuLintParams,
   GetMyAuthzParams,
   GetPlanParams,
+  GetRecipeBookParams,
   GetRoutingModeParams,
   GetScheduledDayParams,
   GetStaffPoolSettingsParams,
@@ -595,6 +596,7 @@ import type {
   RecipeBaseOut,
   RecipeBaseSaveResult,
   RecipeBaseUsage,
+  RecipeBook,
   RecipeCostResult,
   RecipeLinkInfo,
   RecipeStep,
@@ -32971,6 +32973,94 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getDeleteAddonIngredientMutationOptions(options), queryClient);
     }
+
+export const getRecipeBook = (
+    params: GetRecipeBookParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+
+
+      return customInstance<RecipeBook>(
+      {url: `/recipes/book`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+
+
+
+
+export const getGetRecipeBookQueryKey = (params?: GetRecipeBookParams,) => {
+    return [
+    `/recipes/book`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetRecipeBookQueryOptions = <TData = Awaited<ReturnType<typeof getRecipeBook>>, TError = ErrorBody>(params: GetRecipeBookParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecipeBook>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRecipeBookQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecipeBook>>> = ({ signal }) => getRecipeBook(params, requestOptions, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRecipeBook>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRecipeBookQueryResult = NonNullable<Awaited<ReturnType<typeof getRecipeBook>>>
+export type GetRecipeBookQueryError = ErrorBody
+
+
+export function useGetRecipeBook<TData = Awaited<ReturnType<typeof getRecipeBook>>, TError = ErrorBody>(
+ params: GetRecipeBookParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecipeBook>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRecipeBook>>,
+          TError,
+          Awaited<ReturnType<typeof getRecipeBook>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRecipeBook<TData = Awaited<ReturnType<typeof getRecipeBook>>, TError = ErrorBody>(
+ params: GetRecipeBookParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecipeBook>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRecipeBook>>,
+          TError,
+          Awaited<ReturnType<typeof getRecipeBook>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRecipeBook<TData = Awaited<ReturnType<typeof getRecipeBook>>, TError = ErrorBody>(
+ params: GetRecipeBookParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecipeBook>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRecipeBook<TData = Awaited<ReturnType<typeof getRecipeBook>>, TError = ErrorBody>(
+ params: GetRecipeBookParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecipeBook>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRecipeBookQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const listDrinkRecipes = (
     menuItemId: string,
