@@ -118,13 +118,21 @@ export interface ExcelConfig {
   doneMessage?: string;
 }
 
+/**
+ * Ink on paper (owner, 2026-11-25: "use ink for all export tokens"). Every
+ * band, title and figure an export draws is ink; the page is white paper with
+ * a cool tint for the zebra rows; secondary words are slate. The Flutter
+ * dashboard's `ExcelPalette` (dashboard_core export.dart) and its xlsx writer
+ * carry the same values.
+ */
+const INK = "FF14181E";
 const PALETTE = {
-  brand: "FF0D6273", // teal deep
-  accent: "FF2E94A6", // teal light
-  white: "FFFFFFFF",
+  brand: INK, // the banner title, the header and totals bands
+  accent: INK, // group bands and stat figures
+  white: "FFFFFFFF", // paper
   zebra: "FFEDF2F3", // cool off-white (paper tint)
   border: "FFD7E0E1",
-  text: "FF14181E", // ink
+  text: INK,
   muted: "FF76828B", // slate
 } as const;
 

@@ -82,6 +82,9 @@ describe("an export's file name", () => {
   });
 });
 
+/** The ink every export draws in (owner, 2026-11-25: "use ink for all export tokens"). */
+const INK = "FF14181E";
+
 describe("a sheet of tables", () => {
   afterEach(() => downloadBlob.mockClear());
 
@@ -129,12 +132,12 @@ describe("a sheet of tables", () => {
     expect(String(ws.getCell("A2").value)).toMatch(/Generated/);
     expect(ws.getCell("A4").value).toBe("Items");
     expect(ws.getCell("A7").value).toBe("Coffee"); // the group band
-    expect(ws.getCell("A7").fill).toMatchObject({ fgColor: { argb: "FF2E94A6" } });
+    expect(ws.getCell("A7").fill).toMatchObject({ fgColor: { argb: INK } });
     expect(ws.getCell("A9").value).toMatchObject({
       richText: [{ text: "Latte" }, { text: "   Follows Flat white" }],
     });
     expect([1, 2, 3, 4].map((c) => ws.getCell(10, c).value)).toEqual(["Ingredient", "Unit", "Small", "Large"]);
-    expect(ws.getCell(10, 1).fill).toMatchObject({ fgColor: { argb: "FF0D6273" } });
+    expect(ws.getCell(10, 1).fill).toMatchObject({ fgColor: { argb: INK } });
     expect([1, 2, 3, 4].map((c) => ws.getCell(11, c).value)).toEqual(["Espresso beans", "g", 18, 18.5]);
     expect(ws.getCell(11, 3).numFmt ?? "General").toBe("General"); // no fixed decimals
     expect(ws.getCell(12, 3).value).toBeNull(); // a size without the line is a blank, still striped
@@ -171,3 +174,45 @@ describe("a sheet of tables", () => {
     expect(ws.views[0]).toMatchObject({ state: "frozen", ySplit: 7 });
   });
 });
+
+describe("the export palette", () => {
+  afterEach(() => downloadBlob.mockClear());
+
+  it("is ink on paper: every band, title and figure an export draws is ink", async () => {
+    await exportToExcel({
+      filename: "orders",
+      sheets: [
+        {
+          name: "Orders",
+          title: "Orders",
+          stats: [{ label: "Revenue", value: 1250, type: "money" }],
+          totals: true,
+          columns: [{ header: "Total", accessor: (r: Record<string, unknown>) => r.n as number, type: "money", total: true }],
+          rows: [{ n: 1250 }],
+        },
+      ],
+    });
+    const blob = downloadBlob.mock.calls.at(-1)?.[0] as Blob;
+    const mod = await import("exceljs");
+    const ExcelJS = (mod as unknown as { default?: typeof mod }).default ?? mod;
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(await blob.arrayBuffer());
+    const ws = wb.getWorksheet("Orders")!;
+    expect(ws.getCell("A1").font?.color?.argb).toBe(INK); // the banner title
+    expect(ws.getCell("A5").font?.color?.argb).toBe(INK); // a stat figure
+    expect(ws.getCell("A7").fill).toMatchObject({ fgColor: { argb: INK } }); // the header band
+    expect(ws.getCell("A9").fill).toMatchObject({ fgColor: { argb: INK } }); // the totals band
+    // No colour but ink, paper and its greys anywhere in the file's styles.
+    const colours = new Set<string>();
+    ws.eachRow({ includeEmpty: true }, (row) =>
+      row.eachCell({ includeEmpty: true }, (c) => {
+        if (c.font?.color?.argb) colours.add(c.font.color.argb);
+        const f = c.fill as { fgColor?: { argb?: string } } | undefined;
+        if (f?.fgColor?.argb) colours.add(f.fgColor.argb);
+      }),
+    );
+    expect([...colours].sort()).toEqual([INK, "FF76828B", "FFEDF2F3", "FFFFFFFF"].sort().filter((c) => colours.has(c)));
+    expect([...colours].every((c) => [INK, "FF76828B", "FFEDF2F3", "FFFFFFFF"].includes(c))).toBe(true);
+  });
+});
+
