@@ -380,6 +380,73 @@ const mockStudio = (m: ReturnType<typeof mockItem>) => ({
   })),
 });
 
+/**
+ * `GET /recipes/book` over the mock menu: the items the Items page would list
+ * (category, search, recipe filter), each laid out as the server lays it out —
+ * sizes as columns, ingredients as rows, costs at the catalogue's prices.
+ */
+const mockRecipeBook = (url: URL) => {
+  const cat = url.searchParams.get("category_id");
+  const q = url.searchParams.get("search")?.toLowerCase();
+  const hasRecipe = url.searchParams.get("has_recipe");
+  const cards = MOCK_MENU_ITEMS.map((m) => {
+    const detail = MOCK_ITEM_DETAILS[m.id];
+    const sizes = detail ? detail.sizes : [{ label: "one_size", price_override: m.base_price }];
+    const rows: { ingredient_id: string; ingredient_name: string; unit: string; source: string; cells: { quantity: number | null; line_cost_piastres: number | null }[] }[] = [];
+    const costs = sizes.map(() => 0);
+    sizes.forEach((z, col) => {
+      for (const r of detail?.recipes.filter((x) => x.size_label === z.label) ?? []) {
+        let row = rows.find((x) => x.ingredient_id === r.org_ingredient_id);
+        if (!row) {
+          row = { ingredient_id: r.org_ingredient_id, ingredient_name: r.ingredient_name, unit: r.ingredient_unit, source: "own", cells: sizes.map(() => ({ quantity: null, line_cost_piastres: null })) };
+          rows.push(row);
+        }
+        const cpu = MOCK_INGREDIENT_CATALOG.find((i) => i.id === r.org_ingredient_id)?.cost_per_unit ?? 0;
+        const lineCost = Math.round(r.quantity_used * cpu);
+        row.cells[col] = { quantity: usableQty(r.quantity_used, r.org_ingredient_id), line_cost_piastres: lineCost };
+        costs[col] += lineCost;
+      }
+    });
+    return {
+      menu_item_id: m.id,
+      name: m.name,
+      name_translations: m.name_translations,
+      category_id: m.category_id,
+      is_active: m.is_active,
+      follows_item_name: null,
+      sizes: sizes.map((z, i) => ({
+        size_id: `${m.id}_size_${i}`,
+        label: z.label,
+        price: z.price_override,
+        is_active: true,
+        base_name: null,
+        cost_piastres: rows.length ? costs[i] : null,
+        cost_incomplete: false,
+        food_cost_pct: rows.length && z.price_override > 0 ? costs[i] / z.price_override : null,
+        margin_pct: rows.length && z.price_override > 0 ? (z.price_override - costs[i]) / z.price_override : null,
+      })),
+      rows,
+      steps:
+        m.id === "mi_latte"
+          ? [
+              { position: 1, name: "Pull a double shot", name_ar: "استخلاص جرعة مزدوجة", note: null, note_ar: null },
+              { position: 2, name: "Steam the milk", name_ar: "تبخير الحليب", note: "To 60 °C", note_ar: "حتى 60 °م" },
+            ]
+          : [],
+    };
+  }).filter(
+    (c) =>
+      (!cat || c.category_id === cat) &&
+      (!q || c.name.toLowerCase().includes(q)) &&
+      (hasRecipe == null || (c.rows.length > 0) === (hasRecipe === "true")),
+  );
+  const used = new Set(cards.map((c) => c.category_id));
+  return {
+    categories: MOCK_CATEGORIES.filter((c) => used.has(c.id)).map((c) => ({ id: c.id, name: c.name, name_translations: c.name_translations })),
+    items: cards,
+  };
+};
+
 export const handlers = [
   // Vite serves source modules from the same origin; a wildcard API handler
   // (`*/orgs/*`) would otherwise answer `/src/features/orgs/tax-rate.ts` with
@@ -544,6 +611,7 @@ export const handlers = [
     return HttpResponse.json(reordered);
   }),
   http.get("*/costing/catalog", () => HttpResponse.json(MOCK_MENU_CATALOG)),
+  http.get("*/recipes/book", ({ request }) => HttpResponse.json(mockRecipeBook(new URL(request.url)))),
   http.get("*/addon-items/catalog", () => HttpResponse.json(MOCK_ADDON_CATALOG)),
   http.get("*/addon-items", () => HttpResponse.json(MOCK_ADDON_ITEMS)),
 

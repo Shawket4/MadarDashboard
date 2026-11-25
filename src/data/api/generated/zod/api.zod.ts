@@ -20519,6 +20519,58 @@ export const DeleteAddonIngredientQueryParams = zod.object({
 export const DeleteAddonIngredientResponse = zod.void()
 
 
+export const GetRecipeBookQueryParams = zod.object({
+  "org_id": zod.uuid(),
+  "category_id": zod.uuid().nullish(),
+  "search": zod.string().nullish().describe('Case-insensitive filter on the item name (as `\/costing\/catalog`).'),
+  "has_recipe": zod.boolean().nullish().describe('`true` → only items with a recipe on some size; `false` → only items\nwith none; absent → all.')
+})
+
+export const GetRecipeBookResponse = zod.object({
+  "categories": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.unknown()
+}).describe('A category the book\'s items sit in.')).describe('The categories the items sit in, in menu order.'),
+  "items": zod.array(zod.object({
+  "category_id": zod.uuid().nullish().describe('`null` when the item has no (live) category.'),
+  "follows_item_name": zod.string().nullish().describe('A linked copy: the name of the item whose recipe it follows.'),
+  "is_active": zod.boolean(),
+  "menu_item_id": zod.uuid(),
+  "name": zod.string(),
+  "name_translations": zod.unknown(),
+  "rows": zod.array(zod.object({
+  "cells": zod.array(zod.object({
+  "line_cost_piastres": zod.number().nullish().describe('What the line costs in piastres; `null` = unknown (or no line).'),
+  "quantity": zod.number().nullish().describe('The usable amount in the row\'s unit; `null` = not in this size.')
+}).describe('One cell: an ingredient\'s amount in one size.')).describe('One per entry of `sizes`, in the same order.'),
+  "ingredient_id": zod.uuid(),
+  "ingredient_name": zod.string(),
+  "source": zod.string().describe('`own` (typed on the item), `linked` (the item it follows), `base` (a\nrecipe base) or `rule` (a packaging rule).'),
+  "unit": zod.string().describe('The base unit the amounts are in (`g`, `ml`, `pcs`, …).')
+}).describe('One row: an ingredient, where it came from, and a cell per size.')).describe('Empty when the item has no recipe yet.'),
+  "sizes": zod.array(zod.object({
+  "base_name": zod.string().nullish().describe('The recipe base this size expands, if any.'),
+  "cost_incomplete": zod.boolean(),
+  "cost_piastres": zod.number().nullish().describe('The recipe\'s cost in piastres; `null` when there is no recipe or no\nline is costed. With `cost_incomplete` it is the sum of the known lines.'),
+  "food_cost_pct": zod.number().nullish().describe('`cost \/ price` as a fraction (0–1), only for a complete cost and a\nprice above 0.'),
+  "is_active": zod.boolean(),
+  "label": zod.string().describe('`one_size` for a single-price item.'),
+  "margin_pct": zod.number().nullish().describe('`(price − cost) \/ price` as a fraction, on the same terms.'),
+  "price": zod.number().describe('The org\'s price, in piastres.'),
+  "size_id": zod.uuid()
+}).describe('One column: a size of the item, with what its recipe costs.')),
+  "steps": zod.array(zod.object({
+  "name": zod.string(),
+  "name_ar": zod.string(),
+  "note": zod.string().nullish(),
+  "note_ar": zod.string().nullish(),
+  "position": zod.number()
+}).describe('One preparation step, both languages.'))
+}).describe('An item\'s recipe, as one table.')).describe('Menu order: by category (display order, then name; uncategorised\nlast), then by item name.')
+}).describe('`GET \/recipes\/book`.')
+
+
 export const ListDrinkRecipesParams = zod.object({
   "menu_item_id": zod.uuid().describe('Menu item ID')
 })
