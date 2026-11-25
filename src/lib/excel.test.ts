@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { APP_TZ } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
-import { exportToCsv, exportToExcel, toExcelDateSerial } from "@/lib/excel";
+import { EXPORT_FONT, exportToCsv, exportToExcel, toExcelDateSerial } from "@/lib/excel";
 
 const downloadBlob = vi.fn();
 vi.mock("@/lib/download", () => ({ downloadBlob: (...a: unknown[]) => downloadBlob(...a) }));
@@ -213,6 +213,56 @@ describe("the export palette", () => {
     );
     expect([...colours].sort()).toEqual([INK, "FF76828B", "FFEDF2F3", "FFFFFFFF"].sort().filter((c) => colours.has(c)));
     expect([...colours].every((c) => [INK, "FF76828B", "FFEDF2F3", "FFFFFFFF"].includes(c))).toBe(true);
+    // One typeface, the dashboard's own, in every cell.
+    const fonts = new Set<string>();
+    ws.eachRow({ includeEmpty: true }, (row) => row.eachCell({ includeEmpty: true }, (c) => c.font?.name && fonts.add(c.font.name)));
+    expect([...fonts]).toEqual([EXPORT_FONT]);
+    expect(EXPORT_FONT).toBe("IBM Plex Sans Arabic");
   });
 });
 
+
+describe("stat pills", () => {
+  afterEach(() => downloadBlob.mockClear());
+
+  // The recipe book with costs on a menu whose widest drink has ONE size:
+  // three columns (Ingredient, Unit, One size) and four pills. The pills were
+  // spread over the table's columns, so the fourth merge overlapped the third
+  // and the workbook failed to build ("Export failed").
+  it("fit however few columns a sheet has", async () => {
+    const { toast } = await import("@/components/ui/toast");
+    vi.mocked(toast.error).mockClear();
+    await exportToExcel({
+      filename: "recipes",
+      sheets: [
+        {
+          kind: "blocks",
+          name: "Recipes",
+          title: "Recipes",
+          stats: ["Items", "With a recipe", "No recipe yet", "Sizes missing costs"].map((label, i) => ({ label, value: i, type: "number" as const })),
+          widths: [34, 9, 15],
+          groups: [{ group: "Tea", blocks: [{ title: "Mint tea", header: ["Ingredient", "Unit", "One size"], rows: [["Mint", "g", { value: 3, type: "quantity" as const }]] }] }],
+        },
+        {
+          name: "Narrow",
+          title: "Narrow",
+          stats: ["A", "B", "C"].map((label) => ({ label, value: 1, type: "number" as const })),
+          columns: [{ header: "Only", accessor: (r: Record<string, unknown>) => r.n as number, type: "integer" }],
+          rows: [{ n: 1 }],
+        },
+      ],
+    });
+    expect(toast.error).not.toHaveBeenCalled();
+    const blob = downloadBlob.mock.calls.at(-1)?.[0] as Blob;
+    const mod = await import("exceljs");
+    const ExcelJS = (mod as unknown as { default?: typeof mod }).default ?? mod;
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(await blob.arrayBuffer());
+    const labels = (name: string) => {
+      const ws = wb.getWorksheet(name)!;
+      return [1, 2, 3, 4, 5, 6].map((c) => ws.getCell(4, c).value).filter((v) => v != null && v !== "");
+    };
+    expect(labels("Recipes")).toEqual(["Items", "With a recipe", "No recipe yet", "Sizes missing costs"]);
+    expect(labels("Narrow")).toEqual(["A", "B", "C"]);
+  });
+});
