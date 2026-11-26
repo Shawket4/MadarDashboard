@@ -29,7 +29,7 @@ import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { fmtDateTime, fmtDuration, fmtMoney, fmtMoneySigned } from "@/lib/format";
 
@@ -196,7 +196,7 @@ export function TillsPage() {
         const res = await listTills(scopeBranchId, tillsExportParams(search, Math.floor(offset / TILLS_OPTIONS_WINDOW) + 1), EXPORT_REQUEST);
         return { rows: res.data, total: res.total };
       });
-      await exportToExcel({
+      await exportFile({
         filename: "Madar-Tills",
         logoUrl,
         sheets: [{ name: t("nav.tills", "Tills"), title: t("nav.tills", "Tills"), rows: all as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }],

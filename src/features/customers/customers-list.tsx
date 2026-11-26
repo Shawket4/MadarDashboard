@@ -41,7 +41,7 @@ import { useSearchInput, type ListFilters } from "@/data/scope/use-list-filters"
 import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import type { customersSearch } from "./search";
 import { useLoadMore } from "@/hooks/use-load-more";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { fmtDate, fmtMoney, fmtNumber } from "@/lib/format";
 import { formatPhoneDisplay } from "@/lib/phone";
@@ -297,7 +297,7 @@ export function CustomersList({
             ]),
       ];
       const title = membersOnly ? t("loyalty.members", "Members") : t("customers.title", "Customers");
-      await exportToExcel({
+      await exportFile({
         filename: membersOnly ? "Madar-Loyalty-Members" : "Madar-Customers",
         logoUrl,
         sheets: [

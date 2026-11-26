@@ -33,7 +33,7 @@ import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { purchasingSearch } from "./search";
 import { purchaseOrdersParams, purchasingTab } from "./queries";
 import { fmtDate, fmtNumber, fmtUnit } from "@/lib/format";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { PO_STATUS_TONES, PO_STATUSES, invalidateInventory } from "./lib";
 import { PurchaseOrderDialog, type POPrefillLine } from "./purchase-order-dialog";
 import { ReceiveDialog } from "./receive-dialog";
@@ -301,7 +301,7 @@ export function PurchasingPage() {
       ];
       setExporting(true);
       try {
-        await exportToExcel({ filename: "Madar-PurchaseOrders", logoUrl, sheets: [{ name: t("inventory.purchasing.orders", "Purchase orders"), title: t("inventory.purchasing.orders", "Purchase orders"), rows: (orders.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+        await exportFile({ filename: "Madar-PurchaseOrders", logoUrl, sheets: [{ name: t("inventory.purchasing.orders", "Purchase orders"), title: t("inventory.purchasing.orders", "Purchase orders"), rows: (orders.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
       } catch (e) {
         toastExportError(e);
         throw e;
@@ -318,7 +318,7 @@ export function PurchasingPage() {
       ];
       setExporting(true);
       try {
-        await exportToExcel({ filename: "Madar-Suppliers", logoUrl, sheets: [{ name: t("inventory.purchasing.suppliers", "Suppliers"), title: t("inventory.purchasing.suppliers", "Suppliers"), rows: (suppliers.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+        await exportFile({ filename: "Madar-Suppliers", logoUrl, sheets: [{ name: t("inventory.purchasing.suppliers", "Suppliers"), title: t("inventory.purchasing.suppliers", "Suppliers"), rows: (suppliers.data ?? []) as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
       } catch (e) {
         toastExportError(e);
         throw e;

@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CalendarRange } from "lucide-react";
-import { toast } from "@/components/ui/toast";
 
 import { EmbeddedPages, Page, PageHeader } from "@/components/app/page";
 import { recipes, Reveal } from "@/lib/motion";
@@ -16,13 +15,12 @@ import { useListFilters } from "@/data/scope/use-list-filters";
 import { financialReportsSearch } from "../search";
 import { financialTabs, openTab, type FinancialTab } from "../queries";
 import { useOrgId } from "@/hooks/use-org-id";
-import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import {
   useBranchInventoryValuation, useBranchMaterialCostTrend, useBranchSupplierSpend, useListCatalog,
   useOrgInventoryValuation, useOrgMaterialCostTrend, useOrgSupplierSpend,
 } from "@/data/api/generated/api";
-import { exportToExcel, exportToCsv, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { ProfitabilityPage } from "@/features/insights/profitability-page";
 import { ChannelTab, RevenueTab, type Range } from "@/features/analytics/analytics-page";
 import { AnalyticsExportButton } from "@/features/analytics/analytics-export-button";
@@ -136,7 +134,7 @@ export function FinancialReportsPage() {
     const sheet = buildInvSheet();
     setInvExporting(true);
     try {
-      await exportToExcel({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
+      await exportFile({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toastExportError(e);
       throw e;
@@ -144,20 +142,11 @@ export function FinancialReportsPage() {
       setInvExporting(false);
     }
   };
-  const handleInvExportCsv = async () => {
-    const sheet = buildInvSheet();
-    try {
-      await exportToCsv({ filename: `Madar-${sheet.title}`, sheets: [{ name: sheet.title, ...sheet }] });
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-      throw e;
-    }
-  };
 
   const headerActions = ["revenue", "channel"].includes(tab) ? (
     <AnalyticsExportButton tab={tab} branchId={scopeBranchId} orgId={orgId ?? ""} range={range} periodLabel={periodLabel} />
   ) : INVENTORY_TABS.has(tab) ? (
-    <ExportButton onExport={handleInvExport} onExportCsv={handleInvExportCsv} loading={invExporting} />
+    <ExportButton onExport={handleInvExport} loading={invExporting} />
   ) : undefined;
 
   if (authz.ready && visible.length === 0) {

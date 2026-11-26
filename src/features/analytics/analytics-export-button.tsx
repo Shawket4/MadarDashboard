@@ -13,7 +13,6 @@
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "@/components/ui/toast";
 
 import { ExportButton } from "@/components/app/export-button";
 import {
@@ -23,9 +22,9 @@ import {
 import type {
   AddonSalesRow, BranchComparison, ChannelBreakdownRow, CombinedItemSalesRow, TellerStats, WaiterStats,
 } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, exportToCsv, type ExcelColumn, type ExcelSheet, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, type ExcelSheet, toastExportError } from "@/lib/excel";
+import type { ExportPick } from "@/lib/export-format";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { tName } from "./lib";
 
@@ -73,6 +72,8 @@ export function AnalyticsExportButton({
     columns: columns as unknown as ExcelColumn<Record<string, unknown>>[],
   });
 
+  // The Items tab is the one with two sheets (a PDF prints one).
+  const itemsTabSheets = [t("analytics.tabs.items", "Items"), t("analytics.addonSales", "Addon Sales")];
   const itemsSheets = async (): Promise<Sheets> => {
     const [items, addons] = await Promise.all([
       branchCombinedItemSales(branchId, params, EXPORT_REQUEST),
@@ -88,8 +89,8 @@ export function AnalyticsExportButton({
       { header: t("dashboard.revenue", "Revenue"), accessor: (a) => a.revenue, type: "money", width: 16, total: true },
     ];
     return [
-      { name: t("analytics.tabs.items", "Items"), title: t("analytics.tabs.items", "Items"), totals: true, ...cast(items, itemCols) },
-      { name: t("analytics.addonSales", "Addon Sales"), title: t("analytics.addonSales", "Addon Sales"), totals: true, ...cast(addons, addonCols) },
+      { name: itemsTabSheets[0], title: itemsTabSheets[0], totals: true, ...cast(items, itemCols) },
+      { name: itemsTabSheets[1], title: itemsTabSheets[1], totals: true, ...cast(addons, addonCols) },
     ];
   };
 
@@ -173,15 +174,15 @@ export function AnalyticsExportButton({
             ? channelSheets()
             : branchesSheets();
 
-  const handleExport = async () => {
+  const handleExport = async (pick?: ExportPick) => {
     setExporting(true);
     try {
-      await exportToExcel({
+      await exportFile({
         filename: `Madar-Analytics-${tab}`,
         logoUrl,
         meta: periodLabel,
         sheets: await getSheets(),
-      });
+      }, pick);
     } catch (e) {
       toastExportError(e);
       throw e;
@@ -190,15 +191,7 @@ export function AnalyticsExportButton({
     }
   };
 
-  const handleExportCsv = async () => {
-    try {
-      await exportToCsv({ filename: `Madar-Analytics-${tab}`, sheets: await getSheets() });
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-      throw e;
-    }
-  };
 
   const missingScope = tab === "branches" ? !orgId : !branchId;
-  return <ExportButton onExport={handleExport} onExportCsv={handleExportCsv} loading={exporting} disabled={missingScope} className="shrink-0" />;
+  return <ExportButton onExport={handleExport} sheets={tab === "items" ? itemsTabSheets : undefined} loading={exporting} disabled={missingScope} className="shrink-0" />;
 }

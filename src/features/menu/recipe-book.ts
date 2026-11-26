@@ -20,6 +20,7 @@ import type { TFunction } from "i18next";
 
 import type { RecipeBook, RecipeCard, RecipeCardRow, RecipeCardSize } from "@/data/api/generated/models";
 import type { AnySheet, ExcelBlock, ExcelCell, ExcelColumn, ExcelGroup, ExcelSheet } from "@/lib/excel";
+import type { ExportSheet } from "@/components/app/export-button";
 import { getTranslatedName } from "@/lib/translation";
 import { ONE_SIZE } from "./util";
 
@@ -181,6 +182,16 @@ export function recipeLinesSheet(book: RecipeBook, o: RecipeBookOptions): ExcelS
     rows,
   };
 }
+
+/**
+ * The recipe workbook's sheets as the Export panel names them, in
+ * `recipeBookSheets`' order: a PDF is one of them, a CSV the lines (the
+ * tables are a sheet of tables).
+ */
+export const recipeBookSheetLabels = (t: TFunction): ExportSheet[] => [
+  { label: t("recipeBook.sheetTables", "Recipe tables"), csv: false },
+  t("recipeBook.linesSheet", "Ingredient lines"),
+];
 
 /** The recipe workbook's sheets: the tables, then the flat lines. */
 export function recipeBookSheets(book: RecipeBook, o: RecipeBookOptions): AnySheet[] {

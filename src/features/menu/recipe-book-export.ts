@@ -1,17 +1,21 @@
 /**
- * Fetch the recipe book for the Items page's filters and save it: the recipe
- * workbook (with or without costs) or its CSV. The words and layout are
- * `recipe-book.ts`; the file is the shared engine's (`lib/excel.ts`).
+ * Fetch the recipe book for the Items page's filters and save it, with or
+ * without costs, in the format chosen in the Export panel: the workbook, a PDF
+ * of the tables or of the lines, or the lines as a CSV (the tables are a sheet
+ * of tables, which has no CSV). The words and layout are `recipe-book.ts`; the
+ * file is the shared engine's (`lib/excel.ts`).
  */
 import type { TFunction } from "i18next";
 
 import { getRecipeBook } from "@/data/api/generated/api";
 import type { GetRecipeBookParams } from "@/data/api/generated/models";
-import { exportToCsv, exportToExcel, toastExportError } from "@/lib/excel";
+import { exportFile, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
-import { recipeBookSheets, recipeLinesSheet } from "./recipe-book";
+import type { ExportPick } from "@/lib/export-format";
+import { recipeBookSheets } from "./recipe-book";
 
-export type RecipeExportKind = "recipes" | "cards" | "csv";
+/** With costs (for the owner) or the recipe cards (for the bar: no money anywhere). */
+export type RecipeExportKind = "recipes" | "cards";
 
 export interface RecipeExportContext {
   params: GetRecipeBookParams;
@@ -26,33 +30,27 @@ export interface RecipeExportContext {
 const FILENAME: Record<RecipeExportKind, string> = {
   recipes: "Madar-Recipes",
   cards: "Madar-Recipe-Cards",
-  csv: "Madar-Recipe-Lines",
 };
 
 /**
  * Toasts once and rethrows on failure, as every export handler does, so the
  * button shakes.
  */
-export async function exportRecipeBook(kind: RecipeExportKind, ctx: RecipeExportContext): Promise<void> {
+export async function exportRecipeBook(kind: RecipeExportKind, ctx: RecipeExportContext, pick?: ExportPick): Promise<void> {
   const { t, lang } = ctx;
   try {
     const book = await getRecipeBook(ctx.params, EXPORT_REQUEST);
-    const opts = { costs: kind !== "cards", lang, t };
-    if (kind === "csv") {
-      await exportToCsv({
-        filename: FILENAME.csv,
-        sheets: [recipeLinesSheet(book, opts) as unknown as Parameters<typeof exportToCsv>[0]["sheets"][number]],
-      });
-      return;
-    }
     const count = book.items.length;
-    await exportToExcel({
-      filename: FILENAME[kind],
-      meta: ctx.meta,
-      logoUrl: ctx.logoUrl,
-      sheets: recipeBookSheets(book, opts),
-      doneMessage: t("recipeBook.done", { count: count, defaultValue: "Exported {{count}} recipes" }),
-    });
+    await exportFile(
+      {
+        filename: FILENAME[kind],
+        meta: ctx.meta,
+        logoUrl: ctx.logoUrl,
+        sheets: recipeBookSheets(book, { costs: kind === "recipes", lang, t }),
+        doneMessage: t("recipeBook.done", { count: count, defaultValue: "Exported {{count}} recipes" }),
+      },
+      pick,
+    );
   } catch (e) {
     toastExportError(e);
     throw e;

@@ -4,7 +4,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
-import { toast } from "@/components/ui/toast";
 
 import { DataTable } from "@/components/app/data-table";
 import { EmptyState } from "@/components/app/empty-state";
@@ -13,9 +12,8 @@ import { StatusPill } from "@/components/app/status-pill";
 import { OnHand } from "./on-hand";
 import { useBranchLowStock, useOrgLowStock } from "@/data/api/generated/api";
 import type { LowStockRow } from "@/data/api/generated/models";
-import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, exportToCsv, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtNumber, fmtUnit } from "@/lib/format";
 
 export function LowStockTab({ orgId, branchId }: { orgId: string; branchId: string | null }) {
@@ -76,7 +74,7 @@ export function LowStockTab({ orgId, branchId }: { orgId: string; branchId: stri
     const sheet = buildSheet();
     setExporting(true);
     try {
-      await exportToExcel({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
+      await exportFile({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toastExportError(e);
       throw e;
@@ -85,15 +83,6 @@ export function LowStockTab({ orgId, branchId }: { orgId: string; branchId: stri
     }
   };
 
-  const handleExportCsv = async () => {
-    const sheet = buildSheet();
-    try {
-      await exportToCsv({ filename: `Madar-${sheet.title}`, sheets: [{ name: sheet.title, ...sheet }] });
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-      throw e;
-    }
-  };
 
   return (
     <DataTable
@@ -104,7 +93,7 @@ export function LowStockTab({ orgId, branchId }: { orgId: string; branchId: stri
       onRetry={() => void q.refetch()}
       getRowId={(r) => `${r.branch_id}-${r.org_ingredient_id}`}
       pageSize={50}
-      toolbar={<ExportButton size="sm" onExport={handleExport} onExportCsv={handleExportCsv} loading={exporting} disabled={rows.length === 0} />}
+      toolbar={<ExportButton size="sm" onExport={handleExport} loading={exporting} disabled={rows.length === 0} />}
       emptyState={<EmptyState title={t("inventory.today.noLowStock", "Nothing below its reorder point")} />}
     />
   );

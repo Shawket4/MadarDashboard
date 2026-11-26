@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { APP_TZ } from "@/data/config/constants";
 import { useAppStore } from "@/data/stores/app.store";
-import { EXPORT_FONT, exportToCsv, exportToExcel, toExcelDateSerial } from "@/lib/excel";
+import { EXPORT_FONT, exportFile, toExcelDateSerial } from "@/lib/excel";
+import { setExportFormat } from "@/lib/export-format";
 
 const downloadBlob = vi.fn();
 vi.mock("@/lib/download", () => ({ downloadBlob: (...a: unknown[]) => downloadBlob(...a) }));
@@ -71,13 +72,18 @@ describe("an export's file name", () => {
 
   it("carries the shop's today, not UTC's (CSV)", async () => {
     shopsToday();
-    await exportToCsv({ filename: "orders", sheets });
+    setExportFormat("csv");
+    try {
+      await exportFile({ filename: "orders", sheets });
+    } finally {
+      setExportFormat("xlsx");
+    }
     expect(downloadBlob.mock.calls[0][1]).toBe("orders-2026-11-01.csv");
   });
 
   it("carries the shop's today, not UTC's (Excel)", async () => {
     shopsToday();
-    await exportToExcel({ filename: "orders", sheets });
+    await exportFile({ filename: "orders", sheets });
     expect(downloadBlob.mock.calls[0][1]).toBe("orders-2026-11-01.xlsx");
   });
 });
@@ -125,7 +131,7 @@ describe("a sheet of tables", () => {
   };
 
   it("draws every sheet's head, then the group band and each table in order", async () => {
-    await exportToExcel({ filename: "recipes", sheets: [sheet], doneMessage: "Exported 1 recipe" });
+    await exportFile({ filename: "recipes", sheets: [sheet], doneMessage: "Exported 1 recipe" });
     const ws = (await lastWorkbook()).getWorksheet("Recipes")!;
 
     expect(ws.getCell("A1").value).toBe("Recipes"); // the banner, as on every sheet
@@ -156,15 +162,15 @@ describe("a sheet of tables", () => {
 
   it("counts tables, not rows, and says what it was told to", async () => {
     const { toast } = await import("@/components/ui/toast");
-    await exportToExcel({ filename: "recipes", sheets: [sheet], doneMessage: "Exported 1 recipe" });
+    await exportFile({ filename: "recipes", sheets: [sheet], doneMessage: "Exported 1 recipe" });
     expect(vi.mocked(toast.success).mock.calls.at(-1)?.[0]).toBe("Exported 1 recipe");
     vi.mocked(toast.error).mockClear();
-    await exportToExcel({ filename: "recipes", sheets: [{ ...sheet, groups: [] }] });
+    await exportFile({ filename: "recipes", sheets: [{ ...sheet, groups: [] }] });
     expect(toast.error).toHaveBeenCalledWith("Nothing to export");
   });
 
   it("leaves an ordinary sheet exactly where it was: header on row 7, data from row 8", async () => {
-    await exportToExcel({
+    await exportFile({
       filename: "orders",
       sheets: [{ name: "Orders", title: "Orders", columns: [{ header: "No", accessor: (r: Record<string, unknown>) => r.n as number, type: "integer" }], rows: [{ n: 4 }] }],
     });
@@ -179,7 +185,7 @@ describe("the export palette", () => {
   afterEach(() => downloadBlob.mockClear());
 
   it("is ink on paper: every band, title and figure an export draws is ink", async () => {
-    await exportToExcel({
+    await exportFile({
       filename: "orders",
       sheets: [
         {
@@ -232,7 +238,7 @@ describe("stat pills", () => {
   it("fit however few columns a sheet has", async () => {
     const { toast } = await import("@/components/ui/toast");
     vi.mocked(toast.error).mockClear();
-    await exportToExcel({
+    await exportFile({
       filename: "recipes",
       sheets: [
         {
@@ -342,13 +348,78 @@ describe("the PDF of an export", () => {
     const { setExportFormat } = await import("@/lib/export-format");
     setExportFormat("pdf");
     try {
-      await exportToExcel({ filename: "orders", sheets: [{ name: "Orders", title: "Orders", columns: [{ header: "No", accessor: (r: Record<string, unknown>) => r.n as number, type: "integer" }], rows: [{ n: 1 }] }] });
+      await exportFile({ filename: "orders", sheets: [{ name: "Orders", title: "Orders", columns: [{ header: "No", accessor: (r: Record<string, unknown>) => r.n as number, type: "integer" }], rows: [{ n: 1 }] }] });
       expect(render).toHaveBeenCalledTimes(1);
       expect(render.mock.calls[0][0]).toMatchObject({ rtl: false, sheets: [{ title: "Orders" }] });
       expect(downloadBlob.mock.calls.at(-1)?.[1]).toMatch(/^orders-\d{4}-\d{2}-\d{2}\.pdf$/);
     } finally {
       setExportFormat("xlsx");
       render.mockRestore();
+    }
+  });
+
+  it("prints the one sheet the panel picked, named after it past the first", async () => {
+    const api = await import("@/data/api/generated/api");
+    const render = vi.spyOn(api, "renderPdf").mockResolvedValue(new Blob(["%PDF-1.7"]) as never);
+    const { setExportFormat } = await import("@/lib/export-format");
+    const sheet = (name: string) => ({ name, title: name, columns: [{ header: "No", accessor: (r: Record<string, unknown>) => r.n as number, type: "integer" as const }], rows: [{ n: 1 }] });
+    const config = { filename: "Madar-Recipes", sheets: [sheet("Recipes"), sheet("Ingredient lines")] };
+    setExportFormat("pdf");
+    try {
+      await exportFile(config, { sheet: 1 });
+      expect(render.mock.calls.at(-1)?.[0].sheets.map((s) => s.title)).toEqual(["Ingredient lines"]);
+      expect(downloadBlob.mock.calls.at(-1)?.[1]).toMatch(/^Madar-Recipes-Ingredient-lines-\d{4}-\d{2}-\d{2}\.pdf$/);
+      await exportFile(config, { sheet: 0 });
+      expect(render.mock.calls.at(-1)?.[0].sheets.map((s) => s.title)).toEqual(["Recipes"]);
+      expect(downloadBlob.mock.calls.at(-1)?.[1]).toMatch(/^Madar-Recipes-\d{4}-\d{2}-\d{2}\.pdf$/);
+      // No pick: the whole workbook.
+      await exportFile(config);
+      expect(render.mock.calls.at(-1)?.[0].sheets).toHaveLength(2);
+    } finally {
+      setExportFormat("xlsx");
+      render.mockRestore();
+    }
+  });
+
+  it("picks the one sheet a PDF or CSV is", async () => {
+    const { pickSheet } = await import("@/lib/excel");
+    const sheet = (name: string) => ({ name, title: name, columns: [], rows: [] });
+    const tables = { kind: "blocks" as const, name: "Recipes", title: "Recipes", widths: [], groups: [] };
+    const config = { filename: "f", sheets: [sheet("a"), sheet("b c/d")] };
+    // A PDF unpicked is the whole workbook.
+    expect(pickSheet(config, {}, "pdf")).toBe(config);
+    expect(pickSheet(config, { sheet: 1 }, "pdf")).toMatchObject({ filename: "f-b-cd", sheets: [{ name: "b c/d" }] });
+    // A pick past the end is the last sheet, never nothing.
+    expect(pickSheet(config, { sheet: 9 }, "csv").sheets[0].name).toBe("b c/d");
+    // A CSV is never a guess among several sheets…
+    expect(() => pickSheet(config, {}, "csv")).toThrow(/one flat sheet/);
+    // …but a workbook's one flat sheet needs no pick, and a sheet of tables has no CSV.
+    expect(pickSheet({ filename: "r", sheets: [tables, sheet("Lines")] }, {}, "csv")).toMatchObject({ filename: "r-Lines", sheets: [{ name: "Lines" }] });
+    expect(() => pickSheet({ filename: "r", sheets: [tables, sheet("Lines")] }, { sheet: 0 }, "csv")).toThrow(/sheet of tables/);
+    expect(pickSheet({ filename: "one", sheets: [sheet("x")] }, {}, "csv").filename).toBe("one");
+  });
+
+  it("a CSV of a workbook: the picked sheet, its own name, the shop's values", async () => {
+    setExportFormat("csv");
+    try {
+      const lines = {
+        name: "Ingredient lines",
+        title: "Ingredient lines",
+        columns: [
+          { header: "Item", accessor: (r: Record<string, unknown>) => r.item as string, type: "text" as const },
+          { header: "Line cost", accessor: (r: Record<string, unknown>) => r.cost as number, type: "money" as const },
+        ],
+        rows: [{ item: "Latte", cost: 1620 }],
+      };
+      await exportFile({ filename: "Madar-Recipes", sheets: [{ kind: "blocks", name: "Recipes", title: "Recipes", widths: [], groups: [] }, lines] }, { sheet: 1 });
+      const [blob, name] = downloadBlob.mock.calls.at(-1)!;
+      expect(name).toMatch(/^Madar-Recipes-Ingredient-lines-\d{4}-\d{2}-\d{2}\.csv$/);
+      // A byte-order mark first (Excel reads Arabic right), then the data.
+      const bytes = new Uint8Array(await (blob as Blob).arrayBuffer());
+      expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
+      expect(new TextDecoder().decode(bytes)).toBe("Item,Line cost\r\nLatte,16.20\r\n");
+    } finally {
+      setExportFormat("xlsx");
     }
   });
 });

@@ -16,17 +16,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { ExportFormatPicker, SheetPicker, useSheetPick } from "@/components/app/export-button";
 
 import { exportOrders, useGetBranch } from "@/data/api/generated/api";
 import type { ExportOrdersParams } from "@/data/api/generated/models";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, toastExportError } from "@/lib/excel";
+import { exportFile, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
+import { useExportFormat } from "@/lib/export-format";
 import { Presence } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 import { PRESETS } from "./export/presets";
-import { buildSheets } from "./export/build-sheets";
+import { buildSheets, orderSheetNames } from "./export/build-sheets";
 import { buildMeta } from "./export/build-meta";
 import { buildFilename } from "./export/build-filename";
 import type { Grain, PresetId } from "./export/types";
@@ -57,6 +59,9 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
   const [grains, setGrains] = useState<Grain[]>(["order"]);
   const [customFilename, setCustomFilename] = useState("");
   const [busy, setBusy] = useState(false);
+  const [format] = useExportFormat();
+  // A PDF or CSV is one sheet: of the ones this preset makes, which.
+  const sheet = useSheetPick(orderSheetNames(grains, t), format);
   const [customizeExpanded, setCustomizeExpanded] = useState(false);
 
   useEffect(() => {
@@ -119,12 +124,15 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
         status: mergedFilters.status ?? null,
         t,
       });
-      await exportToExcel({
-        filename: customFilename || defaultFilename,
-        sheets,
-        meta,
-        logoUrl,
-      });
+      await exportFile(
+        {
+          filename: customFilename || defaultFilename,
+          sheets,
+          meta,
+          logoUrl,
+        },
+        sheet.pick,
+      );
       onOpenChange(false);
     } catch (e) {
       toastExportError(e);
@@ -139,7 +147,7 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
         <SheetHeader className="flex-row items-center justify-between gap-2 border-b">
           <div className="min-w-0">
             <SheetTitle>{t("ordersExport.title", "Export orders")}</SheetTitle>
-            <SheetDescription>{t("ordersExport.subtitle", "Pick a preset and download a styled Excel report")}</SheetDescription>
+            <SheetDescription>{t("ordersExport.subtitle", "Pick a preset and download it as Excel, PDF or CSV")}</SheetDescription>
           </div>
           <SheetClose asChild>
             <Button variant="ghost" size="icon-sm" disabled={busy} aria-label={t("common.close", "Close")}>
@@ -264,6 +272,18 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
             </CardContent>
           </Card>
 
+          {/* Format: the same choice, remembered, as every Export button's. */}
+          <div className="space-y-1.5">
+            <Label className="text-sm font-semibold">{t("common.exportFormat.label", "Format")}</Label>
+            <ExportFormatPicker />
+          </div>
+          {sheet.asks && sheet.at ? (
+            <div className="space-y-1.5">
+              <Label className="text-sm font-semibold">{t("common.exportFormat.sheet", "Sheet")}</Label>
+              <SheetPicker choices={sheet.choices} at={sheet.at.index} onChange={sheet.choose} />
+            </div>
+          ) : null}
+
           {/* Filename */}
           <div className="space-y-1.5">
             <Label className="text-sm font-semibold">{t("ordersExport.filename", "File name")}</Label>
@@ -284,7 +304,15 @@ export function OrderExportDialog({ open, onOpenChange, filters, totalApprox = 0
               {t("common.cancel", "Cancel")}
             </Button>
             <Button onClick={handleExport} loading={busy} disabled={grains.length === 0 || !filters.branch_id}>
-              {t("ordersExport.exportButton", "Export Excel")}
+              {t("common.exportFormat.download", {
+                format:
+                  format === "pdf"
+                    ? t("common.exportFormat.pdf", "PDF")
+                    : format === "csv"
+                      ? t("common.exportFormat.csv", "CSV")
+                      : t("common.exportFormat.excel", "Excel"),
+                defaultValue: "Download {{format}}",
+              })}
             </Button>
           </div>
         </div>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
-import { Ban, Bike, Coins, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, Store, TriangleAlert, Ban as VoidIcon } from "lucide-react";
+import { Ban, Bike, Coins, Download, Eye, MoreHorizontal, Percent, Receipt, ShoppingBasket, Store, TriangleAlert, Ban as VoidIcon } from "lucide-react";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { SectionHeader } from "@/components/app/section-header";
@@ -22,7 +22,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ExportButton } from "@/components/app/export-button";
 import { DeliveryKpis } from "@/components/app/delivery-kpis";
 import { CustomerLink } from "@/features/customers/customer-link";
 import { useCustomerSheet } from "@/features/customers/use-customer-sheet";
@@ -313,7 +312,13 @@ export function OrdersPage() {
       <PageHeader
         title={t("nav.orders", "Orders")}
         subtitle={t("orders.subtitle", "Sales history, voids and exports")}
-        actions={<ExportButton onExport={() => setExportOpen(true)} disabled={!enabled} />}
+        actions={
+          // The orders export is its own panel (presets, sheets, format, file name).
+          <Button variant="outline" onClick={() => setExportOpen(true)} disabled={!enabled}>
+            <Download className="size-4" />
+            {t("common.exportMenu", "Export")}
+          </Button>
+        }
         below={<div className="flex flex-wrap items-center gap-2">
             <Input
               value={tellerInput}

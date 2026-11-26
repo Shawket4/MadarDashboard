@@ -16,6 +16,7 @@ export function SegmentedControl<V extends string>({
   options,
   className,
   disabled,
+  fill,
   prefetch,
   "aria-label": ariaLabel,
 }: {
@@ -24,6 +25,8 @@ export function SegmentedControl<V extends string>({
   options: SegmentedOption<V>[];
   className?: string;
   disabled?: boolean;
+  /** Spread the segments evenly over the full width (a form field, not a view switcher). */
+  fill?: boolean;
   /** Names the group for a screen reader ("Status", "View"). */
   "aria-label"?: string;
   /**
@@ -57,8 +60,8 @@ export function SegmentedControl<V extends string>({
   }, [value]);
 
   return (
-    <div role="radiogroup" aria-label={ariaLabel} className={cn("flex w-fit max-w-full overflow-x-auto rounded-[10px] bg-secondary p-[3px] no-scrollbar", className)}>
-      <div ref={listRef} className={cn("group/seg relative flex", disabled && "opacity-60")}>
+    <div role="radiogroup" aria-label={ariaLabel} className={cn("flex w-fit max-w-full overflow-x-auto rounded-[10px] bg-secondary p-[3px] no-scrollbar", fill && "w-full", className)}>
+      <div ref={listRef} className={cn("group/seg relative flex", fill && "flex-1", disabled && "opacity-60")}>
         {/* The active pill, gliding between segments under the labels (useIndicator). */}
         <span
           ref={pillRef}
@@ -76,6 +79,8 @@ export function SegmentedControl<V extends string>({
             onClick={() => onChange(opt.value)}
             className={cn(
               "relative h-8 whitespace-nowrap rounded-[8px] px-3 text-sm font-medium transition-colors duration-base focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed",
+              // An even segment: its label (an icon and a word) centred in it.
+              fill && "inline-flex flex-1 items-center justify-center gap-1.5 [&_svg]:size-4 [&_svg]:shrink-0",
               value === opt.value
                 ? "bg-primary text-primary-foreground group-data-[pill]/seg:bg-transparent"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground",

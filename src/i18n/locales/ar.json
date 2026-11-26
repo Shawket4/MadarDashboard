@@ -112,8 +112,6 @@
       "ignored": "تم التجاهل"
     },
     "ok": "حسنًا",
-    "exportExcel": "تصدير Excel",
-    "exportCsv": "تصدير CSV",
     "errors": {
       "phoneRequired": "أدخل رقم الهاتف.",
       "phoneInvalid": "أدخل رقم هاتف صحيحًا."
@@ -125,12 +123,14 @@
     "listSeparator": "، ",
     "atMostChars": "{{n}} حرفًا على الأكثر",
     "exportMenu": "تصدير",
-    "exportFile": "تصدير",
     "exportFormat": {
       "label": "الصيغة",
-      "as": "تصدير بصيغة",
       "excel": "Excel",
-      "pdf": "PDF"
+      "pdf": "PDF",
+      "csv": "CSV",
+      "file": "الملف",
+      "sheet": "الورقة",
+      "download": "تنزيل {{format}}"
     }
   },
   "nav": {
@@ -1222,11 +1222,10 @@
   "recipeBook": {
     "title": "الوصفات",
     "cardsTitle": "بطاقات الوصفات",
-    "exportMenu": "تصدير",
-    "menuExcel": "القائمة",
+    "menuFile": "القائمة",
+    "sheetTables": "جداول الوصفات",
     "exportRecipes": "الوصفات مع التكاليف",
     "exportCards": "بطاقات الوصفات بدون تكاليف",
-    "exportCsv": "سطور الوصفات (CSV)",
     "done_zero": "لم يتم تصدير أي وصفة",
     "done_one": "تم تصدير وصفة واحدة",
     "done_two": "تم تصدير وصفتين",
@@ -2127,7 +2126,7 @@
   },
   "ordersExport": {
     "title": "تصدير الطلبات",
-    "subtitle": "قم بتحميل كشوفات إكسيل مفصلة ومعدة حسب احتياجاتك المحددة.",
+    "subtitle": "قم بتحميل كشوفات مفصلة بصيغة إكسيل أو PDF أو CSV ومعدة حسب احتياجاتك المحددة.",
     "selectBranchError": "يرجى تحديد فرع أولاً",
     "noGrainsSelected": "يرجى اختيار ورقة واحدة على الأقل للتصدير",
     "noOrders": "لم يتم العثور على طلبات مطابقة لخيارات التصدير المحددة.",
@@ -2141,7 +2140,6 @@
     "filenameHint": "اتركه فارغاً لتوليد اسم ملف منظم تلقائياً بناءً على الخيار المحدد.",
     "rowEstimate": "الصفوف المتوقعة: {{count}}",
     "cancelButton": "إلغاء",
-    "exportButton": "تصدير كتاب العمل",
     "presets": {
       "title": "خيارات تصدير سريعة",
       "accountantDaily": {

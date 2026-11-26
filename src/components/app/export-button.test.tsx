@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, waitFor, within } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const shakes: unknown[] = [];
 vi.mock("@/lib/motion", async (importOriginal) => ({
@@ -11,44 +11,44 @@ vi.mock("@/lib/motion", async (importOriginal) => ({
 vi.mock("exceljs", () => ({ default: {} }));
 
 import { toast } from "@/components/ui/toast";
-import { exportToExcel, toastExportError } from "@/lib/excel";
+import { exportFile, toastExportError } from "@/lib/excel";
+import { exportVia, openExportPanel } from "@/test/export-panel";
 
 import { ExportButton } from "./export-button";
 import { getExportFormat, setExportFormat } from "@/lib/export-format";
 
-/** Open the Export menu and pick `item` (Excel, PDF, a file). */
-const pick = async (item: string | RegExp) => {
-  fireEvent.pointerDown(screen.getByRole("button", { name: /Export/ }), { button: 0, pointerType: "mouse" });
-  fireEvent.click(await screen.findByRole("menuitem", { name: item }));
-};
+const radios = (panel: HTMLElement, group: string) =>
+  within(within(panel).getByRole("radiogroup", { name: group })).getAllByRole("radio");
 
 describe("ExportButton", () => {
-  it("shakes when the export rejects, and swallows the rejection", async () => {
+  beforeEach(() => {
     shakes.length = 0;
+    setExportFormat("xlsx");
+  });
+
+  it("shakes when the export rejects, and swallows the rejection", async () => {
     const onExport = vi.fn().mockRejectedValue(new Error("disk full"));
     render(<ExportButton onExport={onExport} />);
-    await pick("Excel");
+    await exportVia();
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
     expect(onExport).toHaveBeenCalledTimes(1);
   });
 
   it("stays still when the export succeeds", async () => {
-    shakes.length = 0;
     const onExport = vi.fn().mockResolvedValue(undefined);
     render(<ExportButton onExport={onExport} />);
-    await pick("Excel");
+    await exportVia();
     await waitFor(() => expect(onExport).toHaveBeenCalledTimes(1));
     await Promise.resolve();
     expect(shakes.every((s) => s === 0)).toBe(true);
   });
 
   it("a workbook that fails to build shakes the button, with exactly one toast", async () => {
-    shakes.length = 0;
     vi.mocked(toast.error).mockClear();
     // The shape of every export handler: toast once, rethrow for the shake.
     const onExport = async () => {
       try {
-        await exportToExcel({
+        await exportFile({
           filename: "x",
           sheets: [{ name: "s", title: "s", rows: [{ a: 1 }], columns: [{ header: "a", accessor: (r: Record<string, unknown>) => r.a as number, type: "number" }] }],
         });
@@ -58,14 +58,13 @@ describe("ExportButton", () => {
       }
     };
     render(<ExportButton onExport={onExport} />);
-    await pick("Excel");
+    await exportVia({ format: "Excel" });
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
     expect(toast.error).toHaveBeenCalledTimes(1);
     expect(vi.mocked(toast.error).mock.calls[0][0]).toMatch(/Export failed/);
   });
 
   it("a failed fetch before the workbook toasts its own message once", async () => {
-    shakes.length = 0;
     vi.mocked(toast.error).mockClear();
     const onExport = async () => {
       try {
@@ -76,64 +75,96 @@ describe("ExportButton", () => {
       }
     };
     render(<ExportButton onExport={onExport} />);
-    await pick("Excel");
+    await exportVia();
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
     expect(toast.error).toHaveBeenCalledTimes(1);
   });
 
-  it("offers more files under their own heading, and each one runs (and shakes) like the main export", async () => {
-    shakes.length = 0;
+  it("one file: the format, then Download in it; the format is remembered", async () => {
+    const formats: string[] = [];
+    // The export reads the format at the moment it runs.
+    const onExport = vi.fn().mockImplementation(() => void formats.push(getExportFormat()));
+    render(<ExportButton onExport={onExport} />);
+    const panel = await openExportPanel();
+    // No file list and no sheet: there is only the one.
+    expect(within(panel).queryByRole("radiogroup", { name: "File" })).toBeNull();
+    // Every export offers all three.
+    expect(radios(panel, "Format").map((r) => r.textContent)).toEqual(["Excel", "PDF", "CSV"]);
+    fireEvent.click(within(panel).getByRole("radio", { name: "PDF" }));
+    expect(getExportFormat()).toBe("pdf");
+    fireEvent.click(within(panel).getByRole("button", { name: "Download PDF" }));
+    await waitFor(() => expect(onExport).toHaveBeenCalledTimes(1));
+    expect(formats).toEqual(["pdf"]);
+    // Next time it opens on PDF, and CSV is remembered the same way.
+    const again = await openExportPanel();
+    expect(within(again).getByRole("radio", { name: "PDF" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(within(again).getByRole("radio", { name: "CSV" }));
+    expect(getExportFormat()).toBe("csv");
+    fireEvent.click(within(again).getByRole("button", { name: "Download CSV" }));
+    await waitFor(() => expect(formats).toEqual(["pdf", "csv"]));
+  });
+
+  it("a PDF or CSV of a workbook with several sheets asks which, and hands the pick to the export", async () => {
+    const onExport = vi.fn();
+    render(<ExportButton onExport={onExport} sheets={["Items", "Categories", "Addons"]} />);
+    let panel = await openExportPanel();
+    // Excel is the whole workbook: no sheet to choose.
+    expect(within(panel).queryByRole("radiogroup", { name: "Sheet" })).toBeNull();
+    fireEvent.click(within(panel).getByRole("radio", { name: "PDF" }));
+    expect(radios(panel, "Sheet").map((r) => r.textContent)).toEqual(["Items", "Categories", "Addons"]);
+    expect(within(panel).getByRole("radio", { name: "Items" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(within(panel).getByRole("radio", { name: "Categories" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "Download PDF" }));
+    await waitFor(() => expect(onExport).toHaveBeenCalledWith({ sheet: 1 }));
+    // A CSV asks the same, and keeps the sheet chosen.
+    panel = await openExportPanel();
+    fireEvent.click(within(panel).getByRole("radio", { name: "CSV" }));
+    expect(within(panel).getByRole("radio", { name: "Categories" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(within(panel).getByRole("button", { name: "Download CSV" }));
+    await waitFor(() => expect(onExport).toHaveBeenLastCalledWith({ sheet: 1 }));
+    // In Excel the pick is not passed: the workbook is every sheet.
+    panel = await openExportPanel();
+    fireEvent.click(within(panel).getByRole("radio", { name: "Excel" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "Download Excel" }));
+    await waitFor(() => expect(onExport).toHaveBeenLastCalledWith({}));
+  });
+
+  it("a sheet of tables has no CSV: the CSV is the other sheet, without asking", async () => {
+    const onExport = vi.fn();
+    render(<ExportButton onExport={onExport} sheets={[{ label: "Recipe tables", csv: false }, "Ingredient lines"]} />);
+    let panel = await openExportPanel();
+    fireEvent.click(within(panel).getByRole("radio", { name: "PDF" }));
+    expect(radios(panel, "Sheet").map((r) => r.textContent)).toEqual(["Recipe tables", "Ingredient lines"]);
+    fireEvent.click(within(panel).getByRole("radio", { name: "CSV" }));
+    expect(within(panel).queryByRole("radiogroup", { name: "Sheet" })).toBeNull();
+    fireEvent.click(within(panel).getByRole("button", { name: "Download CSV" }));
+    await waitFor(() => expect(onExport).toHaveBeenCalledWith({ sheet: 1 }));
+    panel = await openExportPanel();
+    fireEvent.click(within(panel).getByRole("radio", { name: "PDF" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "Download PDF" }));
+    await waitFor(() => expect(onExport).toHaveBeenLastCalledWith({ sheet: 0 }));
+  });
+
+  it("several files: the panel lists them, and each runs (and shakes) like the page's own", async () => {
     const onExport = vi.fn().mockResolvedValue(undefined);
     const recipes = vi.fn().mockRejectedValue(new Error("no"));
     render(
       <ExportButton
         onExport={onExport}
-        label="Export"
-        excelLabel="Menu (Excel)"
-        moreHeading="Recipes"
-        more={[{ key: "r", label: "Recipes with costs (Excel)", onSelect: recipes }]}
+        fileLabel="Menu"
+        more={[{ key: "r", label: "Recipes with costs", onExport: recipes, sheets: [{ label: "Recipe tables", csv: false }, "Ingredient lines"] }]}
       />,
     );
-    const trigger = screen.getByRole("button", { name: /Export/ });
-    fireEvent.pointerDown(trigger, { button: 0, pointerType: "mouse" });
-    const items = await screen.findAllByRole("menuitem");
-    expect(items.map((i) => i.textContent)).toEqual(["Menu (Excel)", "Recipes with costs (Excel)"]);
-    expect(screen.getByText("Recipes")).toBeTruthy();
-    fireEvent.click(items[1]);
-    await waitFor(() => expect(recipes).toHaveBeenCalledTimes(1));
+    const panel = await openExportPanel();
+    expect(radios(panel, "File").map((r) => r.textContent)).toEqual(["Menu", "Recipes with costs"]);
+    expect(within(panel).getByRole("radio", { name: "Menu" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(within(panel).getByRole("radio", { name: "Recipes with costs" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "Download Excel" }));
+    await waitFor(() => expect(recipes).toHaveBeenCalledWith({}));
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
     expect(onExport).not.toHaveBeenCalled();
-  });
-
-  it("one file: the menu is the choice, and picking a format exports in it at once", async () => {
-    setExportFormat("xlsx");
-    const onExport = vi.fn().mockImplementation(() => {
-      // The export reads the format at the moment it runs.
-      formats.push(getExportFormat());
-    });
-    const formats: string[] = [];
-    render(<ExportButton onExport={onExport} />);
-    await pick("PDF");
-    await waitFor(() => expect(onExport).toHaveBeenCalledTimes(1));
-    expect(formats).toEqual(["pdf"]);
-    expect(getExportFormat()).toBe("pdf"); // remembered for the next export
-    await pick("Excel");
-    await waitFor(() => expect(onExport).toHaveBeenCalledTimes(2));
-    expect(formats).toEqual(["pdf", "xlsx"]);
-  });
-
-  it("several files: the format sits at the top, keeps the menu open, and the file follows it", async () => {
-    setExportFormat("xlsx");
-    const onExport = vi.fn();
-    render(<ExportButton onExport={onExport} excelLabel="Menu" more={[{ key: "r", label: "Recipes", onSelect: vi.fn() }]} />);
-    fireEvent.pointerDown(screen.getByRole("button", { name: /Export/ }), { button: 0, pointerType: "mouse" });
-    const pdf = await screen.findByRole("menuitemradio", { name: "PDF" });
-    expect(screen.getByRole("menuitemradio", { name: "Excel" })).toHaveAttribute("aria-checked", "true");
-    fireEvent.click(pdf);
-    expect(getExportFormat()).toBe("pdf");
-    // Still open: the file is picked next.
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Menu" }));
-    await waitFor(() => expect(onExport).toHaveBeenCalledTimes(1));
-    setExportFormat("xlsx");
+    // The file stays picked for the next export.
+    await exportVia({ format: "CSV" });
+    await waitFor(() => expect(recipes).toHaveBeenLastCalledWith({ sheet: 1 }));
   });
 });
