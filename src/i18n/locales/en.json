@@ -112,8 +112,6 @@
       "ignored": "Ignored"
     },
     "ok": "OK",
-    "exportExcel": "Export Excel",
-    "exportCsv": "Export CSV",
     "errors": {
       "phoneRequired": "Enter a phone number.",
       "phoneInvalid": "Enter a valid phone number."
@@ -125,12 +123,14 @@
     "listSeparator": ", ",
     "atMostChars": "At most {{n}} characters",
     "exportMenu": "Export",
-    "exportFile": "Export",
     "exportFormat": {
       "label": "Format",
-      "as": "Export as",
       "excel": "Excel",
-      "pdf": "PDF"
+      "pdf": "PDF",
+      "csv": "CSV",
+      "file": "File",
+      "sheet": "Sheet",
+      "download": "Download {{format}}"
     }
   },
   "nav": {
@@ -1210,11 +1210,10 @@
   "recipeBook": {
     "title": "Recipes",
     "cardsTitle": "Recipe cards",
-    "exportMenu": "Export",
-    "menuExcel": "Menu",
+    "menuFile": "Menu",
+    "sheetTables": "Recipe tables",
     "exportRecipes": "Recipes with costs",
     "exportCards": "Recipe cards, no costs",
-    "exportCsv": "Recipe lines (CSV)",
     "done_one": "Exported {{count}} recipe",
     "done_other": "Exported {{count}} recipes",
     "ingredient": "Ingredient",
@@ -2103,7 +2102,7 @@
   },
   "ordersExport": {
     "title": "Export Orders",
-    "subtitle": "Download detailed Excel sheet exports tailored to your custom specifications.",
+    "subtitle": "Download detailed Excel, PDF or CSV exports tailored to your custom specifications.",
     "selectBranchError": "Please select a branch first",
     "noGrainsSelected": "Please select at least one sheet to export",
     "noOrders": "No matching orders found for this export selection.",
@@ -2117,7 +2116,6 @@
     "filenameHint": "Leave blank to auto-generate a structured filename based on the preset.",
     "rowEstimate": "Estimated rows: {{count}}",
     "cancelButton": "Cancel",
-    "exportButton": "Export Workbook",
     "presets": {
       "title": "Export Presets",
       "accountantDaily": {

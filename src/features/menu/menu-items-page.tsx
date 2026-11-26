@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { useConfirm } from "@/components/app/confirm-dialog";
 import { EditableCardGrid, type EditableField } from "@/components/app/editable-cards";
 import { ExportButton } from "@/components/app/export-button";
+import type { ExportPick } from "@/lib/export-format";
 import { ClearFiltersButton } from "@/components/app/clear-filters-button";
 import { AddonCostCell, ItemCostCell } from "@/components/app/cost-cells";
 import { AssetImage, assetOf } from "@/components/app/asset-image";
@@ -26,7 +27,7 @@ import { BranchAddonAvailabilitySwitch, BranchMenuItemAvailabilitySwitch } from 
 import { invalidateCatalog } from "./util";
 import { useAddonCostMap } from "./costing";
 import { exportRecipeBook, type RecipeExportKind } from "./recipe-book-export";
-import { recipeBookMeta } from "./recipe-book";
+import { recipeBookMeta, recipeBookSheetLabels } from "./recipe-book";
 import {
   createMenuItem,
   duplicateItem,
@@ -66,7 +67,7 @@ import { keepScope } from "@/data/scope/list-search";
 import { menuItemsSearch } from "./search";
 import { menuItemsListParams } from "./queries";
 import { keepWhilePaging } from "@/data/api/keep-while-paging";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
@@ -312,7 +313,10 @@ export function MenuItemsPage() {
    * Categories and add-ons come from unpaginated endpoints, so those two sheets
    * are already whole in memory.
    */
-  const handleExport = async () => {
+  // The menu workbook's sheets, in its order: named once for the file and the
+  // Export panel (a PDF prints one).
+  const menuSheets = [t("nav.items", "Items"), t("menu.categories", "Categories"), t("menu.addons", "Add-ons")];
+  const handleExport = async (pick?: ExportPick) => {
     setExporting(true);
     try {
       const allItems = await fetchAllPages<MenuItemWithCosts>(async (offset, limit) => {
@@ -338,15 +342,19 @@ export function MenuItemsPage() {
         { header: t("common.price", "Price"), accessor: (a) => a.default_price, type: "money", width: 14, total: true },
         { header: t("common.status", "Status"), accessor: (a) => (a.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")), type: "text", width: 12 },
       ];
-      await exportToExcel({
-        filename: "Madar-Menu",
-        logoUrl,
-        sheets: [
-          { name: t("nav.items", "Items"), title: t("nav.items", "Items"), rows: allItems as unknown as Record<string, unknown>[], columns: itemCols as unknown as ExcelColumn<Record<string, unknown>>[], totals: true },
-          { name: t("menu.categories", "Categories"), title: t("menu.categories", "Categories"), rows: catList as unknown as Record<string, unknown>[], columns: catCols as unknown as ExcelColumn<Record<string, unknown>>[] },
-          { name: t("menu.addons", "Add-ons"), title: t("menu.addons", "Add-ons"), rows: addonList as unknown as Record<string, unknown>[], columns: addonCols as unknown as ExcelColumn<Record<string, unknown>>[], totals: true },
-        ],
-      });
+      const [itemsSheet, categoriesSheet, addonsSheet] = menuSheets;
+      await exportFile(
+        {
+          filename: "Madar-Menu",
+          logoUrl,
+          sheets: [
+            { name: itemsSheet, title: itemsSheet, rows: allItems as unknown as Record<string, unknown>[], columns: itemCols as unknown as ExcelColumn<Record<string, unknown>>[], totals: true },
+            { name: categoriesSheet, title: categoriesSheet, rows: catList as unknown as Record<string, unknown>[], columns: catCols as unknown as ExcelColumn<Record<string, unknown>>[] },
+            { name: addonsSheet, title: addonsSheet, rows: addonList as unknown as Record<string, unknown>[], columns: addonCols as unknown as ExcelColumn<Record<string, unknown>>[], totals: true },
+          ],
+        },
+        pick,
+      );
     } catch (e) {
       toastExportError(e);
       throw e;
@@ -359,7 +367,7 @@ export function MenuItemsPage() {
    * The recipe files: the book follows the grid's own filters (category,
    * search, recipe) and is read whole in one request, so there is no walk.
    */
-  const handleRecipeExport = async (kind: RecipeExportKind) => {
+  const handleRecipeExport = async (kind: RecipeExportKind, pick: ExportPick) => {
     setExporting(true);
     try {
       await exportRecipeBook(kind, {
@@ -373,7 +381,7 @@ export function MenuItemsPage() {
         logoUrl,
         lang,
         t,
-      });
+      }, pick);
     } finally {
       setExporting(false);
     }
@@ -484,19 +492,19 @@ export function MenuItemsPage() {
                 <ClearFiltersButton filters={filters} keep={["tab", "type", "aq", "cq"]} />
                 <ExportButton
                   onExport={handleExport}
+                  sheets={menuSheets}
                   loading={exporting}
                   // Recipes are recipes.read (the plan ceiling included): the
-                  // section is offered only to those who may open a recipe.
+                  // files are offered only to those who may open a recipe.
                   {...(canFilterRecipes
                     ? {
-                        label: t("recipeBook.exportMenu", "Export"),
-                        excelLabel: t("recipeBook.menuExcel", "Menu (Excel)"),
-                        moreHeading: t("nav.recipes", "Recipes"),
-                        more: [
-                          { key: "recipes", label: t("recipeBook.exportRecipes", "Recipes with costs (Excel)"), onSelect: () => handleRecipeExport("recipes") },
-                          { key: "cards", label: t("recipeBook.exportCards", "Recipe cards, no costs (Excel)"), onSelect: () => handleRecipeExport("cards") },
-                          { key: "csv", label: t("recipeBook.exportCsv", "Recipe lines (CSV)"), onSelect: () => handleRecipeExport("csv") },
-                        ],
+                        fileLabel: t("recipeBook.menuFile", "Menu"),
+                        more: (["recipes", "cards"] as const).map((kind) => ({
+                          key: kind,
+                          label: kind === "recipes" ? t("recipeBook.exportRecipes", "Recipes with costs") : t("recipeBook.exportCards", "Recipe cards, no costs"),
+                          sheets: recipeBookSheetLabels(t),
+                          onExport: (pick: ExportPick) => handleRecipeExport(kind, pick),
+                        })),
                       }
                     : {})}
                 />

@@ -23,7 +23,7 @@ import { useListFilters, tableStateFrom } from "@/data/scope/use-list-filters";
 import { transfersSearch } from "./search";
 import { TRANSFERS_WINDOW, TRANSFERS_WINDOW_MAX, periodParams, transfersListParams } from "./queries";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { TransferDialog } from "./transfer-dialog";
 import { TransferDrawer, transferStatusLabel } from "./transfer-drawer";
@@ -180,7 +180,7 @@ export function TransfersPage() {
         { header: t("inventory.catalog.unit", "Unit"), accessor: (r) => fmtUnit(r.l.unit), type: "text", width: 8 },
         { header: t("inventory.transfers.note", "Note"), accessor: (r) => r.tr.note ?? "", type: "text", width: 30 },
       ];
-      await exportToExcel({ filename: "Madar-Transfers", logoUrl, sheets: [{ name: t("inventory.transfers.title", "Transfers"), title: t("inventory.transfers.title", "Transfers"), rows: flat as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      await exportFile({ filename: "Madar-Transfers", logoUrl, sheets: [{ name: t("inventory.transfers.title", "Transfers"), title: t("inventory.transfers.title", "Transfers"), rows: flat as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       toastExportError(e);
       throw e;

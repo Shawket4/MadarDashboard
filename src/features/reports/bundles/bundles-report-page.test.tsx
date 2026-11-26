@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BundlesReport, ComboMix } from "@/data/api/generated/models";
 import { fmtMoney, fmtNumber, fmtPercent } from "@/lib/format";
 import { toast } from "@/components/ui/toast";
+import { exportVia } from "@/test/export-panel";
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -30,7 +31,7 @@ let report: BundlesReport | undefined;
 let mix: ComboMix | undefined;
 const reportCalls: { params: Record<string, unknown>; enabled: boolean | undefined }[] = [];
 const mixCalls: { comboId: string; params: unknown }[] = [];
-const exportToExcel = vi.fn();
+const exportFile = vi.fn();
 
 // The KPI figures count up only once GSAP has loaded (bootMotion, which no
 // test calls), so the final figure is on screen at once and a test can read it.
@@ -54,7 +55,7 @@ vi.mock("@/data/scope/use-scope", () => ({
 }));
 vi.mock("@/lib/excel", async () => {
   const real = await vi.importActual<typeof import("@/lib/excel")>("@/lib/excel");
-  return { ...real, exportToExcel: (...a: unknown[]) => exportToExcel(...a) };
+  return { ...real, exportFile: (...a: unknown[]) => exportFile(...a) };
 });
 vi.mock("@/features/combos/api", () => ({
   useBundlesReport: (params: Record<string, unknown>, opts?: { enabled?: boolean }) => {
@@ -136,7 +137,7 @@ beforeEach(async () => {
   mix = mixFixture();
   reportCalls.length = 0;
   mixCalls.length = 0;
-  exportToExcel.mockReset().mockResolvedValue(undefined);
+  exportFile.mockReset().mockResolvedValue(undefined);
   vi.mocked(toast.error).mockClear();
 });
 
@@ -223,11 +224,10 @@ describe("Bundles report · Combos / Deals", () => {
 describe("Bundles report · export", () => {
   it("hands the rows and columns to the Excel export with headers and units", async () => {
     render(<BundlesReportPage />);
-    fireEvent.pointerDown(screen.getByRole("button", { name: /Export/ }), { button: 0, pointerType: "mouse" });
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Excel" }));
-    await waitFor(() => expect(exportToExcel).toHaveBeenCalledTimes(1));
+    await exportVia({ format: "Excel" });
+    await waitFor(() => expect(exportFile).toHaveBeenCalledTimes(1));
 
-    const arg = exportToExcel.mock.calls[0][0] as {
+    const arg = exportFile.mock.calls[0][0] as {
       filename: string;
       sheets: { name: string; rows: Record<string, unknown>[]; columns: { header: string; accessor: (r: unknown) => unknown; type: string }[]; totals: boolean }[];
     };
@@ -253,10 +253,9 @@ describe("Bundles report · export", () => {
   });
 
   it("says why when the export fails", async () => {
-    exportToExcel.mockRejectedValueOnce(new Error("disk full"));
+    exportFile.mockRejectedValueOnce(new Error("disk full"));
     render(<BundlesReportPage />);
-    fireEvent.pointerDown(screen.getByRole("button", { name: /Export/ }), { button: 0, pointerType: "mouse" });
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Excel" }));
+    await exportVia({ format: "Excel" });
     await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
   });
 });

@@ -20,7 +20,8 @@ import { keepWhilePaging } from "@/data/api/keep-while-paging";
 import { queryClient } from "@/data/api/query";
 import type { MenuItemWithCosts } from "@/data/api/generated/models";
 import { getErrorMessage } from "@/data/api/errors";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
+import type { ExportPick } from "@/lib/export-format";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { Stagger, SwapPresence, recipes } from "@/lib/motion";
 import { getTranslatedName } from "@/lib/translation";
@@ -108,7 +109,9 @@ export function RoutingPage() {
   // overrides it. The item catalog is paged fifty at a time behind a search
   // box, so it is walked to the end under the SAME search — a routing sheet
   // that stopped at the first page would read as "these items have no station".
-  const handleExport = async () => {
+  // The two sheets, in the workbook's order (a PDF prints one).
+  const routingSheets = [t("kitchen.byCategory", "By category"), t("kitchen.byItem", "Per item")];
+  const handleExport = async (pick?: ExportPick) => {
     if (!branchId || !orgId) return;
     setExporting(true);
     try {
@@ -151,26 +154,26 @@ export function RoutingPage() {
       ];
 
       const title = t("kitchen.routingTitle", "Order routing");
-      await exportToExcel({
+      await exportFile({
         filename: "Madar-Order-Routing",
         logoUrl,
         sheets: [
           {
-            name: t("kitchen.byCategory", "By category"),
+            name: routingSheets[0],
             title,
             subtitle: t("kitchen.byCategory", "By category"),
             rows: categories as unknown as Record<string, unknown>[],
             columns: catCols as unknown as ExcelColumn<Record<string, unknown>>[],
           },
           {
-            name: t("kitchen.byItem", "Per item"),
+            name: routingSheets[1],
             title,
             subtitle: itemsSearchQ || t("kitchen.byItem", "Per item"),
             rows: allItems as unknown as Record<string, unknown>[],
             columns: itemCols as unknown as ExcelColumn<Record<string, unknown>>[],
           },
         ],
-      });
+      }, pick);
     } catch (e) {
       toastExportError(e);
       throw e;
@@ -210,7 +213,7 @@ export function RoutingPage() {
       <PageHeader
         title={t("kitchen.routingTitle", "Order routing")}
         subtitle={t("kitchen.routingSubtitle", "Send each menu category to a kitchen station. Items inherit their category unless overridden.")}
-        actions={setupReady ? <ExportButton onExport={handleExport} loading={exporting} /> : null}
+        actions={setupReady ? <ExportButton onExport={handleExport} sheets={routingSheets} loading={exporting} /> : null}
         below={setupReady ? (
           <div className="flex flex-wrap items-center gap-3">
             <SegmentedControl

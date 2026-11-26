@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { toast } from "@/components/ui/toast";
 import { Coins, History, ListChecks, Tag, UserRound } from "lucide-react";
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
@@ -12,9 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import type { AuditReport, DeductionOverrideEvent, DiscountAuditEntry } from "@/data/api/generated/models";
 import { bpsLabel, discountKindLabel } from "@/features/discounts/discount-attribution";
-import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, exportToCsv, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
+import type { ExportPick } from "@/lib/export-format";
 import { fmtDate, fmtDateTime, fmtMoney, fmtNumber } from "@/lib/format";
 import { Stagger } from "@/lib/motion";
 
@@ -126,11 +125,11 @@ export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: 
       : []),
   ];
 
-  const handleExport = async () => {
+  const handleExport = async (pick?: ExportPick) => {
     if (!d) return;
     setExporting(true);
     try {
-      await exportToExcel({ filename: `Madar-${exportTitle}`, logoUrl, sheets: buildSheets() });
+      await exportFile({ filename: `Madar-${exportTitle}`, logoUrl, sheets: buildSheets() }, pick);
     } catch (e) {
       toastExportError(e);
       throw e;
@@ -139,22 +138,13 @@ export function AuditTab({ query, reasonLabel, exportTitle, amount = "money" }: 
     }
   };
 
-  const handleExportCsv = async () => {
-    if (!d) return;
-    try {
-      await exportToCsv({ filename: `Madar-${exportTitle}`, sheets: buildSheets() });
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-      throw e;
-    }
-  };
 
   if (query.isError) return <ErrorState onRetry={() => query.refetch()} />;
 
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <ExportButton onExport={handleExport} onExportCsv={handleExportCsv} loading={exporting} disabled={!d || (d.total_count === 0 && history.length === 0)} size="sm" />
+        <ExportButton onExport={handleExport} sheets={buildSheets().map((s) => s.subtitle)} loading={exporting} disabled={!d || (d.total_count === 0 && history.length === 0)} size="sm" />
       </div>
       <LedgerStrip items={kpis} />
 

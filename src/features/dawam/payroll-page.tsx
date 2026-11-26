@@ -47,7 +47,8 @@ import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useCurrentOrg } from "@/hooks/use-org-modules";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
+import type { ExportPick } from "@/lib/export-format";
 import { fmtDate, fmtMoney, fmtMoneySigned, fmtPeriod } from "@/lib/format";
 import { invalidateStaff, REQUEST_STATUS_TONE, todayIso } from "@/features/staff/util";
 
@@ -246,7 +247,9 @@ export function PayrollPage() {
 
   // Bank-transfer people as a bank file, wallet people as numbers and amounts
   // (PAY-8), cash people as names and amounts for the pay envelopes (M31).
-  const exportLists = async () => {
+  // The pay lists, one sheet each, in the workbook's order (a PDF prints one).
+  const payLists = [t("dawam.pay_bank", "Bank transfer"), t("dawam.pay_wallet", "Mobile wallet"), t("dawam.pay_cash", "Cash")];
+  const exportLists = async (asked?: ExportPick) => {
     setExporting(true);
     try {
       // Only what is actually transferred: a payslip with nothing to pay (a 0.00 net) is no transfer (PAY-8).
@@ -256,16 +259,17 @@ export function PayrollPage() {
         ...(acct ? [{ header: acct, accessor: (r: Row) => people.get(r.employee_id)?.pay_account ?? "", type: "text", width: 30 } as ExcelColumn<Row>] : []),
         { header: t("dawam.net", "Net"), accessor: (r) => r.net_piastres, type: "money", width: 16, total: true },
       ];
-      await exportToExcel({
+      const [bankSheet, walletSheet, cashSheet] = payLists;
+      await exportFile({
         filename: "Madar-Payroll-Transfers",
         logoUrl,
         meta: period ? `${fmtDate(period.start_date)} → ${fmtDate(period.end_date)}` : "",
         sheets: [
-          { name: t("dawam.pay_bank", "Bank transfer"), title: t("dawam.bankList", "Bank transfers"), rows: pick("bank") as never, columns: cols(t("dawam.iban", "Account (IBAN)")) as never, totals: true },
-          { name: t("dawam.pay_wallet", "Mobile wallet"), title: t("dawam.walletList", "Mobile wallets"), rows: pick("wallet") as never, columns: cols(t("dawam.walletNumber", "Wallet number")) as never, totals: true },
-          { name: t("dawam.pay_cash", "Cash"), title: t("dawam.cashList", "Cash envelopes"), rows: pick("cash") as never, columns: cols(null) as never, totals: true },
+          { name: bankSheet, title: t("dawam.bankList", "Bank transfers"), rows: pick("bank") as never, columns: cols(t("dawam.iban", "Account (IBAN)")) as never, totals: true },
+          { name: walletSheet, title: t("dawam.walletList", "Mobile wallets"), rows: pick("wallet") as never, columns: cols(t("dawam.walletNumber", "Wallet number")) as never, totals: true },
+          { name: cashSheet, title: t("dawam.cashList", "Cash envelopes"), rows: pick("cash") as never, columns: cols(null) as never, totals: true },
         ],
-      });
+      }, asked);
     } catch (e) {
       toastExportError(e);
       throw e;
@@ -364,7 +368,7 @@ export function PayrollPage() {
             ) : null}
             {phase !== "open" ? (
               <>
-                <ExportButton onExport={exportLists} loading={exporting} label={t("dawam.payLists", "Pay lists (bank, wallet, cash)")} />
+                <ExportButton onExport={exportLists} sheets={payLists} loading={exporting} label={t("dawam.payLists", "Pay lists (bank, wallet, cash)")} />
                 <Button variant="ghost" onClick={() => void exportCsv()}>{t("dawam.csv", "CSV")}</Button>
               </>
             ) : null}

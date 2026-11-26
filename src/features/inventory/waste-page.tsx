@@ -24,7 +24,7 @@ import { WASTE_WINDOW, WASTE_WINDOW_MAX, periodParams, wasteListParams } from ".
 import { useCan } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { fmtDateTime, fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST, fetchAllPages } from "@/lib/export-all";
 import { WasteDialog } from "./waste-dialog";
 import { wasteReceivedLate, wasteSource, wasteWhen } from "./lib";
@@ -216,7 +216,7 @@ export function WastePage() {
         { header: t("inventory.waste.deviceColumn", "Device"), accessor: (m) => m.device_name ?? "", type: "text", width: 12 },
         { header: t("inventory.waste.orderColumn", "Order"), accessor: (m) => m.order_display_number ?? "", type: "text", width: 12 },
       ];
-      await exportToExcel({ filename: "Madar-Waste", logoUrl, sheets: [{ name: t("inventory.waste.title", "Waste log"), title: t("inventory.waste.title", "Waste log"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      await exportFile({ filename: "Madar-Waste", logoUrl, sheets: [{ name: t("inventory.waste.title", "Waste log"), title: t("inventory.waste.title", "Waste log"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       toastExportError(e);
       throw e;

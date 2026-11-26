@@ -11,9 +11,10 @@ import { rules } from "@/lib/rules";
 import { toast } from "@/components/ui/toast";
 import i18n from "@/i18n";
 import { getErrorMessage } from "@/data/api/errors";
+import { toCsv } from "@/lib/csv";
 import { downloadBlob } from "@/lib/download";
 import { businessDate, fmtDate, fmtDateTimeFull, fmtMoney, fmtNumber, fmtPercent, getActiveTz } from "@/lib/format";
-import { getExportFormat } from "@/lib/export-format";
+import { type ExportPick, getExportFormat } from "@/lib/export-format";
 import { renderPdf } from "@/data/api/generated/api";
 import type { PrintBlock, PrintDoc, PrintSheet } from "@/data/api/generated/models";
 
@@ -544,56 +545,6 @@ function buildBlockSheet(
   }
 }
 
-const csvCell = (v: string): string => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
-
-const csvValue = (raw: unknown, type: ColumnType | undefined): string => {
-  if (raw == null) return "";
-  switch (type) {
-    case "money":
-      return csvCell(String(typeof raw === "number" ? raw / 100 : raw));
-    case "date":
-    case "dateTime": {
-      const d = raw instanceof Date ? raw : new Date(String(raw));
-      return Number.isNaN(d.getTime()) ? "" : d.toISOString();
-    }
-    default:
-      return csvCell(String(raw));
-  }
-};
-
-export interface CsvConfig {
-  filename: string;
-  sheets: ExcelSheet<Record<string, unknown>>[];
-}
-
-/**
- * CSV sibling of `exportToExcel` — no ExcelJS, no styling, just rows. RFC 4180
- * quoting, `money` columns divided back to a plain number, dates as ISO strings.
- *
- * A CSV is one flat file, so a multi-sheet config exports only the first sheet.
- * ponytail: no zip dependency in this repo for a "one file per sheet" export;
- * add one (or a zip lib) only if a multi-sheet CSV is actually requested.
- */
-export async function exportToCsv(config: CsvConfig): Promise<void> {
-  const t = i18n.getFixedT(null, "translation");
-  const sheet = config.sheets[0];
-  if (!sheet || config.sheets.every((s) => s.rows.length === 0)) {
-    toast.error(t("excel.nothingToExport", "Nothing to export"));
-    return;
-  }
-  if (config.sheets.length > 1) {
-    console.warn(`exportToCsv: ${config.sheets.length} sheets given, exporting only "${sheet.name}"`);
-  }
-
-  const header = sheet.columns.map((c) => csvCell(c.header)).join(",");
-  const lines = sheet.rows.map((row) =>
-    sheet.columns.map((c) => csvValue(c.accessor(row), c.type)).join(","),
-  );
-  const blob = new Blob([[header, ...lines].join("\r\n")], { type: "text/csv;charset=utf-8" });
-  downloadBlob(blob, `${config.filename}-${businessDate()}.csv`); // the shop's today, not UTC's
-  toast.success(t("excel.done", { count: sheet.rows.length, defaultValue: `Exported ${sheet.rows.length} rows` }));
-}
-
 // ── The PDF of the same sheets ───────────────────────────────────────────────
 //
 // A spreadsheet cannot carry its typeface; a PDF can. The backend draws the
@@ -701,7 +652,7 @@ export const toPrintDoc = (config: ExcelConfig): PrintDoc => ({
 });
 
 /** The PDF of `config`'s sheets: toasts and failures exactly as the workbook's. */
-export async function exportToPdf(config: ExcelConfig): Promise<void> {
+async function savePdf(config: ExcelConfig): Promise<void> {
   const t = i18n.getFixedT(null, "translation");
   if (config.sheets.every((s) => sheetSize(s) === 0)) {
     toast.error(t("excel.nothingToExport", "Nothing to export"));
@@ -725,11 +676,65 @@ export async function exportToPdf(config: ExcelConfig): Promise<void> {
 }
 
 /**
- * The export, in the format chosen at the top of the Export menu
- * (`lib/export-format`): the workbook, or a PDF of the same sheets.
+ * The one sheet a PDF or CSV is, as the Export panel picked it. The file keeps
+ * its name for the first sheet and takes the sheet's after it, so the files of
+ * one workbook download side by side ("Madar-Recipes", "Madar-Recipes-
+ * Ingredient-lines").
+ *
+ * Unpicked, a PDF is the whole workbook and a CSV the workbook's one flat
+ * sheet. A CSV is never a sheet of tables, and never a guess among several
+ * sheets: the file declares its sheets to the panel (`ExportButton` `sheets`),
+ * which always picks one.
  */
-export async function exportToExcel(config: ExcelConfig): Promise<void> {
-  if (getExportFormat() === "pdf") return exportToPdf(config);
+export const pickSheet = (config: ExcelConfig, pick: ExportPick | undefined, format: "pdf" | "csv"): ExcelConfig => {
+  const flat = config.sheets.flatMap((s, i) => (isBlockSheet(s) ? [] : [i]));
+  let at: number;
+  if (pick?.sheet != null) at = Math.min(Math.max(0, pick.sheet), config.sheets.length - 1);
+  else if (format === "pdf") return config;
+  else if (flat.length === 1) at = flat[0];
+  else throw new Error(`A CSV is one flat sheet: "${config.filename}" has ${flat.length} and no pick`);
+  const sheet = config.sheets[at];
+  if (format === "csv" && isBlockSheet(sheet)) throw new Error(`"${sheet.name}" is a sheet of tables: it has no CSV`);
+  if (config.sheets.length < 2) return config;
+  const suffix = sheet.name.trim().replace(/[\\/:*?"<>|]+/g, "").replace(/\s+/g, "-");
+  return { ...config, filename: at === 0 || !suffix ? config.filename : `${config.filename}-${suffix}`, sheets: [sheet] };
+};
+
+/** The CSV of the picked sheet (`lib/csv`): toasts and failures as the workbook's. */
+async function saveCsv(config: ExcelConfig, pick?: ExportPick): Promise<void> {
+  const t = i18n.getFixedT(null, "translation");
+  let one: ExcelConfig;
+  try {
+    one = pickSheet(config, pick, "csv");
+  } catch (err) {
+    console.error("CSV export failed", err);
+    toast.error(t("excel.failed", "Export failed"));
+    throw new ExportFailed(err);
+  }
+  const sheet = one.sheets[0] as ExcelSheet<Record<string, unknown>>;
+  if (sheet.rows.length === 0) {
+    toast.error(t("excel.nothingToExport", "Nothing to export"));
+    return;
+  }
+  const blob = new Blob([toCsv(sheet, getActiveTz())], { type: "text/csv;charset=utf-8" });
+  downloadBlob(blob, `${one.filename}-${businessDate()}.csv`); // the shop's today, not UTC's
+  toast.success(config.doneMessage ?? t("excel.done", { count: sheet.rows.length, defaultValue: `Exported ${sheet.rows.length} rows` }));
+}
+
+/**
+ * Every export in the app: the file, in the format chosen in the Export panel
+ * (`lib/export-format`). Excel is the whole workbook; a PDF or a CSV is the
+ * sheet the panel picked (`pick`), a PDF unpicked the whole workbook.
+ */
+export async function exportFile(config: ExcelConfig, pick?: ExportPick): Promise<void> {
+  const format = getExportFormat();
+  if (format === "pdf") return savePdf(pickSheet(config, pick, "pdf"));
+  if (format === "csv") return saveCsv(config, pick);
+  return saveWorkbook(config);
+}
+
+/** The Excel workbook of every sheet, in the shared design. */
+async function saveWorkbook(config: ExcelConfig): Promise<void> {
   const t = i18n.getFixedT(null, "translation");
   if (config.sheets.every((s) => sheetSize(s) === 0)) {
     toast.error(t("excel.nothingToExport", "Nothing to export"));
@@ -783,7 +788,7 @@ export async function exportToExcel(config: ExcelConfig): Promise<void> {
   }
 }
 
-/** A workbook that failed to build. exportToExcel has already toasted "Export failed". */
+/** A file that failed to build. `exportFile` has already toasted "Export failed". */
 class ExportFailed extends Error {
   constructor(cause: unknown) {
     super("Export failed", { cause });

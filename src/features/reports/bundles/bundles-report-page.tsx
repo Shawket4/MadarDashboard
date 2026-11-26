@@ -28,7 +28,7 @@ import { bundlesReportParams } from "../queries";
 import { getComboMixQueryOptions } from "@/data/api/generated/api";
 import { queryClient } from "@/data/api/query";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtDate, fmtMoney, fmtNumber } from "@/lib/format";
 import { getTranslatedName } from "@/lib/translation";
 import { useBundlesReport } from "@/features/combos/api";
@@ -137,7 +137,7 @@ export function BundlesReportPage() {
         { header: t("reports.bundles.col.margin", "Margin"), accessor: (r) => (r.cost_missing ? null : rateOf(r.margin)), type: "percent", width: 10 },
       ];
       const title = t("reports.bundles.title", "Bundles");
-      await exportToExcel({
+      await exportFile({
         filename: `Madar-Bundles-${kind === "combo" ? "Combos" : "Deals"}-${params.from}_${params.to}`,
         logoUrl,
         sheets: [

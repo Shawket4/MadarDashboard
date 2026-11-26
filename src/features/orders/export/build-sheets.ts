@@ -26,6 +26,21 @@ interface DeductionSnapshot {
   category: string;
 }
 
+/**
+ * The sheets `buildSheets` makes for these grains, by name and in its order:
+ * what the export sheet offers when a PDF or CSV (one sheet) is asked.
+ */
+export function orderSheetNames(grains: Grain[], t: TFunction): string[] {
+  return [
+    ...(grains.includes("order") ? [t("ordersExport.sheets.orders", "Orders")] : []),
+    ...(grains.includes("line_item") ? [t("ordersExport.sheets.lineItems", "Line Items")] : []),
+    ...(grains.includes("payment") ? [t("ordersExport.sheets.payments", "Payments")] : []),
+    ...(grains.includes("deduction")
+      ? [t("ordersExport.sheets.deductionsRaw", "Ingredient Usage"), t("ordersExport.sheets.deductionsAgg", "Ingredient Usage (Totals)")]
+      : []),
+  ];
+}
+
 export function buildSheets(orders: OrderExport[], grains: Grain[], t: TFunction, lang: string): AnySheet[] {
   const sheets: AnySheet[] = [];
 

@@ -44,7 +44,7 @@ import { queryClient } from "@/data/api/query";
 import { useScope } from "@/data/scope/use-scope";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { EXPORT_REQUEST } from "@/lib/export-all";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtTime } from "@/lib/format";
 import { formatPhoneDisplay } from "@/lib/phone";
 import { Presence, Reveal, Stagger, SwapPresence, recipes } from "@/lib/motion";
@@ -207,7 +207,7 @@ export function BookingsPage() {
         { header: t("bookings.notes", "Notes"), accessor: (b) => b.notes ?? "", type: "text", width: 36 },
       ];
       const title = t("bookings.title", "Bookings");
-      await exportToExcel({
+      await exportFile({
         filename: `Madar-Bookings-${date}`,
         logoUrl,
         meta: date,

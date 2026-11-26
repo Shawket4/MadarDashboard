@@ -97,7 +97,7 @@ vi.mock("@tanstack/react-router", async () => ({
 }));
 vi.mock("@/hooks/use-export-logo", () => ({ useExportLogo: () => undefined }));
 const excel = vi.fn(async (_c: unknown) => {});
-vi.mock("@/lib/excel", () => ({ exportToExcel: (c: unknown) => excel(c) }));
+vi.mock("@/lib/excel", () => ({ exportFile: (c: unknown) => excel(c) }));
 vi.mock("@/features/staff/util", async () => {
   const real = await vi.importActual<typeof import("@/features/staff/util")>("@/features/staff/util");
   return { ...real, invalidateStaff: vi.fn() };
@@ -846,9 +846,11 @@ describe("PayrollPage", () => {
     current = { ...current!, period: period("generated"), payslips: [frozen("e1", "Sara Ahmed", 0), frozen("e4", "Youssef Adel", 745_000)] };
     excel.mockClear();
     wrap(<PayrollPage />);
+    // The Export panel: Excel (every list) or a PDF of one.
     await user.click(screen.getByRole("button", { name: /Pay lists/ }));
-    // The Export menu: Excel or PDF of the same lists.
-    await user.click(await screen.findByRole("menuitem", { name: "Excel" }));
+    const panel = await screen.findByRole("dialog");
+    await user.click(within(panel).getByRole("radio", { name: "Excel" }));
+    await user.click(within(panel).getByRole("button", { name: "Download Excel" }));
     await waitFor(() => expect(excel).toHaveBeenCalled());
     const cfg = excel.mock.calls[0][0] as { sheets: { name: string; rows: { employee_id: string }[]; columns: { header: string }[] }[] };
     // Sara is paid by bank but has nothing to receive; Youssef is paid in cash.

@@ -28,7 +28,7 @@ import { useScope } from "@/data/scope/use-scope";
 import { Cap } from "@/generated/capabilities";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { EXPORT_REQUEST } from "@/lib/export-all";
 import { fmtDate, fmtDateTime, fmtNumber, fmtTime } from "@/lib/format";
 import { usePeriodStartDay } from "@/features/dawam/period";
@@ -142,7 +142,7 @@ export function AttendancePage() {
         { header: t("staff.overtimeMinutes", "Overtime (minutes)"), accessor: (r) => r.overtime_minutes, type: "integer", width: 18, total: true },
       ];
       const title = t("staff.attendance", "Attendance");
-      await exportToExcel({
+      await exportFile({
         filename: "Madar-Attendance",
         logoUrl,
         meta: `${from} → ${to}`,

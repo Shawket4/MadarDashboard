@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Boxes, CalendarRange, Store } from "lucide-react";
-import { toast } from "@/components/ui/toast";
 
 import { Page, PageHeader } from "@/components/app/page";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
@@ -16,13 +15,12 @@ import {
   useBranchConsumption, useBranchPoLeadTime, useBranchShrinkage, useBranchWasteReport,
   useOrgConsumption, useOrgPoLeadTime, useOrgShrinkage, useOrgWasteReport,
 } from "@/data/api/generated/api";
-import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
 import { useOrgId } from "@/hooks/use-org-id";
 import { useScope } from "@/data/scope/use-scope";
 import { useListFilters } from "@/data/scope/use-list-filters";
 import { inventoryReportsSearch } from "./search";
-import { exportToExcel, exportToCsv, toastExportError } from "@/lib/excel";
+import { exportFile, toastExportError } from "@/lib/excel";
 import {
   buildInventoryExportSheet, ConsumptionTab, PoLeadTimeTab, ShrinkageTab, WasteTab,
 } from "@/features/inventory/reports-page";
@@ -88,7 +86,7 @@ export function InventoryReportsPage() {
     const sheet = buildExportSheet();
     setExporting(true);
     try {
-      await exportToExcel({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
+      await exportFile({ filename: `Madar-${sheet.title}`, logoUrl, sheets: [{ name: sheet.title, ...sheet }] });
     } catch (e) {
       toastExportError(e);
       throw e;
@@ -97,15 +95,6 @@ export function InventoryReportsPage() {
     }
   };
 
-  const handleExportCsv = async () => {
-    const sheet = buildExportSheet();
-    try {
-      await exportToCsv({ filename: `Madar-${sheet.title}`, sheets: [{ name: sheet.title, ...sheet }] });
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-      throw e;
-    }
-  };
 
   const currentCount =
     tab === "consumption" ? (consumption.data?.length ?? 0)
@@ -141,7 +130,7 @@ export function InventoryReportsPage() {
               {t(`scope.preset.${preset ?? "30d"}`, preset ?? "30d")}
             </span>
           }
-          actions={isExportableTab ? <ExportButton onExport={handleExport} onExportCsv={handleExportCsv} loading={exporting} disabled={branchGate || !currentCount} /> : undefined}
+          actions={isExportableTab ? <ExportButton onExport={handleExport} loading={exporting} disabled={branchGate || !currentCount} /> : undefined}
           below={
             <>
               <PageTabsList prefetch="tab">

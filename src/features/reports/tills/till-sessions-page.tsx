@@ -10,7 +10,7 @@ import { ExportButton } from "@/components/app/export-button";
 import { PageTabsList, PageTabsTrigger } from "@/components/app/page-tabs";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Restricted } from "@/components/app/restricted";
-import { exportToCsv, exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { SalesTab } from "./sales-tab";
 import { TimingTab } from "./timing-tab";
 import { Badge } from "@/components/ui/badge";
@@ -79,7 +79,7 @@ export function TillSessionsPage() {
         : t("reports.tills.statusClosed", "Closed");
 
   /** One row per till session, the same figures the table shows. */
-  const runExport = async (kind: "excel" | "csv") => {
+  const runExport = async () => {
     setExporting(true);
     try {
       const cols: ExcelColumn<TillSessionRow>[] = [
@@ -109,8 +109,7 @@ export function TillSessionsPage() {
         rows: rows as unknown as Record<string, unknown>[],
         columns: cols as unknown as ExcelColumn<Record<string, unknown>>[],
       }];
-      if (kind === "excel") await exportToExcel({ filename: `Madar-${title}`, logoUrl, sheets });
-      else await exportToCsv({ filename: `Madar-${title}`, sheets });
+      await exportFile({ filename: `Madar-${title}`, logoUrl, sheets });
     } catch (e) {
       toastExportError(e);
       throw e;
@@ -285,8 +284,7 @@ export function TillSessionsPage() {
           actions={
             <ExportButton
               size="sm"
-              onExport={() => runExport("excel")}
-              onExportCsv={() => runExport("csv")}
+              onExport={runExport}
               loading={exporting}
               disabled={rows.length === 0}
             />

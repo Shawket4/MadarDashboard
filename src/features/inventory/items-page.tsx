@@ -26,7 +26,7 @@ import { ingredientsSearch } from "./search";
 import { itemMovementsParams } from "./queries";
 import { queryClient } from "@/data/api/query";
 import { fmtMoney, fmtNumber, fmtUnit } from "@/lib/format";
-import { exportToExcel, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { ItemDialog } from "./item-dialog";
 import { ItemDrawer } from "./item-drawer";
 import { WasteDialog } from "./waste-dialog";
@@ -197,7 +197,7 @@ export function ItemsPage() {
     }
     setExporting(true);
     try {
-      await exportToExcel({ filename: "Madar-Ingredients", logoUrl, sheets: [{ name: t("inventory.catalog.title", "Ingredients"), title: t("inventory.catalog.title", "Ingredients"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
+      await exportFile({ filename: "Madar-Ingredients", logoUrl, sheets: [{ name: t("inventory.catalog.title", "Ingredients"), title: t("inventory.catalog.title", "Ingredients"), rows: rows as unknown as Record<string, unknown>[], columns: cols as unknown as ExcelColumn<Record<string, unknown>>[] }] });
     } catch (e) {
       toastExportError(e);
       throw e;

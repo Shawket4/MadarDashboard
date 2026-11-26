@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "@/components/ui/toast";
 import { Ban, Coins, Landmark, Percent, Receipt, TrendingUp } from "lucide-react";
 
 import { EmptyState, ErrorState } from "@/components/app/empty-state";
@@ -11,9 +10,8 @@ import { useOrgId } from "@/hooks/use-org-id";
 import { useAuthz } from "@/data/authz/use-authz";
 import { Cap } from "@/generated/capabilities";
 import { useOrgTaxReport } from "@/data/api/generated/api";
-import { getErrorMessage } from "@/data/api/errors";
 import { useExportLogo } from "@/hooks/use-export-logo";
-import { exportToExcel, exportToCsv, type ExcelColumn, toastExportError } from "@/lib/excel";
+import { exportFile, type ExcelColumn, toastExportError } from "@/lib/excel";
 import { fmtPercent } from "@/lib/format";
 
 interface TaxRow {
@@ -67,7 +65,7 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
     if (!d) return;
     setExporting(true);
     try {
-      await exportToExcel({ filename: t("reports.legal.tabs.tax", "Tax"), logoUrl, sheets: [buildSheet()] });
+      await exportFile({ filename: t("reports.legal.tabs.tax", "Tax"), logoUrl, sheets: [buildSheet()] });
     } catch (e) {
       toastExportError(e);
       throw e;
@@ -76,15 +74,6 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
     }
   };
 
-  const handleExportCsv = async () => {
-    if (!d) return;
-    try {
-      await exportToCsv({ filename: t("reports.legal.tabs.tax", "Tax"), sheets: [buildSheet()] });
-    } catch (e) {
-      toast.error(getErrorMessage(e));
-      throw e;
-    }
-  };
 
   if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
   if (!orgId) return <Skeleton className="h-28 w-full" />;
@@ -108,7 +97,7 @@ export function TaxTab({ range }: { range: { from?: string; to?: string } }) {
             {t("analytics.tax.rateNote", "Org tax rate: {{rate}}", { rate: fmtPercent(d.org_tax_rate) })}
           </p>
         ) : <span />}
-        <ExportButton onExport={handleExport} onExportCsv={handleExportCsv} loading={exporting} disabled={!d} size="sm" />
+        <ExportButton onExport={handleExport} loading={exporting} disabled={!d} size="sm" />
       </div>
       <LedgerStrip items={kpis} />
     </div>
