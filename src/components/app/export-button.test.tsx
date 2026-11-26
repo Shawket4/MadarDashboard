@@ -14,13 +14,20 @@ import { toast } from "@/components/ui/toast";
 import { exportToExcel, toastExportError } from "@/lib/excel";
 
 import { ExportButton } from "./export-button";
+import { getExportFormat, setExportFormat } from "@/lib/export-format";
+
+/** Open the Export menu and pick `item` (Excel, PDF, a file). */
+const pick = async (item: string | RegExp) => {
+  fireEvent.pointerDown(screen.getByRole("button", { name: /Export/ }), { button: 0, pointerType: "mouse" });
+  fireEvent.click(await screen.findByRole("menuitem", { name: item }));
+};
 
 describe("ExportButton", () => {
   it("shakes when the export rejects, and swallows the rejection", async () => {
     shakes.length = 0;
     const onExport = vi.fn().mockRejectedValue(new Error("disk full"));
     render(<ExportButton onExport={onExport} />);
-    fireEvent.click(screen.getByRole("button", { name: /Export/ }));
+    await pick("Excel");
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
     expect(onExport).toHaveBeenCalledTimes(1);
   });
@@ -29,7 +36,7 @@ describe("ExportButton", () => {
     shakes.length = 0;
     const onExport = vi.fn().mockResolvedValue(undefined);
     render(<ExportButton onExport={onExport} />);
-    fireEvent.click(screen.getByRole("button", { name: /Export/ }));
+    await pick("Excel");
     await waitFor(() => expect(onExport).toHaveBeenCalledTimes(1));
     await Promise.resolve();
     expect(shakes.every((s) => s === 0)).toBe(true);
@@ -51,7 +58,7 @@ describe("ExportButton", () => {
       }
     };
     render(<ExportButton onExport={onExport} />);
-    fireEvent.click(screen.getByRole("button", { name: /Export/ }));
+    await pick("Excel");
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
     expect(toast.error).toHaveBeenCalledTimes(1);
     expect(vi.mocked(toast.error).mock.calls[0][0]).toMatch(/Export failed/);
@@ -69,7 +76,7 @@ describe("ExportButton", () => {
       }
     };
     render(<ExportButton onExport={onExport} />);
-    fireEvent.click(screen.getByRole("button", { name: /Export/ }));
+    await pick("Excel");
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
     expect(toast.error).toHaveBeenCalledTimes(1);
   });
@@ -96,5 +103,37 @@ describe("ExportButton", () => {
     await waitFor(() => expect(recipes).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(shakes.at(-1)).toBe(1));
     expect(onExport).not.toHaveBeenCalled();
+  });
+
+  it("one file: the menu is the choice, and picking a format exports in it at once", async () => {
+    setExportFormat("xlsx");
+    const onExport = vi.fn().mockImplementation(() => {
+      // The export reads the format at the moment it runs.
+      formats.push(getExportFormat());
+    });
+    const formats: string[] = [];
+    render(<ExportButton onExport={onExport} />);
+    await pick("PDF");
+    await waitFor(() => expect(onExport).toHaveBeenCalledTimes(1));
+    expect(formats).toEqual(["pdf"]);
+    expect(getExportFormat()).toBe("pdf"); // remembered for the next export
+    await pick("Excel");
+    await waitFor(() => expect(onExport).toHaveBeenCalledTimes(2));
+    expect(formats).toEqual(["pdf", "xlsx"]);
+  });
+
+  it("several files: the format sits at the top, keeps the menu open, and the file follows it", async () => {
+    setExportFormat("xlsx");
+    const onExport = vi.fn();
+    render(<ExportButton onExport={onExport} excelLabel="Menu" more={[{ key: "r", label: "Recipes", onSelect: vi.fn() }]} />);
+    fireEvent.pointerDown(screen.getByRole("button", { name: /Export/ }), { button: 0, pointerType: "mouse" });
+    const pdf = await screen.findByRole("menuitemradio", { name: "PDF" });
+    expect(screen.getByRole("menuitemradio", { name: "Excel" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(pdf);
+    expect(getExportFormat()).toBe("pdf");
+    // Still open: the file is picked next.
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Menu" }));
+    await waitFor(() => expect(onExport).toHaveBeenCalledTimes(1));
+    setExportFormat("xlsx");
   });
 });

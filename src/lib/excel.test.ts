@@ -266,3 +266,89 @@ describe("stat pills", () => {
     expect(labels("Narrow")).toEqual(["A", "B", "C"]);
   });
 });
+
+describe("the PDF of an export", () => {
+  it("is the same sheets, every value written out the way the dashboard shows it", async () => {
+    const { toPrintDoc } = await import("@/lib/excel");
+    const doc = toPrintDoc({
+      filename: "Madar-Recipes",
+      meta: "Coffee",
+      sheets: [
+        {
+          kind: "blocks",
+          name: "Recipes",
+          title: "Recipes",
+          stats: [{ label: "Items", value: 8, type: "number" }],
+          widths: [34, 9, 15],
+          groups: [
+            {
+              group: "Hot drinks",
+              blocks: [
+                {
+                  title: "Latte",
+                  note: "Follows Flat white",
+                  header: ["Ingredient", "Unit", "One size"],
+                  rows: [["Espresso beans", "g", { value: 18.5, type: "quantity" }]],
+                  footer: [["Cost", null, { value: 2470, type: "money" }], ["Food cost", null, { value: 0.412, type: "percent" }]],
+                  caption: "How it's made",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          name: "Lines",
+          title: "Lines",
+          totals: true,
+          columns: [
+            { header: "Item", accessor: (r: Record<string, unknown>) => r.item as string, type: "text" },
+            { header: "Line cost", accessor: (r: Record<string, unknown>) => r.cost as number, type: "money", total: true },
+          ],
+          rows: [{ item: "Latte", cost: 1620 }, { item: "Latte", cost: 850 }],
+        },
+      ],
+    });
+    expect(doc.filename).toMatch(/^Madar-Recipes-\d{4}-\d{2}-\d{2}$/);
+    expect(doc.rtl).toBe(false);
+    const [book, lines] = doc.sheets;
+    expect(book.subtitle).toMatch(/^Coffee {2}· {2}Generated: /);
+    expect(book.stats).toEqual([{ label: "Items", value: "8" }]);
+    expect(book.landscape).toBe(false);
+    expect(book.blocks[0]).toEqual({ kind: "group", text: "Hot drinks" });
+    expect(book.blocks[1]).toMatchObject({
+      kind: "table",
+      title: "Latte",
+      note: "Follows Flat white",
+      columns: [
+        { header: "Ingredient", width: 34, align: "start" },
+        { header: "Unit", width: 9, align: "center" },
+        { header: "One size", width: 15, align: "center" },
+      ],
+      rows: [["Espresso beans", "g", "18.5"]],
+      footer: [["Cost", "", "EGP 24.70"], ["Food cost", "", "41.2%"]],
+      caption: "How it's made",
+    });
+    expect(lines.landscape).toBe(true);
+    expect(lines.blocks[0]).toMatchObject({
+      kind: "table",
+      rows: [["Latte", "EGP 16.20"], ["Latte", "EGP 8.50"]],
+      totals: ["TOTALS", "EGP 24.70"],
+    });
+  });
+
+  it("goes out as a PDF when PDF is the chosen format", async () => {
+    const api = await import("@/data/api/generated/api");
+    const render = vi.spyOn(api, "renderPdf").mockResolvedValue(new Blob(["%PDF-1.7"]) as never);
+    const { setExportFormat } = await import("@/lib/export-format");
+    setExportFormat("pdf");
+    try {
+      await exportToExcel({ filename: "orders", sheets: [{ name: "Orders", title: "Orders", columns: [{ header: "No", accessor: (r: Record<string, unknown>) => r.n as number, type: "integer" }], rows: [{ n: 1 }] }] });
+      expect(render).toHaveBeenCalledTimes(1);
+      expect(render.mock.calls[0][0]).toMatchObject({ rtl: false, sheets: [{ title: "Orders" }] });
+      expect(downloadBlob.mock.calls.at(-1)?.[1]).toMatch(/^orders-\d{4}-\d{2}-\d{2}\.pdf$/);
+    } finally {
+      setExportFormat("xlsx");
+      render.mockRestore();
+    }
+  });
+});

@@ -1,15 +1,23 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, Download } from "lucide-react";
+import { ChevronDown, Download, FileSpreadsheet, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { type ExportFormat, useExportFormat } from "@/lib/export-format";
 import { useShake } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-/** One more file the button offers, under the page's own Excel and CSV. */
+/** One more file the button offers, under the page's own export and CSV. */
 export interface ExportOption {
   key: string;
   label: string;
@@ -18,13 +26,17 @@ export interface ExportOption {
 }
 
 interface Props {
-  /** Reject after toasting the error to mark a failed export: the button shakes. */
+  /**
+   * The export. It is made in the format chosen here (Excel or PDF):
+   * `exportToExcel` reads the choice. Reject after toasting the error to
+   * mark a failed export: the button shakes.
+   */
   onExport: () => void | Promise<void>;
-  /** When given, the button becomes a dropdown offering Excel + CSV. */
+  /** A CSV as well: its own item, whatever the format. */
   onExportCsv?: () => void | Promise<void>;
-  /** The dropdown's name for `onExport` (default "Export Excel"). */
+  /** The menu's name for `onExport` when it offers several files. */
   excelLabel?: string;
-  /** Other files, in their own section of the dropdown (which it becomes). */
+  /** Other files, in their own section of the menu. */
   more?: ExportOption[];
   /** That section's heading. */
   moreHeading?: string;
@@ -35,7 +47,15 @@ interface Props {
   className?: string;
 }
 
-/** Shared "Export Excel" button used across every list/report screen. */
+/**
+ * The shared Export button of every list and report: Excel or PDF of the same
+ * sheets (the PDF in the dashboard's typeface, embedded).
+ *
+ * - One file: the menu is the choice, "Export as Excel / PDF" (as Apex's
+ *   export menu), and picking one exports at once.
+ * - Several files (a CSV, or `more`): the format sits at the top, remembered
+ *   on this device for every export, and the files under it.
+ */
 export function ExportButton({
   onExport,
   onExportCsv,
@@ -49,6 +69,7 @@ export function ExportButton({
   className,
 }: Props) {
   const { t } = useTranslation();
+  const [format, setFormat] = useExportFormat();
   // A failed export reads at the control as well as in the toast.
   const ref = useRef<HTMLButtonElement>(null);
   const [failures, setFailures] = useState(0);
@@ -59,28 +80,66 @@ export function ExportButton({
       .catch(() => setFailures((n) => n + 1));
   };
 
+  const trigger = (
+    <DropdownMenuTrigger asChild>
+      <Button ref={ref} variant="outline" size={size} loading={loading} disabled={disabled} className={cn(className)}>
+        <Download className="size-4" />
+        {label ?? t("common.exportMenu", "Export")}
+        <ChevronDown className="size-3.5" />
+      </Button>
+    </DropdownMenuTrigger>
+  );
+  const formats: { value: ExportFormat; label: string; icon: typeof FileText }[] = [
+    { value: "xlsx", label: t("common.exportFormat.excel", "Excel"), icon: FileSpreadsheet },
+    { value: "pdf", label: t("common.exportFormat.pdf", "PDF"), icon: FileText },
+  ];
+
   if (!onExportCsv && !more?.length) {
     return (
-      <Button ref={ref} variant="outline" size={size} loading={loading} disabled={disabled} className={cn(className)} onClick={() => run(onExport)}>
-        <Download className="size-4" />
-        {label ?? t("common.export", "Export Excel")}
-      </Button>
+      <DropdownMenu>
+        {trigger}
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>{t("common.exportFormat.as", "Export as")}</DropdownMenuLabel>
+          {formats.map(({ value, label: text, icon: Icon }) => (
+            <DropdownMenuItem
+              key={value}
+              onSelect={() => {
+                setFormat(value);
+                run(onExport);
+              }}
+            >
+              <Icon className="size-4" />
+              {text}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button ref={ref} variant="outline" size={size} loading={loading} disabled={disabled} className={cn(className)}>
-          <Download className="size-4" />
-          {label ?? t("common.export", "Export")}
-          <ChevronDown className="size-3.5" />
-        </Button>
-      </DropdownMenuTrigger>
+      {trigger}
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => run(onExport)}>{excelLabel ?? t("common.exportExcel", "Export Excel")}</DropdownMenuItem>
+        <DropdownMenuLabel>{t("common.exportFormat.label", "Format")}</DropdownMenuLabel>
+        <DropdownMenuRadioGroup value={format} onValueChange={(v) => setFormat(v as ExportFormat)}>
+          {formats.map(({ value, label: text }) => (
+            // Choosing a format keeps the menu open: the file is picked next.
+            <DropdownMenuRadioItem key={value} value={value} onSelect={(e) => e.preventDefault()}>
+              {text}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => run(onExport)}>
+          {format === "pdf" ? <FileText className="size-4" /> : <FileSpreadsheet className="size-4" />}
+          {excelLabel ?? t("common.exportFile", "Export")}
+        </DropdownMenuItem>
         {onExportCsv ? (
-          <DropdownMenuItem onSelect={() => run(onExportCsv)}>{t("common.exportCsv", "Export CSV")}</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => run(onExportCsv)}>
+            <FileText className="size-4" />
+            {t("common.exportCsv", "Export CSV")}
+          </DropdownMenuItem>
         ) : null}
         {more?.length ? (
           <>

@@ -692,6 +692,8 @@ export const getCreateDiscountResponseMock = (overrideResponse: Partial<Extract<
 
 export const getUpdateDiscountResponseMock = (overrideResponse: Partial<Extract<Discount, object>> = {}): Discount => ({created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', dtype: faker.string.alpha({length: {min: 10, max: 20}}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), name: faker.string.alpha({length: {min: 10, max: 20}}), name_translations: {}, org_id: faker.string.uuid(), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', value: faker.number.int(), value_rate: faker.helpers.arrayElement([faker.number.float({fractionDigits: 2}), undefined]), ...overrideResponse})
 
+export const getRenderPdfResponseMock = (): ArrayBuffer => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => (faker.number.int({min: 0}))))
+
 export const getSaveLayoutResponseTableBookingHintMock = (overrideResponse: Partial<TableBookingHint> = {}): TableBookingHint => ({...{booking_id: faker.string.uuid(), ends_at: faker.date.past().toISOString().slice(0, 19) + 'Z', guest_name: faker.string.alpha({length: {min: 10, max: 20}}), held_from: faker.date.past().toISOString().slice(0, 19) + 'Z', party_size: faker.number.int(), starts_at: faker.date.past().toISOString().slice(0, 19) + 'Z', status: faker.string.alpha({length: {min: 10, max: 20}})}, ...overrideResponse});
 
 export const getSaveLayoutResponseMock = (): FloorTable[] => (Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({branch_id: faker.string.uuid(), created_at: faker.date.past().toISOString().slice(0, 19) + 'Z', height: faker.number.float({fractionDigits: 2}), id: faker.string.uuid(), is_active: faker.datatype.boolean(), label: faker.string.alpha({length: {min: 10, max: 20}}), next_booking: faker.helpers.arrayElement([faker.helpers.arrayElement([null,{...getSaveLayoutResponseTableBookingHintMock()},]), undefined]), org_id: faker.string.uuid(), party_size: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int(), null]), undefined]), pos_x: faker.number.float({fractionDigits: 2}), pos_y: faker.number.float({fractionDigits: 2}), rotation: faker.number.float({fractionDigits: 2}), seated_at: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]), undefined]), seats: faker.number.int(), section_id: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), shape: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), updated_at: faker.date.past().toISOString().slice(0, 19) + 'Z', width: faker.number.float({fractionDigits: 2})})))
@@ -3411,6 +3413,22 @@ export const getUpdateDiscountMockHandler = (overrideResponse?: Discount | ((inf
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getUpdateDiscountResponseMock(),
       { status: 200
+      })
+  }, options)
+}
+
+export const getRenderPdfMockHandler = (overrideResponse?: ArrayBuffer | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ArrayBuffer> | ArrayBuffer), options?: RequestHandlerOptions) => {
+  return http.post('*/exports/pdf', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+  const binaryBody = overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getRenderPdfResponseMock();
+    return HttpResponse.arrayBuffer(
+      binaryBody instanceof ArrayBuffer
+        ? binaryBody
+        : new ArrayBuffer(0),
+      { status: 200,
+        headers: { 'Content-Type': 'application/pdf' }
       })
   }, options)
 }
@@ -9914,6 +9932,7 @@ export const getMadarAPIMock = () => [
   getCreateDiscountMockHandler(),
   getDeleteDiscountMockHandler(),
   getUpdateDiscountMockHandler(),
+  getRenderPdfMockHandler(),
   getSaveLayoutMockHandler(),
   getListSectionsMockHandler(),
   getCreateSectionMockHandler(),

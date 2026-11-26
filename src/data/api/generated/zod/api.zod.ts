@@ -5083,6 +5083,44 @@ export const UpdateDiscountResponse = zod.object({
 })
 
 
+/**
+ * @summary Print a dashboard's export as a PDF.
+ */
+export const RenderPdfBody = zod.object({
+  "filename": zod.string().describe('The file\'s name without its extension (`Madar-Recipes-2026-11-26`).'),
+  "rtl": zod.boolean().optional().describe('Arabic: the pages run right to left.'),
+  "sheets": zod.array(zod.object({
+  "blocks": zod.array(zod.union([zod.object({
+  "kind": zod.enum(['group']),
+  "text": zod.string()
+}).describe('A band naming what the tables under it belong to (a category).'),zod.object({
+  "caption": zod.string().nullish().describe('A wrapped line under the table (how it\'s made).'),
+  "columns": zod.array(zod.object({
+  "align": zod.enum(['start', 'center', 'end']).optional().describe('Where a value sits in its cell. `start` is the reading side (left in\nEnglish, right in Arabic).'),
+  "header": zod.string(),
+  "width": zod.number()
+}).describe('A column: its header, its width relative to the others (a spreadsheet\ncolumn\'s width), and how its values sit.')),
+  "footer": zod.array(zod.array(zod.string())).optional().describe('Bold rows ruled off under the body (a recipe\'s cost, price, food cost).'),
+  "note": zod.string().nullish().describe('Muted words after the title.'),
+  "rows": zod.array(zod.array(zod.string())).optional(),
+  "title": zod.string().nullish(),
+  "totals": zod.array(zod.string()).nullish().describe('An ink band under the body (a list\'s totals).')
+}).describe('A table, with an optional title above it.').and(zod.object({
+  "kind": zod.enum(['table'])
+})).describe('A table, with an optional title above it.')]).describe('What a sheet is made of, top to bottom.')),
+  "landscape": zod.boolean().optional().describe('Wide tables print across the page.'),
+  "stats": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+}).describe('A figure above the tables.')).optional(),
+  "subtitle": zod.string().optional().describe('The line under the banner (filters, when it was made).'),
+  "title": zod.string()
+}).describe('One sheet of the workbook, printed from a new page.'))
+}).describe('A document to print, every value already in words.')
+
+export const RenderPdfResponse = zod.unknown()
+
+
 export const SaveLayoutBody = zod.object({
   "branch_id": zod.uuid(),
   "tables": zod.array(zod.object({

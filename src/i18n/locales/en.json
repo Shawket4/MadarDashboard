@@ -123,7 +123,15 @@
     "searchTimezone": "Search timezones…",
     "selectTimezone": "Select timezone…",
     "listSeparator": ", ",
-    "atMostChars": "At most {{n}} characters"
+    "atMostChars": "At most {{n}} characters",
+    "exportMenu": "Export",
+    "exportFile": "Export",
+    "exportFormat": {
+      "label": "Format",
+      "as": "Export as",
+      "excel": "Excel",
+      "pdf": "PDF"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -1203,9 +1211,9 @@
     "title": "Recipes",
     "cardsTitle": "Recipe cards",
     "exportMenu": "Export",
-    "menuExcel": "Menu (Excel)",
-    "exportRecipes": "Recipes with costs (Excel)",
-    "exportCards": "Recipe cards, no costs (Excel)",
+    "menuExcel": "Menu",
+    "exportRecipes": "Recipes with costs",
+    "exportCards": "Recipe cards, no costs",
     "exportCsv": "Recipe lines (CSV)",
     "done_one": "Exported {{count}} recipe",
     "done_other": "Exported {{count}} recipes",
@@ -2352,7 +2360,8 @@
     "failed": "Export failed",
     "nothingToExport": "Nothing to export",
     "generated": "Generated",
-    "totals": "TOTALS"
+    "totals": "TOTALS",
+    "generatingPdf": "Generating PDF…"
   },
   "errors": {
     "sessionExpired": "Your session has expired. Please sign in again.",
